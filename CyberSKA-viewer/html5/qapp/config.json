@@ -1,0 +1,129 @@
+{
+    "name": "qapp",
+
+    "include": [
+        {
+            "path": "${QOOXDOO_PATH}/tool/data/config/application.json"
+        },
+        {
+            "path": "image.json"
+        },
+        {
+            "path": "${QOOXDOO_PATH}/tool/data/config/image.json",
+            "as": "image"
+        }
+    ],
+
+    "export": [
+        "api",
+        "api-data",
+        "build",
+        "clean",
+        "distclean",
+        "fix",
+        "info",
+        "inspector",
+        "lint",
+        "migration",
+        "pretty",
+        "profiling",
+        "source",
+        "source-all",
+        "source-hybrid",
+        "source-server",
+        "source-server-reload",
+        "source-httpd-config",
+        "simulation-build",
+        "simulation-run",
+        "test",
+        "test-source",
+        "translation",
+        "validate-config",
+        "validate-manifest",
+        "watch",
+        "build-resources",
+        "image-combine-b64",
+        "all"
+    ],
+
+    "default-job": "all",
+
+    "let": {
+        "APPLICATION": "qapp",
+        "QOOXDOO_PATH": "../thirdParty/qooxdoo-3.0.1-sdk",
+        "QXTHEME": "qapp.theme.Theme",
+        "API_EXCLUDE": ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
+        "LOCALES": [ "en" ],
+        "CACHE": "${TMPDIR}/qx${QOOXDOO_VERSION}/cache",
+        "ROOT": "."
+    },
+
+    // You only need to edit the remainder of this file, if you want to customize
+    // specific jobs, or add own job definitions.
+
+    "jobs": {
+        "build-script": {
+            "compile-options": {
+                "uris": {
+                    "script": "qapp/build/script",
+                    "resource": "qapp/build/resource",
+                    "add-nocache-param": true
+                },
+                "code": {
+                    "decode-uris-plug": "customuris.js"
+                }
+            }
+        },
+
+        "source-script": {
+            "compile-options": {
+                "paths": {
+                    "app-root": ".."
+                },
+                "uris": {
+                    "add-nocache-param": true
+                },
+                "code": {
+                    "decode-uris-plug": "customuris.js"
+                }
+
+            }
+        },
+
+        "common": {
+            "environment": {
+                "qx.nativeScrollBars": true,
+                "qx.emulatemouse": false
+            }
+        },
+
+        "image-combine" :
+        {
+            "extend" : ["image::combining"]
+        },
+
+        "all" :
+        {
+            "run" :
+                [
+                    "build-resources",
+                    "image-combine-b64",
+                    "source",
+                    "build"
+                ]
+        }
+
+    },
+
+    "config-warnings": {
+        "job-shadowing": [
+            "build-script",
+            "source-script",
+            "common",
+            "image-combine"
+        ],
+
+        "environment": [ "non-literal-keys" ]
+    }
+
+}

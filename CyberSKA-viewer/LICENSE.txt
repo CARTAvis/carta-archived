@@ -1,0 +1,4 @@
+/**
+ * This is the license for the CyberSKA image viewer.
+ *
+ **/

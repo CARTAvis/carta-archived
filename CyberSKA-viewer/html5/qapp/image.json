@@ -1,0 +1,145 @@
+{
+    // IMAGE CLIPPING AND COMBINING JOBS
+
+    "let" :
+    {
+        "RESPATH" : "./source/resource",
+        "BUILDPATH" : "./build/resource",
+        "QXRESPATH" : "${QOOXDOO_PATH}/framework/source/resource",
+        "CACHE"   : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache"
+    },
+
+    "jobs" :
+    {
+        "image-combine-b64" :
+        {
+            "desc" : "Try to combine all images into base64",
+
+            "cache" :
+            {
+                "compile" : "${CACHE}"
+            },
+
+            "combine-images" :
+            {
+                "images" :
+                {
+                    "${RESPATH}/qapp/allImages.b64.json" :
+                    {
+                        "prefix": [ "${RESPATH}" ],
+                        "type"  : "base64",
+                        "input" :
+                            [
+                                {
+                                    "prefix": [ "./build/resource" ],
+                                    "files" :
+                                        [
+                                            "./build/resource/qx/static/blank.gif",
+                                            "./build/resource/qx/decoration/Modern/scrollbar/scrollbar-left.png",
+                                            "./build/resource/qx/decoration/Modern/scrollbar/scrollbar-up.png",
+                                            "./build/resource/qx/decoration/Modern/scrollbar/scrollbar-right.png",
+                                            "./build/resource/qx/decoration/Modern/scrollbar/scrollbar-down.png",
+                                            "./build/resource/qx/decoration/Modern/table/descending.png",
+                                            "./build/resource/qx/decoration/Modern/table/select-column-order.png",
+                                            "./build/resource/qx/decoration/Modern/table/boolean-false.png",
+                                            "./build/resource/qx/decoration/Modern/table/ascending.png",
+                                            "./build/resource/qx/decoration/Modern/table/boolean-true.png",
+                                            "./build/resource/qx/decoration/Modern/cursors/alias.gif",
+                                            "./build/resource/qx/decoration/Modern/cursors/copy.gif",
+                                            "./build/resource/qx/decoration/Modern/cursors/move.gif",
+                                            "./build/resource/qx/decoration/Modern/cursors/nodrop.gif",
+                                            "./build/resource/qx/decoration/Modern/cursors-combined.gif",
+                                            "./build/resource/qx/decoration/Modern/toolbar/toolbar-part.gif",
+                                            "./build/resource/qx/decoration/Modern/toolbar/toolbar-handle-knob.gif",
+                                            "./build/resource/qx/decoration/Modern/scrollbar-combined.png",
+                                            "./build/resource/qx/decoration/Modern/window/minimize-inactive.png",
+                                            "./build/resource/qx/decoration/Modern/window/restore-active-hovered.png",
+                                            "./build/resource/qx/decoration/Modern/window/maximize-inactive.png",
+                                            "./build/resource/qx/decoration/Modern/window/close-active-hovered.png",
+                                            "./build/resource/qx/decoration/Modern/window/maximize-active-hovered.png",
+                                            "./build/resource/qx/decoration/Modern/window/minimize-active.png",
+                                            "./build/resource/qx/decoration/Modern/window/maximize-active.png",
+                                            "./build/resource/qx/decoration/Modern/window/close-active.png",
+                                            "./build/resource/qx/decoration/Modern/window/restore-inactive.png",
+                                            "./build/resource/qx/decoration/Modern/window/close-inactive.png",
+                                            "./build/resource/qx/decoration/Modern/window/restore-active.png",
+                                            "./build/resource/qx/decoration/Modern/window/minimize-active-hovered.png",
+                                            "./build/resource/qx/decoration/Modern/tree/open-selected.png",
+                                            "./build/resource/qx/decoration/Modern/tree/closed.png",
+                                            "./build/resource/qx/decoration/Modern/tree/closed-selected.png",
+                                            "./build/resource/qx/decoration/Modern/tree/open.png",
+                                            "./build/resource/qx/decoration/Modern/table-combined.png",
+                                            "./build/resource/qx/decoration/Modern/menu/checkbox-invert.gif",
+                                            "./build/resource/qx/decoration/Modern/menu/radiobutton-invert.gif",
+                                            "./build/resource/qx/decoration/Modern/menu/checkbox.gif",
+                                            "./build/resource/qx/decoration/Modern/menu/radiobutton.gif",
+                                            "./build/resource/qx/decoration/Modern/splitpane-knobs-combined.png",
+                                            "./build/resource/qx/decoration/Modern/splitpane/knob-horizontal.png",
+                                            "./build/resource/qx/decoration/Modern/splitpane/knob-vertical.png",
+                                            "./build/resource/qx/decoration/Modern/form/undetermined.png",
+                                            "./build/resource/qx/decoration/Modern/form/tooltip-error-arrow-right.png",
+                                            "./build/resource/qx/decoration/Modern/form/tooltip-error-arrow.png",
+                                            "./build/resource/qx/decoration/Modern/form/checked.png",
+                                            "./build/resource/qx/decoration/Modern/menu-checkradio-combined.gif",
+                                            "./build/resource/qx/decoration/Modern/arrows-combined.png",
+                                            "./build/resource/qx/decoration/Modern/colorselector-combined.gif",
+                                            "./build/resource/qx/decoration/Modern/window-captionbar-buttons-combined.png",
+                                            "./build/resource/qx/decoration/Modern/tree-combined.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/forward.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/up-small.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/up-invert.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/right-invert.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/rewind.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/right.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/down-small.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/left.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/down-invert.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/up.png",
+                                            "./build/resource/qx/decoration/Modern/arrows/down.png",
+                                            "./build/resource/qx/decoration/Modern/colorselector/huesaturation-handle.gif",
+                                            "./build/resource/qx/decoration/Modern/colorselector/brightness-field.png",
+                                            "./build/resource/qx/decoration/Modern/colorselector/brightness-handle.gif",
+                                            "./build/resource/qx/decoration/Modern/colorselector/huesaturation-field.jpg",
+                                            "./build/resource/qx/icon/Tango/22/places/folder-open.png",
+                                            "./build/resource/qx/icon/Tango/22/places/folder.png",
+                                            "./build/resource/qx/icon/Tango/22/mimetypes/office-document.png",
+                                            "./build/resource/qx/icon/Tango/16/apps/utilities-color-chooser.png",
+                                            "./build/resource/qx/icon/Tango/16/apps/office-calendar.png",
+                                            "./build/resource/qx/icon/Tango/16/actions/view-refresh.png",
+                                            "./build/resource/qx/icon/Tango/16/actions/dialog-cancel.png",
+                                            "./build/resource/qx/icon/Tango/16/actions/window-close.png",
+                                            "./build/resource/qx/icon/Tango/16/actions/dialog-ok.png",
+                                            "./build/resource/qx/icon/Tango/16/places/folder-open.png",
+                                            "./build/resource/qx/icon/Tango/16/places/folder.png",
+                                            "./build/resource/qx/icon/Tango/16/mimetypes/office-document.png",
+                                            "./build/resource/qx/icon/Tango/32/places/folder-open.png",
+                                            "./build/resource/qx/icon/Tango/32/places/folder.png",
+                                            "./build/resource/qx/icon/Tango/32/mimetypes/office-document.png",
+                                            "./build/resource/qapp/icons/histogram16.png",
+                                            "./build/resource/qapp/icons/movie16.png",
+                                            "./build/resource/qapp/icons/rock-and-roll16.png",
+                                            "./build/resource/qapp/icons/colormap16.png",
+                                            "./build/resource/qapp/icons/movie-play-reverse16.png",
+                                            "./build/resource/qapp/icons/splash1smaller.jpg",
+                                            "./build/resource/qapp/icons/pin12.png",
+                                            "./build/resource/qapp/icons/pin12off.png",
+                                            "./build/resource/qapp/icons/movie-stop16.png",
+                                            "./build/resource/qapp/icons/movie-play16.png",
+                                            "./build/resource/qapp/icons/movie-next-frame16.png",
+                                            "./build/resource/qapp/icons/splash1.jpg",
+                                            "./build/resource/qapp/icons/swheel12.png",
+                                            "./build/resource/qapp/icons/movie-previous-frame16.png",
+                                            "./build/resource/qapp/icons/graph.png",
+                                            "./build/resource/qapp/icons/toggle-off-8.png",
+                                            "./build/resource/qapp/icons/toggle-on-8.png"
+                                        ]
+                                }
+
+                            ],
+                        "layout" : "horizontal"
+                    }
+                }
+            }
+        }
+    }
+}

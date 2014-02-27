@@ -1,0 +1,95 @@
+{
+    // IMAGE CLIPPING AND COMBINING JOBS
+
+    "let" :
+    {
+        "RESPATH" : "./source/resource",
+        "BUILDPATH" : "./build/resource",
+        "QXRESPATH" : "${QOOXDOO_PATH}/framework/source/resource",
+        "CACHE"   : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache"
+    },
+
+    "jobs" :
+    {
+        "image-combine-b64" :
+        {
+            "desc" : "Combined image base64 encoded",
+
+            "cache" :
+            {
+                "compile" : "${CACHE}"
+            },
+
+            "combine-images" :
+            {
+                "images" :
+                {
+                    "${RESPATH}/qapp/images/combined/splash.b64.json" :
+                    {
+                        "prefix": [ "${RESPATH}" ],
+                        "type"  : "base64",
+                        "input" :
+                            [
+                                {
+                                    "prefix": [ "${RESPATH}" ],
+                                    "files" :
+                                        [
+                                            "${RESPATH}/qapp/icons/histogram16.png",
+                                            "${RESPATH}/qapp/icons/movie16.png",
+                                            "${RESPATH}/qapp/icons/rock-and-roll16.png",
+                                            "${RESPATH}/qapp/icons/colormap16.png",
+                                            "${RESPATH}/qapp/icons/movie-play-reverse16.png",
+                                            "${RESPATH}/qapp/icons/splash1smaller.jpg",
+                                            "${RESPATH}/qapp/icons/pin12.png",
+                                            "${RESPATH}/qapp/icons/movie-stop16.png",
+                                            "${RESPATH}/qapp/icons/movie-play16.png",
+                                            "${RESPATH}/qapp/icons/movie-next-frame16.png",
+                                            "${RESPATH}/qapp/icons/splash1.jpg",
+                                            "${RESPATH}/qapp/icons/swheel12.png",
+                                            "${RESPATH}/qapp/icons/movie-previous-frame16.png"
+                                        ]
+                                }
+/*
+                                ,
+                                {
+                                    "prefix": [ "${QXRESPATH}" ],
+                                    "files" :
+                                        [
+                                            "${QXRESPATH}/qx/decoration/Modern/colorselector/huesaturation-field.jpg",
+                                            "${QXRESPATH}/qx/static/blank.gif",
+                                            "${QXRESPATH}/qx/decoration/Modern/toolbar/toolbar-part.gif",
+                                            "${QXRESPATH}/qx/decoration/Modern/window-captionbar-buttons-combined.png"
+                                        ]
+                                }
+*/
+
+                            ],
+                        "layout" : "vertical"
+                    },
+
+                    "${RESPATH}/qx/images/combined/other.b64.json" :
+                    {
+                        "prefix": [ "${RESPATH}" ],
+                        "type"  : "base64",
+                        "input" :
+                            [
+                                {
+                                    "prefix": [ "${QXRESPATH}" ],
+                                    "files" :
+                                        [
+                                            "${QXRESPATH}/qx/decoration/Modern/colorselector/huesaturation-field.jpg",
+                                            "${QXRESPATH}/qx/static/blank.gif",
+                                            "${QXRESPATH}/qx/decoration/Modern/toolbar/toolbar-part.gif",
+                                            "${QXRESPATH}/qx/decoration/Modern/toolbar/toolbar-handle-knob.gif",
+                                            "${QXRESPATH}/qx/decoration/Modern/window-captionbar-buttons-combined.png",
+                                            "${QXRESPATH}/qx/decoration/Modern/colorselector/brightness-field.png"
+                                        ]
+                                }
+                            ]
+
+                    }
+                }
+            }
+        }
+    }
+}
