@@ -7,12 +7,10 @@ CONFIG += qt
 QT += widgets
 
 HEADERS       = \
-    MyView.h \
     ServerPlatform.h \
     ServerConnector.h
 
 SOURCES       = \
-    MyView.cpp \
     ServerPlatform.cpp \
     ServerConnector.cpp \
     serverMain.cpp
