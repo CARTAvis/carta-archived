@@ -16,12 +16,29 @@ class MainWindow : public QMainWindow
     Q_PROPERTY(QImage img READ getImg)
 
 public:
-    MainWindow(const QUrl& url);
+    /// constructor initializes the GUI
+    MainWindow();
+
+    /// loads the given url
+    void loadUrl(const QUrl & url);
+
+    /// adds the given QObject to javascript exports
+    /// these will be exported automatically on page reload
+    /// so call this before calling loadUrl()
+    void exportToJs( const QString & name, QObject * objPtr);
+
     const QImage & getImg() const;
+
+signals:
 
 public slots:
     void dbg( const QString & str);
     void makeNextImage( const QString & str);
+
+protected:
+    Q_INVOKABLE QString getState( const QString & key) {
+        return QString( "ok " + key + ".");
+    }
 
 protected slots:
 
@@ -30,21 +47,16 @@ protected slots:
     void adjustTitle();
     void setProgress(int p);
     void finishLoading(bool);
-
-//    void viewSource();
-//    void slotSourceDownloaded();
-
     void showJsConsole();
-
     void addToJavaScript();
 
-
 private:
-    QWebView *view;
-    QLineEdit *locationEdit;
-    int progress;
+    QWebView * m_view;
+    QLineEdit * m_locationEdit;
+    int m_progress;
     QImage m_img;
     QWebInspector * m_inspector; // = nullptr;
+    std::vector< std::pair< QString, QObject *> > m_jsExports;
 };
 
 #endif

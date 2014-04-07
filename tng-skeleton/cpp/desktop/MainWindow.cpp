@@ -1,57 +1,67 @@
 #include "MainWindow.h"
 #include "CustomWebPage.h"
+#include "common/misc.h"
 #include <QtWidgets>
-#include <QtNetwork>
+//#include <QtNetwork>
 #include <QtWebKitWidgets>
 #include <iostream>
 #include <QWebInspector>
 
-MainWindow::MainWindow(const QUrl& url)
+MainWindow::MainWindow( )
 {
-    progress = 0;
+    m_progress = 0;
 
-    QNetworkProxyFactory::setUseSystemConfiguration(true);
+//    QNetworkProxyFactory::setUseSystemConfiguration(true);
 
-    view = new QWebView(this);
-    view-> setPage( new CustomWebPage(this));
-    view->load(url);
-    connect(view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
-    connect(view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
-    connect(view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
-    connect(view, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
+    m_view = new QWebView(this);
+    m_view-> setPage( new CustomWebPage(this));
+    connect(m_view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
+    connect(m_view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
+    connect(m_view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
+    connect(m_view, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
 
-    locationEdit = new QLineEdit(this);
-    locationEdit->setSizePolicy(QSizePolicy::Expanding, locationEdit->sizePolicy().verticalPolicy());
-    connect(locationEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
+    m_locationEdit = new QLineEdit(this);
+    m_locationEdit->setSizePolicy(QSizePolicy::Expanding, m_locationEdit->sizePolicy().verticalPolicy());
+    connect(m_locationEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
 
     QToolBar *toolBar = addToolBar(tr("Navigation"));
-    toolBar->addAction(view->pageAction(QWebPage::Back));
-    toolBar->addAction(view->pageAction(QWebPage::Forward));
-    toolBar->addAction(view->pageAction(QWebPage::Reload));
+    toolBar->addAction(m_view->pageAction(QWebPage::Back));
+    toolBar->addAction(m_view->pageAction(QWebPage::Forward));
+    toolBar->addAction(m_view->pageAction(QWebPage::Reload));
     toolBar->addAction(QIcon("://icons/inspector.png"), "Inspector", this, SLOT(showJsConsole()));
-    toolBar->addWidget(locationEdit);
+    toolBar->addWidget(m_locationEdit);
 
     m_inspector = new QWebInspector( nullptr);
-    m_inspector-> setPage( view-> page());
+    m_inspector-> setPage( m_view-> page());
     m_inspector-> resize( 800, 600);
-//    m_inspector-> setVisible(true);
-
-//    QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
-//    QAction* viewSourceAction = new QAction("Page Source", this);
-//    connect(viewSourceAction, SIGNAL(triggered()), SLOT(viewSource()));
-//    viewMenu->addAction(viewSourceAction);
 
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
     toolsMenu->addAction(tr("Show JS Console"), this, SLOT(showJsConsole()));
 
-    setCentralWidget(view);
+    setCentralWidget(m_view);
     setUnifiedTitleAndToolBarOnMac(true);
 
-    connect(view->page()->mainFrame(),
-            SIGNAL(javaScriptWindowObjectCleared()), SLOT(addToJavaScript()));
+//    connect(m_view->page()->mainFrame(),
+//            SIGNAL(javaScriptWindowObjectCleared()), SLOT(addToJavaScript()));
+    connect( m_view->page()->mainFrame(),
+             & QWebFrame::javaScriptWindowObjectCleared,
+             this,
+             & MainWindow::addToJavaScript );
 
     m_img = QImage( 500, 500, QImage::Format_RGB888);
 
+}
+
+void MainWindow::loadUrl(const QUrl & url)
+{
+    m_view-> load( url );
+}
+
+void MainWindow::exportToJs(const QString &name, QObject *objPtr)
+{
+    m_jsExports.push_back( std::make_pair( name, objPtr));
+
+//    m_view->page()->mainFrame()->addToJavaScriptWindowObject( name, objPtr);
 }
 
 const QImage & MainWindow::getImg() const {
@@ -72,53 +82,35 @@ void MainWindow::makeNextImage(const QString &str)
     p.drawText( m_img.rect(), Qt::AlignCenter, str);
 }
 
-//void MainWindow::viewSource()
-//{
-//    QNetworkAccessManager* accessManager = view->page()->networkAccessManager();
-//    QNetworkRequest request(view->url());
-//    QNetworkReply* reply = accessManager->get(request);
-//    connect(reply, SIGNAL(finished()), this, SLOT(slotSourceDownloaded()));
-//}
-
-//void MainWindow::slotSourceDownloaded()
-//{
-//    QNetworkReply* reply = qobject_cast<QNetworkReply*>(const_cast<QObject*>(sender()));
-//    QTextEdit* textEdit = new QTextEdit( NULL);
-//    textEdit->setAttribute(Qt::WA_DeleteOnClose);
-//    textEdit->show();
-//    textEdit->setPlainText(reply->readAll());
-//    reply->deleteLater();
-//}
-
 void MainWindow::adjustLocation()
 {
-    locationEdit->setText(view->url().toString());
+    m_locationEdit->setText(m_view->url().toString());
 }
 
 void MainWindow::changeLocation()
 {
-    QUrl url = QUrl::fromUserInput(locationEdit->text());
-    view->load(url);
-    view->setFocus();
+    QUrl url = QUrl::fromUserInput(m_locationEdit->text());
+    m_view->load(url);
+    m_view->setFocus();
 }
 
 void MainWindow::adjustTitle()
 {
-    if (progress <= 0 || progress >= 100)
-        setWindowTitle(view->title());
+    if (m_progress <= 0 || m_progress >= 100)
+        setWindowTitle(m_view->title());
     else
-        setWindowTitle(QString("%1 (%2%)").arg(view->title()).arg(progress));
+        setWindowTitle(QString("%1 (%2%)").arg(m_view->title()).arg(m_progress));
 }
 
 void MainWindow::setProgress(int p)
 {
-    progress = p;
+    m_progress = p;
     adjustTitle();
 }
 
 void MainWindow::finishLoading(bool)
 {
-    progress = 100;
+    m_progress = 100;
     adjustTitle();
 //    view->page()->mainFrame()->evaluateJavaScript( "alert('page loaded');");
     statusBar()-> showMessage( "Page loaded");
@@ -127,13 +119,21 @@ void MainWindow::finishLoading(bool)
 
 void MainWindow::showJsConsole()
 {
-    m_inspector-> setVisible( true);
+//    m_inspector-> setVisible( true);
+    m_inspector-> setVisible( ! m_inspector-> isVisible());
 }
 
+// this is called when the global object in javascript is cleared
+// we use it to add a bridge to C++
 void MainWindow::addToJavaScript()
 {
-    view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
+//    m_view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
+
+    for( auto & entry : m_jsExports ) {
+        std::cerr << "Exporting " << entry.first << "\n";
+        m_view->page()->mainFrame()->addToJavaScriptWindowObject(
+                    entry.first, entry.second);
+//        m_view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
+    }
+
 }
-
-//! [9]
-

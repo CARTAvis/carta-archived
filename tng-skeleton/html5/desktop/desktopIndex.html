@@ -6,16 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>TNG skeleton</title>
 
-    <!--<base href="/Apps/tng-skeleton/html5.link/"/>-->
-    <!--<base href="qrc:///"/>-->
-    <!--<link rel="stylesheet" href="html5common.link/thirdParty/jquery-ui-1.10.3.css"/>-->
-    <!--<link rel="stylesheet" href="html5common.link/main.css"/>-->
-    <!--<script src="html5common.link/thirdParty/jquery-1.9.1.js"></script>-->
-    <!--<script src="html5common.link/thirdParty/jquery-ui-1.10.3.js"></script>-->
-    <!--<script src="html5common.link/thirdParty/jquery.layout-1.3.0.js"></script>-->
-    <!--<script src="html5common.link/libs.js"></script>-->
-    <!--<script src="html5desktop.link/desktopConnector.js"></script>-->
-    <!--<script src="html5desktop.link/desktopMain.js"></script>-->
     <base href="qrc:///html5/"/>
     <link rel="stylesheet" href="common/thirdParty/jquery-ui-1.10.3.css"/>
     <link rel="stylesheet" href="common/main.css"/>
@@ -24,7 +14,7 @@
     <script src="common/thirdParty/jquery.layout-1.3.0.js"></script>
     <script src="common/libs.js"></script>
     <script src="desktop/desktopConnector.js"></script>
-    <script src="desktop/desktopMain.js"></script>
+    <script src="common/main.js"></script>
 </head>
 <body onLoad="onLoadCB();">
 
@@ -62,8 +52,7 @@
 </div>
 <div class="ui-layout-west">
     <!--<div id="pwDiagnosticsPanel"></div>-->
-    <canvas id="cvs2" width="100" height="100"></canvas>
-    <img id="mimg" />
+    <div id="ccon1" style="height: 500px;width: 100%;"></div>
 </div>
 
 </body>

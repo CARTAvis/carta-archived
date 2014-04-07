@@ -141,7 +141,11 @@ function setStateSize( num )
 {
     if( glob.usedUpVarCount > num ) {
 //        connector.clearState( glob.varPrefix);
-        pureweb.getFramework().getState().getStateManager().deleteTree( glob.varPrefix );
+        if( window.pureweb) {
+            pureweb.getFramework().getState().getStateManager().deleteTree( glob.varPrefix );
+        } else {
+//            QtConnector.
+        }
         glob.usedUpVarCount = 0;
     }
     while( glob.usedUpVarCount < num ) {
@@ -486,7 +490,7 @@ var sendPing = (function()
 //        connector.setState(glob.varPrefix + "/ping", uniquePingId);
         connector.getSharedVar( glob.varPrefix + "/ping" ).set( uniquePingId );
         uniquePingId ++;
-    }
+    };
 })();
 
 // setup various things when document is loaded

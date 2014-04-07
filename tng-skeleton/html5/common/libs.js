@@ -18,6 +18,10 @@
     };
 
     window.mImport = function( name) {
+        var res = m_cache[name];
+        if( res === undefined) {
+            console.warn( "mImport: '" + name + "' not available!");
+        }
         return m_cache[name];
     };
 

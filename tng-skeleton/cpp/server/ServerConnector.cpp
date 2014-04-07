@@ -28,10 +28,10 @@ ServerConnector::ServerConnector(int argc, char **argv)
         m_startServer = true;
     }
 
-    connect( this, & ServerConnector::delayedInternalValueChangedSignal,
-             this, & ServerConnector::delayedInternalValueChangedCB,
-             Qt::QueuedConnection
-             );
+    connect( this, &ServerConnector::delayedInternalValueChangedSignal,
+            this, &ServerConnector::delayedInternalValueChangedCB,
+            Qt::QueuedConnection
+            );
 }
 
 bool ServerConnector::initialize()
@@ -47,30 +47,30 @@ bool ServerConnector::initialize()
 
     if ( m_startServer) {
         m_stateManager->PluginManager().RegisterPlugin(
-                    "QtMessageTickler", new QtMessageTickler());
+                "QtMessageTickler", new QtMessageTickler());
         m_server->Start(m_stateManager.get());
         m_server->ShutdownRequested() += OnPureWebShutdown;
     }
 
     // register generic command listener
     CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
-                "generic", CSI::Bind( this, & ServerConnector::genericCommandListener));
+            "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
 
     return true;
-}
+} // initialize
 
 void ServerConnector::setState(const QString &path, const QString &value)
 {
     std::string pwpath = path.toStdString();
     std::string pwval = value.toStdString();
-    m_stateManager-> XmlStateManager().SetValue( pwpath, pwval);
+    m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
 }
 
 QString ServerConnector::getState(const QString &path)
 {
     std::string pwpath = path.toStdString();
-    auto pwval = m_stateManager-> XmlStateManager().GetValue( pwpath);
-    if( ! pwval.HasValue()) {
+    auto pwval = m_stateManager->XmlStateManager().GetValue( pwpath);
+    if( !pwval.HasValue()) {
         return QString();
     }
     std::string val = pwval.ValueOr( "").As<std::string>();
@@ -80,7 +80,7 @@ QString ServerConnector::getState(const QString &path)
 IConnector::CallbackID ServerConnector::addCommandCallback(const QString &cmd, const IConnector::CommandCallback &cb)
 {
     m_commandCallbackMap[cmd].push_back( cb);
-    return m_callbackNextId ++;
+    return m_callbackNextId++;
 }
 
 void ServerConnector::OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer &, CSI::EmptyEventArgs &)
@@ -112,9 +112,9 @@ IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, c
     // do we have a pureweb callback with this path registered already?
     // if not, register one
     if( m_pwStateCBset.count( path.toStdString()) == 0) {
-        m_stateManager-> XmlStateManager().AddValueChangedHandler(
-                    path.toStdString(),
-                    CSI::Bind(this, & ServerConnector::internalValueChangedCB));
+        m_stateManager->XmlStateManager().AddValueChangedHandler(
+                path.toStdString(),
+                CSI::Bind(this, &ServerConnector::internalValueChangedCB));
         m_pwStateCBset.insert( path.toStdString());
     }
 
@@ -122,12 +122,14 @@ IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, c
     m_stateCallbackList[path].push_back( cb);
 
     // return an incremented callback id
-    return m_callbackNextId ++;
+    return m_callbackNextId++;
 }
 
 // this is getting called directly by PureWeb, which means it could potentially
-// be called inside SetValue()... which is not what we want. So instead we do the
-// real work inside the delayed version (below), which we invoked by sending ourselves
+// be called inside SetValue()... which is not what we want. So instead we do
+// the
+// real work inside the delayed version (below), which we invoked by sending
+// ourselves
 // a signal connected via queued connection...
 void ServerConnector::internalValueChangedCB(const CSI::ValueChangedEventArgs &val)
 {
@@ -148,7 +150,7 @@ public:
 
     virtual void SetClientSize(CSI::PureWeb::Size clientSize) Q_DECL_OVERRIDE
     {
-        m_iview-> handleResizeRequest( QSize( clientSize.Width, clientSize.Height));
+        m_iview->handleResizeRequest( QSize( clientSize.Width, clientSize.Height));
     }
     virtual CSI::PureWeb::Size GetActualSize() Q_DECL_OVERRIDE
     {
@@ -169,9 +171,7 @@ public:
         }
     }
     virtual void PostKeyEvent(const CSI::PureWeb::Ui::PureWebKeyboardEventArgs & /*keyEvent*/) Q_DECL_OVERRIDE
-    {
-
-    }
+    {}
     virtual void PostMouseEvent(const CSI::PureWeb::Ui::PureWebMouseEventArgs & mouseEvent) Q_DECL_OVERRIDE
     {
         QEvent::Type action = QEvent::None;
@@ -181,45 +181,45 @@ public:
 
         switch(mouseEvent.EventType)
         {
-            case CSI::PureWeb::Ui::MouseEventType::MouseDown:
-                action = QEvent::MouseButtonPress;
-                break;
-            case CSI::PureWeb::Ui::MouseEventType::MouseUp:
-                action = QEvent::MouseButtonRelease;
-                break;
-            case CSI::PureWeb::Ui::MouseEventType::MouseMove:
-                action = QEvent::MouseMove;
-                break;
-            default:
-                return;
-                break;
+        case CSI::PureWeb::Ui::MouseEventType::MouseDown:
+            action = QEvent::MouseButtonPress;
+            break;
+        case CSI::PureWeb::Ui::MouseEventType::MouseUp:
+            action = QEvent::MouseButtonRelease;
+            break;
+        case CSI::PureWeb::Ui::MouseEventType::MouseMove:
+            action = QEvent::MouseMove;
+            break;
+        default:
+            return;
+            break;
         }
 
         switch (mouseEvent.ChangedButton)
         {
-            case CSI::PureWeb::Ui::MouseButtons::Left:
-                button = Qt::LeftButton;
-                break;
-            case CSI::PureWeb::Ui::MouseButtons::Right:
-                button = Qt::RightButton;
-                break;
-            default:
-                button = Qt::NoButton;
-                break;
+        case CSI::PureWeb::Ui::MouseButtons::Left:
+            button = Qt::LeftButton;
+            break;
+        case CSI::PureWeb::Ui::MouseButtons::Right:
+            button = Qt::RightButton;
+            break;
+        default:
+            button = Qt::NoButton;
+            break;
         }
 
-        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Shift))     keys |= Qt::ShiftModifier;
-        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Control))   keys |= Qt::ControlModifier;
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Left))     buttons |= Qt::LeftButton;
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Right))    buttons |= Qt::RightButton;
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Middle))   buttons |= Qt::MidButton;
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton1)) buttons |= Qt::XButton1;
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton2)) buttons |= Qt::XButton2;
+        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Shift)) {keys |= Qt::ShiftModifier; }
+        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Control)) {keys |= Qt::ControlModifier; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Left)) {buttons |= Qt::LeftButton; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Right)) {buttons |= Qt::RightButton; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Middle)) {buttons |= Qt::MidButton; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton1)) {buttons |= Qt::XButton1; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton2)) {buttons |= Qt::XButton2; }
 
         QMouseEvent * m = new QMouseEvent(action, QPoint(mouseEvent.X,mouseEvent.Y), button, buttons, keys);
-        m_iview->handleMouseEvent( * m );
+        m_iview->handleMouseEvent( *m );
         delete m;
-    }
+    } // PostMouseEvent
 
     IView * m_iview;
 };
@@ -231,29 +231,27 @@ void ServerConnector::registerView(IView *view)
     viewImageFormat.ScanLineOrder = CSI::PureWeb::ScanLineOrder::TopDown;
     viewImageFormat.Alignment = 4;
 
-    std::string vn = view-> name().toStdString();
+    std::string vn = view->name().toStdString();
     std::cerr << "vn = " << vn << "\n";
     std::cerr << "view =" << reinterpret_cast<uint64_t>(view) << "\n";
     std::cerr << "registering view '" << view->name() << "'\n";
     // TODO: resource leak
     PWIViewConverter * cvt = new PWIViewConverter( view);
 
-
-    m_stateManager-> ViewManager().RegisterView( view-> name().toStdString(), cvt);
-    m_stateManager-> ViewManager().SetViewImageFormat( view-> name().toStdString(), viewImageFormat);
+    m_stateManager->ViewManager().RegisterView( view->name().toStdString(), cvt);
+    m_stateManager->ViewManager().SetViewImageFormat( view->name().toStdString(), viewImageFormat);
 
     // register the view with this connector
-    view-> registration( this);
-}
-
+    view->registration( this);
+} // registerView
 
 void ServerConnector::refreshView(IView *view)
 {
-    m_stateManager-> ViewManager().RenderViewDeferred( view->name().toStdString());
+    m_stateManager->ViewManager().RenderViewDeferred( view->name().toStdString());
 }
 
-
-// this is dealyed pureweb callback, here we do the actual work of calling registered
+// this is dealyed pureweb callback, here we do the actual work of calling
+// registered
 // handlers
 void ServerConnector::delayedInternalValueChangedCB( CSI::ValueChangedEventArgs val)
 {
@@ -274,5 +272,3 @@ void ServerConnector::delayedInternalValueChangedCB( CSI::ValueChangedEventArgs 
 
 // required for queued connections
 Q_DECLARE_METATYPE( CSI::ValueChangedEventArgs )
-
-
