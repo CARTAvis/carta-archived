@@ -201,11 +201,9 @@ var IView = {};
 IView.setQuality = function( quality) {};
 
 /**
- * This needs to be called when the element associated with the view has been resized.
- * @param newWidth
- * @param newHeight
+ * This needs to be called when the container of the view was resized.
  */
-IView.elementResized = function( newWidth, newHeight) {};
+IView.updateSize = function() {};
 
 /**
  * Returns the name associated with this view.

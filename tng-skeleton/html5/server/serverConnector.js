@@ -98,7 +98,7 @@
         this.m_pwview.setEncoderConfiguration( ec );
         this.m_pwview.refresh();
     };
-    View.prototype.updateSize = function( newWidth, newHeight )
+    View.prototype.updateSize = function( )
     {
         this.m_pwview.resize();
     };
@@ -422,11 +422,6 @@
             console.log( "internal command Cb: ", caller, data);
             callback( data.getResponse());
         } );
-    };
-
-    connector.getViewElementInfo = function()
-    {
-
     };
 
 })();

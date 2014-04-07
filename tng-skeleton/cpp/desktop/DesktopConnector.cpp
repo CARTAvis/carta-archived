@@ -12,6 +12,8 @@ DesktopConnector::DesktopConnector()
     connect( this, & DesktopConnector::stateChangedSignal,
              this, & DesktopConnector::stateChangedSlot,
              Qt::QueuedConnection );
+
+    m_callbackNextId = 0;
 }
 
 bool DesktopConnector::initialize()
@@ -19,11 +21,16 @@ bool DesktopConnector::initialize()
     return true;
 }
 
-void DesktopConnector::setState(const QString & path, const QString & value)
+void DesktopConnector::setState(const QString & path, const QString & newValue)
 {
-    m_state[ path ] = value;
-    std::cerr << "CPP setState " << path << "=" << value << "\n";
-    emit stateChangedSignal( path, value);
+    QString oldVal = m_state[ path];
+    if( oldVal == newValue) {
+        // nothing to do
+        return;
+    }
+    m_state[ path ] = newValue;
+    std::cerr << "CPP setState " << path << "=" << newValue << "\n";
+    emit stateChangedSignal( path, newValue);
 }
 
 QString DesktopConnector::getState(const QString & path)
@@ -32,10 +39,11 @@ QString DesktopConnector::getState(const QString & path)
 }
 
 IConnector::CallbackID DesktopConnector::addCommandCallback(
-        const QString & /*cmd*/,
-        const IConnector::CommandCallback & /*cb*/)
+        const QString & cmd,
+        const IConnector::CommandCallback & cb)
 {
-    return 1;
+    m_commandCallbackMap[cmd].push_back( cb);
+    return m_callbackNextId++;
 }
 
 IConnector::CallbackID DesktopConnector::addStateCallback(
@@ -57,7 +65,18 @@ void DesktopConnector::refreshView(IView */*view*/)
 void DesktopConnector::jsSetStateSlot(const QString &key, const QString &value) {
     std::cerr << "jsSetState: " << key << "=" << value << "\n";
     setState( key, value);
-    emit stateChangedSignal( key, value);
+}
+
+void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+{
+    auto & allCallbacks = m_commandCallbackMap[ cmd];
+    QStringList results;
+    for( auto & cb : allCallbacks) {
+        results += cb( cmd, parameter, "1");
+    }
+    // tell javascript about result of the command
+    emit jsCommandResultsSignal( results.join("|"));
+
 }
 
 void DesktopConnector::stateChangedSlot(const QString &key, const QString &value)

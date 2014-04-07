@@ -1,3 +1,5 @@
+/*global performance, graph, mImport, mExport, $ */
+
 // global variables
 var glob = {
     varPrefix         : "/myVars",
@@ -9,8 +11,8 @@ var glob = {
 };
 
 // not all browsers have hig res performance timer...
-if( typeof performance === "undefined" ) {
-    performance = { now: Date.now.bind( Date ) };
+if( typeof window.performance === "undefined" ) {
+    window.performance = { now: Date.now.bind( Date ) };
 }
 
 var setZeroTimeout = mImport( "setZeroTimeout" );
@@ -19,6 +21,8 @@ var connector = mImport( "connector" );
 // dummy logger with time-diff prefix
 (function( scope )
 {
+    "use strict";
+
     var previousLogTime = performance.now();
 
     var scrollToBottomLater = (function()

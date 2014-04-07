@@ -2,7 +2,7 @@
 #include "CustomWebPage.h"
 #include "common/misc.h"
 #include <QtWidgets>
-//#include <QtNetwork>
+#include <QtNetwork>
 #include <QtWebKitWidgets>
 #include <iostream>
 #include <QWebInspector>
@@ -11,10 +11,10 @@ MainWindow::MainWindow( )
 {
     m_progress = 0;
 
-//    QNetworkProxyFactory::setUseSystemConfiguration(true);
+    QNetworkProxyFactory::setUseSystemConfiguration(true);
 
     m_view = new QWebView(this);
-    m_view-> setPage( new CustomWebPage(this));
+//    m_view-> setPage( new CustomWebPage(this));
     connect(m_view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
     connect(m_view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
     connect(m_view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));

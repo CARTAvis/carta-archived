@@ -4,6 +4,7 @@
 #include <QImage>
 #include <QColor>
 #include <QPainter>
+#include <cmath>
 
 class TestView : public IView
 {
@@ -101,6 +102,21 @@ void Viewer::start()
                   << " " << sessionId << "\n";
         return "1";
     });
+
+    // associate a callback for a command
+    connector->addCommandCallback( "add", [] (const QString & cmd, const QString & params, const QString & sessionId) -> QString {
+        std::cerr << "add command:\n"
+                  << params << "\n";
+        QStringList lst = params.split(" ");
+        double sum = 0;
+        for( auto & entry : lst){
+            bool ok;
+            sum += entry.toDouble( & ok);
+            if( ! ok) { sum = -1; break; }
+        }
+        return QString("add(%1)=%2").arg(params).arg(sum);
+    });
+
 
     connector-> addStateCallback( "/xyz", [] ( const QString & path, const QString & val) {
         std::cerr << "lambda state cb:\n"

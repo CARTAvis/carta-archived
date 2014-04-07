@@ -4,7 +4,7 @@
  */
 
 /* JsHint options */
-/*global mExport, mImport */
+/*global mExport, mImport, QtConnector, QtConnector.* */
 /*jshint eqnull:true */
 
 
@@ -41,7 +41,7 @@
     // last callback ID, so we can generate unique ones
     var m_lastCallbackID = 1;
     // we keep following information for every state:
-    //  - path (indirectly as an index)
+    //  - path (so that individual shared variables don't need to keep their own copies)
     //  - value
     //  - callbacks
     // for each callback we keep
@@ -49,11 +49,37 @@
     //    - id
     // We start with an empty state
     var m_states = {};
-    // and make a create empty state convenience function
-    function getOrCreateState( path) {
+    // array of callbacks for sent commands
+    var m_commandCallbacks = [];
+
+    // listen for command results callbacks and always invoke the top callback in the list
+    // the command results always arrive in the same order they were sent
+    QtConnector.jsCommandResultsSignal.connect( function( result) {
+        if( m_commandCallbacks.length < 1) {
+            console.warn( "Received command results but no callbacks for this!!!");
+            console.warn( "The result: ", result);
+            return;
+        }
+        var cb = m_commandCallbacks.shift();
+        if( cb == null) {
+            // skip this callback
+            return;
+        }
+        if( typeof cb !== "function") {
+            console.warn( "Registered callback for command is not a function!");
+        } else {
+            cb( result);
+        }
+    });
+
+    // convenience function to create & get or just get a state
+    function getOrCreateState( path )
+    {
         var st = m_states[path];
-        if( st !== undefined) return st;
-        st = { value: null, callbacks: [] };
+        if( st !== undefined ) {
+            return st;
+        }
+        st = { path: path, value: null, callbacks: [] };
         m_states[path] = st;
         return st;
     }
@@ -68,15 +94,15 @@
         // create an image tag inside the container
         this.m_container = container;
         this.m_viewName = viewName;
-        this.m_imgTag = document.createElement( "img");
-        console.log( "imgTag = ", this.m_imgTag);
-        this.m_container.appendChild( this.m_imgTag);
+        this.m_imgTag = document.createElement( "img" );
+        console.log( "imgTag = ", this.m_imgTag );
+        this.m_container.appendChild( this.m_imgTag );
     };
-    View.prototype.setQuality = function setQuality( )
+    View.prototype.setQuality = function setQuality()
     {
         // desktop does not have quality
     };
-    View.prototype.updateSize = function( newWidth, newHeight )
+    View.prototype.updateSize = function()
     {
         this.m_imgTag.width = this.m_container.width;
         this.m_imgTag.height = this.m_container.height;
@@ -87,7 +113,7 @@
     };
     View.prototype.getServerSize = function()
     {
-        return { width: 99, height: 101}
+        return { width: 99, height: 101};
     };
     View.prototype.local2server = function( coordinate )
     {
@@ -101,8 +127,9 @@
     {
     };
 
-    connector.registerViewElement = function( divElement, viewName) {
-        return new View( divElement, viewName);
+    connector.registerViewElement = function( divElement, viewName )
+    {
+        return new View( divElement, viewName );
     };
 
     connector.setInitialUrl = function( /*url*/ )
@@ -126,28 +153,27 @@
         if( m_connectionCB == null ) {
             console.warn( "No connection callback specified!!!" );
         }
-        var cb = m_connectionCB || function()
-        {
-        };
 
-        if( window.QtPlatform !== undefined || window.QtConnector !== undefined) {
+        if( window.QtPlatform !== undefined || window.QtConnector !== undefined ) {
             m_connectionStatus = connector.CONNECTION_STATUS.CONNECTED;
         }
 
-        if( m_connectionCB) {
+        if( m_connectionCB != null ) {
             m_connectionCB();
         }
 
         // listen for changes to the state
-        QtConnector.stateChangedSignal.connect( function( key, val) {
-            console.log( "qt.stateChanged", key, val);
-            var st = getOrCreateState( key);
+        QtConnector.stateChangedSignal.connect( function( key, val )
+        {
+            console.log( "qt.stateChanged", key, val );
+            var st = getOrCreateState( key );
             st.value = val;
             // now go through all callbacks and call them
-            st.callbacks.forEach( function( cb) {
-                cb.callback( st.value);
-            });
-        });
+            st.callbacks.forEach( function( cb )
+            {
+                cb.callback( st.value );
+            } );
+        } );
     };
 
     connector.disconnect = function()
@@ -173,8 +199,9 @@
 
         // make a copy of this to use in private/priviledged functions
         var m_that = this;
-        // copy of the path
-        var m_path = path;
+        // save a pointer to the list of states
+        var m_statePtr = getOrCreateState( path );
+
 
         // add a callback for the variable
         this.addNamedCB = function( callback )
@@ -183,8 +210,7 @@
                 throw "callback is not a function!!";
             }
             var cbId = "cb" + (m_lastCallbackID ++);
-            var st = getOrCreateState( m_path);
-            st.callbacks.push( { callback: callback, id: cbId });
+            m_statePtr.callbacks.push( { callback: callback, id: cbId } );
             return cbId;
         };
 
@@ -202,44 +228,44 @@
             }
             else if( typeof value === "string" ) {
                 // do nothing, this will be verbatim
+                value = value;
             }
             else if( typeof value === "number" ) {
                 // convert number
                 value = "" + value;
             }
             else {
-                console.error( "value has weird type: ", value, m_path );
+                console.error( "value has weird type: ", value, m_statePtr.path );
                 throw "don't know how to set value";
             }
-            QtConnector.jsSetStateSlot( m_path, value);
+            QtConnector.jsSetStateSlot( m_statePtr.path, value );
 
             return m_that;
         };
 
         this.get = function()
         {
-            return getOrCreateState(m_path ).value;
+            return m_statePtr.value;
         };
 
         // this should be called when the variable will no longer be used, so that pureweb
         // callback can be deactivated
         this.destroy = function()
         {
-            unregisterInternalCallback();
-            m_callbacks = [];
+            m_statePtr.callbacks = [];
         };
 
         this.path = function()
         {
-            return m_path;
+            return m_statePtr.path;
         };
 
         this.removeCB = function( cbid )
         {
-            var m_callbacks = m_states[ m_path].callbacks;
+            var callbacks = m_statePtr.callbacks;
             var ind = - 1;
-            for( var i = 0 ; i < m_callbacks.length ; i ++ ) {
-                if( m_callbacks[i].id === cbid ) {
+            for( var i = 0 ; i < callbacks.length ; i ++ ) {
+                if( callbacks[i].id === cbid ) {
                     ind = i;
                     break;
                 }
@@ -248,13 +274,13 @@
                 throw "no such callback found";
             }
             else {
-                m_callbacks.splice( ind, 1 );
+                callbacks.splice( ind, 1 );
             }
             return m_that;
         };
 
 
-        console.log( "current value:", getOrCreateState( m_path ).value );
+        console.log( "current value:", m_statePtr.value );
     }
 
     connector.getSharedVar = function( path )
@@ -264,86 +290,87 @@
 
     connector.sendCommand = function( cmd, params, callback )
     {
-    };
-
-    connector.getViewElementInfo = function()
-    {
-
+        if( callback != null && typeof callback !== "function") {
+            console.error( "What are you doing! I need a function for callback, not:", callback);
+            throw new Error( "callback not a function in connector.sendCommand");
+        }
+        m_commandCallbacks.push( callback);
+        QtConnector.jsSendCommandSlot( cmd, params);
     };
 
 })();
 /*
 
-(function( scope )
-{
-    "use strict";
+ (function( scope )
+ {
+ "use strict";
 
-    return;
+ return;
 
-    var connector = mImport( "connector" );
-    var console = mImport( "console" );
-    connector.setConnectionCB( function( )
-    {
-        console.log( "connectionCB", connector, connector.getConnectionStatus() )
-    } );
-    connector.connect();
+ var connector = mImport( "connector" );
+ var console = mImport( "console" );
+ connector.setConnectionCB( function( )
+ {
+ console.log( "connectionCB", connector, connector.getConnectionStatus() )
+ } );
+ connector.connect();
 
-    return;
+ return;
 
-    scope.connector = {};
+ scope.connector = {};
 
-    scope.connector.setState = function( key, val )
-    {
-        pureweb.getFramework().getState().setValue( key, val );
-    };
+ scope.connector.setState = function( key, val )
+ {
+ pureweb.getFramework().getState().setValue( key, val );
+ };
 
-    scope.connector.clearState = function( prefix )
-    {
-        pureweb.getFramework().getState().getStateManager().deleteTree( prefix );
-    };
+ scope.connector.clearState = function( prefix )
+ {
+ pureweb.getFramework().getState().getStateManager().deleteTree( prefix );
+ };
 
-    // rewrite uri if sharing session
-    var uri = location.href;
-    if( ! pureweb.getClient().isaSessionUri( uri ) ) {
-        uri = location.protocol + '//' + location.host + '/pureweb/app?name=' + pureweb.getServiceAppName( uri );
-    }
+ // rewrite uri if sharing session
+ var uri = location.href;
+ if( ! pureweb.getClient().isaSessionUri( uri ) ) {
+ uri = location.protocol + '//' + location.host + '/pureweb/app?name=' + pureweb.getServiceAppName( uri );
+ }
 
-    var client = pureweb.getClient();
-    pureweb.listen( client, pureweb.client.WebClient.EventType.CONNECTED_CHANGED, function onConnectedChanged( e )
-        {
-            if( ! e.target.isConnected() ) {
-                return;
-            }
-            var diagnosticsPanel = document.getElementById( 'pwDiagnosticsPanel' );
-            if( diagnosticsPanel ) {
-                pureweb.client.diagnostics.initialize();
-            }
-        }
-    );
+ var client = pureweb.getClient();
+ pureweb.listen( client, pureweb.client.WebClient.EventType.CONNECTED_CHANGED, function onConnectedChanged( e )
+ {
+ if( ! e.target.isConnected() ) {
+ return;
+ }
+ var diagnosticsPanel = document.getElementById( 'pwDiagnosticsPanel' );
+ if( diagnosticsPanel ) {
+ pureweb.client.diagnostics.initialize();
+ }
+ }
+ );
 
-    pureweb.listen( client, pureweb.client.WebClient.EventType.SESSION_STATE_CHANGED,
-        function sscCB( e )
-        {
-            console.log( "pureweb session state changed", e );
-            console.log( "  state:", client.getSessionState() );
-        }
-    );
-
-
-    // setup the window.onbeforeunload callback to disconnect from the service application
-    window.onbeforeunload = window.onunload = function( e )
-    {
-        if( client.isConnected() ) {
-            client.disconnect( false );
-        }
-        return null;
-    };
-
-    pureweb.connect( uri );
+ pureweb.listen( client, pureweb.client.WebClient.EventType.SESSION_STATE_CHANGED,
+ function sscCB( e )
+ {
+ console.log( "pureweb session state changed", e );
+ console.log( "  state:", client.getSessionState() );
+ }
+ );
 
 
-})( window );
-*/
+ // setup the window.onbeforeunload callback to disconnect from the service application
+ window.onbeforeunload = window.onunload = function( e )
+ {
+ if( client.isConnected() ) {
+ client.disconnect( false );
+ }
+ return null;
+ };
+
+ pureweb.connect( uri );
+
+
+ })( window );
+ */
 
 /*
  var img = Qt.img;
