@@ -49,8 +49,10 @@
     //    - id
     // We start with an empty state
     var m_states = {};
-    // array of callbacks for sent commands
+    // array of callbacks for commands, these are used to report back results
     var m_commandCallbacks = [];
+    // map of views
+    var m_views = {};
 
     // listen for command results callbacks and always invoke the top callback in the list
     // the command results always arrive in the same order they were sent
@@ -70,6 +72,16 @@
         } else {
             cb( result);
         }
+    });
+
+    // listen for jsViewUpdatedSignal to render the image
+    QtConnector.jsViewUpdatedSignal.connect( function( viewName, buffer) {
+        var view = m_views[ viewName];
+        if( view == null) {
+            console.warn( "Ignoring update for unconnected view '" + viewName + "'");
+            return;
+        }
+        buffer.assignToHTMLImageElement( view.m_imgTag);
     });
 
     // convenience function to create & get or just get a state
@@ -95,8 +107,17 @@
         this.m_container = container;
         this.m_viewName = viewName;
         this.m_imgTag = document.createElement( "img" );
-        console.log( "imgTag = ", this.m_imgTag );
+        this.m_imgTag.setAttribute( "max-width", "100%");
+        this.m_imgTag.setAttribute( "max-height", "100%");
+//        console.log( "imgTag = ", this.m_imgTag );
         this.m_container.appendChild( this.m_imgTag );
+
+        this.m_imgTag.onmousemove = function( ev) {
+            var x = ev.pageX - this.m_imgTag.getBoundingClientRect().left;
+            var y = ev.pageY - this.m_imgTag.getBoundingClientRect().top;
+            console.log( "jsMouseMoveSlot", this.m_viewName, x, y );
+            QtConnector.jsMouseMoveSlot( this.m_viewName, x, y);
+        }.bind(this);
     };
     View.prototype.setQuality = function setQuality()
     {
@@ -104,8 +125,10 @@
     };
     View.prototype.updateSize = function()
     {
-        this.m_imgTag.width = this.m_container.width;
-        this.m_imgTag.height = this.m_container.height;
+//        this.m_imgTag.width = this.m_container.offsetWidth;
+//        this.m_imgTag.height = this.m_container.offsetHeight;
+        console.log( "about to call jsUpdateViewSlot",  this.m_viewName, this.m_container.offsetWidth, this.m_container.offsetHeight );
+        QtConnector.jsUpdateViewSlot( this.m_viewName, this.m_container.offsetWidth, this.m_container.offsetHeight);
     };
     View.prototype.getName = function()
     {
@@ -129,7 +152,13 @@
 
     connector.registerViewElement = function( divElement, viewName )
     {
-        return new View( divElement, viewName );
+        var view = m_views[ viewName];
+        if( view !== undefined) {
+            throw new Error("Trying to re-register existing view '" + viewName + "'");
+        }
+        view = new View( divElement, viewName );
+        m_views[ viewName] = view;
+        return view;
     };
 
     connector.setInitialUrl = function( /*url*/ )
@@ -201,6 +230,9 @@
         var m_that = this;
         // save a pointer to the list of states
         var m_statePtr = getOrCreateState( path );
+        // maintain our own list of callbacks so that we can remove them when
+        // destroy() gets called
+        var m_myCallbackIDs = [];
 
 
         // add a callback for the variable
@@ -209,8 +241,13 @@
             if( typeof callback !== "function" ) {
                 throw "callback is not a function!!";
             }
+            // generate the ID for this callback
             var cbId = "cb" + (m_lastCallbackID ++);
+            // add callback to the list of all callbacks for this state key
             m_statePtr.callbacks.push( { callback: callback, id: cbId } );
+            // add this ID to our own list
+            m_myCallbackIDs.push( cbId);
+            // return the id
             return cbId;
         };
 
@@ -248,11 +285,15 @@
             return m_statePtr.value;
         };
 
-        // this should be called when the variable will no longer be used, so that pureweb
-        // callback can be deactivated
+        // this should be called when the variable will no longer be used, so that
+        // callbacks associated with this var can be erased
+        // TODO: we should only remove callbacks registered via this var
         this.destroy = function()
         {
-            m_statePtr.callbacks = [];
+            m_myCallbackIDs.forEach( function(cbId) {
+                m_that.removeCB( cbId);
+            });
+            m_myCallbackIDs = [];
         };
 
         this.path = function()
@@ -262,6 +303,21 @@
 
         this.removeCB = function( cbid )
         {
+            // first remove the CB from our own list (to make sure this is our callback)
+            var ind = - 1;
+            for( var i = 0 ; i < m_myCallbackIDs.length ; i ++ ) {
+                if( m_myCallbackIDs[i] === cbid ) {
+                    ind = i;
+                    break;
+                }
+            }
+            if( ind < 0 ) {
+                throw new Error("no such callback found in private list");
+            }
+            else {
+                m_myCallbackIDs.splice( ind, 1 );
+            }
+            // now remove the callback from the global list
             var callbacks = m_statePtr.callbacks;
             var ind = - 1;
             for( var i = 0 ; i < callbacks.length ; i ++ ) {
@@ -271,11 +327,12 @@
                 }
             }
             if( ind < 0 ) {
-                throw "no such callback found";
+                throw new Error("no such callback found in global list");
             }
             else {
                 callbacks.splice( ind, 1 );
             }
+
             return m_that;
         };
 

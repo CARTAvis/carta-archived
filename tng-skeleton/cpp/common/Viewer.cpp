@@ -35,8 +35,9 @@ public:
     {
         return m_qimage;
     }
-    virtual void handleResizeRequest(const QSize & /*size*/)
+    virtual void handleResizeRequest(const QSize & size)
     {
+//        m_qimage = QImage( size, m_qimage.format());
     }
     virtual void handleMouseEvent(const QMouseEvent & ev)
     {
@@ -52,6 +53,13 @@ public:
 
         m_qimage.fill( QColor( "blue"));
         QPainter p( & m_qimage);
+        p.setPen( Qt::NoPen);
+        p.setBrush( QColor( 255, 255, 0, 128));
+        p.drawEllipse( QPoint(ev.x(), ev.y()), 10, 10 );
+        p.setPen( QColor( 255, 255, 255));
+        p.drawLine( 0, ev.y(), m_qimage.width()-1, ev.y());
+        p.drawLine( ev.x(), 0, ev.x(), m_qimage.height()-1);
+
         p.translate( m_qimage.rect().center());
         p.rotate( angle);
         p.translate( - m_qimage.rect().center());

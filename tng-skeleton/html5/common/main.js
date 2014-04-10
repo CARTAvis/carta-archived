@@ -550,6 +550,14 @@ function onLoadCB()
 
     // update status
     updateStatus();
+
+//    window.con = mImport("connector");
+//    window.a1 = con.getSharedVar("x");
+//    window.a2 = con.getSharedVar("x");
+//    console.log( "a1cb1 = ", a1.addNamedCB( console.log.bind(console,"a1.cb1")));
+//    console.log( "a1cb1 = ", a1.addNamedCB( console.log.bind(console,"a1.cb2")));
+//    console.log( "a1cb1 = ", a2.addNamedCB( console.log.bind(console,"a2.cb1")));
+//    console.log( "a1cb1 = ", a2.addNamedCB( console.log.bind(console,"a2.cb2")));
 }
 
 

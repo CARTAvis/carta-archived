@@ -99,3 +99,7 @@ button:hover {
     background-color: pink;
     border-radius: 0 20px 20px 20px;
 }
+
+.iview-container {
+    outline: none;
+}

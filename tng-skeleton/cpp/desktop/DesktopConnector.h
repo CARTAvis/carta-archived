@@ -9,6 +9,7 @@
 #include <QObject>
 #include "common/IConnector.h"
 class MainWindow;
+class IView;
 
 class DesktopConnector : public QObject, public IConnector
 {
@@ -32,6 +33,9 @@ public slots:
     void jsSetStateSlot( const QString & key, const QString & value);
     /// javascript calls this to send a command
     void jsSendCommandSlot( const QString & cmd, const QString & parameter);
+
+    void jsUpdateViewSlot( const QString & viewName, int width, int height);
+    void jsMouseMoveSlot( const QString & viewName, int x, int y);
 signals:
     /// we emit this signal when state is changed (either by c++ or by javascript)
     /// we listen to this signal, and so does javascript
@@ -41,6 +45,9 @@ signals:
     /// we emit this signal when command results are ready
     /// javascript listens to it
     void jsCommandResultsSignal( const QString & results);
+
+    void jsViewUpdatedSignal( const QString & viewName, const QImage & img);
+//    void jsViewUpdatedSignal( const QString & viewName, const QPixmap & img);
 
 protected slots:
     /// this is the callback for stateChangedSignal
@@ -57,6 +64,11 @@ public:
 
     std::map< QString, QString > m_state;
 
+    struct ViewInfo;
+    std::map< QString, ViewInfo *> m_views;
+
+protected:
+    ViewInfo *findViewInfo(const QString &viewName);
 };
 
 

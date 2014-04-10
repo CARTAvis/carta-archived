@@ -11,8 +11,10 @@ HEADERS += \
     IPlatform.h \
     Viewer.h \
     misc.h \
-    IView.h
+    IView.h \
+    LinearMap.h
 
 SOURCES += \
-    Viewer.cpp
+    Viewer.cpp \
+    LinearMap.cpp
 
