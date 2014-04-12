@@ -2,11 +2,72 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopConnector.js" afterPath="$PROJECT_DIR$/desktop/desktopConnector.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopIndex.html" afterPath="$PROJECT_DIR$/desktop/desktopIndex.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/main.css" afterPath="$PROJECT_DIR$/common/main.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/main.js" afterPath="$PROJECT_DIR$/common/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server/serverIndex.html" afterPath="$PROJECT_DIR$/server/serverIndex.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/VFS/PureWeb/html5" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/html5" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/icons/inspector.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../ThirdParty/qooxdoo-3.5-sdk" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/.name" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/CustomWebPage.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/CustomWebPage.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/DesktopConnector.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/DesktopConnector.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/DesktopPlatform.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/DesktopPlatform.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/IConnector.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/common/IConnector.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/IPlatform.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/IView.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/LinearMap.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/LinearMap.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/MainWindow.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/MainWindow.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/inspectionProfiles/Project_Default.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/server/ServerConnector.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/server/ServerConnector.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/server/ServerPlatform.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/server/ServerPlatform.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/Viewer.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/Viewer.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/codeStyleSettings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common.pri" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/common.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/common/common.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/compiler.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/cpp.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/desktop.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/desktop/desktop.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/desktop/desktopConnector.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/desktop/desktopIndex.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/desktopMain.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/encodings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/html5.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/html5.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/jsLinters/jshint.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/common/libs.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/common/main.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/common/main.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/common/misc.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/copyright/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/inspectionProfiles/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/server/pureweb.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/readme.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/desktop/resources.qrc" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/scopes/scope_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/server/server.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/server/server.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/server/serverConnector.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/server/serverIndex.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/cpp/server/serverMain.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/common/stuff.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/tng-skeleton.pro.user" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/tng-skeleton.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/uiDesigner.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/uncrustify.cfg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -89,10 +150,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="desktopIndex.html" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="desktopIndex.html" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.75699556" vertical-offset="296" max-vertical-offset="975">
+                <state vertical-scroll-proportion="0.79198766" vertical-offset="296" max-vertical-offset="975">
                   <caret line="54" column="32" selection-start-line="54" selection-start-column="32" selection-end-line="54" selection-end-column="32" />
                   <folding>
                     <element signature="n#style#0;n#div#0;n#div#4;n#body#0;n#html#0;n#!!top" expanded="true" />
@@ -173,11 +234,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="IConnector.js" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="IConnector.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/IConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6523669" vertical-offset="2709" max-vertical-offset="3750">
-                  <caret line="210" column="3" selection-start-line="210" selection-start-column="3" selection-end-line="210" selection-end-column="3" />
+                <state vertical-scroll-proportion="0.39673105" vertical-offset="2823" max-vertical-offset="3750">
+                  <caret line="206" column="0" selection-start-line="202" selection-start-column="0" selection-end-line="206" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -221,9 +282,10 @@
     <config-path />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="24" />
-    <option name="width" value="1920" />
-    <option name="height" value="1176" />
+    <option name="x" value="-76" />
+    <option name="y" value="312" />
+    <option name="width" value="1910" />
+    <option name="height" value="1146" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -348,7 +410,7 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../tng-skeleton2/html5" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -585,23 +647,23 @@
       <created>1395293035302</created>
       <updated>1395293035302</updated>
       <workItem from="1395293042402" duration="75501000" />
-      <workItem from="1396748482642" duration="21962000" />
+      <workItem from="1396748482642" duration="25563000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="97463000" />
+    <option name="totallyTimeSpent" value="101064000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
-    <editor active="true" />
+    <frame x="-76" y="312" width="1910" height="1146" extended-state="0" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942238" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32942238" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33859" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -615,7 +677,7 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18802084" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18900524" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -772,8 +834,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="5957" max-vertical-offset="6660">
-          <caret line="436" column="19" selection-start-line="436" selection-start-column="0" selection-end-line="437" selection-end-column="0" />
+        <state vertical-scroll-proportion="74.44444" vertical-offset="3750" max-vertical-offset="6660">
+          <caret line="116" column="72" selection-start-line="116" selection-start-column="72" selection-end-line="116" selection-end-column="72" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -798,21 +860,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/IConnector.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6523669" vertical-offset="2709" max-vertical-offset="3750">
-          <caret line="210" column="3" selection-start-line="210" selection-start-column="3" selection-end-line="210" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.75699556" vertical-offset="296" max-vertical-offset="975">
+        <state vertical-scroll-proportion="0.79198766" vertical-offset="296" max-vertical-offset="975">
           <caret line="54" column="32" selection-start-line="54" selection-start-column="32" selection-end-line="54" selection-end-column="32" />
           <folding>
             <element signature="n#style#0;n#div#0;n#div#4;n#body#0;n#html#0;n#!!top" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/IConnector.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.39673105" vertical-offset="2823" max-vertical-offset="3750">
+          <caret line="206" column="0" selection-start-line="202" selection-start-column="0" selection-end-line="206" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
