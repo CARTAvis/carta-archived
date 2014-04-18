@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
-SUBDIRS = cpp html5
+SUBDIRS += cpp
+#SUBDIRS += html5
 
 OTHER_FILES += readme.txt

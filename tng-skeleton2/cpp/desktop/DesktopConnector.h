@@ -11,6 +11,10 @@
 class MainWindow;
 class IView;
 
+/// private info we keep with each view
+/// unfortunately it needs to live as it's own class because we need to give it slots...
+//class ViewInfo;
+
 class DesktopConnector : public QObject, public IConnector
 {
     Q_OBJECT
@@ -27,6 +31,7 @@ public:
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
+    virtual void removeStateCallback( const CallbackID & id);
 
 public slots:
     /// javascript calls this to set a state
@@ -64,11 +69,56 @@ public:
 
     std::map< QString, QString > m_state;
 
+    /// private info we keep with each view
     struct ViewInfo;
+
+    /// moving outside the class because it needs slots/signals
+//    struct ViewInfo;
+
+    /// map of view names to view infos
     std::map< QString, ViewInfo *> m_views;
 
-protected:
-    ViewInfo *findViewInfo(const QString &viewName);
+    ViewInfo * findViewInfo(const QString &viewName);
+
+    /*
+    // custom event for view refresh
+    class ViewRefreshEvent : public QEvent {
+    public:
+        ViewRefreshEvent( QEvent::Type type, IView * iview) : QEvent( type) {
+            m_iview = iview;
+        }
+        IView * view() { return m_iview; }
+    protected:
+        IView * m_iview;
+    };
+
+    // custom event type for view refreshes
+    QEvent::Type getRefreshViewEventType(){
+        static bool done = false;
+        static QEvent::Type res;
+        if( ! done) {
+            done = true;
+            res = static_cast< QEvent::Type > ( QEvent::registerEventType());
+        }
+        return res;
+    }
+
+    virtual void customEvent(QEvent * e) Q_DECL_OVERRIDE
+    {
+        if( e->type() != getRefreshViewEventType()) {
+            return;
+        }
+        e-> accept();
+        ViewRefreshEvent * re = static_cast<ViewRefreshEvent *> (e);
+        // do the real refresh of the view
+        refreshViewNow( re->view());
+    }
+    */
+
+    virtual void refreshViewNow(IView *view);
+
+    /// TODO: we should probably move some of these protected section
+
 };
 
 

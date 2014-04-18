@@ -94,18 +94,17 @@ public:
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
 
     // internal callback for pureweb value changed event
-    // this could potentially get directly from withtin SetValue(), which is not
-    // what we want, so we delay it by custom event
-    void internalValueChangedCB( const CSI::ValueChangedEventArgs & val);
+    void pureWebValueChangedCB( const CSI::ValueChangedEventArgs & val);
 
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
+    virtual void removeStateCallback( const CallbackID & id);
 
-signals:
-    void delayedInternalValueChangedSignal( CSI::ValueChangedEventArgs);
+//signals:
+//    void delayedInternalValueChangedSignal( CSI::ValueChangedEventArgs);
 
-protected slots:
-    void delayedInternalValueChangedCB( CSI::ValueChangedEventArgs);
+//protected slots:
+//    void delayedInternalValueChangedCB( CSI::ValueChangedEventArgs);
 
 };
 

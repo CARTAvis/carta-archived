@@ -3,24 +3,50 @@
  **/
 
 #include "DesktopConnector.h"
+//#include "ViewInfoPrivate.h"
 #include "common/misc.h"
 #include "common/LinearMap.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
 #include <cmath>
+#include <QTime>
+#include <QTimer>
+#include <QCoreApplication>
 
 ///
-/// \brief Internal class, containing extra information we like to remember per view.
+/// \brief internal class of DesktopConnector, containing extra information we like
+///  to remember with each view
 ///
-struct DesktopConnector::ViewInfo {
-    /// the real view
+struct DesktopConnector::ViewInfo
+{
+
+    /// the implemented IView
     IView * view;
-    /// client size
+
+    /// last received client size
     QSize clientSize;
-    LinearMap1D tx, ty; // linear maps convert x,y from client to image coordinates
+    // linear maps convert x,y from client to image coordinates
+    LinearMap1D tx, ty;
+
+    // refresh timer for this object
+    QTimer refreshTimer;
+
+    ViewInfo( IView * pview )
+    {
+        view = pview;
+        clientSize = QSize(1,1);
+        refreshTimer.setSingleShot( true);
+        // just long enough that two successive calls will result in only one redraw :)
+        refreshTimer.setInterval( 1);
+    }
 
 };
+
+
+
+
+
 
 DesktopConnector::DesktopConnector()
 {
@@ -76,41 +102,47 @@ void DesktopConnector::registerView(IView * view)
     view->registration( this);
 
     // insert this view int our list of views
-    ViewInfo * viewInfo = new ViewInfo;
-    viewInfo-> view = view;
-    viewInfo-> clientSize = QSize(1,1);
+    ViewInfo * viewInfo = new ViewInfo( view);
+//    viewInfo-> view = view;
+//    viewInfo-> clientSize = QSize(1,1);
     m_views[ view-> name()] = viewInfo;
+
+    // connect the view's refresh timer to a lambda, which will in turn call
+    // refreshViewNow()
+    connect( & viewInfo->refreshTimer, & QTimer::timeout, [=] () {
+        refreshViewNow( view);
+    });
 }
 
+//    static QTime st;
+
+// schedule a view refresh
 void DesktopConnector::refreshView(IView * view)
 {
+    // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
         std::cerr << "Critical: refreshView cannot find this view: " << view-> name() << "\n";
         return;
     }
-    // get the image from view
-    const QImage & origImage = view-> getBuffer();
-    // scale the image to fit the client size
-    QImage destImage = origImage.scaled( viewInfo->clientSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    // calculate the offset needed to center the image
-    int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
-    int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
-    QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
-    pix.fill( qRgba( 0, 0, 0, 0));
-    QPainter p( & pix);
-    p.setCompositionMode( QPainter::CompositionMode_Source);
-    p.drawImage( xOffset, yOffset, destImage );
 
-    // remember the transformations we did to the image in the viewInfo so that we can
-    // properly translate mouse events etc
-    viewInfo-> tx = LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
-                                 0, origImage.width()-1);
-    viewInfo-> ty = LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
-                                 0, origImage.height()-1);
+    // start the timer for this view if it's not already started
+    if( ! viewInfo-> refreshTimer.isActive()) {
+        viewInfo-> refreshTimer.start();
+        std::cerr << "Scheduled refresh for " << view->name() << "\n";
+    }
+    else {
+        std::cerr << "########### saved refresh for " << view->name() << "\n";
+    }
 
-    emit jsViewUpdatedSignal( view-> name(), pix);
+//    QCoreApplication::postEvent( this, new ViewRefreshEvent( getRefreshViewEventType(), view), Qt::NormalEventPriority);
+    //    refreshViewNow( view);
+}
+
+void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
+{
+    qFatal( "not implemented");
 }
 
 void DesktopConnector::jsSetStateSlot(const QString &key, const QString &value) {
@@ -141,6 +173,46 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
     return viewIter-> second;
 }
 
+void DesktopConnector::refreshViewNow(IView *view)
+{
+
+    std::cerr << "refreshViewNow " << view->name() << "\n";
+
+    //    std::cerr << "timer " << st.elapsed() << "\n";
+    //    st.restart();
+
+    ViewInfo * viewInfo = findViewInfo( view-> name());
+    if( ! viewInfo) {
+        // this is an internal error...
+        std::cerr << "Critical: refreshView cannot find this view: " << view-> name() << "\n";
+        return;
+    }
+    // get the image from view
+    const QImage & origImage = view-> getBuffer();
+    // scale the image to fit the client size
+    QImage destImage = origImage.scaled(
+                viewInfo->clientSize, Qt::KeepAspectRatio,
+                //                Qt::SmoothTransformation);
+                Qt::FastTransformation);
+    // calculate the offset needed to center the image
+    int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
+    int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
+    QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
+    pix.fill( qRgba( 0, 0, 0, 0));
+    QPainter p( & pix);
+    p.setCompositionMode( QPainter::CompositionMode_Source);
+    p.drawImage( xOffset, yOffset, destImage );
+
+    // remember the transformations we did to the image in the viewInfo so that we can
+    // properly translate mouse events etc
+    viewInfo-> tx = LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
+                                 0, origImage.width()-1);
+    viewInfo-> ty = LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
+                                 0, origImage.height()-1);
+
+    emit jsViewUpdatedSignal( view-> name(), pix);
+}
+
 void DesktopConnector::jsUpdateViewSlot(const QString &viewName, int width, int height)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
@@ -169,15 +241,15 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
     int xi = std::round( viewInfo-> tx(x));
     int yi = std::round( viewInfo-> ty(y));
 
-    std::cerr << "mm " << x << "," << y << " -> " << xi << "," << yi << "\n";
-
     // tell the view about the event
     QMouseEvent ev( QEvent::MouseMove,
                     QPoint(xi,yi),
                     Qt::NoButton,
                     Qt::NoButton,
                     Qt::NoModifier   );
+//    QTime t; t.restart();
     view-> handleMouseEvent( ev);
+//    std::cerr << "Mouse event hanled in " << t.elapsed() << "ms\n";
 }
 
 void DesktopConnector::stateChangedSlot(const QString &key, const QString &value)

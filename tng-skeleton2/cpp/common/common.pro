@@ -5,6 +5,7 @@
 TEMPLATE = lib
 
 CONFIG += staticlib
+QT += widgets
 
 HEADERS += \
     IConnector.h \
@@ -12,9 +13,11 @@ HEADERS += \
     Viewer.h \
     misc.h \
     IView.h \
-    LinearMap.h
+    LinearMap.h \
+    MyQApp.h
 
 SOURCES += \
     Viewer.cpp \
-    LinearMap.cpp
+    LinearMap.cpp \
+    MyQApp.cpp
 

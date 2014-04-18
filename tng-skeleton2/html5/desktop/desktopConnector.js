@@ -96,7 +96,12 @@
         return st;
     }
 
-    // the View class
+    /**
+     * The View class
+     * @param container
+     * @param viewName
+     * @constructor
+     */
     var View = function( container, viewName )
     {
         // QtWebKit does not support drawing to the canvas (they claim they do, but
@@ -112,13 +117,59 @@
 //        console.log( "imgTag = ", this.m_imgTag );
         this.m_container.appendChild( this.m_imgTag );
 
-        this.m_imgTag.onmousemove = function( ev) {
-            var x = ev.pageX - this.m_imgTag.getBoundingClientRect().left;
-            var y = ev.pageY - this.m_imgTag.getBoundingClientRect().top;
-            console.log( "jsMouseMoveSlot", this.m_viewName, x, y );
-            QtConnector.jsMouseMoveSlot( this.m_viewName, x, y);
-        }.bind(this);
+        // register mouse move event handler
+        this.m_imgTag.onmousemove = this.mouseMoveCB.bind(this);
+
+        // extra data to handle mouse move throttling
+
+        //  delay in milliseconds ( -1 means no delay, 0 means zero timeout
+        this.MouseMoveDelay = -1;
+        this.m_mouseMoveTimeoutHandle = null;
+        this.m_mousePos = { x : 0, y: 0 };
+        this.m_mousePosSlotScheduled = false;
     };
+
+    /**
+     * direct callback for mouse moves. We remember the coordinates, and then make
+     * sure a timeout is scheduled to actually send the coordinates.
+     * @param ev
+     */
+    View.prototype.mouseMoveCB = function mouseMoveCB( ev)
+    {
+        var x = ev.pageX - this.m_imgTag.getBoundingClientRect().left;
+        var y = ev.pageY - this.m_imgTag.getBoundingClientRect().top;
+
+        // remember the last mouse position
+        this.m_mousePos = { x : x, y: y };
+
+        // if throttling of mouse move events not enabled, send the event directly
+        if( this.MouseMoveDelay < 0) {
+            QtConnector.jsMouseMoveSlot( this.m_viewName, this.m_mousePos.x, this.m_mousePos.y);
+        }
+        else {
+            // we want to throttle the mouse move events
+            this.m_mousePos = { x : x, y: y };
+            if( ! this.m_mousePosSlotScheduled) {
+                console.log( "scheduling mouse move slot");
+                this.m_mousePosSlotScheduled = true;
+                this.m_mouseMoveTimeoutHandle = window.setTimeout(
+                    this.mouseMoveTimeoutCB.bind(this),
+                    this.MouseMoveDelay
+                );
+            }
+            else {
+                console.log( "throttling mouse move");
+            }
+        }
+    };
+
+    View.prototype.mouseMoveTimeoutCB = function mouseMoveTimeoutCB()
+    {
+        this.m_mousePosSlotScheduled = false;
+//        console.log( "calling jsMouseMoveSlot", this.m_viewName, this.m_mousePos.x, this.m_mousePos.y );
+        QtConnector.jsMouseMoveSlot( this.m_viewName, this.m_mousePos.x, this.m_mousePos.y);
+   };
+
     View.prototype.setQuality = function setQuality()
     {
         // desktop does not have quality

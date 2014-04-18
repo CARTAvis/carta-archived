@@ -1,4 +1,5 @@
-/*global performance, graph, mImport, mExport, $ */
+/*global performance, graph, mImport, mExport, $ *//*
+
 
 // global variables
 var glob = {
@@ -85,7 +86,11 @@ var connector = mImport( "connector" );
         previousLogTime = performance.now();
     };
 
-    function formatMillis( t, prefix /* = "" */, width /* = 10 */ )
+    function formatMillis( t, prefix */
+/* = "" *//*
+, width */
+/* = 10 *//*
+ )
     {
         if( typeof width !== "number" ) {
             width = 6;
@@ -184,12 +189,14 @@ function updateStatus()
     $( "#status" ).html( txt );
 }
 
+*/
 /**
  * Graphing functions
  *
  * highly inefficient but working scatter-plot routines that display x,y data as dots.
  * It even has a primitive axes with labels :)
- */
+ *//*
+
 (function( scope )
 {
 
@@ -569,3 +576,4 @@ function onLoadCB()
 }
 
 
+*/

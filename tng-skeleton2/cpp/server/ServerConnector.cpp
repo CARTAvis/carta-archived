@@ -1,8 +1,10 @@
 #include "ServerConnector.h"
 #include "common/misc.h"
+#include "common/MyQApp.h"
 
 #include <QTimer>
 #include <QImage>
+#include <QDebug>
 
 // define convenience conversion between CSI::String and QString
 // accomplished by going to std::string as an intermediate step
@@ -28,10 +30,10 @@ ServerConnector::ServerConnector(int argc, char **argv)
         m_startServer = true;
     }
 
-    connect( this, &ServerConnector::delayedInternalValueChangedSignal,
-            this, &ServerConnector::delayedInternalValueChangedCB,
-            Qt::QueuedConnection
-            );
+//    connect( this, &ServerConnector::delayedInternalValueChangedSignal,
+//            this, &ServerConnector::delayedInternalValueChangedCB,
+//            Qt::QueuedConnection
+//            );
 }
 
 bool ServerConnector::initialize()
@@ -114,7 +116,7 @@ IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, c
     if( m_pwStateCBset.count( path.toStdString()) == 0) {
         m_stateManager->XmlStateManager().AddValueChangedHandler(
                 path.toStdString(),
-                CSI::Bind(this, &ServerConnector::internalValueChangedCB));
+                CSI::Bind(this, &ServerConnector::pureWebValueChangedCB));
         m_pwStateCBset.insert( path.toStdString());
     }
 
@@ -127,18 +129,30 @@ IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, c
 
 // this is getting called directly by PureWeb, which means it could potentially
 // be called inside SetValue()... which is not what we want. So instead we do
-// the
-// real work inside the delayed version (below), which we invoked by sending
-// ourselves
-// a signal connected via queued connection...
-void ServerConnector::internalValueChangedCB(const CSI::ValueChangedEventArgs &val)
+// the real work inside the delayed version (below), which we invoke by sending
+// ourselves a signal connected via queued connection...
+void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &val)
 {
-    std::cerr << "internalValueChangedCB\n"
-              << "  path = " << val.Path().As<std::string>() << "\n"
-              << "  newValue = " << val.NewValue() << "\n";
+
+    // here we call the actual callbacks
+    QString path = val.Path().As< QString >();
+    QString newVal = val.NewValue().As< QString >();
+
+    qDebug() << "internalValueChangedCB\n"
+             << "  path = " << path << "\n"
+             << "  newValue = " << newVal << "\n";
+
+    defer( [ path, newVal, this ] () {
+        auto & callbacks = m_stateCallbackList[ path];
+        for( auto & cb : callbacks) {
+            cb( path, newVal);
+        }
+
+    });
+
 
     // invoke the delayed version asap
-    emit delayedInternalValueChangedSignal( val);
+//    emit delayedInternalValueChangedSignal( val);
 }
 
 class PWIViewConverter : public CSI::PureWeb::Server::IRenderedView
@@ -224,6 +238,7 @@ public:
     IView * m_iview;
 };
 
+// registerView
 void ServerConnector::registerView(IView *view)
 {
     CSI::PureWeb::Server::ViewImageFormat viewImageFormat;
@@ -235,7 +250,7 @@ void ServerConnector::registerView(IView *view)
     std::cerr << "vn = " << vn << "\n";
     std::cerr << "view =" << reinterpret_cast<uint64_t>(view) << "\n";
     std::cerr << "registering view '" << view->name() << "'\n";
-    // TODO: resource leak
+    // TODO: resource leak (only if we destroy a connector...)
     PWIViewConverter * cvt = new PWIViewConverter( view);
 
     m_stateManager->ViewManager().RegisterView( view->name().toStdString(), cvt);
@@ -243,32 +258,36 @@ void ServerConnector::registerView(IView *view)
 
     // register the view with this connector
     view->registration( this);
-} // registerView
+}
 
 void ServerConnector::refreshView(IView *view)
 {
     m_stateManager->ViewManager().RenderViewDeferred( view->name().toStdString());
 }
 
-// this is dealyed pureweb callback, here we do the actual work of calling
-// registered
-// handlers
-void ServerConnector::delayedInternalValueChangedCB( CSI::ValueChangedEventArgs val)
+void ServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
-    std::cerr << "delayedInternalValueChangedCB\n"
-              << "  path = " << val.Path().As<std::string>() << "\n"
-              << "  newValue = " << val.NewValue() << "\n";
-
-    // here we call the actual callbacks
-    QString path = val.Path().As< QString >();
-    QString newVal = val.NewValue().As< QString >();
-
-    auto & callbacks = m_stateCallbackList[ path];
-    for( auto & cb : callbacks) {
-        cb( path, newVal);
-    }
-
+    qFatal( "Not implemented");
 }
 
+// this is dealyed pureweb callback, here we do the actual work of calling
+// registered handlers
+//void ServerConnector::delayedInternalValueChangedCB( CSI::ValueChangedEventArgs val)
+//{
+//    std::cerr << "delayedInternalValueChangedCB\n"
+//              << "  path = " << val.Path().As<std::string>() << "\n"
+//              << "  newValue = " << val.NewValue() << "\n";
+
+//    // here we call the actual callbacks
+//    QString path = val.Path().As< QString >();
+//    QString newVal = val.NewValue().As< QString >();
+
+//    auto & callbacks = m_stateCallbackList[ path];
+//    for( auto & cb : callbacks) {
+//        cb( path, newVal);
+//    }
+
+//}
+
 // required for queued connections
-Q_DECLARE_METATYPE( CSI::ValueChangedEventArgs )
+//Q_DECLARE_METATYPE( CSI::ValueChangedEventArgs )

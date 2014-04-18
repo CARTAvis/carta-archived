@@ -75,16 +75,14 @@ qx.Class.define("skel.boundWidgets.View",
 
             }, this);
 
-            this.addListener("resize", function (/*e*/) {
-                console.log( "resize?");
-                // only fire resize event if the actual dom element has been created
+            this.addListener("resize", function (/*e*/)
+            {
+                // only continue if the dom element has been created
                 if (null == this.getContentElement().getDomElement()) { return; }
 
-//                setTimeout( this.m_iview.updateSize.bind(this.m_iview), 10);
+                // defer calling update size by a little bit, because qooxdoo sent us the
+                // resize probably before the actual html has been updated
                 setZeroTimeout( this.m_iview.updateSize.bind(this.m_iview));
-//                qx.ui.core.queue.Widget.flush();
-//                console.log( "yes", this.getContentElement().getDomElement().getBoundingClientRect().width);
-//                this.m_iview.updateSize();
 
             }, this);
 
@@ -111,7 +109,8 @@ qx.Class.define("skel.boundWidgets.View",
             _createContentElement: function () {
                 return new qx.html.Element("div", {
                     overflowX: "hidden",
-                    overflowY: "hidden"
+                    overflowY: "hidden",
+                    outline: 0
                 });
             },
 

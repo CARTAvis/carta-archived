@@ -53,6 +53,17 @@ qx.Class.define("skel.Application",
           console.log( "xyz1");
       }
 
+        if( false) {
+            console.log( "xyz2");
+        }
+
+        var xxx = false;
+        if( xxx) {
+            console.log( "xyz3");
+        }
+
+        console.log( "xyzw");
+
         var connector = mImport("connector");
         connector.setConnectionCB( function( s )
         {
@@ -66,7 +77,8 @@ qx.Class.define("skel.Application",
         win.setWidth(300);
         win.setHeight(200);
         win.setShowMinimize(false);
-        win.setLayout( new qx.ui.layout.Grow);
+        win.setLayout( new qx.ui.layout.Grow());
+        win.setContentPadding( 5, 5, 5, 5);
         win.add( new skel.boundWidgets.View( "view1"));
 
         this.getRoot().add(win, {left:20, top:20});

@@ -15,3 +15,6 @@ CONFIG += c++11
 #QMAKE_LFLAGS += -std=c++0x
 
 #QMAKE_CXXFLAGS += -Wall
+
+# add a little speedup with ccache
+linux-*:exists(/usr/bin/ccache):QMAKE_CXX=ccache g++

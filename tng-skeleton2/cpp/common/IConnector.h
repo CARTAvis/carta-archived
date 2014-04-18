@@ -39,7 +39,7 @@ public:
     /// registers a view with the connector
     virtual void registerView( IView * view) = 0;
 
-    /// asks the connector to redraw the view
+    /// asks the connector to schedule a redraw of the view
     virtual void refreshView( IView * view) = 0;
 
     /// set state to a new value
@@ -54,7 +54,10 @@ public:
     /// add a callback for a state change event
     virtual CallbackID addStateCallback( CSR path, const StateChangedCallback & cb) = 0;
 
-    ~IConnector() {}
+    /// remove a callback for a state change event
+    virtual void removeStateCallback( const CallbackID & id ) = 0;
+
+    virtual ~IConnector() {}
 };
 
 
