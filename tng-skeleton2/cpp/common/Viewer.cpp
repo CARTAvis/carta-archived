@@ -1,4 +1,6 @@
 #include "Viewer.h"
+#include "IPlatform.h"
+#include "IConnector.h"
 #include "misc.h"
 #include <iostream>
 #include <QImage>
@@ -12,12 +14,13 @@ class TestView : public IView
 
 public:
 
-    TestView() {
+    TestView( const QString & viewName, QColor bgColor) {
         m_qimage = QImage( 100, 100, QImage::Format_RGB888);
-        m_qimage.fill( QColor( "blue"));
+        m_qimage.fill( bgColor);
 
-        m_viewName = "view1";
+        m_viewName = viewName;
         m_connector= nullptr;
+        m_bgColor = bgColor;
     }
 
     virtual void registration(IConnector *connector)
@@ -46,12 +49,17 @@ public:
     {
         m_lastMouse = QPointF( ev.x(), ev.y());
         m_connector-> refreshView( this);
+
+        m_connector-> setState( "/mouse/x", QString::number(ev.x()));
+        m_connector-> setState( "/mouse/y", QString::number(ev.y()));
     }
     virtual void handleKeyEvent(const QKeyEvent & /*event*/)
     {
     }
 
 protected:
+
+    QColor m_bgColor;
 
     void redrawBuffer()
     {
@@ -60,7 +68,7 @@ protected:
         double angle = atan2( diff.x(), diff.y());
         angle *= - 180 / M_PI;
 
-        m_qimage.fill( QColor( "blue"));
+        m_qimage.fill( m_bgColor);
         QPainter p( & m_qimage);
         p.setPen( Qt::NoPen);
         p.setBrush( QColor( 255, 255, 0, 128));
@@ -96,7 +104,7 @@ void Viewer::start()
 {
 
     // setup connector
-    auto connector = m_platform-> createConnector();
+    auto connector = m_platform-> connector();
 
     if( ! connector || ! connector-> initialize()) {
         std::cerr << "Could not initialize connector.\n";
@@ -152,8 +160,9 @@ void Viewer::start()
     connector-> setState( "/xya", "hola");
     connector-> setState( "/xyz", "8");
 
-    // create a view to be rendered on the client side
-    TestView * testView = new TestView();
+    // create view to be rendered on the client side
 
-    connector-> registerView( testView);
+
+    connector-> registerView( new TestView( "view1", QColor( "blue")));
+    connector-> registerView( new TestView( "view2", QColor( "red")));
 }

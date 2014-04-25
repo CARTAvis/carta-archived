@@ -15,13 +15,10 @@
 /**
 
  @ignore(mImport)
- @ignore(fv.console.log)
- @ignore(fv.hub.*)
- @ignore(fv.GLOBAL_DEBUG)
 
  ************************************************************************ */
 
-qx.Class.define("skel.boundWidgets.View",
+qx.Class.define( "skel.boundWidgets.View",
     {
         extend: qx.ui.core.Widget,
 

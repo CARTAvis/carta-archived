@@ -8,6 +8,8 @@
 
 #include <QObject>
 #include "common/IConnector.h"
+#include "common/CallbackList.h"
+
 class MainWindow;
 class IView;
 
@@ -41,6 +43,9 @@ public slots:
 
     void jsUpdateViewSlot( const QString & viewName, int width, int height);
     void jsMouseMoveSlot( const QString & viewName, int x, int y);
+    /// this is the callback for stateChangedSignal
+    void stateChangedSlot( const QString & key, const QString & value);
+
 signals:
     /// we emit this signal when state is changed (either by c++ or by javascript)
     /// we listen to this signal, and so does javascript
@@ -54,16 +59,17 @@ signals:
     void jsViewUpdatedSignal( const QString & viewName, const QImage & img);
 //    void jsViewUpdatedSignal( const QString & viewName, const QPixmap & img);
 
-protected slots:
-    /// this is the callback for stateChangedSignal
-    void stateChangedSlot( const QString & key, const QString & value);
-
 public:
 
     typedef std::vector<CommandCallback> CommandCallbackList;
     std::map<QString,  CommandCallbackList> m_commandCallbackMap;
-    typedef std::vector<StateChangedCallback> StateCBList;
-    std::map<QString, StateCBList> m_stateCallbackList;
+
+    // list of callbacks
+//    typedef std::vector<StateChangedCallback> StateCBList;
+    typedef CallbackList<CSR, CSR> StateCBList;
+
+    // for each state we maintain a list of callbacks
+    std::map<QString, StateCBList *> m_stateCallbackList;
 
     CallbackID m_callbackNextId;
 
@@ -117,7 +123,7 @@ public:
 
     virtual void refreshViewNow(IView *view);
 
-    /// TODO: we should probably move some of these protected section
+    /// TODO: should we move some of these to protected section?
 
 };
 

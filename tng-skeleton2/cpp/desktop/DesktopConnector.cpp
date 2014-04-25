@@ -43,11 +43,6 @@ struct DesktopConnector::ViewInfo
 
 };
 
-
-
-
-
-
 DesktopConnector::DesktopConnector()
 {
     // queued connection to prevent callbacks from firing inside setState
@@ -92,8 +87,25 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
         IConnector::CSR path,
         const IConnector::StateChangedCallback & cb)
 {
-    m_stateCallbackList[ path].push_back( cb);
-    return 1;
+    // find the list of callbacks for this path
+    auto iter = m_stateCallbackList.find( path);
+
+    // if it does not exist, create it
+    if( iter == m_stateCallbackList.end()) {
+        qDebug() << "Creating callback list for variable " << path;
+        auto res = m_stateCallbackList.insert( std::make_pair(path, new StateCBList));
+        iter = res.first;
+    }
+
+    iter = m_stateCallbackList.find( path);
+    if( iter == m_stateCallbackList.end()) {
+        qDebug() << "What the hell";
+    }
+
+    // add the calllback
+    return iter-> second-> add( cb);
+
+//    return m_stateCallbackList[ path].add( cb);
 }
 
 void DesktopConnector::registerView(IView * view)
@@ -252,10 +264,27 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
 //    std::cerr << "Mouse event hanled in " << t.elapsed() << "ms\n";
 }
 
-void DesktopConnector::stateChangedSlot(const QString &key, const QString &value)
+void DesktopConnector::stateChangedSlot(const QString & key, const QString & value)
 {
-    // we just call our own callbacks here
-    for( auto & cb : m_stateCallbackList[ key]) {
-        cb( key, value);
+    qDebug() << "state changed slot " << key << " = " << value;
+
+    // find the list of callbacks for this path
+    auto iter = m_stateCallbackList.find( key);
+
+    // if it does not exist, do nothing
+    if( iter == m_stateCallbackList.end()) {
+        qDebug() << "no callbacks registered for" << key;
+        return;
     }
+
+    qDebug() << "calling all registered callbacks for" << key;
+
+    iter-> second-> callEveryone( key, value);
+
+//            m_stateCallbackList[ key].callEveryone( key, value);
+
+    //    // we just call our own callbacks here
+//    for( auto & cb : m_stateCallbackList[ key]) {
+//        cb( key, value);
+//    }
 }

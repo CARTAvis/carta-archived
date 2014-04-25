@@ -233,7 +233,7 @@
                 if( getUrl != null ) {
                     m_lastShareUrl = getUrl;
                     getUrl = getUrl + "?client=html5&share_password=";
-                    window.prompt( "Here is your collaboration URL:", getUrl );
+//                    window.prompt( "Here is your collaboration URL:", getUrl );
                     callback( getUrl );
                 }
                 else {
@@ -358,7 +358,7 @@
         {
             m_callbacks.forEach( function( cb )
             {
-                cb.cb( m_that );
+                cb.cb( m_that.get() );
             } );
         }
 

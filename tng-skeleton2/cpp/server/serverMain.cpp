@@ -29,16 +29,11 @@ int main(int argc, char ** argv)
     std::cerr << "defer: deferred\n";
 
 
-    std::cerr << "Command line args:\n";
-    for( int i = 0 ; i < argc ; i ++ ) {
-        std::cerr << "   " << i << ".) " << argv[i] << "\n";
-    }
-
     // create a platform
-    IPlatform * platform = new ServerPlatform( argc, argv);
+    MyQApp::setPlatform( new ServerPlatform( argc, argv));
 
     // run the viewer with this platorm
-    Viewer viewer( platform);
+    Viewer viewer( MyQApp::platform());
     viewer.start();
 
     return app.exec();

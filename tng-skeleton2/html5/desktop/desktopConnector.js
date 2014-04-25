@@ -245,7 +245,7 @@
         // listen for changes to the state
         QtConnector.stateChangedSignal.connect( function( key, val )
         {
-            console.log( "qt.stateChanged", key, val );
+//            console.log( "qt.stateChanged", key, val );
             var st = getOrCreateState( key );
             st.value = val;
             // now go through all callbacks and call them
@@ -338,7 +338,6 @@
 
         // this should be called when the variable will no longer be used, so that
         // callbacks associated with this var can be erased
-        // TODO: we should only remove callbacks registered via this var
         this.destroy = function()
         {
             m_myCallbackIDs.forEach( function(cbId) {
@@ -393,6 +392,7 @@
 
     connector.getSharedVar = function( path )
     {
+        // TODO: maybe we should not create a new instance for every var and cache instead?
         return new SharedVar( path );
     };
 

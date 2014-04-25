@@ -14,10 +14,12 @@ HEADERS += \
     misc.h \
     IView.h \
     LinearMap.h \
-    MyQApp.h
+    MyQApp.h \
+    CallbackList.h
 
 SOURCES += \
     Viewer.cpp \
     LinearMap.cpp \
-    MyQApp.cpp
+    MyQApp.cpp \
+    CallbackList.cpp
 

@@ -8,10 +8,29 @@
 #include <QMutex>
 #include <QEvent>
 #include <QThreadStorage>
+#include <QDebug>
+
+IPlatform * MyQApp::m_platform = nullptr;
 
 MyQApp::MyQApp(int & argc, char ** argv) :
     QApplication( argc, argv)
 {
+}
+
+void MyQApp::setPlatform(IPlatform *platform)
+{
+    if( m_platform) {
+        qCritical() << "You are redefining platform...";
+    }
+    m_platform = platform;
+}
+
+IPlatform *MyQApp::platform()
+{
+    if( ! m_platform) {
+        qCritical() << "You are trying to use NULL platform";
+    }
+    return m_platform;
 }
 
 //bool MyQApp::notify(QObject *obj, QEvent *event)

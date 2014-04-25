@@ -9,7 +9,6 @@
 #include <QtWidgets>
 #include <QWebSettings>
 
-
 DesktopPlatform::DesktopPlatform(int argc, char **argv)
     : QObject( nullptr)
 {
@@ -30,17 +29,17 @@ DesktopPlatform::DesktopPlatform(int argc, char **argv)
     m_mainWindow = new MainWindow();
 
     // add platform and connector to JS exports
-    m_mainWindow-> exportToJs( "QtPlatform", this);
-    m_mainWindow-> exportToJs( "QtConnector", m_connector);
+    m_mainWindow->exportToJs( "QtPlatform", this);
+    m_mainWindow->exportToJs( "QtConnector", m_connector);
 
     // load the url
-    m_mainWindow-> loadUrl( url);
+    m_mainWindow->loadUrl( url);
 
     // display the window
-    m_mainWindow-> show();
+    m_mainWindow->show();
 }
 
-IConnector * DesktopPlatform::createConnector()
+IConnector * DesktopPlatform::connector()
 {
 //    if( ! m_connector) {
 //        m_connector = new DesktopConnector();
@@ -50,5 +49,5 @@ IConnector * DesktopPlatform::createConnector()
 
 void DesktopPlatform::goFullScreen()
 {
-    m_mainWindow-> showFullScreen();
+    m_mainWindow->showFullScreen();
 }

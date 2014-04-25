@@ -2,17 +2,21 @@
 #define SERVER_SERVERPLATFORM_H
 
 #include "common/IPlatform.h"
+#include <QObject>
 
 class ServerPlatform : public IPlatform
 {
+
 public:
+
     ServerPlatform( int argc, char ** argv);
 
-    virtual IConnector *createConnector() Q_DECL_OVERRIDE;
+    virtual IConnector *connector() Q_DECL_OVERRIDE;
 
 protected:
-    int m_argc;
-    char ** m_argv;
+
+    IConnector * m_connector;
+
 };
 
 #endif // SERVER_SERVERPLATFORM_H

@@ -6,8 +6,9 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
-#include "IPlatform.h"
 #include <QObject>
+
+class IPlatform;
 
 class Viewer : public QObject
 {
