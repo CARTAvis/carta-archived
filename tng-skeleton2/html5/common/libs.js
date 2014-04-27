@@ -1,7 +1,14 @@
 /**
  * Created by pfederl on 26/03/14.
+ *
+ * Various useful functions.
  */
 
+/* global console, mImport, mExport, window, window.postMessage */
+
+/**
+ * Define mExport and mImport
+ */
 (function()
 {
     "use strict";
@@ -99,5 +106,20 @@
 
 })();
 
+
+// export assert
+(function()
+{
+    "use strict";
+
+    function assert(condition, message) {
+        if (!condition) {
+            throw message || "Assertion failed";
+        }
+    }
+
+    mExport( "assert", assert);
+
+})();
 
 

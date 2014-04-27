@@ -95,12 +95,6 @@ qx.Class.define("skel.Application",
                 win.open();
 
 
-                /*
-                 -------------------------------------------------------------------------
-                 Below is your actual application code...
-                 -------------------------------------------------------------------------
-                 */
-
                 // Create a button
                 var button1 = new qx.ui.form.Button("Share this session", "skel/test.png");
 

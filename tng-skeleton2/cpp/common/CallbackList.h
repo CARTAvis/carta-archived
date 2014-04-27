@@ -191,6 +191,9 @@ public:
 
         // we are not inside the loop anymore
         m_pimpl-> insideCallEveryone = false;
+
+        // clear the cleanup flag
+        m_pimpl-> pendingCleanup = false;
     }
 
     /// safe destructor
