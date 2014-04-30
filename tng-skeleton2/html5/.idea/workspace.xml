@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopConnector.js" afterPath="$PROJECT_DIR$/desktop/desktopConnector.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopIndex.html" afterPath="$PROJECT_DIR$/desktop/desktopIndex.html" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -86,7 +85,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="desktopIndex.html" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="desktopIndex.html" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.25700936" vertical-offset="0" max-vertical-offset="642">
@@ -99,10 +98,10 @@
           <file leaf-file-name="desktopConnector.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="4653" max-vertical-offset="5550">
-                  <caret line="328" column="13" selection-start-line="328" selection-start-column="13" selection-end-line="328" selection-end-column="13" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="4638" max-vertical-offset="5535">
+                  <caret line="327" column="13" selection-start-line="327" selection-start-column="13" selection-end-line="327" selection-end-column="13" />
                   <folding>
-                    <marker date="1398838829231" expanded="true" signature="8212:8224" placeholder="{...}" />
+                    <marker date="1398839419398" expanded="true" signature="8157:8169" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -220,11 +219,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="desktopConnector.js" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="desktopConnector.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.85915494" vertical-offset="4911" max-vertical-offset="5550">
-                  <caret line="367" column="0" selection-start-line="367" selection-start-column="0" selection-end-line="367" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.6756757" vertical-offset="3840" max-vertical-offset="5535">
+                  <caret line="289" column="10" selection-start-line="289" selection-start-column="10" selection-end-line="289" selection-end-column="10" />
                   <folding />
                 </state>
               </provider>
@@ -276,8 +275,8 @@
         <option value="$PROJECT_DIR$/common/CallbackList.js" />
         <option value="$PROJECT_DIR$/server/serverConnector.js" />
         <option value="$PROJECT_DIR$/common/IConnector.js" />
-        <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
         <option value="$PROJECT_DIR$/desktop/desktopIndex.html" />
+        <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
       </list>
     </option>
   </component>
@@ -628,12 +627,12 @@
       <workItem from="1398361255584" duration="80000" />
       <workItem from="1398362049924" duration="639000" />
       <workItem from="1398363198107" duration="68000" />
-      <workItem from="1398363610054" duration="10808000" />
+      <workItem from="1398363610054" duration="11347000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="134031000" />
+    <option name="totallyTimeSpent" value="134570000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
@@ -742,9 +741,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="7290" max-vertical-offset="7410">
           <caret line="486" column="19" selection-start-line="486" selection-start-column="0" selection-end-line="487" selection-end-column="0" />
-          <folding>
-            <marker date="1398838829231" expanded="true" signature="8212:8224" placeholder="{...}" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -846,9 +843,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="7290" max-vertical-offset="7410">
           <caret line="486" column="19" selection-start-line="486" selection-start-column="0" selection-end-line="487" selection-end-column="0" />
-          <folding>
-            <marker date="1398838829231" expanded="true" signature="8212:8224" placeholder="{...}" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -898,9 +893,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1740" max-vertical-offset="6660">
           <caret line="116" column="72" selection-start-line="116" selection-start-column="72" selection-end-line="116" selection-end-column="72" />
-          <folding>
-            <marker date="1398838829231" expanded="true" signature="8212:8224" placeholder="{...}" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -958,9 +951,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="45" max-vertical-offset="135">
           <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-          <folding>
-            <marker date="1398838829231" expanded="true" signature="8212:8224" placeholder="{...}" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1106,20 +1097,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="4653" max-vertical-offset="5550">
-          <caret line="328" column="13" selection-start-line="328" selection-start-column="13" selection-end-line="328" selection-end-column="13" />
-          <folding>
-            <marker date="1398838829231" expanded="true" signature="8212:8224" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.25700936" vertical-offset="0" max-vertical-offset="642">
           <caret line="11" column="36" selection-start-line="11" selection-start-column="36" selection-end-line="11" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6756757" vertical-offset="3840" max-vertical-offset="5535">
+          <caret line="289" column="10" selection-start-line="289" selection-start-column="10" selection-end-line="289" selection-end-column="10" />
           <folding />
         </state>
       </provider>

@@ -39,8 +39,6 @@
     // private variables
     var m_connectionStatus = connector.CONNECTION_STATUS.DISCONNECTED;
     var m_connectionCB = null;
-    // last callback ID, so we can generate unique ones
-    var m_lastCallbackID = 1;
     // we keep following information for every state:
     //  - path (so that individual shared variables don't need to keep their own copies)
     //  - value
@@ -51,7 +49,7 @@
     var m_commandCallbacks = [];
     // map of views
     var m_views = {};
-    // list of shared variables
+    // cache of shared variables
     var m_sharedVars = {};
 
     // listen for command results callbacks and always invoke the top callback in the list
@@ -246,6 +244,7 @@
         QtConnector.stateChangedSignal.connect( function( key, val )
         {
             var st = getOrCreateState( key );
+            // save the value
             st.value = val;
             // now go through all callbacks and call them
             st.callbacks.callEveryone( st.value );
