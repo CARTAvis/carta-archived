@@ -91,7 +91,7 @@
         if( st !== undefined ) {
             return st;
         }
-        st = { path: path, value: null, callbacks: [] };
+        st = { path: path, value: null, callbacks: new CallbackList() };
         m_states[path] = st;
         return st;
     }
@@ -245,15 +245,11 @@
         // listen for changes to the state
         QtConnector.stateChangedSignal.connect( function( key, val )
         {
-//            console.log( "qt.stateChanged", key, val );
             var st = getOrCreateState( key );
             st.value = val;
             // now go through all callbacks and call them
-            st.callbacks.forEach( function( cb )
-            {
-                cb.callback( st.value );
-            } );
-        } );
+            st.callbacks.callEveryone( st.value );
+        });
     };
 
     connector.disconnect = function()
@@ -279,12 +275,8 @@
 
         // make a copy of this to use in private/priviledged functions
         var m_that = this;
-        // save a pointer to the list of states
+        // save a pointer to the state info associated with path
         var m_statePtr = getOrCreateState( path );
-        // maintain our own list of callbacks so that we can remove them when
-        // destroy() gets called
-        var m_myCallbackIDs = [];
-
 
         // add a callback for the variable
         this.addNamedCB = function( callback )
@@ -292,12 +284,8 @@
             if( typeof callback !== "function" ) {
                 throw "callback is not a function!!";
             }
-            // generate the ID for this callback
-            var cbId = "cb" + (m_lastCallbackID ++);
             // add callback to the list of all callbacks for this state key
-            m_statePtr.callbacks.push( { callback: callback, id: cbId } );
-            // add this ID to our own list
-            m_myCallbackIDs.push( cbId);
+            var cbId = m_statePtr.callbacks.add( callback)
             // return the id
             return cbId;
         };
@@ -337,13 +325,10 @@
         };
 
         // this should be called when the variable will no longer be used, so that
-        // callbacks associated with this var can be erased
+        // callbacks associated with this state are all cleared
         this.destroy = function()
         {
-            m_myCallbackIDs.forEach( function(cbId) {
-                m_that.removeCB( cbId);
-            });
-            m_myCallbackIDs = [];
+            m_statePtr.callbacks.destroy();
         };
 
         this.path = function()
@@ -353,52 +338,20 @@
 
         this.removeCB = function( cbid )
         {
-            // first remove the CB from our own list (to make sure this is our callback)
-            var ind = - 1;
-            for( var i = 0 ; i < m_myCallbackIDs.length ; i ++ ) {
-                if( m_myCallbackIDs[i] === cbid ) {
-                    ind = i;
-                    break;
-                }
-            }
-            if( ind < 0 ) {
-                throw new Error("no such callback found in private list");
-            }
-            else {
-                m_myCallbackIDs.splice( ind, 1 );
-            }
-            // now remove the callback from the global list
-            var callbacks = m_statePtr.callbacks;
-            var ind = - 1;
-            for( var i = 0 ; i < callbacks.length ; i ++ ) {
-                if( callbacks[i].id === cbid ) {
-                    ind = i;
-                    break;
-                }
-            }
-            if( ind < 0 ) {
-                throw new Error("no such callback found in global list");
-            }
-            else {
-                callbacks.splice( ind, 1 );
-            }
-
+            m_statePtr.callbacks.remove( cbid);
             return m_that;
         };
-
 
         console.log( "current value:", m_statePtr.value );
     }
 
+    // create or get a cached copy of a shared variable for this path
     connector.getSharedVar = function( path )
     {
         var sv = m_sharedVars[path];
         if( sv != null) return sv;
         m_sharedVars[path] = new SharedVar( path);
         return m_sharedVars[path];
-
-        // TODO: maybe we should not create a new instance for every var and cache instead?
-        return new SharedVar( path );
     };
 
     connector.sendCommand = function( cmd, params, callback )
@@ -412,84 +365,3 @@
     };
 
 })();
-/*
-
- (function( scope )
- {
- "use strict";
-
- return;
-
- var connector = mImport( "connector" );
- var console = mImport( "console" );
- connector.setConnectionCB( function( )
- {
- console.log( "connectionCB", connector, connector.getConnectionStatus() )
- } );
- connector.connect();
-
- return;
-
- scope.connector = {};
-
- scope.connector.setState = function( key, val )
- {
- pureweb.getFramework().getState().setValue( key, val );
- };
-
- scope.connector.clearState = function( prefix )
- {
- pureweb.getFramework().getState().getStateManager().deleteTree( prefix );
- };
-
- // rewrite uri if sharing session
- var uri = location.href;
- if( ! pureweb.getClient().isaSessionUri( uri ) ) {
- uri = location.protocol + '//' + location.host + '/pureweb/app?name=' + pureweb.getServiceAppName( uri );
- }
-
- var client = pureweb.getClient();
- pureweb.listen( client, pureweb.client.WebClient.EventType.CONNECTED_CHANGED, function onConnectedChanged( e )
- {
- if( ! e.target.isConnected() ) {
- return;
- }
- var diagnosticsPanel = document.getElementById( 'pwDiagnosticsPanel' );
- if( diagnosticsPanel ) {
- pureweb.client.diagnostics.initialize();
- }
- }
- );
-
- pureweb.listen( client, pureweb.client.WebClient.EventType.SESSION_STATE_CHANGED,
- function sscCB( e )
- {
- console.log( "pureweb session state changed", e );
- console.log( "  state:", client.getSessionState() );
- }
- );
-
-
- // setup the window.onbeforeunload callback to disconnect from the service application
- window.onbeforeunload = window.onunload = function( e )
- {
- if( client.isConnected() ) {
- client.disconnect( false );
- }
- return null;
- };
-
- pureweb.connect( uri );
-
-
- })( window );
- */
-
-/*
- var img = Qt.img;
- if( imgEl == null) {
- imgEl = document.getElementById("mimg");
- }
- Qt.img.assignToHTMLImageElement( imgEl);
-
- */
