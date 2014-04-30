@@ -159,9 +159,7 @@ SharedVar.removeCB = function( callbackId) {};
 SharedVar.isSet = function() {};
 
 /**
- * Destroys the shared variable. If other shared variables were created for the same
- * path they are untouched. This is essentially a way to release some resources and
- * deactivate all callbacks.
+ * Removes all callbacks associated with this path.
  */
 SharedVar.destroy = function() {};
 

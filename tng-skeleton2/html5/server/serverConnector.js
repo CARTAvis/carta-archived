@@ -40,12 +40,15 @@
     };
 
     // private variables
+    // =================
     var m_initialUrl = null;
     var m_connectionStatus = connector.CONNECTION_STATUS.DISCONNECTED;
     var m_connectionCB = null;
     var m_lastShareUrl = null;
     var m_client = pureweb.getClient();
     var m_containerUIDcounter = 0;
+    // list of shared variables
+    var m_sharedVars = {};
 
     // the View class
     var View = function( container, viewName )
@@ -412,7 +415,11 @@
 
     connector.getSharedVar = function( path )
     {
-        return new SharedVar( path );
+        var sv = m_sharedVars[path];
+        if( sv != null) return sv;
+        m_sharedVars[path] = new SharedVar( path);
+        return m_sharedVars[path];
+//        return new SharedVar( path );
     };
 
     connector.sendCommand = function( cmd, params, callback )

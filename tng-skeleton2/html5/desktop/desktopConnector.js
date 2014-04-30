@@ -16,6 +16,7 @@
     var setZeroTimeout = mImport( "setZeroTimeout" );
     var console = mImport( "console" );
     var defer = mImport( "defer" );
+    var CallbackList = mImport( "CallbackList");
 
     /**
      * Numerical constants representing status of the connection.
@@ -43,16 +44,15 @@
     // we keep following information for every state:
     //  - path (so that individual shared variables don't need to keep their own copies)
     //  - value
-    //  - callbacks
-    // for each callback we keep
-    //    - callback {function}
-    //    - id
+    //  - callback list
     // We start with an empty state
     var m_states = {};
     // array of callbacks for commands, these are used to report back results
     var m_commandCallbacks = [];
     // map of views
     var m_views = {};
+    // list of shared variables
+    var m_sharedVars = {};
 
     // listen for command results callbacks and always invoke the top callback in the list
     // the command results always arrive in the same order they were sent
@@ -392,6 +392,11 @@
 
     connector.getSharedVar = function( path )
     {
+        var sv = m_sharedVars[path];
+        if( sv != null) return sv;
+        m_sharedVars[path] = new SharedVar( path);
+        return m_sharedVars[path];
+
         // TODO: maybe we should not create a new instance for every var and cache instead?
         return new SharedVar( path );
     };
