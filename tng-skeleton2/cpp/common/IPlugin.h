@@ -56,6 +56,7 @@ Q_DECLARE_INTERFACE(IPlugin, "org.cartaviewer.IPlugin")
 
 
 
+
 /// TODO: I have not yet figured out how to specialize some of the templates for
 /// void return type... hence the FakeVoid aliased to char
 typedef char FakeVoid;
