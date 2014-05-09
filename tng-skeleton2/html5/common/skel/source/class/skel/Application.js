@@ -121,6 +121,13 @@ qx.Class.define("skel.Application",
                 });
                 this.getRoot().add( tfield, { left: 100, top: 130 });
 
+                // status bar
+                var statusBar = new qx.ui.form.TextField("Status bar").set({
+                    readOnly: true
+                });
+                this.getRoot().add( statusBar, { left: 10, right: 10, bottom: 10 });
+
+
 
                 var labelx = new skel.boundWidgets.Label( "MouseX:", "pix", "/mouse/x");
                 doc.add( labelx, { left: 100, top: 170 });

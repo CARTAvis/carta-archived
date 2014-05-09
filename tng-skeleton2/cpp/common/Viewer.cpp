@@ -2,12 +2,30 @@
 #include "IPlatform.h"
 #include "IConnector.h"
 #include "misc.h"
+#include "PluginManager.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
 #include <QPainter>
 #include <cmath>
 #include <QDebug>
+
+/// shared objects across the application
+class Globals {
+    PluginManager * m_pluginManager;
+    IPlatform * m_platform;
+    IConnector * m_connector;
+
+public:
+    IConnector *connector() const;
+    void setConnector(IConnector *connector);
+    IPlatform *platform() const;
+    void setPlatform(IPlatform *platform);
+    PluginManager *pluginManager() const;
+    void setPluginManager(PluginManager *pluginManager);
+};
+
+Globals globals;
 
 class TestView : public IView
 {
@@ -69,21 +87,25 @@ protected:
         angle *= - 180 / M_PI;
 
         m_qimage.fill( m_bgColor);
-        QPainter p( & m_qimage);
-        p.setPen( Qt::NoPen);
-        p.setBrush( QColor( 255, 255, 0, 128));
-        p.drawEllipse( QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10 );
-        p.setPen( QColor( 255, 255, 255));
-        p.drawLine( 0, m_lastMouse.y(), m_qimage.width()-1, m_lastMouse.y());
-        p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height()-1);
+        {
+            QPainter p( & m_qimage);
+            p.setPen( Qt::NoPen);
+            p.setBrush( QColor( 255, 255, 0, 128));
+            p.drawEllipse( QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10 );
+            p.setPen( QColor( 255, 255, 255));
+            p.drawLine( 0, m_lastMouse.y(), m_qimage.width()-1, m_lastMouse.y());
+            p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height()-1);
 
-        p.translate( m_qimage.rect().center());
-        p.rotate( angle);
-        p.translate( - m_qimage.rect().center());
-        p.setFont( QFont( "Arial", 20));
-        p.setPen( QColor( "white"));
-        p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName);
+            p.translate( m_qimage.rect().center());
+            p.rotate( angle);
+            p.translate( - m_qimage.rect().center());
+            p.setFont( QFont( "Arial", 20));
+            p.setPen( QColor( "white"));
+            p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName);
+        }
 
+        // execute the pre-render hook
+        globals.pluginManager()-> hookAll2<PreRender>( m_viewName, & m_qimage).executeAll();
     }
 
     IConnector * m_connector;
@@ -97,12 +119,30 @@ protected:
 Viewer::Viewer( IPlatform * platform) :
     QObject( nullptr)
 {
+    globals.setPlatform( platform);
+    globals.setConnector( platform->connector());
+
     m_platform = platform;
+
+    globals.setPluginManager( new PluginManager);
+
+    m_pluginManager = globals.pluginManager();
+    m_pluginManager-> loadPlugins();
+    // load plugins
+    qDebug() << "Loading plugins...";
+    auto infoList = m_pluginManager-> getInfoList();
+    qDebug() << "List of plugins: [" << infoList.size() << "]";
+    for( const auto & entry : infoList) {
+        qDebug() << "  path:" << entry-> path;
+    }
+
+    // execute a hook
+    auto helper = m_pluginManager-> hookAll2<Initialize>();
+    helper.executeAll();
 }
 
 void Viewer::start()
 {
-
     // setup connector
     auto connector = m_platform-> connector();
 
@@ -165,4 +205,34 @@ void Viewer::start()
 
     connector-> registerView( new TestView( "view1", QColor( "blue")));
     connector-> registerView( new TestView( "view2", QColor( "red")));
+}
+
+
+IPlatform *Globals::platform() const
+{
+return m_platform;
+}
+
+void Globals::setPlatform(IPlatform *platform)
+{
+m_platform = platform;
+}
+
+PluginManager *Globals::pluginManager() const
+{
+return m_pluginManager;
+}
+
+void Globals::setPluginManager(PluginManager *pluginManager)
+{
+m_pluginManager = pluginManager;
+}
+IConnector *Globals::connector() const
+{
+return m_connector;
+}
+
+void Globals::setConnector(IConnector *connector)
+{
+m_connector = connector;
 }

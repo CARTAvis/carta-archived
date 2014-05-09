@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/server/serverConnector.js" line="391" mnemonic="1" />
+    <bookmark url="file://$PROJECT_DIR$/server/serverConnector.js" line="393" mnemonic="1" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopConnector.js" afterPath="$PROJECT_DIR$/desktop/desktopConnector.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/IPlugin.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/plugins/plugins.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/DesktopConnector.h" afterPath="$PROJECT_DIR$/../cpp/desktop/DesktopConnector.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IConnector.h" afterPath="$PROJECT_DIR$/../cpp/common/IConnector.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.h" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common.pri" afterPath="$PROJECT_DIR$/../cpp/common.pri" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/cpp.pro" afterPath="$PROJECT_DIR$/../cpp/cpp.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/desktopMain.cpp" afterPath="$PROJECT_DIR$/../cpp/desktop/desktopMain.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server/serverConnector.js" afterPath="$PROJECT_DIR$/server/serverConnector.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../tng-skeleton/tng-skeleton.pro.user" afterPath="$PROJECT_DIR$/../../tng-skeleton/tng-skeleton.pro.user" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../tng-skeleton2.pro.user" afterPath="$PROJECT_DIR$/../tng-skeleton2.pro.user" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -85,10 +101,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="desktopIndex.html" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="desktopIndex.html" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.25700936" vertical-offset="0" max-vertical-offset="642">
+                <state vertical-scroll-proportion="-6.875" vertical-offset="0" max-vertical-offset="375">
                   <caret line="11" column="36" selection-start-line="11" selection-start-column="36" selection-end-line="11" selection-end-column="36" />
                   <folding />
                 </state>
@@ -119,11 +135,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="serverConnector.js" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="serverConnector.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/server/serverConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-10.666667" vertical-offset="5487" max-vertical-offset="7605">
-                  <caret line="388" column="40" selection-start-line="388" selection-start-column="40" selection-end-line="388" selection-end-column="40" />
+                <state vertical-scroll-proportion="0.36036035" vertical-offset="4290" max-vertical-offset="7635">
+                  <caret line="305" column="22" selection-start-line="305" selection-start-column="22" selection-end-line="305" selection-end-column="22" />
                   <folding />
                 </state>
               </provider>
@@ -219,21 +235,21 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="desktopConnector.js" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="desktopConnector.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6756757" vertical-offset="3840" max-vertical-offset="5535">
-                  <caret line="289" column="10" selection-start-line="289" selection-start-column="10" selection-end-line="289" selection-end-column="10" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="513" max-vertical-offset="5535">
+                  <caret line="58" column="32" selection-start-line="58" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="Application.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-13.555555" vertical-offset="1089" max-vertical-offset="2085">
-                  <caret line="97" column="16" selection-start-line="97" selection-start-column="16" selection-end-line="97" selection-end-column="16" />
+                <state vertical-scroll-proportion="0.78403753" vertical-offset="1404" max-vertical-offset="2190">
+                  <caret line="127" column="80" selection-start-line="127" selection-start-column="80" selection-end-line="127" selection-end-column="80" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
                   </folding>
@@ -270,13 +286,13 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js" />
         <option value="$PROJECT_DIR$/common/libs.js" />
-        <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
         <option value="$PROJECT_DIR$/server/serverIndex.html" />
         <option value="$PROJECT_DIR$/common/CallbackList.js" />
-        <option value="$PROJECT_DIR$/server/serverConnector.js" />
         <option value="$PROJECT_DIR$/common/IConnector.js" />
         <option value="$PROJECT_DIR$/desktop/desktopIndex.html" />
         <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
+        <option value="$PROJECT_DIR$/server/serverConnector.js" />
+        <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
       </list>
     </option>
   </component>
@@ -627,12 +643,12 @@
       <workItem from="1398361255584" duration="80000" />
       <workItem from="1398362049924" duration="639000" />
       <workItem from="1398363198107" duration="68000" />
-      <workItem from="1398363610054" duration="11347000" />
+      <workItem from="1398363610054" duration="15632000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="134570000" />
+    <option name="totallyTimeSpent" value="138855000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
@@ -1053,16 +1069,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.555555" vertical-offset="1089" max-vertical-offset="2085">
-          <caret line="97" column="16" selection-start-line="97" selection-start-column="16" selection-end-line="97" selection-end-column="16" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/server/serverIndex.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-11.875" vertical-offset="0" max-vertical-offset="375">
@@ -1079,14 +1085,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server/serverConnector.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.666667" vertical-offset="5487" max-vertical-offset="7605">
-          <caret line="388" column="40" selection-start-line="388" selection-start-column="40" selection-end-line="388" selection-end-column="40" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/CallbackList.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-53.037037" vertical-offset="1058" max-vertical-offset="3255">
@@ -1099,17 +1097,35 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.25700936" vertical-offset="0" max-vertical-offset="642">
+        <state vertical-scroll-proportion="-6.875" vertical-offset="0" max-vertical-offset="375">
           <caret line="11" column="36" selection-start-line="11" selection-start-column="36" selection-end-line="11" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/serverConnector.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.36036035" vertical-offset="4290" max-vertical-offset="7635">
+          <caret line="305" column="22" selection-start-line="305" selection-start-column="22" selection-end-line="305" selection-end-column="22" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6756757" vertical-offset="3840" max-vertical-offset="5535">
-          <caret line="289" column="10" selection-start-line="289" selection-start-column="10" selection-end-line="289" selection-end-column="10" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="513" max-vertical-offset="5535">
+          <caret line="58" column="32" selection-start-line="58" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.78403753" vertical-offset="1404" max-vertical-offset="2190">
+          <caret line="127" column="80" selection-start-line="127" selection-start-column="80" selection-end-line="127" selection-end-column="80" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

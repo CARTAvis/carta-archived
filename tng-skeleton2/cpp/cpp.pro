@@ -3,7 +3,8 @@ TEMPLATE = subdirs
 SUBDIRS = \
     common \
     desktop \
-    server
+    server \
+    plugins
 
 # build these in order
 CONFIG += ordered

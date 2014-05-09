@@ -71,6 +71,7 @@ public:
     // for each state we maintain a list of callbacks
     std::map<QString, StateCBList *> m_stateCallbackList;
 
+    // IDs for command callbacks
     CallbackID m_callbackNextId;
 
     std::map< QString, QString > m_state;

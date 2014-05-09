@@ -30,7 +30,7 @@ public:
     /// signature for state changed callback
     typedef std::function<void (CSR path, CSR newValue)> StateChangedCallback;
 
-    /// callback ID type (used to remove callbacks)
+    /// callback ID type (needed to remove callbacks)
     typedef int64_t CallbackID;
 
     /// initializes the connector

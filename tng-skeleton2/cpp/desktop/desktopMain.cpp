@@ -35,12 +35,13 @@ void handler(QtMsgType type, const QMessageLogContext &context, const QString &p
 
 int main(int argc, char ** argv)
 {
+
         qInstallMessageHandler( handler);
 
         // setup Qt
         MyQApp app(argc, argv);
 
-        // create a platform
+        // create a platform and make it available to the rest of the code
         MyQApp::setPlatform( new DesktopPlatform( argc, argv));
 
         // run the viewer with this platorm

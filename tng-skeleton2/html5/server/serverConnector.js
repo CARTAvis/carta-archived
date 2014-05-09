@@ -46,8 +46,10 @@
     var m_connectionCB = null;
     var m_lastShareUrl = null;
     var m_client = pureweb.getClient();
+    // counter used to assign a unique ID to containers that don't have one (because
+    // PureWeb requires one)
     var m_containerUIDcounter = 0;
-    // list of shared variables
+    // cache of shared variables
     var m_sharedVars = {};
 
     // the View class
@@ -138,8 +140,6 @@
     {
         return m_connectionStatus;
     };
-
-    console.log( "get cs = ", connector.getConnectionStatus() );
 
 
     connector.setConnectionCB = function( callback )
@@ -287,6 +287,7 @@
         // whether we have internal callback set or not
         var m_internalCallbackRegistered = false;
 
+        // register PureWeb callback if not already registered
         function registernInternalCallback()
         {
             if( m_internalCallbackRegistered === true ) {
@@ -296,6 +297,7 @@
             m_pwStateManager.addValueChangedHandler( m_path, internalCallback );
         }
 
+        // unregister PureWeb callback, unless not registered
         function unregisterInternalCallback()
         {
             if( m_internalCallbackRegistered === false ) {

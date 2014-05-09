@@ -15,11 +15,14 @@ HEADERS += \
     IView.h \
     LinearMap.h \
     MyQApp.h \
-    CallbackList.h
+    CallbackList.h \
+    PluginManager.h \
+    IPlugin.h
 
 SOURCES += \
     Viewer.cpp \
     LinearMap.cpp \
     MyQApp.cpp \
-    CallbackList.cpp
+    CallbackList.cpp \
+    PluginManager.cpp
 

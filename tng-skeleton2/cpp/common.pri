@@ -1,6 +1,15 @@
+# COMPILER = g++
+CONFIG += gcc481
+
+gcc481 {
+    COMPILER = g++-4.8
+} else {
+    COMPILER = g++
+}
+
 # use c++11 with gcc 4.8.1
-#QMAKE_CXX = g++-4.8
-#QMAKE_LINK = g++-4.8
+QMAKE_CXX = $${COMPILER}
+QMAKE_LINK = $${COMPILER}
 #QMAKE_CXXFLAGS += -std=c++11
 #QMAKE_LFLAGS += -std=c++11
 CONFIG += c++11
@@ -17,4 +26,6 @@ CONFIG += c++11
 #QMAKE_CXXFLAGS += -Wall
 
 # add a little speedup with ccache
-linux-*:exists(/usr/bin/ccache):QMAKE_CXX=ccache g++
+linux-*:exists(/usr/bin/ccache):QMAKE_CXX=ccache $${COMPILER}
+linux-*:exists(/usr/bin/ccache):QMAKE_LINK=ccache $${COMPILER}
+

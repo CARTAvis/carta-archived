@@ -9,6 +9,7 @@
 #include <QObject>
 
 class IPlatform;
+class PluginManager;
 
 class Viewer : public QObject
 {
@@ -23,7 +24,9 @@ signals:
 public slots:
 
 protected:
+
     IPlatform * m_platform;
+    PluginManager * m_pluginManager;
 
 };
 
