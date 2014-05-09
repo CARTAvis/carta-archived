@@ -100,17 +100,6 @@ public:
 };
 
 
-//class Render : public BaseHook {
-//    Q_OBJECT
-//public:
-//    typedef QImage ResultType;
-//    struct Params { Params( int, const QString &, QImage ) {} };
-//    const static HookId StaticHookId = 2;
-////    Render( int, const QString &, const QImage) {}
-//    Render() : BaseHook( StaticHookId) {}
-//    ResultType result;
-//};
-
 class GetRandomNumber : public BaseHook  {
     Q_OBJECT
 public:
