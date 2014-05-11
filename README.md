@@ -1,7 +1,7 @@
-ALMAvis
+Carta Viewer
 =======
 
-Visualization Code for ALMA
+Visualization Code for ALMA and SKA
 
 
 Wiki:
