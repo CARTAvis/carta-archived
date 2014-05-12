@@ -6,20 +6,26 @@
 #include <cstdint>
 #include <QDebug>
 
-/// we are using 64bit integers for hook IDs
+/// Every hook as a unique ID and we are using 64bit integers for hook IDs
+/// The IDs will allow us to do static_cast<> downcasting inside plugins.
 typedef int64_t HookId;
 
 /// base hook event
-class BaseHook : public QObject {
+/// Currently the purpose of this base class is to implement IDs
+/// TODO: does this need inheritance from QObject
+class BaseHook : public QObject
+{
+
     Q_OBJECT
+
 public:
 
     BaseHook() = delete;
-    BaseHook( const HookId & id) : m_hookId(id) {}
 
-//    static HookId staticHookId;
-//    virtual HookId dynamicHoodId() const = 0;
+    /// only one constructor, requires a hook ID
+    explicit BaseHook( const HookId & id) : m_hookId(id) {}
 
+    /// getter
     HookId hookId() const
     {
         return m_hookId;
@@ -31,12 +37,16 @@ public:
 
 protected:
 
+    /// the actual hook ID
     HookId m_hookId;
 };
 
 
 /// plugin interface
-class IPlugin {
+/// Every plugin must implement this interface
+class IPlugin
+{
+
 public:
 
     /// this is what we end up calling to do all work
@@ -50,18 +60,13 @@ public:
 
 };
 
-//#define IPlugin_iid "org.cartaviewer.IPlugin"
+// this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
 Q_DECLARE_INTERFACE(IPlugin, "org.cartaviewer.IPlugin")
-
-
-
 
 
 /// TODO: I have not yet figured out how to specialize some of the templates for
 /// void return type... hence the FakeVoid aliased to char
 typedef char FakeVoid;
-
-
 
 struct EmptyParams { EmptyParams() {} };
 
@@ -82,9 +87,12 @@ public:
 };
 
 /// just before rendering a view, plugins are given a chance to modify the rendered image
-class PreRender : public BaseHook {
+class PreRender : public BaseHook
+{
     Q_OBJECT
+
 public:
+
     typedef FakeVoid ResultType;
     struct Params {
         Params( QString p_viewName, QImage * p_imgPtr) {
@@ -101,7 +109,8 @@ public:
 };
 
 
-class GetRandomNumber : public BaseHook  {
+class GetRandomNumber : public BaseHook
+{
     Q_OBJECT
 public:
     typedef double ResultType;
