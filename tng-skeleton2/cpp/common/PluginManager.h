@@ -2,8 +2,7 @@
  *
  **/
 
-#ifndef PLUGINMANAGER_H
-#define PLUGINMANAGER_H
+#pragma once
 
 #include "IPlugin.h"
 
@@ -13,36 +12,6 @@
 #include <functional>
 #include <utility>
 #include <memory>
-
-template <typename T>
-class Nullable
-{
-
-public:
-
-    /// default constructor makes a nulled version
-    Nullable()
-        : m_isNull( true)
-    {}
-
-    /// initializer from value
-    Nullable( const T & val)
-        : m_isNull( false)
-        , m_val( val)
-    {}
-
-    bool isNull() const { return m_isNull; }
-    bool isSet() const { return ! isNull(); }
-    explicit operator bool() const { return ! isNull(); }
-
-    const T & val() const { return m_val; }
-
-protected:
-
-    bool m_isNull;
-    T m_val;
-
-};
 
 class IncompleteType;
 
@@ -233,7 +202,3 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
         }
     }
 }
-
-
-
-#endif // PLUGINMANAGER_H
