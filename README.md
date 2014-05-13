@@ -6,10 +6,11 @@ Visualization Code for ALMA and SKA
 
 Wiki:
 
-https://github.com/pfederl/ALMAvis/wiki
+https://github.com/pfederl/CARTAvis/wiki
 
 Issues:
 
-https://github.com/pfederl/ALMAvis/issues?labels=&milestone=&page=1&state=open
+https://github.com/pfederl/CARTAvis/issues
+
 
 

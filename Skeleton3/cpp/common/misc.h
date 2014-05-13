@@ -1,5 +1,5 @@
-/* Miscelanous utilities, for which we have not found a good home.
- *
+/*
+ * Miscelanous utilities, for which we have not found a good home.
  *
  */
 

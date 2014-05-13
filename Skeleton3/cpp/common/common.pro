@@ -17,7 +17,8 @@ HEADERS += \
     MyQApp.h \
     CallbackList.h \
     PluginManager.h \
-    IPlugin.h
+    IPlugin.h \
+    Nullable.h
 
 SOURCES += \
     Viewer.cpp \

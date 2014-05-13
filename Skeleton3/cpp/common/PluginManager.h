@@ -5,6 +5,7 @@
 #pragma once
 
 #include "IPlugin.h"
+#include "Nullable.h"
 
 #include <QImage>
 #include <QString>
@@ -65,9 +66,19 @@ public:
     }
 
     /// execute all plugins and return an array of results (for every plugin that answered)
-//    std::vector<typename T::ResultType> collectResults() {
-//        std::vector<typename T::ResultType>
-//    }
+    std::vector<typename T::ResultType> vector();
+
+    /// keep executing plugins until one answers
+    Nullable<typename T::ResultType> first() {
+        Nullable<typename T::ResultType> result;
+        auto wrapper = [=] (typename T::ResultType && hookResult) -> bool {
+            result = hookResult;
+            return false;
+        };
+        forEachCond( wrapper);
+        // return unset value
+        return result;
+    }
 
 
 protected:
@@ -135,8 +146,8 @@ public:
     }
 
     // keep calling all plugins until one answers
-    template <typename Ev, typename ... Args>
-    void hookFirst( Args ...);
+//    template <typename Ev, typename ... Args>
+//    void hookFirst( Args ...);
 
 protected:
 
@@ -157,6 +168,7 @@ protected:
 private:
 
 
+    // TODO: we should probably use std::vector for little more performance
     /// list of plugins registered for a each hook
 //    std::vector< std::vector< PluginInfo *> > m_hook2plugin;
     std::map< HookId, std::vector< PluginInfo *> > m_hook2plugin;
@@ -201,4 +213,15 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
             break;
         }
     }
+}
+
+template <typename T>
+std::vector<typename T::ResultType> HookHelper<T>::vector() {
+    std::vector<typename T::ResultType> res;
+    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
+        res.push_back( res);
+        return true;
+    };
+    forEachCond( wrapper);
+    return res;
 }
