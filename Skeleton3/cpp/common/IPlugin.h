@@ -1,5 +1,4 @@
-#ifndef COMMON_IPLUGIN_H
-#define COMMON_IPLUGIN_H
+#pragma once
 
 #include <QImage>
 #include <QObject>
@@ -76,8 +75,9 @@ class Initialize : public BaseHook {
 public:
     typedef FakeVoid ResultType;
     typedef EmptyParams Params;
-    const static HookId StaticHookId = 1;
-    Initialize( Params *) : BaseHook( StaticHookId) {}
+//    constexpr static HookId StaticHookId = 1;
+    enum { StaticHookId = 1 };
+    Initialize( Params *) : BaseHook( Initialize::StaticHookId) {}
 
     ResultType result;
 
@@ -102,32 +102,30 @@ public:
         QImage * imgPtr;
         QString viewName;
     };
-    const static HookId StaticHookId = 3;
-    PreRender(Params * pptr) : BaseHook( StaticHookId), paramsPtr( pptr) {}
+    enum { StaticHookId = 3 };
+    PreRender(Params * pptr) : BaseHook( PreRender::StaticHookId), paramsPtr( pptr) {}
     ResultType result;
     Params * paramsPtr;
 };
 
-
-class GetRandomNumber : public BaseHook
+/// load image and convert it to QImage
+class LoadImage : public BaseHook
 {
     Q_OBJECT
+
 public:
-    typedef double ResultType;
-    typedef EmptyParams Params;
-//    GetRandomNumber() {}
+
+    typedef QImage ResultType;
+    struct Params {
+        Params( QString p_fileName) {
+            fileName = p_fileName;
+        }
+        QString fileName;
+    };
+    enum { StaticHookId = 5 };
+    LoadImage(Params * pptr) : BaseHook( StaticHookId), paramsPtr( pptr) {}
+    ResultType result;
+    Params * paramsPtr;
 };
-
-class MouseMove : public BaseHook {
-    Q_OBJECT
-public:
-    typedef void ResultType;
-    struct Params { Params( int, int ) {} };
-//    MouseMove( int, int) {}
-};
-
-
-
-#endif // COMMON_IPLUGIN_H
 
 

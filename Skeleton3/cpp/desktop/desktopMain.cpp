@@ -8,6 +8,7 @@
 #include "DesktopPlatform.h"
 #include "common/Viewer.h"
 #include "common/MyQApp.h"
+#include "common/Globals.h"
 
 static
 void handler(QtMsgType type, const QMessageLogContext &context, const QString &pmsg)
@@ -41,26 +42,26 @@ int main(int argc, char ** argv)
         // setup Qt
         MyQApp app(argc, argv);
 
-        // create a platform and make it available to the rest of the code
-        MyQApp::setPlatform( new DesktopPlatform( argc, argv));
+        // setup platform
+        Globals::setPlatform( new DesktopPlatform( argc, argv));
 
         // run the viewer with this platorm
-        Viewer viewer( MyQApp::platform());
+        Viewer viewer( Globals::platform());
         viewer.start();
 
         return app.exec();
 }
 
-#include "common/CallbackList.h"
+//#include "common/CallbackList.h"
 
-static void testCallbacks()
-{
-    CallbackList<int,QString> list;
+//static void testCallbacks()
+//{
+//    CallbackList<int,QString> list;
 
-    list.add( [] (int x, QString s) {
-        qDebug() << "Closure x=" << x << " s=" << s;
+//    list.add( [] (int x, QString s) {
+//        qDebug() << "Closure x=" << x << " s=" << s;
 
-    });
+//    });
 
-    list.callEveryone( 1.1, "Hello");
-}
+//    list.callEveryone( 1.1, "Hello");
+//}

@@ -29,6 +29,3 @@ CONFIG += c++11
 linux-*:exists(/usr/bin/ccache):QMAKE_CXX=ccache $${COMPILER}
 linux-*:exists(/usr/bin/ccache):QMAKE_LINK=ccache $${COMPILER}
 
-HEADERS += \
-    ../Nullable.h
-

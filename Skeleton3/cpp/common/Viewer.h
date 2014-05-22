@@ -3,8 +3,7 @@
  *
  */
 
-#ifndef VIEWER_H
-#define VIEWER_H
+#pragma once
 
 #include <QObject>
 
@@ -25,9 +24,4 @@ public slots:
 
 protected:
 
-    IPlatform * m_platform;
-    PluginManager * m_pluginManager;
-
 };
-
-#endif // VIEWER_H

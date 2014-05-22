@@ -8,7 +8,6 @@
 
 #include <QApplication>
 #include <functional>
-#include "IPlatform.h"
 #include "IConnector.h"
 
 // I suspect somewhere down the road we'll want to override notify() or some
@@ -28,13 +27,8 @@ public:
      * @brief set the platform
      * @param return the platform
      */
-    static void setPlatform( IPlatform * platform);
-    static IPlatform * platform();
 
 protected:
-
-    static IPlatform * m_platform;
-
 
 };
 

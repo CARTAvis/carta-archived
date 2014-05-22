@@ -9,14 +9,54 @@
 #include <QImage>
 #include <QPluginLoader>
 #include <QLibrary>
+#include <QtGlobal>
 
 PluginManager::PluginManager()
 {
+    QString env = qgetenv( "LD_LIBRARY_PATH");
+     env = "";
+     QStringList envList = env.split( ":", QString::SkipEmptyParts);
+     envList.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib");
+     envList.append( "/home/pfederl/Software/cfitsio3360shared/lib");
+     env = envList.join( ":");
+     qputenv( "LD_LIBRARY_PATH", env.toLocal8Bit());
+     qDebug() << "setting LD_LIBRARY_PATH:" << env.toLocal8Bit();
+     qDebug() << "LD_LIBRARY_PATH = " << qgetenv( "LD_LIBRARY_PATH");
+
+     QStringList libs;
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_casa.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath_f.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath.so");
+     libs.append( "/home/pfederl/Software/cfitsio3360shared/lib/libcfitsio.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_tables.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_measures.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_fits.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_coordinates.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_components.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_mirlib.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_lattices.so");
+     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_images.so");
+
+     for( auto fname : libs) {
+         qDebug() << "loading " << fname;
+         QLibrary lib( fname);
+         if( ! lib.load()) {
+             qDebug() << " error:" << lib.errorString();
+         }
+         else {
+             qDebug() << " success";
+         }
+
+     }
+
+
+
 }
 
 
 void PluginManager::loadPlugins()
 {
+
     // first handle staticly linked plugins (if any)
     foreach (QObject *plugin, QPluginLoader::staticInstances()) {
         processPlugin(plugin);
@@ -106,7 +146,7 @@ void fakeMain()
     }
 
     // execute a hook that calls all plugins, with no parameters and no return type
-    pm.hookAll<Initialize>();
+    pm.prepare<Initialize>();
 
     // execute a hook that calls all plugins, with some parameters and no return type
 //    pm.hookAll<Render>( 8, "Hello", testImage);
@@ -116,7 +156,7 @@ void fakeMain()
 
     // execute a hook with some parameters and a result, and execute a closure
     // for each result
-    auto helper = pm.hookAll2<PreRender>( "Test", & testImage);
+    auto helper = pm.prepare<PreRender>( "Test", & testImage);
     helper.forEachCond( [] (PreRender::ResultType) -> bool { return true; });
 
 //    pm.hookAll2<Render>( 3, "Test", testImage).forEach(

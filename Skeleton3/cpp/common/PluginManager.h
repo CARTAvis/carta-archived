@@ -19,9 +19,6 @@ class IncompleteType;
 
 // helper to convert hooks to hookid's so that we can group them all in one place
 // all work is done in specialization
-//template <typename Hook>
-//constexpr HookId Hook2Int();
-//template<> constexpr HookId Hook2Int<Initialize>() { return 1; }
 
 template <typename T>
 struct ResTrait {
@@ -71,7 +68,7 @@ public:
     /// keep executing plugins until one answers
     Nullable<typename T::ResultType> first() {
         Nullable<typename T::ResultType> result;
-        auto wrapper = [=] (typename T::ResultType && hookResult) -> bool {
+        auto wrapper = [& result] (typename T::ResultType && hookResult) -> bool {
             result = hookResult;
             return false;
         };
@@ -117,47 +114,33 @@ public:
     void loadPlugins();
     const std::vector< PluginInfo *> & getInfoList() { return m_allPlugins; }
 
-    template <typename Ev, typename ... Args>
-    typename ResTrait<typename Ev::ResultType>::Type hookAll( Args ... args) {
-//        typename Ev::Params params( args ...);
-        typename ResTrait<typename Ev::ResultType>::Type res;
-        return res;
+//    template <typename Ev, typename ... Args>
+//    typename ResTrait<typename Ev::ResultType>::Type hookAll( Args ... args) {
+//        typename ResTrait<typename Ev::ResultType>::Type res;
+//        return res;
 
-    }
+//    }
 
-    template <typename Ev, typename ... Args>
-    HookHelper<Ev> hookAll2( Args&& ... args)
+    ///
+    /// Prepare the execution of the hook
+    ///
+    template <typename Hook, typename ... Args>
+    HookHelper<Hook> prepare( Args&& ... args)
     {
         // construct the parameters for this hook
-        typename Ev::Params params( std::forward<Args>(args)...);
+        typename Hook::Params params( std::forward<Args>(args)...);
 
         // create a helper
-        HookHelper<Ev> helper( std::move(params));
-//        HookHelper<Ev> helper;
-//        helper.m_params = std::move(params);
+        HookHelper<Hook> helper( std::move(params));
         helper.m_pm = this;
-
-//        HookHelper( typename T::Params&& params)
-//            : m_params( std::forward<typename T::Params>( params))
-//        {}
 
         // return the helper
         return std::move( helper);
     }
 
-    // keep calling all plugins until one answers
-//    template <typename Ev, typename ... Args>
-//    void hookFirst( Args ...);
-
 protected:
 
     /// return a list of plugins that registered the given hook
-//    template <typename Ev>
-//    std::vector<PluginInfo *> & listForHook() {
-//        int ind = Hook2Int<Ev>();
-//        return m_hook2plugin[ ind];
-//    }
-
     std::vector<PluginInfo *> & listForHook( HookId id) {
         return m_hook2plugin[ id];
     }

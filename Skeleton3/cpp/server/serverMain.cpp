@@ -7,6 +7,7 @@
 #include "common/MyQApp.h"
 #include "ServerPlatform.h"
 #include "common/Viewer.h"
+#include "common/Globals.h"
 
 int main(int argc, char ** argv)
 {
@@ -30,10 +31,10 @@ int main(int argc, char ** argv)
 
 
     // create a platform
-    MyQApp::setPlatform( new ServerPlatform( argc, argv));
+    Globals::setPlatform( new ServerPlatform( argc, argv));
 
     // run the viewer with this platorm
-    Viewer viewer( MyQApp::platform());
+    Viewer viewer( Globals::platform());
     viewer.start();
 
     return app.exec();

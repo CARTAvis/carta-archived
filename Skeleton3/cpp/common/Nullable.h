@@ -41,7 +41,7 @@ public:
     /// returns a reference to the stored value
     const T & val() const {
         if( isNull()) {
-            throw std::exception( "Trying to get value of Nullable<> with no value set");
+            throw std::logic_error( "Trying to get value of Nullable<> with no value set");
         }
         return m_val;
     }

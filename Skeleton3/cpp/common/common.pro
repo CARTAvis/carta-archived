@@ -18,12 +18,15 @@ HEADERS += \
     CallbackList.h \
     PluginManager.h \
     IPlugin.h \
-    Nullable.h
+    Nullable.h \
+    IImage.h \
+    Globals.h
 
 SOURCES += \
     Viewer.cpp \
     LinearMap.cpp \
     MyQApp.cpp \
     CallbackList.cpp \
-    PluginManager.cpp
+    PluginManager.cpp \
+    Globals.cpp
 

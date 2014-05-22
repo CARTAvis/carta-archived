@@ -94,6 +94,15 @@ qx.Class.define("skel.Application",
                 this.getRoot().add(win, {left:370, top:220});
                 win.open();
 
+                win = new qx.ui.window.Window("Image view");
+                win.setWidth(400);
+                win.setHeight(100);
+                win.setShowMinimize(false);
+                win.setLayout( new qx.ui.layout.Grow());
+                win.setContentPadding( 5, 5, 5, 5);
+                win.add( new skel.boundWidgets.View( "view3"));
+                this.getRoot().add(win, {left:200, top:120});
+                win.open();
 
                 // Create a button
                 var button1 = new qx.ui.form.Button("Share this session", "skel/test.png");
