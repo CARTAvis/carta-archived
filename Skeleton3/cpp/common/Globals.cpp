@@ -43,6 +43,17 @@ Globals *Globals::instance()
     return m_instance;
 }
 
+
+QString Globals::fname()
+{
+    return instance()-> m_fname;
+}
+
+void Globals::setFname(const QString &fname)
+{
+    instance()-> m_fname = fname;
+}
+
 Globals::Globals()
 {
     m_connector = nullptr;

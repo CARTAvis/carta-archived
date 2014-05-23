@@ -171,7 +171,6 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
 //    /*constexpr*/ int hookId = Hook2Int<T>();
     HookId hookId = T::StaticHookId;
     qDebug() << "  static hook id = " << hookId;
-    qDebug() << "  m_pm = " << m_pm;
     auto pluginList = m_pm-> listForHook( hookId);
     qDebug() << "  plugins registered for this hook: " << pluginList.size();
 
@@ -179,8 +178,7 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     T hookData( & m_params);
 
     for( auto pluginInfo : pluginList) {
-        qDebug() << "  info" << pluginInfo;
-        qDebug() << "  calling" << pluginInfo-> path;
+        qDebug() << "  calling..." << pluginInfo-> path.right(40);
         bool handled = pluginInfo-> rawPlugin-> handleHook( hookData);
         // skip to the next plugin immediately if this hook was not handled by
         // this plugin

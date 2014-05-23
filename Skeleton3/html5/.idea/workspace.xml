@@ -5,26 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/Globals.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/Globals.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/IImage.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/common/IPlugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/MyQApp.cpp" afterPath="$PROJECT_DIR$/../cpp/common/MyQApp.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/MyQApp.h" afterPath="$PROJECT_DIR$/../cpp/common/MyQApp.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Nullable.h" afterPath="$PROJECT_DIR$/../cpp/common/Nullable.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.h" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Skeleton3.pro.user" afterPath="$PROJECT_DIR$/../Skeleton3.pro.user" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.h" afterPath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.h" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common.pri" afterPath="$PROJECT_DIR$/../cpp/common.pri" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/desktop.pro" afterPath="$PROJECT_DIR$/../cpp/desktop/desktop.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/desktopMain.cpp" afterPath="$PROJECT_DIR$/../cpp/desktop/desktopMain.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/plugins.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/plugins.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/serverMain.cpp" afterPath="$PROJECT_DIR$/../cpp/server/serverMain.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../tng-skeleton2/html5/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopIndex.html" afterPath="$PROJECT_DIR$/desktop/desktopIndex.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/resources.qrc" afterPath="$PROJECT_DIR$/../cpp/desktop/resources.qrc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server/serverIndex.html" afterPath="$PROJECT_DIR$/server/serverIndex.html" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -104,11 +90,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="desktopIndex.html" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="desktopIndex.html" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="165" max-vertical-offset="375">
-                  <caret line="11" column="36" selection-start-line="11" selection-start-column="36" selection-end-line="11" selection-end-column="36" />
+                <state vertical-scroll-proportion="0.22522523" vertical-offset="0" max-vertical-offset="999">
+                  <caret line="15" column="56" selection-start-line="15" selection-start-column="56" selection-end-line="15" selection-end-column="56" />
                   <folding />
                 </state>
               </provider>
@@ -136,7 +122,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="serverConnector.js" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="serverConnector.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/server/serverConnector.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0" vertical-offset="4530" max-vertical-offset="7635">
@@ -180,11 +166,11 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="serverIndex.html" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="serverIndex.html" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/server/serverIndex.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="285" max-vertical-offset="375">
-                  <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.12012012" vertical-offset="0" max-vertical-offset="999">
+                  <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
                   <folding />
                 </state>
               </provider>
@@ -240,11 +226,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Application.js" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.45463416" vertical-offset="1109" max-vertical-offset="2325">
-                  <caret line="105" column="0" selection-start-line="105" selection-start-column="0" selection-end-line="105" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="1244" max-vertical-offset="2325">
+                  <caret line="96" column="60" selection-start-line="96" selection-start-column="60" selection-end-line="96" selection-end-column="60" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
                   </folding>
@@ -281,13 +267,13 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js" />
         <option value="$PROJECT_DIR$/common/libs.js" />
-        <option value="$PROJECT_DIR$/server/serverIndex.html" />
         <option value="$PROJECT_DIR$/common/CallbackList.js" />
         <option value="$PROJECT_DIR$/common/IConnector.js" />
-        <option value="$PROJECT_DIR$/desktop/desktopIndex.html" />
         <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
         <option value="$PROJECT_DIR$/server/serverConnector.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
+        <option value="$PROJECT_DIR$/desktop/desktopIndex.html" />
+        <option value="$PROJECT_DIR$/server/serverIndex.html" />
       </list>
     </option>
   </component>
@@ -615,12 +601,12 @@
       <workItem from="1398362049924" duration="639000" />
       <workItem from="1398363198107" duration="68000" />
       <workItem from="1398363610054" duration="15632000" />
-      <workItem from="1400732905163" duration="26000" />
+      <workItem from="1400732905163" duration="1525000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="138881000" />
+    <option name="totallyTimeSpent" value="140380000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
@@ -629,26 +615,26 @@
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942238" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.50045997" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.5004608" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24973376" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.49954003" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.49953917" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32903227" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
@@ -1023,14 +1009,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server/serverIndex.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="285" max-vertical-offset="375">
-          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/IConnector.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="2202" max-vertical-offset="3720">
@@ -1047,14 +1025,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="165" max-vertical-offset="375">
-          <caret line="11" column="36" selection-start-line="11" selection-start-column="36" selection-end-line="11" selection-end-column="36" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/server/serverConnector.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="4530" max-vertical-offset="7635">
@@ -1065,19 +1035,35 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="513" max-vertical-offset="5535">
+        <state vertical-scroll-proportion="0.0" vertical-offset="870" max-vertical-offset="5580">
           <caret line="58" column="32" selection-start-line="58" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/desktop/desktopIndex.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.22522523" vertical-offset="0" max-vertical-offset="999">
+          <caret line="15" column="56" selection-start-line="15" selection-start-column="56" selection-end-line="15" selection-end-column="56" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.45463416" vertical-offset="1109" max-vertical-offset="2325">
-          <caret line="105" column="0" selection-start-line="105" selection-start-column="0" selection-end-line="105" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1244" max-vertical-offset="2325">
+          <caret line="96" column="60" selection-start-line="96" selection-start-column="60" selection-end-line="96" selection-end-column="60" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/serverIndex.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.12012012" vertical-offset="0" max-vertical-offset="999">
+          <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+          <folding />
         </state>
       </provider>
     </entry>

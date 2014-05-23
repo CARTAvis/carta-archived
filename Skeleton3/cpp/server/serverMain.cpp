@@ -29,12 +29,8 @@ int main(int argc, char ** argv)
     });
     std::cerr << "defer: deferred\n";
 
-
-    // create a platform
-    Globals::setPlatform( new ServerPlatform( argc, argv));
-
-    // run the viewer with this platorm
-    Viewer viewer( Globals::platform());
+    // run the viewer with the proper platorm
+    Viewer viewer( new ServerPlatform( argc, argv));
     viewer.start();
 
     return app.exec();

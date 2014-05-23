@@ -11,7 +11,7 @@
 #include "common/Globals.h"
 
 static
-void handler(QtMsgType type, const QMessageLogContext &context, const QString &pmsg)
+void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &pmsg)
 {
         QString msg = pmsg;
         if( !msg.endsWith( '\n')) {
@@ -32,36 +32,26 @@ void handler(QtMsgType type, const QMessageLogContext &context, const QString &p
                 fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
                 abort();
         }
-} // handler
+} // qtMessageHandler
 
 int main(int argc, char ** argv)
 {
-
-        qInstallMessageHandler( handler);
+        qInstallMessageHandler( qtMessageHandler);
 
         // setup Qt
         MyQApp app(argc, argv);
 
-        // setup platform
-        Globals::setPlatform( new DesktopPlatform( argc, argv));
+        // hack for now (to get filename)
+        if( argc < 2) {
+            qFatal( "Must give me filename");
+        }
 
-        // run the viewer with this platorm
-        Viewer viewer( Globals::platform());
+        Globals::setFname( argv[1]);
+
+        // run the viewer with the proper platorm
+        Viewer viewer( new DesktopPlatform( argc, argv));
         viewer.start();
 
         return app.exec();
-}
+} // main
 
-//#include "common/CallbackList.h"
-
-//static void testCallbacks()
-//{
-//    CallbackList<int,QString> list;
-
-//    list.add( [] (int x, QString s) {
-//        qDebug() << "Closure x=" << x << " s=" << s;
-
-//    });
-
-//    list.callEveryone( 1.1, "Hello");
-//}

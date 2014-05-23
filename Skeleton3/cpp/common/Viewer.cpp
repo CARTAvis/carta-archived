@@ -101,8 +101,6 @@ protected:
     QPointF m_lastMouse;
 };
 
-namespace xxx {
-
 class TestView2 : public IView
 {
 
@@ -193,13 +191,12 @@ protected:
     int m_timerId;
     QPointF m_lastMouse;
 };
-}
 
 Viewer::Viewer( IPlatform * platform) :
     QObject( nullptr)
 {
+    Globals::setPlatform( platform);
     Globals::setConnector( platform->connector());
-
     Globals::setPluginManager( new PluginManager);
 
     auto pm = Globals::pluginManager();
@@ -215,7 +212,6 @@ Viewer::Viewer( IPlatform * platform) :
     // tell all plugins that the core has initialized
     auto helper = pm-> prepare<Initialize>();
     helper.executeAll();
-
 }
 
 void Viewer::start()
@@ -253,8 +249,7 @@ void Viewer::start()
         return QString("add(%1)=%2").arg(params).arg(sum);
     });
 
-
-    auto xyzCBid =
+//    auto xyzCBid =
     connector-> addStateCallback( "/xyz", [] ( const QString & path, const QString & val) {
         qDebug() << "lambda state cb:\n"
                  << "  path: " << path << "\n"
@@ -277,23 +272,27 @@ void Viewer::start()
     connector-> setState( "/xya", "hola");
     connector-> setState( "/xyz", "8");
 
-    // create view to be rendered on the client side
-
-
+    // create some views to be rendered on the client side
     connector-> registerView( new TestView( "view1", QColor( "blue")));
     connector-> registerView( new TestView( "view2", QColor( "red")));
 
 
     // ask one of the plugins to load the image
     qDebug() << "======== trying to load image ========";
-    auto loadImageHookHelper = Globals::pluginManager()-> prepare<LoadImage>( "/scratch/beam.fits");
+    QString fname = Globals::fname();
+    // this is a hack for server (since we don't have a way to pass encoded parameters yet)
+    // TODO: pass parameters from server
+    if( fname.isEmpty()) {
+        fname = "/scratch/testimage";
+    }
+    auto loadImageHookHelper = Globals::pluginManager()-> prepare<LoadImage>( fname);
     Nullable<QImage> res = loadImageHookHelper.first();
     if( res.isNull()) {
         qDebug() << "Could not find any plugin to load image";
     }
     else {
         qDebug() << "Image loaded: " << res.val().size();
-        connector-> registerView( new xxx::TestView2( "view3", QColor( "red"), res.val()));
+        connector-> registerView( new TestView2( "view3", QColor( "pink"), res.val()));
     }
 
 

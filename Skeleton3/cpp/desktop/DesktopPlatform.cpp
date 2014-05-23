@@ -13,8 +13,8 @@ DesktopPlatform::DesktopPlatform(int argc, char **argv)
     : QObject( nullptr)
 {
     QUrl url;
-    if (argc > 1) {
-        url = QUrl::fromUserInput(argv[1]);
+    if (argc > 2) {
+        url = QUrl::fromUserInput(argv[2]);
     } else {
         url = QUrl("qrc:///html5/desktop/desktopIndex.html");
     }
