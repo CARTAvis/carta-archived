@@ -16,17 +16,6 @@ bool QImagePlugin::handleHook(BaseHook & hookData)
     if( hookData.hookId() == LoadImage::StaticHookId) {
         LoadImage & hook = static_cast<LoadImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
-//        qDebug() << "fname=" << fname;
-//        QImage qimg( "/scratch/testimage");
-//        qDebug() << "qimg " << qimg.size();
-//        if( qimg.isNull()) {
-//            return false;
-//        }
-//        else {
-//            hook.result = qimg;
-//            return true;
-//        }
-
         return hook.result.load( fname);
     }
 

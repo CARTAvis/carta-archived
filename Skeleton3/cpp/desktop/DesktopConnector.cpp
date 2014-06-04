@@ -92,14 +92,14 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
 
     // if it does not exist, create it
     if( iter == m_stateCallbackList.end()) {
-        qDebug() << "Creating callback list for variable " << path;
+//        qDebug() << "Creating callback list for variable " << path;
         auto res = m_stateCallbackList.insert( std::make_pair(path, new StateCBList));
         iter = res.first;
     }
 
     iter = m_stateCallbackList.find( path);
     if( iter == m_stateCallbackList.end()) {
-        qDebug() << "What the hell";
+//        qDebug() << "What the hell";
     }
 
     // add the calllback
@@ -266,18 +266,18 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
 
 void DesktopConnector::stateChangedSlot(const QString & key, const QString & value)
 {
-    qDebug() << "state changed slot " << key << " = " << value;
+//    qDebug() << "state changed slot " << key << " = " << value;
 
     // find the list of callbacks for this path
     auto iter = m_stateCallbackList.find( key);
 
     // if it does not exist, do nothing
     if( iter == m_stateCallbackList.end()) {
-        qDebug() << "no callbacks registered for" << key;
+//        qDebug() << "no callbacks registered for" << key;
         return;
     }
 
-    qDebug() << "calling all registered callbacks for" << key;
+//    qDebug() << "calling all registered callbacks for" << key;
 
     iter-> second-> callEveryone( key, value);
 

@@ -2,56 +2,47 @@
  * This is the desktop main
  */
 
-#include <QApplication>
-#include <iostream>
-
 #include "DesktopPlatform.h"
 #include "common/Viewer.h"
 #include "common/MyQApp.h"
-#include "common/Globals.h"
-
-static
-void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &pmsg)
-{
-        QString msg = pmsg;
-        if( !msg.endsWith( '\n')) {
-                msg += '\n';
-        }
-        QByteArray localMsg = msg.toLocal8Bit();
-        switch (type) {
-        case QtDebugMsg:
-                fprintf(stderr, "%s", localMsg.constData());
-                break;
-        case QtWarningMsg:
-                fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-                break;
-        case QtCriticalMsg:
-                fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-                break;
-        case QtFatalMsg:
-                fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-                abort();
-        }
-} // qtMessageHandler
+#include "common/CmdLine.h"
+#include "common/GlobalSettings.h"
+#include <QDebug>
+#include <QUrl>
 
 int main(int argc, char ** argv)
 {
-        qInstallMessageHandler( qtMessageHandler);
+    qDebug() << "Desktop app is starting up.";
+#ifdef QT_DEBUG
+    qDebug() << "Running a debug build";
+#else
+    qDebug() << "Running a release build";
+#endif
 
-        // setup Qt
-        MyQApp app(argc, argv);
+    // initialize Qt
+    MyQApp qapp( argc, argv);
 
-        // hack for now (to get filename)
-        if( argc < 2) {
-            qFatal( "Must give me filename");
-        }
+    // parse command line arguments & environment variables
+    CmdLine::ParsedInfo cmdLineInfo = CmdLine::parse();
 
-        Globals::setFname( argv[1]);
+    // load the config file
+    GlobalSettings gs();
 
-        // run the viewer with the proper platorm
-        Viewer viewer( new DesktopPlatform( argc, argv));
-        viewer.start();
+    // initialize platform
+    auto platform = new DesktopPlatform( cmdLineInfo);
 
-        return app.exec();
-} // main
+    // create viewer with this platform
+    Viewer viewer( platform);
 
+    // run the viewer
+    viewer.start();
+    return qapp.exec();
+}
+
+// TODO: MyQApp, command line parsing, config file parsing and Platform are all
+// boiler plate code. All these should be probably into single code, maybe even
+// into Platform. The problem with this right now is that DesktopPlatform is
+// a QObject, and Qt for some reason chokes on instantiating QObject derived
+// classes before QApplication is initialized... The reason DesktopPlatform is
+// a QObject derived class is that we use it in webkit to give javascript direct
+// access to platform commands, which at the moment is only the fullscreen api...

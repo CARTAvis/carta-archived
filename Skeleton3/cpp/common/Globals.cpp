@@ -2,7 +2,6 @@
  *
  **/
 
-
 #include "Globals.h"
 
 Globals * Globals::m_instance = nullptr;
@@ -44,15 +43,15 @@ Globals *Globals::instance()
 }
 
 
-QString Globals::fname()
-{
-    return instance()-> m_fname;
-}
+//QString Globals::fname()
+//{
+//    return instance()-> m_fname;
+//}
 
-void Globals::setFname(const QString &fname)
-{
-    instance()-> m_fname = fname;
-}
+//void Globals::setFname(const QString &fname)
+//{
+//    instance()-> m_fname = fname;
+//}
 
 Globals::Globals()
 {

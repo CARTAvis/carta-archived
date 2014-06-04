@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <iostream>
 #include <unordered_set>
+#include <map>
 
 
 class QtMessageTickler
@@ -61,50 +62,79 @@ private:
 
 class ServerConnector : public QObject, public IConnector
 {
+
     Q_OBJECT
+
 public:
 
-    explicit ServerConnector( int argc, char ** argv);
+    /// constructor
+    /// initializes internal state
+    explicit ServerConnector();
 
+    /// initialize connector
+    /// establish connection to the client, parse url arguments
     virtual bool initialize() Q_DECL_OVERRIDE;
+
+    /// set a state 'path' to 'value'
     virtual void setState(const QString & path, const QString & value) Q_DECL_OVERRIDE;
+
+    /// retrieve a state value
     virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
+
+    /// add a command callback
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
 
+    /// add a state callback
+    virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
+
+    /// returns a map of url encoded parameters that were used to invoke the main program
+    /// this only works after initialize() was called
+    const std::map< QString, QString> & urlParams();
+
+    /// register view implementation
+    virtual void registerView(IView * view) Q_DECL_OVERRIDE;
+
+    /// refresh view implementation
+    virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
+
+    /// remove state callback implementation
+    virtual void removeStateCallback( const CallbackID & id) Q_DECL_OVERRIDE;
+
+protected:
+
+    /// this gets called when pureweb server is shutting down
     static void OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer&,
                                   CSI::EmptyEventArgs&);
 
+    /// internal true pureweb command listener, our command callback piggyback to this one
     void genericCommandListener(CSI::Guid sessionid, CSI::Typeless const& command, CSI::Typeless& responses);
 
-
+    /// pointer to the server
     CSI::CountedPtr<CSI::PureWeb::Server::StateManagerServer> m_server;
+
+    /// pointer to the state manager
     CSI::CountedPtr<CSI::PureWeb::Server::StateManager> m_stateManager;
+
+    /// callback ID counter, used to provide unique command callback IDs
     CallbackID m_callbackNextId; //  = 0;
 
     typedef std::vector<CommandCallback> CommandCallbackList;
     std::map<QString,  CommandCallbackList> m_commandCallbackMap;
     typedef std::vector<StateChangedCallback> StateCBList;
     std::map<QString, StateCBList> m_stateCallbackList;
-    bool m_startServer;
+//    bool m_startServer;
 
     // set to tell us whether a pureweb statechange callback is registered or not
     std::unordered_set< std::string > m_pwStateCBset;
 
-
-    virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
-
     // internal callback for pureweb value changed event
     void pureWebValueChangedCB( const CSI::ValueChangedEventArgs & val);
 
-    virtual void registerView(IView * view) Q_DECL_OVERRIDE;
-    virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
-    virtual void removeStateCallback( const CallbackID & id);
+    // list of url encoded parameters
+    std::map< QString, QString> m_urlParams;
 
-//signals:
-//    void delayedInternalValueChangedSignal( CSI::ValueChangedEventArgs);
-
-//protected slots:
-//    void delayedInternalValueChangedCB( CSI::ValueChangedEventArgs);
+    // whether initialize was called
+    bool m_initialized;
 
 };
 

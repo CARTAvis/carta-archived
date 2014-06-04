@@ -14,9 +14,6 @@
 #include <utility>
 #include <memory>
 
-class IncompleteType;
-
-
 // helper to convert hooks to hookid's so that we can group them all in one place
 // all work is done in specialization
 
@@ -42,7 +39,6 @@ public:
     /// the return value of func() will be used
     /// to determine whether to continue the loop (true = continue, false = abort)
     void forEachCond( std::function< bool(typename T::ResultType)> func);
-
 
     /// as above, but all plugins are processed
     void forEach( std::function< void(typename T::ResultType)> func) {
@@ -77,7 +73,6 @@ public:
         return result;
     }
 
-
 protected:
 
     friend class PluginManager;
@@ -110,16 +105,14 @@ public:
 
     PluginManager();
 
-    void loadConfig( const QString & /*fileName*/) {}
+//    void loadConfig( const QString & /*fileName*/) {}
+
+    /// set the plugin search directories
+    void setPluginSearchPaths( const QStringList & pathList);
+
+    /// find and load plugins from the specified directories
     void loadPlugins();
     const std::vector< PluginInfo *> & getInfoList() { return m_allPlugins; }
-
-//    template <typename Ev, typename ... Args>
-//    typename ResTrait<typename Ev::ResultType>::Type hookAll( Args ... args) {
-//        typename ResTrait<typename Ev::ResultType>::Type res;
-//        return res;
-
-//    }
 
     ///
     /// Prepare the execution of the hook
@@ -152,6 +145,7 @@ private:
 
 
     // TODO: we should probably use std::vector for little more performance
+    // but that means we'll need to ensure consecutive numbering of hooks...
     /// list of plugins registered for a each hook
 //    std::vector< std::vector< PluginInfo *> > m_hook2plugin;
     std::map< HookId, std::vector< PluginInfo *> > m_hook2plugin;
@@ -160,6 +154,9 @@ private:
     std::vector< PluginInfo *> m_allPlugins;
 
     template<typename T> friend class HookHelper;
+
+    /// list of plugin search paths
+    QStringList m_pluginSearchPaths;
 
 };
 

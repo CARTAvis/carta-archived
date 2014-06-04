@@ -13,44 +13,50 @@
 
 PluginManager::PluginManager()
 {
-    QString env = qgetenv( "LD_LIBRARY_PATH");
-     env = "";
-     QStringList envList = env.split( ":", QString::SkipEmptyParts);
-     envList.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib");
-     envList.append( "/home/pfederl/Software/cfitsio3360shared/lib");
-     env = envList.join( ":");
-     qputenv( "LD_LIBRARY_PATH", env.toLocal8Bit());
-     qDebug() << "setting LD_LIBRARY_PATH:" << env.toLocal8Bit();
-     qDebug() << "LD_LIBRARY_PATH = " << qgetenv( "LD_LIBRARY_PATH");
+    qDebug() << "Initializing PluginManager...";
 
-     QStringList libs;
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_casa.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath_f.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath.so");
-     libs.append( "/home/pfederl/Software/cfitsio3360shared/lib/libcfitsio.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_tables.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_measures.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_fits.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_coordinates.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_components.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_mirlib.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_lattices.so");
-     libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_images.so");
+    //    QString env = qgetenv( "LD_LIBRARY_PATH");
+    //     env = "";
+    //     QStringList envList = env.split( ":", QString::SkipEmptyParts);
+    //     envList.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib");
+    //     envList.append( "/home/pfederl/Software/cfitsio3360shared/lib");
+    //     env = envList.join( ":");
+    //     qputenv( "LD_LIBRARY_PATH", env.toLocal8Bit());
+    //     qDebug() << "setting LD_LIBRARY_PATH:" << env.toLocal8Bit();
+    //     qDebug() << "LD_LIBRARY_PATH = " << qgetenv( "LD_LIBRARY_PATH");
 
-     for( auto fname : libs) {
-         qDebug() << "loading " << fname;
-         QLibrary lib( fname);
-         if( ! lib.load()) {
-             qDebug() << " error:" << lib.errorString();
-         }
-         else {
-             qDebug() << " success";
-         }
+    // TODO: this is a hack for now to load casacore libraries on which some plugins
+    // depend. This should be removed once we have a proper plugin system in place.
+    QStringList libs;
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_casa.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath_f.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath.so");
+    libs.append( "/home/pfederl/Software/cfitsio3360shared/lib/libcfitsio.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_tables.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_measures.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_fits.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_coordinates.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_components.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_mirlib.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_lattices.so");
+    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_images.so");
 
-     }
+    for( auto fname : libs) {
+        qDebug() << "loading " << fname;
+        QLibrary lib( fname);
+        if( ! lib.load()) {
+            qDebug() << " error:" << lib.errorString();
+        }
+        else {
+            qDebug() << " success";
+        }
 
+    }
+}
 
-
+void PluginManager::setPluginSearchPaths(const QStringList & pathList)
+{
+    m_pluginSearchPaths = pathList;
 }
 
 
@@ -62,6 +68,7 @@ void PluginManager::loadPlugins()
         processPlugin(plugin);
     }
 
+    // TODO: search the specified plugin paths insted of current directory
     // now load user installed plugins
     QDir dir = QDir::currentPath();
     QDirIterator dit( dir.absolutePath(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
@@ -112,12 +119,12 @@ void PluginManager::processPlugin(QObject *plugin, QString path)
     auto hooks = cartaPlugin->getInitialHookList();
     for( auto id : hooks) {
         m_hook2plugin[id].push_back( info);
-        qDebug() << "adding pluginInfo ptr " << info;
     }
-
-
-
 }
+
+#ifdef DONT_COMPILE
+
+// API testing
 
 void fakeMain()
 {
@@ -135,7 +142,7 @@ void fakeMain()
 
     // execute a hook that calls all plugins, with some parameters, and a return type
     // the result is an array of the results
-//    std::vector<QImage> images = pm.hookAll<Render>(8, "Hello", testImage);
+    //    std::vector<QImage> images = pm.hookAll<Render>(8, "Hello", testImage);
 
     // get info about all plugins
     const std::vector<PluginManager::PluginInfo *> & infoList = pm.getInfoList();
@@ -149,24 +156,24 @@ void fakeMain()
     pm.prepare<Initialize>();
 
     // execute a hook that calls all plugins, with some parameters and no return type
-//    pm.hookAll<Render>( 8, "Hello", testImage);
+    //    pm.hookAll<Render>( 8, "Hello", testImage);
 
     // execute a hook that calls first plugin that answers and returns the result
-//    auto res2 = pm.hookFirst<GetRandomNumber>();
+    //    auto res2 = pm.hookFirst<GetRandomNumber>();
 
     // execute a hook with some parameters and a result, and execute a closure
     // for each result
     auto helper = pm.prepare<PreRender>( "Test", & testImage);
     helper.forEachCond( [] (PreRender::ResultType) -> bool { return true; });
 
-//    pm.hookAll2<Render>( 3, "Test", testImage).forEach(
-//                [] ( const Render::ResultType & )
-//                );
+    //    pm.hookAll2<Render>( 3, "Test", testImage).forEach(
+    //                [] ( const Render::ResultType & )
+    //                );
 
 
 
 }
 
-
+#endif
 
 

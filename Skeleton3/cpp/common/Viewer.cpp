@@ -10,6 +10,7 @@
 #include <QPainter>
 #include <cmath>
 #include <QDebug>
+#include <QCoreApplication>
 
 //Globals & globals = * Globals::instance();
 
@@ -214,17 +215,22 @@ Viewer::Viewer( IPlatform * platform) :
     helper.executeAll();
 }
 
-void Viewer::start()
+int Viewer::start()
 {
+    qDebug() << "Viewer::start() starting";
+
     // setup connector
-    auto connector = Globals::connector();
+    IConnector * connector = Globals::connector();
 
     if( ! connector || ! connector-> initialize()) {
-        std::cerr << "Could not initialize connector.\n";
+        qCritical() << "Could not initialize connector.\n";
         exit( -1);
     }
 
-    std::cerr << "Viewer::start: connector initialized\n";
+    qDebug() << "Viewer::start: connector initialized\n";
+    qDebug() << "Arguments:" << QCoreApplication::arguments();
+
+#ifdef DONT_COMPILE
 
     // associate a callback for a command
     connector->addCommandCallback( "debug", [] (const QString & cmd, const QString & params, const QString & sessionId) -> QString {
@@ -255,7 +261,6 @@ void Viewer::start()
                  << "  path: " << path << "\n"
                  << "  val:  " << val;
     });
-
 //    connector->removeStateCallback(xyzCBid);
 
     static const QString varPrefix = "/myVars";
@@ -267,24 +272,31 @@ void Viewer::start()
         QString nv = QString::number( pongCount ++);
         connector-> setState( varPrefix + "/pong", nv);
     });
-
-
     connector-> setState( "/xya", "hola");
     connector-> setState( "/xyz", "8");
+
+#endif // dont compile
 
     // create some views to be rendered on the client side
     connector-> registerView( new TestView( "view1", QColor( "blue")));
     connector-> registerView( new TestView( "view2", QColor( "red")));
 
+    qDebug() << "Arguments:" << QCoreApplication::arguments();
+
 
     // ask one of the plugins to load the image
     qDebug() << "======== trying to load image ========";
-    QString fname = Globals::fname();
-    // this is a hack for server (since we don't have a way to pass encoded parameters yet)
-    // TODO: pass parameters from server
-    if( fname.isEmpty()) {
-        fname = "/scratch/testimage";
+//    QString fname = Globals::fname();
+    if( Globals::platform()-> initialFileList().isEmpty()) {
+        qFatal( "No input given");
     }
+    QString fname = Globals::platform()-> initialFileList() [0];
+//    // this is a hack for server (since we don't have a way to pass encoded parameters yet)
+//    // TODO: pass parameters from server
+//    if( fname.isEmpty()) {
+//        fname = "/scratch/testimage";
+//    }
+
     auto loadImageHookHelper = Globals::pluginManager()-> prepare<LoadImage>( fname);
     Nullable<QImage> res = loadImageHookHelper.first();
     if( res.isNull()) {
@@ -295,7 +307,16 @@ void Viewer::start()
         connector-> registerView( new TestView2( "view3", QColor( "pink"), res.val()));
     }
 
+    // give up control to Qt's main loop
+//    qWarning() << "Giving up control to Qt...";
+//    qDebug() << "Arguments:" << QCoreApplication::arguments();
+//    qWarning() << "Giving up control to Qt...";
 
+//    auto exitCode = QCoreApplication::instance()->exec();
+
+//    return exitCode;
+
+    return 0;
 }
 
 

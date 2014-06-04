@@ -13,7 +13,7 @@ class Globals {
     PluginManager * m_pluginManager;
     IPlatform * m_platform;
     IConnector * m_connector;
-    QString m_fname;
+//    QString m_fname;
 
     static Globals * m_instance;
 
@@ -44,8 +44,8 @@ public:
     /// set the plugin manager
     static void setPluginManager(PluginManager * pluginManager);
 
-    static QString fname();
-    static void setFname(const QString & fname);
+//    static QString fname();
+//    static void setFname(const QString & fname);
 
 };
 

@@ -2,9 +2,7 @@
  *
  **/
 
-
-#ifndef MYQAPP_H
-#define MYQAPP_H
+#pragma once
 
 #include <QApplication>
 #include <functional>
@@ -19,7 +17,7 @@ class MyQApp : public QApplication
 {
     Q_OBJECT
 public:
-    explicit MyQApp(int & argc, char **argv = nullptr);
+    explicit MyQApp(int & argc, char **argv);
 
 //    virtual bool notify( QObject * obj, QEvent * event) Q_DECL_OVERRIDE ;
 
@@ -64,6 +62,3 @@ public slots:
 
 };
 
-// TODO: clean up the commented code (both here and in .cpp)
-
-#endif // MYQAPP_H

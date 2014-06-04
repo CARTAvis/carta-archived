@@ -21,48 +21,59 @@
 //};
 //}
 
-ServerConnector::ServerConnector(int argc, char **argv)
+ServerConnector::ServerConnector()
     : QObject( nullptr)
 {
     m_callbackNextId = 0;
-    m_startServer = false;
-    if (argc > 1 && QString(argv[1]).contains("PureWeb", Qt::CaseInsensitive)) {
-        m_startServer = true;
-    }
-
-//    connect( this, &ServerConnector::delayedInternalValueChangedSignal,
-//            this, &ServerConnector::delayedInternalValueChangedCB,
-//            Qt::QueuedConnection
-//            );
+    m_initialized = false;
 }
 
 bool ServerConnector::initialize()
 {
-    // Init CSI / PureWeb libraries
-    CSI::Library::Initialize();
-    // this thread is the UI thread
-    CSI::Threading::UiDispatcher::InitMessageThread();
+    try {
+        // Initialize PureWeb libraries
+        CSI::Library::Initialize();
+        // this thread is the UI thread
+        CSI::Threading::UiDispatcher::InitMessageThread();
 
-    // Create PureWeb object instances
-    m_server = new CSI::PureWeb::Server::StateManagerServer();
-    m_stateManager = new CSI::PureWeb::Server::StateManager("pingpong");
+        // Create PureWeb object instances
+        m_server = new CSI::PureWeb::Server::StateManagerServer();
+        m_stateManager = new CSI::PureWeb::Server::StateManager("pingpong");
 
-    if ( m_startServer) {
         m_stateManager->PluginManager().RegisterPlugin(
-                "QtMessageTickler", new QtMessageTickler());
+                    "QtMessageTickler", new QtMessageTickler());
         m_server->Start(m_stateManager.get());
         m_server->ShutdownRequested() += OnPureWebShutdown;
+
+        // extract URL encoded arguments
+        qDebug() << "PureWeb startup parameters3:";
+        for( auto kv : m_server-> StartupParameters()) {
+            QString key = kv.first.ToAscii().begin();
+            QString val = kv.second.ToAscii().begin();
+            m_urlParams[ key ] = val;
+            qDebug() << key << "=" << val;
+        }
+
+        // register generic command listener
+        CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
+                "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
+
+    }
+    catch ( ... ) {
+        qCritical() << "Could not initialize PureWeb";
+        return false;
     }
 
-    // register generic command listener
-    CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
-            "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
+    qDebug() << "Command line args2: " << MyQApp::arguments();
 
+    m_initialized = true;
     return true;
 } // initialize
 
 void ServerConnector::setState(const QString &path, const QString &value)
 {
+    Q_ASSERT( m_initialized);
+
     std::string pwpath = path.toStdString();
     std::string pwval = value.toStdString();
     m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
@@ -70,6 +81,8 @@ void ServerConnector::setState(const QString &path, const QString &value)
 
 QString ServerConnector::getState(const QString &path)
 {
+    Q_ASSERT( m_initialized);
+
     std::string pwpath = path.toStdString();
     auto pwval = m_stateManager->XmlStateManager().GetValue( pwpath);
     if( !pwval.HasValue()) {
@@ -125,6 +138,13 @@ IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, c
 
     // return an incremented callback id
     return m_callbackNextId++;
+}
+
+const std::map<QString, QString> & ServerConnector::urlParams()
+{
+    Q_ASSERT( m_initialized);
+
+    return m_urlParams;
 }
 
 // this is getting called directly by PureWeb, which means it could potentially

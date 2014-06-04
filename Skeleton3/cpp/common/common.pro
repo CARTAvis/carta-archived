@@ -20,7 +20,11 @@ HEADERS += \
     IPlugin.h \
     Nullable.h \
     IImage.h \
-    Globals.h
+    Globals.h \
+    Algorithms/Graphs/TopoSort.h \
+    GlobalSettings.h \
+    stable.h \
+    CmdLine.h
 
 SOURCES += \
     Viewer.cpp \
@@ -28,5 +32,17 @@ SOURCES += \
     MyQApp.cpp \
     CallbackList.cpp \
     PluginManager.cpp \
-    Globals.cpp
+    Globals.cpp \
+    Algorithms/Graphs/TopoSort.cpp \
+    GlobalSettings.cpp \
+    CmdLine.cpp
 
+
+message( "common            PWD=$$PWD")
+message( "common         IN_PWD=$$IN_PWD")
+message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
+message( "common        OUT_PWD=$$OUT_PWD")
+
+#CONFIG += precompile_header
+#PRECOMPILED_HEADER = stable.h
+#QMAKE_CXXFLAGS += -H

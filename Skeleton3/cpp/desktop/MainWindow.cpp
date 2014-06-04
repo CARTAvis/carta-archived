@@ -41,8 +41,6 @@ MainWindow::MainWindow( )
     setCentralWidget(m_view);
     setUnifiedTitleAndToolBarOnMac(true);
 
-//    connect(m_view->page()->mainFrame(),
-//            SIGNAL(javaScriptWindowObjectCleared()), SLOT(addToJavaScript()));
     connect( m_view->page()->mainFrame(),
              & QWebFrame::javaScriptWindowObjectCleared,
              this,
