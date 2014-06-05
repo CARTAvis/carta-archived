@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>TNG skeleton</title>
+
+    <base href="/Apps/tng-skeleton/html5/"/>
+    <link rel="stylesheet" href="common/thirdParty/jquery-ui-1.10.3.css"/>
+    <link rel="stylesheet" href="common/main.css"/>
+    <script src="common/thirdParty/jquery-1.9.1.js"></script>
+    <script src="common/thirdParty/jquery-ui-1.10.3.js"></script>
+    <script src="common/thirdParty/jquery.layout-1.3.0.js"></script>
+    <script src="server/pureweb.min.js"></script>
+    <script src="common/libs.js"></script>
+    <script src="server/serverConnector.js"></script>
+    <script src="common/main.js"></script>
+</head>
+<body onLoad="onLoadCB();">
+
+<div class="ui-layout-center">
+    <canvas id="plotCanvas"></canvas>
+</div>
+<div class="ui-layout-north">
+    <button onclick="buttonCB('start');" title="Start manual test. You can increase the state size by clicking the buttons to the right. Or you can clear the state. You can do these things while the ping/pong is running.">Start</button>
+    <button onclick="buttonCB('stop');" title="Stop the ping pong.">Stop</button>
+    <span class="buttonSpacer"></span>
+    <button onclick="buttonCB('add', 1);" title="Add 1 variable to the state.">Add 1</button>
+    <button onclick="buttonCB('add', 10);" title="Add 10 variables to the state.">Add 10</button>
+    <button onclick="buttonCB('add', 50);" title="Add 50 variables to the state.">Add 50</button>
+    <button onclick="buttonCB('add', 100);" title="Add 100 variables to the state.">Add 100</button>
+    <button onclick="buttonCB('add', 500);" title="Add 500 variables to the state.">Add 500</button>
+    <button onclick="buttonCB('add', 1000);" title="Add 1000 variables to the state.">Add 1000</button>
+    <button onclick="buttonCB('clearState');" title="Remove all variables from the state. It may stop your ping pong test.">Clear state</button>
+    <span class="buttonSpacer"></span>
+    <span class="buttonSpacer">... or ... </span>
+    <span class="buttonSpacer"></span>
+    <button onclick="buttonCB('longTest', 1);" title="Start a ping/pong with initially 0 vars. Then repeat these steps: measure 5 pings, increase var count by (2% + 1), repeat. Watch the graph. One would expect it to be a horizontal (constant) curve, but it looks more quadratic...">Long test 1</button>
+    <button onclick="buttonCB('longTest', 2);" title="Similar to the 'Long test 1', except the var count is increased by a constant factor in each repetition (10).">Long test 2</button>
+
+    <button onclick="buttonCB('clearGraph');" style="float:right;" title="Remove all data from graph.">Clear graph</button>
+    <button onclick="buttonCB('clearLog');" style="float:right;" title="Clear log.">Clear log</button>
+</div>
+<div class="ui-layout-south">
+    <div id="status">Status:</div>
+</div>
+<div class="ui-layout-east" id="mylogdiv">
+    <div id="logTitle">
+        Log:
+    </div>
+    <pre id="mylog"></pre>
+</div>
+<div class="ui-layout-west">
+    <div id="pwDiagnosticsPanel"></div>
+    <div id="ccon1" class="iview-container" style="height: 500px;width: 100%; background-color: pink;"></div>
+</div>
+
+</body>
+</html>
