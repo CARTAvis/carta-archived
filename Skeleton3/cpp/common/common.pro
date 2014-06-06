@@ -22,9 +22,9 @@ HEADERS += \
     IImage.h \
     Globals.h \
     Algorithms/Graphs/TopoSort.h \
-    GlobalSettings.h \
     stable.h \
-    CmdLine.h
+    CmdLine.h \
+    MainConfig.h
 
 SOURCES += \
     Viewer.cpp \
@@ -34,8 +34,8 @@ SOURCES += \
     PluginManager.cpp \
     Globals.cpp \
     Algorithms/Graphs/TopoSort.cpp \
-    GlobalSettings.cpp \
-    CmdLine.cpp
+    CmdLine.cpp \
+    MainConfig.cpp
 
 
 message( "common            PWD=$$PWD")

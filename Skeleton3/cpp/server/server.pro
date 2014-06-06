@@ -47,7 +47,7 @@ unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libicuuc.so.46
 unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libjpeg.so.62
 
 
-INCLUDEPATH += $$PWD/..
-DEPENDPATH += $$PWD/..
+DEPENDPATH += $$$PROJECT_ROOT/common
+
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a

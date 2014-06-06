@@ -4,6 +4,7 @@
 #include "IConnector.h"
 #include "misc.h"
 #include "PluginManager.h"
+#include "MainConfig.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
@@ -92,7 +93,7 @@ protected:
         }
 
         // execute the pre-render hook
-        Globals::pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
     }
 
     IConnector * m_connector;
@@ -183,7 +184,7 @@ protected:
         }
 
         // execute the pre-render hook
-        Globals::pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
     }
 
     IConnector * m_connector;
@@ -196,11 +197,14 @@ protected:
 Viewer::Viewer( IPlatform * platform) :
     QObject( nullptr)
 {
-    Globals::setPlatform( platform);
-    Globals::setConnector( platform->connector());
-    Globals::setPluginManager( new PluginManager);
+    auto & globals = * Globals::instance();
 
-    auto pm = Globals::pluginManager();
+    globals.setPlatform( platform);
+    globals.setConnector( platform->connector());
+    globals.setPluginManager( new PluginManager);
+
+    auto pm = Globals::instance()-> pluginManager();
+    pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
     pm-> loadPlugins();
     // load plugins
     qDebug() << "Loading plugins...";
@@ -220,7 +224,7 @@ int Viewer::start()
     qDebug() << "Viewer::start() starting";
 
     // setup connector
-    IConnector * connector = Globals::connector();
+    IConnector * connector = Globals::instance()-> connector();
 
     if( ! connector || ! connector-> initialize()) {
         qCritical() << "Could not initialize connector.\n";
@@ -287,17 +291,12 @@ int Viewer::start()
     // ask one of the plugins to load the image
     qDebug() << "======== trying to load image ========";
 //    QString fname = Globals::fname();
-    if( Globals::platform()-> initialFileList().isEmpty()) {
-        qFatal( "No input given");
+    if( Globals::instance()-> platform()-> initialFileList().isEmpty()) {
+        qFatal( "No input file given");
     }
-    QString fname = Globals::platform()-> initialFileList() [0];
-//    // this is a hack for server (since we don't have a way to pass encoded parameters yet)
-//    // TODO: pass parameters from server
-//    if( fname.isEmpty()) {
-//        fname = "/scratch/testimage";
-//    }
+    QString fname = Globals::instance()-> platform()-> initialFileList() [0];
 
-    auto loadImageHookHelper = Globals::pluginManager()-> prepare<LoadImage>( fname);
+    auto loadImageHookHelper = Globals::instance()-> pluginManager()-> prepare<LoadImage>( fname);
     Nullable<QImage> res = loadImageHookHelper.first();
     if( res.isNull()) {
         qDebug() << "Could not find any plugin to load image";
@@ -306,15 +305,6 @@ int Viewer::start()
         qDebug() << "Image loaded: " << res.val().size();
         connector-> registerView( new TestView2( "view3", QColor( "pink"), res.val()));
     }
-
-    // give up control to Qt's main loop
-//    qWarning() << "Giving up control to Qt...";
-//    qDebug() << "Arguments:" << QCoreApplication::arguments();
-//    qWarning() << "Giving up control to Qt...";
-
-//    auto exitCode = QCoreApplication::instance()->exec();
-
-//    return exitCode;
 
     return 0;
 }

@@ -5,39 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/GlobalSettings.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/GlobalSettings.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/Algorithms/Graphs/TopoSort.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/Algorithms/Graphs/TopoSort.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/Tests/TopoSortTest.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/Tests/mainTester.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/DesktopConnector.cpp" afterPath="$PROJECT_DIR$/../cpp/desktop/DesktopConnector.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/DesktopPlatform.cpp" afterPath="$PROJECT_DIR$/../cpp/desktop/DesktopPlatform.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/DesktopPlatform.h" afterPath="$PROJECT_DIR$/../cpp/desktop/DesktopPlatform.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/MyQApp.cpp" afterPath="$PROJECT_DIR$/../cpp/common/MyQApp.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/MyQApp.h" afterPath="$PROJECT_DIR$/../cpp/common/MyQApp.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.h" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/qimage/QImagePlugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/qimage/QImagePlugin.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/ServerConnector.cpp" afterPath="$PROJECT_DIR$/../cpp/server/ServerConnector.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/ServerConnector.h" afterPath="$PROJECT_DIR$/../cpp/server/ServerConnector.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/ServerPlatform.cpp" afterPath="$PROJECT_DIR$/../cpp/server/ServerPlatform.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/ServerPlatform.h" afterPath="$PROJECT_DIR$/../cpp/server/ServerPlatform.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Skeleton3.pro.user" afterPath="$PROJECT_DIR$/../Skeleton3.pro.user" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Skeleton3.pro" afterPath="$PROJECT_DIR$/../Skeleton3.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.h" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common.pri" afterPath="$PROJECT_DIR$/../cpp/common.pri" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/cpp.pro" afterPath="$PROJECT_DIR$/../cpp/cpp.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/desktop.pro" afterPath="$PROJECT_DIR$/../cpp/desktop/desktop.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/desktop/desktopIndex.html" afterPath="$PROJECT_DIR$/desktop/desktopIndex.html" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../Tests/Tests.pro" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/CmdLine.h" afterPath="$PROJECT_DIR$/../cpp/common/CmdLine.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/GlobalSettings.cpp" afterPath="$PROJECT_DIR$/../cpp/common/GlobalSettings.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/GlobalSettings.h" afterPath="$PROJECT_DIR$/../cpp/common/GlobalSettings.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/desktopMain.cpp" afterPath="$PROJECT_DIR$/../cpp/desktop/desktopMain.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/plugins.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/plugins.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/qimage/qimage.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/qimage/qimage.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server/serverIndex.html" afterPath="$PROJECT_DIR$/server/serverIndex.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/serverMain.cpp" afterPath="$PROJECT_DIR$/../cpp/server/serverMain.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -628,12 +600,12 @@
       <workItem from="1398363610054" duration="15632000" />
       <workItem from="1400732905163" duration="2060000" />
       <workItem from="1401068846908" duration="45000" />
-      <workItem from="1401069044087" duration="1849000" />
+      <workItem from="1401069044087" duration="2447000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="142809000" />
+    <option name="totallyTimeSpent" value="143407000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />

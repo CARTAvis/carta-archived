@@ -1,4 +1,5 @@
-// precopmiled header...
+// part of a precopmiled header optimization attempt
+// not currently used as ccache seems to outperform precompiled headers. more testing needed.
 
 /* Add C includes here */
 
@@ -10,7 +11,7 @@
 #include <cstdint>
 #include <exception>
 #include <functional>
-#include "GlobalSettings.h"
+#include "MainConfig.h"
 #include "Globals.h"
 #include "IConnector.h"
 #include <iostream>

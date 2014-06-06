@@ -21,3 +21,5 @@ RESOURCES = resources.qrc
 
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+
+DEPENDPATH += $$PROJECT_ROOT/common

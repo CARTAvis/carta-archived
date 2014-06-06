@@ -37,7 +37,7 @@ void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const Q
     }
 } // qtMessageHandler
 
-DesktopPlatform::DesktopPlatform(const CmdLine::ParsedInfo & cmdLineInfo)
+DesktopPlatform::DesktopPlatform()
     : QObject( nullptr)
 {
     // install a custom message handler
@@ -47,6 +47,8 @@ DesktopPlatform::DesktopPlatform(const CmdLine::ParsedInfo & cmdLineInfo)
     // by default it's the locally compiled filesystem, but we let the developer
     // override it for debugging purposes
     QUrl url;
+//    auto & cmdLineInfo = CmdLine::info();
+    auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
     if( cmdLineInfo.htmlPath().isEmpty()) {
         url = QUrl("qrc:///html5/desktop/desktopIndex.html");
     } else {

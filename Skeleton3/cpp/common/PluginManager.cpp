@@ -68,31 +68,37 @@ void PluginManager::loadPlugins()
         processPlugin(plugin);
     }
 
-    // TODO: search the specified plugin paths insted of current directory
     // now load user installed plugins
-    QDir dir = QDir::currentPath();
-    QDirIterator dit( dir.absolutePath(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-    while (dit.hasNext()) {
-        dit.next();
-        if( ! dit.fileInfo().isFile()) continue;
-        if( ! dit.fileInfo().fileName().endsWith( ".so")) continue;
-        auto absoluteFilePath = dit.fileInfo().absoluteFilePath();
-        qDebug() << "trying " << absoluteFilePath;
-        QPluginLoader loader( absoluteFilePath);
-        QObject * plugin = loader.instance();
-        if( plugin) {
-            processPlugin( plugin, absoluteFilePath);
-        } else {
-            qDebug() << "QPluginLoader error = " << loader.errorString();
-            // QPluginLoader is not very verbose with error messages, so let's see
-            // if we can get QLibrary get us more detailed message
-            QLibrary lib( absoluteFilePath);
-            if( ! lib.load()) {
-                qDebug() << "QLibrary error:" << lib.errorString();
+    for( auto dirPath : m_pluginSearchPaths) {
+        qDebug() << "Looking for plugins in:" << dirPath;
+        QDir dir( dirPath);
+        if( ! dir.exists()) {
+            qWarning() << "Skipping non-existant plugin directory:" << dirPath;
+            continue;
+        }
+        QDirIterator dit( dir.absolutePath(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+        while (dit.hasNext()) {
+            dit.next();
+            if( ! dit.fileInfo().isFile()) continue;
+            if( ! dit.fileInfo().fileName().endsWith( ".so")) continue;
+            auto absoluteFilePath = dit.fileInfo().absoluteFilePath();
+            qDebug() << "trying " << absoluteFilePath;
+            QPluginLoader loader( absoluteFilePath);
+            QObject * plugin = loader.instance();
+            if( plugin) {
+                processPlugin( plugin, absoluteFilePath);
             } else {
-                qDebug() << "QLibrary loaded the file fine";
-            }
+                qDebug() << "QPluginLoader error = " << loader.errorString();
+                // QPluginLoader is not very verbose with error messages, so let's see
+                // if we can get QLibrary get us more detailed message
+                QLibrary lib( absoluteFilePath);
+                if( ! lib.load()) {
+                    qDebug() << "QLibrary error:" << lib.errorString();
+                } else {
+                    qDebug() << "QLibrary loaded the file fine";
+                }
 
+            }
         }
     }
 
@@ -107,7 +113,7 @@ void PluginManager::processPlugin(QObject *plugin, QString path)
         return;
     }
 
-    qDebug() << "yup, a carta plugin";
+    qDebug() << "yup, a carta plugin" << plugin;
 
     // add info about this plugin to our list
     PluginInfo * info = new PluginInfo;

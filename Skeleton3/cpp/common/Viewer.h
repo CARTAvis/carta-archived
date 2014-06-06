@@ -17,7 +17,7 @@ class Viewer : public QObject
 public:
 
     // instanciate a viewer with the proper platform
-    explicit Viewer(IPlatform *platform);
+    explicit Viewer(IPlatform * platform);
 
     /// give up control to the viewer
     /// this does not return until application quits

@@ -10,18 +10,18 @@
 
 namespace CmdLine {
 
-
-
 class ParsedInfo {
 
 public:
 
-    /// returns the path to the configuaration file, if provided
-    /// set either through --cfg file or CARTAVIS_CONFIG environment
+    /// returns the path to the configuaration file
+    /// set either through '--cfg file' option or $CARTAVIS_CONFIG environment
+    /// if config file was not provided, the default is used, which is:
+    /// $HOME/.cartavis/config.json
     QString configFilePath() const;
 
-    /// returns the path to the html file
-    /// set by --html path option
+    /// returns the path to the html file, only used by the desktop version
+    /// set by '--html path' option
     QString htmlPath() const;
 
     /// return a list of files to open
@@ -29,14 +29,15 @@ public:
 
 protected:
 
-    friend void CmdLine::doParse();
+    friend ParsedInfo CmdLine::parse( const QStringList & argv);
     QString m_configFilePath;
     QString m_htmlPath;
     QStringList m_fileList;
 };
 
-/// parse the command line, which is extracted form QCoreApplication::arguments()
-/// it can be called repeatedly, but the parsing is only done once
-const ParsedInfo & parse();
+/// parse the command line, which is extracted from QCoreApplication::arguments()
+/// if error occurred, or user asks for '-v' or '-h' options, usage info is printed
+/// to stdout and application is terminated.
+ParsedInfo parse( const QStringList & argv);
 
 } // namespace CmdLine

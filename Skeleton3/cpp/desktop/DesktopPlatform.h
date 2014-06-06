@@ -10,7 +10,6 @@
 
 class MainWindow;
 class DesktopConnector;
-namespace CmdLine { class ParsedInfo; }
 
 // TODO: do we really need to inherit from QObject?????
 
@@ -23,7 +22,7 @@ public:
 
     /// initialize the platform
     /// create a gui displaying the provided url inside the built-in browser
-    DesktopPlatform(const CmdLine::ParsedInfo & cmdLineInfo);
+    DesktopPlatform();
 
     /// returns the appropriate connector for this platform
     virtual IConnector * connector() Q_DECL_OVERRIDE;

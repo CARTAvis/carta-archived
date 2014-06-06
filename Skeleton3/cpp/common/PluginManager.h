@@ -90,6 +90,7 @@ protected:
 
 };
 
+typedef QString VersionInfo;
 
 class PluginManager
 {
@@ -97,15 +98,23 @@ public:
 
     /// this is what the plugin manager keeps about each plugin
     struct PluginInfo {
-
-        IPlugin * rawPlugin;
+        /// pointer to the actual plugin implementation once loaded
+        IPlugin * rawPlugin = nullptr;
+        /// full path to the .so
         QString path;
-
+        /// full directory of the plugin
+        QString dirPath;
+        /// name of the plugin
+        QString name;
+        VersionInfo version;
+        QString typeString;
+        QString description;
+        QString about;
+        QStringList depends;
     };
 
+    /// constructor - does not currently do anything interesting at all
     PluginManager();
-
-//    void loadConfig( const QString & /*fileName*/) {}
 
     /// set the plugin search directories
     void setPluginSearchPaths( const QStringList & pathList);

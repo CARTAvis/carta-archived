@@ -3,6 +3,9 @@
  **/
 
 #include "Globals.h"
+#include "IConnector.h"
+#include "IPlatform.h"
+#include "PluginManager.h"
 
 Globals * Globals::m_instance = nullptr;
 
@@ -42,34 +45,49 @@ Globals *Globals::instance()
     return m_instance;
 }
 
+const CmdLine::ParsedInfo * Globals::cmdLineInfo() const
+{
+    Q_ASSERT( m_cmdLineInfo);
+    return m_cmdLineInfo;
+}
 
-//QString Globals::fname()
-//{
-//    return instance()-> m_fname;
-//}
+void Globals::setCmdLineInfo(const CmdLine::ParsedInfo * cmdLineInfo)
+{
+    Q_ASSERT_X( ! m_cmdLineInfo, "Globals", "Redefinging command line info!?!?!");
+    m_cmdLineInfo = cmdLineInfo;
+}
+const MainConfig::ParsedInfo * Globals::mainConfig() const
+{
+    Q_ASSERT( m_mainConfig);
+    return m_mainConfig;
+}
 
-//void Globals::setFname(const QString &fname)
-//{
-//    instance()-> m_fname = fname;
-//}
+void Globals::setMainConfig(const MainConfig::ParsedInfo * mainConfig)
+{
+    Q_ASSERT_X( ! m_mainConfig, "Globals", "Redefinging main config info!?!?!");
+    m_mainConfig = mainConfig;
+}
+
 
 Globals::Globals()
 {
     m_connector = nullptr;
     m_platform = nullptr;
     m_pluginManager = nullptr;
+    m_cmdLineInfo = nullptr;
+    m_mainConfig = nullptr;
 }
 
 IConnector * Globals::connector()
 {
-    Q_ASSERT( instance()->m_connector != nullptr);
+    Q_ASSERT( m_connector != nullptr);
 
-    return instance()-> m_connector;
+    return m_connector;
 }
 
 void Globals::setConnector(IConnector *connector)
 {
-    Q_ASSERT_X( instance()->m_connector == nullptr, "Globals", "redefining connector");
+    Q_ASSERT_X( m_connector == nullptr, "Globals", "redefining connector?!?!");
 
-    instance()->m_connector = connector;
+    m_connector = connector;
 }

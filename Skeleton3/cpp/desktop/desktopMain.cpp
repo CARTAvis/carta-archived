@@ -6,32 +6,40 @@
 #include "common/Viewer.h"
 #include "common/MyQApp.h"
 #include "common/CmdLine.h"
-#include "common/GlobalSettings.h"
+#include "common/MainConfig.h"
+#include "common/Globals.h"
 #include <QDebug>
-#include <QUrl>
 
 int main(int argc, char ** argv)
 {
-    qDebug() << "Desktop app is starting up.";
+    //
+    // initialize Qt
+    //
+    MyQApp qapp( argc, argv);
 #ifdef QT_DEBUG
-    qDebug() << "Running a debug build";
+    MyQApp::setApplicationName( "Skeleton3-desktop-debug");
 #else
-    qDebug() << "Running a release build";
+    MyQApp::setApplicationName( "Skeleton3-desktop-release");
 #endif
 
-    // initialize Qt
-    MyQApp qapp( argc, argv);
-
     // parse command line arguments & environment variables
-    CmdLine::ParsedInfo cmdLineInfo = CmdLine::parse();
+    auto cmdLineInfo = CmdLine::parse( MyQApp::arguments());
+    Globals::instance()-> setCmdLineInfo( & cmdLineInfo);
 
     // load the config file
-    GlobalSettings gs();
+    QString configFilePath = cmdLineInfo.configFilePath();
+    auto mainConfig = MainConfig::parse( configFilePath);
+    Globals::instance()-> setMainConfig( & mainConfig);
+    qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - ");
 
     // initialize platform
-    auto platform = new DesktopPlatform( cmdLineInfo);
+    // platform needs command line & global settings
+    auto platform = new DesktopPlatform();
 
-    // create viewer with this platform
+    qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
+    qDebug() << "Application path:" << qapp.applicationDirPath();
+
+    // create the viewer with this platform
     Viewer viewer( platform);
 
     // run the viewer
