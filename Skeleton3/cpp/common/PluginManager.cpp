@@ -62,10 +62,17 @@ void PluginManager::setPluginSearchPaths(const QStringList & pathList)
 
 void PluginManager::loadPlugins()
 {
+    // find all plugins in the provided search paths
+    auto allPlugins = findAllPlugins();
+
+    // for all c++ and lib plugins, figure out dependencies and topologically order
+    // them for loading
+
+    // now load all c++ and lib plugins in the determined order
 
     // first handle staticly linked plugins (if any)
     foreach (QObject *plugin, QPluginLoader::staticInstances()) {
-        processPlugin(plugin);
+        processCppPlugin(plugin);
     }
 
     // now load user installed plugins
@@ -86,7 +93,7 @@ void PluginManager::loadPlugins()
             QPluginLoader loader( absoluteFilePath);
             QObject * plugin = loader.instance();
             if( plugin) {
-                processPlugin( plugin, absoluteFilePath);
+                processCppPlugin( plugin, absoluteFilePath);
             } else {
                 qDebug() << "QPluginLoader error = " << loader.errorString();
                 // QPluginLoader is not very verbose with error messages, so let's see
@@ -104,7 +111,58 @@ void PluginManager::loadPlugins()
 
 }
 
-void PluginManager::processPlugin(QObject *plugin, QString path)
+std::vector<PluginManager::PluginInfo> PluginManager::findAllPlugins()
+{
+    qDebug() << "Looking for plugins...";
+
+    std::vector<PluginManager::PluginInfo> list;
+
+    for( auto dirPath : m_pluginSearchPaths) {
+        qDebug() << "  processing path:" << dirPath;
+        QDir dir( dirPath);
+        if( ! dir.exists()) {
+            qWarning() << "  Skipping non-existant plugin directory";
+            continue;
+        }
+        QDirIterator dit( dir.absolutePath(), QDirIterator::FollowSymlinks);
+        while (dit.hasNext()) {
+            dit.next();
+            // skip "." and ".." entries
+            if( dit.fileName() == "." || dit.fileName() == "..") {
+                continue;
+            }
+            // skip non-directories
+            if( ! dit.fileInfo().isDir()) {
+                continue;
+            }
+            qDebug() << "    looking at:" << dit.fileInfo().fileName();
+            QStringList errors;
+            PluginInfo info = parsePluginDir( dit.filePath(), errors);
+            if( ! errors.empty()) {
+                qWarning() << "Could not load plugin from:" << dit.filePath()
+                           << "\n  - reason: " << errors.join("\n")
+                           << "\n================================";
+                continue;
+            }
+        }
+    }
+
+    qDebug() << "Done looking for plugins. Found: " << list.size();
+    return list;
+
+}
+
+PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName, QStringList & errors)
+{
+    PluginInfo info;
+
+    errors << "Loading not implemented yet";
+    errors << "Ask Pavol to implement it... :)";
+    return info;
+}
+
+/// process the loaded CPP plugin
+void PluginManager::processCppPlugin(QObject *plugin, QString path)
 {
     IPlugin * cartaPlugin = qobject_cast<IPlugin *>( plugin);
     if( ! cartaPlugin) {
@@ -122,7 +180,10 @@ void PluginManager::processPlugin(QObject *plugin, QString path)
     m_allPlugins.push_back( info);
 
     // find out what hooks this plugin wants to listen to
-    auto hooks = cartaPlugin->getInitialHookList();
+    auto hooks = cartaPlugin-> getInitialHookList();
+
+    // for each hook the plugin wants to listen to, add it to the appropriate
+    // lookup slot in m_hook2plugin
     for( auto id : hooks) {
         m_hook2plugin[id].push_back( info);
     }

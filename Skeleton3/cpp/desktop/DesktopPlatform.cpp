@@ -10,12 +10,29 @@
 
 #include <QtWidgets>
 #include <QWebSettings>
+#include <unistd.h>
+
+std::string warningColor, criticalColor, fatalColor, resetColor;
+static void initializeColors() {
+    static bool initialized = false;
+    if( initialized) return;
+    initialized = true;
+    if( isatty(3)) return;
+    warningColor = "\033[1m\033[36m";
+    criticalColor = "\033[31m";
+    fatalColor = "\033[41m";
+    resetColor = "\033[0m";
+}
+
+static const int m_isatty = isatty(3);
 
 
 /// custom Qt message handler
 static
 void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &pmsg)
 {
+    initializeColors();
+
     QString msg = pmsg;
     if( !msg.endsWith( '\n')) {
         msg += '\n';
@@ -26,15 +43,25 @@ void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const Q
         fprintf(stderr, "Debug: %s", localMsg.constData());
         break;
     case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        fprintf(stderr, "%sWarning: %s (%s:%u, %s)%s\n",
+                warningColor.c_str(),
+                localMsg.constData(), context.file, context.line, context.function,
+                resetColor.c_str());
         break;
     case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        fprintf(stderr, "%sCritical: %s (%s:%u, %s)%s\n",
+                criticalColor.c_str(),
+                localMsg.constData(), context.file, context.line, context.function,
+                resetColor.c_str());
         break;
     case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        fprintf(stderr, "%sFatal: %s (%s:%u, %s)%s\n",
+                fatalColor.c_str(),
+                localMsg.constData(), context.file, context.line, context.function,
+                resetColor.c_str());
         abort();
     }
+
 } // qtMessageHandler
 
 DesktopPlatform::DesktopPlatform()

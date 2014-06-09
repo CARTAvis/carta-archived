@@ -59,7 +59,7 @@ public:
     }
 
     /// execute all plugins and return an array of results (for every plugin that answered)
-    std::vector<typename T::ResultType> vector();
+//    std::vector<typename T::ResultType> vector();
 
     /// keep executing plugins until one answers
     Nullable<typename T::ResultType> first() {
@@ -147,19 +147,22 @@ protected:
         return m_hook2plugin[ id];
     }
 
+    /// find all plugins in the provided search paths
+    std::vector< PluginInfo > findAllPlugins();
 
-    void processPlugin( QObject * plugin, QString path = QString() );
+    /// parse a plugin
+    PluginInfo parsePluginDir( const QString & dirName, QStringList & errors);
 
-private:
-
+    /// process a CPP plugin once its .so has been loaded
+    void processCppPlugin( QObject * plugin, QString path = QString());
 
     // TODO: we should probably use std::vector for little more performance
     // but that means we'll need to ensure consecutive numbering of hooks...
-    /// list of plugins registered for a each hook
+    /// list of plugins registered per hook
 //    std::vector< std::vector< PluginInfo *> > m_hook2plugin;
     std::map< HookId, std::vector< PluginInfo *> > m_hook2plugin;
 
-    /// unique list of all loaded plugins
+    /// list of all loaded plugins
     std::vector< PluginInfo *> m_allPlugins;
 
     template<typename T> friend class HookHelper;
@@ -174,7 +177,6 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
 {
     qDebug() << "forEachCond";
     // get the list of plugins that claim they handle this hook
-//    /*constexpr*/ int hookId = Hook2Int<T>();
     HookId hookId = T::StaticHookId;
     qDebug() << "  static hook id = " << hookId;
     auto pluginList = m_pm-> listForHook( hookId);
@@ -202,13 +204,14 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     }
 }
 
-template <typename T>
-std::vector<typename T::ResultType> HookHelper<T>::vector() {
-    std::vector<typename T::ResultType> res;
-    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
-        res.push_back( res);
-        return true;
-    };
-    forEachCond( wrapper);
-    return res;
-}
+
+//template <typename T>
+//std::vector<typename T::ResultType> HookHelper<T>::vector() {
+//    std::vector<typename T::ResultType> res;
+//    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
+//        res.push_back( res);
+//        return true;
+//    };
+//    forEachCond( wrapper);
+//    return res;
+//}
