@@ -72,78 +72,120 @@ qx.Class.define("skel.Application",
                 } );
                 connector.connect();
 
-
-
-                var win = new qx.ui.window.Window("First view");
-                win.setWidth(300);
-                win.setHeight(200);
-                win.setShowMinimize(false);
-                win.setLayout( new qx.ui.layout.Grow());
-                win.setContentPadding( 5, 5, 5, 5);
-                win.add( new skel.boundWidgets.View( "view1"));
-                this.getRoot().add(win, {left:20, top:220});
-                win.open();
-
-                win = new qx.ui.window.Window("Second view");
-                win.setWidth(400);
-                win.setHeight(100);
-                win.setShowMinimize(false);
-                win.setLayout( new qx.ui.layout.Grow());
-                win.setContentPadding( 5, 5, 5, 5);
-                win.add( new skel.boundWidgets.View( "view2"));
-                this.getRoot().add(win, {left:370, top:220});
-                win.open();
-
-                win = new qx.ui.window.Window("Image view");
-                win.setWidth(400);
-                win.setHeight(100);
-                win.setShowMinimize(false);
-                win.setLayout( new qx.ui.layout.Grow());
-                win.setContentPadding( 5, 5, 5, 5);
-                win.add( new skel.boundWidgets.View( "view3"));
-                this.getRoot().add(win, {left:200, top:120});
-                win.open();
-
-                // Create a button
-                var button1 = new qx.ui.form.Button("Share this session", "skel/test.png");
-
-                // Document is the application root
-                var doc = this.getRoot();
-
-                // Add button to document at fixed coordinates
-                doc.add(button1, {left: 100, top: 50});
-
-                // Add an event listener
-                button1.addListener("execute", function(e) {
-                    var con=mImport("connector");
-                    con.shareSession( function( url) {
-                            tfield.setValue( url);
-                            tfield.setVisibility( "visible");
-                        }, "a", null,
-                            60*60*1000);
-                });
-
-                var tfield = new qx.ui.form.TextField("").set({
-                    readOnly: true,
-                    minWidth: 400,
-                    visibility: "hidden"
-                });
-                this.getRoot().add( tfield, { left: 100, top: 130 });
-
-                // status bar
-                var statusBar = new qx.ui.form.TextField("Status bar").set({
-                    readOnly: true
-                });
-                this.getRoot().add( statusBar, { left: 10, right: 10, bottom: 10 });
-
-
-
-                var labelx = new skel.boundWidgets.Label( "MouseX:", "pix", "/mouse/x");
-                doc.add( labelx, { left: 100, top: 170 });
-                var labely = new skel.boundWidgets.Label( "MouseY:", "pix", "/mouse/y");
-                doc.add( labely, { left: 100, top: 190 });
-
-
-            }
+                this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas());
+                this.m_mainContainer.setAppearance( "display-main");
+                this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});
+                
+                this.m_desktop = new skel.widgets.DisplayMain();
+                this.m_mainContainer.add( this.m_desktop, { top: "0%", bottom: "0%", left: "0%", right: "0%"});
+                this.m_statusBar = new skel.widgets.StatusBar();
+                this.m_mainContainer.add( this.m_statusBar, {bottom: "0%", left: "0%", right: "0%"} );
+                
+                this._initMenuBar();
+                this.m_desktop.addListener("iconifyWindow", this._iconifyWindow, this );
+                this.m_menuBar.addListener( "appear", function(ev){
+                	this._repositionDesktop( true );
+                }, this);
+                this.m_desktop.addListener("addWindowMenu", function( ev ){
+                	this.m_menuBar.addWindowMenu( ev );
+                }, this);
+                              
+                this.m_mainContainer.addListener( "mousemove", function(ev){
+                	this.m_statusBar.showHideStatus( ev );
+                	this.m_menuBar.showHideMenu( ev );
+                }, this);
+               
+            },
+            
+            _initMenuBar : function(){
+            	this.m_menuBar = new skel.widgets.MenuBar();
+            	this.m_menuBar.addListener("layoutImage",function(){
+            		this.m_desktop.layoutImage();
+            	}, this );
+            	
+            	this.m_menuBar.addListener("layoutImageAnalysisAnimator",function(){
+            		this.m_desktop.layoutImageAnalysisAnimator();
+            	}, this );
+            	
+            	this.m_menuBar.addListener("layoutRowCount",function( ev ){
+            		this.m_desktop.setRowCount( ev.getData() );
+            	}, this );
+            	
+            	this.m_menuBar.addListener("layoutColCount",function( ev ){
+            		this.m_desktop.setColCount( ev.getData() );
+            	}, this );
+            	
+            	this.m_menuBar.addListener("statusAlwaysVisible",function( ev ){         		
+            		this.m_statusBar.setStatusAlwaysVisible( ev.getData());
+            		this._repositionDesktop( ev.getData());
+            	}, this );
+            	
+            	this.m_menuBar.addListener("menuAlwaysVisible",function( ev ){
+            		this._repositionDesktop( ev.getData());
+            	}, this );
+            	
+            	this.m_menuBar.addListener("menuMoved",function( ev ){
+            		this._repositionDesktop();
+            	}, this );
+            	
+            	this.m_menuBar.addListener("dataLoaded",function( ev ){
+            		this.m_desktop.dataLoaded(ev.getData());
+            	}, this );
+            	
+            	this.m_menuBar.addListener("dataUnloaded",function( ev ){
+            		this.m_desktop.dataUnloaded(ev.getData());
+            	}, this );
+            	 
+            	this.m_mainContainer.add( this.m_menuBar );
+            	this.m_menuBar.reposition();
+            },
+            
+          
+            
+            _repositionDesktop : function( ){
+            	var permanentMenu = this.m_menuBar.isAlwaysVisible();
+            	var permanentStatus = this.m_statusBar.isAlwaysVisible();
+            	var topMenu = this.m_menuBar.isTop();
+            	var topValue = "0%";
+            	var leftValue = "0%";
+            	if ( permanentMenu ){
+            		if (topMenu){
+            			var bottomMenu = this.m_menuBar.getHeight();
+            			topValue=bottomMenu;
+            		}
+            		//Left menu bar.
+            		else {
+            			var menuWidth = this.m_menuBar.getWidth();
+            			leftValue = menuWidth;
+            		}
+            	}
+            	var bottomValue = "0%";
+            	if ( permanentStatus ){
+            		var topStatus = skel.widgets.Util.getTop( this.m_statusBar );
+            		var topWin = skel.widgets.Util.getBottom( this.m_mainContainer );
+            		var height = this.m_statusBar.getAnimationHeight();
+            		bottomValue = Math.round( height /topWin * 100)+"%";
+            	}
+            	this.m_desktop.setLayoutProperties( {top: topValue, bottom: bottomValue, left: leftValue, right: "0%"} );
+            },
+     
+            _iconifyWindow: function( ev ){
+            	this.m_statusBar.addIconifiedWindow( ev, this );
+            },
+            
+            /**
+             * Restore the window at the given layout row and column to its original position.
+             * @param row {Number} the layout row index of the window to be restored.
+             * @param col {Number} the layout column index of the window to be restored.
+             */
+            restoreWindow : function( row, col){
+            	this.m_desktop.restoreWindow( row, col );        	
+            },
+            
+            m_desktop: null,
+            m_menuBar: null,
+            m_statusBar: null,
+        	m_mainContainer: null   
+        
         }
     });
