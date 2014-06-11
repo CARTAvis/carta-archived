@@ -174,6 +174,16 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
 
 }
 
+void DesktopConnector::jsConnectorReadySlot()
+{
+    // at this point it's safe to start using setState as the javascript
+    // connector has registered to listen for the signal
+    qDebug() << "JS Connector is ready!!!!";
+
+    // TODO: let the application know
+
+}
+
 DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & viewName)
 {
     auto viewIter = m_views.find( viewName);

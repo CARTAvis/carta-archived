@@ -12,6 +12,7 @@
 #include <cmath>
 #include <QDebug>
 #include <QCoreApplication>
+#include "MyQApp.h"
 
 //Globals & globals = * Globals::instance();
 
@@ -213,7 +214,6 @@ Viewer::Viewer( IPlatform * platform) :
     for( const auto & entry : infoList) {
         qDebug() << "  path:" << entry-> path;
     }
-
     // tell all plugins that the core has initialized
     auto helper = pm-> prepare<Initialize>();
     helper.executeAll();
@@ -305,6 +305,21 @@ int Viewer::start()
         qDebug() << "Image loaded: " << res.val().size();
         connector-> registerView( new TestView2( "view3", QColor( "pink"), res.val()));
     }
+
+    // tell clients about our plugins
+    {
+        auto pm = Globals::instance()-> pluginManager();
+        auto infoList = pm-> getInfoList();
+        int ind = 0;
+        for( const auto & entry : infoList) {
+            qDebug() << "  path:" << entry-> path;
+            QString path = QString( "/pluginList/p%1/").arg(ind);
+            connector-> setState( path + "name", entry-> name);
+            ind ++;
+        }
+        connector-> setState( "/pluginList/stamp", "1");
+    }
+
 
     return 0;
 }

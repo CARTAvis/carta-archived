@@ -123,6 +123,10 @@ void MainWindow::showJsConsole()
 
 // this is called when the global object in javascript is cleared
 // we use it to add a bridge to C++
+
+#include "common/Globals.h"
+#include "common/IConnector.h"
+#include "common/MyQApp.h"
 void MainWindow::addToJavaScript()
 {
 //    m_view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
@@ -133,5 +137,10 @@ void MainWindow::addToJavaScript()
                     entry.first, entry.second);
 //        m_view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
     }
+
+    defer( []() {
+        Globals::instance()-> connector()-> setState( "/pluginList/stamp", "1.2.3");
+    });
+
 
 }

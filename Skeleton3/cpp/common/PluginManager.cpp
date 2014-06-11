@@ -10,6 +10,10 @@
 #include <QPluginLoader>
 #include <QLibrary>
 #include <QtGlobal>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QJsonObject>
+#include <QJsonArray>
 
 PluginManager::PluginManager()
 {
@@ -155,9 +159,61 @@ std::vector<PluginManager::PluginInfo> PluginManager::findAllPlugins()
 PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName, QStringList & errors)
 {
     PluginInfo info;
+    errors << "Could not parse plugin in: " + dirName;
 
-    errors << "Loading not implemented yet";
-    errors << "Ask Pavol to implement it... :)";
+    // try to open the json file
+    QString jsonFname = dirName + "/plugin.json";
+    QFile file( jsonFname);
+    if( ! file.open( QFile::ReadOnly)) {
+        errors << "  - because could not open: plugin.json";
+        errors << "  - because:" << file.errorString();
+        return info;
+    }
+
+    // read in the contents of the file
+    auto fileContents = file.readAll();
+
+    // parse json
+    QJsonParseError jsonErrors;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson( fileContents, & jsonErrors);
+    if( jsonDoc.isNull()) {
+        errors << "  - because could not parse" + jsonFname;
+        errors << "  - because:" << jsonErrors.errorString();
+        return info;
+    }
+    QJsonObject json = jsonDoc.object();
+
+    info.name = json["name"].toString();
+    if( info.name.isNull()) {
+        errors << "  - name must be specified in plugin.json";
+        return info;
+    }
+    info.version = json["version"].toString();
+    info.typeString = json["type"].toString();
+    if( info.typeString.isNull()) {
+        errors << "  - type must be specified in plugin.json";
+        return info;
+    }
+    info.description = json["description"].toString();
+    info.about = json["about"].toString();
+    if( ! json["depends"].isArray()) {
+        errors << "  - depends must be an array of strings in plugin.json";
+        errors << QJsonDocument( json).toJson();
+        return info;
+    }
+    {
+        auto jsonArray = json["depends"].toArray();
+        for( auto entry : jsonArray) {
+            QString dep = entry.toString();
+            if( dep.isNull()) {
+                errors << "  - null dependency in plugin.json?";
+                return info;
+            }
+            info.depends.append( entry.toString());
+        }
+    }
+
+    errors.clear();
     return info;
 }
 

@@ -4,5 +4,5 @@
     "type"       : "C++",
     "description": "Adds ability to load png and jpeg files",
     "about"      : "Part of skeleton3. Written by Pavol",
-    "depends"    : []
+    "dependss"    : []
 }

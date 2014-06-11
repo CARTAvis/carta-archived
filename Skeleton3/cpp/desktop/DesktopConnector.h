@@ -40,6 +40,8 @@ public slots:
     void jsSetStateSlot( const QString & key, const QString & value);
     /// javascript calls this to send a command
     void jsSendCommandSlot( const QString & cmd, const QString & parameter);
+    /// javascript calls this to let us know js connector is ready
+    void jsConnectorReadySlot();
 
     void jsUpdateViewSlot( const QString & viewName, int width, int height);
     void jsMouseMoveSlot( const QString & viewName, int x, int y);
