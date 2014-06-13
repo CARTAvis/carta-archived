@@ -7,8 +7,7 @@ DEPENDPATH += $$PROJECT_ROOT
 
 QT       += core gui
 
-TARGET = qimage
-
+TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
 
@@ -21,11 +20,7 @@ HEADERS += \
 OTHER_FILES += \
     plugin.json
 
-# list files to copy to compile output in MYFILES
-
-# Masks are available with $$files functions but
-# if your set of files changes (files added or removed)
-# your have to re-run qmake after that explicitly, not just make
+# copy json to build directory
 #MYFILES = $$files($${PWD}/files/*.*)
 MYFILES = plugin.json
 copy_files.name = copy large files

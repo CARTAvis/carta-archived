@@ -1,8 +1,8 @@
 {
-    "name"       : "jpeg-png",
+    "name"       : "tester1",
     "version"    : "1",
     "type"       : "C++",
-    "description": "Adds ability to load png and jpeg files",
+    "description": "Renders a static string to every view. Very boring.",
     "about"      : "Part of skeleton3. Written by Pavol",
     "depends"    : []
 }

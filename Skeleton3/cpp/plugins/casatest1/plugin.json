@@ -1,0 +1,9 @@
+{
+    "api"        : "1",
+    "name"       : "casaLoader",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Adds ability to load casa and fits files",
+    "about"      : "Part of skeleton3. Written by Pavol",
+    "depends"    : [ "casaCore"]
+}
