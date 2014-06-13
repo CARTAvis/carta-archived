@@ -26,7 +26,7 @@ public:
     explicit DesktopConnector();
 
     // implementation of IConnector interface
-    virtual bool initialize() Q_DECL_OVERRIDE;
+    virtual bool initialize( const InitializeCallback & cb) Q_DECL_OVERRIDE;
     virtual void setState(const QString & path, const QString & newValue) Q_DECL_OVERRIDE;
     virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
@@ -127,6 +127,10 @@ public:
     virtual void refreshViewNow(IView *view);
 
     /// TODO: should we move some of these to protected section?
+
+protected:
+
+    InitializeCallback m_initializeCallback;
 
 };
 

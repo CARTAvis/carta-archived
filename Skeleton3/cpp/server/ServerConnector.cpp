@@ -6,6 +6,8 @@
 #include <QImage>
 #include <QDebug>
 
+#include <functional>
+
 // define convenience conversion between CSI::String and QString
 // accomplished by going to std::string as an intermediate step
 //namespace CSI {
@@ -28,17 +30,28 @@ ServerConnector::ServerConnector()
     m_initialized = false;
 }
 
-bool ServerConnector::initialize()
+void OnPWStateInitialized(CSI::PureWeb::Server::StateManager &, CSI::EmptyEventArgs &)
+{
+    qDebug() << "State manager is now initialized";
+}
+
+
+bool ServerConnector::initialize(const InitializeCallback & cb)
 {
     try {
+        // start with unintialized state
+        Q_ASSERT_X( ! m_initialized, "ServerConnector::initialize()", "Calling initialize twice?");
+
         // Initialize PureWeb libraries
         CSI::Library::Initialize();
+
         // this thread is the UI thread
         CSI::Threading::UiDispatcher::InitMessageThread();
 
         // Create PureWeb object instances
         m_server = new CSI::PureWeb::Server::StateManagerServer();
         m_stateManager = new CSI::PureWeb::Server::StateManager("pingpong");
+        m_stateManager-> Initialized() += OnPWStateInitialized;
 
         m_stateManager->PluginManager().RegisterPlugin(
                     "QtMessageTickler", new QtMessageTickler());
@@ -58,16 +71,17 @@ bool ServerConnector::initialize()
         CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
                 "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
 
+        m_initialized = true;
     }
     catch ( ... ) {
         qCritical() << "Could not initialize PureWeb";
-        return false;
     }
 
-    qDebug() << "Command line args2: " << MyQApp::arguments();
+    // schedule the callback immediately, as we already know if we succeeded or not
+    defer( std::bind( cb, m_initialized));
 
-    m_initialized = true;
-    return true;
+    return m_initialized;
+
 } // initialize
 
 void ServerConnector::setState(const QString &path, const QString &value)
@@ -100,7 +114,7 @@ IConnector::CallbackID ServerConnector::addCommandCallback(const QString &cmd, c
 
 void ServerConnector::OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer &, CSI::EmptyEventArgs &)
 {
-    std::cerr << "OnPureWebShutdown() called\n";
+    qDebug() << "PureWeb is shutting down...";
     QApplication::exit();
 }
 
@@ -109,7 +123,7 @@ void ServerConnector::genericCommandListener(CSI::Guid sessionid, const CSI::Typ
     std::string cmd = command["cmd"].As<std::string>();
     std::string params = command["params"].As<std::string>();
 
-    std::cerr << "Generic command: " << cmd << " " << params << "\n";
+    qDebug() << "Generic command: " << cmd.c_str() << " " << params.c_str();
 
     auto & allCallbacks = m_commandCallbackMap[ cmd.c_str()];
     QStringList results;
@@ -267,9 +281,7 @@ void ServerConnector::registerView(IView *view)
     viewImageFormat.Alignment = 4;
 
     std::string vn = view->name().toStdString();
-    std::cerr << "vn = " << vn << "\n";
-    std::cerr << "view =" << reinterpret_cast<uint64_t>(view) << "\n";
-    std::cerr << "registering view '" << view->name() << "'\n";
+    qDebug() << "registering view " << view->name();
     // TODO: resource leak (only if we destroy a connector...)
     PWIViewConverter * cvt = new PWIViewConverter( view);
 
@@ -290,24 +302,3 @@ void ServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
     qFatal( "Not implemented");
 }
 
-// this is dealyed pureweb callback, here we do the actual work of calling
-// registered handlers
-//void ServerConnector::delayedInternalValueChangedCB( CSI::ValueChangedEventArgs val)
-//{
-//    std::cerr << "delayedInternalValueChangedCB\n"
-//              << "  path = " << val.Path().As<std::string>() << "\n"
-//              << "  newValue = " << val.NewValue() << "\n";
-
-//    // here we call the actual callbacks
-//    QString path = val.Path().As< QString >();
-//    QString newVal = val.NewValue().As< QString >();
-
-//    auto & callbacks = m_stateCallbackList[ path];
-//    for( auto & cb : callbacks) {
-//        cb( path, newVal);
-//    }
-
-//}
-
-// required for queued connections
-//Q_DECLARE_METATYPE( CSI::ValueChangedEventArgs )

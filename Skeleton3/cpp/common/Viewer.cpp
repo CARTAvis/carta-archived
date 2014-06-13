@@ -195,44 +195,37 @@ protected:
     QPointF m_lastMouse;
 };
 
-Viewer::Viewer( IPlatform * platform) :
+Viewer::Viewer() :
     QObject( nullptr)
 {
+}
+
+void Viewer::start()
+{
+    qDebug() << "Viewer::start() starting";
+
     auto & globals = * Globals::instance();
+    auto connector = globals.connector();
 
-    globals.setPlatform( platform);
-    globals.setConnector( platform->connector());
+    // initialize plugin manager
     globals.setPluginManager( new PluginManager);
+    auto pm = globals.pluginManager();
 
-    auto pm = Globals::instance()-> pluginManager();
+    // tell plugin manager where to find plugins
     pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
+
+    // find and load plugins
     pm-> loadPlugins();
-    // load plugins
+
     qDebug() << "Loading plugins...";
     auto infoList = pm-> getInfoList();
     qDebug() << "List of plugins: [" << infoList.size() << "]";
     for( const auto & entry : infoList) {
         qDebug() << "  path:" << entry-> path;
     }
+
     // tell all plugins that the core has initialized
-    auto helper = pm-> prepare<Initialize>();
-    helper.executeAll();
-}
-
-int Viewer::start()
-{
-    qDebug() << "Viewer::start() starting";
-
-    // setup connector
-    IConnector * connector = Globals::instance()-> connector();
-
-    if( ! connector || ! connector-> initialize()) {
-        qCritical() << "Could not initialize connector.\n";
-        exit( -1);
-    }
-
-    qDebug() << "Viewer::start: connector initialized\n";
-    qDebug() << "Arguments:" << QCoreApplication::arguments();
+    pm-> prepare<Initialize>().executeAll();
 
 #ifdef DONT_COMPILE
 
@@ -285,10 +278,7 @@ int Viewer::start()
     connector-> registerView( new TestView( "view1", QColor( "blue")));
     connector-> registerView( new TestView( "view2", QColor( "red")));
 
-    qDebug() << "Arguments:" << QCoreApplication::arguments();
-
-
-    // ask one of the plugins to load the image
+    // ask plugins to load the image
     qDebug() << "======== trying to load image ========";
 //    QString fname = Globals::fname();
     if( Globals::instance()-> platform()-> initialFileList().isEmpty()) {
@@ -315,13 +305,15 @@ int Viewer::start()
             qDebug() << "  path:" << entry-> path;
             QString path = QString( "/pluginList/p%1/").arg(ind);
             connector-> setState( path + "name", entry-> name);
+            connector-> setState( path + "description", entry-> description);
+            connector-> setState( path + "type", entry-> typeString);
+            connector-> setState( path + "version", entry-> version);
+            connector-> setState( path + "dirPath", entry-> dirPath);
+            connector-> setState( path + "errors", entry-> errors.join("|"));
             ind ++;
         }
-        connector-> setState( "/pluginList/stamp", "1");
+        connector-> setState( "/pluginList/stamp", QString::number( ind));
     }
-
-
-    return 0;
 }
 
 

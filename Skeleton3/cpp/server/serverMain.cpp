@@ -12,36 +12,54 @@
 
 int main(int argc, char ** argv)
 {
-    //
     // initialize Qt
-    //
     MyQApp qapp( argc, argv);
+
 #ifdef QT_DEBUG
     MyQApp::setApplicationName( "Skeleton3-server-debug");
 #else
     MyQApp::setApplicationName( "Skeleton3-server-release");
 #endif
 
+    qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
+
+    // alias globals
+    auto & globals = * Globals::instance();
+
     // parse command line arguments & environment variables
     auto cmdLineInfo = CmdLine::parse( MyQApp::arguments());
-    Globals::instance()-> setCmdLineInfo( & cmdLineInfo);
+    globals.setCmdLineInfo( & cmdLineInfo);
 
     // load the config file
     QString configFilePath = cmdLineInfo.configFilePath();
     auto mainConfig = MainConfig::parse( configFilePath);
-    Globals::instance()-> setMainConfig( & mainConfig);
+    globals.setMainConfig( & mainConfig);
     qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - ");
 
     // initialize platform
-    ServerPlatform * platform = new ServerPlatform();
+    // platform gets command line & main config file via globals ?!?!?
+    auto platform = new ServerPlatform();
+    globals.setPlatform( platform);
 
-    qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
-    qDebug() << "Application path:" << qapp.applicationDirPath();
+    // prepare connector
+    IConnector * connector = platform-> connector();
+    globals.setConnector( connector);
 
-    // create viewer with this platform
-    Viewer viewer( platform);
+    // create the viewer
+    Viewer viewer;
 
-    // run the viewer
-    viewer.start();
+    // prepare closure to execute when connector is initialized
+    IConnector::InitializeCallback initCB = [connector, & viewer](bool valid) -> void {
+        qDebug() << "Connector initialized:" << valid;
+        viewer.start();
+    };
+
+    // initialize connector
+    if( ! connector || ! connector-> initialize( initCB)) {
+        qFatal( "Could not initialize connector!");
+    }
+
+    // qt now has control
     return qapp.exec();
+
 }

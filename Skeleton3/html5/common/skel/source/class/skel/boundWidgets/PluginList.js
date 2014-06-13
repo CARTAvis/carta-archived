@@ -60,6 +60,19 @@ qx.Class.define("skel.boundWidgets.PluginList",
             _sharedVarCB: function( val) {
                 var console = mImport( "console");
                 console.log( "PluginList sharedvar = ", val);
+
+                var newData = [];
+                var n = parseInt( val);
+                for( var i = 0 ; i < val ; i ++ ) {
+                    var pf = "/pluginList/p" + i + "/";
+                    var name = this.m_connector.getSharedVar( pf + "name" ).get();
+                    var description = this.m_connector.getSharedVar( pf + "description" ).get();
+                    var type = this.m_connector.getSharedVar( pf + "type" ).get();
+                    var version = this.m_connector.getSharedVar( pf + "version" ).get();
+                    newData.push( [ name, description, type, version ]);
+                }
+
+                this.m_tableModel.setData( newData);
             }
 
         }

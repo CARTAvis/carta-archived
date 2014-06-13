@@ -111,6 +111,8 @@ public:
         QString description;
         QString about;
         QStringList depends;
+        /// errors indicating why plugin could not be loaded
+        QStringList errors;
     };
 
     /// constructor - does not currently do anything interesting at all
@@ -151,7 +153,7 @@ protected:
     std::vector< PluginInfo > findAllPlugins();
 
     /// parse a plugin
-    PluginInfo parsePluginDir( const QString & dirName, QStringList & errors);
+    PluginInfo parsePluginDir( const QString & dirName);
 
     /// process a CPP plugin once its .so has been loaded
     void processCppPlugin( QObject * plugin, QString path = QString());

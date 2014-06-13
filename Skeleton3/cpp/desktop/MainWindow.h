@@ -1,19 +1,16 @@
 #ifndef DESKTOP_MAINWINDOW_H
 #define DESKTOP_MAINWINDOW_H
 
-#include <QtWidgets>
+#include <QMainWindow>
 
 class QWebView;
-QT_BEGIN_NAMESPACE
 class QLineEdit;
-QT_END_NAMESPACE
-
 class QWebInspector;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    Q_PROPERTY(QImage img READ getImg)
+//    Q_PROPERTY(QImage img READ getImg)
 
 public:
     /// constructor initializes the GUI
@@ -27,18 +24,17 @@ public:
     /// so call this before calling loadUrl()
     void exportToJs( const QString & name, QObject * objPtr);
 
-    const QImage & getImg() const;
+//    const QImage & getImg() const;
 
 signals:
 
 public slots:
-    void dbg( const QString & str);
-    void makeNextImage( const QString & str);
 
 protected:
-    Q_INVOKABLE QString getState( const QString & key) {
-        return QString( "ok " + key + ".");
-    }
+
+//    Q_INVOKABLE QString getState( const QString & key) {
+//        return QString( "ok " + key + ".");
+//    }
 
 protected slots:
 
@@ -54,7 +50,7 @@ private:
     QWebView * m_view;
     QLineEdit * m_locationEdit;
     int m_progress;
-    QImage m_img;
+//    QImage m_img;
     QWebInspector * m_inspector; // = nullptr;
     std::vector< std::pair< QString, QObject *> > m_jsExports;
 };

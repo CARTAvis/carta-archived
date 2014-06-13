@@ -140,11 +140,10 @@ std::vector<PluginManager::PluginInfo> PluginManager::findAllPlugins()
                 continue;
             }
             qDebug() << "    looking at:" << dit.fileInfo().fileName();
-            QStringList errors;
-            PluginInfo info = parsePluginDir( dit.filePath(), errors);
-            if( ! errors.empty()) {
+            PluginInfo info = parsePluginDir( dit.filePath());
+            if( ! info.errors.empty()) {
                 qWarning() << "Could not load plugin from:" << dit.filePath()
-                           << "\n  - reason: " << errors.join("\n")
+                           << "\n  - reason: " << info.errors.join("\n")
                            << "\n================================";
                 continue;
             }
@@ -156,9 +155,12 @@ std::vector<PluginManager::PluginInfo> PluginManager::findAllPlugins()
 
 }
 
-PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName, QStringList & errors)
+PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
 {
     PluginInfo info;
+    info.dirPath = dirName;
+    QStringList & errors = info.errors;
+
     errors << "Could not parse plugin in: " + dirName;
 
     // try to open the json file
@@ -233,6 +235,7 @@ void PluginManager::processCppPlugin(QObject *plugin, QString path)
     PluginInfo * info = new PluginInfo;
     info-> rawPlugin = cartaPlugin;
     info-> path = path;
+    info-> name = QFileInfo( path).baseName();
     m_allPlugins.push_back( info);
 
     // find out what hooks this plugin wants to listen to

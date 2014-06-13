@@ -84,11 +84,13 @@ qx.Class.define("skel.Application",
             _afterConnect: function()
             {
                 console.log( "_afterConnect running");
+
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                     console.log( "Connection not established yet...");
                     return;
                 }
+
                 var win = new qx.ui.window.Window("First view");
                 win.setWidth(300);
                 win.setHeight(200);

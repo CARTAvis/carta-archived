@@ -3,9 +3,9 @@
  **/
 
 #include "DesktopConnector.h"
-//#include "ViewInfoPrivate.h"
 #include "common/misc.h"
 #include "common/LinearMap.h"
+#include "common/MyQApp.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -13,6 +13,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QCoreApplication>
+#include <functional>
 
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
@@ -53,8 +54,9 @@ DesktopConnector::DesktopConnector()
     m_callbackNextId = 0;
 }
 
-bool DesktopConnector::initialize()
+bool DesktopConnector::initialize(const InitializeCallback & cb)
 {
+    m_initializeCallback = cb;
     return true;
 }
 
@@ -66,7 +68,7 @@ void DesktopConnector::setState(const QString & path, const QString & newValue)
         return;
     }
     m_state[ path ] = newValue;
-    std::cerr << "CPP setState " << path << "=" << newValue << "\n";
+    qDebug() << "CPP setState " << path << "=" << newValue;
     emit stateChangedSignal( path, newValue);
 }
 
@@ -135,21 +137,17 @@ void DesktopConnector::refreshView(IView * view)
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
-        std::cerr << "Critical: refreshView cannot find this view: " << view-> name() << "\n";
+        qCritical() << "refreshView cannot find this view: " << view-> name();
         return;
     }
 
     // start the timer for this view if it's not already started
     if( ! viewInfo-> refreshTimer.isActive()) {
         viewInfo-> refreshTimer.start();
-        std::cerr << "Scheduled refresh for " << view->name() << "\n";
     }
     else {
-        std::cerr << "########### saved refresh for " << view->name() << "\n";
+//        qDebug() << "########### saved refresh for " << view->name();
     }
-
-//    QCoreApplication::postEvent( this, new ViewRefreshEvent( getRefreshViewEventType(), view), Qt::NormalEventPriority);
-    //    refreshViewNow( view);
 }
 
 void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
@@ -157,19 +155,21 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
     qFatal( "not implemented");
 }
 
-void DesktopConnector::jsSetStateSlot(const QString &key, const QString &value) {
-    std::cerr << "jsSetState: " << key << "=" << value << "\n";
+void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
+    qDebug() << "jsSetState: " << key << "=" << value;
     setState( key, value);
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 {
+    // call all registered callbacks and collect results
     auto & allCallbacks = m_commandCallbackMap[ cmd];
     QStringList results;
     for( auto & cb : allCallbacks) {
-        results += cb( cmd, parameter, "1");
+        results += cb( cmd, parameter, "1"); // session id fixed to "1"
     }
-    // tell javascript about result of the command
+
+    // pass results back to javascript
     emit jsCommandResultsSignal( results.join("|"));
 
 }
@@ -180,15 +180,16 @@ void DesktopConnector::jsConnectorReadySlot()
     // connector has registered to listen for the signal
     qDebug() << "JS Connector is ready!!!!";
 
-    // TODO: let the application know
-
+    // time to call the initialize callback
+//    defer( std::bind( m_initializeCallback, true));
+    m_initializeCallback(true);
 }
 
 DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & viewName)
 {
     auto viewIter = m_views.find( viewName);
     if( viewIter == m_views.end()) {
-        std::cerr << "Unknown view " << viewName << "\n";
+        qWarning() << "DesktopConnector::findViewInfo: Unknown view " << viewName;
         return nullptr;
     }
 
@@ -198,15 +199,12 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 void DesktopConnector::refreshViewNow(IView *view)
 {
 
-    std::cerr << "refreshViewNow " << view->name() << "\n";
-
-    //    std::cerr << "timer " << st.elapsed() << "\n";
-    //    st.restart();
+    qDebug() << "refreshViewNow " << view->name();
 
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
-        std::cerr << "Critical: refreshView cannot find this view: " << view-> name() << "\n";
+        qCritical() << "refreshView cannot find this view: " << view-> name();
         return;
     }
     // get the image from view
@@ -239,7 +237,7 @@ void DesktopConnector::jsUpdateViewSlot(const QString &viewName, int width, int 
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
-        std::cerr << "Received update for unknown view " << viewName << "\n";
+        qWarning() << "Received update for unknown view " << viewName;
         return;
     }
 
@@ -253,7 +251,7 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
-        std::cerr << "Received mouse event for unknown view " << viewName << "\n";
+        qWarning() << "Received mouse event for unknown view " << viewName;
         return;
     }
 
@@ -269,32 +267,19 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
                     Qt::NoButton,
                     Qt::NoButton,
                     Qt::NoModifier   );
-//    QTime t; t.restart();
     view-> handleMouseEvent( ev);
-//    std::cerr << "Mouse event hanled in " << t.elapsed() << "ms\n";
 }
 
 void DesktopConnector::stateChangedSlot(const QString & key, const QString & value)
 {
-//    qDebug() << "state changed slot " << key << " = " << value;
-
     // find the list of callbacks for this path
     auto iter = m_stateCallbackList.find( key);
 
     // if it does not exist, do nothing
     if( iter == m_stateCallbackList.end()) {
-//        qDebug() << "no callbacks registered for" << key;
         return;
     }
 
-//    qDebug() << "calling all registered callbacks for" << key;
-
+    // call all registered callbacks for this key
     iter-> second-> callEveryone( key, value);
-
-//            m_stateCallbackList[ key].callEveryone( key, value);
-
-    //    // we just call our own callbacks here
-//    for( auto & cb : m_stateCallbackList[ key]) {
-//        cb( key, value);
-//    }
 }

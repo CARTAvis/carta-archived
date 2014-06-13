@@ -26,7 +26,6 @@ static void initializeColors() {
 
 static const int m_isatty = isatty(3);
 
-
 /// custom Qt message handler
 static
 void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &pmsg)
@@ -34,7 +33,7 @@ void qtMessageHandler(QtMsgType type, const QMessageLogContext &context, const Q
     initializeColors();
 
     QString msg = pmsg;
-    if( !msg.endsWith( '\n')) {
+    if( ! msg.endsWith( '\n')) {
         msg += '\n';
     }
     QByteArray localMsg = msg.toLocal8Bit();
@@ -74,7 +73,6 @@ DesktopPlatform::DesktopPlatform()
     // by default it's the locally compiled filesystem, but we let the developer
     // override it for debugging purposes
     QUrl url;
-//    auto & cmdLineInfo = CmdLine::info();
     auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
     if( cmdLineInfo.htmlPath().isEmpty()) {
         url = QUrl("qrc:///html5/desktop/desktopIndex.html");
@@ -87,8 +85,6 @@ DesktopPlatform::DesktopPlatform()
     if( m_initialFileList.isEmpty()) {
         qFatal( "No input files to open...");
     }
-
-//    Globals::setFname( argv[1]);
 
     // create the connector
     m_connector = new DesktopConnector();
@@ -112,9 +108,6 @@ DesktopPlatform::DesktopPlatform()
 
 IConnector * DesktopPlatform::connector()
 {
-//    if( ! m_connector) {
-//        m_connector = new DesktopConnector();
-//    }
     return m_connector;
 }
 

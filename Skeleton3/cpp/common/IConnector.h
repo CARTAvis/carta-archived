@@ -27,14 +27,20 @@ public:
     /// signature for command callback
     typedef std::function<QString(CSR cmd, CSR params, CSR sessionId)> CommandCallback;
 
+    /// signature for initialization callback
+    typedef std::function<void(bool success)> InitializeCallback;
+
+
     /// signature for state changed callback
     typedef std::function<void (CSR path, CSR newValue)> StateChangedCallback;
 
     /// callback ID type (needed to remove callbacks)
     typedef int64_t CallbackID;
 
-    /// initializes the connector
-    virtual bool initialize() = 0;
+    /// establish a connection to the html5 client
+    /// callback is executed when connection is established or failed
+    /// TODO: remove return value, it is passed to the callback anyways
+    virtual bool initialize( const InitializeCallback & cb) = 0;
 
     /// registers a view with the connector
     virtual void registerView( IView * view) = 0;

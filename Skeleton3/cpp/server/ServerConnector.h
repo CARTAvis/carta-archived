@@ -73,7 +73,7 @@ public:
 
     /// initialize connector
     /// establish connection to the client, parse url arguments
-    virtual bool initialize() Q_DECL_OVERRIDE;
+    virtual bool initialize(const InitializeCallback & cb) Q_DECL_OVERRIDE;
 
     /// set a state 'path' to 'value'
     virtual void setState(const QString & path, const QString & value) Q_DECL_OVERRIDE;

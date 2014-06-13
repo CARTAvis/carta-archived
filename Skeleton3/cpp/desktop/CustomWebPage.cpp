@@ -1,6 +1,5 @@
 #include "CustomWebPage.h"
-
-#include <iostream>
+#include <QDebug>
 
 CustomWebPage::CustomWebPage(QObject *parent) :
     QWebPage(parent)
@@ -8,11 +7,10 @@ CustomWebPage::CustomWebPage(QObject *parent) :
 }
 
 void CustomWebPage::javaScriptConsoleMessage(
-        const QString &message, int lineNumber, const QString & sourceID)
+        const QString & message, int lineNumber, const QString & sourceID)
 {
-    QString logEntry = sourceID + ":"
+    qDebug() << "cLog " << sourceID + ":"
             + QString::number(lineNumber)
             + ":" + message;
-    std::cerr << logEntry.toStdString() << "\n";
 }
 
