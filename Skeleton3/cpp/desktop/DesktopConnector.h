@@ -26,7 +26,7 @@ public:
     explicit DesktopConnector();
 
     // implementation of IConnector interface
-    virtual bool initialize( const InitializeCallback & cb) Q_DECL_OVERRIDE;
+    virtual void initialize( const InitializeCallback & cb) Q_DECL_OVERRIDE;
     virtual void setState(const QString & path, const QString & newValue) Q_DECL_OVERRIDE;
     virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;

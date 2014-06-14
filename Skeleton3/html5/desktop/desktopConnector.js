@@ -239,6 +239,7 @@
         // listen for changes to the state
         QtConnector.stateChangedSignal.connect( function( key, val )
         {
+            console.log( "stateUpdate", key, val);
             var st = getOrCreateState( key );
             // save the value
             st.value = val;

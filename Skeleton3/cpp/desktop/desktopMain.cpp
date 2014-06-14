@@ -43,6 +43,9 @@ int main(int argc, char ** argv)
 
     // prepare connector
     IConnector * connector = platform-> connector();
+    if( ! connector) {
+        qFatal( "Could not initialize connector!");
+    }
     globals.setConnector( connector);
 
     // create the viewer
@@ -55,9 +58,7 @@ int main(int argc, char ** argv)
     };
 
     // initialize connector
-    if( ! connector || ! connector-> initialize( initCB)) {
-        qFatal( "Could not initialize connector!");
-    }
+    connector-> initialize( initCB);
 
     // qt now has control
     return qapp.exec();

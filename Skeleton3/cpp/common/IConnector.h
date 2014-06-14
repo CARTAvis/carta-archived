@@ -39,8 +39,8 @@ public:
 
     /// establish a connection to the html5 client
     /// callback is executed when connection is established or failed
-    /// TODO: remove return value, it is passed to the callback anyways
-    virtual bool initialize( const InitializeCallback & cb) = 0;
+    /// callback receives a boolean indicating whether connection is valid or not
+    virtual void initialize( const InitializeCallback & cb) = 0;
 
     /// registers a view with the connector
     virtual void registerView( IView * view) = 0;

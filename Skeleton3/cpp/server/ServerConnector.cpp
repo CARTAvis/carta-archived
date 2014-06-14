@@ -36,7 +36,7 @@ void OnPWStateInitialized(CSI::PureWeb::Server::StateManager &, CSI::EmptyEventA
 }
 
 
-bool ServerConnector::initialize(const InitializeCallback & cb)
+void ServerConnector::initialize(const InitializeCallback & cb)
 {
     try {
         // start with unintialized state
@@ -79,9 +79,6 @@ bool ServerConnector::initialize(const InitializeCallback & cb)
 
     // schedule the callback immediately, as we already know if we succeeded or not
     defer( std::bind( cb, m_initialized));
-
-    return m_initialized;
-
 } // initialize
 
 void ServerConnector::setState(const QString &path, const QString &value)

@@ -54,21 +54,22 @@ DesktopConnector::DesktopConnector()
     m_callbackNextId = 0;
 }
 
-bool DesktopConnector::initialize(const InitializeCallback & cb)
+void DesktopConnector::initialize(const InitializeCallback & cb)
 {
     m_initializeCallback = cb;
-    return true;
 }
 
 void DesktopConnector::setState(const QString & path, const QString & newValue)
 {
-    QString oldVal = m_state[ path];
-    if( oldVal == newValue) {
-        // nothing to do
+    // find the value
+    auto it = m_state.find( path);
+    if( it != m_state.end() && it-> second == newValue) {
+        // if we alredy have an entry for this path and the stored value is
+        // the same as the incoming value, we don't need to do anything
         return;
     }
-    m_state[ path ] = newValue;
     qDebug() << "CPP setState " << path << "=" << newValue;
+    m_state[ path ] = newValue;
     emit stateChangedSignal( path, newValue);
 }
 
@@ -233,7 +234,7 @@ void DesktopConnector::refreshViewNow(IView *view)
     emit jsViewUpdatedSignal( view-> name(), pix);
 }
 
-void DesktopConnector::jsUpdateViewSlot(const QString &viewName, int width, int height)
+void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
@@ -251,7 +252,7 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
-        qWarning() << "Received mouse event for unknown view " << viewName;
+        qWarning() << "Received mouse event for unknown view " << viewName << "\n";
         return;
     }
 
