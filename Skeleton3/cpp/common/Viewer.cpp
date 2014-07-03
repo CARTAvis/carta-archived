@@ -5,6 +5,9 @@
 #include "misc.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
+#include "MyQApp.h"
+#include "CmdLine.h"
+#include "ScriptedCommandListener.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
@@ -12,7 +15,6 @@
 #include <cmath>
 #include <QDebug>
 #include <QCoreApplication>
-#include "MyQApp.h"
 
 //Globals & globals = * Globals::instance();
 
@@ -119,6 +121,11 @@ public:
         m_bgColor = bgColor;
     }
 
+    void setImage( const QImage & img) {
+        m_defaultImage = img;
+        m_connector-> refreshView( this);
+    }
+
     virtual void registration(IConnector *connector)
     {
         m_connector = connector;
@@ -195,9 +202,21 @@ protected:
     QPointF m_lastMouse;
 };
 
+static TestView2 * testView2 = nullptr;
+
 Viewer::Viewer() :
     QObject( nullptr)
 {
+    int port = Globals::instance()->cmdLineInfo()-> scriptPort();
+    if( port < 0) {
+        qDebug() << "Not listening to scripted commands.";
+    }
+    else {
+        m_scl = new ScriptedCommandListener( port, this);
+        qDebug() << "Listening to scripted commands on port " << port;
+        connect( m_scl, & ScriptedCommandListener::command,
+                 this, & Viewer::scriptedCommandCB);
+    }
 }
 
 void Viewer::start()
@@ -293,7 +312,8 @@ void Viewer::start()
     }
     else {
         qDebug() << "Image loaded: " << res.val().size();
-        connector-> registerView( new TestView2( "view3", QColor( "pink"), res.val()));
+        testView2 = new TestView2( "view3", QColor( "pink"), res.val());
+        connector-> registerView( testView2);
     }
 
     // tell clients about our plugins
@@ -314,6 +334,40 @@ void Viewer::start()
         }
         connector-> setState( "/pluginList/stamp", QString::number( ind));
     }
+}
+
+void Viewer::scriptedCommandCB( QString command)
+{
+    command = command.simplified();
+    qDebug() << "Scripted command received:" << command;
+
+    QStringList args = command.split( ' ', QString::SkipEmptyParts);
+    qDebug() << "args=" << args;
+    qDebug() << "args.size=" << args.size();
+    qDebug() << "args[0].tolower=" << args[0].toLower();
+    if( args.size() == 2 && args[0].toLower() == "load") {
+        qDebug() << "Trying to load" << args[1];
+        auto loadImageHookHelper = Globals::instance()-> pluginManager()
+                                   -> prepare<LoadImage>( args[1]);
+        Nullable<QImage> res = loadImageHookHelper.first();
+        if( res.isNull()) {
+            qDebug() << "Could not find any plugin to load image";
+        }
+        else {
+            qDebug() << "Image loaded: " << res.val().size();
+            testView2-> setImage( res.val());
+        }
+    }
+    else if( args.size() == 1 && args[0].toLower() == "quit") {
+        qDebug() << "Quitting...";
+        MyQApp::exit();
+        return;
+    }
+    else {
+        qWarning() << "Sorry, unknown command";
+    }
+
+
 }
 
 

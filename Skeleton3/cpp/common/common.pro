@@ -5,7 +5,7 @@
 TEMPLATE = lib
 
 CONFIG += staticlib
-QT += widgets
+QT += widgets network
 
 HEADERS += \
     IConnector.h \
@@ -24,7 +24,8 @@ HEADERS += \
     Algorithms/Graphs/TopoSort.h \
     stable.h \
     CmdLine.h \
-    MainConfig.h
+    MainConfig.h \
+    ScriptedCommandListener.h
 
 SOURCES += \
     Viewer.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
     Globals.cpp \
     Algorithms/Graphs/TopoSort.cpp \
     CmdLine.cpp \
-    MainConfig.cpp
+    MainConfig.cpp \
+    ScriptedCommandListener.cpp
 
 
 message( "common            PWD=$$PWD")

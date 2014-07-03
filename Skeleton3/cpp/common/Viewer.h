@@ -6,7 +6,7 @@
 #pragma once
 
 #include <QObject>
-
+class ScriptedCommandListener;
 
 class Viewer : public QObject
 {
@@ -15,9 +15,9 @@ class Viewer : public QObject
 
 public:
 
-    // constructor - does not need to do anything
-    // it gets called/constructed by skeleton when connector is not yet connected, but platform is
-    // functioning
+    /// constructor - does not need to do anything
+    /// it gets called/constructed by skeleton when connector is not yet connected, but platform is
+    /// functioning
     explicit Viewer();
 
     /// called by skeleton when connector is already initialized (i.e. it's
@@ -28,6 +28,13 @@ signals:
 
 public slots:
 
+
+protected slots:
+
+    /// internal callback for scripted commands
+    void scriptedCommandCB(QString command);
+
 protected:
 
+    ScriptedCommandListener * m_scl = nullptr;
 };

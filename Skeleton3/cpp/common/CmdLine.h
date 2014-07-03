@@ -27,12 +27,18 @@ public:
     /// return a list of files to open
     const QStringList & fileList() const;
 
+    /// return the port number on which to listen for commands
+    /// -1 indicates no port was specified
+    int scriptPort() const;
+
 protected:
 
     friend ParsedInfo CmdLine::parse( const QStringList & argv);
     QString m_configFilePath;
     QString m_htmlPath;
     QStringList m_fileList;
+    int m_scriptPort = -1;
+
 };
 
 /// parse the command line, which is extracted from QCoreApplication::arguments()

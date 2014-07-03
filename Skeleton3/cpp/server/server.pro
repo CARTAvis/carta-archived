@@ -4,7 +4,7 @@
 
 CONFIG += qt
 #CONFIG += warn_off
-QT += widgets
+QT += widgets network
 
 HEADERS       = \
     ServerPlatform.h \
