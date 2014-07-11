@@ -4,10 +4,6 @@
 
 /**
 
- @ignore(fv.assert)
- @ignore(fv.console.*)
-
- 
 
  ************************************************************************ */
 
@@ -19,8 +15,8 @@ qx.Class.define("skel.widgets.DisplayWindowImage",
         /**
          * Constructor.
          */
-        construct: function ( /*hub*/) {
-            this.base(arguments); 
+        construct: function ( row, col) {
+            this.base(arguments, "casaLoader", row, col); 
         },
         
         members: {
@@ -36,18 +32,18 @@ qx.Class.define("skel.widgets.DisplayWindowImage",
         	 * Hard-coded right now to load a fixed image.
         	 */
         	  dataLoaded: function( path ){
-              	if ( this.indexOf( this.m_title) >= 0 ){
-      	    		this.remove( this.m_title );
+              	if ( this.m_content.indexOf( this.m_title) >= 0 ){
+      	    		this.m_content.remove( this.m_title );
       	    	}
-              	this.add( new skel.boundWidgets.View( "view3"), {flex:1});        
+              	this.m_content.add( new skel.boundWidgets.View( this.m_identifier), {flex:1});        
               },
               
               /**
                * Unloads the data identified by the path.
                */
               dataUnloaded: function( path ){
-              	this.removeAll();
-      	    	this.add( this.m_title);
+              	this.m_content.removeAll();
+      	    	this.m_content.add( this.m_title);
               },
               
         	
@@ -103,14 +99,8 @@ qx.Class.define("skel.widgets.DisplayWindowImage",
         		renderMenu.add( new qx.ui.menu.Button( "Field"));
         		renderMenu.add( new qx.ui.menu.Button( "Vector"));
         		return renderMenu;
-            },
-            
-            _emit: function (path, data) {
-                //fv.assert(this.m_hub !== null, "hub is NULL");
-                //this.m_hub.emit(path, data);
-            },
-         
-            m_hub: null,
+            },       
+          
     	    m_regionButton: null, 	
     	    m_renderButton: null
         }

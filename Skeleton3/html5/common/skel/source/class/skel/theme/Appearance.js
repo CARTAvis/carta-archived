@@ -60,6 +60,15 @@ qx.Theme.define("skel.theme.Appearance",
     	  }
       },
       
+      "invisible-button": {
+    	  style: function(states){
+    		  return {
+    			  //background : "transparent",
+    		  	  decorator : "no-border"
+    		  };
+    	  } 
+      },
+      
       
       "popup-dialog": {
     	  style: function(states){

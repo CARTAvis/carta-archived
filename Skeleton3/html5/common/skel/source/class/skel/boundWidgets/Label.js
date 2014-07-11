@@ -26,7 +26,8 @@ qx.Class.define("skel.boundWidgets.Label",
         construct: function ( labelPrefix, labelPostfix, varPath) {
             this.m_connector = mImport( "connector");
             this.m_sharedVar = this.m_connector.getSharedVar( varPath);
-            this.m_sharedVar.addCB( this._sharedVarCB.bind(this));
+         
+            this.m_sharedVar.addCB(this._sharedVarCB.bind(this));
             this.m_labelPrefix = labelPrefix || "";
             this.m_labelPostfix = labelPostfix || "";
             this.base(arguments, "");

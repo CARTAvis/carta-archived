@@ -2,8 +2,12 @@
 #include "Globals.h"
 #include "IPlatform.h"
 #include "IConnector.h"
+#include "State/StateLibrary.h"
+#include "State/State.h"
+#include "DataController.h"
 #include "misc.h"
 #include "PluginManager.h"
+#include "MainConfig.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
@@ -11,6 +15,7 @@
 #include <cmath>
 #include <QDebug>
 #include <QCoreApplication>
+#include "MyQApp.h"
 
 //Globals & globals = * Globals::instance();
 
@@ -55,8 +60,8 @@ public:
         m_lastMouse = QPointF( ev.x(), ev.y());
         m_connector-> refreshView( this);
 
-        m_connector-> setState( "/mouse/x", QString::number(ev.x()));
-        m_connector-> setState( "/mouse/y", QString::number(ev.y()));
+        m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
+        m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
     }
     virtual void handleKeyEvent(const QKeyEvent & /*event*/)
     {
@@ -92,7 +97,7 @@ protected:
         }
 
         // execute the pre-render hook
-        Globals::pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
     }
 
     IConnector * m_connector;
@@ -144,8 +149,8 @@ public:
         m_lastMouse = QPointF( ev.x(), ev.y());
         m_connector-> refreshView( this);
 
-        m_connector-> setState( "/mouse/x", QString::number(ev.x()));
-        m_connector-> setState( "/mouse/y", QString::number(ev.y()));
+        m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
+        m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
     }
     virtual void handleKeyEvent(const QKeyEvent & /*event*/)
     {
@@ -183,7 +188,7 @@ protected:
         }
 
         // execute the pre-render hook
-        Globals::pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
     }
 
     IConnector * m_connector;
@@ -193,42 +198,38 @@ protected:
     QPointF m_lastMouse;
 };
 
-Viewer::Viewer( IPlatform * platform) :
-    QObject( nullptr)
+Viewer::Viewer() :
+    QObject( nullptr),
+	m_dataController( nullptr)
 {
-    Globals::setPlatform( platform);
-    Globals::setConnector( platform->connector());
-    Globals::setPluginManager( new PluginManager);
+}
 
-    auto pm = Globals::pluginManager();
+void Viewer::start()
+{
+    qDebug() << "Viewer::start() starting";
+
+    auto & globals = * Globals::instance();
+    auto connector = globals.connector();
+
+    // initialize plugin manager
+    globals.setPluginManager( new PluginManager);
+    auto pm = globals.pluginManager();
+
+    // tell plugin manager where to find plugins
+    pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
+
+    // find and load plugins
     pm-> loadPlugins();
-    // load plugins
+
     qDebug() << "Loading plugins...";
     auto infoList = pm-> getInfoList();
     qDebug() << "List of plugins: [" << infoList.size() << "]";
     for( const auto & entry : infoList) {
-        qDebug() << "  path:" << entry-> path;
+        qDebug() << "  path:" << entry.name;
     }
 
     // tell all plugins that the core has initialized
-    auto helper = pm-> prepare<Initialize>();
-    helper.executeAll();
-}
-
-int Viewer::start()
-{
-    qDebug() << "Viewer::start() starting";
-
-    // setup connector
-    IConnector * connector = Globals::connector();
-
-    if( ! connector || ! connector-> initialize()) {
-        qCritical() << "Could not initialize connector.\n";
-        exit( -1);
-    }
-
-    qDebug() << "Viewer::start: connector initialized\n";
-    qDebug() << "Arguments:" << QCoreApplication::arguments();
+    pm-> prepare<Initialize>().executeAll();
 
 #ifdef DONT_COMPILE
 
@@ -281,23 +282,15 @@ int Viewer::start()
     connector-> registerView( new TestView( "view1", QColor( "blue")));
     connector-> registerView( new TestView( "view2", QColor( "red")));
 
-    qDebug() << "Arguments:" << QCoreApplication::arguments();
-
-
-    // ask one of the plugins to load the image
+    // ask plugins to load the image
     qDebug() << "======== trying to load image ========";
 //    QString fname = Globals::fname();
-    if( Globals::platform()-> initialFileList().isEmpty()) {
-        qFatal( "No input given");
+    QString fname = "/scratch/testimage";
+    if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
+    	fname = Globals::instance()-> platform()-> initialFileList() [0];
     }
-    QString fname = Globals::platform()-> initialFileList() [0];
-//    // this is a hack for server (since we don't have a way to pass encoded parameters yet)
-//    // TODO: pass parameters from server
-//    if( fname.isEmpty()) {
-//        fname = "/scratch/testimage";
-//    }
 
-    auto loadImageHookHelper = Globals::pluginManager()-> prepare<LoadImage>( fname);
+    /*auto loadImageHookHelper = Globals::instance()-> pluginManager()-> prepare<LoadImage>( fname);
     Nullable<QImage> res = loadImageHookHelper.first();
     if( res.isNull()) {
         qDebug() << "Could not find any plugin to load image";
@@ -305,18 +298,99 @@ int Viewer::start()
     else {
         qDebug() << "Image loaded: " << res.val().size();
         connector-> registerView( new TestView2( "view3", QColor( "pink"), res.val()));
+    }*/
+
+
+
+    // tell clients about our plugins
+    {
+        auto pm = Globals::instance()-> pluginManager();
+        auto infoList = pm-> getInfoList();
+        int ind = 0;
+        for( auto & entry : infoList) {
+            qDebug() << "  path:" << entry.soPath;
+            QString index = QString("p%1").arg(ind);
+            connector-> setState( StateKey::PLUGIN_NAME, index, entry.name);
+            connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.description);
+            connector-> setState( StateKey::PLUGIN_TYPE, index, entry.typeString);
+            connector-> setState( StateKey::PLUGIN_VERSION, index, entry.version);
+            connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join("|"));
+            ind ++;
+        }
+        QString pluginCountStr = QString::number( ind);
+        connector-> setState( StateKey::PLUGIN_STAMP, "", pluginCountStr);
     }
 
-    // give up control to Qt's main loop
-//    qWarning() << "Giving up control to Qt...";
-//    qDebug() << "Arguments:" << QCoreApplication::arguments();
-//    qWarning() << "Giving up control to Qt...";
 
-//    auto exitCode = QCoreApplication::instance()->exec();
+   	  connector->addCommandCallback( "/saveState", [=] (const QString & /*cmd*/,
+   	    	const QString & params, const QString & /*sessionId*/) -> QString {
 
-//    return exitCode;
+   		QStringList paramList = params.split( ":");
+   		QString saveName="DefaultState";
+   		if ( paramList.length() == 2 ){
+   			saveName = paramList[1];
+   		}
 
-    return 0;
+   		bool result = connector->saveState(saveName);
+   		QString returnVal = "State was successfully saved.";
+   		if ( !result ){
+   			returnVal = "There was an error saving state.";
+   		}
+   		return returnVal;
+   	  });
+
+   	connector->addCommandCallback( "/restoreState", [=] (const QString & /*cmd*/,
+   	   	    	const QString & params, const QString & /*sessionId*/) -> QString {
+
+   	   		QStringList paramList = params.split( ":");
+   	   		QString saveName="DefaultState";
+   	   		if ( paramList.length() == 2 ){
+   	   			saveName = paramList[1];
+   	   		}
+
+   	   		bool result = connector->readState(saveName);
+   	   		QString returnVal = "State was successfully restored.";
+   	   		if ( !result ){
+   	   			returnVal = "There was an error restoring state.";
+   	   		}
+   	   		return returnVal;
+   	   	  });
+
+    connector->addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
+    	const QString & params, const QString & /*sessionId*/) -> QString {
+    		if ( m_dataController.get() == nullptr){
+    			DataController* dController = new DataController( fname );
+    			m_dataController.reset( dController );
+    		}
+    		QStringList paramList = params.split( ",");
+    		QString pluginId;
+    		QString winId;
+    		for ( QString param : paramList ){
+    			QStringList pair = param.split( ":");
+    			if ( pair.size() == 2 ){
+    				if ( pair[0] == "pluginId"){
+    					pluginId = pair[1];
+    				}
+    				else if ( pair[0] == "winId"){
+    					winId = pair[1];
+    				}
+    				else {
+    					qDebug() << "Unrecognized key="<<pair[0];
+    				}
+    			}
+    		}
+
+    		if ( pluginId.length() > 0 ){
+    			if ( pluginId == "animator"){
+    				m_dataController->setId( winId );
+    			}
+    			else if ( pluginId == "casaLoader"){
+    				m_dataController->createImageView( winId );
+    			}
+    		}
+    		QString viewId("");
+    		return viewId;
+    });
 }
 
 

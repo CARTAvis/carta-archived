@@ -9,7 +9,7 @@ qx.Class.define("skel.widgets.Util",
    {
 	   /**
 	    * Returns the 'left' position of the widget.
-	    * @param widget the widget whose position is to be determined.
+	    * @param widget {qx.ui.core.Widget} the widget whose position is to be determined.
 	    */
 	  getLeft : function( widget ){
        	var widgetBounds = widget.getBounds();
@@ -19,7 +19,7 @@ qx.Class.define("skel.widgets.Util",
        
        /**
 	    * Returns the 'right' position of the widget.
-	    * @param widget the widget whose position is to be determined.
+	    * @param widget {qx.ui.core.Widget} the widget whose position is to be determined.
 	    */
       getRight : function( widget ){
        	var widgetBounds = widget.getBounds();
@@ -29,7 +29,7 @@ qx.Class.define("skel.widgets.Util",
        
        /**
 	    * Returns the 'top' position of the widget.
-	    * @param widget the widget whose position is to be determined.
+	    * @param widget {qx.ui.core.Widget} the widget whose position is to be determined.
 	    */
        getTop : function( widget ){
        	var widgetBounds = widget.getBounds();
@@ -39,7 +39,7 @@ qx.Class.define("skel.widgets.Util",
        
        /**
 	    * Returns the 'bottom' position of the widget.
-	    * @param widget the widget whose position is to be determined.
+	    * @param widget {qx.ui.core.Widget} the widget whose position is to be determined.
 	    */
        getBottom : function( widget ){
        	var widgetBounds = widget.getBounds();

@@ -20,5 +20,5 @@ public:
 
 private:
 
-    bool loadImage( const QString & fname, QImage & result);
+    bool loadImage( const QString & fname, int channel, QImage & result);
 };

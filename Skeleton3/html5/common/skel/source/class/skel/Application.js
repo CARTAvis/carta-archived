@@ -5,7 +5,7 @@
  License:
 
  Authors:
-
+@asset(skel/icons/blackCross2.png)
  ************************************************************************ */
 
 /*global qx */
@@ -66,12 +66,31 @@ qx.Class.define("skel.Application",
                 console.log( "I will never be compiled out :(");
 
                 var connector = mImport("connector");
+                
+                var connector = mImport( "connector" );
+
+                // delay start of the application until we receive CONNECTED event...
+                // only after we receive this event we can safely start modifying state, etc
+                // otherwise some state changes/commands might get lost
+                connector.setConnectionCB( this._afterConnect.bind( this));
+/*
                 connector.setConnectionCB( function( s )
                 {
-                    console.log( "connectionCB", connector, connector.getConnectionStatus() )
-                } );
-                connector.connect();
+                    console.log( "connectionCB status=", connector.getConnectionStatus() );
 
+                } );
+*/	
+                connector.connect();
+            },
+                
+            _afterConnect: function()
+            {
+                var connector = mImport( "connector" );
+                if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
+                    console.log( "Connection not established yet...");
+                    return;
+                }    
+             
                 this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas());
                 this.m_mainContainer.setAppearance( "display-main");
                 this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});
@@ -97,34 +116,44 @@ qx.Class.define("skel.Application",
                
             },
             
+            /**
+             * Initialize the menu bar.
+             */
             _initMenuBar : function(){
             	this.m_menuBar = new skel.widgets.MenuBar();
             	this.m_menuBar.addListener("layoutImage",function(){
+            		this._hideWindowLocator();
             		this.m_desktop.layoutImage();
             	}, this );
             	
             	this.m_menuBar.addListener("layoutImageAnalysisAnimator",function(){
+            		this._hideWindowLocator();
             		this.m_desktop.layoutImageAnalysisAnimator();
             	}, this );
             	
             	this.m_menuBar.addListener("layoutRowCount",function( ev ){
+            		this._hideWindowLocator();
             		this.m_desktop.setRowCount( ev.getData() );
             	}, this );
             	
             	this.m_menuBar.addListener("layoutColCount",function( ev ){
+            		this._hideWindowLocator();
             		this.m_desktop.setColCount( ev.getData() );
             	}, this );
             	
             	this.m_menuBar.addListener("statusAlwaysVisible",function( ev ){         		
             		this.m_statusBar.setStatusAlwaysVisible( ev.getData());
+            		this._hideWindowLocator();
             		this._repositionDesktop( ev.getData());
             	}, this );
             	
             	this.m_menuBar.addListener("menuAlwaysVisible",function( ev ){
+            		this._hideWindowLocator();
             		this._repositionDesktop( ev.getData());
             	}, this );
             	
             	this.m_menuBar.addListener("menuMoved",function( ev ){
+            		this._hideWindowLocator();
             		this._repositionDesktop();
             	}, this );
             	
@@ -135,13 +164,67 @@ qx.Class.define("skel.Application",
             	this.m_menuBar.addListener("dataUnloaded",function( ev ){
             		this.m_desktop.dataUnloaded(ev.getData());
             	}, this );
-            	 
+            	
+            	this.m_menuBar.addListener( "newWindow", function( ev ){
+            		this._showWindowLocator();
+            	}, this);
+            	
+            	this.m_menuBar.addListener( "shareSession", function( ev ){
+            		this.m_statusBar.updateSessionSharing(ev.getData());
+            	}, this);
+            	
             	this.m_mainContainer.add( this.m_menuBar );
             	this.m_menuBar.reposition();
             },
             
-          
+            /**
+             * Add an overlay showing where new windows can be added.
+             */
+            _showWindowLocator : function(){
+            	var desktopMap = this._repositionDesktop();
+            	if ( this.m_windowLocator == null ){
+            		this.m_windowLocator = new qx.ui.container.Composite();
+            		this.m_windowLocator.setLayout( new qx.ui.layout.Basic() );
+            		this.m_windowLocator.setBackgroundColor( "transparent");
+            		
+            	}
+            	var locations = this.m_desktop.getAddWindowLocations();
+            	for ( var i = 0; i < locations.length; i++ ){
+            		var loc = locations[i];
+            		var windowButton = new qx.ui.form.Button( "","skel/icons/blackCross.png");
+            		windowButton.setAppearance( "invisible-button");         		
+            		windowButton.splitPane = loc[2];
+            		windowButton.addListener( "execute", function(ev){
+            			this.splitPane.split();	
+            		}, windowButton);
+            		windowButton.addListener( "execute", this._hideWindowLocator, this );
+            		this.m_windowLocator.add( windowButton, {left: loc[0], top: loc[1]});
+            		windowButton.addListener( "appear", function(){
+            			var bounds = this.getBounds();
+                		var offsetLeft = bounds["left"] - bounds["width"]/2 +5;
+                		var offsetTop = bounds["top"] - bounds["height"]/2;
+                		this.setLayoutProperties( {left:offsetLeft,top:offsetTop} );
+            		}, windowButton );
+            	}
+            	this.m_mainContainer.add( this.m_windowLocator, desktopMap );
+            },
             
+            /**
+             * Remove the overlay showing where new windows can be added.
+             */
+            _hideWindowLocator : function(){
+            	if ( this.m_windowLocator != null ){
+            		if ( this.m_mainContainer.indexOf( this.m_windowLocator) >= 0 ){
+            			this.m_mainContainer.remove( this.m_windowLocator );
+            		}
+            		this.m_windowLocator.removeAll();
+            	}
+            },
+            
+            /**
+             * Adjust the size of the desktop based on a the visibility and location of
+             * the menubar and status bar.
+             */
             _repositionDesktop : function( ){
             	var permanentMenu = this.m_menuBar.isAlwaysVisible();
             	var permanentStatus = this.m_statusBar.isAlwaysVisible();
@@ -166,9 +249,14 @@ qx.Class.define("skel.Application",
             		var height = this.m_statusBar.getAnimationHeight();
             		bottomValue = Math.round( height /topWin * 100)+"%";
             	}
-            	this.m_desktop.setLayoutProperties( {top: topValue, bottom: bottomValue, left: leftValue, right: "0%"} );
+            	var desktopMap = {top: topValue, bottom: bottomValue, left: leftValue, right: "0%"};
+            	this.m_desktop.setLayoutProperties( desktopMap );
+            	return desktopMap;
             },
      
+            /**
+             * Iconify a window.
+             */
             _iconifyWindow: function( ev ){
             	this.m_statusBar.addIconifiedWindow( ev, this );
             },
@@ -185,7 +273,8 @@ qx.Class.define("skel.Application",
             m_desktop: null,
             m_menuBar: null,
             m_statusBar: null,
-        	m_mainContainer: null   
+        	m_mainContainer: null,
+        	m_windowLocator: null
         
         }
     });

@@ -3,15 +3,12 @@
  * tool bar.
  */
 
+
+
+/*global mImport */
 /**
-
- @ignore(fv.assert)
- @ignore(fv.console.*)
-
- 
-
+ @ignore( mImport)
  ************************************************************************ */
-
 
 qx.Class.define("skel.widgets.MenuBar",
     {
@@ -39,19 +36,25 @@ qx.Class.define("skel.widgets.MenuBar",
         },
         
         events: {
+        	"dataLoaded": "qx.event.type.Data",
+            "dataUnloaded": "qx.event.type.Data",
             "layoutImage": "qx.event.type.Data",
             "layoutImageAnalysisAnimator": "qx.event.type.Data",
             "layoutRowCount": "qx.event.type.Data",
             "layoutColCount": "qx.event.type.Data",
-            "statusAlwaysVisible": "qx.event.type.Data",
             "menuAlwaysVisible": "qx.event.type.Data",
             "menuMoved": "qx.event.type.Data",
-            "dataLoaded": "qx.event.type.Data",
-            "dataUnloaded": "qx.event.type.Data"
+            "newWindow": "qx.event.type.Data",
+            "shareSession": "qx.event.type.Data",
+            "statusAlwaysVisible": "qx.event.type.Data"
+            
         },
         
         members: {
         	
+        	/**
+        	 * Initializes the main menu.
+        	 */
         	_initMenu: function(){
                 
                 //Create "Data" menu
@@ -77,11 +80,28 @@ qx.Class.define("skel.widgets.MenuBar",
         		var sessionButton = new qx.ui.menu.Button("Snapshot");
         		fileMenu.add( sessionButton );
         	    fileMenu.add( new qx.ui.menu.Separator());
-        	    fileMenu.add( new qx.ui.menu.Button( "Share..."));
+        	    var shareButton = new qx.ui.menu.CheckBox( "Shared");
+        	    shareButton.setValue( false );
+        	    shareButton.addListener( "execute", function(){
+        	    	this.fireDataEvent( "shareSession", shareButton.getValue());
+        	    }, this );
+        	    fileMenu.add( shareButton );
         	    this.m_fileButton.setMenu( fileMenu );
         	    var sessionMenu = new qx.ui.menu.Menu();
-        	    sessionMenu.add( new qx.ui.menu.Button( "Save..."));
-        	    sessionMenu.add( new qx.ui.menu.Button( "Restore..."));
+        	    var saveSessionButton = new qx.ui.menu.Button( "Save...");
+        	    saveSessionButton.addListener( "execute", function(){
+        	    	var connector = mImport( "connector");
+        	    	var params = "statename:firstSave";
+        	    	connector.sendCommand( "/saveState", params, function(val){} );
+        	    });
+        	    sessionMenu.add( saveSessionButton );
+        	    var restoreSessionButton = new qx.ui.menu.Button( "Restore...");
+        	    restoreSessionButton.addListener( "execute", function(){
+        	    	var connector = mImport( "connector");
+        	    	var params = "statename:firstSave";
+        	    	connector.sendCommand( "/restoreState", params, function(val){} );
+        	    });
+        	    sessionMenu.add( restoreSessionButton );
         	    sessionButton.setMenu( sessionMenu );
         	    
         	    //Create the "Layout" menu
@@ -103,6 +123,11 @@ qx.Class.define("skel.widgets.MenuBar",
         	    	this._showCustomLayoutPopup();
         	    }, this);
         	    layoutMenu.add( layoutCustomButton );
+        	    var newWindowButton = new qx.ui.menu.Button( "New Window...");
+        	    newWindowButton.addListener( "execute", function(){
+        	    	this.fireDataEvent( "newWindow", "");
+        	    }, this);
+        	    layoutMenu.add( newWindowButton );
         	    this.m_layoutButton.setMenu( layoutMenu );
         	          	 
         	    //Create the "Preferences" menu
@@ -142,7 +167,10 @@ qx.Class.define("skel.widgets.MenuBar",
         	   
         	},
         	
-        	
+        	/**
+        	 * Ends the menu bar animation.
+        	 * @param show {Boolean} true if the menu bar should be shown; false otherwise.
+        	 */
         	animateEnd : function( show ){
         		 if ( show ){
     				 if ( this.isTop() ){
@@ -167,6 +195,14 @@ qx.Class.define("skel.widgets.MenuBar",
     				 }
     			 }
         	},
+        	
+        	/**
+        	 * Resets the size of the menu bar based on the percentage of the animation
+        	 * that has been completed and whether the animation is proceeding to show or
+        	 * hide the menu bar.
+        	 * @param percent {Number} the progress of the animation.
+        	 * @param show {Boolean} whether or not the menu bar is in the process of being shown.
+        	 */
         	
         	animateSize : function( percent, show ){
         		 if ( show ){
@@ -230,6 +266,9 @@ qx.Class.define("skel.widgets.MenuBar",
         		}
         	},
         	
+        	/**
+        	 * Change from a top menu to a left menu or vice versa.
+        	 */
         	  reposition : function(){
           		if ( this.isTop() ){
           			this.setHeight( 30 );
@@ -248,6 +287,9 @@ qx.Class.define("skel.widgets.MenuBar",
           		}           	
               },
         	
+              /**
+               * Sets the initial size information of the menu bar.
+               */
         	_setAnimationSize : function(){
         		this.removeListener( "appear", this._setAnimationSize ,this);
         		if ( this.isTop() ){
@@ -264,12 +306,18 @@ qx.Class.define("skel.widgets.MenuBar",
             	}
         	},
         	
+        	/**
+        	 * Removes widgets from the menu bar in preparation for hiding.
+        	 */
              removeWidgets : function(){
             	 if ( this.indexOf( this.m_menuPart) >= 0 ){
             		 this.remove( this.m_menuPart );
             	 }
              },
              
+             /**
+              * Adds widgets to the menu bar in preparation for showing.
+              */
              addWidgets : function(){
             	 if ( this.indexOf( this.m_menuPart) == -1 ){
             		 this.add( this.m_menuPart );
@@ -313,6 +361,10 @@ qx.Class.define("skel.widgets.MenuBar",
      	    	this._setAnimationSize();
              },
              
+             /**
+              * Shows a dialog allowing the user to choose the number of rows and columns
+              * in the screen grid.
+              */
              _showCustomLayoutPopup : function(){
             	 if ( this.m_layoutCustom == null ){
      	    		this.m_layoutCustom = new skel.widgets.CustomLayoutPopup();

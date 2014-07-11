@@ -1,14 +1,9 @@
 /**
  * Base class for Windows displaying plugins.
  */
-
+/*global mImport */
 /**
-
- @ignore(fv.assert)
- @ignore(fv.console.*)
-
- 
-
+ @ignore( mImport)
  ************************************************************************ */
 
 
@@ -17,16 +12,27 @@ qx.Class.define("skel.widgets.DisplayWindow",
         extend: qx.ui.window.Window,
         /**
          * Constructor.
+         * @param pluginId {String} the name of the plugin that will be displayed.
+         * @param row {Number} a row in the screen grid.
+         * @param col {Number} a column in the screeen grid.
          */
-        construct: function ( /*hub*/) {
+        construct: function ( pluginId, row, col) {
             this.base(arguments);
-         
-            /*hub = null;
-            if( hub == null)
-                this.m_hub = null;
-            else
-                this.m_hub = hub;
-            */
+            this.m_pluginId = pluginId;
+            this.m_identifier = "win"+skel.widgets.DisplayWindow.windowCounter;
+        	skel.widgets.DisplayWindow.windowCounter++;
+        	var paramMap = "pluginId:"+this.m_pluginId+",winId:"+this.m_identifier;	
+            var connector = mImport( "connector");
+            connector.sendCommand( "registerView", paramMap, function(){});	
+            var id = this.addListener( "appear", function(){	
+            	var container = this.getContentElement().getDomElement();
+            	container.id= this.m_identifier;
+            	this.removeListenerById( id );
+            }, this );
+            
+            
+            this.m_row = row;
+            this.m_col = col;
                   
             this._init();
            
@@ -41,6 +47,11 @@ qx.Class.define("skel.widgets.DisplayWindow",
           "setView" : "qx.event.type.Data"
         	  
         }, 
+        
+        statics : {
+        	//Used for generating unique window ids.
+        	windowCounter : 0
+        },
         
         members: {
         	/**
@@ -72,8 +83,7 @@ qx.Class.define("skel.widgets.DisplayWindow",
                * @param label {String} an identifier for the plugin.
                */
         	  setPlugin: function( label ){
-              	this.m_pluginId = label;
-              	
+               
               	//Right now the pluginId is the title, but this will change.
               	this.setTitle( label );
               	this._initContextMenu();
@@ -83,7 +93,12 @@ qx.Class.define("skel.widgets.DisplayWindow",
                * Return the window title.
                */
               getIdentifier: function(){
-              	return this.m_pluginId;
+              	return this.m_identifier;
+              },
+              
+              
+              setLinkId : function( id ){
+            	  return true;
               },
               
               /**
@@ -93,7 +108,7 @@ qx.Class.define("skel.widgets.DisplayWindow",
               setTitle: function( label ){
               	if ( this.m_title == null ){
               		this.m_title = new skel.boundWidgets.Label(label,"",""); 
-              		this.add( this.m_title );
+              		this.m_content.add( this.m_title );
               	}            	
               	this.m_title.setValue( label );           	
               },
@@ -108,8 +123,14 @@ qx.Class.define("skel.widgets.DisplayWindow",
                 this.setContentPadding(0, 0, 0, 0);
                 this.setAllowGrowX( true );
                 this.setAllowGrowY( true );
-                this.setLayout(new qx.ui.layout.VBox(0));
                 
+             
+                this.setLayout(new qx.ui.layout.VBox(0));
+                this.m_scrollArea = new qx.ui.container.Scroll();
+                this.m_content = new qx.ui.container.Composite();
+                this.m_content.setLayout( new qx.ui.layout.VBox(0));
+                this.m_scrollArea.add( this.m_content );
+                this.add( this.m_scrollArea, {flex:1});
                 this.m_contextMenu = new qx.ui.menu.Menu;
                 
                 this.addListener( "mousedown", function(ev){           	
@@ -117,7 +138,9 @@ qx.Class.define("skel.widgets.DisplayWindow",
                 });
             },
             
-       
+            /**
+             * Initializes a generic window context menu.
+             */
             _initContextMenu: function(){
             	this.m_linkButton = new qx.ui.menu.Button( "Link");
             	this.m_linkButton.setMenu( this._initMenuLink());
@@ -140,8 +163,7 @@ qx.Class.define("skel.widgets.DisplayWindow",
         	    this.m_closeButton.addListener( "execute", function(){
         	    	this._close();
         	    }, this );
-        	    
-        	    
+        	   
         	    var windowButton = new qx.ui.menu.Button( "Window" );
         	    windowButton.setMenu( this.m_windowMenu );
         	    this.m_contextMenu.add( windowButton );
@@ -211,6 +233,9 @@ qx.Class.define("skel.widgets.DisplayWindow",
             	this.fireDataEvent( "closeWindow", this );
             },
             
+            /**
+             * Returns whether or not this window is closed.
+             */
             isClosed: function(){
             	return this.m_closed;
             },
@@ -248,21 +273,22 @@ qx.Class.define("skel.widgets.DisplayWindow",
            	
             },
 
-            _emit: function (path, data) {
-                //fv.assert(this.m_hub !== null, "hub is NULL");
-                //this.m_hub.emit(path, data);
-            },
-
-            m_hub: null,
+        
             m_closed: false,
             m_contextMenu: null,
             m_windowMenu: null,
+            m_scrollArea: null,
+            m_content: null,
+            
             
             //Identifies the plugin we are displaying.
             m_pluginId: "",
-            
+            //Unique identifier generated by the server.
+            m_identifier: "",
             //For now a display friendly title.
-            m_title: null
+            m_title: null,
+            m_row: 0,
+            m_col: 0
         },
 
         properties: {

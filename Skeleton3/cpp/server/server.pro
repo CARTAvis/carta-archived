@@ -5,15 +5,19 @@
 CONFIG += qt
 #CONFIG += warn_off
 QT += widgets
+QT += xml
 
 HEADERS       = \
     ServerPlatform.h \
-    ServerConnector.h
+    ServerConnector.h \
+    StateXmlWriter.h 
 
 SOURCES       = \
     ServerPlatform.cpp \
     ServerConnector.cpp \
-    serverMain.cpp
+    StateXmlWriter.cpp \
+    serverMain.cpp 
+    
 
 
 # dependencies

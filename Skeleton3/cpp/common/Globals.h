@@ -1,51 +1,65 @@
 /**
  * Global variables groupped together.
+ *
+ * Globals are bad. Hiding them in singletons is probably even worse. So instead of that,
+ * they are groupped here together in a single singleton.
+ *
+ * I add globals here when I have a mental block and cannot figure out a good
+ * place for them elsewhere, and I hate it. I hope to eventually remove all of them...
+ *
  **/
 
 
 #pragma once
 
-#include "IConnector.h"
-#include "IPlatform.h"
-#include "PluginManager.h"
+class IConnector;
+class IPlatform;
+class PluginManager;
+namespace CmdLine { class ParsedInfo; }
+namespace MainConfig { class ParsedInfo; }
 
 class Globals {
-    PluginManager * m_pluginManager;
-    IPlatform * m_platform;
-    IConnector * m_connector;
-//    QString m_fname;
+
+public:
+
+    /// singleton pattern
+    static Globals * instance();
+
+    /// get the connector
+    IConnector * connector();
+
+    /// set the connector
+    void setConnector(IConnector *connector);
+
+    /// get the platform
+    IPlatform * platform();
+
+    /// set the platform
+    void setPlatform(IPlatform * platform);
+
+    /// get the plugin manager
+    PluginManager * pluginManager();
+
+    /// set the plugin manager
+    void setPluginManager(PluginManager * pluginManager);
+
+    const CmdLine::ParsedInfo * cmdLineInfo() const;
+    void setCmdLineInfo(const CmdLine::ParsedInfo * cmdLineInfo);
+
+    const MainConfig::ParsedInfo * mainConfig() const;
+    void setMainConfig(const MainConfig::ParsedInfo * mainConfig);
+
+protected:
+
+    PluginManager * m_pluginManager = nullptr;
+    IPlatform * m_platform = nullptr;
+    IConnector * m_connector = nullptr;
+    const CmdLine::ParsedInfo * m_cmdLineInfo = nullptr;
+    const MainConfig::ParsedInfo * m_mainConfig = nullptr;
 
     static Globals * m_instance;
 
     // private constructor
     Globals();
-
-    /// singleton pattern
-    static Globals * instance();
-
-
-public:
-
-    /// get the connector
-    static IConnector * connector();
-
-    /// set the connector
-    static void setConnector(IConnector *connector);
-
-    /// get the platform
-    static IPlatform * platform();
-
-    /// set the platform
-    static void setPlatform(IPlatform * platform);
-
-    /// get the plugin manager
-    static PluginManager * pluginManager();
-
-    /// set the plugin manager
-    static void setPluginManager(PluginManager * pluginManager);
-
-//    static QString fname();
-//    static void setFname(const QString & fname);
-
 };
 

@@ -26,20 +26,35 @@ public:
     explicit DesktopConnector();
 
     // implementation of IConnector interface
-    virtual bool initialize() Q_DECL_OVERRIDE;
-    virtual void setState(const QString & path, const QString & newValue) Q_DECL_OVERRIDE;
-    virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
+    virtual void initialize( const InitializeCallback & cb) Q_DECL_OVERRIDE;
+    //virtual void setState(const QString & path, const QString & newValue) Q_DECL_OVERRIDE;
+    //virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
+    virtual void setState(const StateKey& state, const QString& id, const QString & newValue) Q_DECL_OVERRIDE;
+
+    //Return the value of the state with the given key and window id.
+    virtual QString getState(const StateKey&, const QString& id) Q_DECL_OVERRIDE;
+
+    ///Save the state tree.
+    virtual bool saveState(const QString& saveName) const Q_DECL_OVERRIDE;
+
+    /// Initialize the state from a file.
+    virtual bool readState( const QString& fileName ) Q_DECL_OVERRIDE;
+
+
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
     virtual void removeStateCallback( const CallbackID & id);
 
+
 public slots:
     /// javascript calls this to set a state
     void jsSetStateSlot( const QString & key, const QString & value);
     /// javascript calls this to send a command
     void jsSendCommandSlot( const QString & cmd, const QString & parameter);
+    /// javascript calls this to let us know js connector is ready
+    void jsConnectorReadySlot();
 
     void jsUpdateViewSlot( const QString & viewName, int width, int height);
     void jsMouseMoveSlot( const QString & viewName, int x, int y);
@@ -74,7 +89,6 @@ public:
     // IDs for command callbacks
     CallbackID m_callbackNextId;
 
-    std::map< QString, QString > m_state;
 
     /// private info we keep with each view
     struct ViewInfo;
@@ -125,6 +139,15 @@ public:
     virtual void refreshViewNow(IView *view);
 
     /// TODO: should we move some of these to protected section?
+
+protected:
+
+    InitializeCallback m_initializeCallback;
+
+private:
+    /// Return the location where the state is saved.
+   QString getStatePath( const QString& saveName ) const;
+   std::map< QString, QString > m_state;
 
 };
 

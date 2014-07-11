@@ -20,20 +20,18 @@ qx.Class.define("skel.widgets.DisplayMain",
     {
 		extend: qx.ui.container.Composite,
 
-        construct: function ( /*hub windowManager*/) {
+        construct: function () {
         	this.base( arguments, new qx.ui.layout.Grow() );
-            /*hub = null;
-            if( hub == null)
-                this.m_hub = null;
-            else
-                this.m_hub = hub;
-            */
-        	
+           
             this.addListener( "appear", function(){
             	var bounds = this.getBounds();
     			this.m_height = bounds["height"];
     			this.m_width = bounds["width"];
     			this.layoutImageAnalysisAnimator();
+    			/*this.m_gridColCount = 2;
+    			this.m_gridRowCount = 2;
+    			this.layout( 2, 2);
+    			this.initializeDisplays();*/
             	
             	this.addListener("resize",function(){
             		//this._resizeContent();
@@ -44,12 +42,28 @@ qx.Class.define("skel.widgets.DisplayMain",
             }, this );	     
         },
         
+        statics: {
+        	IMAGE_LOADER : "casaLoader"
+        		
+        },
+        
         events: {
             "iconifyWindow": "qx.event.type.Data",
             "addWindowMenu": "qx.event.type.Data"
         },
 
         members: {  
+        	
+        	/**
+        	 * Returns a list of screen locations where new windows can be added.
+        	 */
+        	getAddWindowLocations : function( ){
+        		var locations = [];
+        		if ( this.m_pane != null ){
+        			locations = this.m_pane.getAddWindowLocations();
+        		}
+        		return locations;
+        	},
         	
         	/**
         	 * Restore the window at the given layout position to its original location.
@@ -65,7 +79,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         	 */
         	layoutImage : function(){
         		this.layout( 1, 1 );
-        		this.m_pane.setView( "image", 0, 0 );
+        		this.m_pane.setView( skel.widgets.DisplayMain.IMAGE_LOADER, 0, 0 );
         		this.m_pane.excludeArea( 1, 0 );
         	},
         	
@@ -77,19 +91,20 @@ qx.Class.define("skel.widgets.DisplayMain",
         		this.layout( 3, 2 );
         		
     			var imagePercent = .6;
-    			this.m_pane.setView( "image", 0, 0 );
+    			this.m_pane.setView( skel.widgets.DisplayMain.IMAGE_LOADER, 0, 0 );
     			this.m_pane.setAreaWidth( Math.floor( this.m_width * imagePercent), 0, 0);
     			this.m_pane.setAreaHeight( this.m_height, 0, 0 );
     		
     			this.m_pane.excludeArea( 1, 0 );
     			this.m_pane.excludeArea( 2, 0 );
     			
-    			this.m_pane.setView( "profile", 0, 1);
+    			this.m_pane.setView( "plugins", 0, 1);
     			this.m_pane.setAreaWidth( Math.floor( this.m_width * (1-imagePercent)), 0, 1);
     		
     			this.m_pane.setView( "statistics", 1, 1);
     			this.m_pane.setAreaWidth( Math.floor( this.m_width * (1-imagePercent)), 1, 1);
-    		
+    			this.m_pane.link( 0, 0, 1, 1);
+    			
     			this.m_pane.setView( "animator", 2, 1);
     			this.m_pane.setAreaWidth( Math.floor( this.m_width * (1-imagePercent)), 2, 1);
         	},
@@ -151,7 +166,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         					this.m_pane.setView( "animator", row, col);
         				}
         				else {
-        					this.m_pane.setView( "image", row, col );
+        					this.m_pane.setView( skel.widgets.DisplayMain.IMAGE_LOADER, row, col );
         				}
         			}
         		}
@@ -197,6 +212,9 @@ qx.Class.define("skel.widgets.DisplayMain",
            	 }
             },
             
+            /**
+             * Clears out the existing windows.
+             */
             _removeWindows : function(){
         		if ( this.m_pane != null ){
         			this.m_pane.removeWindows();

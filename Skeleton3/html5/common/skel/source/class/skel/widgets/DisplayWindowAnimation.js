@@ -3,12 +3,6 @@
  */
 
 /**
-
- @ignore(fv.assert)
- @ignore(fv.console.*)
-
- 
-
  ************************************************************************ */
 
 
@@ -19,10 +13,9 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         /**
          * Constructor.
          */
-        construct: function ( /*hub*/) {
-            this.base(arguments);
+        construct: function ( row, col) {
+            this.base(arguments, "animator", row, col);
             this.setLayout( new qx.ui.layout.VBox(5));
-           
         },
 
         members: {
@@ -32,8 +25,8 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         	 */
         	setPlugin : function( label ){
         		this._initDisplaySpecific();
-        		arguments.callee.base.apply(this, arguments);
-        		this.remove(this.m_title);
+        		arguments.callee.base.apply(this, arguments, label );
+        		this.m_content.remove(this.m_title);
         	},
         	
         	/**
@@ -47,15 +40,15 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         			var animVisible = this.m_checks[i].getValue();
         			if ( animVisible ){
         				if ( this.m_animators[animId] == null ){
-        					this.m_animators[animId] = new skel.widgets.Animator(animId);
+        					this.m_animators[animId] = new skel.boundWidgets.Animator(animId,this.m_pluginId ,this.getIdentifier());
         				}
         				if ( this.indexOf( this.m_animators[animId]) == -1 ){
-        					this.add( this.m_animators[animId] );
+        					this.m_content.add( this.m_animators[animId] );
         				}
         			}
         			else {
         				if ( this.indexOf( this.m_animators[animId]) >= 0 ){
-        					this.remove( this.m_animators[animId]);
+        					this.m_content.remove( this.m_animators[animId]);
         				}
         			}
         		}
@@ -76,6 +69,9 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         		return windowMenuList;
         	},
        
+        	/**
+        	 * Initializes animator specific items for the context menu.
+        	 */
             _initDisplaySpecific: function(){
             	//Data
         		this.m_dataButton = new qx.ui.menu.Button( "Data");
@@ -88,6 +84,9 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         		this.m_contextMenu.add( this.m_showAnimationButton );
             },
             
+            /**
+             * Initializes context menu for managing data.
+             */
             _initDataMenu : function(){
             	var detachDataButton = new qx.ui.menu.Button( "Detach...");
         		var attachDataButton = new qx.ui.menu.Button( "Attach...");
@@ -137,14 +136,6 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         		return showMenu;
             },
              
-
-            _emit: function (path, data) {
-                //fv.assert(this.m_hub !== null, "hub is NULL");
-                //this.m_hub.emit(path, data);
-            },
-
-         
-            m_hub: null,
     	    m_showAnimationButton: null, 	
     		m_dataButton: null,
     		m_supportedAnimations : ["Channel", "Image", "Region"],

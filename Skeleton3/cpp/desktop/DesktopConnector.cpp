@@ -3,16 +3,21 @@
  **/
 
 #include "DesktopConnector.h"
-//#include "ViewInfoPrivate.h"
 #include "common/misc.h"
 #include "common/LinearMap.h"
+#include "common/MyQApp.h"
+#include "common/State/StateLibrary.h"
+#include "common/State/StateXmlRestorer.h"
+#include "DesktopStateWriter.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
+#include <QXmlInputSource>
 #include <cmath>
 #include <QTime>
 #include <QTimer>
 #include <QCoreApplication>
+#include <functional>
 
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
@@ -53,26 +58,73 @@ DesktopConnector::DesktopConnector()
     m_callbackNextId = 0;
 }
 
-bool DesktopConnector::initialize()
+void DesktopConnector::initialize(const InitializeCallback & cb)
 {
-    return true;
+    m_initializeCallback = cb;
 }
 
-void DesktopConnector::setState(const QString & path, const QString & newValue)
+//void DesktopConnector::setState(const QString & path, const QString & newValue)
+void DesktopConnector::setState(const StateKey& state, const QString& id, const QString & newValue)
 {
-    QString oldVal = m_state[ path];
-    if( oldVal == newValue) {
-        // nothing to do
+    // find the value
+	QString path = StateLibrary::instance()->getPath( state, id);
+    auto it = m_state.find( path);
+    if( it != m_state.end() && it-> second == newValue) {
+        // if we alredy have an entry for this path and the stored value is
+        // the same as the incoming value, we don't need to do anything
         return;
     }
+
     m_state[ path ] = newValue;
-    std::cerr << "CPP setState " << path << "=" << newValue << "\n";
     emit stateChangedSignal( path, newValue);
 }
 
-QString DesktopConnector::getState(const QString & path)
+//QString DesktopConnector::getState(const QString & path)
+QString DesktopConnector::getState(const StateKey & state, const QString& id )
 {
+	QString path = StateLibrary::instance()->getPath( state, id);
     return m_state[ path ];
+}
+
+/// save the state tree.
+bool DesktopConnector::saveState(const QString& saveName) const {
+	QString filePath = getStatePath( saveName );
+	DesktopStateWriter writer( filePath );
+	StateLibrary* lib = StateLibrary::instance();
+	for ( std::map<QString,QString>::const_iterator iter = m_state.begin();
+			iter != m_state.end(); ++iter ){
+		if ( lib->isPersistent( iter->first ) ){
+			writer.addPathData( iter->first, iter->second );
+		}
+	}
+	bool stateSaved = writer.saveState();
+	return stateSaved;
+}
+
+/// Initialize the state from a file.
+bool DesktopConnector::readState( const QString& saveName ){
+	/// Initialize the state from a file.
+	bool successfulRead = true;
+	QString fileName( getStatePath( saveName ) );
+	QFile file( fileName );
+	if ( !file.open( QIODevice::ReadOnly) ){
+		qDebug() << "State not saved- could not open the file " << fileName<<" for writing.";
+		successfulRead = false;
+	}
+	else {
+		QXmlInputSource fileSource( &file );
+		QXmlSimpleReader xmlReader;
+		StateXmlRestorer contentHandler( this );
+		xmlReader.setContentHandler( &contentHandler );
+		successfulRead = xmlReader.parse( fileSource );
+	}
+	return successfulRead;
+}
+
+/// Return the location where the state is saved.
+QString DesktopConnector::getStatePath( const QString& saveName ) const {
+	//TODO: Generalize this.
+	return "/tmp/"+saveName+".xml";
 }
 
 IConnector::CallbackID DesktopConnector::addCommandCallback(
@@ -135,50 +187,70 @@ void DesktopConnector::refreshView(IView * view)
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
-        std::cerr << "Critical: refreshView cannot find this view: " << view-> name() << "\n";
+        qCritical() << "refreshView cannot find this view: " << view-> name();
         return;
     }
 
     // start the timer for this view if it's not already started
     if( ! viewInfo-> refreshTimer.isActive()) {
         viewInfo-> refreshTimer.start();
-        std::cerr << "Scheduled refresh for " << view->name() << "\n";
     }
     else {
-        std::cerr << "########### saved refresh for " << view->name() << "\n";
+//        qDebug() << "########### saved refresh for " << view->name();
     }
-
-//    QCoreApplication::postEvent( this, new ViewRefreshEvent( getRefreshViewEventType(), view), Qt::NormalEventPriority);
-    //    refreshViewNow( view);
 }
 
 void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
     qFatal( "not implemented");
 }
-
-void DesktopConnector::jsSetStateSlot(const QString &key, const QString &value) {
-    std::cerr << "jsSetState: " << key << "=" << value << "\n";
-    setState( key, value);
+void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
+	QString lookup(key);
+	QString id("");
+	int lastSepIndex = key.lastIndexOf( StateLibrary::SEPARATOR );
+	if ( lastSepIndex >= 0 ){
+		lookup = key.left( lastSepIndex );
+		int lastFieldLength = key.length() - lastSepIndex - 1;
+		id = key.right( lastFieldLength);
+	}
+    StateKey stateKey = StateLibrary::instance()->findKey( lookup );
+    if ( stateKey != StateKey::END_KEY ){
+    	setState( stateKey, id, value);
+    }
+    else {
+    	qWarning() << "Unrecognized state variable "<<key;
+    }
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 {
+    // call all registered callbacks and collect results
     auto & allCallbacks = m_commandCallbackMap[ cmd];
     QStringList results;
     for( auto & cb : allCallbacks) {
-        results += cb( cmd, parameter, "1");
+        results += cb( cmd, parameter, "1"); // session id fixed to "1"
     }
-    // tell javascript about result of the command
+
+    // pass results back to javascript
     emit jsCommandResultsSignal( results.join("|"));
 
+}
+
+void DesktopConnector::jsConnectorReadySlot()
+{
+    // at this point it's safe to start using setState as the javascript
+    // connector has registered to listen for the signal
+
+    // time to call the initialize callback
+//    defer( std::bind( m_initializeCallback, true));
+    m_initializeCallback(true);
 }
 
 DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & viewName)
 {
     auto viewIter = m_views.find( viewName);
     if( viewIter == m_views.end()) {
-        std::cerr << "Unknown view " << viewName << "\n";
+        qWarning() << "DesktopConnector::findViewInfo: Unknown view " << viewName;
         return nullptr;
     }
 
@@ -188,15 +260,10 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 void DesktopConnector::refreshViewNow(IView *view)
 {
 
-    std::cerr << "refreshViewNow " << view->name() << "\n";
-
-    //    std::cerr << "timer " << st.elapsed() << "\n";
-    //    st.restart();
-
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
-        std::cerr << "Critical: refreshView cannot find this view: " << view-> name() << "\n";
+        qCritical() << "refreshView cannot find this view: " << view-> name();
         return;
     }
     // get the image from view
@@ -225,11 +292,11 @@ void DesktopConnector::refreshViewNow(IView *view)
     emit jsViewUpdatedSignal( view-> name(), pix);
 }
 
-void DesktopConnector::jsUpdateViewSlot(const QString &viewName, int width, int height)
+void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
-        std::cerr << "Received update for unknown view " << viewName << "\n";
+        qWarning() << "Received update for unknown view " << viewName;
         return;
     }
 
@@ -243,7 +310,7 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
-        std::cerr << "Received mouse event for unknown view " << viewName << "\n";
+        qWarning() << "Received mouse event for unknown view " << viewName << "\n";
         return;
     }
 
@@ -259,32 +326,19 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
                     Qt::NoButton,
                     Qt::NoButton,
                     Qt::NoModifier   );
-//    QTime t; t.restart();
     view-> handleMouseEvent( ev);
-//    std::cerr << "Mouse event hanled in " << t.elapsed() << "ms\n";
 }
 
 void DesktopConnector::stateChangedSlot(const QString & key, const QString & value)
 {
-//    qDebug() << "state changed slot " << key << " = " << value;
-
     // find the list of callbacks for this path
     auto iter = m_stateCallbackList.find( key);
 
     // if it does not exist, do nothing
     if( iter == m_stateCallbackList.end()) {
-//        qDebug() << "no callbacks registered for" << key;
         return;
     }
 
-//    qDebug() << "calling all registered callbacks for" << key;
-
+    // call all registered callbacks for this key
     iter-> second-> callEveryone( key, value);
-
-//            m_stateCallbackList[ key].callEveryone( key, value);
-
-    //    // we just call our own callbacks here
-//    for( auto & cb : m_stateCallbackList[ key]) {
-//        cb( key, value);
-//    }
 }

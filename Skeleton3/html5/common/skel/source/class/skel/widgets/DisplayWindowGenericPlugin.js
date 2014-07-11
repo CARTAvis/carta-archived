@@ -4,9 +4,6 @@
 
 /**
 
- @ignore(fv.assert)
- @ignore(fv.console.*)
-
  
 
  ************************************************************************ */
@@ -19,8 +16,8 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
         /**
          * Constructor.
          */
-        construct: function ( /*hub*/) {
-            this.base(arguments);
+        construct: function ( row, col, pluginId) {
+            this.base(arguments, pluginId, row, col);
         },
 
         members: {
@@ -31,13 +28,7 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
         		this._initDisplaySpecific();
         		arguments.callee.base.apply(this, arguments);
         		
-        		if ( label == "statistics"){
-            		var labelx = new skel.boundWidgets.Label( "MouseX:", "pix", "/mouse/x");
-                    this.add( labelx);
-                    var labely = new skel.boundWidgets.Label( "MouseY:", "pix", "/mouse/y");
-                    this.add( labely);
-            
-            	}
+        		
         	},
         	
         	/**
@@ -50,16 +41,31 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
         	},
        
             _initDisplaySpecific: function(){
-            	
+            	 if ( this.m_pluginId == "plugins"){
+             		  var pluginList = new skel.boundWidgets.PluginList();
+             		  this.m_content.add( pluginList );
+             	 }
             },
             
-            _emit: function (path, data) {
-                //fv.assert(this.m_hub !== null, "hub is NULL");
-                //this.m_hub.emit(path, data);
-            },
-
-            m_hub: null
-    		
+            /**
+             * Links this window to another with the given id.
+             */
+            //TODO:: Make generic.
+            setLinkId : function( id ){
+            	
+          	  if ( this.m_title.getValue() == "statistics"){
+    			var mouseXPath = "/carta/mouse/x/"+id;
+        		var labelx = new skel.boundWidgets.Label( "MouseX:", "pix", mouseXPath );
+                this.m_content.add( labelx);
+                var mouseYPath = "/carta/mouse/y/"+ id;
+                var labely = new skel.boundWidgets.Label( "MouseY:", "pix", mouseYPath);
+                this.m_content.add( labely);
+          	  }
+          	 
+          	  return true;
+          	  
+            }
+            
         }
 
        

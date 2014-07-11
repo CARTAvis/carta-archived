@@ -32,7 +32,9 @@ bool CasaTest1::handleHook(BaseHook & hookData)
     if( hookData.hookId() == LoadImage::StaticHookId) {
         LoadImage & hook = static_cast<LoadImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
-        return loadImage( fname, hook.result );
+        auto channel = hook.paramsPtr->frame;
+        qDebug()<<"CasaTest1 loading image "<<fname;
+        return loadImage( fname, channel, hook.result );
     }
 
     qWarning() << "Sorrry, dont' know how to handle this hook";
@@ -41,6 +43,7 @@ bool CasaTest1::handleHook(BaseHook & hookData)
 
 std::vector<HookId> CasaTest1::getInitialHookList()
 {
+	qDebug() << "CasaTest1 returuning initialHook list LoadImage"<<LoadImage::StaticHookId;
     return {
         Initialize::StaticHookId,
         LoadImage::StaticHookId
@@ -117,9 +120,9 @@ casa::ImageInterface<casa::Float> * openCasaImageF( const QString & fname)
 /// \param result where to store the result
 /// \return true if successful, false otherwise
 ///
-bool CasaTest1::loadImage( const QString & fname, QImage & result)
+bool CasaTest1::loadImage( const QString & fname, int channel, QImage & result)
 {
-    qDebug() << "CasaTest Plugin trying to load image: " << fname;
+    qDebug() << "CasaTest Plugin trying to load image: " << fname<<" channel="<<channel;
 
     // define data type that we are using per pixel
     typedef float Pixel;
@@ -154,8 +157,12 @@ bool CasaTest1::loadImage( const QString & fname, QImage & result)
 
     int width = imgptr-> shape()[0];
     int height = imgptr-> shape()[1];
-
-    qDebug() << "Image opened using casacore" << width << "x" << height << "pixels";
+    int channelCount = 0;
+    if ( dims >= 3 ){
+    	channelCount = imgptr->shape()[2];
+    }
+    qDebug() << "Channel count="<<channelCount;
+    qDebug() << "Image opened using casacore" << width << "x" << height << "pixels"<<" channels="<<channelCount;
 
     // figure out 95% clip values
     std::vector< Pixel> allValues;
@@ -186,13 +193,17 @@ bool CasaTest1::loadImage( const QString & fname, QImage & result)
     {
         casa::IPosition cursorShape(2, width, height);
         casa::LatticeStepper stepper( imgptr-> shape(), cursorShape);
-        IPosition blc(dims, 0);
-        IPosition trc(dims, 0);
+        casa::IPosition blc(dims, 0);
+        casa::IPosition trc(dims, 0);
         trc(0) = width-1;
         trc(1) = height-1;
+        if ( dims > 2 ){
+        	trc(2) = channel;
+        	blc(2) = channel;
+        }
         stepper.subSection(blc, trc);
 
-        casa::RO_LatticeIterator<Float> iterator(* imgptr, stepper);
+        casa::RO_LatticeIterator<casa::Float> iterator(* imgptr, stepper);
 
         for (iterator.reset(); !iterator.atEnd(); iterator++) {
             for( const auto & val : iterator.cursor()) {
@@ -251,9 +262,13 @@ bool CasaTest1::loadImage( const QString & fname, QImage & result)
     casa::IPosition trc(dims, 0);
     trc(0) = width-1;
     trc(1) = height-1;
+    if ( dims > 2 ){
+    	trc(2) = channel;
+    	blc(2) = channel;
+    }
     stepper.subSection(blc, trc); // limit to first frame only
 
-    casa::RO_LatticeIterator<Float> iterator(* imgptr, stepper);
+    casa::RO_LatticeIterator<casa::Float> iterator(* imgptr, stepper);
     iterator.reset();
     const casa::Matrix<Pixel> & srcm = iterator.matrixCursor();
     qDebug() << "matrix cursor" << srcm.shape()[0] << srcm.shape()[1];

@@ -6,7 +6,7 @@
 #include "CmdLine.h"
 #include <QDebug>
 #include <QCommandLineParser>
-#include <QCoreApplication>
+#include <QDir>
 
 static QString cartaGetEnv( const QString & name)
 {
@@ -16,16 +16,10 @@ static QString cartaGetEnv( const QString & name)
 
 namespace CmdLine {
 
-static bool m_parsed = false;
-static ParsedInfo m_parsedInfo;
-
-/// do the actual parsing of the command line and environment variables
-void doParse()
+ParsedInfo parse(const QStringList & argv)
 {
-    m_parsedInfo.m_configFilePath = "hola";
-
     QCommandLineParser parser;
-    parser.setApplicationDescription("Skeleton3 program");
+//    parser.setApplicationDescription("Skeleton3 program");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument( "input-files", "list of files to open", "[input files]");
@@ -37,43 +31,34 @@ void doParse()
                 );
     parser.addOption( htmlPathOption);
 
-    qDebug() << "Help options:"
-             << parser.helpText()
-             << "----";
-
     // Process the actual command line arguments given by the user, exit if
-    // command line arguments have a syntax error
-    parser.process( * QCoreApplication::instance());
+    // command line arguments have a syntax error, or the user asks for -h or -v
+    parser.process( argv);
 
-    // get config file path
-    if( parser.isSet( configFileOption)) {
-        m_parsedInfo.m_configFilePath = parser.value( configFileOption);
+    // try to get config file path from command line
+    ParsedInfo info;
+    info.m_configFilePath = parser.value( configFileOption);
+    // if command line was not used to set the config file path, try environment var
+    if( info.m_configFilePath.isEmpty()) {
+        info.m_configFilePath = cartaGetEnv( "CONFIG");
     }
-    else {
-        // try the environment variable
-        m_parsedInfo.m_configFilePath = cartaGetEnv( "CONFIG");
+    // if the config file was not specified neither through command line or environment
+    // assign a default value
+    if( info.m_configFilePath.isEmpty()) {
+        info.m_configFilePath = QDir::homePath() + "/.cartavis/config.json";
     }
-    qDebug() << "Config file path=" << m_parsedInfo.configFilePath();
+
 
     // get html path
     if( parser.isSet( htmlPathOption)) {
-        m_parsedInfo.m_htmlPath = parser.value( htmlPathOption);
+        info.m_htmlPath = parser.value( htmlPathOption);
     }
-    qDebug() << "html path=" << m_parsedInfo.htmlPath();
+
 
     // get a list of files to open
-    m_parsedInfo.m_fileList = parser.positionalArguments();
-    qDebug() << "list of files to open:" << m_parsedInfo.m_fileList;
-}
+    info.m_fileList = parser.positionalArguments();
 
-const ParsedInfo & parse()
-{
-    if( ! m_parsed) {
-        doParse();
-        m_parsed = true;
-    }
-
-    return m_parsedInfo;
+    return info;
 }
 
 QString ParsedInfo::configFilePath() const

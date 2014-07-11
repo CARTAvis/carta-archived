@@ -5,28 +5,62 @@
 #include "ServerPlatform.h"
 #include "common/Viewer.h"
 #include "common/MyQApp.h"
+#include "common/CmdLine.h"
+#include "common/MainConfig.h"
+#include "common/Globals.h"
 #include <QDebug>
 
 int main(int argc, char ** argv)
 {
-    qDebug() << "Server app is starting up.";
-#ifdef QT_DEBUG
-  qDebug() << "Running a debug build";
-#else
-  qDebug() << "Running a release build";
-#endif
-
+    // initialize Qt
     MyQApp qapp( argc, argv);
 
-    qDebug() << "Command line args: " << MyQApp::arguments();
+#ifdef QT_DEBUG
+    MyQApp::setApplicationName( "Skeleton3-server-debug");
+#else
+    MyQApp::setApplicationName( "Skeleton3-server-release");
+#endif
+
+    qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
+
+    // alias globals
+    auto & globals = * Globals::instance();
+
+    // parse command line arguments & environment variables
+    auto cmdLineInfo = CmdLine::parse( MyQApp::arguments());
+    globals.setCmdLineInfo( & cmdLineInfo);
+
+    // load the config file
+    QString configFilePath = cmdLineInfo.configFilePath();
+    auto mainConfig = MainConfig::parse( configFilePath);
+    globals.setMainConfig( & mainConfig);
+    qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - ");
 
     // initialize platform
-    ServerPlatform * platform = new ServerPlatform();
+    // platform gets command line & main config file via globals ?!?!?
+    auto platform = new ServerPlatform();
+    globals.setPlatform( platform);
 
-    // create viewer with this platform
-    Viewer viewer( platform);
+    // prepare connector
+    IConnector * connector = platform-> connector();
+    if( ! connector) {
+        qFatal( "Could not initialize connector!");
+    }
+    globals.setConnector( connector);
 
-    // run the viewer
-    viewer.start();
+    // create the viewer
+    Viewer viewer;
+
+    // prepare closure to execute when connector is initialized
+    IConnector::InitializeCallback initCB = [connector, & viewer](bool valid) -> void {
+        qDebug() << "Connector initialized:" << valid;
+        viewer.start();
+    };
+
+    // initialize connector
+    connector-> initialize( initCB);
+
+    // qt now has control
     return qapp.exec();
+
 }

@@ -46,7 +46,7 @@ MainWindow::MainWindow( )
              this,
              & MainWindow::addToJavaScript );
 
-    m_img = QImage( 500, 500, QImage::Format_RGB888);
+//    m_img = QImage( 500, 500, QImage::Format_RGB888);
 
 }
 
@@ -62,23 +62,9 @@ void MainWindow::exportToJs(const QString &name, QObject *objPtr)
 //    m_view->page()->mainFrame()->addToJavaScriptWindowObject( name, objPtr);
 }
 
-const QImage & MainWindow::getImg() const {
-    return m_img;
-}
-
-void MainWindow::dbg(const QString &str)
-{
-    std::cerr << "dbg() called with " << str.toStdString() << "\n";
-}
-
-void MainWindow::makeNextImage(const QString &str)
-{
-    m_img.fill( qRgb(255,0,0));
-    QPainter p( & m_img);
-    p.setFont( QFont( "Arial", 20));
-    p.setPen( QColor( "blue"));
-    p.drawText( m_img.rect(), Qt::AlignCenter, str);
-}
+//const QImage & MainWindow::getImg() const {
+//    return m_img;
+//}
 
 void MainWindow::adjustLocation()
 {
@@ -102,36 +88,31 @@ void MainWindow::adjustTitle()
 
 void MainWindow::setProgress(int p)
 {
+    qDebug() << "Loading page progress: " << p << "/100";
     m_progress = p;
     adjustTitle();
 }
 
 void MainWindow::finishLoading(bool)
 {
+    qDebug() << "Page loaded.";
     m_progress = 100;
     adjustTitle();
-//    view->page()->mainFrame()->evaluateJavaScript( "alert('page loaded');");
     statusBar()-> showMessage( "Page loaded");
-    std::cerr << "Page load finished.\n";
 }
 
 void MainWindow::showJsConsole()
 {
-//    m_inspector-> setVisible( true);
     m_inspector-> setVisible( ! m_inspector-> isVisible());
 }
 
-// this is called when the global object in javascript is cleared
-// we use it to add a bridge to C++
+// This method is called when the global javascript object is cleared
+// (i.e. when a new page is loaded). We use it to setup bridge JS <--> C++.
 void MainWindow::addToJavaScript()
 {
-//    m_view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
-
     for( auto & entry : m_jsExports ) {
-        std::cerr << "Exporting " << entry.first << "\n";
+        qDebug() << "Exporting " << entry.first;
         m_view->page()->mainFrame()->addToJavaScriptWindowObject(
                     entry.first, entry.second);
-//        m_view->page()->mainFrame()->addToJavaScriptWindowObject("Qt", this);
     }
-
 }

@@ -117,10 +117,12 @@ public:
 
     typedef QImage ResultType;
     struct Params {
-        Params( QString p_fileName) {
+        Params( QString p_fileName, int p_channel) {
             fileName = p_fileName;
+            frame = p_channel;
         }
         QString fileName;
+        int frame;
     };
     enum { StaticHookId = 5 };
     LoadImage(Params * pptr) : BaseHook( StaticHookId), paramsPtr( pptr) {}

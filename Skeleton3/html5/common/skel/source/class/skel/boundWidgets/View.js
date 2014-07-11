@@ -34,42 +34,18 @@ qx.Class.define( "skel.boundWidgets.View",
 
             var setZeroTimeout = mImport( "setZeroTimeout");
 
-//            this.getContentElement().setAttributes(
-//                {
-//                    id: "grrrrrsome11231213"
-////                    , "class": "pureweb"
-//                });
+
 
             // listen for appear event, because the html is not generated until the widget
             // appears
             var appearListenerId = this.addListener("appear", function (e) {
-
-//                fv.hub.emit("ui.pureWebView.created", {
-//                    id: this.m_id,
-//                    viewName: this.m_viewName,
-//                    format: this.m_format
-//                });
-//
-//                var div = this.getContentElement().getDomElement();
-//                var ww = this.getWidth();
-//                var hh = this.getHeight();
-//                fv.hub.emit("ui.pureWebView.resized",
-//                    { width: this.getWidth(),
-//                        height: this.getHeight(),
-//                        viewName: this.m_viewName
-//                    });
-
                 this.m_iview = this.m_connector.registerViewElement(
                     this.getContentElement().getDomElement(), this.m_viewName );
                 this.removeListenerById(appearListenerId);
 
                 this.m_iview.updateSize();
 
-                console.log( "view appeared", this.m_iview);
                 window.gview = this.m_iview;
-
-
-
             }, this);
 
             this.addListener("resize", function (/*e*/)
@@ -83,15 +59,6 @@ qx.Class.define( "skel.boundWidgets.View",
 
             }, this);
 
-            /*
-             this.addListener( "appear", function() {
-             fv.console.log( "appear-" + this.m_id);
-             }, this);
-
-             this.addListener( "disappear", function() {
-             fv.console.log( "disappear-" +this.m_id);
-             }, this);
-             */
         },
 
         events: {

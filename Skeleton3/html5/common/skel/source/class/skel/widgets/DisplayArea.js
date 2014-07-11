@@ -26,54 +26,23 @@ qx.Class.define("skel.widgets.DisplayArea",
          * @param rowIndex {Number} the smallest row index available.
          * @param colIndex {Number} the smallest column index available.
          * @param lastColIndex {Number} index of the last column in the layout.
-         * 
+         * @param secondArea {DisplayArea} used when splitting an existing display area;
+         * 		the second area is provided rather than constructed.
+         * @param splitType {String} used when splitting an exsiting area; whether to split
+         * 		horizontally or vertically.
          */
-        construct: function ( rows, cols, height, width, rowIndex, colIndex, lastColIndex ) {
+        construct: function ( rows, cols, height, width, rowIndex, colIndex, lastColIndex, 
+        		secondArea, splitType ) {
             this.base(arguments);
-            var rowHeight = Math.floor(height / rows);
-            var colWidth = Math.floor( width / cols );
-            
-            //No more horizontal splits so make this one a vertical one.
-            if ( cols == 1 ){
-            	this.m_pane = new qx.ui.splitpane.Pane("vertical").set({
-                    allowGrowX : true,
-                    allowGrowY : true
-                  });
-            	
-            	 // Create container with fixed dimensions for the top:   
-            	this.m_areaFirst = this._makeArea( colWidth, rowHeight, rowIndex, colIndex );
-           
-            	//We don't need another split pane so just add another container.
-            	if ( rows <=2 ){
-            		this.m_areaSecond = this._makeArea( colWidth, rowHeight, rowIndex+1, colIndex );
-            	}
-            	//Make a child node with one less row and add it.
-            	else if ( rows > 2){
-            		//this.m_childSecond = this._makeChild( rows - 1, cols, rowHeight, colWidth );
-            		this.m_areaSecond = this._makeChild( rows - 1, cols, rowHeight, colWidth, rowIndex + 1, colIndex, lastColIndex );
-            	}
-            	
+            if ( typeof secondArea == 'undefined' ){
+            	this._constructOne( rows, cols, height, width, rowIndex, colIndex, lastColIndex );
             }
-            //Make another horizontal split.
             else {
-            	this.m_pane = new qx.ui.splitpane.Pane("horizontal").set({
-                    allowGrowX : true,
-                    allowGrowY : true
-                  });
-            	//We can handle it with a single split pane.
-            	if ( rows == 1 ){
-            		 // Create container with fixed dimensions for the top:
-            		this.m_areaFirst = this._makeArea( colWidth, rowHeight, rowIndex, colIndex );                   
-                    this.m_areaSecond = this._makeArea( colWidth, rowHeight, rowIndex, colIndex + 1 );
-            	}
-            	//Each of our sides needs to be a split pane.
-            	else {
-            		this.m_areaFirst = this._makeChild( rows, 1, rowHeight, colWidth, rowIndex, colIndex );	
-            		this.m_areaSecond = this._makeChild( rows, cols - 1, rowHeight, colWidth, rowIndex, colIndex+1, lastColIndex );
-            		
-            	}
+            	this._constructTwo( height, width, rowIndex, colIndex, secondArea, splitType );
             }
         },
+
+		
         
         events: {
             "iconifyWindow": "qx.event.type.Data",
@@ -81,6 +50,241 @@ qx.Class.define("skel.widgets.DisplayArea",
         },
         
         members: {
+        	
+        	/**
+        	 * Constructor for making a new display area.  Please see the constructor for parameter documentation.
+        	 */
+        	_constructOne : function( rows, cols, height, width, rowIndex, colIndex, lastColIndex ){
+                var rowHeight = Math.floor(height / rows);
+                var colWidth = Math.floor( width / cols );
+                
+                //No more horizontal splits so make this one a vertical one.
+                if ( cols == 1 ){
+                	this.m_pane = new qx.ui.splitpane.Pane("vertical").set({
+                        allowGrowX : true,
+                        allowGrowY : true
+                      });
+                	
+                	 // Create container with fixed dimensions for the top:   
+                	this.m_areaFirst = this._makeArea( colWidth, rowHeight, rowIndex, colIndex );
+               
+                	//We don't need another split pane so just add another container.
+                	if ( rows <=2 ){
+                		this.m_areaSecond = this._makeArea( colWidth, rowHeight, rowIndex+1, colIndex );
+                	}
+                	//Make a child node with one less row and add it.
+                	else if ( rows > 2){
+                		this.m_areaSecond = this._makeChild( rows - 1, cols, rowHeight, colWidth, rowIndex + 1, colIndex, lastColIndex );
+                	}
+                	
+                }
+                //Make another horizontal split.
+                else {
+                	this.m_pane = new qx.ui.splitpane.Pane("horizontal").set({
+                        allowGrowX : true,
+                        allowGrowY : true
+                      });
+                	//We can handle it with a single split pane.
+                	if ( rows == 1 ){
+                		 // Create container with fixed dimensions for the top:
+                		this.m_areaFirst = this._makeArea( colWidth, rowHeight, rowIndex, colIndex );                   
+                        this.m_areaSecond = this._makeArea( colWidth, rowHeight, rowIndex, colIndex + 1 );
+                	}
+                	//Each of our sides needs to be a split pane.
+                	else {
+                		this.m_areaFirst = this._makeChild( rows, 1, rowHeight, colWidth, rowIndex, colIndex );	
+                		this.m_areaSecond = this._makeChild( rows, cols - 1, rowHeight, colWidth, rowIndex, colIndex+1, lastColIndex );
+                		
+                	}
+                }
+            },
+            
+            
+            /**
+             * Constructor for splitting an existing display area in two pieces.
+             */
+            _constructTwo : function(rowHeight, colWidth, rowIndex, colIndex, secondArea, splitType ){
+            	this.m_pane = new qx.ui.splitpane.Pane(splitType).set({
+                    allowGrowX : true,
+                    allowGrowY : true
+                  });
+            	
+            	this.m_areaFirst = this._makeArea( rowHeight, colWidth, rowIndex, colIndex, true);
+            	this.m_areaSecond = secondArea;
+            	this.m_pane.add( this.m_areaSecond.getDisplayArea(), 1 );
+            },
+            
+            /**
+             * Returns an array of points (pixel coordinates) where new display areas can be added.
+             */
+        	getAddWindowLocations: function(){
+        		var locations = [];
+        		if ( this.m_pane != null ){
+        			var loc = this._getSplitterLocation();	
+        			if ( loc.length > 0 ){
+        				loc.push( this );
+        				locations.push( loc );
+        				if ( this.m_areaFirst != null ){
+        					var areaFirstLocs = this.m_areaFirst.getAddWindowLocations();
+        					for ( var i = 0; i < areaFirstLocs.length; i++){
+        						locations.push( areaFirstLocs[i]);
+        					}
+        				}
+        				if ( this.m_areaSecond != null ){
+        					var areaSecondLocs = this.m_areaSecond.getAddWindowLocations( locations );
+        					for ( var i = 0; i < areaSecondLocs.length; i++ ){
+        						var areaLoc = areaSecondLocs[i];
+        						if ( this.m_pane.getOrientation() == "horizontal"){
+        							areaLoc[0] = areaLoc[0]+loc[0];
+        						}
+        						else {
+        							areaLoc[1] = areaLoc[1]+loc[1];
+        						}
+        						locations.push( areaLoc );
+        					}
+        				}
+        			}
+        		}
+        		return locations;
+        	},
+        	
+        	/**
+        	 * Returns the window identifier for the window at the given row and column.
+        	 * @param sourceRow {number} a row in the screen grid.
+        	 * @param sourceCol {number} a column in the screen grid.
+        	 */
+        	getWinId : function (sourceRow, sourceCol ){
+        		var winId = this.m_areaFirst.getWinId( sourceRow, sourceCol );
+        		if ( winId.length == 0 ){
+        			winId = this.m_areaSecond.getWinId( sourceRow, sourceCol );
+        		}
+        		return winId;
+        	},
+        	
+        	/**
+        	 * Links the window located at the given row and column to the window with the given
+        	 * link.
+        	 * @param row {Number} a row in the screen grid.
+        	 * @param col {Number} a column in the screen grid.
+        	 * @param link {String} a window identifier.
+        	 */
+        	setLinkId : function( row, col, link ){
+        		var linkSet = this.m_areaFirst.setLinkId( row, col, link );
+    			if ( !linkSet ){
+    				linkSet = this.m_areaSecond.setLinkId( row, col, link );
+    			}
+    			return linkSet;
+        	},
+        	
+        	/**
+        	 * Links the window located at the source row and column to the window
+        	 * located at the destination row and column.
+        	 * @param sourceRow {Number} a row in the screen grid.
+        	 * @param souceCol {Number} a column in the screen grid.
+        	 * @param destRow {Number} a row in the screen grid.
+        	 * @param destCol {Number} a column in the screen grid.
+        	 */
+        	link : function( sourceRow, sourceCol, destRow, destCol ){
+        		var winId = this.getWinId( sourceRow, sourceCol );
+        		if ( winId.length > 0 ){
+        			this.setLinkId( destRow, destCol, winId);
+        		}
+        	},
+        	
+        	/**
+        	 * Divides this display area into two, creating a new blank window.
+        	 */
+        	split : function( ){
+        		var indices = this.m_areaFirst._getLastIndices();
+        		var rowIndex = indices[0];
+        		var colIndex = indices[1];
+        		var sizeSecond = this.m_areaSecond._getDimensions();
+        		var splitType = "horizontal";
+        		var rowHeight = sizeSecond[1];
+        		var colWidth = sizeSecond[0];
+        		var decreaseHeight = false;
+        		var decreaseWidth = false;
+        		if ( this.m_pane.getOrientation() == "horizontal"){
+        			colWidth = Math.floor(colWidth/2);
+        			colIndex = colIndex + 1;
+        			decreaseWidth = true;
+        		}
+        		else {
+        			
+        			rowHeight = Math.floor(rowHeight/2);
+        			rowIndex = rowIndex + 1;
+        			splitType = "vertical";
+        			decreaseHeight = true;
+        		}
+        		
+        		this.m_pane.add( this.m_areaFirst.getDisplayArea(), 1 );
+        		this.m_areaSecond._setDimensions( colWidth, rowHeight, decreaseWidth, decreaseHeight);
+        		this.m_areaSecond=this._makeChild( 1, 1, colWidth, rowHeight,rowIndex, colIndex, colIndex+1, this.m_areaSecond, splitType );
+        	},
+        	
+        	/**
+        	 * Returns the row and column location of the second area.
+        	 */
+        	_getLastIndices : function(){
+        		return this.m_areaSecond._getLastIndices();
+        	},
+        	
+        	/**
+        	 * Returns the approximate width and height occupied by both
+        	 * sides of the split pane.
+        	 */
+        	_getDimensions : function(){
+        		var firstSize = this.m_areaFirst._getDimensions();
+        		var secondSize = this.m_areaSecond._getDimensions();
+        		var overallSize = firstSize;
+        		if ( this.m_pane.getOrientation() == "vertical"){
+        			overallSize[1] = overallSize[1]+secondSize[1];
+        		}
+        		else {
+        			overallSize[0] = overallSize[0]+secondSize[0];
+        		}
+        		return overallSize;
+        	},
+        	
+        	/**
+        	 * Resets the width and height of the two sides of the split pane, decreasing them
+        	 * as appropriate to make space for a new area.
+        	 * @param width {Number} the base width.
+        	 * @param height {Number} the base height.
+        	 * @param decreaseWidth {Boolean} whether or not the width should be halved.
+        	 * @param decreaseHeight {Boolean} whether or not the height should be halved.
+        	 */
+        	_setDimensions : function( width, height, decreaseWidth, decreaseHeight ){
+        		if ( decreaseHeight ){
+        			height = Math.floor( height / 2 );
+        		}
+        		if ( decreaseWidth ){
+        			width = Math.floor( width / 2 );
+        		}
+        		this.m_areaFirst._setDimensions( width, height, decreaseWidth, decreaseHeight );
+        		this.m_areaSecond._setDimensions( width, height, decreaseWidth, decreaseHeight  );
+        	},
+        	
+        	/**
+        	 * Returns the pixel location of the midpoint of the splitter.
+        	 */
+        	_getSplitterLocation : function(){
+        		var loc = [];
+        		var splitter = this.m_pane.getChildControl( "splitter" );	
+    			var splitterBottom = skel.widgets.Util.getBottom( splitter );
+    			var splitterRight = skel.widgets.Util.getRight( splitter );
+    			var splitterLeft = skel.widgets.Util.getLeft( splitter);
+    			var splitterTop = skel.widgets.Util.getTop( splitter);
+    			var splitterWidth = splitterRight - splitterLeft;
+    			var splitterHeight = splitterBottom - splitterTop;
+    			if ( splitterWidth > 0 && splitterHeight > 0 ){
+    				var xPos = Math.floor(splitterLeft + splitterWidth / 2);
+    				var yPos = Math.floor(splitterTop + splitterHeight / 2);
+    				loc = [xPos, yPos];
+    			}
+    			return loc;
+        	},
+        	
         	/**
         	 * Returns the split pane.
         	 */
@@ -137,12 +341,17 @@ qx.Class.define("skel.widgets.DisplayArea",
              /**
               * Constructs a child leaf node of this composite.
               */
-             _makeArea: function( colWidth, rowHeight, rowIndex, colIndex ){
+             _makeArea: function( colWidth, rowHeight, rowIndex, colIndex, includeView ){
+            	 
             	 var area = new skel.widgets.DisplayDesktop(rowIndex,colIndex).set({
                      width : colWidth,
                      height: rowHeight,
                      decorator : "main"
                    });
+            	 if ( includeView ){
+            		 area.setView("", rowIndex, colIndex);
+            	 }
+            	 
             	 area.addListener( "iconifyWindow", function(ev){
             		var data = ev.getData();
             		area.exclude();
@@ -160,8 +369,8 @@ qx.Class.define("skel.widgets.DisplayArea",
              /**
               * Constructs a composite child node of this composite.
               */
-             _makeChild: function( rows, cols, rowHeight, colWidth, rowIndex, colIndex, lastColIndex ){
-            	 var child  = new skel.widgets.DisplayArea( rows, cols, rows * rowHeight, cols * colWidth, rowIndex, colIndex ); 
+             _makeChild: function( rows, cols, rowHeight, colWidth, rowIndex, colIndex, lastColIndex, secondArea, splitType ){
+            	 var child  = new skel.widgets.DisplayArea( rows, cols, rows * rowHeight, cols * colWidth, rowIndex, colIndex, lastColIndex, secondArea,splitType); 
             	 child.addListener( "iconifyWindow", function(ev){
             		 this.fireDataEvent( "iconifyWindow", ev.getData());
             	 }, this );
@@ -221,6 +430,12 @@ qx.Class.define("skel.widgets.DisplayArea",
          		 return pluginAssigned;
          	 },
          	 
+         	 /**
+         	  * Sets the height of the window located at the given row and column.
+         	  * @param height {Number} the new height in pixels.
+         	  * @param rowIndex {Number} the row location of the target window.
+         	  * @param colIndex {Number} the column location of the target window.
+         	  */
          	setAreaHeight : function( height, rowIndex, colIndex ){
          		var heightSet = false;
         		 if ( this.m_areaFirst != null ){
@@ -233,7 +448,14 @@ qx.Class.define("skel.widgets.DisplayArea",
         		 }
         		 return heightSet;
          	},
-         	 
+         	
+         	 /**
+        	  * Sets the width of the window located at the given row and column.
+        	  * @param width {Number} the new width in pixels.
+        	  * @param rowIndex {Number} the row location of the target window.
+        	  * @param colIndex {Number} the column location of the target window.
+        	  */
+         	
          	setAreaWidth : function( width, rowIndex, colIndex ){
          		var widthSet = false;
          		if ( this.m_areaFirst != null ){

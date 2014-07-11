@@ -1,10 +1,17 @@
 #include "ServerConnector.h"
 #include "common/misc.h"
 #include "common/MyQApp.h"
+#include "common/State/StateLibrary.h"
+#include "common/State/StateXmlRestorer.h"
+#include "StateXmlWriter.h"
+
 
 #include <QTimer>
 #include <QImage>
+#include <QXmlInputSource>
 #include <QDebug>
+
+#include <functional>
 
 // define convenience conversion between CSI::String and QString
 // accomplished by going to std::string as an intermediate step
@@ -28,17 +35,28 @@ ServerConnector::ServerConnector()
     m_initialized = false;
 }
 
-bool ServerConnector::initialize()
+void OnPWStateInitialized(CSI::PureWeb::Server::StateManager &, CSI::EmptyEventArgs &)
+{
+    qDebug() << "State manager is now initialized";
+}
+
+
+void ServerConnector::initialize(const InitializeCallback & cb)
 {
     try {
+        // start with unintialized state
+        Q_ASSERT_X( ! m_initialized, "ServerConnector::initialize()", "Calling initialize twice?");
+
         // Initialize PureWeb libraries
         CSI::Library::Initialize();
+
         // this thread is the UI thread
         CSI::Threading::UiDispatcher::InitMessageThread();
 
         // Create PureWeb object instances
         m_server = new CSI::PureWeb::Server::StateManagerServer();
         m_stateManager = new CSI::PureWeb::Server::StateManager("pingpong");
+        m_stateManager-> Initialized() += OnPWStateInitialized;
 
         m_stateManager->PluginManager().RegisterPlugin(
                     "QtMessageTickler", new QtMessageTickler());
@@ -46,43 +64,105 @@ bool ServerConnector::initialize()
         m_server->ShutdownRequested() += OnPureWebShutdown;
 
         // extract URL encoded arguments
-        qDebug() << "PureWeb startup parameters3:";
         for( auto kv : m_server-> StartupParameters()) {
             QString key = kv.first.ToAscii().begin();
             QString val = kv.second.ToAscii().begin();
             m_urlParams[ key ] = val;
-            qDebug() << key << "=" << val;
+            //qDebug() << key << "=" << val;
         }
 
         // register generic command listener
         CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
                 "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
 
+        m_initialized = true;
     }
     catch ( ... ) {
         qCritical() << "Could not initialize PureWeb";
-        return false;
     }
 
-    qDebug() << "Command line args2: " << MyQApp::arguments();
-
-    m_initialized = true;
-    return true;
+    // schedule the callback immediately, as we already know if we succeeded or not
+    defer( std::bind( cb, m_initialized));
 } // initialize
 
-void ServerConnector::setState(const QString &path, const QString &value)
+/*void ServerConnector::setState(const QString &path, const QString &value)
 {
     Q_ASSERT( m_initialized);
 
     std::string pwpath = path.toStdString();
     std::string pwval = value.toStdString();
     m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
-}
+}*/
 
-QString ServerConnector::getState(const QString &path)
+void ServerConnector::setState(const StateKey& state, const QString& pageId, const QString &value)
 {
     Q_ASSERT( m_initialized);
+    QString path = StateLibrary::instance()->getPath( state, pageId);
+    std::string pwpath = path.toStdString();
+    std::string pwval = value.toStdString();
+    m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
+}
 
+/// Initialize the state from a file.
+bool ServerConnector::readState( const QString& saveName ){
+	bool successfulRead = true;
+	QString fileName( getStatePath( saveName ) );
+	QFile file( fileName );
+	if ( !file.open( QIODevice::ReadOnly) ){
+		qDebug() << "StateXmlContentHandler could not open the file " << fileName<<" for writing.";
+		successfulRead = false;
+	}
+	else {
+		QXmlInputSource fileSource( &file );
+		QXmlSimpleReader xmlReader;
+		StateXmlRestorer contentHandler( this );
+		xmlReader.setContentHandler( &contentHandler );
+		successfulRead = xmlReader.parse( fileSource );
+	}
+	return successfulRead;
+}
+
+QString ServerConnector::getStatePath( const QString& saveName ) const {
+	//TODO: generalize this.
+	return "/tmp/"+saveName + ".xml";
+}
+
+bool ServerConnector::saveState(const QString& saveName) const {
+	CSI::String stateStr = m_stateManager->XmlStateManager().ToString();
+	QString stateQ = toQString( stateStr );
+	QXmlInputSource source;
+	source.setData(stateQ);
+	QXmlSimpleReader xmlReader;
+	QString fileName( getStatePath( saveName ));
+	StateXmlWriter contentHandler( fileName );
+	xmlReader.setContentHandler( &contentHandler );
+	bool ok = xmlReader.parse( source );
+	return ok;
+}
+
+QString ServerConnector::toQString( const CSI::String source) const {
+	std::string treeValueStr = source.As<std::string>();
+	QString treeValueQ = treeValueStr.c_str();
+	return treeValueQ;
+}
+
+/*QString ServerConnector::getState(const QString &path)
+{
+    Q_ASSERT( m_initialized);
+    qDebug() << "GETSTATE path2="<<path;
+    std::string pwpath = path.toStdString();
+    auto pwval = m_stateManager->XmlStateManager().GetValue( pwpath);
+    if( !pwval.HasValue()) {
+        return QString();
+    }
+    std::string val = pwval.ValueOr( "").As<std::string>();
+    return val.c_str();
+}*/
+
+QString ServerConnector::getState(const StateKey& state, const QString& id)
+{
+    Q_ASSERT( m_initialized);
+    QString path = StateLibrary::instance()->getPath( state, id );
     std::string pwpath = path.toStdString();
     auto pwval = m_stateManager->XmlStateManager().GetValue( pwpath);
     if( !pwval.HasValue()) {
@@ -92,6 +172,7 @@ QString ServerConnector::getState(const QString &path)
     return val.c_str();
 }
 
+
 IConnector::CallbackID ServerConnector::addCommandCallback(const QString &cmd, const IConnector::CommandCallback &cb)
 {
     m_commandCallbackMap[cmd].push_back( cb);
@@ -100,7 +181,7 @@ IConnector::CallbackID ServerConnector::addCommandCallback(const QString &cmd, c
 
 void ServerConnector::OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer &, CSI::EmptyEventArgs &)
 {
-    std::cerr << "OnPureWebShutdown() called\n";
+    qDebug() << "PureWeb is shutting down...";
     QApplication::exit();
 }
 
@@ -109,7 +190,7 @@ void ServerConnector::genericCommandListener(CSI::Guid sessionid, const CSI::Typ
     std::string cmd = command["cmd"].As<std::string>();
     std::string params = command["params"].As<std::string>();
 
-    std::cerr << "Generic command: " << cmd << " " << params << "\n";
+    //qDebug() << "Generic command: " << cmd.c_str() << " " << params.c_str();
 
     auto & allCallbacks = m_commandCallbackMap[ cmd.c_str()];
     QStringList results;
@@ -158,10 +239,10 @@ void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &va
     QString path = val.Path().As< QString >();
     QString newVal = val.NewValue().As< QString >();
 
-    qDebug() << "internalValueChangedCB\n"
+    /*qDebug() << "internalValueChangedCB\n"
              << "  path = " << path << "\n"
              << "  newValue = " << newVal << "\n";
-
+*/
     defer( [ path, newVal, this ] () {
         auto & callbacks = m_stateCallbackList[ path];
         for( auto & cb : callbacks) {
@@ -267,9 +348,7 @@ void ServerConnector::registerView(IView *view)
     viewImageFormat.Alignment = 4;
 
     std::string vn = view->name().toStdString();
-    std::cerr << "vn = " << vn << "\n";
-    std::cerr << "view =" << reinterpret_cast<uint64_t>(view) << "\n";
-    std::cerr << "registering view '" << view->name() << "'\n";
+
     // TODO: resource leak (only if we destroy a connector...)
     PWIViewConverter * cvt = new PWIViewConverter( view);
 
@@ -290,24 +369,3 @@ void ServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
     qFatal( "Not implemented");
 }
 
-// this is dealyed pureweb callback, here we do the actual work of calling
-// registered handlers
-//void ServerConnector::delayedInternalValueChangedCB( CSI::ValueChangedEventArgs val)
-//{
-//    std::cerr << "delayedInternalValueChangedCB\n"
-//              << "  path = " << val.Path().As<std::string>() << "\n"
-//              << "  newValue = " << val.NewValue() << "\n";
-
-//    // here we call the actual callbacks
-//    QString path = val.Path().As< QString >();
-//    QString newVal = val.NewValue().As< QString >();
-
-//    auto & callbacks = m_stateCallbackList[ path];
-//    for( auto & cb : callbacks) {
-//        cb( path, newVal);
-//    }
-
-//}
-
-// required for queued connections
-//Q_DECLARE_METATYPE( CSI::ValueChangedEventArgs )

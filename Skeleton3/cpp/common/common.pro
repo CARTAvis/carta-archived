@@ -5,7 +5,7 @@
 TEMPLATE = lib
 
 CONFIG += staticlib
-QT += widgets
+QT += widgets xml
 
 HEADERS += \
     IConnector.h \
@@ -17,14 +17,19 @@ HEADERS += \
     MyQApp.h \
     CallbackList.h \
     PluginManager.h \
+    DataController.h \
     IPlugin.h \
     Nullable.h \
     IImage.h \
     Globals.h \
     Algorithms/Graphs/TopoSort.h \
-    GlobalSettings.h \
     stable.h \
-    CmdLine.h
+    CmdLine.h \
+    MainConfig.h \
+    State/State.h \
+    State/StateKey.h \
+    State/StateLibrary.h \
+    State/StateXmlRestorer.h
 
 SOURCES += \
     Viewer.cpp \
@@ -32,12 +37,18 @@ SOURCES += \
     MyQApp.cpp \
     CallbackList.cpp \
     PluginManager.cpp \
+    DataController.cpp \
     Globals.cpp \
     Algorithms/Graphs/TopoSort.cpp \
-    GlobalSettings.cpp \
-    CmdLine.cpp
+    CmdLine.cpp \
+    MainConfig.cpp \
+    State/State.cpp \
+    State/StateLibrary.cpp \
+    State/StateXmlRestorer.cpp
 
+INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
 
+message( "common            INCLUDEPATH=$$INCLUDEPATH")
 message( "common            PWD=$$PWD")
 message( "common         IN_PWD=$$IN_PWD")
 message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")

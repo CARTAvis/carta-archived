@@ -236,19 +236,25 @@
             m_connectionStatus = connector.CONNECTION_STATUS.CONNECTED;
         }
 
-        if( m_connectionCB != null ) {
-            m_connectionCB();
-        }
-
         // listen for changes to the state
         QtConnector.stateChangedSignal.connect( function( key, val )
         {
+            console.log( "stateUpdate", key, val);
             var st = getOrCreateState( key );
             // save the value
             st.value = val;
             // now go through all callbacks and call them
             st.callbacks.callEveryone( st.value );
         });
+
+        // let the c++ connector know we are ready
+        QtConnector.jsConnectorReadySlot();
+
+        if( m_connectionCB != null ) {
+            setZeroTimeout( m_connectionCB);
+//            m_connectionCB();
+        }
+
     };
 
     connector.disconnect = function()

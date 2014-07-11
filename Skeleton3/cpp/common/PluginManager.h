@@ -59,7 +59,7 @@ public:
     }
 
     /// execute all plugins and return an array of results (for every plugin that answered)
-    std::vector<typename T::ResultType> vector();
+//    std::vector<typename T::ResultType> vector();
 
     /// keep executing plugins until one answers
     Nullable<typename T::ResultType> first() {
@@ -90,6 +90,7 @@ protected:
 
 };
 
+typedef QString VersionInfo;
 
 class PluginManager
 {
@@ -97,22 +98,43 @@ public:
 
     /// this is what the plugin manager keeps about each plugin
     struct PluginInfo {
-
-        IPlugin * rawPlugin;
-        QString path;
-
+        /// pointer to the actual plugin implementation once loaded
+        IPlugin * rawPlugin = nullptr;
+        /// full path to the .so
+        QString soPath;
+        /// full directory of the plugin
+        QString dirPath;
+        /// name of the plugin (as parsed from .json)
+        QString name;
+        /// version of the plugin (as parsed from .json)
+        VersionInfo version;
+        /// type of the plugin (as parsed from .json)
+        QString typeString;
+        /// description of the plugin (as parsed from .json)
+        QString description;
+        /// about of the plugin (as parsed from .json)
+        QString about;
+        /// lsit of depenencies of the plugin (as parsed from .json)
+        QStringList depends;
+        /// errors indicating why plugin could not be loaded
+        /// this means that if errors is not empty, the plugin could not be
+        /// parsed
+        QStringList errors;
+        /// library paths (for "cpp" and "lib" type plugins)
+        QStringList libPaths;
     };
 
+    /// constructor - does not currently do anything interesting at all
     PluginManager();
-
-//    void loadConfig( const QString & /*fileName*/) {}
 
     /// set the plugin search directories
     void setPluginSearchPaths( const QStringList & pathList);
 
     /// find and load plugins from the specified directories
     void loadPlugins();
-    const std::vector< PluginInfo *> & getInfoList() { return m_allPlugins; }
+
+    /// return information about all plugins
+    const std::vector<PluginInfo> & getInfoList();
 
     ///
     /// Prepare the execution of the hook
@@ -138,20 +160,32 @@ protected:
         return m_hook2plugin[ id];
     }
 
+    /// find all plugins in the provided search paths and parse their
+    /// cooresponding .json files
+    std::vector< PluginInfo > findAllPlugins();
 
-    void processPlugin( QObject * plugin, QString path = QString() );
+    /// parse a plugin directory i.e. the json file
+    /// if cpp or lib plugin, see if the plugin
+    /// has .so file and/or any libraries
+    PluginInfo parsePluginDir( const QString & dirName);
 
-private:
+    /// attempt to load a native plugin
+    void loadNativePlugin( PluginInfo & pInfo);
 
+    /// process a CPP plugin once its .so has been loaded
+    //void processLoadedCppPluginOld( QObject * plugin, QString path = QString());
 
     // TODO: we should probably use std::vector for little more performance
     // but that means we'll need to ensure consecutive numbering of hooks...
-    /// list of plugins registered for a each hook
+    /// list of plugins registered per hook
 //    std::vector< std::vector< PluginInfo *> > m_hook2plugin;
     std::map< HookId, std::vector< PluginInfo *> > m_hook2plugin;
 
-    /// unique list of all loaded plugins
-    std::vector< PluginInfo *> m_allPlugins;
+    /// list of all discovered plugins
+    std::vector< PluginInfo > m_discoveredPlugins;
+
+    /// list of all loaded plugins (pointers to m_discoveredPlugins)
+    std::vector< PluginInfo *> m_allLoadedPlugins;
 
     template<typename T> friend class HookHelper;
 
@@ -165,7 +199,6 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
 {
     qDebug() << "forEachCond";
     // get the list of plugins that claim they handle this hook
-//    /*constexpr*/ int hookId = Hook2Int<T>();
     HookId hookId = T::StaticHookId;
     qDebug() << "  static hook id = " << hookId;
     auto pluginList = m_pm-> listForHook( hookId);
@@ -175,7 +208,11 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     T hookData( & m_params);
 
     for( auto pluginInfo : pluginList) {
-        qDebug() << "  calling..." << pluginInfo-> path.right(40);
+        qDebug() << "  calling..." << pluginInfo-> name
+
+
+
+                    ;
         bool handled = pluginInfo-> rawPlugin-> handleHook( hookData);
         // skip to the next plugin immediately if this hook was not handled by
         // this plugin
@@ -193,13 +230,14 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     }
 }
 
-template <typename T>
-std::vector<typename T::ResultType> HookHelper<T>::vector() {
-    std::vector<typename T::ResultType> res;
-    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
-        res.push_back( res);
-        return true;
-    };
-    forEachCond( wrapper);
-    return res;
-}
+
+//template <typename T>
+//std::vector<typename T::ResultType> HookHelper<T>::vector() {
+//    std::vector<typename T::ResultType> res;
+//    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
+//        res.push_back( res);
+//        return true;
+//    };
+//    forEachCond( wrapper);
+//    return res;
+//}

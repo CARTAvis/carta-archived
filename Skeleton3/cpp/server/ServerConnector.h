@@ -53,6 +53,8 @@ public:
 
     void Uninitialize() { ; }
 
+
+
 private:
     CSI::Collections::List<CSI::PureWeb::Server::ResponseInfo> m_empty;
     CSI::PureWeb::Server::StateManager * m_pStateManager;
@@ -73,13 +75,21 @@ public:
 
     /// initialize connector
     /// establish connection to the client, parse url arguments
-    virtual bool initialize() Q_DECL_OVERRIDE;
+    virtual void initialize(const InitializeCallback & cb) Q_DECL_OVERRIDE;
 
     /// set a state 'path' to 'value'
-    virtual void setState(const QString & path, const QString & value) Q_DECL_OVERRIDE;
+    virtual void setState(/*const QString & path*/const StateKey& state,
+    		const QString& id, const QString & value) Q_DECL_OVERRIDE;
 
     /// retrieve a state value
-    virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
+    virtual QString getState(/*const QString &path*/const StateKey& state, const QString& id) Q_DECL_OVERRIDE;
+
+    /// save the state tree.
+    virtual bool saveState( const QString& saveName ) const Q_DECL_OVERRIDE;
+
+    /// Initialize the state from a file.
+    virtual bool readState( const QString& fileName ) Q_DECL_OVERRIDE;
+
 
     /// add a command callback
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
@@ -136,6 +146,13 @@ protected:
     // whether initialize was called
     bool m_initialized;
 
+private:
+
+    /// Return the location where the state is saved.
+    QString getStatePath( const QString& saveName ) const;
+
+    void print( CSI::Typeless treeRoot ) const;
+    QString toQString( const CSI::String source) const;
 };
 
 #endif // SERVERCONNECTOR_H
