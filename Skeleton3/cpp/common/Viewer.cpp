@@ -240,7 +240,7 @@ void Viewer::start()
     auto infoList = pm-> getInfoList();
     qDebug() << "List of plugins: [" << infoList.size() << "]";
     for( const auto & entry : infoList) {
-        qDebug() << "  path:" << entry.name;
+        qDebug() << "  path:" << entry.json.name;
     }
 
     // tell all plugins that the core has initialized
@@ -324,10 +324,10 @@ void Viewer::start()
         for( auto & entry : infoList) {
             qDebug() << "  path:" << entry.soPath;
             QString path = QString( "/pluginList/p%1/").arg(ind);
-            connector-> setState( path + "name", entry.name);
-            connector-> setState( path + "description", entry.description);
-            connector-> setState( path + "type", entry.typeString);
-            connector-> setState( path + "version", entry.version);
+            connector-> setState( path + "name", entry.json.name);
+            connector-> setState( path + "description", entry.json.description);
+            connector-> setState( path + "type", entry.json.typeString);
+            connector-> setState( path + "version", entry.json.version);
 //            connector-> setState( path + "dirPath", entry.dirPath);
             connector-> setState( path + "errors", entry.errors.join("|"));
             ind ++;

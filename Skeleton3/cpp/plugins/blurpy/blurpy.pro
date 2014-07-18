@@ -5,7 +5,8 @@
 TEMPLATE = aux
 
 OTHER_FILES += \
-    plugin.json
+    plugin.json \
+    blurpy.py
 
 # list files to copy to compile output in MYFILES
 
@@ -14,6 +15,7 @@ OTHER_FILES += \
 # your have to re-run qmake after that explicitly, not just make
 #MYFILES = $$files($${PWD}/files/*.*)
 MYFILES  = plugin.json
+MYFILES += $$files($${PWD}/*.py)
 copy_files.name = copy large files
 copy_files.input = MYFILES
 copy_files.output = $${OUT_PWD}/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
@@ -29,4 +31,5 @@ copy_libs.output = $${OUT_PWD}/libs/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
 copy_libs.commands = ${COPY_FILE} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy_libs.CONFIG += no_link target_predeps
 QMAKE_EXTRA_COMPILERS += copy_libs
+
 
