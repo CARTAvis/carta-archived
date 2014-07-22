@@ -58,8 +58,10 @@ cdef public bool pb_hasPreRenderHook( int id):
     return mods[id].hasPreRenderHook()
 
 # from cython cimport view
-# cimport numpy as np
-#import numpy as np
+cimport numpy as np
+import numpy as np
+
+np.import_array()
 
 
 # cdef public bool pb_callPreRenderHook( int id, int w, int h, const char * data):
@@ -70,16 +72,32 @@ cdef public bool pb_hasPreRenderHook( int id):
 #     print( "first bytes:", my_array[0,0])
 #     return True
 
-cdef public bool pb_callPreRenderHook( int id, int w, int h, vector[char] & data):
-    print("pb_callPreRenderHook id=", id, w, h, data.size())
-    data[0] = 123
+# cdef public bool pb_callPreRenderHook( int id, int w, int h, vector[char] & data):
+#     print("pb_callPreRenderHook id=", id, w, h, data.size())
+#     data[0] = 123
+#     if not id in mods:
+#         print("!!! could not find mod", id)
+#         return False
+#     print("weird", hasattr( mods[id].loadedMod, 'preRenderHook'), mods[id], mods[id].loadedMod)
+#     newData = mods[id].loadedMod.preRenderHook(w, h, data)
+#     for i, x in enumerate(newData):
+#         data[i] = newData[i]
+#
+#     return True
+
+cdef public bool pb_callPreRenderHook( int id, int w, int h, int stride, unsigned char * data):
+    print("pb_callPreRenderHook id=", id, w, h)
     if not id in mods:
         print("!!! could not find mod", id)
         return False
     print("weird", hasattr( mods[id].loadedMod, 'preRenderHook'), mods[id], mods[id].loadedMod)
-    newData = mods[id].loadedMod.preRenderHook(w, h, data)
-    for i, x in enumerate(newData):
-        data[i] = newData[i]
+    cdef int len = w * h * 3
+    # cdef unsigned char[::1] mv = <unsigned char[:len]> data
+    cdef unsigned char[:,:,:] mv = <unsigned char[:h,:w,:3]> data
+    mv.strides[0] = stride
+    nv = np.asarray( mv)
+    # nv.shape = (h,w,3)
+    mods[id].loadedMod.preRenderHook(w, h, nv)
 
     return True
 

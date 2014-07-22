@@ -12,9 +12,11 @@ from random import randrange
 
 def preRenderHook(w, h, data):
     print("preRenderHook from noisepy.py", w, h, len(data))
-
-    for i, x in enumerate(data):
-        if (i // (w*3)) % 2 < 1:
-           data[i] = 0
-
-    return data
+#    myShape = data.reshape(h,w,3)
+    myShape = data
+    for y in range(0,h):
+        if y % 2 < 1:
+            myShape[y,...] = 0
+#    for i, x in enumerate(data):
+#        if (i // (w*3)) % 10 < 5:
+#           data[i] = 0
