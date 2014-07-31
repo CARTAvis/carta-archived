@@ -5,8 +5,7 @@
 
 /**
 
- @ignore(fv.assert)
- @ignore(fv.console.*)
+ 
 
  
 

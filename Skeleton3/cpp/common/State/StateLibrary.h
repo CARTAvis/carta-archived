@@ -51,8 +51,14 @@ public:
 	//Identifier for a channel.
 	static const QString CHANNEL;
 
+	//Identifier for an image.
+	static const QString IMAGE;
+
 	//Identifier for mouse information
 	static const QString MOUSE;
+
+	//Identifier for file system data
+	static const QString DATA;
 
 	//Identifier for plug-ins.
 	static const QString PLUGIN_LIST;

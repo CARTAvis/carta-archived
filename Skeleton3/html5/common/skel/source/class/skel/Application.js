@@ -89,8 +89,8 @@ qx.Class.define("skel.Application",
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                     console.log( "Connection not established yet...");
                     return;
-                }    
-             
+                }  
+                          
                 this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas());
                 this.m_mainContainer.setAppearance( "display-main");
                 this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});
@@ -108,13 +108,34 @@ qx.Class.define("skel.Application",
                 this.m_desktop.addListener("addWindowMenu", function( ev ){
                 	this.m_menuBar.addWindowMenu( ev );
                 }, this);
-                              
+             
+                qx.event.message.Bus.subscribe( "showLinks", function( message ){
+                	this._showLinks( message );
+                }, this);
                 this.m_mainContainer.addListener( "mousemove", function(ev){
                 	this.m_statusBar.showHideStatus( ev );
                 	this.m_menuBar.showHideMenu( ev );
                 }, this);
-               
+                
+                qx.event.message.Bus.subscribe( "showFileBrowser", function( message ){
+                	if ( this.m_fileBrowser == null ){
+                		this.m_fileBrowser = new skel.widgets.FileBrowser();
+                	}
+                	this.m_fileBrowser.setTarget( message.getData() );
+                	if ( this.m_mainContainer.indexOf( this.m_fileBrowser ) < 0 ){
+                		this.m_mainContainer.add( this.m_fileBrowser, { top :"15%", left: "15%"});
+                	}
+                }, this );
+                
+        		qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
+					if ( this.m_fileBrowser != null && this.m_mainContainer.indexOf( this.m_fileBrowser) >= 0 ){
+						this.m_mainContainer.remove( this.m_fileBrowser );
+					}
+				}, this );
+						
             },
+            
+           
             
             /**
              * Initialize the menu bar.
@@ -122,49 +143,41 @@ qx.Class.define("skel.Application",
             _initMenuBar : function(){
             	this.m_menuBar = new skel.widgets.MenuBar();
             	this.m_menuBar.addListener("layoutImage",function(){
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this.m_desktop.layoutImage();
             	}, this );
             	
             	this.m_menuBar.addListener("layoutImageAnalysisAnimator",function(){
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this.m_desktop.layoutImageAnalysisAnimator();
             	}, this );
             	
             	this.m_menuBar.addListener("layoutRowCount",function( ev ){
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this.m_desktop.setRowCount( ev.getData() );
             	}, this );
             	
             	this.m_menuBar.addListener("layoutColCount",function( ev ){
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this.m_desktop.setColCount( ev.getData() );
             	}, this );
             	
             	this.m_menuBar.addListener("statusAlwaysVisible",function( ev ){         		
             		this.m_statusBar.setStatusAlwaysVisible( ev.getData());
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this._repositionDesktop( ev.getData());
             	}, this );
             	
             	this.m_menuBar.addListener("menuAlwaysVisible",function( ev ){
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this._repositionDesktop( ev.getData());
             	}, this );
             	
             	this.m_menuBar.addListener("menuMoved",function( ev ){
-            		this._hideWindowLocator();
+            		this._hideWindows();
             		this._repositionDesktop();
             	}, this );
-            	
-            	this.m_menuBar.addListener("dataLoaded",function( ev ){
-            		this.m_desktop.dataLoaded(ev.getData());
-            	}, this );
-            	
-            	this.m_menuBar.addListener("dataUnloaded",function( ev ){
-            		this.m_desktop.dataUnloaded(ev.getData());
-            	}, this );
-            	
+            	            	
             	this.m_menuBar.addListener( "newWindow", function( ev ){
             		this._showWindowLocator();
             	}, this);
@@ -178,47 +191,43 @@ qx.Class.define("skel.Application",
             },
             
             /**
-             * Add an overlay showing where new windows can be added.
+             * Remove an overlay window.
              */
-            _showWindowLocator : function(){
-            	var desktopMap = this._repositionDesktop();
-            	if ( this.m_windowLocator == null ){
-            		this.m_windowLocator = new qx.ui.container.Composite();
-            		this.m_windowLocator.setLayout( new qx.ui.layout.Basic() );
-            		this.m_windowLocator.setBackgroundColor( "transparent");
-            		
+            _hideWindow : function( window ){
+            	if ( window != null ){
+            		if ( this.m_mainContainer.indexOf( window ) >= 0 ){
+            			this.m_mainContainer.remove( window );
+            		}
             	}
-            	var locations = this.m_desktop.getAddWindowLocations();
-            	for ( var i = 0; i < locations.length; i++ ){
-            		var loc = locations[i];
-            		var windowButton = new qx.ui.form.Button( "","skel/icons/blackCross.png");
-            		windowButton.setAppearance( "invisible-button");         		
-            		windowButton.splitPane = loc[2];
-            		windowButton.addListener( "execute", function(ev){
-            			this.splitPane.split();	
-            		}, windowButton);
-            		windowButton.addListener( "execute", this._hideWindowLocator, this );
-            		this.m_windowLocator.add( windowButton, {left: loc[0], top: loc[1]});
-            		windowButton.addListener( "appear", function(){
-            			var bounds = this.getBounds();
-                		var offsetLeft = bounds["left"] - bounds["width"]/2 +5;
-                		var offsetTop = bounds["top"] - bounds["height"]/2;
-                		this.setLayoutProperties( {left:offsetLeft,top:offsetTop} );
-            		}, windowButton );
-            	}
-            	this.m_mainContainer.add( this.m_windowLocator, desktopMap );
             },
             
             /**
-             * Remove the overlay showing where new windows can be added.
+             * Removes all overlay windows.
              */
-            _hideWindowLocator : function(){
+            _hideWindows : function(){
+            	this._hideWindow( this.m_windowLocator );
+            	this._hideWindow( this.m_windowLink );
             	if ( this.m_windowLocator != null ){
-            		if ( this.m_mainContainer.indexOf( this.m_windowLocator) >= 0 ){
-            			this.m_mainContainer.remove( this.m_windowLocator );
-            		}
             		this.m_windowLocator.removeAll();
             	}
+            },
+            
+            /**
+             * Iconify a window.
+             */
+            _iconifyWindow: function( ev ){
+            	this.m_statusBar.addIconifiedWindow( ev, this );
+            },
+            
+            /**
+             * A linkage between displays has either been added or removed.
+             * @param addLink {boolean} whether the link is being added or removed.
+             */
+            _linksChanged : function( addLink, ev ){
+            	var data = ev.getData();
+    			var linkSource = data["linkSource"];
+    			var linkDest = data["linkDestination"];
+    			this.m_desktop.link( linkSource, linkDest, addLink );
             },
             
             /**
@@ -253,13 +262,7 @@ qx.Class.define("skel.Application",
             	this.m_desktop.setLayoutProperties( desktopMap );
             	return desktopMap;
             },
-     
-            /**
-             * Iconify a window.
-             */
-            _iconifyWindow: function( ev ){
-            	this.m_statusBar.addIconifiedWindow( ev, this );
-            },
+            
             
             /**
              * Restore the window at the given layout row and column to its original position.
@@ -270,11 +273,81 @@ qx.Class.define("skel.Application",
             	this.m_desktop.restoreWindow( row, col );        	
             },
             
+            /**
+             * Show an overlay window displaying linkage between windows that allows
+             * the user to edit links.
+             */
+            _showLinks : function( ev ){
+            	var linkSource = ev.getData();
+            	var pluginId = linkSource["plugin"];
+            	var winId = linkSource["window"];
+            	var linkInfo = this.m_desktop.getLinkInfo( pluginId, winId );
+            	if ( this.m_windowLink == null ){
+            		this.m_windowLink = new skel.widgets.LinkCanvas();
+            		var resizeLinkWindow = function(desktop, linkWindow){
+            			var left = skel.widgets.Util.getLeft( desktop );
+                    	var top = skel.widgets.Util.getTop( desktop );
+            			linkWindow.setLinkOffsets( left, top );
+            		}
+            		resizeLinkWindow( this.m_desktop, this.m_windowLink );
+            		this.m_desktop.addListener( "resize", function(){
+            			resizeLinkWindow( this.m_desktop, this.m_windowLink );
+            		}, this );
+            		
+            		this.m_windowLink.addListener( "link", function( ev ){
+            			this._linksChanged( true, ev );
+            		}, this );
+            		this.m_windowLink.addListener( "linkRemove", function(ev){
+            			this._linksChanged( false, ev );
+            		}, this );
+            		this.m_windowLink.addListener( "linkingFinished", function( ev ){
+            			this._hideWindows();
+            		}, this );
+            	}
+            	this.m_windowLink.setDrawInfo( linkInfo );
+            	var desktopMap = this._repositionDesktop();
+            	this.m_mainContainer.add( this.m_windowLink, desktopMap ); 	
+            },
+            
+            /**
+             * Add an overlay showing where new windows can be added.
+             */
+            _showWindowLocator : function(){
+            	var desktopMap = this._repositionDesktop();
+            	if ( this.m_windowLocator == null ){
+            		this.m_windowLocator = new qx.ui.container.Composite();
+            		this.m_windowLocator.setLayout( new qx.ui.layout.Basic() );
+            		this.m_windowLocator.setBackgroundColor( "transparent");
+            		
+            	}
+            	var locations = this.m_desktop.getAddWindowLocations();
+            	for ( var i = 0; i < locations.length; i++ ){
+            		var loc = locations[i];
+            		var windowButton = new qx.ui.form.Button( "","skel/icons/blackCross.png");
+            		windowButton.setAppearance( "invisible-button");         		
+            		windowButton.splitPane = loc[2];
+            		windowButton.addListener( "execute", function(ev){
+            			this.splitPane.split();	
+            		}, windowButton);
+            		windowButton.addListener( "execute", this._hideWindows(), this );
+            		this.m_windowLocator.add( windowButton, {left: loc[0], top: loc[1]});
+            		windowButton.addListener( "appear", function(){
+            			var bounds = this.getBounds();
+                		var offsetLeft = bounds["left"] - bounds["width"]/2 +5;
+                		var offsetTop = bounds["top"] - bounds["height"]/2;
+                		this.setLayoutProperties( {left:offsetLeft,top:offsetTop} );
+            		}, windowButton );
+            	}
+            	this.m_mainContainer.add( this.m_windowLocator, desktopMap );
+            },
+               
             m_desktop: null,
             m_menuBar: null,
             m_statusBar: null,
         	m_mainContainer: null,
-        	m_windowLocator: null
+        	m_windowLocator: null,
+        	m_windowLink: null,
+        	m_fileBrowser: null
         
         }
     });

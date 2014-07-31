@@ -8,8 +8,7 @@
 
 /**
 
- @ignore(fv.assert)
- @ignore(fv.console.*)
+ 
 
  
 
@@ -27,11 +26,15 @@ qx.Class.define("skel.widgets.DisplayMain",
             	var bounds = this.getBounds();
     			this.m_height = bounds["height"];
     			this.m_width = bounds["width"];
-    			this.layoutImageAnalysisAnimator();
-    			/*this.m_gridColCount = 2;
+    			//this.layoutImageAnalysisAnimator();
+    			this.m_gridColCount = 2;
     			this.m_gridRowCount = 2;
     			this.layout( 2, 2);
-    			this.initializeDisplays();*/
+    			//this.initializeDisplays();
+    			this.m_pane.setView( "casaLoader", 0, 0 );
+    			this.m_pane.setView( "casaLoader", 1, 0 );
+    			this.m_pane.setView( "animator", 0, 1 );
+    			this.m_pane.setView( "statistics", 1, 1);
             	
             	this.addListener("resize",function(){
             		//this._resizeContent();
@@ -103,10 +106,23 @@ qx.Class.define("skel.widgets.DisplayMain",
     		
     			this.m_pane.setView( "statistics", 1, 1);
     			this.m_pane.setAreaWidth( Math.floor( this.m_width * (1-imagePercent)), 1, 1);
-    			this.m_pane.link( 0, 0, 1, 1);
+    			//this.m_pane.link( 0, 0, 1, 1);
     			
     			this.m_pane.setView( "animator", 2, 1);
     			this.m_pane.setAreaWidth( Math.floor( this.m_width * (1-imagePercent)), 2, 1);
+        	},
+        	
+        	/**
+        	 * Adds or removes the link from the window identified by the sourceWinId to the
+        	 * window identified by the destWinId.
+        	 * @param sourceWinId {String} an identifier for the window representing the source of the link.
+        	 * @param destWinId {String} an identifier for the window representing the destination of the link.
+        	 * @param addLink {boolean} true if the link should be added; false otherwise.
+        	 */
+        	link : function( sourceWinId, destWinId, addLink ){
+        		if ( this.m_pane != null ){
+        			this.m_pane.changeLink( sourceWinId, destWinId, addLink );
+        		}
         	},
         	
         	/**
@@ -125,14 +141,16 @@ qx.Class.define("skel.widgets.DisplayMain",
         			this.m_pane.addListener( "iconifyWindow", function(ev){
         				this.fireDataEvent( "iconifyWindow", ev.getData()); 
         			}, this);
-        			this.m_pane.addListener( "windowSelected", function(ev){
-        				var selectedWindow = ev.getData();
+        		
+        			qx.event.message.Bus.subscribe( "drawModeChanged", this._drawModeChanged, this );
+        			qx.event.message.Bus.subscribe( "windowSelected", function( message ){
+        				var selectedWindow = message.getData();
         				this.m_pane.windowSelected( selectedWindow);
         				var menuButtons = selectedWindow.getWindowMenu();
         				this.fireDataEvent( "addWindowMenu", menuButtons );
-        			}, this);
-        				
-        	
+                    }, this);
+        			
+        		
         			var displayArea = this.m_pane.getDisplayArea();
         			
         			this.add( displayArea );
@@ -212,6 +230,28 @@ qx.Class.define("skel.widgets.DisplayMain",
            	 }
             },
             
+            
+            /**
+             * Returns a list of information concerning windows that can be linked to
+             * the given source window showing the indicated plug-in.
+             * @param pluginId {String} the name of the plug-in.
+             * @param sourceWinId {String} an identifier for the window displaying the
+             * 	plug-in that wants information about the links that can emanate frome it.
+             */
+            getLinkInfo: function( pluginId, sourceId){
+            	var linkInfo = [];
+            	if ( this.m_pane != null ){
+            		linkInfo = this.m_pane.getLinkInfo( pluginId, sourceId );
+            	}
+            	return linkInfo;
+            },
+            
+            _drawModeChanged : function( ev ){
+            	if ( this.m_pane != null ){
+            		this.m_pane.setDrawMode( ev.getData() );
+            	}
+            },
+            
             /**
              * Clears out the existing windows.
              */
@@ -221,6 +261,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         			this.removeAll();
         		}   	
             },
+            
         
         	m_pane : null,
         	m_height : 0,

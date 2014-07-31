@@ -35,7 +35,6 @@ qx.Class.define( "skel.boundWidgets.View",
             var setZeroTimeout = mImport( "setZeroTimeout");
 
 
-
             // listen for appear event, because the html is not generated until the widget
             // appears
             var appearListenerId = this.addListener("appear", function (e) {
@@ -59,6 +58,7 @@ qx.Class.define( "skel.boundWidgets.View",
 
             }, this);
 
+        
         },
 
         events: {
@@ -77,6 +77,8 @@ qx.Class.define( "skel.boundWidgets.View",
                     outline: 0
                 });
             },
+            
+            
 
             m_viewName: null,
             m_iview: null,

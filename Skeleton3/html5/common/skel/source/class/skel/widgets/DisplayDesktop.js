@@ -4,11 +4,6 @@
 
 /**
 
- @ignore(fv.assert)
- @ignore(fv.console.*)
-
-
-
  ************************************************************************ */
 
 
@@ -31,8 +26,7 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 	},
 
 	events: {
-		"iconifyWindow": "qx.event.type.Data",
-		"windowSelected": "qx.event.type.Data"
+		"iconifyWindow": "qx.event.type.Data"
 	},
 
 	members: {
@@ -83,19 +77,17 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 			return winId;
 		},
 
+		
 		/**
-		 * Links this display to the one identified by the link parameter provided the
-		 * passed in location matches the location of its managed window.
-		 * @param row {Number} a row location on the screen.
-		 * @param col {Number} a column location on the screen.
-		 * @param link {String} an identifier for another window.
-		 */
-		setLinkId : function( row, col, link ){
+    	 * Returns true if the link from the source window to the destination window was successfully added or removed; false otherwise.
+    	 * @param sourceWinId {String} an identifier for the link source.
+    	 * @param destWinId {String} an identifier for the link destination.
+    	 * @param addLink {boolean} true if the link should be added; false if the link should be removed.
+    	 */
+		changeLink : function( sourceWinId, destWinId, addLink ){
 			var linkSet = false;
-			if ( this.m_row == row && this.m_col == col ){
-				if ( this.m_window != null ){
-					linkSet = this.m_window.setLinkId( link );
-				}
+			if ( this.m_window != null ){
+				linkSet = this.m_window.changeLink( sourceWinId, destWinId, addLink );
 			}
 			return linkSet;
 		},
@@ -142,6 +134,9 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 			}
 
 			if ( this.m_window != null ){
+				if ( this.m_window.getPlugin() == pluginId ){
+					return true;
+				}
 				this.removeWindows();
 				this.m_window = null;
 			}
@@ -160,10 +155,6 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 				};
 			}, this );
 
-			this.m_window.addListener( "windowSelected", function(ev){
-				this.fireDataEvent( "windowSelected", ev.getData());
-			},this );
-
 			this.m_window.addListener("maximizeWindow", function(){
 				var appRoot = this.getApplicationRoot();
 				appRoot.add( this.m_window );
@@ -172,26 +163,21 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 			this.m_window.addListener("restoreWindow", function(){
 				this.restoreWindow(this.m_window.getIdentifier());
 			}, this );
-
-
-
+	
 			this.m_window.addListener("closeWindow", function(){
 				this.exclude();
 			}, this );
-
-
-			this.addListener( "resize", function(){
-				var bounds = this.getBounds();
-				this.m_window.setWidth( bounds["width"]);
-				this.m_window.setHeight( bounds["height"]);
-			});
-
-			this.m_window.addListener( "setView", function(ev){
-				this.setView( ev.getData );
-			}, this);
+			
+			this.addListener( "resize", this._resetWindowSize, this);
+			qx.event.message.Bus.subscribe( "setView", function( message ){
+				var data = message.getData();
+				this.setView( data["plugin"], data["row"], data["col"]);
+			}, this );
+			
 
 			this.m_window.setPlugin( pluginId);
 			this.add( this.m_window );
+			this._resetWindowSize();
 
 			this.m_window.open();
 			return true;
@@ -204,6 +190,17 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 		windowSelected : function( win ){
 			if ( this.m_window != null && this.m_window != win ){
 				this.m_window.setSelected( false, false );
+			}
+		},
+
+		/**
+		 * Reset the size of the contained window based on the size of this Desktop.
+		 */
+		_resetWindowSize : function(){
+			var bounds = this.getBounds();
+			if ( bounds != null ){
+				this.m_window.setWidth( bounds["width"]);
+				this.m_window.setHeight( bounds["height"]);
 			}
 		},
 
@@ -312,7 +309,27 @@ qx.Class.define("skel.widgets.DisplayDesktop",
 			 }
 		 },
 
-
+		 setDrawMode: function( drawInfo ){
+        	 if ( this.m_window != null ){
+        		 this.m_window.setDrawMode( drawInfo );
+        	 }
+         },
+         
+         /**
+          * Returns a list of information concerning windows that can be linked to
+          * the given source window showing the indicated plug-in.
+          * @param pluginId {String} the name of the plug-in.
+          * @param sourceWinId {String} an identifier for the window displaying the
+          * 	plug-in that wants information about the links that can emanate frome it.
+          */
+         getLinkInfo: function( pluginId, sourceWinId ){
+        	 var linkInfo = [];
+        	 if ( this.m_window != null ){
+        		 linkInfo.push(this.m_window.getLinkInfo( pluginId, sourceWinId ));
+        	 }
+        	 return linkInfo;
+         },
+         
 		 m_window: null,
 		 m_row: null,
 		 m_col: null

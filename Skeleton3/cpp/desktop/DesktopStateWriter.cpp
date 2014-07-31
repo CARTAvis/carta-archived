@@ -13,7 +13,6 @@ DesktopStateWriter::DesktopStateWriter(const QString& filePath)
 }
 
 void DesktopStateWriter::addPathData( const QString& path, const QString& value ){
-	qDebug() << "Writer::addPathData "<<path<<" value="<<value;
 	QStringList pathParts = path.split( StateLibrary::SEPARATOR );
 	if ( pathParts.size() > 1 ){
 		if ( document.isNull()){

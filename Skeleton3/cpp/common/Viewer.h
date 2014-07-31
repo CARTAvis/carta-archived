@@ -6,8 +6,10 @@
 #pragma once
 
 #include <QObject>
+#include <QList>
 #include <memory>
 
+class DataAnimator;
 class DataController;
 
 class Viewer : public QObject
@@ -33,6 +35,13 @@ public slots:
 protected:
 
 private:
-	std::shared_ptr<DataController> m_dataController;
+	//Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
+	//keys contained in the QList and returns a vector containing their corresponding values.
+	QVector<QString> _parseParamMap( const QString& params, const QList<QString> & keys );
 
+	//A map of DataControllers requested by the client; keys are their unique identifiers.
+	std::map <QString, std::shared_ptr<DataController> > m_dataControllers;
+
+	//A map of DataAnimators requested by the client;  keys are their unique identifiers.
+	std::map <QString, std::shared_ptr<DataAnimator> > m_dataAnimators;
 };

@@ -22,7 +22,8 @@ qx.Class.define("skel.boundWidgets.PluginList",
          */
         construct: function () {
             this.m_connector = mImport( "connector");
-            this.m_sharedVar = this.m_connector.getSharedVar( "/carta/pluginList/stamp");
+            var pathDict = skel.widgets.Path.getInstance();
+            this.m_sharedVar = this.m_connector.getSharedVar( pathDict.PLUGIN_LIST_STAMP );
             this.m_sharedVar.addCB( this._sharedVarCB.bind(this));
             this.base(arguments, "");
 
@@ -75,12 +76,10 @@ qx.Class.define("skel.boundWidgets.PluginList",
 
                 var newData = [];
                 var n = parseInt( val);
-                console.log( "Parsing number of plugins="+n+" val="+val);
                 for( var i = 0 ; i < val ; i ++ ) {
                     var base = "/carta/pluginList/" 
                     var pIndex = "p"+i;
                     var pluginName = base +"name/"+ pIndex;
-                    console.log( "Plugin name="+pluginName );
                     var name = this.m_connector.getSharedVar( pluginName ).get();
                     var pluginDescription = base + "description/"+pIndex;
                     var description = this.m_connector.getSharedVar( pluginDescription ).get();

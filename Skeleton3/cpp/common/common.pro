@@ -17,7 +17,6 @@ HEADERS += \
     MyQApp.h \
     CallbackList.h \
     PluginManager.h \
-    DataController.h \
     IPlugin.h \
     Nullable.h \
     IImage.h \
@@ -29,7 +28,14 @@ HEADERS += \
     State/State.h \
     State/StateKey.h \
     State/StateLibrary.h \
-    State/StateXmlRestorer.h
+    State/StateXmlRestorer.h \
+    Data/DataAnimator.h \
+    Data/DataController.h \
+    Data/DataLoader.h \
+    Data/DataSelection.h \
+    Data/Region.h \
+    Data/DataSource.h \
+    Data/Region.h
 
 SOURCES += \
     Viewer.cpp \
@@ -37,14 +43,19 @@ SOURCES += \
     MyQApp.cpp \
     CallbackList.cpp \
     PluginManager.cpp \
-    DataController.cpp \
     Globals.cpp \
     Algorithms/Graphs/TopoSort.cpp \
     CmdLine.cpp \
     MainConfig.cpp \
     State/State.cpp \
     State/StateLibrary.cpp \
-    State/StateXmlRestorer.cpp
+    State/StateXmlRestorer.cpp \
+    Data/DataAnimator.cpp \
+    Data/DataController.cpp \
+    Data/DataLoader.cpp \
+    Data/DataSelection.cpp \
+    Data/DataSource.cpp \
+    Data/Region.cpp
 
 INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
 

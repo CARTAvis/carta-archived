@@ -4,7 +4,7 @@
 #include "IConnector.h"
 #include "misc.h"
 #include "PluginManager.h"
-#include "DataController.h"
+#include "Data/DataController.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>

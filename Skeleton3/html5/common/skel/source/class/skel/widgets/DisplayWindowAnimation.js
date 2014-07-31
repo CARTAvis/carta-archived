@@ -16,10 +16,11 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         construct: function ( row, col) {
             this.base(arguments, "animator", row, col);
             this.setLayout( new qx.ui.layout.VBox(5));
+            this.m_links = [];
         },
 
         members: {
-        	
+            
         	/**
         	 * Implemented to remove the title.
         	 */
@@ -57,11 +58,8 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         	/**
         	 * Returns animation specific menu buttons.
         	 */
-        	getWindowMenu: function(){
+        	getWindowSubMenu: function(){
         		var windowMenuList = []
-        		var dataButton = new qx.ui.toolbar.MenuButton( "Data");
-        		dataButton.setMenu( this._initDataMenu() );
-        		windowMenuList.push( dataButton );
         		
         		var animationButton = new qx.ui.toolbar.MenuButton( "Animation");
         		animationButton.setMenu( this._initShowMenuWindow());
@@ -72,31 +70,12 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         	/**
         	 * Initializes animator specific items for the context menu.
         	 */
-            _initDisplaySpecific: function(){
-            	//Data
-        		this.m_dataButton = new qx.ui.menu.Button( "Data");
-        		this.m_dataButton.setMenu( this._initDataMenu() );
-        		this.m_contextMenu.add( this.m_dataButton );
-        		
-        		//Animate
+            _initDisplaySpecific: function(){	
         		this.m_showAnimationButton = new qx.ui.menu.Button( "Animate");
         		this.m_showAnimationButton.setMenu( this._initShowMenu() );
         		this.m_contextMenu.add( this.m_showAnimationButton );
             },
-            
-            /**
-             * Initializes context menu for managing data.
-             */
-            _initDataMenu : function(){
-            	var detachDataButton = new qx.ui.menu.Button( "Detach...");
-        		var attachDataButton = new qx.ui.menu.Button( "Attach...");
-        		var manageDataButton = new qx.ui.menu.Button( "Manage...");
-        		var dataMenu = new qx.ui.menu.Menu();
-        		dataMenu.add( manageDataButton );
-        		dataMenu.add( attachDataButton );
-        		dataMenu.add( detachDataButton );
-        		return dataMenu;
-            },
+          
             
             /**
              * Initializes a menu for the different animators that can be displayed
@@ -135,9 +114,10 @@ qx.Class.define("skel.widgets.DisplayWindowAnimation",
         		}
         		return showMenu;
             },
+            
+           
              
     	    m_showAnimationButton: null, 	
-    		m_dataButton: null,
     		m_supportedAnimations : ["Channel", "Image", "Region"],
     		m_checks: [],
     		m_animators: {}

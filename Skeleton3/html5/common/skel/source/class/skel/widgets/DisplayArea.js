@@ -5,8 +5,7 @@
 
 /**
 
- @ignore(fv.assert)
- @ignore(fv.console.*)
+ 
 
  
 
@@ -45,8 +44,7 @@ qx.Class.define("skel.widgets.DisplayArea",
 		
         
         events: {
-            "iconifyWindow": "qx.event.type.Data",
-            "windowSelected": "qx.event.type.Data"
+            "iconifyWindow": "qx.event.type.Data"
         },
         
         members: {
@@ -162,16 +160,15 @@ qx.Class.define("skel.widgets.DisplayArea",
         	},
         	
         	/**
-        	 * Links the window located at the given row and column to the window with the given
-        	 * link.
-        	 * @param row {Number} a row in the screen grid.
-        	 * @param col {Number} a column in the screen grid.
-        	 * @param link {String} a window identifier.
+        	 * Returns true if the link from the source window to the destination window was successfully added or removed; false otherwise.
+        	 * @param sourceWinId {String} an identifier for the link source.
+        	 * @param destWinId {String} an identifier for the link destination.
+        	 * @param addLink {boolean} true if the link should be added; false if the link should be removed.
         	 */
-        	setLinkId : function( row, col, link ){
-        		var linkSet = this.m_areaFirst.setLinkId( row, col, link );
+        	changeLink : function( sourceWinId, destWinId, addLink ){
+        		var linkSet = this.m_areaFirst.changeLink( sourceWinId, destWinId, addLink );
     			if ( !linkSet ){
-    				linkSet = this.m_areaSecond.setLinkId( row, col, link );
+    				linkSet = this.m_areaSecond.changeLink( sourceWinId, destWinId, addLink );
     			}
     			return linkSet;
         	},
@@ -357,10 +354,7 @@ qx.Class.define("skel.widgets.DisplayArea",
             		area.exclude();
             		this.fireDataEvent( "iconifyWindow",data); 	
             	 }, this);
-            	 
-            	 area.addListener( "windowSelected", function(ev){
-            		 this.fireDataEvent( "windowSelected", ev.getData());
-            	 }, this );
+            	 	
             	 this.m_pane.add( area, 1);
             	 return area;
              },
@@ -374,10 +368,7 @@ qx.Class.define("skel.widgets.DisplayArea",
             	 child.addListener( "iconifyWindow", function(ev){
             		 this.fireDataEvent( "iconifyWindow", ev.getData());
             	 }, this );
-            	 child.addListener( "windowSelected", function(ev){
-            		 this.fireDataEvent( "windowSelected", ev.getData());
-            	 }, this );
-
+            		
             	 var flex = 0;
             	 if ( lastColIndex == colIndex ){
             		 flex = 1;
@@ -408,6 +399,39 @@ qx.Class.define("skel.widgets.DisplayArea",
             	 if ( this.m_areaSecond != null ){
             		 this.m_areaSecond.dataUnloaded( path );
             	 }
+             },
+             
+             setDrawMode: function( drawInfo ){
+            	 if ( this.m_areaFirst != null ){
+            		 this.m_areaFirst.setDrawMode( drawInfo );
+            	 }
+            	 if ( this.m_areaSecond != null ){
+            		 this.m_areaSecond.setDrawMode( drawInfo );
+            	 }
+             },
+
+             /**
+              * Returns a list of information concerning windows that can be linked to
+              * the given source window showing the indicated plug-in.
+              * @param pluginId {String} the name of the plug-in.
+              * @param sourceWinId {String} an identifier for the window displaying the
+              * 	plug-in that wants information about the links that can emanate frome it.
+              */
+             getLinkInfo: function( pluginId, sourceWinId ){
+            	 var linkInfo = [];
+            	 if ( this.m_areaFirst != null ){
+            		 var firstInfo = this.m_areaFirst.getLinkInfo( pluginId, sourceWinId );
+            		 for ( var i = 0; i < firstInfo.length; i++ ){
+            			 linkInfo.push( firstInfo[i]);
+            		 }
+            	 }
+            	 if ( this.m_areaSecond != null ){
+            		 var secondInfo = this.m_areaSecond.getLinkInfo( pluginId, sourceWinId );
+            		 for ( var i = 0; i < secondInfo.length; i++ ){
+            			 linkInfo.push( secondInfo[i]);
+            		 }
+            	 }
+            	 return linkInfo;
              },
              
              /**
@@ -468,6 +492,7 @@ qx.Class.define("skel.widgets.DisplayArea",
          		}
          		return widthSet;
          	},
+         	
          	m_pane: null,
          	m_areaFirst: null,
          	m_areaSecond: null

@@ -36,8 +36,7 @@ qx.Class.define("skel.widgets.MenuBar",
         },
         
         events: {
-        	"dataLoaded": "qx.event.type.Data",
-            "dataUnloaded": "qx.event.type.Data",
+        	
             "layoutImage": "qx.event.type.Data",
             "layoutImageAnalysisAnimator": "qx.event.type.Data",
             "layoutRowCount": "qx.event.type.Data",
@@ -57,21 +56,7 @@ qx.Class.define("skel.widgets.MenuBar",
         	 */
         	_initMenu: function(){
                 
-                //Create "Data" menu
-                this.m_dataButton = new qx.ui.toolbar.MenuButton("Data");
-        		this.m_menuPart.add( this.m_dataButton );
-        		var dataMenu = new qx.ui.menu.Menu();
-        		var openButton = new qx.ui.menu.Button("Open...");
-        		openButton.addListener( "execute", function(){
-        			this.fireDataEvent( "dataLoaded", "bogusFilePath");
-        		}, this);
-        		dataMenu.add( openButton );
-        	    var closeButton = new qx.ui.menu.Button( "Close...");
-        	    closeButton.addListener( "execute", function(){
-        	    	this.fireDataEvent( "dataUnloaded", "bogusFilePath");
-        	    }, this );
-        	    dataMenu.add( closeButton );
-        	    this.m_dataButton.setMenu( dataMenu );
+            
                 
                 //Create "File" menu
                 this.m_fileButton = new qx.ui.toolbar.MenuButton("Session");
@@ -389,7 +374,6 @@ qx.Class.define("skel.widgets.MenuBar",
              m_layoutButton : null,
              m_prefButton : null,
              m_helpButton : null,
-             m_dataButton : null,
              m_menuPositionButton : true
         }
 

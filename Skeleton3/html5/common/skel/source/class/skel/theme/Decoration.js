@@ -14,6 +14,8 @@ qx.Theme.define("skel.theme.Decoration",
 
   decorations :
   {
+	 
+	  
 	  "light-border" :
       {
           style :
