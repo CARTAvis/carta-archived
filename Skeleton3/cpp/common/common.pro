@@ -25,7 +25,8 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
-    ScriptedCommandListener.h
+    ScriptedCommandListener.h \
+    PixelType.h
 
 SOURCES += \
     Viewer.cpp \

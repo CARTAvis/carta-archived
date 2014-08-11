@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Skeleton3.pro.user" afterPath="$PROJECT_DIR$/../Skeleton3.pro.user" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/server.pro" afterPath="$PROJECT_DIR$/../cpp/server/server.pro" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -222,8 +223,8 @@
           <file leaf-file-name="pluginBridge.pyx" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.7468231" vertical-offset="676" max-vertical-offset="1770">
-                  <caret line="96" column="26" selection-start-line="96" selection-start-column="26" selection-end-line="96" selection-end-column="26" />
+                <state vertical-scroll-proportion="0.43890518" vertical-offset="271" max-vertical-offset="1770">
+                  <caret line="48" column="34" selection-start-line="48" selection-start-column="34" selection-end-line="48" selection-end-column="34" />
                   <folding />
                 </state>
               </provider>
@@ -285,6 +286,7 @@
     <config-path />
   </component>
   <component name="ProjectFrameBounds">
+    <option name="x" value="-11520" />
     <option name="y" value="24" />
     <option name="width" value="1920" />
     <option name="height" value="1176" />
@@ -763,16 +765,16 @@
       <workItem from="1403753002624" duration="143000" />
       <workItem from="1403753160979" duration="22000" />
       <workItem from="1403753437185" duration="1419000" />
-      <workItem from="1405648644248" duration="21466000" />
+      <workItem from="1405648644248" duration="22664000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="183871000" />
+    <option name="totallyTimeSpent" value="185069000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
-    <editor active="true" />
+    <frame x="-11520" y="24" width="1920" height="1176" extended-state="6" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942238" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1215,8 +1217,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7468231" vertical-offset="676" max-vertical-offset="1770">
-          <caret line="96" column="26" selection-start-line="96" selection-start-column="26" selection-end-line="96" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.43890518" vertical-offset="271" max-vertical-offset="1770">
+          <caret line="48" column="34" selection-start-line="48" selection-start-column="34" selection-end-line="48" selection-end-column="34" />
           <folding />
         </state>
       </provider>

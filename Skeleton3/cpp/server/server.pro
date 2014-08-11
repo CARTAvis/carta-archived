@@ -20,7 +20,8 @@ SOURCES       = \
 
 
 # pureweb related stuff
-PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.0.0-ga/SDK/Redistributable/Libs
+#PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.0.0-ga/SDK/Redistributable/Libs
+PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.1.1/SDK/Redistributable/Libs
 
 win32:INCLUDEPATH += "$${PUREWEB_LIBS}/C++/VS2010/include"
 win32:LIBS += $${PUREWEB_LIBS}/C++/VS2010/lib/CSI.PureWeb.ImageProcessing32d.lib
