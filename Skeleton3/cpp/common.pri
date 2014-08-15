@@ -27,10 +27,10 @@ CONFIG += warn_on
 linux-*:exists(/usr/bin/ccache):QMAKE_CXX=ccache $${COMPILER}
 linux-*:exists(/usr/bin/ccache):QMAKE_LINK=ccache $${COMPILER}
 
-message( "pri            PWD=$$PWD")
-message( "pri         IN_PWD=$$IN_PWD")
-message( "pri _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
-message( "pri        OUT_PWD=$$OUT_PWD")
+#message( "pri            PWD=$$PWD")
+#message( "pri         IN_PWD=$$IN_PWD")
+#message( "pri _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
+#message( "pri        OUT_PWD=$$OUT_PWD")
 
 # the rest of the project files may use this
 PROJECT_ROOT = $$IN_PWD
