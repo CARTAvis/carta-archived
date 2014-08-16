@@ -3,13 +3,16 @@
  **/
 
 #include "catch.h"
+#include "../common/Slice.h"
 #include "../common/IImage.h"
 #include <QString>
 #include <QTextStream>
 #include <string>
 
+//typedef Slice1D Slice;
+
 static
-std::string toStr( const ViewParams::Slice::AppplyResult & ar)
+std::string toStr( const Slice1D::AppplyResult & ar)
 {
     return QString("[s:%1 c:%2 s:%3]")
             .arg( ar.start).arg( ar.count).arg( ar.step).toStdString();
@@ -17,7 +20,7 @@ std::string toStr( const ViewParams::Slice::AppplyResult & ar)
 
 struct Tester {
 
-    typedef ViewParams::Index Index;
+    typedef SliceND::Index Index;
 
     Tester() {}
     Tester( QString s) {
@@ -39,7 +42,7 @@ struct Tester {
     void run() {
 
         QTextStream extra( & m_extraInfo);
-        ViewParams::Slice slice;
+        Slice1D slice;
 
         Index expectedCount, expectedStart, expectedStep;
         Index n;
@@ -125,7 +128,7 @@ struct Tester {
 
     QString m_input;
     QString m_internalError;
-    ViewParams::Slice::AppplyResult m_result;
+    Slice1D::AppplyResult m_result;
     bool m_passed = false;
     QString m_extraInfo;
 };
@@ -198,7 +201,7 @@ TEST_CASE( "Slice testing", "[slice]" ) {
             int start = qrand() % (maxSize * 3) - maxSize;
             int end =  qrand() % (maxSize * 3) - maxSize;
             int step = qrand() % (maxSize + 5);
-            ViewParams::Slice s;
+            Slice1D s;
             QString str; QTextStream o( & str);
             o << n << "[";
             if( qrand() % 4 ) { s.start( start); o << start; }

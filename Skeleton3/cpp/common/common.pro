@@ -26,7 +26,8 @@ HEADERS += \
     CmdLine.h \
     MainConfig.h \
     ScriptedCommandListener.h \
-    PixelType.h
+    PixelType.h \
+    Slice.h
 
 SOURCES += \
     Viewer.cpp \
@@ -38,7 +39,8 @@ SOURCES += \
     Algorithms/Graphs/TopoSort.cpp \
     CmdLine.cpp \
     MainConfig.cpp \
-    ScriptedCommandListener.cpp
+    ScriptedCommandListener.cpp \
+    Slice.cpp
 
 
 message( "common            PWD=$$PWD")
