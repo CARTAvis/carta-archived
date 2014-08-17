@@ -71,7 +71,7 @@ public:
     bool isNull() const;
 
     /// type of result returned from the apply method
-    struct AppplyResult {
+    struct ApplyResult {
         /// index of the first element to extract
         /// -1 means bad result/error
         Index start;
@@ -85,20 +85,25 @@ public:
         /// convenience test for single value
         /// note, the result could still be an error...
         bool isSingle() const;
+        /// debuggable string string
+        QString toStr() const;
     };
 
     /// return starting index, count and step for the given input size n
-    AppplyResult apply( Index n);
+    ApplyResult apply( Index n);
 
-    // this is adaptation of cpython's PySlice_GetIndicesEx()
-    // https://docs.python.org/2/c-api/slice.html
-    AppplyResult cpythonApply( Index n);
+    /// this is adaptation of cpython's PySlice_GetIndicesEx()
+    /// https://docs.python.org/2/c-api/slice.html
+    ApplyResult cpythonApply( Index n);
 
+    /// formats the slice into a string
+    /// mainly useful for debugging
+    QString toStr( QString format = "[%1]") const;
 
 protected:
 
     /// positive step case calculation
-    void positiveCase( AppplyResult & res, Index n, Index off = 0);
+    void positiveCase( ApplyResult & res, Index n, Index off = 0);
 
 
     /// do we represent single index (true) or not
@@ -146,7 +151,9 @@ public:
     SliceND( std::initializer_list<Slice1D> list);
 
     /// get slice at position pos
-    Slice1D & axis( Index pos);
+    /// if such slice is not recorded, it is created (i.e. the internal
+    /// array of slices is resized)
+    Slice1D & slice( size_t pos);
 
     /// forward 1d slice start
     SliceND & start( Index start);
@@ -163,16 +170,36 @@ public:
     /// moves to the next index (same as what colon does)
     SliceND & next();
 
-    struct ApplyResult {
+    class ApplyResult {
+    public:
+        /// was there an error
         bool isError() const;
+        /// does this result represent a single (usual scalar) value?
+        /// i.e. are all 1D slices also single...
         bool isSingle() const;
-        std::vector<Slice1D::AppplyResult> dims;
+        /// return the list of 1D results for each input dimension
+        const std::vector<Slice1D::ApplyResult> & dims() const;
+        /// make a readable string
+        QString toStr() const;
+    protected:
+        std::vector<Slice1D::ApplyResult> m_results;
+        bool m_error = true;
+        bool m_single = false;
+
+        friend class SliceND;
+
     };
+
+
     /// figure out which elements to extract for the given dimensions
     /// if the numpber of supplied dimensions is greater than number of slices,
-    /// the slices are padded with defaults (i.g. ':'). If the number of supplied
-    /// dimensions is smaller than number of slices, the extra slices are ignored.
+    /// the slices are padded with defaults (ie. ':'). If the number of supplied
+    /// dimensions is smaller than number of slices, an error result is returned.
     ApplyResult apply( const std::vector<Index> & dimensions);
+
+    /// formats the slice into a string
+    /// mainly useful for debugging
+    QString toStr( QString format = "[%1]") const;
 
 protected:
 

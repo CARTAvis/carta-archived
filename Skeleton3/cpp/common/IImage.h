@@ -196,7 +196,7 @@ static void test_apis()
     ImageI *ii;
 
     Slice1D r;
-    r.start( 10).start(20).step(8);
+    r.start(10).start(20).step(8);
 
     /// simulate [3::-1,:,3]
     SliceND vp;
@@ -204,8 +204,8 @@ static void test_apis()
             .next()
             .next().index(3);
     // or
-    vp.axis(0).start(3).step(-1);
-    vp.axis(2).index(3);
+    vp.slice(0).start(3).step(-1);
+    vp.slice(2).index(3);
     // or
     typedef Slice1D S;
     SliceND vp2({ S().start(3).step(-1), S(), S(3) });

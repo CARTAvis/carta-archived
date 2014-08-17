@@ -1,5 +1,7 @@
 #include "Slice.h"
 
+#include <QStringList>
+
 
 /// ===========================================================================
 /// Slice1D
@@ -43,9 +45,9 @@ bool Slice1D::isSingleIndex() const
     return m_singleIndex;
 }
 
-Slice1D::AppplyResult Slice1D::apply(Slice1D::Index n)
+Slice1D::ApplyResult Slice1D::apply(Slice1D::Index n)
 {
-    AppplyResult res;
+    ApplyResult res;
 
     // extract step or assign default value of "1"
     // this is the same for all cases
@@ -96,9 +98,9 @@ Slice1D::AppplyResult Slice1D::apply(Slice1D::Index n)
     return res;
 }
 
-Slice1D::AppplyResult Slice1D::cpythonApply(Slice1D::Index n)
+Slice1D::ApplyResult Slice1D::cpythonApply(Slice1D::Index n)
 {
-    AppplyResult res;
+    ApplyResult res;
 
     // extract step or assign default value of "1"
     // this is the same for all cases
@@ -165,7 +167,24 @@ Slice1D::AppplyResult Slice1D::cpythonApply(Slice1D::Index n)
     return res;
 }
 
-void Slice1D::positiveCase(Slice1D::AppplyResult & res, Slice1D::Index n, Slice1D::Index off)
+QString Slice1D::toStr(QString format) const {
+    QString res;
+    if( m_start.isSet()) {
+        res += QString::number( m_start.val());
+    }
+    if( ! isSingleIndex()) {
+        res += ":";
+        if( m_end.isSet()) {
+            res += QString::number( m_end.val());
+        }
+        if( m_step.isSet()) {
+            res += ":" + QString::number( m_step.val());
+        }
+    }
+    return format.arg(res);
+}
+
+void Slice1D::positiveCase(Slice1D::ApplyResult & res, Slice1D::Index n, Slice1D::Index off)
 {
     // assuming we already have step>0, n>0 and not single index, and
     // also res.step has already been extracted
@@ -207,14 +226,25 @@ void Slice1D::positiveCase(Slice1D::AppplyResult & res, Slice1D::Index n, Slice1
 /// ===========================================================================
 
 
-bool Slice1D::AppplyResult::isError() const
+bool Slice1D::ApplyResult::isError() const
 {
     return start < 0;
 }
 
-bool Slice1D::AppplyResult::isSingle() const
+bool Slice1D::ApplyResult::isSingle() const
 {
     return count == -1;
+}
+
+QString Slice1D::ApplyResult::toStr() const
+{
+    if( isError()) {
+        return "error";
+    }
+    if( isSingle()) {
+        return QString("%1").arg(start);
+    }
+    return QString("%1+%2x%3").arg(start).arg(step).arg(count);
 }
 
 
@@ -222,13 +252,18 @@ bool Slice1D::AppplyResult::isSingle() const
 /// SliceND
 /// ===========================================================================
 
-SliceND::SliceND() {}
-
-SliceND::SliceND(std::initializer_list<Slice1D> list) {
-    m_slices = list;
+SliceND::SliceND()
+{
+    slice( 0);
 }
 
-Slice1D & SliceND::axis(SliceND::Index pos) {
+SliceND::SliceND(std::initializer_list<Slice1D> list)
+{
+    m_slices = list;
+    slice( 0);
+}
+
+Slice1D & SliceND::slice(size_t pos) {
     if( size_t(pos) >= m_slices.size()) {
         m_slices.resize( pos + 1);
     }
@@ -236,27 +271,99 @@ Slice1D & SliceND::axis(SliceND::Index pos) {
 }
 
 SliceND & SliceND::start(SliceND::Index start) {
-    axis( m_currentSlice).start( start);
+    slice( m_currentSlice).start( start);
     return * this;
 }
 
 SliceND & SliceND::end(SliceND::Index end) {
-    axis( m_currentSlice).end( end);
+    slice( m_currentSlice).end( end);
     return * this;
 }
 
 SliceND & SliceND::step(SliceND::Index step) {
-    axis( m_currentSlice).end( step);
+    slice( m_currentSlice).step( step);
     return * this;
 }
 
 SliceND & SliceND::index(SliceND::Index index) {
-    axis( m_currentSlice).index( index);
+    slice( m_currentSlice).index( index);
     return * this;
 }
 
 SliceND & SliceND::next() {
     m_currentSlice ++;
-    axis( m_currentSlice);
+    slice( m_currentSlice);
     return * this;
+}
+
+SliceND::ApplyResult SliceND::apply(const std::vector<SliceND::Index> & dimensions)
+{
+    ApplyResult res;
+
+    // if we the number of input dimensions is less than number of slices
+    // we report an error
+    if( dimensions.size() < m_slices.size()) {
+        return res;
+    }
+
+    res.m_single = true;
+    res.m_error = false;
+    for( size_t i = 0 ; i < dimensions.size() ; i ++) {
+        // appy slice[i] to dimension[i]
+        Slice1D::ApplyResult ar = slice(i).apply( dimensions[i]);
+        // add this to the results
+        res.m_results.push_back( ar);
+        // update error
+        res.m_error = res.m_error || ar.isError();
+        // update single status
+        res.m_single = res.m_single && ar.isSingle();
+    }
+    return res;
+}
+
+QString SliceND::toStr(QString format) const
+{
+    QString res;
+    for( auto  & slice : m_slices) {
+        if( ! res.isEmpty()) res.append( ',');
+        res.append( slice.toStr( "%1"));
+    }
+    return format.arg( res);
+}
+
+/// ===========================================================================
+/// SliceND::ApplyResult
+/// ===========================================================================
+
+
+bool SliceND::ApplyResult::isError() const
+{
+    return m_error;
+}
+
+bool SliceND::ApplyResult::isSingle() const
+{
+    return m_single;
+}
+
+const std::vector<Slice1D::ApplyResult> & SliceND::ApplyResult::dims() const {
+    return m_results;
+}
+
+QString SliceND::ApplyResult::toStr() const
+{
+    QString res;
+    if( isError()) {
+        res += "error";
+    }
+    if (isSingle()) {
+        res += "single";
+    }
+
+    QStringList lst, lst2;
+    for( auto & s : m_results) {
+        lst << s.toStr();
+        lst2 << QString::number( s.count);
+    }
+    return res + "{" + lst.join( ',') + "} dims=" + lst2.join("x");
 }
