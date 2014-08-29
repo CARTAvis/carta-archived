@@ -15,18 +15,51 @@
  *
  */
 
+#pragma once
+
 #include "PixelType.h"
 #include "Nullable.h"
 #include "misc.h"
 #include "Slice.h"
+#include "CoordinateFormatter.h"
+#include "CoordinateGridPlotter.h"
+#include "PlotLabelGenerator.h"
 #include <QObject>
 #include <functional>
 #include <initializer_list>
+#include <cstdint>
 
-class ImageInfo {
-    //Beam related information
-    //Miscellaneous records.
+#ifdef DONT_COMPILE
+/// coordinate related meta data
+/// purpose:
+///   - compute transformation between pixel ad world coordinates
+///   - get information about each axis in the image
+///   - provide a [in]direct mechanism for drawing a grid
+///   - offer a way to change coordinate systems (e.g. J2000 to Galactic)
+///   - offer options on formatting (eg. degrees vs sexagesimal)
+///
+/// Note: methods here could be a direct part of the ImageInfoI class but I feel
+/// this is little more modular, and fits a little better with the
+/// single purpose per class...
+///
+class CoordinateSystemI {
+public:
+    typedef std::vector<double> VD;
+
+    /// convert pixel coordinates to world coordinates
+    virtual bool toWorld(const VD& pixel, VD& world) const = 0;
+
+    /// convert world coordinates to pixel coordinates
+    virtual bool toPixel(const VD& world, VD& pixel) const = 0;
+
+    /// get information about a particular axis
+    virtual const AxisInfo& axisInfo(int axis) const = 0;
+
+    /// draw a grid over the image
+    /// TODO: this needs some thought
+    virtual void drawGrid() = 0;
 };
+#endif
 
 /// description of a unit
 class Unit {
@@ -34,17 +67,16 @@ class Unit {
 
 
 /// classes related to n-dimensional views into n-dimensional arrays
-namespace NDArrayView {
+namespace NdArray {
 
 /// \brief Interface for reading elements of multidimensional array (n-dimensional array)
 /// for arbitrary types. The intentded use of this class is the lowest interface
 /// needed to be implemented to read an array. A conversion adapter/mixin would be more
 /// convenenient to actually access the arrays.
-class RawInterface {
+class RawViewInterface {
 public:
     typedef std::vector<int> VI;
     typedef Image::PixelType PixelType;
-//    enum class DataType { Int8 = 0, Int16, Int32, Int64, Real32, Real64, Other };
 
     /// get the pixel type stored in this array accessor
     virtual PixelType pixelType() = 0;
@@ -56,44 +88,44 @@ public:
     virtual void forEach( std::function<void(const char*)>) = 0;
 
     /// virtual destructor
-    virtual ~RawInterface() {}
+    virtual ~RawViewInterface() {}
 };
 
 /// utility class - wraps a raw view into a typed view
-template < typename Type >
-class Typed
-{
-
+template <typename Type> class TypedView {
 public:
     typedef std::vector<int> VI;
 
-    Typed( RawInterface * rawView, bool keepOwnership = false)
-        : m_rawView( rawView)
-        , m_keepOwnership( keepOwnership)
+    TypedView(RawViewInterface* rawView, bool keepOwnership = false)
+        : m_rawView(rawView), m_keepOwnership(keepOwnership)
     {
-        Q_ASSERT( rawView != nullptr);
+        Q_ASSERT(rawView != nullptr);
 
         // figure out which converter to use
-        m_converterFunc = getConverter<Type>( rawView->pixelType());
+        m_converterFunc = getConverter<Type>(rawView->pixelType());
     }
 
     /// extract the data and convert it to double
-    const Type & get( const VI & pos) {
-        return m_converterFunc( m_rawView-> get(pos));
+    const Type& get(const VI& pos)
+    {
+        return m_converterFunc(m_rawView->get(pos));
     }
 
     /// forEach
-    /// TODO: investigate performance of std::function vs raw function pointer
-    void forEach( std::function<void(const Type &)> func) {
-        auto wrapper = [this, & func]( const char * ptr) -> void {
-            func( m_converterFunc(ptr));
+    /// \todo investigate performance of std::function vs raw function pointer
+    void forEach(std::function<void(const Type&)> func)
+    {
+        auto wrapper = [ this, &func ](const char * ptr)->void
+        {
+            func(m_converterFunc(ptr));
         };
-        m_rawView->forEach( wrapper);
+        m_rawView->forEach(wrapper);
     }
 
-    ~Typed() {
-        if( m_keepOwnership) {
-            Q_ASSERT( m_rawView != nullptr);
+    ~TypedView()
+    {
+        if (m_keepOwnership) {
+            Q_ASSERT(m_rawView != nullptr);
             delete m_rawView;
         }
     }
@@ -101,42 +133,72 @@ public:
 protected:
 
     /// pointer to the raw view
-    RawInterface * m_rawView;
+    RawViewInterface * m_rawView;
 
     /// are we keeping ownership of m_rawView
     bool m_keepOwnership;
 
     /// classic c-style function pointer to the converter
-    // TODO: is this faster than std::function?
+    /// \todo is this faster than std::function?
     const Type & (* m_converterFunc)( const char *);
 };
 
-typedef Typed<double> Double;
-typedef Typed<float> Float;
-typedef Typed<int8_t> Int8;
-typedef Typed<int16_t> Int16;
-typedef Typed<int32_t> Int32;
-typedef Typed<int64_t> Int64;
+/// convenience types
+typedef TypedView<double> Double;
+typedef TypedView<float> Float;
+typedef TypedView<uint8_t> Byte;
+typedef TypedView<int16_t> Int16;
+typedef TypedView<int32_t> Int32;
+typedef TypedView<int64_t> Int64;
 
 } // namespace NDArrayView
 
+namespace Image {
 
-class ImageI : public QObject
+/// \brief Interface description for accessing various metadata associated with an image.
+/// For example: beam related information, miscellaneous records.
+///
+/// The idea is to present this as an algorithm provider, rather than some predefined
+/// set of data.
+///
+/// \warning This class is still evolving.
+class MetaDataInterface {
+public:
+    /// clone yourself
+    virtual MetaDataInterface* clone() = 0;
+
+    /// get a coordinate formatter algorithm
+    virtual CoordinateFormatterInterface& coordinateFormatter() = 0;
+
+    /// get a grid plotter algorithm
+    virtual CoordinateGridPlotterInterface& coordinateGridPlotter() = 0;
+
+    /// get a labeler algorithm
+    virtual PlotLabelGeneratorInterface & plotLabelGenerator() = 0;
+
+    /// title if any (eg. TITLE in FITS)
+    virtual QString title(TextFormat format = TextFormat::Plain) = 0;
+
+    /// other data users might want to display
+    /// (eg. complete FITS header)
+    virtual QStringList otherInfo(TextFormat format = TextFormat::Plain) = 0;
+};
+
+/// Main interface class for representing an image inside the viewer. This is used to pass
+/// around images between core and plugins. For example, a plugin that can load
+/// an image would have to implement this interface.
+class ImageInterface : public QObject
 {
     Q_OBJECT
-
 public:
-
-//    enum class WhichSlice { Data, Mask, Errors, Both };
 
     /// similar to BITPIX
     typedef Image::PixelType PixelType;
-//    enum class PixelType { Int8, Int16, Int32, Int64, Real32, Real64, Other };
 
-    ImageI() : QObject() {}
+    ImageInterface() : QObject() {}
 
     /// virtual destructor to make sure we can delete arbitrary images
-    virtual ~ImageI() {}
+    virtual ~ImageInterface() {}
 
     /// get a unit of pixels (similar to BUNIT)
     virtual const Unit & getPixelUnit( ) const = 0;
@@ -148,15 +210,11 @@ public:
     /// May need to evolve.
     virtual const QString & imageType() const = 0;
 
-    /// Textual representation of the image.
-    /// TODO: what is this for again? Something the user wants to see in the title?
-//    virtual const QString & name( bool fullName ) const = 0;
-
     /// does the image have a mask attached?
     virtual bool hasMask() const = 0;
 
     /// does the image have errors attached?
-    /// TODO: are errors always per pixel? Or could they be per frame, region, etc?
+    /// \todo are errors always per pixel? Or could they be per frame, region, etc?
     virtual bool hasErrorsInfo() const = 0;
 
     /// get the data type for pixels
@@ -167,24 +225,24 @@ public:
     /// note: getErrorSlice will return views with this type
     virtual PixelType errorType() const = 0;
 
-    ///
     /// \brief get slice of data
     /// \param sliceInfo which slice to get
     /// \param result where to store result
-    ///
-    virtual void getDataSlice( const SliceND & sliceInfo, NDArrayView::RawInterface & result) = 0;
-
-//    virtual void getDataSlice( const Slicer & sliceInfo, NDArray & result) = 0;
+    virtual void getDataSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result) = 0;
 
     /// get the mask
-    /// TODO: booleans as bytes is wasting resources, we should specialize typed view for bools
-    virtual void getMaskSlice( const SliceND & sliceInfo, NDArrayView::Int8 & result) = 0;
+    /// \todo booleans as bytes is wasting resources, we should specialize
+    /// the NdArray::TypedView for bools
+    virtual void getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result) = 0;
 
-    virtual void getErrorSlice( const SliceND & sliceInfo, NDArrayView::RawInterface & result) = 0;
+    /// get the errors
+    virtual void getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result) = 0;
 
     /// The ImageInfo object contains miscellaneous information about the image
-    virtual const ImageInfo & imageInfo() const = 0;
+    virtual Image::MetaDataInterface & metaData() = 0;
 };
+
+} // namespace Image
 
 
 // API testing
@@ -193,7 +251,7 @@ __attribute__ ((unused))
 static void test_apis()
 {
     // get an image....
-    ImageI *ii;
+    Image::ImageInterface * ii;
 
     Slice1D r;
     r.start(10).start(20).step(8);
@@ -215,8 +273,8 @@ static void test_apis()
     SliceND si;
 
     // get the raw view of the data
-    NDArrayView::RawInterface * rawView;
-    ii-> getDataSlice( si, * rawView);
+    NdArray::RawViewInterface * rawView;
+    ii-> getDataSlice(si, *rawView);
 
     // access a single pixel in the data, returned in raw binary form
     const char * ptr = rawView-> get( { 1, 2, 3});
@@ -227,9 +285,9 @@ static void test_apis()
     rawView-> forEach( [ & count] (const char * /*ptr*/) { count ++; });
 
     // make a double view (from the raw view)
-    NDArrayView::Typed<double> doubleReader( rawView);
+    NdArray::TypedView<double> doubleReader( rawView);
     // or using the typedef
-    NDArrayView::Double doubleReader2( rawView);
+    NdArray::Double doubleReader2( rawView);
 
     // extract a single pixel
     double x = doubleReader2.get({ 1, 2, 3});
@@ -239,5 +297,33 @@ static void test_apis()
     double sum = 0.0;
     doubleReader.forEach( [& sum]( const double & x) { sum += x; });
 
+    // META DATA API tests:
+    // ===========================
+
+    auto & meta = ii-> metaData();
+    AxisInfo axis3 = meta.coordinateFormatter().axisInfo( 3);
+    Q_UNUSED( axis3);
+
+    typedef std::vector<double> VD;
+    VD world;
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

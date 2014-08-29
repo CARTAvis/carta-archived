@@ -11,7 +11,7 @@ namespace Image {
 
 enum class PixelType : int {
 
-    Int8 = 0,
+    Byte = 0,
     Int16,
     Int32,
     Int64,
@@ -37,10 +37,10 @@ struct PixelType2CType {};
 // specializations
 // ================================
 
-// Int8 --> int8_t
+// Byte --> uint8_t
 template <>
-struct PixelType2CType<PixelType::Int8> {
-    typedef std::int8_t type;
+struct PixelType2CType<PixelType::Byte> {
+    typedef std::uint8_t type;
 };
 
 // Real64 --> double
@@ -56,7 +56,7 @@ struct CType2PixelType {};
 
 template <>
 struct CType2PixelType <int8_t> {
-    static constexpr PixelType type = PixelType::Int8;
+    static constexpr PixelType type = PixelType::Byte;
 };
 
 template <>
@@ -92,7 +92,7 @@ template < typename DstType>
 typename Type2CvtFunc<DstType>::Type getConverter( Image::PixelType srcType)
 {
     switch (srcType) {
-    case Image::PixelType::Int8:
+    case Image::PixelType::Byte:
         return & TypedConverters< int8_t, DstType>::cvt;
         break;
     case Image::PixelType::Int16:

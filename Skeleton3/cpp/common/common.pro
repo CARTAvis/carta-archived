@@ -27,7 +27,11 @@ HEADERS += \
     MainConfig.h \
     ScriptedCommandListener.h \
     PixelType.h \
-    Slice.h
+    Slice.h \
+    CoordinateFormatter.h \
+    AxisInfo.h \
+    CoordinateGridPlotter.h \
+    PlotLabelGenerator.h
 
 SOURCES += \
     Viewer.cpp \
@@ -40,7 +44,12 @@ SOURCES += \
     CmdLine.cpp \
     MainConfig.cpp \
     ScriptedCommandListener.cpp \
-    Slice.cpp
+    Slice.cpp \
+    IImage.cpp \
+    CoordinateFormatter.cpp \
+    AxisInfo.cpp \
+    CoordinateGridPlotter.cpp \
+    PlotLabelGenerator.cpp
 
 
 message( "common            PWD=$$PWD")

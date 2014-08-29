@@ -1,10 +1,15 @@
 /**
- * Classes for describing slices of arrays, used to extract views from images.
- * The design of this was _stronly_ influenced by Python/NumPy slices.
+ * Classes for describing slices of arrays, which are used as input for algorithms that
+ * extract views from images. The design of this was _stronly_ influenced by
+ * Python/NumPy slices.
  *
- * The purpose of these classes is to offer an API to express which portions of
- * arrays to extract. The classes also offer algorithms (apply) that compute
- * the desired indices for a given dimensionality.
+ * There are two purposes of these classes:
+ *
+ *   - offer an intuitive syntax for describing slices
+ *   - include an algorithm that applies a slice to an array (apply family)
+ *
+ * Note: the apply() methods could be (and probably should be) factored out, to limit
+ * classes to a single purpose.
  *
  **/
 
@@ -85,7 +90,7 @@ public:
         /// convenience test for single value
         /// note, the result could still be an error...
         bool isSingle() const;
-        /// debuggable string string
+        /// return a human readable string
         QString toStr() const;
     };
 
@@ -187,7 +192,6 @@ public:
         bool m_single = false;
 
         friend class SliceND;
-
     };
 
 
