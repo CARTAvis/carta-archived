@@ -29,38 +29,6 @@
 #include <initializer_list>
 #include <cstdint>
 
-#ifdef DONT_COMPILE
-/// coordinate related meta data
-/// purpose:
-///   - compute transformation between pixel ad world coordinates
-///   - get information about each axis in the image
-///   - provide a [in]direct mechanism for drawing a grid
-///   - offer a way to change coordinate systems (e.g. J2000 to Galactic)
-///   - offer options on formatting (eg. degrees vs sexagesimal)
-///
-/// Note: methods here could be a direct part of the ImageInfoI class but I feel
-/// this is little more modular, and fits a little better with the
-/// single purpose per class...
-///
-class CoordinateSystemI {
-public:
-    typedef std::vector<double> VD;
-
-    /// convert pixel coordinates to world coordinates
-    virtual bool toWorld(const VD& pixel, VD& world) const = 0;
-
-    /// convert world coordinates to pixel coordinates
-    virtual bool toPixel(const VD& world, VD& pixel) const = 0;
-
-    /// get information about a particular axis
-    virtual const AxisInfo& axisInfo(int axis) const = 0;
-
-    /// draw a grid over the image
-    /// TODO: this needs some thought
-    virtual void drawGrid() = 0;
-};
-#endif
-
 /// description of a unit
 class Unit {
 };
@@ -245,8 +213,8 @@ public:
 } // namespace Image
 
 
-// API testing
-// this is never executed, only compiled for API testing
+/// API testing
+/// this is never executed, only compiled for API testing
 __attribute__ ((unused))
 static void test_apis()
 {
@@ -300,12 +268,10 @@ static void test_apis()
     // META DATA API tests:
     // ===========================
 
+    // get info about axis 3
     auto & meta = ii-> metaData();
     AxisInfo axis3 = meta.coordinateFormatter().axisInfo( 3);
     Q_UNUSED( axis3);
-
-    typedef std::vector<double> VD;
-    VD world;
 
 
 }
