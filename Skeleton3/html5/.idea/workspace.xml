@@ -5,18 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/.clang-format" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/CoordinateFormatter.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/CoordinateFormatter.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/docs/Doxyfile" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/IImage.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../.gitignore" afterPath="$PROJECT_DIR$/../../.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IImage.h" afterPath="$PROJECT_DIR$/../cpp/common/IImage.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PixelType.h" afterPath="$PROJECT_DIR$/../cpp/common/PixelType.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Skeleton3.pro.user" afterPath="$PROJECT_DIR$/../Skeleton3.pro.user" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Slice.h" afterPath="$PROJECT_DIR$/../cpp/common/Slice.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/misc.h" afterPath="$PROJECT_DIR$/../cpp/common/misc.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
@@ -297,7 +286,6 @@
     <config-path />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-11520" />
     <option name="y" value="24" />
     <option name="width" value="1920" />
     <option name="height" value="1176" />
@@ -636,15 +624,15 @@
       <workItem from="1408583429350" duration="160000" />
       <workItem from="1408584333198" duration="80000" />
       <workItem from="1408584430931" duration="37000" />
-      <workItem from="1408584774644" duration="2174000" />
+      <workItem from="1408584774644" duration="3514000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="189270000" />
+    <option name="totallyTimeSpent" value="190610000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-11520" y="24" width="1920" height="1176" extended-state="6" />
+    <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
     <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />

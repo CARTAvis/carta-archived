@@ -5,6 +5,8 @@
 #include <QDebug>
 #include <dlfcn.h>
 
+/// initializes the python bridge
+/// only does the initialization on the first call, subsequent calls are ignored
 static void initPythonBridgeOnce()
 {
     static bool alreadyInitialized = false;
@@ -14,8 +16,9 @@ static void initPythonBridgeOnce()
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
 
     Py_InitializeEx( 0); // make ctrl-c work?
-    initpluginBridge();
 
+    // call cython generated code (pluginBridge.pyx)
+    initpluginBridge();
 }
 
 PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
