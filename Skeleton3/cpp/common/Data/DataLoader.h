@@ -21,9 +21,10 @@ public:
 	 */
     static QString getData( const QString& selectionParams, const QString& sessionId );
 
-private:
-    //Return the top level directory for the data file search.
+    /// Return the top level directory for the data file search.
     static QString getRootDir( const QString& sessionId );
+
+private:
 
     //Look for eligible data files in a specific directory (recursive).
     static void processDirectory(const QDir& rootDir,  QJsonObject& rootArray );

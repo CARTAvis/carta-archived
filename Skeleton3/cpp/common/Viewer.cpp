@@ -400,7 +400,7 @@ void Viewer::start()
 
 	//Callback for adding a data source to a DataController.
 	connector->addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
+            const QString & params, const QString & sessionId) -> QString {
 		QList<QString> keys = {"id", "data"};
 		QVector<QString> dataValues = _parseParamMap( params, keys );
 		if ( dataValues.size() == keys.size()){
@@ -408,7 +408,14 @@ void Viewer::start()
 			std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[0] );
 			if ( it != m_dataControllers.end()){
 				//Add the data to it.
-				m_dataControllers[dataValues[0]]->addData( dataValues[1] );
+                QString path = dataValues[1];
+                if( ! path.startsWith( "/root/")) {
+                    /// security issue...
+                    return "";
+                }
+                path = QString( "%1/%2").arg( DataLoader::getRootDir( sessionId))
+                       .arg( path.remove( 0, 6));
+                m_dataControllers[dataValues[0]]->addData( path );
 			}
 		}
 		return "";

@@ -23,7 +23,7 @@ qx.Class.define("skel.widgets.FileBrowser",
         this.m_files.addCB( this._updateTree.bind(this) );
 		
 		var paramMap = "";
-		connector.sendCommand( "getData", paramMap, function(){} );	
+	    connector.sendCommand( "getData", paramMap, function(){} );	
 	},
 	
 	members:{
@@ -93,6 +93,7 @@ qx.Class.define("skel.widgets.FileBrowser",
 			var jsonObj = qx.lang.Json.parse( dataTree );
 			var jsonModel = qx.data.marshal.Json.createModel( jsonObj );
 			this.m_controller = new qx.data.controller.Tree( jsonModel, this.m_tree, "dir", "name");
+		    this.m_tree.getRoot().setOpen( true);
 		},
 		
 		m_tree : null,

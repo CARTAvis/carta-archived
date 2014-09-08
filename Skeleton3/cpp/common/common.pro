@@ -57,8 +57,6 @@ SOURCES += \
     Data/DataSource.cpp \
     Data/Region.cpp
 
-INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
-
 message( "common            INCLUDEPATH=$$INCLUDEPATH")
 message( "common            PWD=$$PWD")
 message( "common         IN_PWD=$$IN_PWD")

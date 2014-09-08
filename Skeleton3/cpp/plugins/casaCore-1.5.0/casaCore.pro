@@ -2,12 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-# dummy target
-TEMPLATE = app
-TARGET = dummy
-
-SOURCES += \
-    dummy.cpp
+TEMPLATE = aux
 
 OTHER_FILES += \
     plugin.json
