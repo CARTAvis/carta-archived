@@ -57,6 +57,7 @@ ParsedInfo parse(const QStringList & argv)
 
     // get a list of files to open
     info.m_fileList = parser.positionalArguments();
+    qDebug() << "list of files to open:" << info.m_fileList;
 
     return info;
 }

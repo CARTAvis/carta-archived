@@ -27,14 +27,14 @@ class TestView : public IView
 
 public:
 
-	TestView( const QString & viewName, QColor bgColor) {
-		m_qimage = QImage( 100, 100, QImage::Format_RGB888);
-		m_qimage.fill( bgColor);
-
-		m_viewName = viewName;
-		m_connector= nullptr;
-		m_bgColor = bgColor;
-	}
+    TestView( const QString & viewName, QColor bgColor) {
+	m_qimage = QImage( 100, 100, QImage::Format_RGB888);
+	m_qimage.fill( bgColor);
+	
+	m_viewName = viewName;
+	m_connector= nullptr;
+	m_bgColor = bgColor;
+    }
 
 	virtual void registration(IConnector *connector)
 	{

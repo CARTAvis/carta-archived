@@ -15,7 +15,7 @@
 MyQApp::MyQApp(int & argc, char ** argv) :
     QApplication( argc, argv)
 {
-    setApplicationName( "Skeleton3");
+    setApplicationName( "Skeleton3 something");
     setApplicationVersion( "0.0.1");
 }
 

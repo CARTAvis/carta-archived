@@ -59,7 +59,7 @@ public:
     }
 
     /// execute all plugins and return an array of results (for every plugin that answered)
-//    std::vector<typename T::ResultType> vector();
+    std::vector<typename T::ResultType> vector();
 
     /// keep executing plugins until one answers
     Nullable<typename T::ResultType> first() {
@@ -230,14 +230,13 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     }
 }
 
-
-//template <typename T>
-//std::vector<typename T::ResultType> HookHelper<T>::vector() {
-//    std::vector<typename T::ResultType> res;
-//    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
-//        res.push_back( res);
-//        return true;
-//    };
-//    forEachCond( wrapper);
-//    return res;
-//}
+template <typename T>
+std::vector<typename T::ResultType> HookHelper<T>::vector() {
+    std::vector<typename T::ResultType> res;
+    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
+        res.push_back( res);
+        return true;
+    };
+    forEachCond( wrapper);
+    return res;
+}
