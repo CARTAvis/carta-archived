@@ -4,7 +4,6 @@
 
 
 #include "PluginManager.h"
-#include "Algorithms/Graphs/TopoSort.h"
 
 #include <QDirIterator>
 #include <QImage>
@@ -15,6 +14,8 @@
 #include <QJsonParseError>
 #include <QJsonObject>
 #include <QJsonArray>
+
+#include <Algorithms/Graphs/TopoSort.h>
 
 PluginManager::PluginManager()
 {
