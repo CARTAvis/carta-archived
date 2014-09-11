@@ -59,7 +59,7 @@ public:
     }
 
     /// execute all plugins and return an array of results (for every plugin that answered)
-    std::vector<typename T::ResultType> vector();
+//    std::vector<typename T::ResultType> vector();
 
     /// keep executing plugins until one answers
     Nullable<typename T::ResultType> first() {
@@ -173,7 +173,7 @@ protected:
     void loadNativePlugin( PluginInfo & pInfo);
 
     /// process a CPP plugin once its .so has been loaded
-    //void processLoadedCppPluginOld( QObject * plugin, QString path = QString());
+//    void processLoadedCppPluginOld( QObject * plugin, QString path = QString());
 
     // TODO: we should probably use std::vector for little more performance
     // but that means we'll need to ensure consecutive numbering of hooks...
@@ -185,7 +185,7 @@ protected:
     std::vector< PluginInfo > m_discoveredPlugins;
 
     /// list of all loaded plugins (pointers to m_discoveredPlugins)
-    std::vector< PluginInfo *> m_allLoadedPlugins;
+//    std::vector< PluginInfo *> m_allLoadedPlugins;
 
     template<typename T> friend class HookHelper;
 
@@ -230,13 +230,14 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     }
 }
 
-template <typename T>
-std::vector<typename T::ResultType> HookHelper<T>::vector() {
-    std::vector<typename T::ResultType> res;
-    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
-        res.push_back( res);
-        return true;
-    };
-    forEachCond( wrapper);
-    return res;
-}
+
+//template <typename T>
+//std::vector<typename T::ResultType> HookHelper<T>::vector() {
+//    std::vector<typename T::ResultType> res;
+//    auto wrapper = [& res] (typename T::ResultType && hookResult) -> bool {
+//        res.push_back( res);
+//        return true;
+//    };
+//    forEachCond( wrapper);
+//    return res;
+//}

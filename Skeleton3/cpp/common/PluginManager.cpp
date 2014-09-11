@@ -4,6 +4,7 @@
 
 
 #include "PluginManager.h"
+#include "Algorithms/Graphs/TopoSort.h"
 
 #include <QDirIterator>
 #include <QImage>
@@ -14,8 +15,6 @@
 #include <QJsonParseError>
 #include <QJsonObject>
 #include <QJsonArray>
-
-#include <Algorithms/Graphs/TopoSort.h>
 
 PluginManager::PluginManager()
 {
@@ -162,9 +161,10 @@ void PluginManager::loadPlugins()
 //    }
 
 
-
+    /*
+     *
     // now load user installed plugins
-  /*  for( auto dirPath : m_pluginSearchPaths) {
+    for( auto dirPath : m_pluginSearchPaths) {
         qDebug() << "Looking for plugins in:" << dirPath;
         QDir dir( dirPath);
         if( ! dir.exists()) {
@@ -196,8 +196,8 @@ void PluginManager::loadPlugins()
             }
         }
     }
-*/
 
+    */
 }
 
 //const std::vector<PluginManager::PluginInfo *> & PluginManager::getInfoList()
@@ -330,12 +330,12 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
 
     // if the plugin type is c++ or lib, find all libraries under libs subdirectory
     if( info.typeString == "c++" || info.typeString == "lib") {
-        qDebug() << "Looking for libs..."<<dirName+"/libs";
+        qDebug() << "Looking for libs...";
         QDirIterator dit(
-                    dirName + "/libs");
-                    //{ "*.so", "*.so.*" },
-                    //QDir::Files | QDir::Executable,
-                    //QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+                    dirName + "/libs",
+                    { "*.so", "*.so.*" },
+                    QDir::Files | QDir::Executable,
+                    QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
         while( dit.hasNext()) {
             dit.next();
             qDebug() << "...found:" << dit.fileInfo().fileName();
@@ -358,7 +358,6 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
 
     // skip plugins with errors
     if( ! pInfo.errors.empty()) {
-    	qDebug() << "Skipping load of plugin="<<pInfo.name<<" because it has errors";
         return;
     }
 
@@ -380,10 +379,8 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         // that cannot be loaded are kept on the list
         auto listCopy = libsToLoad;
         libsToLoad.clear();
-        qDebug() << "listCopy size="<<listCopy.size();
         for( auto ind : listCopy) {
             auto libPath = pInfo.libPaths[ ind];
-            qDebug() << "LibPath="<<libPath;
             qDebug() << "    " + QFileInfo( libPath).fileName();
             QLibrary lib( libPath);
             if( ! lib.load()) {
@@ -421,7 +418,6 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
     }
 
     // for cpp plugins, try to load in the actual plugin shared library
-    qDebug() << "pinfo.soPath="<<pInfo.soPath;
     QPluginLoader loader( pInfo.soPath);
     QObject * plugin = loader.instance();
     if( ! plugin) {
@@ -463,10 +459,10 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
 
 }
 
-
+#ifdef DONT_COMPILE
 
 /// process the loaded CPP plugin
-/*void PluginManager::processLoadedCppPluginOld(QObject *plugin, QString path)
+void PluginManager::processLoadedCppPluginOld(QObject *plugin, QString path)
 {
     IPlugin * cartaPlugin = qobject_cast<IPlugin *>( plugin);
     if( ! cartaPlugin) {
@@ -543,7 +539,8 @@ void fakeMain()
 
 
 
-}*/
+}
 
+#endif
 
 
