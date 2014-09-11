@@ -160,20 +160,13 @@ protected:
     /// attempt to load a native plugin
     bool loadNativePlugin( PluginInfo & pInfo);
 
-    /// process a CPP plugin once its .so has been loaded
-//    void processLoadedCppPluginOld( QObject * plugin, QString path = QString());
-
-    // TODO: we should probably use std::vector for little more performance
-    // but that means we'll need to ensure consecutive numbering of hooks...
     /// list of plugins registered per hook
-//    std::vector< std::vector< PluginInfo *> > m_hook2plugin;
+    /// \todo we should probably use std::vector for little more performance
+    /// but that means we'll need to ensure consecutive numbering of hooks...
     std::map< HookId, std::vector< PluginInfo *> > m_hook2plugin;
 
     /// list of all discovered plugins
     std::vector< PluginInfo > m_discoveredPlugins;
-
-    /// list of all loaded plugins (pointers to m_discoveredPlugins)
-//    std::vector< PluginInfo *> m_allLoadedPlugins;
 
     template<typename T> friend class HookHelper;
 

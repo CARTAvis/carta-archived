@@ -27,6 +27,12 @@ HEADERS += \
     CmdLine.h \
     MainConfig.h \
     ScriptedCommandListener.h \
+    PixelType.h \
+    Slice.h \
+    CoordinateFormatter.h \
+    AxisInfo.h \
+    CoordinateGridPlotter.h \
+    PlotLabelGenerator.h \
     State/State.h \
     State/StateKey.h \
     State/StateLibrary.h \
@@ -58,7 +64,15 @@ SOURCES += \
     Data/DataSelection.cpp \
     Data/DataSource.cpp \
     Data/Region.cpp \
-    ScriptedCommandListener.cpp
+    ScriptedCommandListener.cpp \
+    ScriptedCommandListener.cpp \
+    Slice.cpp \
+    IImage.cpp \
+    CoordinateFormatter.cpp \
+    AxisInfo.cpp \
+    CoordinateGridPlotter.cpp \
+    PlotLabelGenerator.cpp
+
 
 message( "common            PWD=$$PWD")
 message( "common         IN_PWD=$$IN_PWD")
