@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+QString DataLoader::fakeRootDirName = "RootDirectory";
+
 QString DataLoader::getData( const QString& /*selectionParams*/, const QString& sessionId ){
     qDebug() << "getData received...";
 	QString rootDirName = getRootDir( sessionId );
@@ -17,7 +19,7 @@ QString DataLoader::getData( const QString& /*selectionParams*/, const QString& 
     // replace the entry for the root object with a fake, for two reasons:
     // root directory could contain multiple directories (e.g. /scratch/Images ...)
     // for little added security
-    rootObj.insert( "name", "root");
+    rootObj.insert( "name", fakeRootDirName );
 
     QJsonDocument document( rootObj );
     QByteArray textArray = document.toJson();

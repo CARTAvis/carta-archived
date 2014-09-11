@@ -67,6 +67,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage",
               	var pathDict = skel.widgets.Path.getInstance();
         		var cmd = pathDict.DATA_LOADED;
         		var params = "id:"+this.m_identifier+",data:"+path;
+        		console.log( "cmd="+cmd+" params="+params);
         		this.m_connector.sendCommand( cmd, params, function(){});
         	
 		/// \todo editing out reference to SelectionCanvas because it's not anywhere in the sources

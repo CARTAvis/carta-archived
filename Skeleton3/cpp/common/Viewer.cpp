@@ -371,6 +371,10 @@ void Viewer::start()
 			const QString & params, const QString & /*sessionId*/) -> QString {
 		QList<QString> keys = {"animId", "winId"};
 		QVector<QString> dataValues = _parseParamMap( params, keys );
+		qDebug() << "LinkAnimator";
+		for ( int i = 0; i < dataValues.size(); i++ ){
+			qDebug() << "i="<<i<<" key="<<keys[i]<<" value="<<dataValues[i];
+		}
 		if ( dataValues.size() == keys.size()){
 
 			//Go through our data animators and find the one that is supposed to
@@ -409,13 +413,17 @@ void Viewer::start()
 			if ( it != m_dataControllers.end()){
 				//Add the data to it.
                 QString path = dataValues[1];
-                if( ! path.startsWith( "/root/")) {
+                if( ! path.startsWith( QDir::separator() + DataLoader::fakeRootDirName )) {
                     /// security issue...
                     return "";
                 }
-                path = QString( "%1/%2").arg( DataLoader::getRootDir( sessionId))
-                       .arg( path.remove( 0, 6));
-                m_dataControllers[dataValues[0]]->addData( path );
+                else {
+                	int keepLength = path.length() - DataLoader::fakeRootDirName.length() - 1;
+                	path = path.right( keepLength );
+                }
+                QString realPath = QString( "%1/%2").arg( DataLoader::getRootDir( sessionId))
+                       .arg( path );
+                m_dataControllers[dataValues[0]]->addData( realPath );
 			}
 		}
 		return "";

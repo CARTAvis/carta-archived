@@ -62,7 +62,9 @@ qx.Class.define("skel.widgets.FileBrowser",
 						filePath = filePath + pathDict.SEP + path[j];
 					}
 				}
+				console.log( "File path="+filePath );
 				if ( this.m_target != null ){
+					console.log( "Target calling dataLoaded");
 					this.m_target.dataLoaded( filePath );
 				}
 				

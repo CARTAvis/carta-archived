@@ -24,6 +24,7 @@ public:
     /// Return the top level directory for the data file search.
     static QString getRootDir( const QString& sessionId );
 
+    static QString fakeRootDirName;
 private:
 
     //Look for eligible data files in a specific directory (recursive).
