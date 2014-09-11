@@ -436,6 +436,8 @@ void Viewer::start()
                 path = QString( "%1/%2").arg( DataLoader::getRootDir( sessionId))
                        .arg( path.remove( 0, 6));
                 m_dataControllers[dataValues[0]]->addData( path );
+                qDebug() << QString("m_dataControllers[%1]->addData(%2)")
+                            .arg(dataValues[0]).arg(path);
 			}
 		}
 		return "";
@@ -478,7 +480,6 @@ void Viewer::scriptedCommandCB( QString command)
     QStringList args = command.split( ' ', QString::SkipEmptyParts);
     qDebug() << "args=" << args;
     qDebug() << "args.size=" << args.size();
-    qDebug() << "args[0].tolower=" << args[0].toLower();
     if( args.size() == 2 && args[0].toLower() == "load") {
         qDebug() << "Trying to load" << args[1];
 
