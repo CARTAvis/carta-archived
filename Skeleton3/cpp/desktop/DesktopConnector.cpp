@@ -74,7 +74,7 @@ void DesktopConnector::setState(const StateKey& state, const QString& id, const 
         // the same as the incoming value, we don't need to do anything
         return;
     }
-
+    qDebug() << "CPP setState " << path << "=" << newValue;
     m_state[ path ] = newValue;
     emit stateChangedSignal( path, newValue);
 }
@@ -240,6 +240,7 @@ void DesktopConnector::jsConnectorReadySlot()
 {
     // at this point it's safe to start using setState as the javascript
     // connector has registered to listen for the signal
+    qDebug() << "JS Connector is ready!!!!";
 
     // time to call the initialize callback
 //    defer( std::bind( m_initializeCallback, true));
@@ -259,6 +260,8 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 
 void DesktopConnector::refreshViewNow(IView *view)
 {
+
+    qDebug() << "refreshViewNow " << view->name();
 
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
