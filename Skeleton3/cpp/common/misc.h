@@ -9,6 +9,15 @@
 
 #include <QString>
 
+/// text formatting
+enum class TextFormat { Plain, Html };
+
+/// known sky coordinate systems
+enum class KnownSkyCS { Unknown, J2000, B1950, ICRS, Galactic, Ecliptic };
+
+/// sky formatting option
+enum class SkyFormat { Sexagecimal, Degrees, Radians };
+
 /// QString streaming helper (to output QStrings)
 template< typename STREAM>
 STREAM& operator<< ( STREAM & stream, const QString & str )

@@ -6,7 +6,7 @@ TEMPLATE = lib
 
 CONFIG += staticlib
 QT += widgets xml
-
+QT += network
 HEADERS += \
     IConnector.h \
     IPlatform.h \
@@ -32,6 +32,13 @@ HEADERS += \
     Data/DataAnimator.h \
     Data/DataController.h \
     Data/DataLoader.h \
+    ScriptedCommandListener.h \
+    PixelType.h \
+    Slice.h \
+    CoordinateFormatter.h \
+    AxisInfo.h \
+    CoordinateGridPlotter.h \
+    PlotLabelGenerator.h
     Data/DataSelection.h \
     Data/Region.h \
     Data/DataSource.h \
@@ -54,6 +61,13 @@ SOURCES += \
     Data/DataController.cpp \
     Data/DataLoader.cpp \
     Data/DataSelection.cpp \
+    ScriptedCommandListener.cpp \
+    Slice.cpp \
+    IImage.cpp \
+    CoordinateFormatter.cpp \
+    AxisInfo.cpp \
+    CoordinateGridPlotter.cpp \
+    PlotLabelGenerator.cpp
     Data/DataSource.cpp \
     Data/Region.cpp
 

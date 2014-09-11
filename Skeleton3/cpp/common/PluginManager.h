@@ -24,7 +24,7 @@ struct ResTrait {
 
 template <>
 struct ResTrait <void> {
-    typedef FakeVoid Type;
+    typedef BaseHook::FakeVoid Type;
 };
 
 class PluginManager;
@@ -90,32 +90,20 @@ protected:
 
 };
 
-typedef QString VersionInfo;
-
 class PluginManager
 {
 public:
 
     /// this is what the plugin manager keeps about each plugin
     struct PluginInfo {
+        /// we keep all of plugin.json
+        PluginJson json;
         /// pointer to the actual plugin implementation once loaded
         IPlugin * rawPlugin = nullptr;
-        /// full path to the .so
+        /// full path to the .so (shared library)
         QString soPath;
-        /// full directory of the plugin
+        /// full directory of the plugin from where it was loaded
         QString dirPath;
-        /// name of the plugin (as parsed from .json)
-        QString name;
-        /// version of the plugin (as parsed from .json)
-        VersionInfo version;
-        /// type of the plugin (as parsed from .json)
-        QString typeString;
-        /// description of the plugin (as parsed from .json)
-        QString description;
-        /// about of the plugin (as parsed from .json)
-        QString about;
-        /// lsit of depenencies of the plugin (as parsed from .json)
-        QStringList depends;
         /// errors indicating why plugin could not be loaded
         /// this means that if errors is not empty, the plugin could not be
         /// parsed
@@ -170,22 +158,15 @@ protected:
     PluginInfo parsePluginDir( const QString & dirName);
 
     /// attempt to load a native plugin
-    void loadNativePlugin( PluginInfo & pInfo);
+    bool loadNativePlugin( PluginInfo & pInfo);
 
-    /// process a CPP plugin once its .so has been loaded
-    //void processLoadedCppPluginOld( QObject * plugin, QString path = QString());
-
-    // TODO: we should probably use std::vector for little more performance
-    // but that means we'll need to ensure consecutive numbering of hooks...
     /// list of plugins registered per hook
-//    std::vector< std::vector< PluginInfo *> > m_hook2plugin;
+    /// \todo we should probably use std::vector for little more performance
+    /// but that means we'll need to ensure consecutive numbering of hooks...
     std::map< HookId, std::vector< PluginInfo *> > m_hook2plugin;
 
     /// list of all discovered plugins
     std::vector< PluginInfo > m_discoveredPlugins;
-
-    /// list of all loaded plugins (pointers to m_discoveredPlugins)
-    std::vector< PluginInfo *> m_allLoadedPlugins;
 
     template<typename T> friend class HookHelper;
 
@@ -208,7 +189,7 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     T hookData( & m_params);
 
     for( auto pluginInfo : pluginList) {
-        qDebug() << "  calling..." << pluginInfo-> name
+        qDebug() << "  calling..." << pluginInfo-> json.name
 
 
 

@@ -1,6 +1,9 @@
-/**
- *
- **/
+// I suspect somewhere down the road we'll want to override notify() or some
+// other functionality of QApplication, so we might as well provision for it by
+// subclassing QApplication and using the subclass...
+//
+// The only code that should go into this class is Qt specific stuff that needs
+// access to the internals of QApplication.
 
 #pragma once
 
@@ -8,8 +11,6 @@
 #include <functional>
 #include "IConnector.h"
 
-// I suspect somewhere down the road we'll want to override notify() or some
-// other functionality of QApplication, so we might as well provision for it...
 
 // also, right now I use this to hold globally available functions/data
 

@@ -17,11 +17,13 @@ qx.Class.define("skel.boundWidgets.Label",
 
         /**
          * Constructor
-         * @param labelPrefix {String}
-         * @param labelPostfix {String|Function}
-         * @param varPath {String} Path to the bound shared variable
          *
-         * If postfix is a function, it is passed the value as well.
+         * @param labelPrefix {String} Text to display at the beginning of the label
+         * @param labelPostfix {String|Function} Text to display at the end. Can be function.
+         * @param varPath {String} Path to the bound shared variable.
+         *
+         * If labelPostfix is a function, it is passed the value, and the value is not
+         * rendered.
          */
         construct: function ( labelPrefix, labelPostfix, varPath) {
             this.m_connector = mImport( "connector");
@@ -44,12 +46,12 @@ qx.Class.define("skel.boundWidgets.Label",
             m_labelPrefix: "",
             m_labelPostfix: "",
 
-//            _applyValue: function ( newValue, oldValue) {
-//                fv.console.log( "_applyValue-" + this.getLabel(), newValue, oldValue);
-//                this.m_sharedVar.set( newValue ? "1" : "0");
-//                this.base( arguments, newValue, oldValue);
-//            },
-
+            /**
+             * Callback for the shared variable. Updates the label with the new value.
+             *
+             * @param val {String} The new value.
+             * @private
+             */
             _sharedVarCB: function( val) {
                 if( typeof this.m_labelPostfix === "function") {
                     this.setValue( this.m_labelPrefix + this.m_labelPostfix( val));
@@ -59,6 +61,11 @@ qx.Class.define("skel.boundWidgets.Label",
                 }
             },
 
+            /**
+             * Returns a reference to the shared variable this labels is bound to.
+             *
+             * @return {SharedVar} reference to the shared variable.
+             */
             getSharedVar: function() {
                 return this.m_sharedVar;
             }

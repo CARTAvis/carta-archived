@@ -1,0 +1,8 @@
+{
+    "name"       : "python273",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "For now a python tester, will be python plugin loader.",
+    "about"      : "Part of skeleton3. Written by Pavol",
+    "depends"    : []
+}

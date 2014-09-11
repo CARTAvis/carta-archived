@@ -4,8 +4,8 @@ class IConnector; // #include "IConnector.h"
 class QStringList;
 
 /**
- * @brief The IPlatform class. Central place to define APIs that will be different on desktop
- * vs server side vs scripted viewer.
+ * @brief The IPlatform class. Central place to define APIs that will be implemented
+ * differently on desktop vs server side vs scripted viewer.
  */
 
 class IPlatform {
@@ -21,6 +21,7 @@ public:
     /// this will probably come somehow via url encoded arguments...
     virtual const QStringList & initialFileList() = 0;
 
-    virtual ~IPlatform() {}
+    /// empty virtual destructor
+    virtual ~IPlatform() {;}
 
 };

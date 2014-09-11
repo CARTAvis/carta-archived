@@ -11,6 +11,9 @@
 #include "misc.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
+#include "MyQApp.h"
+#include "CmdLine.h"
+#include "ScriptedCommandListener.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
@@ -100,7 +103,7 @@ protected:
 		}
 
 		// execute the pre-render hook
-		Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
 	}
 
 	IConnector * m_connector;
@@ -124,6 +127,11 @@ public:
 		m_connector= nullptr;
 		m_bgColor = bgColor;
 	}
+
+    void setImage( const QImage & img) {
+        m_defaultImage = img;
+        m_connector-> refreshView( this);
+    }
 
 	virtual void registration(IConnector *connector)
 	{
@@ -191,7 +199,7 @@ protected:
 		}
 
 		// execute the pre-render hook
-		Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
 	}
 
 	IConnector * m_connector;
@@ -201,16 +209,20 @@ protected:
 	QPointF m_lastMouse;
 };
 
+static TestView2 * testView2 = nullptr;
+
 Viewer::Viewer() :
     		QObject( nullptr)
 {
-}
-
-void Viewer::start()
-{
-	qDebug() << "Viewer::start() starting";
-
-	auto & globals = * Globals::instance();
+    int port = Globals::instance()->cmdLineInfo()-> scriptPort();
+    if( port < 0) {
+        qDebug() << "Not listening to scripted commands.";
+    }
+    else {
+        m_scl = new ScriptedCommandListener( port, this);
+        qDebug() << "Listening to scripted commands on port " << port;
+        connect( m_scl, & ScriptedCommandListener::command,
+                 this, & Viewer::scriptedCommandCB);
 	auto connector = globals.connector();
 
 	// initialize plugin manager
@@ -221,17 +233,27 @@ void Viewer::start()
 	pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
 
 	// find and load plugins
-	pm-> loadPlugins();
-
-	qDebug() << "Loading plugins...";
-	auto infoList = pm-> getInfoList();
-	qDebug() << "List of plugins: [" << infoList.size() << "]";
-	for( const auto & entry : infoList) {
-		qDebug() << "  path:" << entry.name;
 	}
+void Viewer::start()
+    auto & globals = * Globals::instance();
+    auto connector = globals.connector();
+    // initialize plugin manager
+    globals.setPluginManager( new PluginManager);
+    auto pm = globals.pluginManager();
 
-	// tell all plugins that the core has initialized
-	pm-> prepare<Initialize>().executeAll();
+    // tell plugin manager where to find plugins
+    pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
+
+    // find and load plugins
+    pm-> loadPlugins();
+
+    qDebug() << "Loading plugins...";
+    auto infoList = pm-> getInfoList();
+    qDebug() << "List of plugins: [" << infoList.size() << "]";
+    for( const auto & entry : infoList) {
+        qDebug() << "  path:" << entry.json.name;
+    // tell all plugins that the core has initialized
+    pm-> prepare<Initialize>().executeAll();
 
 #ifdef DONT_COMPILE
 
@@ -284,16 +306,27 @@ void Viewer::start()
 	connector-> registerView( new TestView( "view1", QColor( "blue")));
 	connector-> registerView( new TestView( "view2", QColor( "red")));
 
-	// ask plugins to load the image
+    // ask plugins to load the image
 	qDebug() << "======== trying to load image ========";
 	//QString fname = Globals::fname();
-	QString fname;
-	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
+    if( Globals::instance()-> platform()-> initialFileList().isEmpty()) {
+        qFatal( "No input file given");
 		fname = Globals::instance()-> platform()-> initialFileList() [0];
 	}
+    QString fname = Globals::instance()-> platform()-> initialFileList() [0];
 
-	// tell clients about our plugins
-	{
+    auto loadImageHookHelper = Globals::instance()-> pluginManager()-> prepare<LoadImage>( fname);
+    Nullable<QImage> res = loadImageHookHelper.first();
+    if( res.isNull()) {
+        qDebug() << "Could not find any plugin to load image";
+    }
+    else {
+        qDebug() << "Image loaded: " << res.val().size();
+        testView2 = new TestView2( "view3", QColor( "pink"), res.val());
+        connector-> registerView( testView2);
+    }
+
+		{
 		auto pm = Globals::instance()-> pluginManager();
 		auto infoList = pm-> getInfoList();
 		int ind = 0;
@@ -308,26 +341,82 @@ void Viewer::start()
 			ind ++;
 		}
 		QString pluginCountStr = QString::number( ind);
-		connector-> setState( StateKey::PLUGIN_STAMP, "", pluginCountStr);
+		connector-> setState( StateKey::PLUGIN_STAMP, "", pluginCountStr)   ;es
 	}
 
 	//Callback for saving state.
 	connector->addCommandCallback( "/saveState", [=] (const QString & /*cmd*/,
 			const QString & params, const QString & /*sessionId*/) -> QString {
-
-		QStringList paramList = params.split( ":");
+                QStringList paramList = params.split( ":");
 		QString saveName="DefaultState";
 		if ( paramList.length() == 2 ){
 			saveName = paramList[1];
 		}
-
-		bool result = connector->saveState(saveName);
+                bool result = connector->saveState(saveName);
 		QString returnVal = "State was successfully saved.";
 		if ( !result ){
 			returnVal = "There was an error saving state.";
 		}
 		return returnVal;
 	});
+
+    
+       
+          
+             
+                
+                      // tell clients about our plugins
+    {
+        auto pm = Globals::instance()-> pluginManager();
+        auto infoList = pm-> getInfoList();
+        int ind = 0;
+        for( auto & entry : infoList) {
+            qDebug() << "  path:" << entry.soPath;
+            QString path = QString( "/pluginList/p%1/").arg(ind);
+            connector-> setState( path + "name", entry.json.name);
+            connector-> setState( path + "description", entry.json.description);
+            connector-> setState( path + "type", entry.json.typeString);
+            connector-> setState( path + "version", entry.json.version);
+//            connector-> setState( path + "dirPath", entry.dirPath);
+            connector-> setState( path + "errors", entry.errors.join("|"));
+            ind ++;
+        }
+        connector-> setState( "/pluginList/stamp", QString::number( ind));
+    }
+}
+
+void Viewer::scriptedCommandCB( QString command)
+{
+    command = command.simplified();
+    qDebug() << "Scripted command received:" << command;
+
+    QStringList args = command.split( ' ', QString::SkipEmptyParts);
+    qDebug() << "args=" << args;
+    qDebug() << "args.size=" << args.size();
+    qDebug() << "args[0].tolower=" << args[0].toLower();
+    if( args.size() == 2 && args[0].toLower() == "load") {
+        qDebug() << "Trying to load" << args[1];
+        auto loadImageHookHelper = Globals::instance()-> pluginManager()
+                                   -> prepare<LoadImage>( args[1]);
+        Nullable<QImage> res = loadImageHookHelper.first();
+        if( res.isNull()) {
+            qDebug() << "Could not find any plugin to load image";
+        }
+        else {
+            qDebug() << "Image loaded: " << res.val().size();
+            testView2-> setImage( res.val());
+        }
+    }
+    else if( args.size() == 1 && args[0].toLower() == "quit") {
+        qDebug() << "Quitting...";
+        MyQApp::exit();
+        return;
+    }
+    else {
+        qWarning() << "Sorry, unknown command";
+    }
+
+		
 
 	//Callback for restoring state.
 	connector->addCommandCallback( "/restoreState", [=] (const QString & /*cmd*/,

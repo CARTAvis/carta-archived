@@ -39,10 +39,10 @@ qx.Class.define("skel.Application",
             main : function()
             {
                 // Call super class
-                this.base(arguments);
+                this.base( arguments );
 
                 // Enable logging in debug variant
-                if (qx.core.Environment.get("qx.debug"))
+                if( qx.core.Environment.get( "qx.debug" ) )
                 {
                     // everything inside the curlies gets compiled out in release mode
 
@@ -51,27 +51,21 @@ qx.Class.define("skel.Application",
                     // support additional cross-browser console. Press F7 to toggle visibility
 //        qx.log.appender.Console;
 
-                    console.log( "I will be compiled out");
+                    console.log( "I will be compiled out" );
                 }
 
-                if( false) {
-                    console.log( "I should be compiled out.");
+                if( false ) {
+                    console.log( "I should be compiled out." );
                 }
 
                 var xxx = false;
-                if( xxx) {
-                    console.log( "I wish I was compiled out, but the compiler is not that good :(");
+                if( xxx ) {
+                    console.log( "I wish I was compiled out, but the compiler is not that good :(" );
                 }
 
-                console.log( "I will never be compiled out :(");
+                console.log( "I will never be compiled out :(" );
 
-                var connector = mImport("connector");
-                
                 var connector = mImport( "connector" );
-
-                // delay start of the application until we receive CONNECTED event...
-                // only after we receive this event we can safely start modifying state, etc
-                // otherwise some state changes/commands might get lost
                 connector.setConnectionCB( this._afterConnect.bind( this));
 /*
                 connector.setConnectionCB( function( s )
@@ -93,7 +87,8 @@ qx.Class.define("skel.Application",
                           
                 this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas());
                 this.m_mainContainer.setAppearance( "display-main");
-                this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});
+                
+                this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});                  u          
                 
                 this.m_desktop = new skel.widgets.DisplayMain();
                 this.m_mainContainer.add( this.m_desktop, { top: "0%", bottom: "0%", left: "0%", right: "0%"});
@@ -189,6 +184,7 @@ qx.Class.define("skel.Application",
             	this.m_mainContainer.add( this.m_menuBar );
             	this.m_menuBar.reposition();
             },
+                
             
             /**
              * Remove an overlay window.

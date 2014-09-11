@@ -44,15 +44,12 @@ ParsedInfo parse(const QString & filePath)
 
     // extract plugin directories
     auto pluginDirs = json[ "pluginDirs"].toArray().toVariantList();
-    qDebug() << "Number of pluginDirs="<<pluginDirs.size();
     for( auto  dir : pluginDirs) {
         QString raw = dir.toString();
-        qDebug() << "Raw="<<raw;
         // perform some substitutions
         // TODO: document these substitutions somewhere
         raw.replace( "$(HOME)", QDir::homePath());
         raw.replace( "$(APPDIR)", QCoreApplication::applicationDirPath());
-        qDebug() << "After replace raw="<<raw;
         info.m_pluginDirectories.append( QDir::cleanPath(raw));
     }
 //    qDebug() << "All dirs" << info.pluginDirectories();
