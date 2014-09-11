@@ -1,15 +1,13 @@
-/* *
+/**
  * Author: Pavol Feder ( federl@gmail.com )
  *
  * Shows all plugins in a table.
  */
 
-/* global qx, mImport */
+/*global qx, mImport */
 
 /**
- * Widget for displaying all plugins.
- *
- * @ignore( mImport)
+ @ignore( mImport)
  */
 
 
@@ -18,7 +16,7 @@ qx.Class.define("skel.boundWidgets.PluginList",
         extend: qx.ui.container.Composite,
 
         /**
-         * Constructor.
+         * Constructor
          */
         construct: function () {
             this.m_connector = mImport( "connector");
