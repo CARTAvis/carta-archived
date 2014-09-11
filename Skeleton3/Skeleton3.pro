@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
-SUBDIRS += cpp
+SUBDIRS += cpp \
+    scriptedClient
 #SUBDIRS += html5
 
 OTHER_FILES += readme.txt

@@ -5,7 +5,8 @@
 TEMPLATE = lib
 
 CONFIG += staticlib
-QT += widgets xml
+QT += widgets network
+QT += xml
 
 HEADERS += \
     IConnector.h \
@@ -25,6 +26,7 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
+    ScriptedCommandListener.h \
     State/State.h \
     State/StateKey.h \
     State/StateLibrary.h \
@@ -55,9 +57,9 @@ SOURCES += \
     Data/DataLoader.cpp \
     Data/DataSelection.cpp \
     Data/DataSource.cpp \
-    Data/Region.cpp
+    Data/Region.cpp \
+    ScriptedCommandListener.cpp
 
-message( "common            INCLUDEPATH=$$INCLUDEPATH")
 message( "common            PWD=$$PWD")
 message( "common         IN_PWD=$$IN_PWD")
 message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")

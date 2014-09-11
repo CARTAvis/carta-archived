@@ -11,6 +11,9 @@
 #include "misc.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
+#include "MyQApp.h"
+#include "CmdLine.h"
+#include "ScriptedCommandListener.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
@@ -18,7 +21,6 @@
 #include <cmath>
 #include <QDebug>
 #include <QCoreApplication>
-#include "MyQApp.h"
 
 //Globals & globals = * Globals::instance();
 
@@ -125,6 +127,11 @@ public:
         m_bgColor = bgColor;
     }
 
+    void setImage( const QImage & img) {
+        m_defaultImage = img;
+        m_connector-> refreshView( this);
+    }
+
     virtual void registration(IConnector *connector)
     {
         m_connector = connector;
@@ -201,9 +208,21 @@ protected:
     QPointF m_lastMouse;
 };
 
+static TestView2 * testView2 = nullptr;
+
 Viewer::Viewer() :
     QObject( nullptr)
 {
+    int port = Globals::instance()->cmdLineInfo()-> scriptPort();
+    if( port < 0) {
+        qDebug() << "Not listening to scripted commands.";
+    }
+    else {
+        m_scl = new ScriptedCommandListener( port, this);
+        qDebug() << "Listening to scripted commands on port " << port;
+        connect( m_scl, & ScriptedCommandListener::command,
+                 this, & Viewer::scriptedCommandCB);
+    }
 }
 
 void Viewer::start()
@@ -354,6 +373,7 @@ void Viewer::start()
 		if ( dataValues.size() == keys.size()){
 			std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[1] );
 			if ( it == m_dataControllers.end() ){
+                qDebug() << "Registering view " << dataValues[1];
 				//Need to make more generic.
 				if ( dataValues[0] == "casaLoader"){
 					std::shared_ptr<DataController> target(new DataController());
@@ -447,4 +467,43 @@ QVector<QString> Viewer::_parseParamMap( const QString& params, const QList<QStr
 		qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
 	}
 	return values;
+}
+
+
+void Viewer::scriptedCommandCB( QString command)
+{
+    command = command.simplified();
+    qDebug() << "Scripted command received:" << command;
+
+    QStringList args = command.split( ' ', QString::SkipEmptyParts);
+    qDebug() << "args=" << args;
+    qDebug() << "args.size=" << args.size();
+    qDebug() << "args[0].tolower=" << args[0].toLower();
+    if( args.size() == 2 && args[0].toLower() == "load") {
+        qDebug() << "Trying to load" << args[1];
+
+        QString viewName = "win1";
+        m_dataControllers[viewName]->addData( args[1] );
+
+//        auto loadImageHookHelper = Globals::instance()-> pluginManager()
+//                                   -> prepare<LoadImage>( args[1], 0);
+//        Nullable<QImage> res = loadImageHookHelper.first();
+//        if( res.isNull()) {
+//            qDebug() << "Could not find any plugin to load image";
+//        }
+//        else {
+//            qDebug() << "Image loaded: " << res.val().size();
+//            testView2-> setImage( res.val());
+//        }
+    }
+    else if( args.size() == 1 && args[0].toLower() == "quit") {
+        qDebug() << "Quitting...";
+        MyQApp::exit();
+        return;
+    }
+    else {
+        qWarning() << "Sorry, unknown command";
+    }
+
+
 }
