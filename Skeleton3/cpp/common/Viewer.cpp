@@ -246,7 +246,7 @@ void Viewer::start()
     auto infoList = pm-> getInfoList();
     qDebug() << "List of plugins: [" << infoList.size() << "]";
     for( const auto & entry : infoList) {
-        qDebug() << "  path:" << entry.name;
+        qDebug() << "  path:" << entry.json.name;
     }
 
     // tell all plugins that the core has initialized
@@ -319,10 +319,10 @@ void Viewer::start()
 		for( auto & entry : infoList) {
 			//qDebug() << "  path:" << entry.soPath;
 			QString index = QString("p%1").arg(ind);
-			connector-> setState( StateKey::PLUGIN_NAME, index, entry.name);
-			connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.description);
-			connector-> setState( StateKey::PLUGIN_TYPE, index, entry.typeString);
-			connector-> setState( StateKey::PLUGIN_VERSION, index, entry.version);
+            connector-> setState( StateKey::PLUGIN_NAME, index, entry.json.name);
+            connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.json.description);
+            connector-> setState( StateKey::PLUGIN_TYPE, index, entry.json.typeString);
+            connector-> setState( StateKey::PLUGIN_VERSION, index, entry.json.version);
 			connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join("|"));
 			ind ++;
 		}
@@ -445,32 +445,31 @@ void Viewer::start()
 }
 
 QVector<QString> Viewer::_parseParamMap( const QString& params, const QList<QString>& keys ){
-	QVector<QString> values;
-	QStringList paramList = params.split( ",");
-	if ( paramList.size() == keys.size() ){
-		values.resize( keys.size());
-		for ( QString param : paramList ){
-			QStringList pair = param.split( ":");
-			if ( pair.size() == 2 ){
-				int keyIndex = keys.indexOf( pair[0] );
-				if ( keyIndex >= 0 ){
-					values[keyIndex] = pair[1];
-				}
-				else {
-					qDebug() << "Unrecognized key="<<pair[0];
-				}
-			}
-			else {
-				qDebug() <<"Badly formatted param map="<<param;
-			}
-		}
-	}
-	else {
-		qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
-	}
-	return values;
+    QVector<QString> values;
+    QStringList paramList = params.split( ",");
+    if ( paramList.size() == keys.size() ){
+        values.resize( keys.size());
+        for ( QString param : paramList ){
+            QStringList pair = param.split( ":");
+            if ( pair.size() == 2 ){
+                int keyIndex = keys.indexOf( pair[0] );
+                if ( keyIndex >= 0 ){
+                    values[keyIndex] = pair[1];
+                }
+                else {
+                    qDebug() << "Unrecognized key="<<pair[0];
+                }
+            }
+            else {
+                qDebug() <<"Badly formatted param map="<<param;
+            }
+        }
+    }
+    else {
+        qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
+    }
+    return values;
 }
-
 
 void Viewer::scriptedCommandCB( QString command)
 {
@@ -508,3 +507,5 @@ void Viewer::scriptedCommandCB( QString command)
 
 
 }
+
+

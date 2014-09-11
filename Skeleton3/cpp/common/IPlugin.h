@@ -14,10 +14,13 @@ typedef int64_t HookId;
 /// TODO: does this need inheritance from QObject
 class BaseHook : public QObject
 {
-
     Q_OBJECT
 
 public:
+
+    /// TODO: I have not yet figured out how to specialize some of the templates for
+    /// void return type... hence the FakeVoid aliased to char
+    typedef char FakeVoid;
 
     BaseHook() = delete;
 
@@ -30,9 +33,9 @@ public:
         return m_hookId;
     }
 
-    virtual void debug() {
-        qDebug() << "BaseHook::debug()";
-    }
+//    virtual void debug() {
+//        qDebug() << "BaseHook::debug()";
+//    }
 
 protected:
 
@@ -40,6 +43,23 @@ protected:
     HookId m_hookId;
 };
 
+/// parsed plugin.json information
+struct PluginJson {
+    /// API version against which
+    QString api;
+    /// name of the plugin
+    QString name;
+    /// version of the plugin
+    QString version;
+    /// type of the plugin (e.g. "cpp")
+    QString typeString;
+    /// description of the plugin
+    QString description;
+    /// about the plugin
+    QString about;
+    /// list of depenencies of the plugin
+    QStringList depends;
+};
 
 /// plugin interface
 /// Every plugin must implement this interface
@@ -48,42 +68,45 @@ class IPlugin
 
 public:
 
-    /// this is what we end up calling to do all work
-    virtual bool handleHook( BaseHook & hookData) = 0;
+    /// information passed to plugins during initialize()
+    struct InitInfo {
+        /// full path to the directory from where the plugin was loaded
+        QString pluginPath;
+        /// parsed json
+    };
+
+    /// called immediately after the plugin was loaded
+    /// TODO: should be pure virtual
+    virtual void initialize( const InitInfo & /*initInfo*/) {}
 
     /// at startup plugins will be asked to return a list of hook ids they are
     /// interested in listening to
     virtual std::vector<HookId> getInitialHookList() = 0;
 
-    virtual ~IPlugin() {}
+    /// this is what we end up calling to do all work
+    virtual bool handleHook( BaseHook & hookData) = 0;
 
+    /// virtual empty destructor
+    virtual ~IPlugin() {}
 };
 
-// this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
-Q_DECLARE_INTERFACE(IPlugin, "org.cartaviewer.IPlugin")
-
-
-/// TODO: I have not yet figured out how to specialize some of the templates for
-/// void return type... hence the FakeVoid aliased to char
-typedef char FakeVoid;
-
-struct EmptyParams { EmptyParams() {} };
 
 /// initialize hook is called once at the beginning of the application
 class Initialize : public BaseHook {
     Q_OBJECT
 public:
+
     typedef FakeVoid ResultType;
-    typedef EmptyParams Params;
+    typedef struct {} Params;
 //    constexpr static HookId StaticHookId = 1;
     enum { StaticHookId = 1 };
     Initialize( Params *) : BaseHook( Initialize::StaticHookId) {}
 
     ResultType result;
 
-    virtual void debug() override {
-        qDebug() << "Initialize::debug()";
-    }
+//    virtual void debug() override {
+//        qDebug() << "Initialize::debug()";
+//    }
 };
 
 /// just before rendering a view, plugins are given a chance to modify the rendered image
@@ -130,4 +153,28 @@ public:
     Params * paramsPtr;
 };
 
+/// load a plugin of unknown type
+class LoadPlugin : public BaseHook
+{
+    Q_OBJECT
 
+public:
+
+    typedef IPlugin * ResultType;
+    struct Params {
+        Params( const QString & p_pluginDir, const PluginJson & p_json) {
+            pluginDir = p_pluginDir;
+            json = p_json;
+        }
+        QString pluginDir;
+        PluginJson json;
+    };
+    enum { StaticHookId = 6 };
+    LoadPlugin(Params * pptr) : BaseHook( StaticHookId), paramsPtr( pptr) {}
+    ResultType result;
+    Params * paramsPtr;
+};
+
+// this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
+// must be outside of any namespace
+Q_DECLARE_INTERFACE(IPlugin, "org.cartaviewer.IPlugin")
