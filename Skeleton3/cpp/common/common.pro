@@ -65,7 +65,6 @@ SOURCES += \
     Data/DataSource.cpp \
     Data/Region.cpp \
     ScriptedCommandListener.cpp \
-    ScriptedCommandListener.cpp \
     Slice.cpp \
     IImage.cpp \
     CoordinateFormatter.cpp \

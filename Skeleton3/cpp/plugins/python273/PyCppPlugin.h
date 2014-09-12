@@ -5,8 +5,9 @@
 #include "common/IPlugin.h"
 
 ///
-/// this is a plugin returned as a result of the hook call when loading a pythong plugin
-/// warning: do not add Q_PLUGIN_METADATA to this class, because we are not exporting
+/// this is a plugin returned as a result of the hook call when loading a python plugin
+///
+/// \warning do not add Q_PLUGIN_METADATA to this class, because we are not exporting
 /// this one to the qpluginloader
 ///
 class PyCppPlug : public QObject, public IPlugin

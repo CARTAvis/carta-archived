@@ -218,7 +218,7 @@ public:
 __attribute__ ((unused))
 static void test_apis()
 {
-    // get an image....
+    // get an image.... (pretend)
     Image::ImageInterface * ii;
 
     Slice1D r;

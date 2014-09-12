@@ -208,7 +208,7 @@ protected:
     QPointF m_lastMouse;
 };
 
-static TestView2 * testView2 = nullptr;
+//static TestView2 * testView2 = nullptr;
 
 Viewer::Viewer() :
     QObject( nullptr)
