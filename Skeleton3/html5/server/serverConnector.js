@@ -170,7 +170,7 @@
             function( /*e*/ )
             {
                 var st = connector.CONNECTION_STATUS.UNKNOWN;
-                console.log( "internal cb initialized status to ", m_connectionStatus );
+                console.log( "internal cb initialized status from ", m_connectionStatus );
                 switch( m_client.getSessionState() ) {
                     case pureweb.client.SessionState.ACTIVE :
                         st = connector.CONNECTION_STATUS.CONNECTED;
@@ -193,7 +193,25 @@
                 }
                 m_connectionStatus = st;
                 console.log( "internal cb set connection status to ", m_connectionStatus );
-                cb();
+                // we'll fire CONNECTED event only if state is initialized, which is
+                // most likely not the case if we just connected
+                if( st !== connector.CONNECTION_STATUS.CONNECTED
+                    || pureweb.getFramework().isStateInitialized()) {
+                    cb();
+                }
+            }
+        );
+
+        console.log( "framework = ", pureweb.getFramework());
+        console.log( "STATE_INITIALIZED right now = ", pureweb.getFramework().isStateInitialized());
+//        pureweb.listen( m_client, pureweb.client.Framework.EventType.IS_STATE_INITIALIZED,
+        pureweb.listen( pureweb.getFramework(), pureweb.client.Framework.EventType.IS_STATE_INITIALIZED,
+            function() {
+                window.console.log( "IS_STATE_INITIALIZED cb -->", pureweb.getFramework().isStateInitialized());
+                if( pureweb.getFramework().isStateInitialized()
+                    && m_connectionStatus == connector.CONNECTION_STATUS.CONNECTED) {
+                    cb();
+                }
             }
         );
 

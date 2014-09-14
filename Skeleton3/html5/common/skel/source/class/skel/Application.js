@@ -39,10 +39,10 @@ qx.Class.define("skel.Application",
             main : function()
             {
                 // Call super class
-                this.base(arguments);
+                this.base( arguments );
 
                 // Enable logging in debug variant
-                if (qx.core.Environment.get("qx.debug"))
+                if( qx.core.Environment.get( "qx.debug" ) )
                 {
                     // everything inside the curlies gets compiled out in release mode
 
@@ -51,22 +51,20 @@ qx.Class.define("skel.Application",
                     // support additional cross-browser console. Press F7 to toggle visibility
 //        qx.log.appender.Console;
 
-                    console.log( "I will be compiled out");
+                    console.log( "I will be compiled out" );
                 }
 
-                if( false) {
-                    console.log( "I should be compiled out.");
+                if( false ) {
+                    console.log( "I should be compiled out." );
                 }
 
                 var xxx = false;
-                if( xxx) {
-                    console.log( "I wish I was compiled out, but the compiler is not that good :(");
+                if( xxx ) {
+                    console.log( "I wish I was compiled out, but the compiler is not that good :(" );
                 }
 
-                console.log( "I will never be compiled out :(");
+                console.log( "I will never be compiled out :(" );
 
-                var connector = mImport("connector");
-                
                 var connector = mImport( "connector" );
 
                 // delay start of the application until we receive CONNECTED event...
@@ -79,12 +77,14 @@ qx.Class.define("skel.Application",
                     console.log( "connectionCB status=", connector.getConnectionStatus() );
 
                 } );
-*/	
+*/
                 connector.connect();
             },
-                
+
             _afterConnect: function()
             {
+                console.log( "_afterConnect running");
+
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                     console.log( "Connection not established yet...");

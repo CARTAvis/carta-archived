@@ -4,7 +4,7 @@
 
 CONFIG += qt
 #CONFIG += warn_off
-QT += widgets
+QT += widgets network
 QT += xml
 
 HEADERS       = \
@@ -24,7 +24,7 @@ SOURCES       = \
 
 
 # pureweb related stuff
-PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.0.0-ga/SDK/Redistributable/Libs
+PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.1.1/SDK/Redistributable/Libs
 
 win32:INCLUDEPATH += "$${PUREWEB_LIBS}/C++/VS2010/include"
 win32:LIBS += $${PUREWEB_LIBS}/C++/VS2010/lib/CSI.PureWeb.ImageProcessing32d.lib
@@ -51,7 +51,7 @@ unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libicuuc.so.46
 unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libjpeg.so.62
 
 
-INCLUDEPATH += $$PWD/..
-DEPENDPATH += $$PWD/..
+DEPENDPATH += $$$PROJECT_ROOT/common
+
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a

@@ -10,7 +10,8 @@ unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
 SOURCES += \
     TopoSortTest.cpp \
-    mainTester.cpp
+    mainTester.cpp \
+    SliceTester.cpp
 
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = catch.h

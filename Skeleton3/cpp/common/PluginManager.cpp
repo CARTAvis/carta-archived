@@ -19,34 +19,6 @@
 PluginManager::PluginManager()
 {
 //    qDebug() << "Initializing PluginManager...";
-
-//    // TODO: this is a hack for now to load casacore libraries on which some plugins
-//    // depend. This should be removed once we have a proper plugin system in place.
-//    QStringList libs;
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_casa.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath_f.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_scimath.so");
-//    libs.append( "/home/pfederl/Software/cfitsio3360shared/lib/libcfitsio.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_tables.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_measures.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_fits.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_coordinates.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_components.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_mirlib.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_lattices.so");
-//    libs.append( "/home/pfederl/Software/casacore-1.5.0-shared/lib/libcasa_images.so");
-
-//    for( auto fname : libs) {
-//        qDebug() << "loading " << fname;
-//        QLibrary lib( fname);
-//        if( ! lib.load()) {
-//            qDebug() << " error:" << lib.errorString();
-//        }
-//        else {
-//            qDebug() << " success";
-//        }
-
-//    }
 }
 
 void PluginManager::setPluginSearchPaths(const QStringList & pathList)
@@ -54,7 +26,7 @@ void PluginManager::setPluginSearchPaths(const QStringList & pathList)
     m_pluginSearchPaths = pathList;
 }
 
-
+// find and load all plugins
 void PluginManager::loadPlugins()
 {
 
@@ -66,23 +38,25 @@ void PluginManager::loadPlugins()
 
     // find all plugins in the provided search paths
     // The plugins are not loaded in this step, only parsing is performed.
+    // all plugins are put into this list, whether they are native, or not
     m_discoveredPlugins = findAllPlugins();
 
     qDebug() << "Total plugins found:" << m_discoveredPlugins.size();
     for( size_t ind = 0 ; ind < m_discoveredPlugins.size() ; ++ ind) {
-        qDebug() << "  " << ind << m_discoveredPlugins[ind].name;
+        qDebug() << "  " << ind << m_discoveredPlugins[ind].json.name;
     }
 
     // build a dependency to index lookup
     std::map< QString, int > dep2ind;
     for( size_t i = 0 ; i < m_discoveredPlugins.size() ; i ++ ) {
         PluginInfo & pInfo = m_discoveredPlugins[i];
-        dep2ind[ pInfo.name] = i;
+        dep2ind[ pInfo.json.name] = i;
     }
 
+    //
     // figure out loading dependencies
+    //
     Algorithms::Graphs::TopoSort tsort( m_discoveredPlugins.size());
-
     // for every native plugin, insert arrows into toposort graph for every dependency
     // it has
     for( size_t i = 0 ; i < m_discoveredPlugins.size() ; i ++ ) {
@@ -92,16 +66,17 @@ void PluginManager::loadPlugins()
             continue;
         }
         // skip non-native plugins
-        if( pInfo.typeString != "c++" && pInfo.typeString != "lib") {
-            continue;
-        }
-        // process dependencies
-        for( QString & dep : pInfo.depends) {
+        // TODO: we probably don't want to skip them...
+//        if( pInfo.json.typeString != "c++" && pInfo.json.typeString != "lib") {
+//            continue;
+//        }
+        // for every dependency add appropriate arrow to toposort
+        for( QString & dep : pInfo.json.depends) {
             // convert dependency to index...
             auto it = dep2ind.find( dep);
             if( it == dep2ind.end()) {
                 pInfo.errors << "Cannot satisfy dependency '" + dep + "'";
-                qDebug() << "Cannot find dependency" << pInfo.name << "/" << dep;
+                qCritical() << "Cannot find dependency" << pInfo.json.name << "/" << dep;
                 break;
             }
             else {
@@ -123,86 +98,64 @@ void PluginManager::loadPlugins()
     else {
         qDebug() << "Loading order:";
         for( auto & ind : loadingOrder) {
-            qDebug() << "  " << ind << m_discoveredPlugins[ind].name;
+            qDebug() << "  " << ind << m_discoveredPlugins[ind].json.name;
         }
         for( auto & ind : loadingOrder) {
-            loadNativePlugin( m_discoveredPlugins[ind]);
-        }
-    }
+            PluginInfo & pInfo = m_discoveredPlugins[ind];
+            qDebug() << QString( "Loading plugin %1[%2]")
+                    .arg(pInfo.json.name).arg(pInfo.json.typeString);
+            // skip plugins that already have errors
+            if( ! pInfo.errors.empty()) {
+                qDebug() << "...skipping due to previous errors";
+                continue;
+            }
 
-    // filter out native plugins & non-native plugins
-//    decltype(m_discoveredPlugins) nativePlugins, foreignPlugins;
-//    for( auto & pInfo : m_discoveredPlugins) {
-//        if( pInfo.typeString == "c++" || pInfo.typeString == "lib") {
-//            nativePlugins.push_back( pInfo);
-//        }
-//        else {
-//            foreignPlugins.push_back( pInfo);
-//        }
-//    }
-
-//    qDebug() << "Native plugins found:" << nativePlugins.size();
-
-//    // for all c++ and lib plugins, figure out dependencies and topologically order
-//    // them for loading
-//    std::vector<int> nativeLoadingOrder;
-//    {
-//        // TODO: do the actual dependency ordering
-//        // for now the order is the same as discovery
-//        for( size_t i = 0 ; i < nativePlugins.size() ; i ++ ) {
-//            nativeLoadingOrder.push_back( i);
-//        }
-//    }
-
-//    // now load all c++ and lib plugins in the determined order
-//    for( auto ind : nativeLoadingOrder) {
-//        qDebug() << "Loading plugin #" << ind;
-////        loadNativePlugin( na)
-//    }
-
-
-
-    // now load user installed plugins
-  /*  for( auto dirPath : m_pluginSearchPaths) {
-        qDebug() << "Looking for plugins in:" << dirPath;
-        QDir dir( dirPath);
-        if( ! dir.exists()) {
-            qWarning() << "Skipping non-existant plugin directory:" << dirPath;
-            continue;
-        }
-        QDirIterator dit( dir.absolutePath(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-        while (dit.hasNext()) {
-            dit.next();
-            if( ! dit.fileInfo().isFile()) continue;
-            if( ! dit.fileInfo().fileName().endsWith( ".so")) continue;
-            auto absoluteFilePath = dit.fileInfo().absoluteFilePath();
-            qDebug() << "trying " << absoluteFilePath;
-            QPluginLoader loader( absoluteFilePath);
-            QObject * plugin = loader.instance();
-            if( plugin) {
-                processLoadedCppPluginOld( plugin, absoluteFilePath);
-            } else {
-                qDebug() << "QPluginLoader error = " << loader.errorString();
-                // QPluginLoader is not very verbose with error messages, so let's see
-                // if we can get QLibrary get us more detailed message
-                QLibrary lib( absoluteFilePath);
-                if( ! lib.load()) {
-                    qDebug() << "QLibrary error:" << lib.errorString();
-                } else {
-                    qDebug() << "QLibrary loaded the file fine";
+            // attempt to load native plugin using native method
+            if( pInfo.json.typeString == "c++" || pInfo.json.typeString == "lib") {
+                bool success = loadNativePlugin( pInfo);
+                if( ! success) {
+                    qCritical() << QString( "Failed to load plugin %1[%2]")
+                                .arg(pInfo.json.name).arg(pInfo.json.typeString);
+                    qCritical() << "...reasons: " << pInfo.errors.join("\n");
+                    continue;
                 }
+                // if this plugin is a lib, we can skip to the next plugin
+                if( pInfo.json.typeString == "lib") {
+                    continue;
+                }
+            }
+            else {
+                // TODO: this is where we want to call plugin hook to load this plugin
+                Nullable<IPlugin *> iPlug = prepare<LoadPlugin>( pInfo.dirPath, pInfo.json).first();
+                if( iPlug.isSet()) {
+                    pInfo.rawPlugin = iPlug.val();
+                }
+            }
 
+            // if we failed to make a raw plugin, report an error
+            if( ! pInfo.errors.isEmpty() || ! pInfo.rawPlugin) {
+                qCritical() << "Failed to load plugin using plugins" << pInfo.json.name;
+                qCritical() << "...reasons: " << pInfo.errors.join("\n");
+                pInfo.errors << "Unknown type perhaps?";
+                continue;
+            }
+
+            // call plugins' initialize
+            IPlugin::InitInfo initInfo;
+            initInfo.pluginPath = pInfo.dirPath;
+            pInfo.rawPlugin->initialize( initInfo);
+
+            // find out what hooks this plugin wants to listen to
+            auto hooks = pInfo.rawPlugin-> getInitialHookList();
+
+            // for each hook the plugin wants to listen to, add it to the appropriate
+            // lookup slot in m_hook2plugin
+            for( auto id : hooks) {
+                m_hook2plugin[id].push_back( & pInfo);
             }
         }
     }
-*/
-
 }
-
-//const std::vector<PluginManager::PluginInfo *> & PluginManager::getInfoList()
-//{
-//    return m_allLoadedPlugins;
-//}
 
 const std::vector<PluginManager::PluginInfo> & PluginManager::getInfoList()
 {
@@ -248,7 +201,6 @@ std::vector<PluginManager::PluginInfo> PluginManager::findAllPlugins()
 
     qDebug() << "Done looking for plugins. Found: " << list.size();
     return list;
-
 }
 
 PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
@@ -281,26 +233,26 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
     }
     QJsonObject json = jsonDoc.object();
 
-    info.name = json["name"].toString();
-    if( info.name.isNull()) {
+    info.json.name = json["name"].toString();
+    if( info.json.name.isNull()) {
         info.errors << "...'name' was not specified in plugin.json";
         return info;
     }
-    info.version = json["version"].toString().toLower().trimmed();
-    info.typeString = json["type"].toString().toLower().trimmed();
-    if( info.typeString.isNull()) {
+    info.json.version = json["version"].toString().toLower().trimmed();
+    info.json.typeString = json["type"].toString().toLower().trimmed();
+    if( info.json.typeString.isNull()) {
         info.errors << "...'type' was not specified in plugin.json";
         return info;
     }
-    info.description = json["description"].toString();
-    info.about = json["about"].toString();
+    info.json.description = json["description"].toString();
+    info.json.about = json["about"].toString();
     if( ! json["depends"].isArray()) {
         info.errors << "...'depends' must be an array of strings in plugin.json";
         info.errors << QJsonDocument( json).toJson();
         return info;
     }
 
-    // process "depends" list
+    // parse out "depends" list
     {
         auto jsonArray = json["depends"].toArray();
         for( auto entry : jsonArray) {
@@ -309,12 +261,12 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
                 info.errors << "...null dependency in plugin.json?";
                 return info;
             }
-            info.depends.append( dep);
+            info.json.depends.append( dep);
         }
     }
 
     // if the plugin type is c++, make sure the plugin has .so file
-    if( info.typeString == "c++") {
+    if( info.json.typeString == "c++") {
         QFileInfo soInfo( dirName + "/libplugin.so");
         if( ! soInfo.exists()) {
             info.errors << "...c++ plugin must have libplugin.so";
@@ -328,13 +280,13 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
     }
 
     // if the plugin type is c++ or lib, find all libraries under libs subdirectory
-    if( info.typeString == "c++" || info.typeString == "lib") {
-        qDebug() << "Looking for libs..."<<dirName+"/libs";
+    if( info.json.typeString == "c++" || info.json.typeString == "lib") {
+        qDebug() << "Looking for libs...";
         QDirIterator dit(
-                    dirName + "/libs");
-                    //{ "*.so", "*.so.*" },
-                    //QDir::Files | QDir::Executable,
-                    //QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+                    dirName + "/libs",
+                    { "*.so", "*.so.*" },
+                    QDir::Files | QDir::Executable,
+                    QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
         while( dit.hasNext()) {
             dit.next();
             qDebug() << "...found:" << dit.fileInfo().fileName();
@@ -348,20 +300,25 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
     return info;
 }
 
-void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
+// attempts to load a native plugin described in pInfo, returns true if successful
+//
+// if successful, pInfo.rawPlugin will contain a pointer to the loaded plugin, unless
+// the plugin is a lib-type plugin, in which case it will be nullptr
+//
+// the plugin is not initialized
+bool PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
 {
-    // skip non-native plugins
-    if( pInfo.typeString != "c++" && pInfo.typeString != "lib" ) {
-        return;
-    }
+//    // skip plugins that already have errors
+//    if( ! pInfo.errors.empty()) {
+//        return;
+//    }
 
-    // skip plugins with errors
-    if( ! pInfo.errors.empty()) {
-    	qDebug() << "Skipping load of plugin="<<pInfo.name<<" because it has errors";
-        return;
-    }
+//    // skip non-native plugins
+//    if( pInfo.json.typeString != "c++" && pInfo.json.typeString != "lib" ) {
+//        return;
+//    }
 
-    qDebug() << "Trying to load plugin" << pInfo.name;
+    qDebug() << "Trying to load native plugin" << pInfo.json.name;
 
     // if the plugin has libs, try to load them in heuristically
     std::vector<int> libsToLoad;
@@ -369,7 +326,7 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         libsToLoad.push_back( i);
     }
 
-    qDebug() << "  - plugin has" << pInfo.libPaths.size() << " libraries, trying to load them";
+    qDebug() << "  - heuristics to load libraries:" << pInfo.libPaths.size();
     while( ! libsToLoad.empty()) {
         qDebug() << "  - heuristic loop start with" << libsToLoad.size() << " remaining";
         // remember the old size
@@ -379,10 +336,8 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         // that cannot be loaded are kept on the list
         auto listCopy = libsToLoad;
         libsToLoad.clear();
-        qDebug() << "listCopy size="<<listCopy.size();
         for( auto ind : listCopy) {
             auto libPath = pInfo.libPaths[ ind];
-            qDebug() << "LibPath="<<libPath;
             qDebug() << "    " + QFileInfo( libPath).fileName();
             QLibrary lib( libPath);
             if( ! lib.load()) {
@@ -393,17 +348,21 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
             }
         }
 
-        // if we made progress, continue
+        // check if we made progress
         if( oldSize > libsToLoad.size()) {
+            // yup, progress made, let's continue with loading more libraries
             continue;
         }
         else {
-            // otherwise there is not need to continue
-            break;
+            // we didn't make progress on this iteration, so there is no need
+            // to keep trying
+            return false;
         }
     }
 
+    // did we load all libraries?
     if( ! libsToLoad.empty()) {
+        // we didn't load all libraries, report an error
         QStringList msg;
         msg << "Could not make progress with loading libraries:";
         for( auto lib : libsToLoad) {
@@ -411,16 +370,15 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         }
         qCritical() << msg.join( "\n");
         pInfo.errors << "Could not load libraries";
-        return;
+        return false;
     }
 
-    // now only continue with c++ plugins
-    if( pInfo.typeString != "c++") {
-        return;
+    // if this was a lib plugin, we are done
+    if( pInfo.json.typeString != "c++") {
+        return true;
     }
 
     // for cpp plugins, try to load in the actual plugin shared library
-    qDebug() << "pinfo.soPath="<<pInfo.soPath;
     QPluginLoader loader( pInfo.soPath);
     QObject * plugin = loader.instance();
     if( ! plugin) {
@@ -435,37 +393,27 @@ void PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         } else {
             // nope, no extra insight from QLibrary
         }
-        return;
+        return false;
     }
 
     // try to cast the loaded qobject to our carta plugin interface
     IPlugin * cartaPlugin = qobject_cast<IPlugin *>( plugin);
     if( ! cartaPlugin) {
         // not a carta plugin, ignore it
-        qDebug() << pInfo.name << ": not a carta plugin";
+        qDebug() << pInfo.json.name << ": not a carta plugin";
         pInfo.errors << "not a CARTA plugin";
-        return;
+        return false;
     }
 
     // add info about this plugin to our list
     pInfo.rawPlugin = cartaPlugin;
-//    m_allLoadedPlugins.push_back( & pInfo);
-
-    // find out what hooks this plugin wants to listen to
-    auto hooks = cartaPlugin-> getInitialHookList();
-
-    // for each hook the plugin wants to listen to, add it to the appropriate
-    // lookup slot in m_hook2plugin
-    for( auto id : hooks) {
-        m_hook2plugin[id].push_back( & pInfo);
-    }
-
+    return true;
 }
 
-
+#ifdef DONT_COMPILE
 
 /// process the loaded CPP plugin
-/*void PluginManager::processLoadedCppPluginOld(QObject *plugin, QString path)
+void PluginManager::processLoadedCppPluginOld(QObject *plugin, QString path)
 {
     IPlugin * cartaPlugin = qobject_cast<IPlugin *>( plugin);
     if( ! cartaPlugin) {
@@ -542,8 +490,8 @@ void fakeMain()
 
 
 
-}*/
+}
 
-
+#endif
 
 

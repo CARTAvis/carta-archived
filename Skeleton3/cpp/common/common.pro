@@ -5,7 +5,8 @@
 TEMPLATE = lib
 
 CONFIG += staticlib
-QT += widgets xml
+QT += widgets network
+QT += xml
 
 HEADERS += \
     IConnector.h \
@@ -25,6 +26,13 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
+    ScriptedCommandListener.h \
+    PixelType.h \
+    Slice.h \
+    CoordinateFormatter.h \
+    AxisInfo.h \
+    CoordinateGridPlotter.h \
+    PlotLabelGenerator.h \
     State/State.h \
     State/StateKey.h \
     State/StateLibrary.h \
@@ -55,11 +63,16 @@ SOURCES += \
     Data/DataLoader.cpp \
     Data/DataSelection.cpp \
     Data/DataSource.cpp \
-    Data/Region.cpp
+    Data/Region.cpp \
+    ScriptedCommandListener.cpp \
+    Slice.cpp \
+    IImage.cpp \
+    CoordinateFormatter.cpp \
+    AxisInfo.cpp \
+    CoordinateGridPlotter.cpp \
+    PlotLabelGenerator.cpp
 
-INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
 
-message( "common            INCLUDEPATH=$$INCLUDEPATH")
 message( "common            PWD=$$PWD")
 message( "common         IN_PWD=$$IN_PWD")
 message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")

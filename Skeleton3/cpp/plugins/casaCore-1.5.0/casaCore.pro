@@ -2,12 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-# dummy target
-TEMPLATE = app
-TARGET = dummy
-
-SOURCES += \
-    dummy.cpp
+TEMPLATE = aux
 
 OTHER_FILES += \
     plugin.json
@@ -21,6 +16,7 @@ OTHER_FILES += \
 MYFILES  = plugin.json
 copy_files.name = copy large files
 copy_files.input = MYFILES
+# change datafiles to a directory you want to put the files to
 copy_files.output = $${OUT_PWD}/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
 copy_files.commands = ${COPY_FILE} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy_files.CONFIG += no_link target_predeps

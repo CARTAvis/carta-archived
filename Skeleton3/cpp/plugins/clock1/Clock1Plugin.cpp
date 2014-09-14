@@ -12,12 +12,12 @@ bool Clock1Plugin::handleHook(BaseHook &hookData)
 {
     qDebug() << "ClockPlugin is handling hook #" << hookData.hookId();
     if( hookData.hookId() == Initialize::StaticHookId ) {
-        Initialize & initHook = static_cast<Initialize &>( hookData);
+//        Initialize & initHook = static_cast<Initialize &>( hookData);
 
         qDebug() << "Woohoo, clock plugin received initialize request.";
 
-        qDebug() << "You should see debug from Initialize below";
-        initHook.debug();
+//        qDebug() << "You should see debug from Initialize below";
+//        initHook.debug();
 
         return true;
     }

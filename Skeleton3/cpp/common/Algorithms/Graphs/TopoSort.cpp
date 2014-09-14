@@ -10,7 +10,7 @@
 
 Algorithms::Graphs::TopoSort::TopoSort( int n)
 {
-    Q_ASSERT( n > 0);
+    Q_ASSERT( n >= 0);
     m_counts.resize( n, 0);
     m_arrows.resize( n, VI());
 }

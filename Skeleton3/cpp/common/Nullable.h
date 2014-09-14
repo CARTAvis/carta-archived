@@ -11,7 +11,8 @@
 #pragma once
 
 #include <exception>
-#include <memory>
+#include <stdexcept>
+
 template <typename T>
 class Nullable
 {

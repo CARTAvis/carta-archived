@@ -68,8 +68,12 @@ qx.Class.define("skel.widgets.DisplayWindowImage",
         		var cmd = pathDict.DATA_LOADED;
         		var params = "id:"+this.m_identifier+",data:"+path;
         		this.m_connector.sendCommand( cmd, params, function(){});
-        		
-                this.m_overlayCanvas = new skel.widgets.SelectionCanvas( this.m_identifier);
+        	
+		/// \todo editing out reference to SelectionCanvas because it's not anywhere in the sources
+                // this.m_overlayCanvas = new skel.widgets.SelectionCanvas( this.m_identifier);
+                      this.m_overlayCanvas = null;
+
+
                 //this.m_content.add(this.m_overlayCanvas, {left:"0%",right:"0%",top:"0%",bottom: "0%"});
                 
                

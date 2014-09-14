@@ -11,6 +11,9 @@
 #include "misc.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
+#include "MyQApp.h"
+#include "CmdLine.h"
+#include "ScriptedCommandListener.h"
 #include <iostream>
 #include <QImage>
 #include <QColor>
@@ -18,7 +21,6 @@
 #include <cmath>
 #include <QDebug>
 #include <QCoreApplication>
-#include "MyQApp.h"
 
 //Globals & globals = * Globals::instance();
 
@@ -27,41 +29,41 @@ class TestView : public IView
 
 public:
 
-	TestView( const QString & viewName, QColor bgColor) {
-		m_qimage = QImage( 100, 100, QImage::Format_RGB888);
-		m_qimage.fill( bgColor);
+    TestView( const QString & viewName, QColor bgColor) {
+        m_qimage = QImage( 100, 100, QImage::Format_RGB888);
+        m_qimage.fill( bgColor);
 
-		m_viewName = viewName;
-		m_connector= nullptr;
-		m_bgColor = bgColor;
-	}
+        m_viewName = viewName;
+        m_connector= nullptr;
+        m_bgColor = bgColor;
+    }
 
-	virtual void registration(IConnector *connector)
-	{
-		m_connector = connector;
-	}
-	virtual const QString & name() const
-	{
-		return m_viewName;
-	}
-	virtual QSize size()
-	{
-		return m_qimage.size();
-	}
-	virtual const QImage & getBuffer()
-	{
-		redrawBuffer();
-		return m_qimage;
-	}
-	virtual void handleResizeRequest(const QSize & size)
-	{
-		m_qimage = QImage( size, m_qimage.format());
-		m_connector-> refreshView( this);
-	}
-	virtual void handleMouseEvent(const QMouseEvent & ev)
-	{
-		m_lastMouse = QPointF( ev.x(), ev.y());
-		m_connector-> refreshView( this);
+    virtual void registration(IConnector *connector)
+    {
+        m_connector = connector;
+    }
+    virtual const QString & name() const
+    {
+        return m_viewName;
+    }
+    virtual QSize size()
+    {
+        return m_qimage.size();
+    }
+    virtual const QImage & getBuffer()
+    {
+        redrawBuffer();
+        return m_qimage;
+    }
+    virtual void handleResizeRequest(const QSize & size)
+    {
+        m_qimage = QImage( size, m_qimage.format());
+        m_connector-> refreshView( this);
+    }
+    virtual void handleMouseEvent(const QMouseEvent & ev)
+    {
+        m_lastMouse = QPointF( ev.x(), ev.y());
+        m_connector-> refreshView( this);
 
 		m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
 		m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
@@ -72,42 +74,42 @@ public:
 
 protected:
 
-	QColor m_bgColor;
+    QColor m_bgColor;
 
-	void redrawBuffer()
-	{
-		QPointF center = m_qimage.rect().center();
-		QPointF diff = m_lastMouse - center;
-		double angle = atan2( diff.x(), diff.y());
-		angle *= - 180 / M_PI;
+    void redrawBuffer()
+    {
+        QPointF center = m_qimage.rect().center();
+        QPointF diff = m_lastMouse - center;
+        double angle = atan2( diff.x(), diff.y());
+        angle *= - 180 / M_PI;
 
-		m_qimage.fill( m_bgColor);
-		{
-			QPainter p( & m_qimage);
-			p.setPen( Qt::NoPen);
-			p.setBrush( QColor( 255, 255, 0, 128));
-			p.drawEllipse( QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10 );
-			p.setPen( QColor( 255, 255, 255));
-			p.drawLine( 0, m_lastMouse.y(), m_qimage.width()-1, m_lastMouse.y());
-			p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height()-1);
+        m_qimage.fill( m_bgColor);
+        {
+            QPainter p( & m_qimage);
+            p.setPen( Qt::NoPen);
+            p.setBrush( QColor( 255, 255, 0, 128));
+            p.drawEllipse( QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10 );
+            p.setPen( QColor( 255, 255, 255));
+            p.drawLine( 0, m_lastMouse.y(), m_qimage.width()-1, m_lastMouse.y());
+            p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height()-1);
 
-			p.translate( m_qimage.rect().center());
-			p.rotate( angle);
-			p.translate( - m_qimage.rect().center());
-			p.setFont( QFont( "Arial", 20));
-			p.setPen( QColor( "white"));
-			p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName);
-		}
+            p.translate( m_qimage.rect().center());
+            p.rotate( angle);
+            p.translate( - m_qimage.rect().center());
+            p.setFont( QFont( "Arial", 20));
+            p.setPen( QColor( "white"));
+            p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName);
+        }
 
-		// execute the pre-render hook
-		Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
-	}
+        // execute the pre-render hook
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+    }
 
-	IConnector * m_connector;
-	QImage m_qimage;
-	QString m_viewName;
-	int m_timerId;
-	QPointF m_lastMouse;
+    IConnector * m_connector;
+    QImage m_qimage;
+    QString m_viewName;
+    int m_timerId;
+    QPointF m_lastMouse;
 };
 
 class TestView2 : public IView
@@ -115,42 +117,47 @@ class TestView2 : public IView
 
 public:
 
-	TestView2( const QString & viewName, QColor bgColor, QImage img) {
-		m_defaultImage = img;
-		m_qimage = QImage( 100, 100, QImage::Format_RGB888);
-		m_qimage.fill( bgColor);
+    TestView2( const QString & viewName, QColor bgColor, QImage img) {
+        m_defaultImage = img;
+        m_qimage = QImage( 100, 100, QImage::Format_RGB888);
+        m_qimage.fill( bgColor);
 
-		m_viewName = viewName;
-		m_connector= nullptr;
-		m_bgColor = bgColor;
-	}
+        m_viewName = viewName;
+        m_connector= nullptr;
+        m_bgColor = bgColor;
+    }
 
-	virtual void registration(IConnector *connector)
-	{
-		m_connector = connector;
-	}
-	virtual const QString & name() const
-	{
-		return m_viewName;
-	}
-	virtual QSize size()
-	{
-		return m_qimage.size();
-	}
-	virtual const QImage & getBuffer()
-	{
-		redrawBuffer();
-		return m_qimage;
-	}
-	virtual void handleResizeRequest(const QSize & size)
-	{
-		m_qimage = QImage( size, m_qimage.format());
-		m_connector-> refreshView( this);
-	}
-	virtual void handleMouseEvent(const QMouseEvent & ev)
-	{
-		m_lastMouse = QPointF( ev.x(), ev.y());
-		m_connector-> refreshView( this);
+    void setImage( const QImage & img) {
+        m_defaultImage = img;
+        m_connector-> refreshView( this);
+    }
+
+    virtual void registration(IConnector *connector)
+    {
+        m_connector = connector;
+    }
+    virtual const QString & name() const
+    {
+        return m_viewName;
+    }
+    virtual QSize size()
+    {
+        return m_qimage.size();
+    }
+    virtual const QImage & getBuffer()
+    {
+        redrawBuffer();
+        return m_qimage;
+    }
+    virtual void handleResizeRequest(const QSize & size)
+    {
+        m_qimage = QImage( size, m_qimage.format());
+        m_connector-> refreshView( this);
+    }
+    virtual void handleMouseEvent(const QMouseEvent & ev)
+    {
+        m_lastMouse = QPointF( ev.x(), ev.y());
+        m_connector-> refreshView( this);
 
 		m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
 		m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
@@ -161,128 +168,140 @@ public:
 
 protected:
 
-	QColor m_bgColor;
-	QImage m_defaultImage;
+    QColor m_bgColor;
+    QImage m_defaultImage;
 
-	void redrawBuffer()
-	{
-		QPointF center = m_qimage.rect().center();
-		QPointF diff = m_lastMouse - center;
-		double angle = atan2( diff.x(), diff.y());
-		angle *= - 180 / M_PI;
+    void redrawBuffer()
+    {
+        QPointF center = m_qimage.rect().center();
+        QPointF diff = m_lastMouse - center;
+        double angle = atan2( diff.x(), diff.y());
+        angle *= - 180 / M_PI;
 
-		m_qimage.fill( m_bgColor);
-		{
-			QPainter p( & m_qimage);
-			p.drawImage( m_qimage.rect(), m_defaultImage);
-			p.setPen( Qt::NoPen);
-			p.setBrush( QColor( 255, 255, 0, 128));
-			p.drawEllipse( QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10 );
-			p.setPen( QColor( 255, 255, 255));
-			p.drawLine( 0, m_lastMouse.y(), m_qimage.width()-1, m_lastMouse.y());
-			p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height()-1);
+        m_qimage.fill( m_bgColor);
+        {
+            QPainter p( & m_qimage);
+            p.drawImage( m_qimage.rect(), m_defaultImage);
+            p.setPen( Qt::NoPen);
+            p.setBrush( QColor( 255, 255, 0, 128));
+            p.drawEllipse( QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10 );
+            p.setPen( QColor( 255, 255, 255));
+            p.drawLine( 0, m_lastMouse.y(), m_qimage.width()-1, m_lastMouse.y());
+            p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height()-1);
 
-			p.translate( m_qimage.rect().center());
-			p.rotate( angle);
-			p.translate( - m_qimage.rect().center());
-			p.setFont( QFont( "Arial", 20));
-			p.setPen( QColor( "white"));
-			p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName);
-		}
+            p.translate( m_qimage.rect().center());
+            p.rotate( angle);
+            p.translate( - m_qimage.rect().center());
+            p.setFont( QFont( "Arial", 20));
+            p.setPen( QColor( "white"));
+            p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName);
+        }
 
-		// execute the pre-render hook
-		Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
-	}
+        // execute the pre-render hook
+        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+    }
 
-	IConnector * m_connector;
-	QImage m_qimage;
-	QString m_viewName;
-	int m_timerId;
-	QPointF m_lastMouse;
+    IConnector * m_connector;
+    QImage m_qimage;
+    QString m_viewName;
+    int m_timerId;
+    QPointF m_lastMouse;
 };
 
+//static TestView2 * testView2 = nullptr;
+
 Viewer::Viewer() :
-    		QObject( nullptr)
+    QObject( nullptr)
 {
+    int port = Globals::instance()->cmdLineInfo()-> scriptPort();
+    if( port < 0) {
+        qDebug() << "Not listening to scripted commands.";
+    }
+    else {
+        m_scl = new ScriptedCommandListener( port, this);
+        qDebug() << "Listening to scripted commands on port " << port;
+        connect( m_scl, & ScriptedCommandListener::command,
+                 this, & Viewer::scriptedCommandCB);
+    }
 }
 
 void Viewer::start()
 {
-	qDebug() << "Viewer::start() starting";
+    qDebug() << "Viewer::start() starting";
 
-	auto & globals = * Globals::instance();
-	auto connector = globals.connector();
+    auto & globals = * Globals::instance();
+    auto connector = globals.connector();
 
-	// initialize plugin manager
-	globals.setPluginManager( new PluginManager);
-	auto pm = globals.pluginManager();
+    // initialize plugin manager
+    globals.setPluginManager( new PluginManager);
+    auto pm = globals.pluginManager();
 
-	// tell plugin manager where to find plugins
-	pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
+    // tell plugin manager where to find plugins
+    pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories());
 
-	// find and load plugins
-	pm-> loadPlugins();
+    // find and load plugins
+    pm-> loadPlugins();
 
-	qDebug() << "Loading plugins...";
-	auto infoList = pm-> getInfoList();
-	qDebug() << "List of plugins: [" << infoList.size() << "]";
-	for( const auto & entry : infoList) {
-		qDebug() << "  path:" << entry.name;
-	}
+    qDebug() << "Loading plugins...";
+    auto infoList = pm-> getInfoList();
+    qDebug() << "List of plugins: [" << infoList.size() << "]";
+    for( const auto & entry : infoList) {
+        qDebug() << "  path:" << entry.json.name;
+    }
 
-	// tell all plugins that the core has initialized
-	pm-> prepare<Initialize>().executeAll();
+    // tell all plugins that the core has initialized
+    pm-> prepare<Initialize>().executeAll();
 
 #ifdef DONT_COMPILE
 
-	// associate a callback for a command
-	connector->addCommandCallback( "debug", [] (const QString & cmd, const QString & params, const QString & sessionId) -> QString {
-		std::cerr << "lambda command cb:\n"
-				<< " " << cmd << "\n"
-				<< " " << params << "\n"
-				<< " " << sessionId << "\n";
-		return "1";
-	});
+    // associate a callback for a command
+    connector->addCommandCallback( "debug", [] (const QString & cmd, const QString & params, const QString & sessionId) -> QString {
+        std::cerr << "lambda command cb:\n"
+                  << " " << cmd << "\n"
+                  << " " << params << "\n"
+                  << " " << sessionId << "\n";
+        return "1";
+    });
 
-	// associate a callback for a command
-	connector->addCommandCallback( "add", [] (const QString & /*cmd*/, const QString & params, const QString & /*sessionId*/) -> QString {
-		std::cerr << "add command:\n"
-				<< params << "\n";
-		QStringList lst = params.split(" ");
-		double sum = 0;
-		for( auto & entry : lst){
-			bool ok;
-			sum += entry.toDouble( & ok);
-			if( ! ok) { sum = -1; break; }
-		}
-		return QString("add(%1)=%2").arg(params).arg(sum);
-	});
+    // associate a callback for a command
+    connector->addCommandCallback( "add", [] (const QString & /*cmd*/, const QString & params, const QString & /*sessionId*/) -> QString {
+        std::cerr << "add command:\n"
+                  << params << "\n";
+        QStringList lst = params.split(" ");
+        double sum = 0;
+        for( auto & entry : lst){
+            bool ok;
+            sum += entry.toDouble( & ok);
+            if( ! ok) { sum = -1; break; }
+        }
+        return QString("add(%1)=%2").arg(params).arg(sum);
+    });
 
-	//    auto xyzCBid =
-	connector-> addStateCallback( "/xyz", [] ( const QString & path, const QString & val) {
-		qDebug() << "lambda state cb:\n"
-				<< "  path: " << path << "\n"
-				<< "  val:  " << val;
-	});
-	//    connector->removeStateCallback(xyzCBid);
+//    auto xyzCBid =
+    connector-> addStateCallback( "/xyz", [] ( const QString & path, const QString & val) {
+        qDebug() << "lambda state cb:\n"
+                 << "  path: " << path << "\n"
+                 << "  val:  " << val;
+    });
+//    connector->removeStateCallback(xyzCBid);
 
-	static const QString varPrefix = "/myVars";
-	static int pongCount = 0;
-	connector-> addStateCallback(
-			varPrefix + "/ping",
-			[=] ( const QString & path, const QString & val) {
-		std::cerr << "lcb: " << path << "=" << val << "\n";
-		QString nv = QString::number( pongCount ++);
-		connector-> setState( varPrefix + "/pong", nv);
-	});
-	connector-> setState( "/xya", "hola");
-	connector-> setState( "/xyz", "8");
+    static const QString varPrefix = "/myVars";
+    static int pongCount = 0;
+    connector-> addStateCallback(
+                varPrefix + "/ping",
+                [=] ( const QString & path, const QString & val) {
+        std::cerr << "lcb: " << path << "=" << val << "\n";
+        QString nv = QString::number( pongCount ++);
+        connector-> setState( varPrefix + "/pong", nv);
+    });
+    connector-> setState( "/xya", "hola");
+    connector-> setState( "/xyz", "8");
 
 #endif // dont compile
 
-	// create some views to be rendered on the client side
-	connector-> registerView( new TestView( "view1", QColor( "blue")));
-	connector-> registerView( new TestView( "view2", QColor( "red")));
+    // create some views to be rendered on the client side
+    connector-> registerView( new TestView( "view1", QColor( "blue")));
+    connector-> registerView( new TestView( "view2", QColor( "red")));
 
 	// ask plugins to load the image
 	qDebug() << "======== trying to load image ========";
@@ -300,10 +319,10 @@ void Viewer::start()
 		for( auto & entry : infoList) {
 			//qDebug() << "  path:" << entry.soPath;
 			QString index = QString("p%1").arg(ind);
-			connector-> setState( StateKey::PLUGIN_NAME, index, entry.name);
-			connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.description);
-			connector-> setState( StateKey::PLUGIN_TYPE, index, entry.typeString);
-			connector-> setState( StateKey::PLUGIN_VERSION, index, entry.version);
+            connector-> setState( StateKey::PLUGIN_NAME, index, entry.json.name);
+            connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.json.description);
+            connector-> setState( StateKey::PLUGIN_TYPE, index, entry.json.typeString);
+            connector-> setState( StateKey::PLUGIN_VERSION, index, entry.json.version);
 			connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join("|"));
 			ind ++;
 		}
@@ -354,6 +373,7 @@ void Viewer::start()
 		if ( dataValues.size() == keys.size()){
 			std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[1] );
 			if ( it == m_dataControllers.end() ){
+                qDebug() << "Registering view " << dataValues[1];
 				//Need to make more generic.
 				if ( dataValues[0] == "casaLoader"){
 					std::shared_ptr<DataController> target(new DataController());
@@ -400,7 +420,7 @@ void Viewer::start()
 
 	//Callback for adding a data source to a DataController.
 	connector->addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
+            const QString & params, const QString & sessionId) -> QString {
 		QList<QString> keys = {"id", "data"};
 		QVector<QString> dataValues = _parseParamMap( params, keys );
 		if ( dataValues.size() == keys.size()){
@@ -408,7 +428,16 @@ void Viewer::start()
 			std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[0] );
 			if ( it != m_dataControllers.end()){
 				//Add the data to it.
-				m_dataControllers[dataValues[0]]->addData( dataValues[1] );
+                QString path = dataValues[1];
+                if( ! path.startsWith( "/root/")) {
+                    /// security issue...
+                    return "";
+                }
+                path = QString( "%1/%2").arg( DataLoader::getRootDir( sessionId))
+                       .arg( path.remove( 0, 6));
+                m_dataControllers[dataValues[0]]->addData( path );
+                qDebug() << QString("m_dataControllers[%1]->addData(%2)")
+                            .arg(dataValues[0]).arg(path);
 			}
 		}
 		return "";
@@ -416,28 +445,67 @@ void Viewer::start()
 }
 
 QVector<QString> Viewer::_parseParamMap( const QString& params, const QList<QString>& keys ){
-	QVector<QString> values;
-	QStringList paramList = params.split( ",");
-	if ( paramList.size() == keys.size() ){
-		values.resize( keys.size());
-		for ( QString param : paramList ){
-			QStringList pair = param.split( ":");
-			if ( pair.size() == 2 ){
-				int keyIndex = keys.indexOf( pair[0] );
-				if ( keyIndex >= 0 ){
-					values[keyIndex] = pair[1];
-				}
-				else {
-					qDebug() << "Unrecognized key="<<pair[0];
-				}
-			}
-			else {
-				qDebug() <<"Badly formatted param map="<<param;
-			}
-		}
-	}
-	else {
-		qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
-	}
-	return values;
+    QVector<QString> values;
+    QStringList paramList = params.split( ",");
+    if ( paramList.size() == keys.size() ){
+        values.resize( keys.size());
+        for ( QString param : paramList ){
+            QStringList pair = param.split( ":");
+            if ( pair.size() == 2 ){
+                int keyIndex = keys.indexOf( pair[0] );
+                if ( keyIndex >= 0 ){
+                    values[keyIndex] = pair[1];
+                }
+                else {
+                    qDebug() << "Unrecognized key="<<pair[0];
+                }
+            }
+            else {
+                qDebug() <<"Badly formatted param map="<<param;
+            }
+        }
+    }
+    else {
+        qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
+    }
+    return values;
 }
+
+void Viewer::scriptedCommandCB( QString command)
+{
+    command = command.simplified();
+    qDebug() << "Scripted command received:" << command;
+
+    QStringList args = command.split( ' ', QString::SkipEmptyParts);
+    qDebug() << "args=" << args;
+    qDebug() << "args.size=" << args.size();
+    if( args.size() == 2 && args[0].toLower() == "load") {
+        qDebug() << "Trying to load" << args[1];
+
+        QString viewName = "win1";
+        m_dataControllers[viewName]->addData( args[1] );
+
+//        auto loadImageHookHelper = Globals::instance()-> pluginManager()
+//                                   -> prepare<LoadImage>( args[1], 0);
+//        Nullable<QImage> res = loadImageHookHelper.first();
+//        if( res.isNull()) {
+//            qDebug() << "Could not find any plugin to load image";
+//        }
+//        else {
+//            qDebug() << "Image loaded: " << res.val().size();
+//            testView2-> setImage( res.val());
+//        }
+    }
+    else if( args.size() == 1 && args[0].toLower() == "quit") {
+        qDebug() << "Quitting...";
+        MyQApp::exit();
+        return;
+    }
+    else {
+        qWarning() << "Sorry, unknown command";
+    }
+
+
+}
+
+

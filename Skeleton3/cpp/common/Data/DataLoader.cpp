@@ -7,12 +7,17 @@
 #include <QJsonObject>
 
 QString DataLoader::getData( const QString& /*selectionParams*/, const QString& sessionId ){
+    qDebug() << "getData received...";
 	QString rootDirName = getRootDir( sessionId );
 	QDir rootDir(rootDirName);
 	QString jsonTree;
 
     QJsonObject rootObj;
     processDirectory( rootDir, rootObj );
+    // replace the entry for the root object with a fake, for two reasons:
+    // root directory could contain multiple directories (e.g. /scratch/Images ...)
+    // for little added security
+    rootObj.insert( "name", "root");
 
     QJsonDocument document( rootObj );
     QByteArray textArray = document.toJson();
@@ -67,5 +72,5 @@ void DataLoader::makeFileNode( QJsonArray& parentArray, const QString& fileName 
 }
 
 QString DataLoader::getRootDir( const QString& /*sessionId*/ ){
-	return "/scratch";
+    return "/scratch/Images";
 }

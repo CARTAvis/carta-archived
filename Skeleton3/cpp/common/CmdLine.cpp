@@ -30,6 +30,9 @@ ParsedInfo parse(const QStringList & argv)
         "html", "development option for desktop version, path to html to load", "htmlPath"
                 );
     parser.addOption( htmlPathOption);
+    QCommandLineOption scriptPortOption(
+                "scriptPort", "port on which to listen for scripted commands", "scriptPort");
+    parser.addOption( scriptPortOption);
 
     // Process the actual command line arguments given by the user, exit if
     // command line arguments have a syntax error, or the user asks for -h or -v
@@ -55,8 +58,21 @@ ParsedInfo parse(const QStringList & argv)
     }
 
 
+    // get script port
+    if( parser.isSet( scriptPortOption)) {
+        QString portString = parser.value( scriptPortOption);
+        bool ok;
+        info.m_scriptPort = portString.toInt( & ok);
+        if( ! ok || info.m_scriptPort < 0 || info.m_scriptPort > 65535) {
+            parser.showHelp( -1);
+        }
+
+    }
+    qDebug() << "script port=" << info.scriptPort();
+
     // get a list of files to open
     info.m_fileList = parser.positionalArguments();
+    qDebug() << "list of files to open:" << info.m_fileList;
 
     return info;
 }
@@ -74,6 +90,11 @@ QString ParsedInfo::htmlPath() const
 const QStringList &ParsedInfo::fileList() const
 {
     return m_fileList;
+}
+
+int ParsedInfo::scriptPort() const
+{
+    return m_scriptPort;
 }
 
 } // namespace CmdLine

@@ -47,7 +47,6 @@ public:
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
     virtual void removeStateCallback( const CallbackID & id);
 
-
 public slots:
     /// javascript calls this to set a state
     void jsSetStateSlot( const QString & key, const QString & value);
