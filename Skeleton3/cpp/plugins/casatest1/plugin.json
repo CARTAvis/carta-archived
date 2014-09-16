@@ -3,7 +3,7 @@
     "name"       : "casaLoader",
     "version"    : "1",
     "type"       : "C++",
-    "description": "Adds ability to load casa and fits files",
+    "description": "Adds ability to load casa and fits files as QImages",
     "about"      : "Part of skeleton3. Written by Pavol",
     "depends"    : [ "casaCore"]
 }

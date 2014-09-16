@@ -155,15 +155,18 @@ public:
 /// Main interface class for representing an image inside the viewer. This is used to pass
 /// around images between core and plugins. For example, a plugin that can load
 /// an image would have to implement this interface.
-class ImageInterface : public QObject
+class ImageInterface
+//        : public QObject
 {
-    Q_OBJECT
+//    Q_OBJECT
+
 public:
 
     /// similar to BITPIX
     typedef Image::PixelType PixelType;
 
-    ImageInterface() : QObject() {}
+//    ImageInterface() : QObject() {}
+    ImageInterface()  {}
 
     /// virtual destructor to make sure we can delete arbitrary images
     virtual ~ImageInterface() {}

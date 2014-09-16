@@ -9,6 +9,6 @@ setup(
     ext_modules = cythonize(
         "pluginBridge.pyx",                # source
 #        language="c++",
-        include_dirs = [ "/scratch/cy" ],
+#        include_dirs = [ "/scratch/cy" ],
         ),
 )

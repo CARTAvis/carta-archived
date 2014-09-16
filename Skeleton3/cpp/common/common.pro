@@ -49,7 +49,8 @@ SOURCES += \
     CoordinateFormatter.cpp \
     AxisInfo.cpp \
     CoordinateGridPlotter.cpp \
-    PlotLabelGenerator.cpp
+    PlotLabelGenerator.cpp \
+    PixelType.cpp
 
 
 message( "common            PWD=$$PWD")

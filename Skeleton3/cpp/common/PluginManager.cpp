@@ -244,7 +244,17 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
         info.errors << "...'type' was not specified in plugin.json";
         return info;
     }
-    info.json.description = json["description"].toString();
+    /// for convenience description could be a single string or an array of strings
+    /// in which case we join them into one...
+    if( json["description"].isArray()) {
+        auto list = json["description"].toArray();
+        for( auto entry : list) {
+            info.json.description.append( entry.toString());
+        }
+    }
+    else {
+        info.json.description = json["description"].toString();
+    }
     info.json.about = json["about"].toString();
     if( ! json["depends"].isArray()) {
         info.errors << "...'depends' must be an array of strings in plugin.json";

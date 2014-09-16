@@ -96,7 +96,9 @@ protected:
         }
 
         // execute the pre-render hook
-        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()
+                -> prepare<PreRender>( m_viewName, & m_qimage)
+                .executeAll();
     }
 
     IConnector * m_connector;
@@ -192,7 +194,9 @@ protected:
         }
 
         // execute the pre-render hook
-        Globals::instance()-> pluginManager()-> prepare<PreRender>( m_viewName, & m_qimage).executeAll();
+        Globals::instance()-> pluginManager()
+                -> prepare<PreRender>( m_viewName, & m_qimage)
+                .executeAll();
     }
 
     IConnector * m_connector;
@@ -244,7 +248,8 @@ void Viewer::start()
     }
 
     // tell all plugins that the core has initialized
-    pm-> prepare<Initialize>().executeAll();
+    pm-> prepare<Initialize>()
+            .executeAll();
 
 #ifdef DONT_COMPILE
 
@@ -305,8 +310,15 @@ void Viewer::start()
     }
     QString fname = Globals::instance()-> platform()-> initialFileList() [0];
 
-    auto loadImageHookHelper = Globals::instance()-> pluginManager()-> prepare<LoadImage>( fname);
-    Nullable<QImage> res = loadImageHookHelper.first();
+//    auto loadImageHookHelper = Globals::instance()-> pluginManager()
+//                               -> prepare<LoadImage>( fname);
+//    Nullable<QImage> res = loadImageHookHelper.first();
+
+    Nullable<QImage> res =
+            Globals::instance()-> pluginManager()
+            -> prepare<LoadImage>( fname)
+            .first();
+
     if( res.isNull()) {
         qDebug() << "Could not find any plugin to load image";
     }
@@ -315,6 +327,24 @@ void Viewer::start()
         testView2 = new TestView2( "view3", QColor( "pink"), res.val());
         connector-> registerView( testView2);
     }
+
+    qDebug() << "Trying to load astroImage...";
+    auto res2 =
+            Globals::instance()-> pluginManager()
+            -> prepare<LoadAstroImage>( fname)
+            .first();
+    if( res2.isNull()) {
+        qDebug() << "Could not find any plugin to load astroImage";
+    }
+    else {
+        qDebug() << "Image loaded\n";
+        qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType());
+        Image::ImageInterface * img = res2.val();
+        auto dims = img->dims();
+        QVector<int> qv = QVector<int>::fromStdVector( dims);
+//        qDebug() << "Dimensions: " << QVector<int>::fromStdVector( img->dims());
+    }
+
 
     // tell clients about our plugins
     {
@@ -368,6 +398,9 @@ void Viewer::scriptedCommandCB( QString command)
     }
 
 
+
 }
+
+
 
 

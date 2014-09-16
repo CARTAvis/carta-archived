@@ -25,10 +25,7 @@ static_assert( sizeof(float) == 4, "bad float size");
 static_assert( sizeof(double) == 8, "bad double size");
 
 // convenience function convert pixel type to int
-int pixelType2int( const PixelType & type) {
-    static_assert( std::is_same< std::underlying_type<PixelType>::type, int>::value, "NOOO" );
-    return static_cast<int>( type);
-}
+int pixelType2int( const PixelType & type);
 
 // convert PixelType to c type
 template <PixelType pt>
@@ -55,7 +52,7 @@ template <typename cType>
 struct CType2PixelType {};
 
 template <>
-struct CType2PixelType <int8_t> {
+struct CType2PixelType <std::uint8_t> {
     static constexpr PixelType type = PixelType::Byte;
 };
 
@@ -64,6 +61,33 @@ struct CType2PixelType <double> {
     static constexpr PixelType type = PixelType::Real64;
 };
 
+template <>
+struct CType2PixelType <float> {
+    static constexpr PixelType type = PixelType::Real32;
+};
+
+template <>
+struct CType2PixelType <std::int32_t> {
+    static constexpr PixelType type = PixelType::Int32;
+};
+
+template <>
+struct CType2PixelType <std::int16_t> {
+    static constexpr PixelType type = PixelType::Int16;
+};
+
+template <>
+struct CType2PixelType <std::int64_t> {
+    static constexpr PixelType type = PixelType::Int64;
+};
+
+
+
+
+
+/// convenience function to convert a type to a string
+//QString pixelType2String( PixelType t);
+//}
 
 }
 
@@ -112,3 +136,4 @@ typename Type2CvtFunc<DstType>::Type getConverter( Image::PixelType srcType)
         break;
     }
 }
+

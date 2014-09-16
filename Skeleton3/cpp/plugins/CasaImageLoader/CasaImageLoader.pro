@@ -12,10 +12,12 @@ TEMPLATE = lib
 CONFIG += plugin
 
 SOURCES += \
-    CasaTest1.cpp
+    CasaImageLoader.cpp \
+    CCImage.cpp
 
 HEADERS += \
-    CasaTest1.h
+    CasaImageLoader.h \
+    CCImage.h
 
 CASACOREDIR=$$(HOME)/Software/casacore-1.5.0-shared
 WCSLIBDIR=$$(HOME)/Software/wcslib-4.23-shared
@@ -38,7 +40,6 @@ OTHER_FILES += \
     plugin.json
 
 # copy json to build directory
-#MYFILES = $$files($${PWD}/files/*.*)
 MYFILES = plugin.json
 copy_files.name = copy large files
 copy_files.input = MYFILES

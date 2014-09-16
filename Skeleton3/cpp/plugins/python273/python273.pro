@@ -65,6 +65,7 @@ cythonheader.commands = @true
 cythonheader.variable_out = HEADERS
 cythonheader.name = cython Headers ${QMAKE_FILE_IN}
 cythonheader.CONFIG += target_predeps no_link
+cythonheader.depends += ${QMAKE_FILE_BASE}.cpp
 
 QMAKE_EXTRA_COMPILERS += cythonheader
 

@@ -38,3 +38,4 @@ protected:
 
     ScriptedCommandListener * m_scl = nullptr;
 };
+

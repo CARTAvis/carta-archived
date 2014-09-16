@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/python273.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/python273.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/setup.py" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/setup.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
@@ -60,8 +61,8 @@
         <option name="LOG_MESSAGE" value="" />
       </breakpoint>
     </breakpoint_any>
-    <breakpoint_rules converted="true" />
     <ui_properties converted="true" />
+    <breakpoint_rules converted="true" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="ExportToHTMLSettings">
@@ -149,7 +150,7 @@
           <file leaf-file-name="PluginList.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.44281524" vertical-offset="372" max-vertical-offset="1455">
+                <state vertical-scroll-proportion="0.42828485" vertical-offset="398" max-vertical-offset="1455">
                   <caret line="59" column="81" selection-start-line="59" selection-start-column="81" selection-end-line="59" selection-end-column="81" />
                   <folding />
                 </state>
@@ -220,21 +221,21 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="pluginBridge.pyx" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="pluginBridge.pyx" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.39589444" vertical-offset="495" max-vertical-offset="1770">
-                  <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="495" max-vertical-offset="1770">
+                  <caret line="34" column="0" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="Application.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1380" max-vertical-offset="2715">
-                  <caret line="92" column="0" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.25576732" vertical-offset="1260" max-vertical-offset="2595">
+                  <caret line="109" column="63" selection-start-line="109" selection-start-column="63" selection-end-line="109" selection-end-column="63" />
                   <folding />
                 </state>
               </provider>
@@ -276,8 +277,8 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
         <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js" />
-        <option value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js" />
+        <option value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
       </list>
     </option>
   </component>
@@ -625,15 +626,16 @@
       <workItem from="1408584333198" duration="80000" />
       <workItem from="1408584430931" duration="37000" />
       <workItem from="1408584774644" duration="3514000" />
+      <workItem from="1410738259397" duration="1240000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="190610000" />
+    <option name="totallyTimeSpent" value="191850000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942238" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -645,7 +647,7 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.50138247" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.50141644" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -653,7 +655,7 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.4986175" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.49858356" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -1042,14 +1044,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1380" max-vertical-offset="2715">
-          <caret line="92" column="0" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/setup.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1038">
@@ -1067,7 +1061,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.44281524" vertical-offset="372" max-vertical-offset="1455">
+        <state vertical-scroll-proportion="0.42828485" vertical-offset="398" max-vertical-offset="1455">
           <caret line="59" column="81" selection-start-line="59" selection-start-column="81" selection-end-line="59" selection-end-column="81" />
           <folding />
         </state>
@@ -1075,8 +1069,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.39589444" vertical-offset="495" max-vertical-offset="1770">
-          <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="495" max-vertical-offset="1770">
+          <caret line="34" column="0" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.25576732" vertical-offset="1260" max-vertical-offset="2595">
+          <caret line="109" column="63" selection-start-line="109" selection-start-column="63" selection-end-line="109" selection-end-column="63" />
           <folding />
         </state>
       </provider>
