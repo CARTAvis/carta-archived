@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
@@ -89,7 +89,7 @@
           <file leaf-file-name="desktopConnector.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="4470" max-vertical-offset="5670">
+                <state vertical-scroll-proportion="0.0" vertical-offset="4470" max-vertical-offset="5730">
                   <caret line="298" column="18" selection-start-line="298" selection-start-column="13" selection-end-line="298" selection-end-column="18" />
                   <folding />
                 </state>
@@ -99,8 +99,8 @@
           <file leaf-file-name="Label.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="1215">
-                  <caret line="48" column="86" selection-start-line="48" selection-start-column="86" selection-end-line="48" selection-end-column="86" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="1230">
+                  <caret line="48" column="15" selection-start-line="48" selection-start-column="15" selection-end-line="48" selection-end-column="15" />
                   <folding />
                 </state>
               </provider>
@@ -149,8 +149,8 @@
           <file leaf-file-name="PluginList.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.44281524" vertical-offset="372" max-vertical-offset="1455">
-                  <caret line="59" column="81" selection-start-line="59" selection-start-column="81" selection-end-line="59" selection-end-column="81" />
+                <state vertical-scroll-proportion="0.20260783" vertical-offset="458" max-vertical-offset="1515">
+                  <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -183,8 +183,8 @@
           <file leaf-file-name="View.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1020" max-vertical-offset="1920">
-                  <caret line="68" column="44" selection-start-line="68" selection-start-column="44" selection-end-line="68" selection-end-column="44" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="1020" max-vertical-offset="1455">
+                  <caret line="68" column="0" selection-start-line="68" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -213,18 +213,40 @@
           <file leaf-file-name="desktopConnector.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="4245" max-vertical-offset="5670">
-                  <caret line="283" column="50" selection-start-line="283" selection-start-column="50" selection-end-line="283" selection-end-column="50" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="4005" max-vertical-offset="5685">
+                  <caret line="270" column="6" selection-start-line="270" selection-start-column="6" selection-end-line="270" selection-end-column="6" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="pluginBridge.pyx" pinned="false" current="true" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
+          <file leaf-file-name="FileBrowser.js" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/FileBrowser.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.39589444" vertical-offset="495" max-vertical-offset="1770">
-                  <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+                <state vertical-scroll-proportion="0.0" vertical-offset="405" max-vertical-offset="1770">
+                  <caret line="65" column="40" selection-start-line="65" selection-start-column="40" selection-end-line="65" selection-end-column="40" />
+                  <folding>
+                    <element signature="n#!!doc" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="DisplayWindowImage.js" pinned="false" current="true" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindowImage.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.35179487" vertical-offset="1127" max-vertical-offset="3795">
+                  <caret line="100" column="20" selection-start-line="100" selection-start-column="20" selection-end-line="100" selection-end-column="20" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="DisplayWindow.js" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindow.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="-7.814815" vertical-offset="29" max-vertical-offset="6525">
+                  <caret line="18" column="47" selection-start-line="18" selection-start-column="47" selection-end-line="18" selection-end-column="47" />
                   <folding />
                 </state>
               </provider>
@@ -233,7 +255,7 @@
           <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1380" max-vertical-offset="2715">
+                <state vertical-scroll-proportion="0.0" vertical-offset="1380" max-vertical-offset="5385">
                   <caret line="92" column="0" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
                   <folding />
                 </state>
@@ -276,7 +298,6 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
         <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js" />
-        <option value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js" />
       </list>
     </option>
@@ -335,7 +356,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -345,8 +365,137 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="skel" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="skel" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="source" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="skel" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="source" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="class" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="skel" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="html5" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="skel" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="source" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="class" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="skel" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="widgets" />
+              <option name="myItemType" value="com.android.tools.idea.gradle.projectView.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -363,9 +512,8 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="FullScreen" value="false" />
-    <property name="recentsLimit" value="5" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -617,23 +765,17 @@
       <workItem from="1403752889253" duration="40000" />
       <workItem from="1403753002624" duration="143000" />
       <workItem from="1403753160979" duration="22000" />
-      <workItem from="1403753437185" duration="1419000" />
-      <workItem from="1405648644248" duration="22664000" />
-      <workItem from="1408581484572" duration="22000" />
-      <workItem from="1408581541854" duration="1728000" />
-      <workItem from="1408583429350" duration="160000" />
-      <workItem from="1408584333198" duration="80000" />
-      <workItem from="1408584430931" duration="37000" />
-      <workItem from="1408584774644" duration="3514000" />
+      <workItem from="1403753437185" duration="731000" />
+      <workItem from="1410460882365" duration="1267000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="190610000" />
+    <option name="totallyTimeSpent" value="162984000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942238" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -645,7 +787,7 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.50138247" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.50141644" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -653,11 +795,11 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.4986175" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.49858356" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32903227" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -682,14 +824,6 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1320" max-vertical-offset="1965">
-          <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/customuris.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="90" max-vertical-offset="180">
@@ -996,8 +1130,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="536" max-vertical-offset="1215">
-          <caret line="48" column="86" selection-start-line="48" selection-start-column="86" selection-end-line="48" selection-end-column="86" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="1230">
+          <caret line="48" column="15" selection-start-line="48" selection-start-column="15" selection-end-line="48" selection-end-column="15" />
           <folding />
         </state>
       </provider>
@@ -1020,8 +1154,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="446" max-vertical-offset="1920">
-          <caret line="68" column="44" selection-start-line="68" selection-start-column="44" selection-end-line="68" selection-end-column="44" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1020" max-vertical-offset="1455">
+          <caret line="68" column="0" selection-start-line="68" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1050,33 +1184,44 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/setup.py">
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1038">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.20260783" vertical-offset="458" max-vertical-offset="1515">
+          <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/desktop/desktopConnector.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="4245" max-vertical-offset="5670">
-          <caret line="283" column="50" selection-start-line="283" selection-start-column="50" selection-end-line="283" selection-end-column="50" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="4005" max-vertical-offset="5685">
+          <caret line="270" column="6" selection-start-line="270" selection-start-column="6" selection-end-line="270" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/FileBrowser.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.44281524" vertical-offset="372" max-vertical-offset="1455">
-          <caret line="59" column="81" selection-start-line="59" selection-start-column="81" selection-end-line="59" selection-end-column="81" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="405" max-vertical-offset="1770">
+          <caret line="65" column="40" selection-start-line="65" selection-start-column="40" selection-end-line="65" selection-end-column="40" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindow.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.814815" vertical-offset="29" max-vertical-offset="6525">
+          <caret line="18" column="47" selection-start-line="18" selection-start-column="47" selection-end-line="18" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindowImage.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.39589444" vertical-offset="495" max-vertical-offset="1770">
-          <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+        <state vertical-scroll-proportion="0.35179487" vertical-offset="1127" max-vertical-offset="3795">
+          <caret line="100" column="20" selection-start-line="100" selection-start-column="20" selection-end-line="100" selection-end-column="20" />
           <folding />
         </state>
       </provider>

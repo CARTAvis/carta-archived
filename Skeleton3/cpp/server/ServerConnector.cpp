@@ -190,7 +190,6 @@ void ServerConnector::genericCommandListener(CSI::Guid sessionid, const CSI::Typ
     std::string cmd = command["cmd"].As<std::string>();
     std::string params = command["params"].As<std::string>();
 
-    qDebug() << "Generic command: " << cmd.c_str() << " " << params.c_str();
 
     auto & allCallbacks = m_commandCallbackMap[ cmd.c_str()];
     QStringList results;
@@ -348,7 +347,6 @@ void ServerConnector::registerView(IView *view)
     viewImageFormat.Alignment = 4;
 
     std::string vn = view->name().toStdString();
-    qDebug() << "registering view " << view->name();
     // TODO: resource leak (only if we destroy a connector...)
     PWIViewConverter * cvt = new PWIViewConverter( view);
 

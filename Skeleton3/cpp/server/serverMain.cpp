@@ -12,7 +12,9 @@
 
 int main(int argc, char ** argv)
 {
+    //
     // initialize Qt
+    //
     MyQApp qapp( argc, argv);
 
 #ifdef QT_DEBUG

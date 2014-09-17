@@ -66,6 +66,10 @@ qx.Class.define("skel.Application",
                 console.log( "I will never be compiled out :(" );
 
                 var connector = mImport( "connector" );
+
+                // delay start of the application until we receive CONNECTED event...
+                // only after we receive this event we can safely start modifying state, etc
+                // otherwise some state changes/commands might get lost
                 connector.setConnectionCB( this._afterConnect.bind( this));
 /*
                 connector.setConnectionCB( function( s )
@@ -73,12 +77,14 @@ qx.Class.define("skel.Application",
                     console.log( "connectionCB status=", connector.getConnectionStatus() );
 
                 } );
-*/	
+*/
                 connector.connect();
             },
-                
+
             _afterConnect: function()
             {
+                console.log( "_afterConnect running");
+
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                     console.log( "Connection not established yet...");
@@ -87,8 +93,7 @@ qx.Class.define("skel.Application",
                           
                 this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas());
                 this.m_mainContainer.setAppearance( "display-main");
-                
-                this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});                  u          
+                this.getRoot().add( this.m_mainContainer, {left: "0%", right: "0%", top: "0%", bottom: "0%"});
                 
                 this.m_desktop = new skel.widgets.DisplayMain();
                 this.m_mainContainer.add( this.m_desktop, { top: "0%", bottom: "0%", left: "0%", right: "0%"});
@@ -184,7 +189,6 @@ qx.Class.define("skel.Application",
             	this.m_mainContainer.add( this.m_menuBar );
             	this.m_menuBar.reposition();
             },
-                
             
             /**
              * Remove an overlay window.

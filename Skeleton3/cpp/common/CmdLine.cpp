@@ -33,6 +33,7 @@ ParsedInfo parse(const QStringList & argv)
     QCommandLineOption scriptPortOption(
                 "scriptPort", "port on which to listen for scripted commands", "scriptPort");
     parser.addOption( scriptPortOption);
+
     // Process the actual command line arguments given by the user, exit if
     // command line arguments have a syntax error, or the user asks for -h or -v
     parser.process( argv);
@@ -49,13 +50,13 @@ ParsedInfo parse(const QStringList & argv)
     if( info.m_configFilePath.isEmpty()) {
         info.m_configFilePath = QDir::homePath() + "/.cartavis/config.json";
     }
-    qDebug() << "Config file path=" << info.configFilePath();
+
 
     // get html path
     if( parser.isSet( htmlPathOption)) {
         info.m_htmlPath = parser.value( htmlPathOption);
     }
-    qDebug() << "html path=" << info.htmlPath();
+
 
     // get script port
     if( parser.isSet( scriptPortOption)) {
@@ -66,6 +67,7 @@ ParsedInfo parse(const QStringList & argv)
             parser.showHelp( -1);
         }
 
+    }
     qDebug() << "script port=" << info.scriptPort();
 
     // get a list of files to open

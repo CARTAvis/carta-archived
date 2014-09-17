@@ -204,8 +204,6 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
 {
     qFatal( "not implemented");
 }
-void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
-    qDebug() << "jsSetState: " << key << "=" << value;
 	QString lookup(key);
 	QString id("");
 	int lastSepIndex = key.lastIndexOf( StateLibrary::SEPARATOR );

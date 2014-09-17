@@ -5,8 +5,9 @@
 TEMPLATE = lib
 
 CONFIG += staticlib
-QT += widgets xml
-QT += network
+QT += widgets network
+QT += xml
+
 HEADERS += \
     IConnector.h \
     IPlatform.h \
@@ -25,6 +26,13 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
+    ScriptedCommandListener.h \
+    PixelType.h \
+    Slice.h \
+    CoordinateFormatter.h \
+    AxisInfo.h \
+    CoordinateGridPlotter.h \
+    PlotLabelGenerator.h \
     State/State.h \
     State/StateKey.h \
     State/StateLibrary.h \
@@ -32,13 +40,6 @@ HEADERS += \
     Data/DataAnimator.h \
     Data/DataController.h \
     Data/DataLoader.h \
-    ScriptedCommandListener.h \
-    PixelType.h \
-    Slice.h \
-    CoordinateFormatter.h \
-    AxisInfo.h \
-    CoordinateGridPlotter.h \
-    PlotLabelGenerator.h
     Data/DataSelection.h \
     Data/Region.h \
     Data/DataSource.h \
@@ -61,6 +62,8 @@ SOURCES += \
     Data/DataController.cpp \
     Data/DataLoader.cpp \
     Data/DataSelection.cpp \
+    Data/DataSource.cpp \
+    Data/Region.cpp \
     ScriptedCommandListener.cpp \
     Slice.cpp \
     IImage.cpp \
@@ -68,10 +71,8 @@ SOURCES += \
     AxisInfo.cpp \
     CoordinateGridPlotter.cpp \
     PlotLabelGenerator.cpp
-    Data/DataSource.cpp \
-    Data/Region.cpp
 
-message( "common            INCLUDEPATH=$$INCLUDEPATH")
+
 message( "common            PWD=$$PWD")
 message( "common         IN_PWD=$$IN_PWD")
 message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
