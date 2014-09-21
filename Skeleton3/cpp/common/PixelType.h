@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <QString>
 #include <cstdint>
 #include <type_traits>
 
@@ -84,11 +85,6 @@ struct CType2PixelType <std::int64_t> {
 
 
 
-
-/// convenience function to convert a type to a string
-//QString pixelType2String( PixelType t);
-//}
-
 }
 
 template <typename SrcType, typename DstType>
@@ -137,3 +133,10 @@ typename Type2CvtFunc<DstType>::Type getConverter( Image::PixelType srcType)
     }
 }
 
+
+namespace Carta {
+
+/// convenience function to convert a type to a string
+QString toStr( Image::PixelType t);
+
+}

@@ -44,7 +44,7 @@ public:
 
     /// the type used for indexing
     /// NOTE: this could be templated...
-    typedef int64_t Index;
+    typedef int Index;
 
     /// construct a slice equivalent to [:] or [::], i.e. denothing whole array
     Slice1D();
@@ -95,11 +95,12 @@ public:
     };
 
     /// return starting index, count and step for the given input size n
+    /// \todo redo this so that it can be marked const
     ApplyResult apply( Index n);
 
-    /// this is adaptation of cpython's PySlice_GetIndicesEx()
+    /// this is adaptation of cpython's code for PySlice_GetIndicesEx()
     /// https://docs.python.org/2/c-api/slice.html
-    ApplyResult cpythonApply( Index n);
+    ApplyResult cpythonApply( Index n) const;
 
     /// formats the slice into a string
     /// mainly useful for debugging
@@ -108,7 +109,7 @@ public:
 protected:
 
     /// positive step case calculation
-    void positiveCase( ApplyResult & res, Index n, Index off = 0);
+    void positiveCase( ApplyResult & res, Index n, Index off = 0) const;
 
 
     /// do we represent single index (true) or not
@@ -147,7 +148,7 @@ public:
     typedef Slice1D::Index Index;
 
     /// number of explicitly defined dimensions
-    int dims();
+    int dims() const;
 
     /// default constructor - creates a [:] slice (ie. everything)
     SliceND();
@@ -175,6 +176,7 @@ public:
     /// moves to the next index (same as what colon does)
     SliceND & next();
 
+    /// the result of applying an n-dimensional slice to an array
     class ApplyResult {
     public:
         /// was there an error
@@ -199,7 +201,7 @@ public:
     /// if the numpber of supplied dimensions is greater than number of slices,
     /// the slices are padded with defaults (ie. ':'). If the number of supplied
     /// dimensions is smaller than number of slices, an error result is returned.
-    ApplyResult apply( const std::vector<Index> & dimensions);
+    ApplyResult apply( const std::vector<Index> & dimensions) const;
 
     /// formats the slice into a string
     /// mainly useful for debugging

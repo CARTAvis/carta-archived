@@ -98,7 +98,7 @@ Slice1D::ApplyResult Slice1D::apply(Slice1D::Index n)
     return res;
 }
 
-Slice1D::ApplyResult Slice1D::cpythonApply(Slice1D::Index n)
+Slice1D::ApplyResult Slice1D::cpythonApply(Slice1D::Index n) const
 {
     ApplyResult res;
 
@@ -184,7 +184,7 @@ QString Slice1D::toStr(QString format) const {
     return format.arg(res);
 }
 
-void Slice1D::positiveCase(Slice1D::ApplyResult & res, Slice1D::Index n, Slice1D::Index off)
+void Slice1D::positiveCase(Slice1D::ApplyResult & res, Slice1D::Index n, Slice1D::Index off) const
 {
     // assuming we already have step>0, n>0 and not single index, and
     // also res.step has already been extracted
@@ -252,6 +252,11 @@ QString Slice1D::ApplyResult::toStr() const
 /// SliceND
 /// ===========================================================================
 
+int SliceND::dims() const
+{
+    return static_cast<int>(m_slices.size());
+}
+
 SliceND::SliceND()
 {
     slice( 0);
@@ -291,12 +296,12 @@ SliceND & SliceND::index(SliceND::Index index) {
 }
 
 SliceND & SliceND::next() {
-    m_currentSlice ++;
-    slice( m_currentSlice);
-    return * this;
+    m_currentSlice++;
+    slice(m_currentSlice);
+    return *this;
 }
 
-SliceND::ApplyResult SliceND::apply(const std::vector<SliceND::Index> & dimensions)
+SliceND::ApplyResult SliceND::apply(const std::vector<SliceND::Index> & dimensions) const
 {
     ApplyResult res;
 
@@ -309,14 +314,19 @@ SliceND::ApplyResult SliceND::apply(const std::vector<SliceND::Index> & dimensio
     res.m_single = true;
     res.m_error = false;
     for( size_t i = 0 ; i < dimensions.size() ; i ++) {
-        // appy slice[i] to dimension[i]
-        Slice1D::ApplyResult ar = slice(i).apply( dimensions[i]);
-        // add this to the results
-        res.m_results.push_back( ar);
-        // update error
-        res.m_error = res.m_error || ar.isError();
-        // update single status
-        res.m_single = res.m_single && ar.isSingle();
+        if( i < m_slices.size()) {
+            // appy slice[i] to dimension[i]
+            Slice1D::ApplyResult ar = m_slices[i].cpythonApply( dimensions[i]);
+            // add this to the results
+            res.m_results.push_back( ar);
+            // update error
+            res.m_error = res.m_error || ar.isError();
+            // update single status
+            res.m_single = res.m_single && ar.isSingle();
+        }
+        else {
+            res.m_results.push_back( { 0, dimensions[i], 1 });
+        }
     }
     return res;
 }

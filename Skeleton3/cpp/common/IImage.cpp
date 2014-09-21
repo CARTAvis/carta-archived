@@ -15,17 +15,10 @@ const Unit &Image::ImageInterface::getPixelUnit() const
 }
 
 
-const std::vector<int> &Image::ImageInterface::dims() const
+const Image::ImageInterface::VI & Image::ImageInterface::dims() const
 {
     qFatal( "Calling unimplemented virtual function... ");
 }
-
-
-const QString &Image::ImageInterface::imageType() const
-{
-    qFatal( "Calling unimplemented virtual function... ");
-}
-
 
 bool Image::ImageInterface::hasMask() const
 {
@@ -45,7 +38,7 @@ Image::ImageInterface::PixelType Image::ImageInterface::errorType() const
 }
 
 
-void Image::ImageInterface::getDataSlice(const SliceND & sliceInfo, NdArray::RawViewInterface & result)
+NdArray::RawViewInterface * Image::ImageInterface::getDataSlice(const SliceND & sliceInfo)
 {
     qFatal( "Calling unimplemented virtual function... ");
 }

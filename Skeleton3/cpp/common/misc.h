@@ -8,6 +8,7 @@
 #define COMMON_MISC_H
 
 #include <QString>
+#include <QDebug>
 
 /// text formatting
 enum class TextFormat { Plain, Html };
@@ -53,6 +54,32 @@ swap_ordered( T & v1, T & v2)
     if( v1 > v2) std::swap( v1, v2);
 }
 
+// ===-----------------------------------------------------------------------------===
+
+/// debug helper to print std::vector...
+
+template < typename T>
+QDebug operator<<(QDebug dbg, const std::vector<T> & v)
+{
+    dbg.nospace() << "std::vector<" << typeid(v[0]).name() << " x " << v.size() << ">=(";
+    for( size_t i = 0 ; i < v.size() ; i ++) {
+        dbg << (i > 0 ? "," : "") << v[i];
+        if( i > 5) {
+            dbg << " ...";
+        }
+    }
+    dbg.nospace() << ")";
+    return dbg.space();
+}
+
+//namespace Carta {}
+
+//template < typename T>
+//QDebug operator<<(QDebug dbg, const T & v)
+//{
+//    dbg.nospace() << typeid(v).name() << ":" << Carta::toStr(v);
+//    return dbg.space();
+//}
 
 
 
