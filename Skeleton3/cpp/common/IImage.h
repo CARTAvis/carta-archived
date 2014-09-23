@@ -90,6 +90,23 @@ public:
 
     /// virtual destructor
     virtual ~RawViewInterface() {}
+
+    // ===-----------------------------------------------------------------------===
+    // experimental APIs below, not yet finalized and definitely not yet implemented
+    // ===-----------------------------------------------------------------------===
+
+    /// another high performance accessor to data
+    virtual int64_t read( int64_t chunk, int64_t buffSize, char * buff,
+                          Traversal traversal = Traversal::Sequential) = 0;
+
+    /// yet another high performance accessor... similar to forEach above,
+    /// but this time the supplied function gets called with whatever number
+    /// elements that fit into the buffer
+    virtual void forEach(
+            int64_t buffSize,
+            std::function<void(const char*, int64_t count)> func,
+            char * buff = nullptr,
+            Traversal traversal = Traversal::Sequential) = 0;
 };
 
 /// Utility class that wraps a raw view into a typed view.

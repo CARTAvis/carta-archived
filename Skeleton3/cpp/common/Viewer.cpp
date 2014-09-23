@@ -16,7 +16,121 @@
 #include <cmath>
 #include <iostream>
 
-//Globals & globals = * Globals::instance();
+/// algorithm for converting an instance of image interface to qimage
+class RawView2QImageConverter {
+public:
+    typedef RawView2QImageConverter & Me;
+
+    Me & setView( NdArray::RawViewInterface * rawView) {
+        if( ! rawView) {
+            throw std::runtime_error( "iimage is null");
+        }
+        if( rawView->dims().size() < 2) {
+            throw std::runtime_error( "need at least 2 dimensions");
+        }
+        m_rawView = rawView;
+        return * this;
+    }
+    Me & setFrame( int frame) {
+        if( frame > 0) {
+            int nFrames = 0;
+            if( m_rawView->dims().size() > 2) {
+                nFrames = m_rawView->dims()[2];
+            }
+            if( frame >= nFrames) {
+                throw std::runtime_error( "not enough frames in this image");
+            }
+        }
+        return * this;
+    }
+
+    Me & setAutoClip( double val) {
+        m_autoClip = val;
+        return * this;
+    }
+
+    void computeClips() {
+        // read in all values from the view
+        std::vector< float> allValues;
+        NdArray::TypedView<float> tview( m_rawView, false);
+        tview.forEach( [& allValues](const float & val) {
+            if( std::isfinite( val)) {
+                allValues.push_back( val);
+            }
+        });
+
+        // indicate bad clip if no finite numbers were found
+        if( allValues.size() == 0) {
+            m_clip1 = 1.0/0.0;
+            return;
+        }
+
+        double hist = m_autoClip * 100;
+        float clip2;
+        {
+            hist = (1.0 - hist / 100) / 2.0;
+            int x1 = allValues.size() * hist;
+            std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end());
+            m_clip1 = allValues[x1];
+            x1 = allValues.size() - x1;
+            std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end());
+            clip2 = allValues[x1];
+        }
+        float clipd = clip2 - m_clip1;
+        m_clipdinv = 1.0 / clipd; // precalculated linear transformation coeff.
+    }
+
+    float m_clip1 = 1.0/0.0, m_clipdinv;
+
+    const QImage & go( bool recomputeClip = true) {
+
+        if( ! std::isfinite(m_clip1) || recomputeClip) {
+            computeClips();
+        }
+
+        int width = m_rawView->dims()[0];
+        int height = m_rawView->dims()[1];
+
+        // make sure there is at least 1 non-nan value, if not, return a black image
+        if( ! std::isfinite(m_clip1)) {
+            // there were no values.... return a black image
+            m_qImage = QImage( width, height, QImage::Format_ARGB32);
+            m_qImage.fill( 0);
+            return m_qImage;
+        }
+
+        // construct image using clips (clipd, clipinv)
+        static std::vector < QRgb > outBuffer;
+        outBuffer.resize( width * height);
+        QRgb * outPtr = & outBuffer[0];
+
+        NdArray::TypedView<float> tview( m_rawView, false);
+        tview.forEach( [& outPtr, this](const float & ival) {
+            if( std::isfinite( ival)) {
+                float val = (ival - m_clip1) * m_clipdinv;
+                int gray = val * 255;
+                if( gray > 255) gray = 255;
+                if( gray < 0) gray = 0;
+                * outPtr = qRgb( gray, gray, gray);
+            }
+            else {
+                * outPtr = qRgb( 255, 0, 0);
+            }
+            outPtr ++;
+        });
+
+        // construct the qimage from the temporary buffer
+        m_qImage = QImage( reinterpret_cast<uchar *>( & outBuffer[0]),
+                width, height, QImage::Format_ARGB32);
+
+        return m_qImage;
+    }
+protected:
+    QImage m_qImage;
+    NdArray::RawViewInterface * m_rawView;
+    double m_autoClip = 0.95;
+    int m_frame;
+};
 
 class TestView : public IView
 {
@@ -57,8 +171,9 @@ public:
     }
 
     virtual void
-    handleResizeRequest( const QSize & size )
+    handleResizeRequest( const QSize & pSize )
     {
+        QSize size( std::max( pSize.width(), 1), std::max( pSize.height(), 1));
         m_qimage = QImage( size, m_qimage.format() );
         m_connector-> refreshView( this );
     }
@@ -166,8 +281,9 @@ public:
     }
 
     virtual void
-    handleResizeRequest( const QSize & size )
+    handleResizeRequest( const QSize & pSize )
     {
+        QSize size( std::max( pSize.width(), 1), std::max( pSize.height(), 1));
         m_qimage = QImage( size, m_qimage.format() );
         m_connector-> refreshView( this );
     }
@@ -340,25 +456,14 @@ Viewer::start()
     connector-> registerView( new TestView( "view1", QColor( "blue" ) ) );
     connector-> registerView( new TestView( "view2", QColor( "red" ) ) );
 
-    // ask plugins to load the image
+    // which image are we loading?
     qDebug() << "======== trying to load image ========";
     if ( Globals::instance()-> platform()-> initialFileList().isEmpty() ) {
         qFatal( "No input file given" );
     }
     QString fname = Globals::instance()-> platform()-> initialFileList()[0];
-    Nullable < QImage > res =
-        Globals::instance()-> pluginManager()
-            -> prepare < LoadImage > ( fname )
-            .first();
-    if ( res.isNull() ) {
-        qDebug() << "Could not find any plugin to load image";
-    }
-    else {
-        qDebug() << "Image loaded: " << res.val().size();
-        testView2 = new TestView2( "view3", QColor( "pink" ), res.val() );
-        connector-> registerView( testView2 );
-    }
 
+    // ask one of the plugins to load the image
     qDebug() << "Trying to load astroImage...";
     auto res2 =
         Globals::instance()-> pluginManager()
@@ -368,8 +473,29 @@ Viewer::start()
         qDebug() << "Could not find any plugin to load astroImage";
     }
     else {
-        qDebug() << "Image loaded\n";
+        m_image = res2.val();
+
+        // convert the loaded image into QImage
+        auto frameSlice = SliceND().next();
+        for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
+            frameSlice.next().index(0);
+        }
+        NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice);
+        RawView2QImageConverter cvt;
+        cvt.setView( frameView);
+        cvt.setAutoClip( 0.95 /* 95% */);
+        QImage qimg = cvt.go();
+        delete frameView;
+        qDebug() << "Image loaded" << qimg;
         qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
+
+        testView2 = new TestView2( "view3", QColor( "pink" ), qimg );
+        connector-> registerView( testView2 );
+    }
+
+    if( 0) {
+        // some debugging info
+
         Image::ImageInterface * img = res2.val();
 
         qDebug() << "Dimensions: " << QVector <int>::fromStdVector( img->dims() );
@@ -386,19 +512,44 @@ Viewer::start()
         for( size_t i = 0 ; i < sizeof( double) ; i ++ ) {
             qDebug() << static_cast<int>(rawPtr[i]);
         }
-        if( img->pixelType() == Image::PixelType::Real32) {
-            NdArray::TypedView<float> fv(rawView);
-            pos = { 0,0,0,0};
-            qDebug() << "fview @" << pos << "=" << fv.get( pos);
-            pos = { 1,0,0,0};
-            qDebug() << "fview @" << pos << "=" << fv.get( pos);
-        }
-
+        NdArray::TypedView<float> fv(rawView, false);
+        pos = VI( img->dims().size(), 0);
+        qDebug() << "fview @" << pos << "=" << fv.get( pos);
+        pos[0] = 1;
+        qDebug() << "fview @" << pos << "=" << fv.get( pos);
 
         {
-            NdArray::RawViewInterface * rawView =
-                    img-> getDataSlice( SliceND({Slice1D().step(3),Slice1D(0)}));
-            qDebug() << "View dimensions:" << rawView->dims();
+            // [3:7:2,5:6]
+            auto slice = SliceND().start(3).step(2).end(7)
+                         .next().start(5).end(6);
+            NdArray::RawViewInterface * rawView = img-> getDataSlice( slice);
+            NdArray::TypedView<float> fv(rawView, true);
+            qDebug().nospace();
+            int64_t count = 0;
+            fv.forEach([&count]( const float & val) {
+                qDebug() << val << " ";
+                count ++;
+            });
+            qDebug() << "foreach processed " << count << "items";
+            qDebug().space();
+        }
+
+        if( false){
+            // [0:5,0:5,0,0]
+            auto slice = SliceND().start(0).end(5)
+                         .next().start(0).end(5)
+                         .next().index(0)
+                         .next().index(0);
+            NdArray::RawViewInterface * rawView = img-> getDataSlice( slice);
+            NdArray::TypedView<float> fv(rawView, true);
+            qDebug().nospace();
+            int64_t count = 0;
+            fv.forEach([&count]( const float & val) {
+                qDebug() << val << " ";
+                count ++;
+            });
+            qDebug() << "foreach processed " << count << "items";
+            qDebug().space();
         }
     }
 
@@ -421,6 +572,46 @@ Viewer::start()
         }
         connector->setState( "/pluginList/stamp", QString::number( ind ) );
     }
+
+    // everything below is a hack... just to test performance...
+    static RawView2QImageConverter cvt;
+    static int lastFrame = 0;
+
+    // let's listen to mouseX coordinate and see if we can use it to change the frame...
+    connector->addStateCallback( "/movieControl", [this, & cvt](const QString &, const QString & val) {
+        double x, y;
+        QStringList lst = val.split( "_");
+        if( lst.size() < 2) return;
+        bool ok;
+        x = lst[0].toDouble( & ok);
+        if( ! ok) return;
+        y = lst[1].toDouble( & ok);
+        if( ! ok) return;
+        x = clamp<double>( x, 0, 1);
+        y = clamp<double>( y, 0, 1);
+
+        int nFrames = 1;
+        if( m_image->dims().size() >2) { nFrames = m_image->dims()[2]; }
+        int frame = x * nFrames;
+        frame = clamp( frame, 0, nFrames-1);
+        if( frame == lastFrame) return;
+
+        qDebug() << "switching to frame" << frame;
+
+        // convert the loaded image into QImage
+        auto frameSlice = SliceND().next();
+        for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
+            frameSlice.next().index( i == 2 ? frame : 0);
+        }
+        NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice);
+        cvt.setView( frameView);
+        cvt.setAutoClip( 0.95 /* 95% */);
+        QImage qimg = cvt.go( y < 0.5);
+        delete frameView;
+        testView2->setImage(qimg);
+    });
+
+
 } // start
 
 void

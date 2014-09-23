@@ -87,6 +87,19 @@ struct CType2PixelType <std::int64_t> {
 
 }
 
+/// template ton convert from one type to another
+template <typename SrcType, typename DstType>
+struct TypedConverters;
+
+/// specialized for identical type
+template <typename SrcType>
+struct TypedConverters < SrcType, SrcType > {
+    static const SrcType & cvt( const char * ptr) {
+        return * reinterpret_cast<const SrcType *>( ptr);
+    }
+};
+
+/// general case
 template <typename SrcType, typename DstType>
 struct TypedConverters {
     static const DstType & cvt( const char * ptr) {
@@ -96,12 +109,6 @@ struct TypedConverters {
     }
 };
 
-template <typename SrcType>
-struct TypedConverters < SrcType, SrcType > {
-    static const SrcType & cvt( const char * ptr) {
-        return * reinterpret_cast<const SrcType *>( ptr);
-    }
-};
 
 template < typename DstType>
 struct Type2CvtFunc{
@@ -113,7 +120,7 @@ typename Type2CvtFunc<DstType>::Type getConverter( Image::PixelType srcType)
 {
     switch (srcType) {
     case Image::PixelType::Byte:
-        return & TypedConverters< int8_t, DstType>::cvt;
+        return & TypedConverters< uint8_t, DstType>::cvt;
         break;
     case Image::PixelType::Int16:
         return & TypedConverters< int16_t, DstType>::cvt;

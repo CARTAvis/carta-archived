@@ -6,7 +6,12 @@
 #pragma once
 
 #include <QObject>
+
+// forward declarations
 class ScriptedCommandListener;
+namespace Image {
+class ImageInterface;
+}
 
 class Viewer : public QObject
 {
@@ -37,5 +42,6 @@ protected slots:
 protected:
 
     ScriptedCommandListener * m_scl = nullptr;
+    Image::ImageInterface * m_image = nullptr;
 };
 

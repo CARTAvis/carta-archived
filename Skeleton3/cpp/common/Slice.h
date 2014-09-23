@@ -85,6 +85,11 @@ public:
         Index count;
         /// the step
         Index step;
+        /// convenience accessor to compute the last element index
+        Index end() const {
+            if( isSingle()) return start;
+            return start + step * (count - 1);
+        }
         /// convenience test for error
         bool isError() const;
         /// convenience test for single value

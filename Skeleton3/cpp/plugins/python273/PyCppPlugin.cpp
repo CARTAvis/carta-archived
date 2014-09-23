@@ -94,10 +94,10 @@ bool PyCppPlug::handleHook(BaseHook & hookData)
 //            }
 //        }
 
-        if( img.width() * 3 != img.bytesPerLine()) {
-            qWarning() << "################" << img.width() *3 << img.bytesPerLine();
-        }
-        qDebug() << "cpp: stride should be = " << img.bytesPerLine();
+//        if( img.width() * 3 != img.bytesPerLine()) {
+//            qWarning() << "################" << img.width() *3 << img.bytesPerLine();
+//        }
+//        qDebug() << "cpp: stride should be = " << img.bytesPerLine();
         pb_callPreRenderHook( m_pyModId, img.width(), img.height(),
                               img.bytesPerLine(), img.bits());
 

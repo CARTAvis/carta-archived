@@ -51,6 +51,17 @@ std::vector<HookId> CasaImageLoader::getInitialHookList()
     };
 }
 
+template <typename T>
+static CCImageBase * tryCast( casa::LatticeBase * lat)
+{
+    typedef casa::ImageInterface<T> CCIT;
+    CCIT * cii = dynamic_cast<CCIT *>(lat);
+    CCImage<T> * res = nullptr;
+    if( cii) {
+        res = CCImage<T>::create( cii);
+    }
+    return res;
+}
 
 ///
 /// \brief Attempts to load an image using casacore library, namely the very first
@@ -95,7 +106,15 @@ Image::ImageInterface * CasaImageLoader::loadImage( const QString & fname)
     qDebug() << "lat.shape = " << std::string( lat->shape().toString()).c_str();
     qDebug() << "lat.dataType = " << lat->dataType();
 
-    CCImage * res = CCImage::create2( lat);
+    CCImageBase * res;
+    res = tryCast<float>(lat);
+    if( ! res) res = tryCast<double>(lat);
+    if( ! res) res = tryCast<float>(lat);
+    if( ! res) res = tryCast<u_int8_t>(lat);
+    if( ! res) res = tryCast<int16_t>(lat);
+    if( ! res) res = tryCast<int32_t>(lat);
+    if( ! res) res = tryCast<int64_t>(lat);
+
     if( res) {
         qDebug() << "Created image interface with type=" << Carta::toStr( res->pixelType());
         return res;
@@ -116,42 +135,4 @@ Image::ImageInterface * CasaImageLoader::loadImage( const QString & fname)
     // indicate failure
     delete lat;
     return nullptr;
-
-    /*
-
-    // based on the type data in the lattice we construct the CCimage with the
-    // appropriate type
-    if( lat-> dataType() == casa::TpFloat) {
-        return CCImage::create( dynamic_cast<casa::ImageInterface<casa::Float> *>(lat));
-    }
-    else if( lat-> dataType() == casa::TpDouble) {
-        return CCImage::create( dynamic_cast<casa::ImageInterface<casa::Float> *>(lat));
-    }
-    else if( lat-> dataType() == casa::TpUChar) {
-        return CCImage::create( dynamic_cast<casa::ImageInterface<casa::uChar> *>(lat));
-    }
-    else if( lat-> dataType() == casa::TpInt64) {
-        return CCImage::create( dynamic_cast<casa::ImageInterface<std::int64_t> *>(lat));
-    }
-    else if( lat-> dataType() == casa::TpInt) {
-        return CCImage::create( dynamic_cast<casa::ImageInterface<casa::Int> *>(lat));
-    }
-
-    // we have an unknown type for lattice, let's try to convert it to double
-    qWarning() << "Unsupported lattice type:" << lat-> dataType();
-
-    /// \todo should we try LEL to convert to double or float???
-//    << " trying LEL to float";
-//    try {
-//        std::string expr = "float('" + fname.toStdString() + "')";
-//        casa::LatticeExpr<casa::Float> le ( casa::ImageExprParse::command( expr ));
-//        img = new casa::ImageExpr<casa::Float> ( le, expr );
-//        qDebug() << "\t-LEL conversion successful";
-//    } catch ( ... ) {}
-
-    // indicate failure
-    delete lat;
-    return nullptr;
-
-    */
 }

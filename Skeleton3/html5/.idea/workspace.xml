@@ -5,21 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/.clang-format" afterPath="$PROJECT_DIR$/../cpp/.clang-format" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/docs/Doxyfile" afterPath="$PROJECT_DIR$/../cpp/docs/Doxyfile" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../uncrustify.cfg" afterPath="$PROJECT_DIR$/../uncrustify.cfg" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IImage.cpp" afterPath="$PROJECT_DIR$/../cpp/common/IImage.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IImage.h" afterPath="$PROJECT_DIR$/../cpp/common/IImage.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Slice.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Slice.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PixelType.h" afterPath="$PROJECT_DIR$/../cpp/common/PixelType.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Slice.h" afterPath="$PROJECT_DIR$/../cpp/common/Slice.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/html5.iml" afterPath="$PROJECT_DIR$/html5.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../uncrustify.cfg" afterPath="$PROJECT_DIR$/../uncrustify.cfg" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
@@ -74,8 +69,8 @@
         <option name="LOG_MESSAGE" value="" />
       </breakpoint>
     </breakpoint_any>
-    <breakpoint_rules converted="true" />
     <ui_properties converted="true" />
+    <breakpoint_rules converted="true" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="ExportToHTMLSettings">
@@ -163,7 +158,7 @@
           <file leaf-file-name="PluginList.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.42828485" vertical-offset="398" max-vertical-offset="1455">
+                <state vertical-scroll-proportion="0.43029088" vertical-offset="396" max-vertical-offset="1455">
                   <caret line="59" column="81" selection-start-line="59" selection-start-column="81" selection-end-line="59" selection-end-column="81" />
                   <folding />
                 </state>
@@ -194,11 +189,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="View.js" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="View.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1020" max-vertical-offset="1920">
-                  <caret line="68" column="44" selection-start-line="68" selection-start-column="44" selection-end-line="68" selection-end-column="44" />
+                <state vertical-scroll-proportion="0.74222666" vertical-offset="1000" max-vertical-offset="2025">
+                  <caret line="118" column="63" selection-start-line="118" selection-start-column="63" selection-end-line="118" selection-end-column="63" />
                   <folding />
                 </state>
               </provider>
@@ -244,10 +239,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Application.js" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.25576732" vertical-offset="1260" max-vertical-offset="2595">
+                <state vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="2595">
                   <caret line="109" column="63" selection-start-line="109" selection-start-column="63" selection-end-line="109" selection-end-column="63" />
                   <folding />
                 </state>
@@ -280,7 +275,6 @@
         <option value="$PROJECT_DIR$/common/skel/customuris.js" />
         <option value="$PROJECT_DIR$/common/skel/config.json" />
         <option value="$PROJECT_DIR$/common/main.js" />
-        <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
         <option value="$PROJECT_DIR$/common/libs.js" />
         <option value="$PROJECT_DIR$/common/CallbackList.js" />
         <option value="$PROJECT_DIR$/common/IConnector.js" />
@@ -292,6 +286,7 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js" />
         <option value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
+        <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
       </list>
     </option>
   </component>
@@ -359,8 +354,8 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -377,7 +372,7 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../PureWebRaiViewer-html5/fitsviewer/html5" />
     <property name="FullScreen" value="false" />
     <property name="recentsLimit" value="5" />
   </component>
@@ -642,16 +637,17 @@
       <workItem from="1410738259397" duration="1240000" />
       <workItem from="1411262821127" duration="10000" />
       <workItem from="1411262888345" duration="48000" />
-      <workItem from="1411263065365" duration="598000" />
+      <workItem from="1411263065365" duration="617000" />
+      <workItem from="1411429249671" duration="3517000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="192506000" />
+    <option name="totallyTimeSpent" value="196042000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942238" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -671,13 +667,13 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.49858356" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18796591" sideWeight="0.49858356" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -1036,14 +1032,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="446" max-vertical-offset="1920">
-          <caret line="68" column="44" selection-start-line="68" selection-start-column="44" selection-end-line="68" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/customuris.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="180">
@@ -1077,7 +1065,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.42828485" vertical-offset="398" max-vertical-offset="1455">
+        <state vertical-scroll-proportion="0.43029088" vertical-offset="396" max-vertical-offset="1455">
           <caret line="59" column="81" selection-start-line="59" selection-start-column="81" selection-end-line="59" selection-end-column="81" />
           <folding />
         </state>
@@ -1093,8 +1081,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.25576732" vertical-offset="1260" max-vertical-offset="2595">
+        <state vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="2595">
           <caret line="109" column="63" selection-start-line="109" selection-start-column="63" selection-end-line="109" selection-end-column="63" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.74222666" vertical-offset="1000" max-vertical-offset="2025">
+          <caret line="118" column="63" selection-start-line="118" selection-start-column="63" selection-end-line="118" selection-end-column="63" />
           <folding />
         </state>
       </provider>
