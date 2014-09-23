@@ -99,7 +99,13 @@ QString ServerConnector::getState(const QString &path)
     if( !pwval.HasValue()) {
         return QString();
     }
-    std::string val = pwval.ValueOr( "").As<std::string>();
+    // warning: this is NOT how to convert CSI::string to std::string as it will use
+    // the stream operator, which will treat spaces as separators... ie. you won't
+    // be able to receive values with spaces in them ;(
+    //    std::string val = pwval.ValueOr( "").As<std::string>();
+
+    // this is how to convert to std::string:
+    std::string val( pwval.ValueOr( "").ToAscii().begin());
     return val.c_str();
 }
 

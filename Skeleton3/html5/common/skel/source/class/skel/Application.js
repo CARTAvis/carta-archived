@@ -121,16 +121,12 @@ qx.Class.define("skel.Application",
                 this.getRoot().add(win, {left:200, top:120});
                 win.open();
 
-                // Create a button
-                var button1 = new qx.ui.form.Button("Share this session", "skel/test.png");
 
                 // Document is the application root
                 var doc = this.getRoot();
 
-                // Add button to document at fixed coordinates
-                doc.add(button1, {left: 100, top: 50});
-
-                // Add an event listener
+                // Create a button
+                var button1 = new qx.ui.form.Button("Share this session", "skel/test.png");
                 button1.addListener("execute", function(e) {
                     var con=mImport("connector");
                     con.shareSession( function( url) {
@@ -140,12 +136,42 @@ qx.Class.define("skel.Application",
                             60*60*1000);
                 });
 
-                var tfield = new qx.ui.form.TextField("").set({
-                    readOnly: true,
-                    minWidth: 400,
-                    visibility: "hidden"
-                });
-                this.getRoot().add( tfield, { left: 100, top: 130 });
+                // Add button to document at fixed coordinates
+                doc.add(button1, {left: 100, top: 50});
+                doc.add(new skel.boundWidgets.Toggle( "Recompute clips on new frame", "/autoClip"),
+                    {left: 0, top: 0});
+
+                // add preset buttons
+                {
+                    this.histClipVar = connector.getSharedVar( "/autoClipValue");
+                    var presetsContainer = new qx.ui.container.Composite(
+                        new qx.ui.layout.HBox(5).set({
+                            alignX: "center"}));
+                    var radioGroup = new qx.ui.form.RadioGroup();
+                    radioGroup.setAllowEmptySelection(true);
+                    var presets = [ "95%", "98%", "99%", "99.5%", "99.9%", "99.99%", "100%" ];
+                    this.m_presetButtons = [];
+                    presets.forEach(function (e, ind) {
+                        var button = new qx.ui.toolbar.RadioButton(e).set({
+                            toolTipText: "Set histogram to show " + e + " of the data.<br>" +
+                                "Right click also automatically zooms in to the data."
+                        });
+                        button.addListener("execute", function () {
+                            this.histClipVar.set( e);
+                            button.setValue(true);
+                        }, this);
+                        button.addListener("mouseup", function (event) {
+                            this.histClipVar.set( e);
+                            button.setValue(true);
+                        }, this);
+                        radioGroup.add(button);
+                        button.setFocusable(false);
+                        presetsContainer.add(button);
+                        this.m_presetButtons.push(button);
+                    }, this);
+                    doc.add(presetsContainer, {right:0, top: 0});
+                }
+
 
                 // status bar
                 var statusBar = new qx.ui.form.TextField("Status bar").set({
@@ -162,6 +188,7 @@ qx.Class.define("skel.Application",
 
                 // create plugin list window
                 var pluginWindow = new qx.ui.window.Window("Plugins");
+                pluginWindow.set( {minWidth: 300});
                 pluginWindow.setLayout(new qx.ui.layout.VBox(10));
                 pluginWindow.setShowStatusbar(true);
                 pluginWindow.setStatus("Plugins loaded...");

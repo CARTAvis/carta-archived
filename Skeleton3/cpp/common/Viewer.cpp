@@ -31,18 +31,18 @@ public:
         m_rawView = rawView;
         return * this;
     }
-    Me & setFrame( int frame) {
-        if( frame > 0) {
-            int nFrames = 0;
-            if( m_rawView->dims().size() > 2) {
-                nFrames = m_rawView->dims()[2];
-            }
-            if( frame >= nFrames) {
-                throw std::runtime_error( "not enough frames in this image");
-            }
-        }
-        return * this;
-    }
+//    Me & setFrame( int frame) {
+//        if( frame > 0) {
+//            int nFrames = 0;
+//            if( m_rawView->dims().size() > 2) {
+//                nFrames = m_rawView->dims()[2];
+//            }
+//            if( frame >= nFrames) {
+//                throw std::runtime_error( "not enough frames in this image");
+//            }
+//        }
+//        return * this;
+//    }
 
     Me & setAutoClip( double val) {
         m_autoClip = val;
@@ -361,6 +361,9 @@ Viewer::Viewer() :
         connect( m_scl, & ScriptedCommandListener::command,
                  this, & Viewer::scriptedCommandCB );
     }
+
+    m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
+    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */);
 }
 
 void
@@ -369,7 +372,9 @@ Viewer::start()
     qDebug() << "Viewer::start() starting";
 
     auto & globals = * Globals::instance();
-    auto connector = globals.connector();
+    m_connector = globals.connector();
+
+    m_connector->setState( "/autoClip", "1");
 
     // initialize plugin manager
     globals.setPluginManager( new PluginManager );
@@ -453,8 +458,8 @@ Viewer::start()
 #endif // dont compile
 
     // create some views to be rendered on the client side
-    connector-> registerView( new TestView( "view1", QColor( "blue" ) ) );
-    connector-> registerView( new TestView( "view2", QColor( "red" ) ) );
+    m_connector-> registerView( new TestView( "view1", QColor( "blue" ) ) );
+    m_connector-> registerView( new TestView( "view2", QColor( "red" ) ) );
 
     // which image are we loading?
     qDebug() << "======== trying to load image ========";
@@ -462,6 +467,8 @@ Viewer::start()
         qFatal( "No input file given" );
     }
     QString fname = Globals::instance()-> platform()-> initialFileList()[0];
+
+
 
     // ask one of the plugins to load the image
     qDebug() << "Trying to load astroImage...";
@@ -481,16 +488,15 @@ Viewer::start()
             frameSlice.next().index(0);
         }
         NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice);
-        RawView2QImageConverter cvt;
-        cvt.setView( frameView);
-        cvt.setAutoClip( 0.95 /* 95% */);
-        QImage qimg = cvt.go();
+        m_rawView2QImageConverter-> setView( frameView);
+        QImage qimg = m_rawView2QImageConverter-> go();
+        m_currentFrame = 0;
         delete frameView;
         qDebug() << "Image loaded" << qimg;
         qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
 
         testView2 = new TestView2( "view3", QColor( "pink" ), qimg );
-        connector-> registerView( testView2 );
+        m_connector-> registerView( testView2 );
     }
 
     if( 0) {
@@ -561,24 +567,21 @@ Viewer::start()
         for ( auto & entry : infoList ) {
             qDebug() << "  path:" << entry.soPath;
             QString path = QString( "/pluginList/p%1/" ).arg( ind );
-            connector->setState( path + "name", entry.json.name );
-            connector->setState( path + "description", entry.json.description );
-            connector->setState( path + "type", entry.json.typeString );
-            connector->setState( path + "version", entry.json.version );
+            m_connector->setState( path + "name", entry.json.name );
+            m_connector->setState( path + "description", entry.json.description );
+            m_connector->setState( path + "type", entry.json.typeString );
+            m_connector->setState( path + "version", entry.json.version );
 
             //            connector-> setState( path + "dirPath", entry.dirPath);
-            connector->setState( path + "errors", entry.errors.join( "|" ) );
+            m_connector->setState( path + "errors", entry.errors.join( "|" ) );
             ind++;
         }
-        connector->setState( "/pluginList/stamp", QString::number( ind ) );
+        m_connector->setState( "/pluginList/stamp", QString::number( ind ) );
     }
 
-    // everything below is a hack... just to test performance...
-    static RawView2QImageConverter cvt;
-    static int lastFrame = 0;
 
-    // let's listen to mouseX coordinate and see if we can use it to change the frame...
-    connector->addStateCallback( "/movieControl", [this, & cvt](const QString &, const QString & val) {
+    // everything below is a hack... just to test performance for switching frames
+    auto movieCallback = [this](const QString &, const QString & val) {
         double x, y;
         QStringList lst = val.split( "_");
         if( lst.size() < 2) return;
@@ -594,22 +597,41 @@ Viewer::start()
         if( m_image->dims().size() >2) { nFrames = m_image->dims()[2]; }
         int frame = x * nFrames;
         frame = clamp( frame, 0, nFrames-1);
-        if( frame == lastFrame) return;
+        if( frame == m_currentFrame) return;
+        m_currentFrame = frame;
 
         qDebug() << "switching to frame" << frame;
 
         // convert the loaded image into QImage
-        auto frameSlice = SliceND().next();
-        for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
-            frameSlice.next().index( i == 2 ? frame : 0);
+        reloadFrame();
+    };
+
+    m_connector->addStateCallback( "/movieControl", movieCallback);
+
+    auto autoClipCallback = [this](const QString &, const QString & val) {
+        m_clipRecompute = val == "1";
+        if( ! m_clipRecompute) {
+            return;
         }
-        NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice);
-        cvt.setView( frameView);
-        cvt.setAutoClip( 0.95 /* 95% */);
-        QImage qimg = cvt.go( y < 0.5);
-        delete frameView;
-        testView2->setImage(qimg);
-    });
+
+        reloadFrame( true);
+    };
+    m_connector->addStateCallback( "/autoClip", autoClipCallback);
+
+    auto autoClipValueCallback = [this](const QString &, const QString & pval) {
+        qDebug() << "xyzxyz" << pval;
+        QString val = pval;
+        val.chop(1);
+        bool ok;
+        double d = val.toDouble( & ok);
+        if( ! ok) return;
+        d = clamp( d/100, 0.001, 1.0);
+        qDebug() << "xyzxyz2" << d;
+        m_rawView2QImageConverter-> setAutoClip( d);
+        reloadFrame( true);
+    };
+    m_connector->addStateCallback( "/autoClipValue", autoClipValueCallback);
+
 
 
 } // start
@@ -645,4 +667,19 @@ Viewer::scriptedCommandCB( QString command )
     else {
         qWarning() << "Sorry, unknown command";
     }
+}
+
+void Viewer::reloadFrame( bool forceClipRecompute)
+{
+    auto frameSlice = SliceND().next();
+    for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
+        frameSlice.next().index( i == 2 ? m_currentFrame : 0);
+    }
+    NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice);
+    m_rawView2QImageConverter-> setView( frameView);
+
+    QImage qimg = m_rawView2QImageConverter-> go( m_clipRecompute || forceClipRecompute);
+    delete frameView;
+    testView2->setImage(qimg);
+
 } // scriptedCommandCB
