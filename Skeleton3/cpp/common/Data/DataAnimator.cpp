@@ -23,7 +23,10 @@ DataAnimator::DataAnimator(const QString& identifier):
 void DataAnimator::addController( std::shared_ptr<DataController> controller ){
 	m_controllers.push_back( controller );
 	connect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStates()) );
+
 	_adjustStates();
+	_saveState();
+
 }
 
 void DataAnimator::_adjustStates(){
@@ -31,6 +34,20 @@ void DataAnimator::_adjustStates(){
 	_adjustState( StateKey::FRAME_CHANNEL_START, StateKey::FRAME_CHANNEL_END, m_selectChannel );
 	//Frames
 	_adjustState( StateKey::FRAME_IMAGE_START, StateKey::FRAME_IMAGE_END, m_selectImage );
+}
+
+void DataAnimator::_saveState(){
+    auto & globals = *Globals::instance();
+    IConnector * connector = globals.connector();
+    int controllerCount = m_controllers.size();
+    QString controllerCountStr = QString::number(controllerCount);
+        //connector->setState(StateKey::CONTROLLER_ID, "", m_winId );
+    connector->setState(StateKey::ANIMATOR_LINK_COUNT, m_id, controllerCountStr);
+    for (int i = 0; i < controllerCount; i++) {
+        QString indexStr( m_id +"-" + QString::number(i) );
+        connector->setState(StateKey::ANIMATOR_LINK, indexStr, m_controllers[i]->getId() );
+    }
+
 }
 
 void DataAnimator::_adjustState(StateKey lowKey, StateKey highKey, std::shared_ptr<DataSelection>& selection ){
@@ -59,13 +76,24 @@ void DataAnimator::_initializeStates(){
 
 	auto & globals = * Globals::instance();
 	IConnector * connector = globals.connector();
-	connector->setState( StateKey::ANIMATOR_CHANNEL_STEP, m_id, "1");
-	connector->setState( StateKey::ANIMATOR_CHANNEL_RATE, m_id, "20");
-	connector->setState( StateKey::ANIMATOR_CHANNEL_END_BEHAVIOR, m_id, "Wrap");
+	_initializeStates( StateKey::ANIMATOR_CHANNEL_STEP, StateKey::ANIMATOR_CHANNEL_RATE, StateKey::ANIMATOR_CHANNEL_END_BEHAVIOR, connector );
+	_initializeStates( StateKey::ANIMATOR_IMAGE_STEP, StateKey::ANIMATOR_IMAGE_RATE, StateKey::ANIMATOR_IMAGE_END_BEHAVIOR, connector );
+}
 
-	connector->setState( StateKey::ANIMATOR_IMAGE_STEP, m_id, "1");
-	connector->setState( StateKey::ANIMATOR_IMAGE_RATE, m_id, "20");
-	connector->setState( StateKey::ANIMATOR_IMAGE_END_BEHAVIOR, m_id, "Wrap");
+void DataAnimator::_initializeStates( StateKey keyStep, StateKey keyRate,
+        StateKey keyEnd, IConnector* connector ){
+    QString stepStr = connector->getState( keyStep, m_id );
+    if ( stepStr.length() == 0 ){
+        connector->setState( keyStep, m_id, "1");
+    }
+    QString rateStr = connector->getState( keyRate, m_id );
+    if ( rateStr.length() == 0 ){
+        connector->setState( keyRate, m_id, "20");
+    }
+    QString endStr = connector->getState( keyEnd, m_id );
+    if ( endStr.length() == 0 ){
+        connector->setState( keyEnd, m_id, "Wrap");
+    }
 }
 
 

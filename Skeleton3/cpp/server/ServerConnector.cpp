@@ -100,6 +100,7 @@ void ServerConnector::setState(const StateKey& state, const QString& pageId, con
     QString path = StateLibrary::instance()->getPath( state, pageId);
     std::string pwpath = path.toStdString();
     std::string pwval = value.toStdString();
+    qDebug() << "Server setting state="<<pwpath.c_str();
     m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
 }
 
@@ -130,6 +131,7 @@ QString ServerConnector::getStatePath( const QString& saveName ) const {
 bool ServerConnector::saveState(const QString& saveName) const {
 	CSI::String stateStr = m_stateManager->XmlStateManager().ToString();
 	QString stateQ = toQString( stateStr );
+	qDebug() << "Serverconnector saveState="<<stateQ;
 	QXmlInputSource source;
 	source.setData(stateQ);
 	QXmlSimpleReader xmlReader;
@@ -337,6 +339,12 @@ public:
 
     IView * m_iview;
 };
+
+// unregister the view
+void ServerConnector::unregisterView( const QString& viewName ){
+    std::string vn = viewName.toStdString();
+    m_stateManager->ViewManager().UnregisterView( vn );
+}
 
 // registerView
 void ServerConnector::registerView(IView *view)

@@ -48,6 +48,8 @@ private:
     //keys contained in the QList and returns a vector containing their corresponding values.
     QVector<QString> _parseParamMap( const QString& params, const QList<QString> & keys );
 
+    void initializeDefaultState();
+
     //A map of DataControllers requested by the client; keys are their unique identifiers.
     std::map <QString, std::shared_ptr<DataController> > m_dataControllers;
 

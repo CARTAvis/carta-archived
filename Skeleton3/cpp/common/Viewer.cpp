@@ -303,6 +303,11 @@ void Viewer::start()
     connector-> registerView( new TestView( "view1", QColor( "blue")));
     connector-> registerView( new TestView( "view2", QColor( "red")));
 
+    bool stateRead = connector->readState( "DefaultState" );
+    if ( !stateRead ){
+        initializeDefaultState();
+    }
+
 	// ask plugins to load the image
 	qDebug() << "======== trying to load image ========";
 	//QString fname = Globals::fname();
@@ -330,16 +335,21 @@ void Viewer::start()
 		connector-> setState( StateKey::PLUGIN_STAMP, "", pluginCountStr);
 	}
 
+	connector->addCommandCallback( "/clearLayout", [=] (const QString & /*cmd*/,
+	            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+	    m_dataControllers.clear();
+	    m_dataAnimators.clear();
+	    return "";
+	});
+
 	//Callback for saving state.
 	connector->addCommandCallback( "/saveState", [=] (const QString & /*cmd*/,
 			const QString & params, const QString & /*sessionId*/) -> QString {
-
 		QStringList paramList = params.split( ":");
 		QString saveName="DefaultState";
 		if ( paramList.length() == 2 ){
 			saveName = paramList[1];
 		}
-
 		bool result = connector->saveState(saveName);
 		QString returnVal = "State was successfully saved.";
 		if ( !result ){
@@ -371,16 +381,38 @@ void Viewer::start()
 		QList<QString> keys = {"pluginId", "winId"};
 		QVector<QString> dataValues = _parseParamMap( params, keys );
 		if ( dataValues.size() == keys.size()){
-			std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[1] );
-			if ( it == m_dataControllers.end() ){
-                qDebug() << "Registering view " << dataValues[1];
-				//Need to make more generic.
-				if ( dataValues[0] == "casaLoader"){
+            if ( dataValues[0] == "casaLoader"){
+                std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[1] );
+                if ( it == m_dataControllers.end() ){
+                    //Need to make more generic.
 					std::shared_ptr<DataController> target(new DataController());
 					m_dataControllers[dataValues[1]]= target;
 					m_dataControllers[dataValues[1]]->setId( dataValues[1] );
 				}
 			}
+            else if ( dataValues[0] == "animator"){
+                std::map<QString, std::shared_ptr<DataAnimator> >::iterator it = m_dataAnimators.find( dataValues[1] );
+                if ( it == m_dataAnimators.end() ){
+                    std::shared_ptr<DataAnimator> target(new DataAnimator( dataValues[1]));
+                    m_dataAnimators[dataValues[1]]= target;
+
+                    //Make sure there aren't any existing data controllers that need to be added to it.
+                    QString linkCountStr = connector->getState( StateKey::ANIMATOR_LINK_COUNT, dataValues[1]);
+                    bool validCount = false;
+                    int linkCount = linkCountStr.toInt( &validCount );
+                    if ( validCount ){
+                        for ( int i = 0; i < linkCount; i++ ){
+                            QString indexStr( dataValues[1]+"-"+QString::number(i));
+                            QString controllerId = connector->getState( StateKey::ANIMATOR_LINK_COUNT, indexStr );
+                            std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( controllerId );
+                            if ( it != m_dataControllers.end()){
+                                m_dataAnimators[dataValues[1]]->addController( it->second);
+                            }
+                        }
+                    }
+
+                }
+            }
 		}
 		QString viewId("");
 		return viewId;
@@ -399,6 +431,21 @@ void Viewer::start()
 			if ( it == m_dataAnimators.end() ){
 				std::shared_ptr<DataAnimator> target(new DataAnimator( dataValues[0]));
 				m_dataAnimators[dataValues[0]]= target;
+				//See if there is any existing data that needs to be added to it.
+				QString linkCountStr = connector->getState(StateKey::ANIMATOR_LINK_COUNT, dataValues[0]);
+				bool validLinkCount = false;
+				int linkCount = linkCountStr.toInt( &validLinkCount );
+				if ( validLinkCount ){
+				    for (int i = 0; i < linkCount; i++) {
+				        QString indexStr( dataValues[0] +"-" + QString::number(i) );
+				        QString dataLink = connector->getState(StateKey::ANIMATOR_LINK, indexStr);
+				        //Now add the DataController that should be animated to the located DataAnimator.
+				        std::map<QString, std::shared_ptr<DataController> >::iterator itData = m_dataControllers.find( dataLink );
+				        if ( itData != m_dataControllers.end() ){
+				            m_dataAnimators[dataValues[0]]->addController( itData->second );
+				        }
+				     }
+				}
 			}
 
 			//Now add the DataController that should be animated to the located DataAnimator.
@@ -414,7 +461,7 @@ void Viewer::start()
 	connector->addCommandCallback( "getData", [=] (const QString & /*cmd*/,
 			const QString & params, const QString & sessionId) -> QString {
 		QString xml = DataLoader::getData( params, sessionId );
-		connector->setState( StateKey::DATA, "", xml );
+		connector->setState( StateKey::AVAILABLE_DATA, "", xml );
 		return xml;
 	});
 
@@ -429,19 +476,24 @@ void Viewer::start()
 			if ( it != m_dataControllers.end()){
 				//Add the data to it.
                 QString path = dataValues[1];
-                if( ! path.startsWith( "/root/")) {
+                QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
+                if( ! path.startsWith( fakePath )){
                     /// security issue...
+                    qDebug() << "Security issue, filePath="<<path;
                     return "";
                 }
-                path = QString( "%1/%2").arg( DataLoader::getRootDir( sessionId))
-                       .arg( path.remove( 0, 6));
+                path = QString( "%1%2").arg( DataLoader::getRootDir( sessionId))
+                       .arg( path.remove( 0, fakePath.length()));
                 m_dataControllers[dataValues[0]]->addData( path );
-                qDebug() << QString("m_dataControllers[%1]->addData(%2)")
-                            .arg(dataValues[0]).arg(path);
+			}
+			else {
+			    qDebug() << "Could not find data controller for: "<<params;
 			}
 		}
 		return "";
 	});
+
+
 }
 
 QVector<QString> Viewer::_parseParamMap( const QString& params, const QList<QString>& keys ){
@@ -504,6 +556,28 @@ void Viewer::scriptedCommandCB( QString command)
     else {
         qWarning() << "Sorry, unknown command";
     }
+}
+
+void Viewer::initializeDefaultState(){
+    auto & globals = * Globals::instance();
+    auto connector = globals.connector();
+
+    connector->setState(StateKey::ANIMATOR_LINK_COUNT,"win3", "1");
+    connector->setState(StateKey::ANIMATOR_LINK, "win3-0", "win0");
+    connector->setState(StateKey::ANIMATOR_IMAGE_STEP, "win3", "1");
+    connector->setState(StateKey::ANIMATOR_IMAGE_RATE, "win3", "20");
+    connector->setState(StateKey::ANIMATOR_IMAGE_END_BEHAVIOR, "win3", "wrap");
+
+    //Convention, traverse left to right then top to bottom.  Rows then columns.
+    //Need to have a special key for excluded ones.
+    connector->setState(StateKey::LAYOUT_PLUGIN, "win0", "casaLoader");
+    connector->setState(StateKey::LAYOUT_PLUGIN, "win1", "plugins");
+    connector->setState(StateKey::LAYOUT_PLUGIN, "win2", "Hidden");
+    connector->setState(StateKey::LAYOUT_PLUGIN, "win3", "animator");
+
+    const QString gridPart("2");
+    connector->setState(StateKey::LAYOUT_ROWS, "", gridPart);
+    connector->setState(StateKey::LAYOUT_COLS, "", gridPart);
 
 
 }
