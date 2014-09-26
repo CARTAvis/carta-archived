@@ -22,7 +22,7 @@ HEADERS += \
     Nullable.h \
     IImage.h \
     Globals.h \
-    Algorithms/Graphs/TopoSort.h \
+    Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
     MainConfig.h \
@@ -37,6 +37,7 @@ HEADERS += \
     State/StateKey.h \
     State/StateLibrary.h \
     State/StateXmlRestorer.h \
+    TestView.h \
     Data/DataAnimator.h \
     Data/DataController.h \
     Data/DataLoader.h \
@@ -58,6 +59,7 @@ SOURCES += \
     State/State.cpp \
     State/StateLibrary.cpp \
     State/StateXmlRestorer.cpp \
+    TestView.cpp \
     Data/DataAnimator.cpp \
     Data/DataController.cpp \
     Data/DataLoader.cpp \
@@ -70,7 +72,8 @@ SOURCES += \
     CoordinateFormatter.cpp \
     AxisInfo.cpp \
     CoordinateGridPlotter.cpp \
-    PlotLabelGenerator.cpp
+    PlotLabelGenerator.cpp \
+    PixelType.cpp \
 
 
 message( "common            PWD=$$PWD")

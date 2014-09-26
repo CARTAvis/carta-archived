@@ -50,6 +50,9 @@ public:
     /// asks the connector to schedule a redraw of the view
     virtual void refreshView( IView * view) = 0;
 
+    /// unregister a view with the connector
+    virtual void unregisterView( const QString& viewName ) = 0;
+
     /// set state to a new value
     virtual void setState( const StateKey & state, const QString& id, const QString & value) = 0;
 

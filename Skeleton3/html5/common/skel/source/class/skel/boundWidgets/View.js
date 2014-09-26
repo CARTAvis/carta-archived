@@ -57,6 +57,9 @@ qx.Class.define("skel.boundWidgets.View", {
 
         }, this);
 
+        this.addListener("mousemove", this._mouseMoveCB);
+        this.addListener("mousedown", this._mouseDownCB);
+        this.addListener("mouseup", this._mouseUpCB);
     },
 
     events : {},
@@ -73,6 +76,45 @@ qx.Class.define("skel.boundWidgets.View", {
                 outline : 0
             });
         },
+
+        /**
+         * returns mouse event's local position (with respect to this widget)
+         * @param event {MouseEvent}
+         * @private
+         */
+        _localPos: function (event) {
+            var box = this.getContentLocation("box");
+            return {
+                x: event.getDocumentLeft() - box.left,
+                y: event.getDocumentTop() - box.top
+            };
+        },
+
+        _mouseMoveCB: function (event) {
+            var pt = this._localPos(event);
+            if (this.m_isDragging) {
+                this._sendCoords( pt);
+            }
+        },
+
+       _mouseDownCB: function (event) {
+//                fv.GLOBAL_DEBUG && fv.console.log("mousedown " + event.getButton());
+           this.capture();
+           var pt = this._localPos(event);
+           this.m_isDragging = true;
+           this._sendCoords( pt);
+       },
+
+       _mouseUpCB: function (event) {
+           this.releaseCapture();
+           this.m_isDragging = false;
+       },
+
+       _sendCoords: function( pt) {
+           var sv = this.m_connector.getSharedVar( "/movieControl");
+           sv.set( "" + pt.x / this.getBounds().width + "_" + pt.y / this.getBounds().height);
+        },
+
 
         m_viewName : null,
         m_iview : null,

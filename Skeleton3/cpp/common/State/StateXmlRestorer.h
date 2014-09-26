@@ -10,18 +10,18 @@
 
 class IConnector;
 
-class StateXmlRestorer : public QXmlDefaultHandler
-{
+class StateXmlRestorer: public QXmlDefaultHandler {
 
 public:
 
-    StateXmlRestorer( IConnector* connector );
+    StateXmlRestorer(IConnector* connector);
 
-    virtual bool characters( const QString& ch ) ;
-    virtual bool startElement(const QString & namespaceURI, const QString & localName,
-    					const QString & qName, const QXmlAttributes & atts );
-    virtual bool endElement ( const QString & namespaceURI, const QString & localName,
-    		const QString & qName );
+    virtual bool characters(const QString& ch);
+    virtual bool startElement(const QString & namespaceURI,
+            const QString & localName, const QString & qName,
+            const QXmlAttributes & atts);
+    virtual bool endElement(const QString & namespaceURI,
+            const QString & localName, const QString & qName);
 
 private:
     bool m_foundRoot;

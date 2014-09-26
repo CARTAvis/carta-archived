@@ -1,9 +1,14 @@
 #pragma once
 
+#include "IImage.h"
 #include <QImage>
 #include <QObject>
-#include <cstdint>
 #include <QDebug>
+#include <cstdint>
+
+//namespace Image {
+//class ImageInterface;
+//}
 
 /// Every hook as a unique ID and we are using 64bit integers for hook IDs
 /// The IDs will allow us to do static_cast<> downcasting inside plugins.
@@ -32,10 +37,6 @@ public:
     {
         return m_hookId;
     }
-
-//    virtual void debug() {
-//        qDebug() << "BaseHook::debug()";
-//    }
 
 protected:
 
@@ -98,15 +99,10 @@ public:
 
     typedef FakeVoid ResultType;
     typedef struct {} Params;
-//    constexpr static HookId StaticHookId = 1;
     enum { StaticHookId = 1 };
     Initialize( Params *) : BaseHook( Initialize::StaticHookId) {}
 
     ResultType result;
-
-//    virtual void debug() override {
-//        qDebug() << "Initialize::debug()";
-//    }
 };
 
 /// just before rendering a view, plugins are given a chance to modify the rendered image
@@ -153,6 +149,27 @@ public:
     Params * paramsPtr;
 };
 
+/// load an (astronomical) image and convert to an instance of Image::ImageInterface
+class LoadAstroImage : public BaseHook
+{
+    Q_OBJECT
+
+public:
+
+    typedef Image::ImageInterface * ResultType;
+    struct Params {
+        Params( QString p_fileName) {
+            fileName = p_fileName;
+        }
+        QString fileName;
+    };
+    enum { StaticHookId = 7 };
+    LoadAstroImage(Params * pptr) : BaseHook( StaticHookId), paramsPtr( pptr) {}
+    ResultType result;
+    Params * paramsPtr;
+};
+
+
 /// load a plugin of unknown type
 class LoadPlugin : public BaseHook
 {
@@ -174,6 +191,13 @@ public:
     ResultType result;
     Params * paramsPtr;
 };
+
+/// a convenience (and preferred way) to compare whether a given hook instance is
+/// of a particular hook type. By using this we can hide the implementation details...
+template <typename HookType>
+bool isHook( const BaseHook & hook) {
+    return hook.hookId() == HookType::StaticHookId;
+}
 
 // this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
 // must be outside of any namespace

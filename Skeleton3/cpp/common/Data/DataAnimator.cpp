@@ -20,10 +20,9 @@ DataAnimator::DataAnimator(const QString& identifier):
 }
 
 
-void DataAnimator::addController( std::shared_ptr<DataController> controller ){
+void DataAnimator::addController( const std::shared_ptr<DataController>& controller ){
 	m_controllers.push_back( controller );
-	connect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStates()) );
-
+	connect( &(*controller), SIGNAL(dataChanged()), this, SLOT(_adjustStates()) );
 	_adjustStates();
 	_saveState();
 
@@ -61,14 +60,19 @@ void DataAnimator::_adjustState(StateKey lowKey, StateKey highKey, std::shared_p
 		if ( validStart && controlStart > maxFrameStart ){
 			maxFrameStart = controlStart;
 		}
+
 		bool validEnd = false;
 		int controlEnd = controlEndStr.toInt( &validEnd );
 		if ( validEnd && controlEnd < minFrameEnd ){
 			minFrameEnd = controlEnd;
 		}
 	}
-	selection->setLowerBound( maxFrameStart );
-	selection->setUpperBound( minFrameEnd );
+
+	int controllerCount = m_controllers.size();
+	if ( controllerCount > 0){
+	    selection->setLowerBound( maxFrameStart );
+	    selection->setUpperBound( minFrameEnd );
+	}
 
 }
 

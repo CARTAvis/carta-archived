@@ -104,6 +104,9 @@ public:
     /// register view implementation
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
 
+    /// unregister a view implementation
+    virtual void unregisterView( const QString& viewName ) Q_DECL_OVERRIDE;
+
     /// refresh view implementation
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
 

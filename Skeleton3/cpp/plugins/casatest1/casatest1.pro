@@ -35,7 +35,6 @@ INCLUDEPATH += $${CFITSIODIR}/include
 LIBS += $${casacoreLIBS}
 
 OTHER_FILES += \
-    plugin.json \
     plugin.json
 
 # copy json to build directory

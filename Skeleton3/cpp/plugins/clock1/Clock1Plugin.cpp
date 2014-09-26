@@ -41,7 +41,6 @@ bool Clock1Plugin::handleHook(BaseHook &hookData)
         return true;
     }
 
-
     qDebug() << "Sorrry, dont' know how to handle this hook";
     return false;
 }

@@ -8,71 +8,69 @@
 
 QString DataLoader::fakeRootDirName = "RootDirectory";
 
-QString DataLoader::getData( const QString& /*selectionParams*/, const QString& sessionId ){
-    qDebug() << "getData received...";
-	QString rootDirName = getRootDir( sessionId );
-	QDir rootDir(rootDirName);
-	QString jsonTree;
+QString DataLoader::getData(const QString& /*selectionParams*/,
+        const QString& sessionId) {
+    QString rootDirName = getRootDir(sessionId);
+    QDir rootDir(rootDirName);
+    QString jsonTree;
 
     QJsonObject rootObj;
-    processDirectory( rootDir, rootObj );
+    processDirectory(rootDir, rootObj);
     // replace the entry for the root object with a fake, for two reasons:
     // root directory could contain multiple directories (e.g. /scratch/Images ...)
     // for little added security
-    rootObj.insert( "name", fakeRootDirName );
+    rootObj.insert("name", fakeRootDirName);
 
-    QJsonDocument document( rootObj );
+    QJsonDocument document(rootObj);
     QByteArray textArray = document.toJson();
-    QString jsonText( textArray);
+    QString jsonText(textArray);
     return jsonText;
 }
 
-void DataLoader::processDirectory(const QDir& rootDir,  QJsonObject& rootObj ){
-	if( !rootDir.exists()) {
-    	return;
+void DataLoader::processDirectory(const QDir& rootDir, QJsonObject& rootObj) {
+    if (!rootDir.exists()) {
+        return;
     }
 
-	rootObj.insert("name", rootDir.dirName());
+    rootObj.insert("name", rootDir.dirName());
 
-	QJsonArray dirArray;
-	QDirIterator dit( rootDir.absolutePath(), QDir::NoFilter);
-	while (dit.hasNext()) {
-	    dit.next();
-	    // skip "." and ".." entries
-	    if( dit.fileName() == "." || dit.fileName() == "..") {
-	    	continue;
-	    }
+    QJsonArray dirArray;
+    QDirIterator dit(rootDir.absolutePath(), QDir::NoFilter);
+    while (dit.hasNext()) {
+        dit.next();
+        // skip "." and ".." entries
+        if (dit.fileName() == "." || dit.fileName() == "..") {
+            continue;
+        }
 
-
-	    QString fileName = dit.fileInfo().fileName();
-	    if( dit.fileInfo().isDir()) {
-	    	if ( fileName.endsWith( ".image")){
-	    		makeFileNode( dirArray, fileName );
-	    	}
-	    	else {
-	    		QString dirName = dit.fileInfo().absoluteFilePath();
-	    		QJsonObject dirObject;
-	    		processDirectory (QDir( dirName), dirObject );
-	    		dirArray.append( dirObject );
-	    	}
-	    }
-	    else if ( dit.fileInfo().isFile()){
-	    	if ( fileName.endsWith( ".fits")){
-	    		makeFileNode( dirArray, fileName );
-	    	}
-	    }
+        QString fileName = dit.fileInfo().fileName();
+        if (dit.fileInfo().isDir()) {
+            if (fileName.endsWith(".image")) {
+                makeFileNode(dirArray, fileName);
+            } else {
+                QString dirName = dit.fileInfo().absoluteFilePath();
+                QJsonObject dirObject;
+                processDirectory(QDir(dirName), dirObject);
+                dirArray.append(dirObject);
+            }
+        } else if (dit.fileInfo().isFile()) {
+            if (fileName.endsWith(".fits")) {
+                makeFileNode(dirArray, fileName);
+            }
+        }
     }
 
-	rootObj.insert( "dir", dirArray );
+    rootObj.insert("dir", dirArray);
 }
 
-void DataLoader::makeFileNode( QJsonArray& parentArray, const QString& fileName ){
-	QJsonObject obj;
-	QJsonValue fileValue(fileName);
-	obj.insert( "name", fileValue );
-	parentArray.append( obj );
+void DataLoader::makeFileNode(QJsonArray& parentArray,
+        const QString& fileName) {
+    QJsonObject obj;
+    QJsonValue fileValue(fileName);
+    obj.insert("name", fileValue);
+    parentArray.append(obj);
 }
 
-QString DataLoader::getRootDir( const QString& /*sessionId*/ ){
+QString DataLoader::getRootDir(const QString& /*sessionId*/) {
     return "/scratch/Images";
 }

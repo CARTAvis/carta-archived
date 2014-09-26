@@ -30,7 +30,15 @@
 #include <cstdint>
 
 /// description of a unit
+/// this will hopefully evolve a lot...
+/// for now it's essentially an alias for QString
 class Unit {
+public:
+    QString toStr() const { return m_string; }
+    Unit( const QString & str = "") : m_string( str) {}
+protected:
+    QString m_string;
+
 };
 
 
@@ -41,29 +49,75 @@ namespace NdArray {
 /// for arbitrary types. The intentded use of this class is the lowest interface
 /// needed to be implemented to read an array. A conversion adapter/mixin would be more
 /// convenenient to actually access the arrays.
-class RawViewInterface {
+class RawViewInterface
+{
 public:
     typedef std::vector<int> VI;
     typedef Image::PixelType PixelType;
 
+    /// traversal order
+    enum class Traversal
+    {
+        Sequential, ///< sequential order (ie. row-major, or C-style)
+        Optimal ///< whatever order that is most optimal
+    };
+
     /// get the pixel type stored in this array accessor
     virtual PixelType pixelType() = 0;
+
     /// get the max. dimensions allowed in this accessor
     virtual const VI & dims() = 0;
-    /// get the raw data for the given pixel (at acoordinates 'pos')
+
+    /// get the raw data for the given pixel (at coordinates 'pos')
+    /// note: this is meant for random access, but is slow
     virtual const char * get( const VI & pos) = 0;
-    /// a way to access each element via function pointer
-    virtual void forEach( std::function<void(const char*)>) = 0;
+
+    /// visit each element via function pointer
+    /// \param func function that will be invoked on each data
+    /// \param traversal determines the order in which the data is traversed
+    /// \note this is faster than the get() random access method
+    /// \todo investigate whether this is faster/slower than iterator approach?
+    /// \todo investigate performance of std::function vs raw function pointer
+    virtual void forEach( std::function<void(const char*)> func,
+                          Traversal traversal = Traversal::Sequential) = 0;
+
+    /// returns the current coordinate of the traversed element (for use with
+    /// the forEach() method).
+    /// The address of the returned reference will remain the same throughout the
+    /// traversal, so for maximum efficiency you only need to call this once
+    /// before the traversal starts and store the pointer (or reference)
+    virtual const VI & currentPos() = 0;
 
     /// virtual destructor
     virtual ~RawViewInterface() {}
+
+    // ===-----------------------------------------------------------------------===
+    // experimental APIs below, not yet finalized and definitely not yet implemented
+    // ===-----------------------------------------------------------------------===
+
+    /// another high performance accessor to data
+    virtual int64_t read( int64_t chunk, int64_t buffSize, char * buff,
+                          Traversal traversal = Traversal::Sequential) = 0;
+
+    /// yet another high performance accessor... similar to forEach above,
+    /// but this time the supplied function gets called with whatever number
+    /// elements that fit into the buffer
+    virtual void forEach(
+            int64_t buffSize,
+            std::function<void(const char*, int64_t count)> func,
+            char * buff = nullptr,
+            Traversal traversal = Traversal::Sequential) = 0;
 };
 
-/// utility class - wraps a raw view into a typed view
+/// Utility class that wraps a raw view into a typed view.
 template <typename Type> class TypedView {
 public:
     typedef std::vector<int> VI;
 
+    /// \brief Construct a typed view from raw view.
+    /// \details The raw view must exist for the duration of existance of the TypedView.
+    /// \param [in] rawView pointer to the raw view
+    /// \param [in] keepOwnership whether to delete the raw view when destructing this instance
     TypedView(RawViewInterface* rawView, bool keepOwnership = false)
         : m_rawView(rawView), m_keepOwnership(keepOwnership)
     {
@@ -74,20 +128,25 @@ public:
     }
 
     /// extract the data and convert it to double
+    /// \param pos position of the element to extract (in destination coordinates)
+    /// \return the extracted value at the given position pos
     const Type& get(const VI& pos)
     {
         return m_converterFunc(m_rawView->get(pos));
     }
 
-    /// forEach
-    /// \todo investigate performance of std::function vs raw function pointer
-    void forEach(std::function<void(const Type&)> func)
+    /// equivalent to RawViewInterface::forEach but with a typed parameter
+    /// \param func function to invoke on each element
+    /// \param traversal order of traversal
+    void forEach(
+            std::function<void(const Type&)> func,
+            RawViewInterface::Traversal traversal = RawViewInterface::Traversal::Sequential)
     {
         auto wrapper = [ this, &func ](const char * ptr)->void
         {
             func(m_converterFunc(ptr));
         };
-        m_rawView->forEach(wrapper);
+        m_rawView->forEach(wrapper, traversal);
     }
 
     ~TypedView()
@@ -135,8 +194,9 @@ public:
     /// clone yourself
     virtual MetaDataInterface* clone() = 0;
 
-    /// get a coordinate formatter algorithm
-    virtual CoordinateFormatterInterface& coordinateFormatter() = 0;
+    /// create a coordinate formatter algorithm
+    /// caller assumes ownership
+    virtual CoordinateFormatterInterface * coordinateFormatter() = 0;
 
     /// get a grid plotter algorithm
     virtual CoordinateGridPlotterInterface& coordinateGridPlotter() = 0;
@@ -155,15 +215,19 @@ public:
 /// Main interface class for representing an image inside the viewer. This is used to pass
 /// around images between core and plugins. For example, a plugin that can load
 /// an image would have to implement this interface.
-class ImageInterface : public QObject
+class ImageInterface
+//        : public QObject
 {
-    Q_OBJECT
+//    Q_OBJECT
+
 public:
 
     /// similar to BITPIX
     typedef Image::PixelType PixelType;
+    typedef std::vector<int> VI;
 
-    ImageInterface() : QObject() {}
+//    ImageInterface() : QObject() {}
+    ImageInterface()  {}
 
     /// virtual destructor to make sure we can delete arbitrary images
     virtual ~ImageInterface() {}
@@ -172,11 +236,14 @@ public:
     virtual const Unit & getPixelUnit( ) const = 0;
 
     /// return dimensions of the image
-    virtual const std::vector<int> & dims() const = 0;
+    virtual const VI & dims() const = 0;
 
     /// Used to determine the type of the image (raster, contour, vector).
     /// May need to evolve.
-    virtual const QString & imageType() const = 0;
+    /// \todo I am not sure if this belongs here... This interface has been
+    /// designed for nd arrays, most methods here would probably not make
+    /// sense for other types of images...
+    ///    virtual const QString & imageType() const = 0;
 
     /// does the image have a mask attached?
     virtual bool hasMask() const = 0;
@@ -196,7 +263,7 @@ public:
     /// \brief get slice of data
     /// \param sliceInfo which slice to get
     /// \param result where to store result
-    virtual void getDataSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result) = 0;
+    virtual NdArray::RawViewInterface * getDataSlice( const SliceND & sliceInfo) = 0;
 
     /// get the mask
     /// \todo booleans as bytes is wasting resources, we should specialize
@@ -241,8 +308,7 @@ static void test_apis()
     SliceND si;
 
     // get the raw view of the data
-    NdArray::RawViewInterface * rawView;
-    ii-> getDataSlice(si, *rawView);
+    NdArray::RawViewInterface * rawView = ii-> getDataSlice(si);
 
     // access a single pixel in the data, returned in raw binary form
     const char * ptr = rawView-> get( { 1, 2, 3});
@@ -270,7 +336,7 @@ static void test_apis()
 
     // get info about axis 3
     auto & meta = ii-> metaData();
-    AxisInfo axis3 = meta.coordinateFormatter().axisInfo( 3);
+    AxisInfo axis3 = meta.coordinateFormatter()-> axisInfo( 3);
     Q_UNUSED( axis3);
 
 

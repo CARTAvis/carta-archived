@@ -6,13 +6,13 @@
 #include "StateXmlWriter.h"
 #include "common/State/StateLibrary.h"
 #include <QDebug>
-#include <QStringBuilder>
 
 StateXmlWriter::StateXmlWriter(const QString& filePath){
 	m_file.setFileName( filePath );
 	m_tagWriteIndex = 0;
 	m_foundRoot = false;
 	m_persistentElement = false;
+	m_characterWritten = false;
 }
 
 
@@ -23,6 +23,7 @@ bool StateXmlWriter::startElement(const QString & /*namespaceURI*/, const QStrin
 			m_foundRoot = true;
 		}
 		if ( m_foundRoot ){
+		    m_characterWritten = false;
 			m_pathNames.append( localName );
 			m_tagWriteIndex = qMin( m_tagWriteIndex, m_pathNames.size() - 1 );
 		}
@@ -32,15 +33,16 @@ bool StateXmlWriter::startElement(const QString & /*namespaceURI*/, const QStrin
 bool StateXmlWriter::endElement ( const QString & /*namespaceURI*/, const QString & localName,
 		const QString & /*qName*/ ){
 	int pathCount = m_pathNames.size();
-	if ( pathCount > 0 ){
+	if ( pathCount > 1 ){
 		if ( m_foundRoot && m_pathNames[pathCount-1] == localName ){
-
-			m_pathNames.pop();
-			if ( m_persistentElement ){
-				m_xmlWriter.writeEndElement();
-			}
+		    if ( m_characterWritten ){
+		        m_xmlWriter.writeEndElement();
+		    }
+		    m_pathNames.pop();
 		}
-
+	}
+	else {
+	    m_characterWritten = false;
 	}
 	return true;
 }
@@ -55,16 +57,19 @@ bool StateXmlWriter::characters( const QString& data ){
 			lookup.append( "/"+m_pathNames[i]);
 		}
 
-
 		m_persistentElement = StateLibrary::instance()->isPersistent( lookup );
+
 		if ( m_persistentElement ){
 			for ( int i = m_tagWriteIndex; i < pathCount-1; i++ ){
 				m_xmlWriter.writeStartElement( m_pathNames[i] );
 			}
 			m_tagWriteIndex= pathCount - 1;
 			m_xmlWriter.writeTextElement( m_pathNames[pathCount-1], data.trimmed());
+		    m_characterWritten = true;
 		}
-		m_pathNames.pop();
+		if ( m_pathNames.size() > 1 ){
+		    m_pathNames.pop();
+		}
 	}
 	return true;
 }
@@ -72,8 +77,8 @@ bool StateXmlWriter::characters( const QString& data ){
 
 bool StateXmlWriter::startDocument(){
 	bool successfulStart = true;
-	if ( !m_file.open( QIODevice::WriteOnly) ){
-		qDebug() << "StateXmlContentHandler could not open the file for writing";
+
+	if ( !m_file.open( QIODevice::WriteOnly | QIODevice::Truncate ) ){
 		successfulStart = false;
 	}
 	else {
@@ -86,7 +91,9 @@ bool StateXmlWriter::startDocument(){
 
 
 bool StateXmlWriter::endDocument(){
+    m_xmlWriter.writeEndElement();
 	m_xmlWriter.writeEndDocument();
+	m_file.flush();
 	m_file.close();
 	return true;
 }

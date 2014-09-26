@@ -44,6 +44,8 @@ public:
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
+
+    void unregisterView( const QString& viewName ) Q_DECL_OVERRIDE;
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
     virtual void removeStateCallback( const CallbackID & id);
 

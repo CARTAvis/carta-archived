@@ -71,20 +71,11 @@ qx.Class.define("skel.Application",
                 // only after we receive this event we can safely start modifying state, etc
                 // otherwise some state changes/commands might get lost
                 connector.setConnectionCB( this._afterConnect.bind( this));
-/*
-                connector.setConnectionCB( function( s )
-                {
-                    console.log( "connectionCB status=", connector.getConnectionStatus() );
-
-                } );
-*/
                 connector.connect();
             },
 
             _afterConnect: function()
             {
-                console.log( "_afterConnect running");
-
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                     console.log( "Connection not established yet...");
@@ -127,14 +118,14 @@ qx.Class.define("skel.Application",
                 	}
                 }, this );
                 
-        		qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
-					if ( this.m_fileBrowser != null && this.m_mainContainer.indexOf( this.m_fileBrowser) >= 0 ){
-						this.m_mainContainer.remove( this.m_fileBrowser );
-					}
-				}, this );
-						
+                qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
+			if ( this.m_fileBrowser != null && this.m_mainContainer.indexOf( this.m_fileBrowser) >= 0 ){
+			    this.m_mainContainer.remove( this.m_fileBrowser );
+			}
+		}, this );
             },
-            
+
+
            
             
             /**

@@ -11,6 +11,7 @@
 
 class DataController;
 class DataSelection;
+class IConnector;
 
 class DataAnimator : public QObject {
 
@@ -28,7 +29,7 @@ public:
      * Adds a DataController to this animator.
      * @param controller the DataController that will be managed.
      */
-    void addController( std::shared_ptr<DataController> controller );
+    void addController( const std::shared_ptr<DataController>& controller );
 
 private slots:
 	//Adjusts internal state based on the state in the child controllers.
@@ -38,12 +39,19 @@ private:
 	//Initialize state specific to an animator.
 	void _initializeStates();
 
+	//Initialize an individual animator's state (image, channel, etc).
+	void _initializeStates( StateKey keyStep, StateKey keyRate,
+	        StateKey keyEnd, IConnector* connector );
+
 	//Add callbacks for commands.
 	void _initializeCommands();
 
 	//Readjusts the lower and upper bound for the selection based the corresponding selections
 	//of the child DataControllers.
 	void _adjustState(StateKey lowKey, StateKey highKey, std::shared_ptr<DataSelection>& selection );
+
+	//Set state variables involving the animator
+	void _saveState();
 
 	//Identifier for this animator.
 	QString m_id;

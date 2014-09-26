@@ -178,6 +178,11 @@ void DesktopConnector::registerView(IView * view)
     });
 }
 
+// unregister the view
+void DesktopConnector::unregisterView( const QString& viewName ){
+    m_views.erase( viewName );
+}
+
 //    static QTime st;
 
 // schedule a view refresh
@@ -204,6 +209,8 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
 {
     qFatal( "not implemented");
 }
+
+void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
 	QString lookup(key);
 	QString id("");
 	int lastSepIndex = key.lastIndexOf( StateLibrary::SEPARATOR );

@@ -12,6 +12,11 @@
 class DataAnimator;
 class DataController;
 class ScriptedCommandListener;
+namespace Image {
+class ImageInterface;
+}
+class RawView2QImageConverter;
+class IConnector;
 
 class Viewer : public QObject
 {
@@ -39,15 +44,32 @@ protected slots:
     /// internal callback for scripted commands
     void scriptedCommandCB(QString command);
 
+    void reloadFrame(bool forceClipRecompute = false);
+
 protected:
 
+    /// pointer to scripted command listener
     ScriptedCommandListener * m_scl = nullptr;
+
+    /// pointer to the loaded image
+    Image::ImageInterface * m_image = nullptr;
+
+    /// current frame
+    int m_currentFrame = -1;
+
+    /// are we recomputing clip on frame change?
+    bool m_clipRecompute = true;
+
+    /// pointer to the rendering algorithm
+    std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
 
 private:
     //Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
     //keys contained in the QList and returns a vector containing their corresponding values.
     QVector<QString> _parseParamMap( const QString& params, const QList<QString> & keys );
 
+    //Sets up a default set of states for constructing the UI if the user
+    //has not saved one.
     void initializeDefaultState();
 
     //A map of DataControllers requested by the client; keys are their unique identifiers.
@@ -55,4 +77,9 @@ private:
 
     //A map of DataAnimators requested by the client;  keys are their unique identifiers.
     std::map <QString, std::shared_ptr<DataAnimator> > m_dataAnimators;
+
+
+    /// pointer to connector
+    IConnector * m_connector;
 };
+

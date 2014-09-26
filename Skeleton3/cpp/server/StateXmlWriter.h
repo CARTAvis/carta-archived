@@ -9,6 +9,7 @@
 #include <QString>
 #include <QStack>
 
+
 class StateXmlWriter : public QXmlDefaultHandler
 {
 
@@ -26,6 +27,7 @@ public:
 protected:
 
 private:
+    bool m_characterWritten;
     bool m_foundRoot;
     bool m_persistentElement;
     QXmlStreamWriter m_xmlWriter;
