@@ -5,8 +5,9 @@
 
 #include "CCMetaDataInterface.h"
 
-CCMetaDataInterface::CCMetaDataInterface()
+CCMetaDataInterface::CCMetaDataInterface(QString html)
 {
+    m_title = Carta::HtmlString::fromHtml( html);
 }
 
 
@@ -32,8 +33,13 @@ PlotLabelGeneratorInterface &CCMetaDataInterface::plotLabelGenerator()
 
 QString CCMetaDataInterface::title(TextFormat format)
 {
-    Q_UNUSED( format);
-    qFatal( "not implemented");
+    if( format == TextFormat::Plain) {
+        return m_title.plain();
+    }
+    else {
+        return m_title.html();
+    }
+
 }
 
 QStringList CCMetaDataInterface::otherInfo(TextFormat format)

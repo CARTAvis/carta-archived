@@ -572,21 +572,17 @@ Viewer::start()
             -> prepare < LoadAstroImage > ( fname )
             .first();
     if ( res2.isNull() ) {
-        qDebug() << "Could not find any plugin to load astroImage";
+        qFatal( "Could not find any plugin to load astroImage");
     }
-    else {
-        m_image = res2.val();
+    m_image = res2.val();
 
-        qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
-        testView2 = new TestView2( "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32) );
-        m_connector-> registerView( testView2 );
+    qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
+    testView2 = new TestView2( "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32) );
+    m_connector-> registerView( testView2 );
 
-        // convert the loaded image into QImage
-        m_currentFrame = 0;
-        reloadFrame( true);
-//        delete frameView;
-
-    }
+    // convert the loaded image into QImage
+    m_currentFrame = 0;
+    reloadFrame( true);
 
     if( 0) {
         // some debugging info

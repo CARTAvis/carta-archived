@@ -28,23 +28,26 @@
 #include <functional>
 #include <initializer_list>
 #include <cstdint>
+#include <memory>
 
 /// description of a unit
 /// this will hopefully evolve a lot...
 /// for now it's essentially an alias for QString
-class Unit {
+class Unit
+{
 public:
-    QString toStr() const { return m_string; }
-    Unit( const QString & str = "") : m_string( str) {}
+    QString
+    toStr() const { return m_string; }
+
+    Unit( const QString & str = "" ) : m_string( str ) { }
+
 protected:
     QString m_string;
-
 };
 
-
 /// classes related to n-dimensional views into n-dimensional arrays
-namespace NdArray {
-
+namespace NdArray
+{
 /// \brief Interface for reading elements of multidimensional array (n-dimensional array)
 /// for arbitrary types. The intentded use of this class is the lowest interface
 /// needed to be implemented to read an array. A conversion adapter/mixin would be more
@@ -52,8 +55,8 @@ namespace NdArray {
 class RawViewInterface
 {
 public:
-    typedef std::vector<int> VI;
-    typedef Image::PixelType PixelType;
+    typedef std::vector < int > VI;
+    typedef Image::PixelType    PixelType;
 
     /// traversal order
     enum class Traversal
@@ -63,14 +66,17 @@ public:
     };
 
     /// get the pixel type stored in this array accessor
-    virtual PixelType pixelType() = 0;
+    virtual PixelType
+    pixelType() = 0;
 
     /// get the max. dimensions allowed in this accessor
-    virtual const VI & dims() = 0;
+    virtual const VI &
+    dims() = 0;
 
     /// get the raw data for the given pixel (at coordinates 'pos')
     /// note: this is meant for random access, but is slow
-    virtual const char * get( const VI & pos) = 0;
+    virtual const char *
+    get( const VI & pos ) = 0;
 
     /// visit each element via function pointer
     /// \param func function that will be invoked on each data
@@ -78,87 +84,94 @@ public:
     /// \note this is faster than the get() random access method
     /// \todo investigate whether this is faster/slower than iterator approach?
     /// \todo investigate performance of std::function vs raw function pointer
-    virtual void forEach( std::function<void(const char*)> func,
-                          Traversal traversal = Traversal::Sequential) = 0;
+    virtual void
+    forEach( std::function < void (const char *) > func,
+             Traversal traversal = Traversal::Sequential ) = 0;
 
     /// returns the current coordinate of the traversed element (for use with
     /// the forEach() method).
     /// The address of the returned reference will remain the same throughout the
     /// traversal, so for maximum efficiency you only need to call this once
     /// before the traversal starts and store the pointer (or reference)
-    virtual const VI & currentPos() = 0;
+    virtual const VI &
+    currentPos() = 0;
 
     /// virtual destructor
-    virtual ~RawViewInterface() {}
+    virtual
+    ~RawViewInterface() { }
 
     // ===-----------------------------------------------------------------------===
     // experimental APIs below, not yet finalized and definitely not yet implemented
     // ===-----------------------------------------------------------------------===
 
     /// another high performance accessor to data
-    virtual int64_t read( int64_t chunk, int64_t buffSize, char * buff,
-                          Traversal traversal = Traversal::Sequential) = 0;
+    virtual int64_t
+    read( int64_t chunk, int64_t buffSize, char * buff,
+          Traversal traversal = Traversal::Sequential ) = 0;
 
     /// yet another high performance accessor... similar to forEach above,
     /// but this time the supplied function gets called with whatever number
     /// elements that fit into the buffer
-    virtual void forEach(
-            int64_t buffSize,
-            std::function<void(const char*, int64_t count)> func,
-            char * buff = nullptr,
-            Traversal traversal = Traversal::Sequential) = 0;
+    virtual void
+    forEach( int64_t buffSize,
+             std::function < void (const char *, int64_t count) > func,
+             char * buff = nullptr,
+             Traversal traversal = Traversal::Sequential ) = 0;
 };
 
 /// Utility class that wraps a raw view into a typed view.
-template <typename Type> class TypedView {
+template < typename Type >
+class TypedView
+{
 public:
-    typedef std::vector<int> VI;
+    typedef std::vector < int > VI;
 
     /// \brief Construct a typed view from raw view.
     /// \details The raw view must exist for the duration of existance of the TypedView.
     /// \param [in] rawView pointer to the raw view
     /// \param [in] keepOwnership whether to delete the raw view when destructing this instance
-    TypedView(RawViewInterface* rawView, bool keepOwnership = false)
-        : m_rawView(rawView), m_keepOwnership(keepOwnership)
+    TypedView( RawViewInterface * rawView, bool keepOwnership = false )
+        : m_rawView( rawView ), m_keepOwnership( keepOwnership )
     {
-        Q_ASSERT(rawView != nullptr);
+        Q_ASSERT( rawView != nullptr );
 
         // figure out which converter to use
-        m_converterFunc = getConverter<Type>(rawView->pixelType());
+        m_converterFunc = getConverter < Type > ( rawView->pixelType() );
     }
 
     /// extract the data and convert it to double
     /// \param pos position of the element to extract (in destination coordinates)
     /// \return the extracted value at the given position pos
-    const Type& get(const VI& pos)
+    const Type &
+    get( const VI & pos )
     {
-        return m_converterFunc(m_rawView->get(pos));
+        return m_converterFunc( m_rawView->get( pos ) );
     }
 
     /// equivalent to RawViewInterface::forEach but with a typed parameter
     /// \param func function to invoke on each element
     /// \param traversal order of traversal
-    void forEach(
-            std::function<void(const Type&)> func,
-            RawViewInterface::Traversal traversal = RawViewInterface::Traversal::Sequential)
+    void
+    forEach(
+        std::function < void (const Type &) > func,
+        RawViewInterface::Traversal traversal = RawViewInterface::Traversal::Sequential )
     {
-        auto wrapper = [ this, &func ](const char * ptr)->void
+        auto wrapper = [this, & func] ( const char * ptr )->void
         {
-            func(m_converterFunc(ptr));
+            func( m_converterFunc( ptr ) );
         };
-        m_rawView->forEach(wrapper, traversal);
+        m_rawView->forEach( wrapper, traversal );
     }
 
     ~TypedView()
     {
-        if (m_keepOwnership) {
-            Q_ASSERT(m_rawView != nullptr);
+        if ( m_keepOwnership ) {
+            Q_ASSERT( m_rawView != nullptr );
             delete m_rawView;
         }
     }
 
 protected:
-
     /// pointer to the raw view
     RawViewInterface * m_rawView;
 
@@ -167,21 +180,20 @@ protected:
 
     /// classic c-style function pointer to the converter
     /// \todo is this faster than std::function?
-    const Type & (* m_converterFunc)( const char *);
+    const Type & ( * m_converterFunc )(const char *);
 };
 
 /// convenience types
-typedef TypedView<double> Double;
-typedef TypedView<float> Float;
-typedef TypedView<uint8_t> Byte;
-typedef TypedView<int16_t> Int16;
-typedef TypedView<int32_t> Int32;
-typedef TypedView<int64_t> Int64;
-
+typedef TypedView < double >  Double;
+typedef TypedView < float >   Float;
+typedef TypedView < uint8_t > Byte;
+typedef TypedView < int16_t > Int16;
+typedef TypedView < int32_t > Int32;
+typedef TypedView < int64_t > Int64;
 } // namespace NDArrayView
 
-namespace Image {
-
+namespace Image
+{
 /// \brief Interface description for accessing various metadata associated with an image.
 /// For example: beam related information, miscellaneous records.
 ///
@@ -189,54 +201,71 @@ namespace Image {
 /// set of data.
 ///
 /// \warning This class is still evolving.
-class MetaDataInterface {
+class MetaDataInterface
+{
+    CLASS_BOILERPLATE( MetaDataInterface );
+
 public:
+    /// \todo we can remove this once we put this class into carta namespace
+    typedef Carta::TextFormat TextFormat;
+
     /// clone yourself
-    virtual MetaDataInterface* clone() = 0;
+    virtual MetaDataInterface *
+    clone() = 0;
 
     /// create a coordinate formatter algorithm
     /// caller assumes ownership
-    virtual CoordinateFormatterInterface * coordinateFormatter() = 0;
+    virtual CoordinateFormatterInterface *
+    coordinateFormatter() = 0;
 
     /// get a grid plotter algorithm
-    virtual CoordinateGridPlotterInterface& coordinateGridPlotter() = 0;
+    virtual CoordinateGridPlotterInterface &
+    coordinateGridPlotter() = 0;
 
     /// get a labeler algorithm
-    virtual PlotLabelGeneratorInterface & plotLabelGenerator() = 0;
+    virtual PlotLabelGeneratorInterface &
+    plotLabelGenerator() = 0;
 
     /// title if any (eg. TITLE in FITS)
-    virtual QString title(TextFormat format = TextFormat::Plain) = 0;
+    virtual QString
+    title( TextFormat format = TextFormat::Plain ) = 0;
 
     /// other data users might want to display
     /// (eg. complete FITS header)
-    virtual QStringList otherInfo(TextFormat format = TextFormat::Plain) = 0;
+    virtual QStringList
+    otherInfo( TextFormat format = TextFormat::Plain ) = 0;
 };
 
 /// Main interface class for representing an image inside the viewer. This is used to pass
 /// around images between core and plugins. For example, a plugin that can load
 /// an image would have to implement this interface.
 class ImageInterface
+
 //        : public QObject
 {
 //    Q_OBJECT
 
-public:
+    CLASS_BOILERPLATE(ImageInterface);
 
+public:
     /// similar to BITPIX
-    typedef Image::PixelType PixelType;
-    typedef std::vector<int> VI;
+    typedef Image::PixelType    PixelType;
+    typedef std::vector < int > VI;
 
 //    ImageInterface() : QObject() {}
-    ImageInterface()  {}
+    ImageInterface() { }
 
     /// virtual destructor to make sure we can delete arbitrary images
-    virtual ~ImageInterface() {}
+    virtual
+    ~ImageInterface() { }
 
     /// get a unit of pixels (similar to BUNIT)
-    virtual const Unit & getPixelUnit( ) const = 0;
+    virtual const Unit &
+    getPixelUnit() const = 0;
 
     /// return dimensions of the image
-    virtual const VI & dims() const = 0;
+    virtual const VI &
+    dims() const = 0;
 
     /// Used to determine the type of the image (raster, contour, vector).
     /// May need to evolve.
@@ -246,116 +275,115 @@ public:
     ///    virtual const QString & imageType() const = 0;
 
     /// does the image have a mask attached?
-    virtual bool hasMask() const = 0;
+    virtual bool
+    hasMask() const = 0;
 
     /// does the image have errors attached?
     /// \todo are errors always per pixel? Or could they be per frame, region, etc?
-    virtual bool hasErrorsInfo() const = 0;
+    virtual bool
+    hasErrorsInfo() const = 0;
 
     /// get the data type for pixels
     /// note: getDataSlice will return views with this type
-    virtual PixelType pixelType() const = 0;
+    virtual PixelType
+    pixelType() const = 0;
 
     /// get the data type for errors
     /// note: getErrorSlice will return views with this type
-    virtual PixelType errorType() const = 0;
+    virtual PixelType
+    errorType() const = 0;
 
     /// \brief get slice of data
     /// \param sliceInfo which slice to get
     /// \param result where to store result
-    virtual NdArray::RawViewInterface * getDataSlice( const SliceND & sliceInfo) = 0;
+    virtual NdArray::RawViewInterface *
+    getDataSlice( const SliceND & sliceInfo ) = 0;
 
     /// get the mask
     /// \todo booleans as bytes is wasting resources, we should specialize
     /// the NdArray::TypedView for bools
-    virtual void getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result) = 0;
+    virtual void
+    getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result ) = 0;
 
     /// get the errors
-    virtual void getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result) = 0;
+    virtual void
+    getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result ) = 0;
 
-    /// The ImageInfo object contains miscellaneous information about the image
-    virtual Image::MetaDataInterface & metaData() = 0;
+    /// return a pointer to a meta data object, which is essentially a collection
+    /// of algorithms that allows us to do useful things with metadata stored with
+    /// the image
+    virtual Image::MetaDataInterface::SharedPtr
+    metaData() = 0;
 };
-
 } // namespace Image
-
 
 /// API testing
 /// this is never executed, only compiled for API testing
-__attribute__ ((unused))
-static void test_apis()
+__attribute__ ( ( unused ) )
+static void
+test_apis()
 {
     // get an image.... (pretend)
     Image::ImageInterface * ii;
 
     Slice1D r;
-    r.start(10).start(20).step(8);
+    r.start( 10 ).start( 20 ).step( 8 );
 
     /// simulate [3::-1,:,3]
     SliceND vp;
-    vp.start(3).step(-1)
-            .next()
-            .next().index(3);
+    vp.start( 3 ).step( - 1 )
+        .next()
+        .next().index( 3 );
+
     // or
-    vp.slice(0).start(3).step(-1);
-    vp.slice(2).index(3);
+    vp.slice( 0 ).start( 3 ).step( - 1 );
+    vp.slice( 2 ).index( 3 );
+
     // or
     typedef Slice1D S;
-    SliceND vp2({ S().start(3).step(-1), S(), S(3) });
+    SliceND vp2( { S().start( 3 ).step( - 1 ), S(), S( 3 ) }
+                 );
 
     // describe the slice we want to extract
     // note: uninitialized slice should denote 'entire array view'
     SliceND si;
 
     // get the raw view of the data
-    NdArray::RawViewInterface * rawView = ii-> getDataSlice(si);
+    NdArray::RawViewInterface * rawView = ii-> getDataSlice( si );
 
     // access a single pixel in the data, returned in raw binary form
-    const char * ptr = rawView-> get( { 1, 2, 3});
-    Q_UNUSED( ptr);
+    const char * ptr = rawView-> get( { 1, 2, 3 }
+                                      );
+    Q_UNUSED( ptr );
 
     // access all pixels of the view, one by one
     u_int64_t count = 0;
-    rawView-> forEach( [ & count] (const char * /*ptr*/) { count ++; });
+    rawView-> forEach([& count] ( const char * /*ptr*/ ) { count++;
+                      }
+                      );
 
     // make a double view (from the raw view)
-    NdArray::TypedView<double> doubleReader( rawView);
+    NdArray::TypedView < double > doubleReader( rawView );
+
     // or using the typedef
-    NdArray::Double doubleReader2( rawView);
+    NdArray::Double doubleReader2( rawView );
 
     // extract a single pixel
-    double x = doubleReader2.get({ 1, 2, 3});
-    Q_UNUSED( x);
+    double x = doubleReader2.get( { 1, 2, 3 }
+                                  );
+    Q_UNUSED( x );
 
     // iterate over all pixels
     double sum = 0.0;
-    doubleReader.forEach( [& sum]( const double & x) { sum += x; });
+    doubleReader.forEach([& sum] ( const double & x ) { sum += x;
+                         }
+                         );
 
     // META DATA API tests:
     // ===========================
 
     // get info about axis 3
-    auto & meta = ii-> metaData();
-    AxisInfo axis3 = meta.coordinateFormatter()-> axisInfo( 3);
-    Q_UNUSED( axis3);
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    auto meta      = ii-> metaData();
+    AxisInfo axis3 = meta-> coordinateFormatter()-> axisInfo( 3 );
+    Q_UNUSED( axis3 );
+} // test_apis

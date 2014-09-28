@@ -55,8 +55,7 @@ void Image::ImageInterface::getErrorSlice(const SliceND & sliceInfo, NdArray::Ra
     qFatal( "Calling unimplemented virtual function... ");
 }
 
-
-Image::MetaDataInterface &Image::ImageInterface::metaData()
+Image::MetaDataInterface::SharedPtr Image::ImageInterface::metaData()
 {
     qFatal( "Calling unimplemented virtual function... ");
 }

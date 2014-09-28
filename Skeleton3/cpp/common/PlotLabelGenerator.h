@@ -17,6 +17,9 @@ class PlotLabelGeneratorInterface
 {
 public:
 
+    /// \todo we can remove this once we put this class into carta namespace
+    typedef Carta::TextFormat TextFormat;
+
     /// shortcut for my own type
     typedef PlotLabelGeneratorInterface This;
 

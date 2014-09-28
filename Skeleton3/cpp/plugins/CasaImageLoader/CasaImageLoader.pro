@@ -15,13 +15,15 @@ SOURCES += \
     CasaImageLoader.cpp \
     CCImage.cpp \
     CCMetaDataInterface.cpp \
-    CCRawView.cpp
+    CCRawView.cpp \
+    CCCoordinateFormatter.cpp
 
 HEADERS += \
     CasaImageLoader.h \
     CCImage.h \
     CCMetaDataInterface.h \
-    CCRawView.h
+    CCRawView.h \
+    CCCoordinateFormatter.h
 
 CASACOREDIR=$$(HOME)/Software/casacore-1.5.0-shared
 WCSLIBDIR=$$(HOME)/Software/wcslib-4.23-shared

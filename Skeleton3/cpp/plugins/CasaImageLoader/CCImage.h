@@ -5,9 +5,11 @@
 #pragma once
 
 #include "CCRawView.h"
+#include "CCMetaDataInterface.h"
 #include "common/IImage.h"
 #include "images/Images/ImageInterface.h"
 #include <QDebug>
+#include <memory>
 
 /// helper base class so that we can easily determine if this is a an image
 /// interface created by this plugin if we ever want to down-cast it...
@@ -98,10 +100,10 @@ public:
         qFatal( "not implemented" );
     }
 
-    virtual Image::MetaDataInterface &
+    virtual Image::MetaDataInterface::SharedPtr
     metaData() override
     {
-        qFatal( "not implemented" );
+        return m_meta;
     }
 
     static CCImage *
@@ -113,6 +115,11 @@ public:
         img-> m_dims      = casaImage-> shape().asStdVector();
         img-> m_casaII    = casaImage;
         img-> m_unit      = Unit( casaImage-> units().getName().c_str() );
+        qDebug() << "iii objectName=" << casaImage->imageInfo().objectName().c_str();
+
+        QString htmlTitle = casaImage->imageInfo().objectName().c_str();
+        img-> m_meta = std::make_shared<CCMetaDataInterface>(htmlTitle);
+
         return img;
     } // create
 
@@ -129,6 +136,8 @@ protected:
     casa::ImageInterface < PType > * m_casaII;
     /// cached unit
     Unit m_unit;
+    /// meta data pointer
+    CCMetaDataInterface::SharedPtr m_meta;
 
     /// we want CCRawView to access our internals...
     /// \todo maybe we just need a public accessor, no? I don't like friends :)
