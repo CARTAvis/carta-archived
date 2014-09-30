@@ -215,15 +215,15 @@ public:
 
     /// create a coordinate formatter algorithm
     /// caller assumes ownership
-    virtual CoordinateFormatterInterface *
+    virtual CoordinateFormatterInterface::SharedPtr
     coordinateFormatter() = 0;
 
     /// get a grid plotter algorithm
-    virtual CoordinateGridPlotterInterface &
+    virtual CoordinateGridPlotterInterface::SharedPtr
     coordinateGridPlotter() = 0;
 
     /// get a labeler algorithm
-    virtual PlotLabelGeneratorInterface &
+    virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() = 0;
 
     /// title if any (eg. TITLE in FITS)

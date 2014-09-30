@@ -5,12 +5,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/FancyToggle.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Toggle.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/cartalib_global.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/readme.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/ServerConnector.cpp" afterPath="$PROJECT_DIR$/../cpp/server/ServerConnector.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/clock1/Clock1Plugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/clock1/Clock1Plugin.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/CoordinateFormatter.h" afterPath="$PROJECT_DIR$/../cpp/common/CoordinateFormatter.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/CoordinateGridPlotter.h" afterPath="$PROJECT_DIR$/../cpp/common/CoordinateGridPlotter.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IImage.h" afterPath="$PROJECT_DIR$/../cpp/common/IImage.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/common/IPlugin.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PlotLabelGenerator.h" afterPath="$PROJECT_DIR$/../cpp/common/PlotLabelGenerator.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.h" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common.pri" afterPath="$PROJECT_DIR$/../cpp/common.pri" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/cpp.pro" afterPath="$PROJECT_DIR$/../cpp/cpp.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/desktop/desktop.pro" afterPath="$PROJECT_DIR$/../cpp/desktop/desktop.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/misc.h" afterPath="$PROJECT_DIR$/../cpp/common/misc.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/server/server.pro" afterPath="$PROJECT_DIR$/../cpp/server/server.pro" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
@@ -104,8 +128,8 @@
           <file leaf-file-name="Label.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.490099" vertical-offset="0" max-vertical-offset="1155">
-                  <caret line="37" column="0" selection-start-line="35" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.14851485" vertical-offset="0" max-vertical-offset="1155">
+                  <caret line="14" column="5" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
                   <folding />
                 </state>
               </provider>
@@ -250,8 +274,8 @@
           <file leaf-file-name="Application.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.79690725" vertical-offset="1957" max-vertical-offset="3000">
-                  <caret line="190" column="51" selection-start-line="190" selection-start-column="51" selection-end-line="190" selection-end-column="51" />
+                <state vertical-scroll-proportion="0.69072163" vertical-offset="2030" max-vertical-offset="3045">
+                  <caret line="188" column="54" selection-start-line="188" selection-start-column="54" selection-end-line="188" selection-end-column="54" />
                   <folding />
                 </state>
               </provider>
@@ -317,7 +341,6 @@
     <config-path />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-11520" />
     <option name="y" value="24" />
     <option name="width" value="1920" />
     <option name="height" value="1176" />
@@ -984,15 +1007,15 @@
       <workItem from="1411262821127" duration="10000" />
       <workItem from="1411262888345" duration="48000" />
       <workItem from="1411263065365" duration="617000" />
-      <workItem from="1411429249671" duration="8510000" />
+      <workItem from="1411429249671" duration="8786000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="201035000" />
+    <option name="totallyTimeSpent" value="201311000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-11520" y="24" width="1920" height="1176" extended-state="6" />
+    <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1411,14 +1434,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.490099" vertical-offset="0" max-vertical-offset="1155">
-          <caret line="37" column="0" selection-start-line="35" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Toggle.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="25" max-vertical-offset="1035">
@@ -1437,10 +1452,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.14851485" vertical-offset="0" max-vertical-offset="1155">
+          <caret line="14" column="5" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.79690725" vertical-offset="1957" max-vertical-offset="3000">
-          <caret line="190" column="51" selection-start-line="190" selection-start-column="51" selection-end-line="190" selection-end-column="51" />
+        <state vertical-scroll-proportion="0.69072163" vertical-offset="2030" max-vertical-offset="3045">
+          <caret line="188" column="54" selection-start-line="188" selection-start-column="54" selection-end-line="188" selection-end-column="54" />
           <folding />
         </state>
       </provider>

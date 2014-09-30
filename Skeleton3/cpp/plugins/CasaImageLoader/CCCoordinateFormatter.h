@@ -4,12 +4,20 @@
 
 #pragma once
 
+#include "CartaLib/CartaLib.h"
 #include "common/CoordinateFormatter.h"
+
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <memory>
 
 class CCCoordinateFormatter : public CoordinateFormatterInterface
 {
+    CLASS_BOILERPLATE( CCCoordinateFormatter );
+
 public:
-    CCCoordinateFormatter();
+    CCCoordinateFormatter( std::shared_ptr<casa::CoordinateSystem> casaCS) {
+        m_casaCS = casaCS;
+    }
 
     virtual CoordinateFormatterInterface *
     clone() const override;
@@ -34,4 +42,8 @@ public:
 
     virtual bool
     toPixel( const VD & world, VD & pixel ) const override;
+
+protected:
+
+    std::shared_ptr<casa::CoordinateSystem> m_casaCS;
 };

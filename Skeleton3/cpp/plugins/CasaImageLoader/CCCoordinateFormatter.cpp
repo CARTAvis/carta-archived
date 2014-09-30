@@ -21,8 +21,16 @@ QStringList
 CCCoordinateFormatter::formatFromPixelCoordinate(
     const CoordinateFormatterInterface::VD & pix )
 {
-    Q_UNUSED( pix );
-    qFatal( "not implemented" );
+    QStringList list;
+    casa::Vector<casa::Double> world;
+    casa::Vector<casa::Double> pixel = pix;
+    m_casaCS-> toWorld( world, pix);
+    for( unsigned int i = 0 ; i < m_casaCS-> nCoordinates() ; i ++ ) {
+        casa::String units;
+        casa::String s = m_casaCS-> format( units, casa::Coordinate::DEFAULT, world[i], i);
+        list.append( QString( "%1%2").arg(s.c_str()).arg(units.c_str()));
+    }
+    return list;
 }
 
 QString

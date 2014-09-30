@@ -17,6 +17,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <functional>
 
 /// compute clip values from the values in a view
 template <typename Scalar>
@@ -576,7 +577,8 @@ Viewer::start()
     }
     m_image = res2.val();
 
-    qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
+    qDebug() << "Pixel type:" << Image::pixelType2int( res2.val()-> pixelType() );
+    qDebug() << "Title:" << m_image->metaData()->title();
     testView2 = new TestView2( "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32) );
     m_connector-> registerView( testView2 );
 
@@ -584,10 +586,21 @@ Viewer::start()
     m_currentFrame = 0;
     reloadFrame( true);
 
+    m_coordinateFormatter = m_image-> metaData()->coordinateFormatter();
+    auto pixCoords = std::vector<double>(m_image->dims().size(), 0.0);
+    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    qDebug() << "pixel" << pixCoords << " ==> " << list;
+
+    auto myMouseCb = std::bind(
+                         & Viewer::mouseCB, this,
+                         std::placeholders::_1, std::placeholders::_2);
+    m_connector->addStateCallback( "/mouse/x", myMouseCb);
+    m_connector->addStateCallback( "/mouse/y", myMouseCb);
+
     if( 0) {
         // some debugging info
 
-        Image::ImageInterface * img = res2.val();
+        Image::ImageInterface::SharedPtr img = res2.val();
 
         qDebug() << "Dimensions: " << QVector <int>::fromStdVector( img->dims() );
         qDebug() << "Unit: " << img-> getPixelUnit().toStr();
@@ -766,5 +779,24 @@ void Viewer::reloadFrame( bool forceClipRecompute)
                       m_currentFrame, m_clipRecompute || forceClipRecompute);
     delete frameView;
     testView2->setImage(qimg);
+
+}
+
+void Viewer::mouseCB(const QString & /*path*/, const QString & /*val*/)
+{
+    bool ok;
+    double x = m_connector-> getState( "/mouse/x").toDouble( & ok);
+    if( !ok) {}
+    double y = m_connector-> getState( "/mouse/y").toDouble( & ok);
+    if( !ok) {}
+    auto pixCoords = std::vector<double>(m_image->dims().size(), 0.0);
+    pixCoords[0] = x;
+    pixCoords[1] = y;
+    if( pixCoords.size() > 2) {
+        pixCoords[2] = m_currentFrame;
+    }
+    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    qDebug() << "Formatted coordinate:" << list;
+    m_connector-> setState( "/cursor", list.join("\n").toHtmlEscaped());
 
 } // scriptedCommandCB

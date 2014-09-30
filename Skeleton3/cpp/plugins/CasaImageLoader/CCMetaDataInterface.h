@@ -6,24 +6,27 @@
 
 #include "common/misc.h"
 #include "common/IImage.h"
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <memory>
+
 
 class CCMetaDataInterface : public Image::MetaDataInterface
 {
-    CLASS_BOILERPLATE( CCMetaDataInterface );
+    CLASS_BOILERPLATE( CCMetaDataInterface);
 
 public:
-    CCMetaDataInterface(QString html);
+    CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa::CoordinateSystem> casaCS);
 
     virtual Image::MetaDataInterface *
     clone() override;
 
-    virtual CoordinateFormatterInterface *
+    virtual CoordinateFormatterInterface::SharedPtr
     coordinateFormatter() override;
 
-    virtual CoordinateGridPlotterInterface &
+    virtual CoordinateGridPlotterInterface::SharedPtr
     coordinateGridPlotter() override;
 
-    virtual PlotLabelGeneratorInterface &
+    virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() override;
 
     virtual QString
@@ -34,4 +37,6 @@ public:
 
 protected:
     Carta::HtmlString m_title;
+    std::shared_ptr<casa::CoordinateSystem> m_casaCS;
+
 };

@@ -4,10 +4,12 @@
 
 
 #include "CCMetaDataInterface.h"
+#include "CCCoordinateFormatter.h"
 
-CCMetaDataInterface::CCMetaDataInterface(QString html)
+CCMetaDataInterface::CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa::CoordinateSystem> casaCS)
 {
-    m_title = Carta::HtmlString::fromHtml( html);
+    m_title = Carta::HtmlString::fromHtml( htmlTitle);
+    m_casaCS = casaCS;
 }
 
 
@@ -16,17 +18,18 @@ Image::MetaDataInterface *CCMetaDataInterface::clone()
     qFatal( "not implemented");
 }
 
-CoordinateFormatterInterface *CCMetaDataInterface::coordinateFormatter()
+CoordinateFormatterInterface::SharedPtr CCMetaDataInterface::coordinateFormatter()
+{
+    return std::make_shared<CCCoordinateFormatter>( m_casaCS);
+    qFatal( "not implemented");
+}
+
+CoordinateGridPlotterInterface::SharedPtr CCMetaDataInterface::coordinateGridPlotter()
 {
     qFatal( "not implemented");
 }
 
-CoordinateGridPlotterInterface &CCMetaDataInterface::coordinateGridPlotter()
-{
-    qFatal( "not implemented");
-}
-
-PlotLabelGeneratorInterface &CCMetaDataInterface::plotLabelGenerator()
+PlotLabelGeneratorInterface::SharedPtr CCMetaDataInterface::plotLabelGenerator()
 {
     qFatal( "not implemented");
 }

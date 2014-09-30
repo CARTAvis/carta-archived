@@ -52,11 +52,11 @@ std::vector<HookId> CasaImageLoader::getInitialHookList()
 }
 
 template <typename T>
-static CCImageBase * tryCast( casa::LatticeBase * lat)
+static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 {
     typedef casa::ImageInterface<T> CCIT;
     CCIT * cii = dynamic_cast<CCIT *>(lat);
-    CCImage<T> * res = nullptr;
+    typename CCImage<T>::SharedPtr res = nullptr;
     if( cii) {
         res = CCImage<T>::create( cii);
     }
@@ -70,7 +70,7 @@ static CCImageBase * tryCast( casa::LatticeBase * lat)
 /// \param result where to store the result
 /// \return true if successful, false otherwise
 ///
-Image::ImageInterface * CasaImageLoader::loadImage( const QString & fname)
+Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
 {
     qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
@@ -106,10 +106,9 @@ Image::ImageInterface * CasaImageLoader::loadImage( const QString & fname)
     qDebug() << "lat.shape = " << std::string( lat->shape().toString()).c_str();
     qDebug() << "lat.dataType = " << lat->dataType();
 
-    CCImageBase * res;
+    CCImageBase::SharedPtr res;
     res = tryCast<float>(lat);
     if( ! res) res = tryCast<double>(lat);
-    if( ! res) res = tryCast<float>(lat);
     if( ! res) res = tryCast<u_int8_t>(lat);
     if( ! res) res = tryCast<int16_t>(lat);
     if( ! res) res = tryCast<int32_t>(lat);

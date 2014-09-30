@@ -10,6 +10,11 @@
 #include <QDebug>
 #include <QTextDocumentFragment>
 
+#include "CartaLib/HtmlString.h"
+
+/*
+ *
+/// a macro that adds 'Me' and 'SharedPtr' typedefs to a class
 #define CLASS_BOILERPLATE( class ) \
 public: \
     typedef class                  Me; \
@@ -54,6 +59,13 @@ public:
 protected:
     QString m_html, m_plain;
 };
+}
+
+*/
+
+namespace Carta {
+typedef Carta::Lib::TextFormat TextFormat;
+typedef Carta::Lib::HtmlString HtmlString;
 }
 
 /// known sky coordinate systems

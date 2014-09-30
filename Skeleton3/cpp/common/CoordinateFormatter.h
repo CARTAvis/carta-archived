@@ -11,11 +11,15 @@
 #include "AxisInfo.h"
 #include <vector>
 #include <QStringList>
+#include <memory>
 
 /// \brief coordinate system formatter
 /// \todo make all methods pure virtual
 ///
 class CoordinateFormatterInterface {
+
+    CLASS_BOILERPLATE(CoordinateFormatterInterface);
+
 public:
 
     /// \todo we can remove this once we put this class into carta namespace

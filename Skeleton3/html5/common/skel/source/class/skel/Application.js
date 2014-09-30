@@ -185,6 +185,9 @@ qx.Class.define("skel.Application",
                 doc.add( labelx, { left: 100, top: 170 });
                 var labely = new skel.boundWidgets.Label( "MouseY:", "pix", "/mouse/y");
                 doc.add( labely, { left: 100, top: 190 });
+                var cursor = new skel.boundWidgets.Label( "Cursor:", "", "/cursor");
+                doc.add( cursor, { left: 100, top: 210 });
+
 
                 // create plugin list window
                 var pluginWindow = new qx.ui.window.Window("Plugins");

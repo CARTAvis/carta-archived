@@ -61,3 +61,8 @@ message( "common        OUT_PWD=$$OUT_PWD")
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = stable.h
 #QMAKE_CXXFLAGS += -H
+
+#unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
+#unix: PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.so
+
+DEPENDPATH += $$PROJECT_ROOT/CartaLib
