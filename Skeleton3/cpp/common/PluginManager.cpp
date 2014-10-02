@@ -5,7 +5,8 @@
 
 #include "PluginManager.h"
 #include "Algorithms/Graphs/TopoSort.h"
-
+#include "CartaLib/HtmlString.h"
+static Carta::Lib::HtmlString s;
 #include <QDirIterator>
 #include <QImage>
 #include <QPluginLoader>

@@ -23,5 +23,9 @@ RESOURCES = resources.qrc
 
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
-
 DEPENDPATH += $$PROJECT_ROOT/common
+
+unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
+unix: PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.so
+DEPENDPATH += $$PROJECT_ROOT/CartaLib
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''

@@ -15,7 +15,7 @@ DataSource::DataSource(const QString& fileName) :
     if (m_fileName.trimmed().length() > 0) {
         auto & globals = *Globals::instance();
         auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
-        m_image.reset(loadImageHookHelper.first().val());
+        m_image = loadImageHookHelper.first().val();
     }
 
 

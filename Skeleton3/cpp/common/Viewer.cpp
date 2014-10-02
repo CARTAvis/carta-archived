@@ -376,7 +376,7 @@ Viewer::start()
 	if ( fname.length() > 0 ){
 	    qDebug() << "Trying to load astroImage...";
 	    auto res2 =Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
-	    if ( res2.isNull() ) {
+        if ( ! res2.isNull() ) {
 	        qDebug() << "Could not find any plugin to load astroImage";
 	        m_image = res2.val();
 
@@ -393,7 +393,7 @@ Viewer::start()
 	    if( 0) {
 	        // some debugging info
 
-	        Image::ImageInterface * img = res2.val();
+            Image::ImageInterface::SharedPtr img = res2.val();
 
 	        qDebug() << "Dimensions: " << QVector <int>::fromStdVector( img->dims() );
 	        qDebug() << "Unit: " << img-> getPixelUnit().toStr();
@@ -595,7 +595,6 @@ Viewer::start()
 		return "";
 	});
 
-
     // everything below is a hack... just to test performance for switching frames
     /*auto movieCallback = [this](const QString &, const QString & val) {
         double x, y;
@@ -757,6 +756,7 @@ void Viewer::initializeDefaultState(){
 
 void Viewer::reloadFrame( bool forceClipRecompute)
 {
+    qDebug() << "realodFrame m_image=" << m_image.get();
     auto frameSlice = SliceND().next();
     for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
         frameSlice.next().index( i == 2 ? m_currentFrame : 0);
@@ -767,5 +767,24 @@ void Viewer::reloadFrame( bool forceClipRecompute)
                       m_currentFrame, m_clipRecompute || forceClipRecompute);
     delete frameView;
     testView2->setImage(qimg);
+
+}
+
+void Viewer::mouseCB(const QString & /*path*/, const QString & /*val*/)
+{
+    bool ok;
+    double x = m_connector-> getState( StateKey::MOUSE_X, "").toDouble( & ok);
+    if( !ok) {}
+    double y = m_connector-> getState( StateKey::MOUSE_Y, "").toDouble( & ok);
+    if( !ok) {}
+    auto pixCoords = std::vector<double>(m_image->dims().size(), 0.0);
+    pixCoords[0] = x;
+    pixCoords[1] = y;
+    if( pixCoords.size() > 2) {
+        pixCoords[2] = m_currentFrame;
+    }
+    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    qDebug() << "Formatted coordinate:" << list;
+    m_connector-> setState( StateKey::CURSOR, "", list.join("\n").toHtmlEscaped());
 
 } // scriptedCommandCB

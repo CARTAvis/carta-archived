@@ -342,3 +342,47 @@ qx.Class.define("skel.Application",
         
         }
     });
+
+/*
+
+doc.add(new skel.boundWidgets.Toggle( "Recompute clips on new frame", "/autoClip"),
+                    {left: 0, top: 0});
+
+                // add preset buttons
+                {
+                    this.histClipVar = connector.getSharedVar( "/autoClipValue");
+                    var presetsContainer = new qx.ui.container.Composite(
+                        new qx.ui.layout.HBox(5).set({
+                            alignX: "center"}));
+                    var radioGroup = new qx.ui.form.RadioGroup();
+                    radioGroup.setAllowEmptySelection(true);
+                    var presets = [ "95%", "98%", "99%", "99.5%", "99.9%", "99.99%", "100%" ];
+                    this.m_presetButtons = [];
+                    presets.forEach(function (e, ind) {
+                        var button = new qx.ui.toolbar.RadioButton(e).set({
+                            toolTipText: "Set histogram to show " + e + " of the data.<br>" +
+                                "Right click also automatically zooms in to the data."
+                        });
+                        button.addListener("execute", function () {
+                            this.histClipVar.set( e);
+                            button.setValue(true);
+                        }, this);
+                        button.addListener("mouseup", function (event) {
+                            this.histClipVar.set( e);
+                            button.setValue(true);
+                        }, this);
+                        radioGroup.add(button);
+                        button.setFocusable(false);
+                        presetsContainer.add(button);
+                        this.m_presetButtons.push(button);
+                    }, this);
+                    doc.add(presetsContainer, {right:0, top: 0});
+                }
+
+                var cursor = new skel.boundWidgets.Label( "Cursor:", "", "/cursor");
+                doc.add( cursor, { left: 100, top: 210 });
+
+*/
+
+
+

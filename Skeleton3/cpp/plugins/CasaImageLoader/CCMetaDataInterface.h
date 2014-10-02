@@ -4,20 +4,39 @@
 
 #pragma once
 
+#include "common/misc.h"
 #include "common/IImage.h"
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <memory>
+
 
 class CCMetaDataInterface : public Image::MetaDataInterface
 {
-public:
-    CCMetaDataInterface();
+    CLASS_BOILERPLATE( CCMetaDataInterface);
 
-    // MetaDataInterface interface
 public:
-    virtual Image::MetaDataInterface *clone() override;
-    virtual CoordinateFormatterInterface *coordinateFormatter() override;
-    virtual CoordinateGridPlotterInterface &coordinateGridPlotter() override;
-    virtual PlotLabelGeneratorInterface &plotLabelGenerator() override;
-    virtual QString title(TextFormat format) override;
-    virtual QStringList otherInfo(TextFormat format) override;
+    CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa::CoordinateSystem> casaCS);
+
+    virtual Image::MetaDataInterface *
+    clone() override;
+
+    virtual CoordinateFormatterInterface::SharedPtr
+    coordinateFormatter() override;
+
+    virtual CoordinateGridPlotterInterface::SharedPtr
+    coordinateGridPlotter() override;
+
+    virtual PlotLabelGeneratorInterface::SharedPtr
+    plotLabelGenerator() override;
+
+    virtual QString
+    title( TextFormat format ) override;
+
+    virtual QStringList
+    otherInfo( TextFormat format ) override;
+
+protected:
+    Carta::HtmlString m_title;
+    std::shared_ptr<casa::CoordinateSystem> m_casaCS;
+
 };
-

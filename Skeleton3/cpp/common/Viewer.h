@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "common/IImage.h"
 #include <QObject>
 #include <QList>
 #include <memory>
@@ -12,9 +13,6 @@
 class DataAnimator;
 class DataController;
 class ScriptedCommandListener;
-namespace Image {
-class ImageInterface;
-}
 class RawView2QImageConverter;
 class IConnector;
 
@@ -46,13 +44,15 @@ protected slots:
 
     void reloadFrame(bool forceClipRecompute = false);
 
+    void mouseCB( const QString & path, const QString & val);
+
 protected:
 
     /// pointer to scripted command listener
     ScriptedCommandListener * m_scl = nullptr;
 
     /// pointer to the loaded image
-    Image::ImageInterface * m_image = nullptr;
+    Image::ImageInterface::SharedPtr m_image = nullptr;
 
     /// current frame
     int m_currentFrame = -1;
@@ -81,5 +81,8 @@ private:
 
     /// pointer to connector
     IConnector * m_connector;
+
+    /// coordinate formatter
+    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 };
 

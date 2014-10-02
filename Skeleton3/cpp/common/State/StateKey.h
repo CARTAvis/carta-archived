@@ -14,6 +14,7 @@ enum class StateKey {
     AUTO_CLIP,
     CLIP_RECOMPUTE,
     CLIP_VALUE,
+    CURSOR,
     DATA_COUNT,
     DATA_PATH,
     LAYOUT_ROWS,

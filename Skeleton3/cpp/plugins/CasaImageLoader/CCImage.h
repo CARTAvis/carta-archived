@@ -4,15 +4,21 @@
 
 #pragma once
 
+#include "CartaLib/CartaLib.h"
 #include "CCRawView.h"
+#include "CCMetaDataInterface.h"
 #include "common/IImage.h"
 #include "images/Images/ImageInterface.h"
 #include <QDebug>
+#include <memory>
 
 /// helper base class so that we can easily determine if this is a an image
 /// interface created by this plugin if we ever want to down-cast it...
-class CCImageBase : public Image::ImageInterface
+class CCImageBase
+    : public Image::ImageInterface
 {
+    CLASS_BOILERPLATE( CCImageBase );
+
 public:
     /// \todo not sure if this is necessary for RTTI to work, if it's not it
     /// can be removed...
@@ -30,12 +36,13 @@ public:
 /// image in a non-templated class while maintaining fast data access, I templated
 /// this class as well...
 template < typename PType >
-class CCImage : public CCImageBase
+class CCImage
+    : public CCImageBase
+      , public std::enable_shared_from_this < CCImage < PType > >
 {
-//    Q_OBJECT
+    CLASS_BOILERPLATE( CCImage );
 
 public:
-
     virtual const Unit &
     getPixelUnit() const override
     {
@@ -98,37 +105,69 @@ public:
         qFatal( "not implemented" );
     }
 
-    virtual Image::MetaDataInterface &
+    virtual Image::MetaDataInterface::SharedPtr
     metaData() override
     {
-        qFatal( "not implemented" );
+        return m_meta;
     }
 
-    static CCImage *
+    static CCImage::SharedPtr
     create( casa::ImageInterface < PType > * casaImage )
     {
         qDebug() << "create running" << casaImage;
-        CCImage * img = new CCImage < PType >;
+
+        // create an image interface instance and populate it with various
+        // values from casa::ImageInterface
+//        CCImage * img = new CCImage < PType >;
+        CCImage::SharedPtr img = std::make_shared < CCImage < PType > > ();
         img-> m_pixelType = Image::CType2PixelType < PType >::type;
         img-> m_dims      = casaImage-> shape().asStdVector();
         img-> m_casaII    = casaImage;
         img-> m_unit      = Unit( casaImage-> units().getName().c_str() );
+
+        // get title and escape html characters in case there are any
+        QString htmlTitle = casaImage->imageInfo().objectName().c_str();
+        htmlTitle = htmlTitle.toHtmlEscaped();
+
+        // construct a meta data instance
+        std::shared_ptr<casa::CoordinateSystem> casaCS
+                = std::make_shared<casa::CoordinateSystem>(casaImage-> coordinates());
+        img-> m_meta = std::make_shared < CCMetaDataInterface > ( htmlTitle, casaCS );
+
         return img;
     } // create
 
-protected:
+    /// this should be protected... but I don't have time to fix the compiler errors
+    /// basically we
+//    template < class X >
+//    friend class CCImage<PType>;
+//    friend class CCImage<double>;
+//    friend class CCImage<int16_t>;
+//    friend class CCImage<int32_t>;
+//    friend class CCImage<int64_t>;
+//    friend class CCImage<u_int8_t>;
+//protected:
+
+    CCImage() { }
 
     virtual
     ~CCImage() { }
 
+protected:
     /// type of the image data
     Image::PixelType m_pixelType;
+
     /// cached dimensions of the image
     std::vector < int > m_dims;
+
     /// pointer to the actual casa::ImageInterface
     casa::ImageInterface < PType > * m_casaII;
+
     /// cached unit
     Unit m_unit;
+
+    /// meta data pointer
+    CCMetaDataInterface::SharedPtr m_meta;
 
     /// we want CCRawView to access our internals...
     /// \todo maybe we just need a public accessor, no? I don't like friends :)

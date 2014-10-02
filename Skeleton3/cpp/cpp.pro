@@ -8,7 +8,8 @@ SUBDIRS = \
     desktop \
     server \
     plugins \
-    Tests
+    Tests \
+    CartaLib
 
 # explicit dependencies, much better for make -j4...
 desktop.depends = common

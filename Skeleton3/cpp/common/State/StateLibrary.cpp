@@ -117,6 +117,9 @@ void StateLibrary::_initializeStates() {
             State(SEPARATOR + APP_ROOT + SEPARATOR + PLUGIN_LIST + SEPARATOR + "loadErrors", "Plugin load errors", false, false));
     states.insert(StateKey::PLUGIN_STAMP,
             State(SEPARATOR + APP_ROOT + SEPARATOR + PLUGIN_LIST + SEPARATOR + "stamp", "Number of plugins loaded", false, false));
+
+    states.insert(StateKey::CURSOR, State("/cursor", "formatted mouse cursor", false, false));
+
 }
 
 QString StateLibrary::getPath(StateKey stateKey, const QString& id) const {

@@ -156,7 +156,7 @@ class LoadAstroImage : public BaseHook
 
 public:
 
-    typedef Image::ImageInterface * ResultType;
+    typedef Image::ImageInterface::SharedPtr ResultType;
     struct Params {
         Params( QString p_fileName) {
             fileName = p_fileName;

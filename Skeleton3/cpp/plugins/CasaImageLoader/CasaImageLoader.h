@@ -21,5 +21,5 @@ public:
 
 private:
 
-    Image::ImageInterface * loadImage(const QString & fname);
+    Image::ImageInterface::SharedPtr loadImage(const QString & fname);
 };
