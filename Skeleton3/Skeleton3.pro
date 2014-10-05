@@ -13,8 +13,9 @@ dbg( "QMAKE_CFLAGS_RELEASE $$QMAKE_CFLAGS_RELEASE")
 dbg( "===---------------------------------------------====")
 
 TEMPLATE = subdirs
-SUBDIRS += cpp \
-    scriptedClient
+SUBDIRS += cpp
+SUBDIRS += scriptedClient
+SUBDIRS += scripts
 #SUBDIRS += html5
 
 OTHER_FILES += readme.txt
