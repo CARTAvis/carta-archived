@@ -15,16 +15,13 @@ class CCCoordinateFormatter : public CoordinateFormatterInterface
     CLASS_BOILERPLATE( CCCoordinateFormatter );
 
 public:
-    CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS )
-    {
-        m_casaCS = casaCS;
-    }
+    CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS );
 
     virtual CoordinateFormatterInterface *
     clone() const override;
 
     virtual int
-    nAxes() override;
+    nAxes() const override;
 
     virtual QStringList
     formatFromPixelCoordinate( const VD & pix ) override;
@@ -47,7 +44,7 @@ public:
     virtual void
     setTextOutputFormat( TextFormat fmt ) override;
 
-    virtual const AxisInfo &
+    virtual const Carta::Lib::AxisInfo &
     axisInfo( int ind ) const override;
 
     virtual Me &
@@ -70,4 +67,5 @@ public:
 
 protected:
     std::shared_ptr < casa::CoordinateSystem > m_casaCS;
+    std::vector<Carta::Lib::AxisInfo> m_axisInfos;
 };

@@ -32,7 +32,7 @@ public:
     virtual CoordinateFormatterInterface * clone() const = 0;
 
     /// how many axes are there?
-    virtual int nAxes() = 0;
+    virtual int nAxes() const = 0;
 
     /// calculate and format pixel coordinate cursor using current settings
     virtual QStringList formatFromPixelCoordinate(const VD& pix) = 0;
@@ -44,7 +44,7 @@ public:
     virtual void setTextOutputFormat(TextFormat fmt) = 0;
 
     /// get information about an axis (such as labels, suffix)
-    virtual const AxisInfo & axisInfo(int ind) const = 0;
+    virtual const Carta::Lib::AxisInfo & axisInfo(int ind) const = 0;
 
     /// disable printing of an axis
     virtual Me & disableAxis(int ind) = 0;

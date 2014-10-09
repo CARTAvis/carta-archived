@@ -7,7 +7,7 @@ equals( CARTA_BUILD_TYPE, release) {
     CARTA_CONFIG =
 }
 else:equals( CARTA_BUILD_TYPE, bughunter) {
-    CARTA_CONFIG = noOpt gdb dbgout runtimeChecks
+    CARTA_CONFIG = noOpt gdb dbgout runtimeChecks addrSanit
 }
 else {
     # assuming dev build...
@@ -66,6 +66,14 @@ contains( CARTA_CONFIG, noOpt) {
     QMAKE_CXXFLAGS += -O2
     QMAKE_CFLAGS += -O2
 }
+contains( CARTA_CONFIG, addrSanit) {
+    QMAKE_CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
+    QMAKE_CFLAGS += -fsanitize=address -fno-omit-frame-pointer
+    QMAKE_LFLAGS += -fsanitize=address
+    message( "+ address sanitization")
+} else {
+    message( "- no address sanitization")
+}
 
 # use gcc 4.8.1
 CONFIG += gcc481
@@ -89,8 +97,6 @@ CONFIG += warn_on
 #QMAKE_CXXFLAGS += -fsanitize=address  -fno-omit-frame-pointer
 #QMAKE_LFLAGS += -fsanitize=address  -fno-omit-frame-pointer
 
-#QMAKE_CXXFLAGS += -fsanitize=thread
-#QMAKE_LFLAGS += -fsanitize=thread
 
 # add a little speedup with ccache
 linux-*:exists(/usr/bin/ccache):QMAKE_CXX=ccache $${COMPILER}

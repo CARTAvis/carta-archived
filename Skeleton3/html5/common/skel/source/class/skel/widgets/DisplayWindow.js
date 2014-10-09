@@ -179,7 +179,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          */
         _init : function() {
             // Make the window decorations invisible.
-            this.getChildControl("captionbar").setVisibility("excluded");
+//            this.getChildControl("captionbar").setVisibility("excluded");
             this.setShowMinimize(false);
             this.setShowMaximize(false);
             this.setShowClose(false);
@@ -187,6 +187,9 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.setContentPadding(0, 0, 0, 0);
             this.setAllowGrowX(true);
             this.setAllowGrowY(true);
+            this.setMovable(false);
+            this.maximize();
+            this.setCaption( "win"+Math.random());
 
             this.setLayout(new qx.ui.layout.VBox(0));
             this.m_scrollArea = new qx.ui.container.Scroll();
@@ -408,15 +411,36 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            if (selected) {
-                this.setAppearance("display-window-selected");
-                if (!multiple) {
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "windowSelected", this));
-                }
-            } else {
-                this.setAppearance("display-window");
+            var console = mImport("console");
+            console.log( "setSelected", selected, this.m_identifier);
+            this.setActive( false);
+            if( selected) {
+//                this.addState( "winsel");
+                this.getChildControl("captionbar" ).addState( "winsel");
             }
+            else {
+//                this.removeState( "winsel");
+                this.getChildControl("captionbar" ).removeState( "winsel");
+            }
+//            this.syncAppearance();
+//            this.getChildControl("captionbar" ).syncAppearance();
+
+            if (selected &&  !multiple) {
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                    "windowSelected", this));
+            }
+
+//            if (selected) {
+//                this.setAppearance("display-window-selected");
+//                this.getChildControl("captionbar" ).setAppearance("winSel");
+//                if (!multiple) {
+//                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+//                            "windowSelected", this));
+//                }
+//            } else {
+//                this.setAppearance("display-window");
+//                this.getChildControl("captionbar" ).setAppearance("winUnSel");
+//            }
         },
 
         /**
@@ -424,6 +448,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * @param label {String} a title for the window.
          */
         setTitle : function(label) {
+            this.setCaption( label);
             if (this.m_title == null) {
                 this.m_title = new skel.boundWidgets.Label(label, "", "");
                 this.m_content.add(this.m_title);
@@ -452,10 +477,10 @@ qx.Class.define("skel.widgets.DisplayWindow", {
     },
 
     properties : {
-        appearance : {
-            refine : true,
-            init : "display-window"
-        }
+//        appearance : {
+//            refine : true,
+//            init : "display-window"
+//        }
 
     }
 

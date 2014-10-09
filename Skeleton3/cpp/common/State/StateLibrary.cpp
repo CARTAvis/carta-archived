@@ -108,7 +108,7 @@ void StateLibrary::_initializeStates() {
     states.insert(StateKey::PLUGIN_NAME,
             State(SEPARATOR + APP_ROOT + SEPARATOR + PLUGIN_LIST + SEPARATOR + "name", "Plugin name.", false, false));
     states.insert(StateKey::PLUGIN_DESCRIPTION,
-            State(SEPARATOR + APP_ROOT + SEPARATOR + PLUGIN_LIST + SEPARATOR + "desciption", "Plugin description", false, false));
+            State(SEPARATOR + APP_ROOT + SEPARATOR + PLUGIN_LIST + SEPARATOR + "description", "Plugin description", false, false));
     states.insert(StateKey::PLUGIN_TYPE,
             State(SEPARATOR + APP_ROOT + SEPARATOR + PLUGIN_LIST + SEPARATOR + "type", "Type of plugin", false, false));
     states.insert(StateKey::PLUGIN_VERSION,

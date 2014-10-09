@@ -380,6 +380,9 @@ Viewer::start()
 	        qDebug() << "Could not find any plugin to load astroImage";
 	        m_image = res2.val();
 
+            CARTA_ASSERT( m_image);
+            m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
+
 	        qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
 	        testView2 = new TestView2( "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32) );
 	        m_connector-> registerView( testView2 );
@@ -399,10 +402,13 @@ Viewer::start()
 	        qDebug() << "Unit: " << img-> getPixelUnit().toStr();
 	        // let's get a view (the whole image)
 	        NdArray::RawViewInterface * rawView = img-> getDataSlice( SliceND({Slice1D().step(3)}));
-	        if( ! rawView) {
-	            qFatal( "Raw view is null");
-	        }
-	        qDebug() << "View dimensions:" << rawView->dims();
+            CARTA_ASSERT( rawView);
+
+//	        if( ! rawView) {
+//	            qFatal( "Raw view is null");
+//	        }
+
+            qDebug() << "View dimensions:" << rawView->dims();
 	        typedef std::vector<int> VI;
 	        VI pos( img->dims().size(), 0);
 	        const char * rawPtr = rawView->get( pos);
@@ -463,7 +469,7 @@ Viewer::start()
             m_connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.json.description);
             m_connector-> setState( StateKey::PLUGIN_TYPE, index, entry.json.typeString);
             m_connector-> setState( StateKey::PLUGIN_VERSION, index, entry.json.version);
-			m_connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join("|"));
+            m_connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join("|"));
 			ind ++;
 		}
 		QString pluginCountStr = QString::number( ind);

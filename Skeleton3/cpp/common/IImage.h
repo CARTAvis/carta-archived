@@ -234,6 +234,9 @@ public:
     /// (eg. complete FITS header)
     virtual QStringList
     otherInfo( TextFormat format = TextFormat::Plain ) = 0;
+
+    /// get information about coordinates
+
 };
 
 /// Main interface class for representing an image inside the viewer. This is used to pass
@@ -383,6 +386,6 @@ test_apis()
 
     // get info about axis 3
     auto meta      = ii-> metaData();
-    AxisInfo axis3 = meta-> coordinateFormatter()-> axisInfo( 3 );
+    Carta::Lib::AxisInfo axis3 = meta-> coordinateFormatter()-> axisInfo( 3 );
     Q_UNUSED( axis3 );
 } // test_apis

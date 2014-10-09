@@ -58,6 +58,14 @@ qx.Class.define("skel.boundWidgets.PluginList", {
             };
 
             this.m_table = new qx.ui.table.Table(this.m_tableModel, custom);
+            this.m_table.setAllowShrinkY( true);
+            this.m_table.setAllowStretchY( true);
+            this.m_table.setAllowGrowY( true);
+            this.m_table.setMinHeight(100);
+            this.setAllowShrinkY( true);
+            this.setAllowStretchY( true);
+            this.setAllowGrowY( true);
+            this.setMinHeight(100);
 
             var colModel = this.m_table.getTableColumnModel();
             colModel.setDataCellRenderer(4,
@@ -89,8 +97,8 @@ qx.Class.define("skel.boundWidgets.PluginList", {
                 var version = this.m_connector.getSharedVar(
                         base + "version/" + pIndex).get();
                 var errors = this.m_connector.getSharedVar(
-                        base + "errors/" + pIndex).get();
-                var loaded = (errors === "");
+                        base + "loadErrors/" + pIndex).get();
+                var loaded = (errors === "" || errors === null);
                 newData.push([ name, description, type, version, loaded ]);
             }
 

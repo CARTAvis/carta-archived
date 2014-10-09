@@ -8,6 +8,7 @@
 #include "cartalib_global.h"
 #include <cassert>
 #include <iostream>
+#include <QtGlobal>
 
 
 /// all carta code lives here (or will eventually)
@@ -62,14 +63,19 @@ inline
 void cartaAssert(const char *assertion, const char *file, const char * func, int line) {
     std::cerr << "ASSERT: " << assertion << "\n"
               << "....in: " << file << ":" << line << "\n"
-              << ".func.: " << func << "\n";
+              << ".func.: " << func << "\n"
+              << "Aborting now, sorry\n";
     std::abort();
 }
 }}
 
+/// You can use this macro to always perform the assert, but be careful because
+/// it will coredump, leaving user upset... It's like the blue screen of death :)
 #define CARTA_ASSERT_ALWAYS(cond) ((!(cond)) ? Carta::Lib::cartaAssert(#cond,__FILE__,__PRETTY_FUNCTION__, __LINE__) : qt_noop())
 
 #ifdef CARTA_RUNTIME_CHECKS
+/// use this macro for regular development, it will be compiled out
+/// in a release build
 #define CARTA_ASSERT(cond) CARTA_ASSERT_ALWAYS(cond)
 #else
 #define CARTA_ASSERT(cond) qt_noop();

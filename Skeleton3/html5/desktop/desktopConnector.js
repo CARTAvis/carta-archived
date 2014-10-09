@@ -239,16 +239,16 @@
         // listen for changes to the state
         QtConnector.stateChangedSignal.connect( function( key, val )
         {
-            console.log( "stateUpdate", key, val);
+            console.log( "stateUpdate", key, val === null ? "<null>" : val);
             var st = getOrCreateState( key );
             // save the value
             st.value = val;
             // now go through all callbacks and call them
-	    try {
-		st.callbacks.callEveryone( st.value );
-	    } catch ( err) {
-		window.console.error( "Caught error ", err);
-	    }
+            try {
+                st.callbacks.callEveryone( st.value );
+            } catch ( err) {
+                window.console.error( "Caught error ", err);
+            }
         });
 
         // let the c++ connector know we are ready

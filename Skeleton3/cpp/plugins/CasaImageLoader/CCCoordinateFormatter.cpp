@@ -5,6 +5,80 @@
 #include "CCCoordinateFormatter.h"
 #include <QDebug>
 
+CCCoordinateFormatter::CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS )
+{
+    // remember the pointer to casa coordinate systems
+    m_casaCS = casaCS;
+
+    // prepare the axis info
+//    m_axisInfos.resize( nAxes());
+
+    qDebug() << "CCC nAxes=" << nAxes();
+    for ( auto & u :  m_casaCS->worldAxisUnits() ) {
+        qDebug() << "all units:" << u.c_str();
+    }
+    for ( auto & u :  m_casaCS->worldAxisNames() ) {
+        qDebug() << "all names:" << u.c_str();
+    }
+    for ( size_t i = 0 ; i < m_casaCS-> nPixelAxes() ; i++ ) {
+        // find the pixel axes in casacore's coordinate system
+        // coord will be the index of the 'coordinate'
+        // and coord2 will be an index within that index...
+        // warning: casa's coordinates and axes are two completely different things!
+        // e.g. a standard 4D fits file with frequency and stokes has 3 coordinates, but
+        // 4 axes...
+        int coord, coord2;
+        m_casaCS-> findPixelAxis( coord, coord2, i );
+
+        qDebug() << i << "-->" << coord << "," << coord2;
+        qDebug() << "   " <<
+        casa::Coordinate::typeToString( m_casaCS-> coordinate( coord ).type() ).c_str();
+
+        Carta::Lib::AxisInfo aInfo;
+        if ( coord >= 0 ) {
+            const auto & cc = m_casaCS-> coordinate( coord );
+            if ( cc.type() == casa::Coordinate::DIRECTION ) {
+                aInfo.setKnownType( coord2 == 0 ?
+                                    aInfo.KnownType::DIRECTION_LON :
+                                    aInfo.KnownType::DIRECTION_LAT );
+            }
+            else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
+                aInfo.setKnownType( aInfo.KnownType::SPECTRAL );
+            }
+            else if ( cc.type() == casa::Coordinate::STOKES ) {
+                aInfo.setKnownType( aInfo.KnownType::STOKES );
+            }
+            else if ( cc.type() == casa::Coordinate::TABULAR ) {
+                aInfo.setKnownType( aInfo.KnownType::TABULAR );
+
+            }
+//            else if ( cc.type() == casa::Coordinate::QUALITY ) {
+//                aInfo.setKnownType( aInfo.KnownType::QUALITY);
+//            }
+            else {
+                aInfo.setKnownType( aInfo.KnownType::OTHER );
+            }
+            CARTA_ASSERT( cc.worldAxisNames().size() > 0);
+            CARTA_ASSERT( cc.worldAxisNames() ( coord2 ).c_str());
+            QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
+            QString shortLabel = rawAxisLabel;
+            aInfo.setLongLabel( Carta::Lib::HtmlString::fromPlain(rawAxisLabel));
+            aInfo.setShortLabel( Carta::Lib::HtmlString::fromPlain(shortLabel));
+            aInfo.setUnit( cc.worldAxisUnits() ( coord2 ).c_str() );
+        }
+        m_axisInfos.push_back( aInfo );
+    }
+
+    qDebug() << "Parsed axis infos:";
+    for( auto & ai : m_axisInfos) {
+        qDebug() << "  lp:" << ai.longLabel().plain()
+                 << "lh:" << ai.longLabel().html()
+        << "sp:" << ai.shortLabel().html()
+        << "sh:" << ai.shortLabel().html()
+        << "u:" << ai.unit();
+    }
+}
+
 CoordinateFormatterInterface *
 CCCoordinateFormatter::clone() const
 {
@@ -12,9 +86,10 @@ CCCoordinateFormatter::clone() const
 }
 
 int
-CCCoordinateFormatter::nAxes()
+CCCoordinateFormatter::nAxes() const
 {
-    qFatal( "not implemented" );
+    CARTA_ASSERT( m_casaCS );
+    return m_casaCS-> nPixelAxes();
 }
 
 QStringList
@@ -89,11 +164,11 @@ CCCoordinateFormatter::setTextOutputFormat( CoordinateFormatterInterface::TextFo
     qFatal( "not implemented" );
 }
 
-const AxisInfo &
+const Carta::Lib::AxisInfo &
 CCCoordinateFormatter::axisInfo( int ind ) const
 {
-    Q_UNUSED( ind );
-    qFatal( "not implemented" );
+    CARTA_ASSERT( ind >= 0 && ind < nAxes() );
+    return m_axisInfos[ind];
 }
 
 CCCoordinateFormatter::Me &

@@ -1,32 +1,70 @@
-#include <QString>
-
 #pragma once
 
+#include "CartaLib/HtmlString.h"
+
+namespace Carta
+{
+namespace Lib
+{
 /// description of an axis in an image
-class AxisInfo {
-
+class AxisInfo
+{
 public:
-    QString shortLabel() const { return m_shortLabel; }
-    AxisInfo& setShortLabel(const QString& shortLabel) {
-        m_shortLabel = shortLabel;
-        return *this;
-    }
+    /// axis types we recognize
+    enum class KnownType
+    {
+        DIRECTION_LON, /// < direction, longitude-ish
+        DIRECTION_LAT, /// < direction, latitude-ish
+        SPECTRAL,      /// < spectral axis
+        STOKES,        /// < stokes axis
+        TABULAR,       /// < not sure but casacore uses it, maybe it's important?
+        QUALITY,       /// < not sure but casacore uses it, maybe it's important?
+        OTHER
+    };
 
-    QString longLabel() const {
-        return m_longLabel;
-    }
-    AxisInfo& setLongLabel(const QString& longLabel) {
-        m_longLabel = longLabel;
-        return *this;
-    }
+    /// return the type of this axis
+    KnownType
+    knownType() const;
 
-    QString suffix() const { return m_suffix; }
-    AxisInfo& setSuffix(const QString& suffix) {
-        m_suffix = suffix;
-        return *this;
-    }
+    /// set the known type
+    AxisInfo &
+    setKnownType( const KnownType & knownType );
+
+    /// get the short label for the axis
+    /// suitable for cursor labels
+    HtmlString
+    shortLabel() const;
+
+    AxisInfo &
+    setShortLabel( const HtmlString & shortLabel );
+
+    /// get the long label for the axis
+    /// suitable for plot captions
+    HtmlString
+    longLabel() const;
+
+    AxisInfo &
+    setLongLabel( const HtmlString & longLabel );
+
+    /// unit of the axis
+    QString
+    unit() const { return m_unit; }
+
+    AxisInfo &
+    setUnit( const QString & unit );
 
 protected:
-    QString m_shortLabel, m_longLabel, m_suffix;
+    HtmlString m_shortLabel, m_longLabel;
+    QString m_unit;
+    KnownType m_knownType = KnownType::OTHER;
 };
 
+///// this function attempts to shorten a long axis name
+//QString shortenLongAxisLabel( QString longAxisName);
+
+/// this function takes a raw-text name of an axis and tries
+/// to produce an HtmlString for both long and short name
+std::tuple<HtmlString,HtmlString> nicifyAxisLabel( QString rawAxisName);
+
+} // namespace Lib
+} // namespace Carta
