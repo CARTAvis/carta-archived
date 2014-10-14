@@ -21,7 +21,7 @@ Image::MetaDataInterface *CCMetaDataInterface::clone()
 CoordinateFormatterInterface::SharedPtr CCMetaDataInterface::coordinateFormatter()
 {
     return std::make_shared<CCCoordinateFormatter>( m_casaCS);
-    qFatal( "not implemented");
+//    qFatal( "not implemented");
 }
 
 CoordinateGridPlotterInterface::SharedPtr CCMetaDataInterface::coordinateGridPlotter()

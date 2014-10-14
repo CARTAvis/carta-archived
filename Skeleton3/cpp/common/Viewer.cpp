@@ -387,8 +387,17 @@ Viewer::start()
 	        testView2 = new TestView2( "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32) );
 	        m_connector-> registerView( testView2 );
 
+            qDebug() << "xyz test";
+            CoordinateFormatterInterface::VD pixel;
+            pixel.resize( m_coordinateFormatter->nAxes(), 0);
+            auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel);
+            qDebug() << "0->" << fmt.join("|");
+            m_coordinateFormatter-> setSkyCS( KnownSkyCS::Galactic);
+            fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel);
+            qDebug() << "0->" << fmt.join("|");
+
 	        // convert the loaded image into QImage
-	        m_currentFrame = 0;
+            m_currentFrame = 0;
 	        reloadFrame( true);
 //        delete frameView;
 	    }
@@ -642,16 +651,16 @@ Viewer::start()
 		return xml;
 	});
 
-	//Callback for adding a data source to a DataController.
-	m_connector->addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & sessionId) -> QString {
-		QList<QString> keys = {"id", "data"};
-		QVector<QString> dataValues = _parseParamMap( params, keys );
-		if ( dataValues.size() == keys.size()){
-			//Find the data controller indicated DataController.
-			std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[0] );
-			if ( it != m_dataControllers.end()){
-				//Add the data to it.
+    //Callback for adding a data source to a DataController.
+    m_connector->addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
+                                     const QString & params, const QString & sessionId) -> QString {
+        QList<QString> keys = {"id", "data"};
+        QVector<QString> dataValues = _parseParamMap( params, keys );
+        if ( dataValues.size() == keys.size()){
+            //Find the data controller indicated DataController.
+            std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[0] );
+            if ( it != m_dataControllers.end()){
+                //Add the data to it.
                 QString path = dataValues[1];
                 QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
                 if( ! path.startsWith( fakePath )){
@@ -662,13 +671,13 @@ Viewer::start()
                 path = QString( "%1%2").arg( DataLoader::getRootDir( sessionId))
                        .arg( path.remove( 0, fakePath.length()));
                 m_dataControllers[dataValues[0]]->addData( path );
-			}
-			else {
-			    qDebug() << "Could not find data controller for: "<<params;
-			}
-		}
-		return "";
-	});
+            }
+            else {
+                qDebug() << "Could not find data controller for: "<<params;
+            }
+        }
+        return "";
+    });
 
     bool stateRead = m_connector->readState( "DefaultState" );
     if ( !stateRead ){

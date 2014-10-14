@@ -34,7 +34,8 @@ public:
     /// how many axes are there?
     virtual int nAxes() const = 0;
 
-    /// calculate and format pixel coordinate cursor using current settings
+    /// for the given pixel coordinate, calculate the world coordinates and
+    /// format them using current settings
     virtual QStringList formatFromPixelCoordinate(const VD& pix) = 0;
 
     /// calculate and format distance between two pixels
@@ -56,6 +57,8 @@ public:
     virtual KnownSkyCS skyCS() = 0;
 
     /// set the sky coordinate system
+    /// \warning this can fail if conversion not possible/supported. Check skyCS() to see
+    /// if it was successful.
     virtual Me & setSkyCS( const KnownSkyCS & scs) = 0;
 
     /// get the current sky formatting (degree, sexagecimal, etc)

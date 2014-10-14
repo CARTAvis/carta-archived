@@ -66,6 +66,9 @@ public:
     setSkyFormat( SkyFormat format ) override;
 
 protected:
+    /// parse casa's coordinate system
+    void parseCasaCS();
+
     std::shared_ptr < casa::CoordinateSystem > m_casaCS;
     std::vector<Carta::Lib::AxisInfo> m_axisInfos;
 };

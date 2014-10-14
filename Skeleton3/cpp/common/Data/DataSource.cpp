@@ -17,9 +17,6 @@ DataSource::DataSource(const QString& fileName) :
         auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
         m_image = loadImageHookHelper.first().val();
     }
-
-
-
 }
 
 Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute){

@@ -185,8 +185,12 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.setShowClose(false);
             this.setUseResizeFrame(false);
             this.setContentPadding(0, 0, 0, 0);
-            this.setAllowGrowX(true);
-            this.setAllowGrowY(true);
+//            this.setAllowGrowX(true);
+//            this.setAllowGrowY(true);
+//            this.setAllowShrinkX(true);
+//            this.setAllowShrinkY(true);
+            this.setAllowStretchX(true);
+            this.setAllowStretchY(true);
             this.setMovable(false);
             this.maximize();
             this.setCaption( "win"+Math.random());
@@ -415,15 +419,11 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             console.log( "setSelected", selected, this.m_identifier);
             this.setActive( false);
             if( selected) {
-//                this.addState( "winsel");
                 this.getChildControl("captionbar" ).addState( "winsel");
             }
             else {
-//                this.removeState( "winsel");
                 this.getChildControl("captionbar" ).removeState( "winsel");
             }
-//            this.syncAppearance();
-//            this.getChildControl("captionbar" ).syncAppearance();
 
             if (selected &&  !multiple) {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(

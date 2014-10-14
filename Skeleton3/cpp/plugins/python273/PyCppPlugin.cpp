@@ -112,53 +112,11 @@ bool PyCppPlug::handleHook(BaseHook & hookData)
         p.drawText( hook.paramsPtr->imgPtr->rect(), Qt::AlignLeft | Qt::AlignTop, txt);
 
         QImage & img = * (hook.paramsPtr->imgPtr);
-
-
-//        std::vector<char> data;
-//        for( int row = 0 ; row < img.height() ; row ++) {
-//            auto p = img.constScanLine(row);
-//            for( int col = 0 ; col < img.width(); col ++) {
-//                data.push_back( * p);
-//                p ++;
-//                data.push_back( * p);
-//                p ++;
-//                data.push_back( * p);
-//                p ++;
-//            }
-//        }
-
-//        qDebug() << "pixels:" << data.size();
-//        qDebug() << "pixel 0 =" << double(data[0]);
-//        pb_callPreRenderHook( m_pyModId, img.width(), img.height(), data);
-//        qDebug() << "-pixels:" << data.size();
-//        qDebug() << "-pixel 0 =" << double(data[0]);
-
-//        size_t ind = 0;
-//        for( int row = 0 ; row < img.height() ; row ++) {
-//            auto p = img.scanLine(row);
-//            for( int col = 0 ; col < img.width(); col ++) {
-//                * p = data[ind ++];
-//                p ++;
-//                * p = data[ind ++];
-//                p ++;
-//                * p = data[ind ++];
-//                p ++;
-//            }
-//        }
-
-//        if( img.width() * 3 != img.bytesPerLine()) {
-//            qWarning() << "################" << img.width() *3 << img.bytesPerLine();
-//        }
-//        qDebug() << "cpp: stride should be = " << img.bytesPerLine();
         pb_callPreRenderHook( m_pyModId, img.width(), img.height(),
                               img.bytesPerLine(), img.bits());
 
-
         return true;
-
-        // TODO: we need to pass the image to python, then put the result back into c++
     }
-
     qWarning() << "Sorrry, dont' know how to handle this hook";
     return false;
 }
