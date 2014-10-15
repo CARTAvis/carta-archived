@@ -25,7 +25,10 @@ enum class KnownSkyCS
 /// sky formatting option
 enum class SkyFormat
 {
-    Sexagecimal, Degrees, Radians
+    Sexagecimal,  /// < e.g. HH:MM:SS.SSS or DD:MM:SS.SSS
+    Degrees,      /// < raw degrees
+    Radians,      /// < raw radians
+    Default       /// < pick whatever is appripriate for the current sky system
 };
 
 /// QString streaming helper (to output QStrings)
@@ -37,15 +40,15 @@ operator<< ( STREAM & stream, const QString & str )
 }
 
 /// QString streaming helper (to read in QStrings)
-template < typename STREAM >
-STREAM &
-operator>> ( STREAM & stream, QString & str )
-{
-    std::string tmpstr;
-    stream >> tmpstr;
-    str = tmpstr.c_str();
-    return stream;
-}
+//template < typename STREAM >
+//STREAM &
+//operator>> ( STREAM & stream, QString & str )
+//{
+//    std::string tmpstr;
+//    stream >> tmpstr;
+//    str = tmpstr.c_str();
+//    return stream;
+//}
 
 /// clamp a value to be in range [v1..v2]
 template < typename T >

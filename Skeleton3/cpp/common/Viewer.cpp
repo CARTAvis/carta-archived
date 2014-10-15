@@ -392,7 +392,10 @@ Viewer::start()
             pixel.resize( m_coordinateFormatter->nAxes(), 0);
             auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel);
             qDebug() << "0->" << fmt.join("|");
-            m_coordinateFormatter-> setSkyCS( KnownSkyCS::Galactic);
+            auto skycs = KnownSkyCS::Galactic;
+            m_coordinateFormatter-> setSkyCS( skycs);
+            qDebug() << "set skycs to" << int(skycs)
+                     << "now it is" << int(m_coordinateFormatter-> skyCS());
             fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel);
             qDebug() << "0->" << fmt.join("|");
 

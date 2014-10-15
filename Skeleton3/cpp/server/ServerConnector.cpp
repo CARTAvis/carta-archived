@@ -176,8 +176,8 @@ QString ServerConnector::getState(const StateKey& state, const QString& id)
     //    std::string val = pwval.ValueOr( "").As<std::string>();
 
     // this is how to convert to std::string:
-    std::string val( pwval.ValueOr( "").ToAscii().begin());
-    return val.c_str();
+    QString val( pwval.ValueOr( "").ToAscii().begin());
+    return val;
 }
 
 
@@ -243,8 +243,15 @@ void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &va
 {
 
     // here we call the actual callbacks
-    QString path = val.Path().As< QString >();
-    QString newVal = val.NewValue().As< QString >();
+    QString path = val.Path().ToAscii().begin();
+    QString newVal;
+    if( val.NewValue().HasValue()) {
+        newVal = val.NewValue().Value().ToAscii().begin();
+    }
+
+    // BAD:::!!!
+    //    QString path = val.Path().As< QString >();
+    //    QString newVal = val.NewValue().As< QString >();
 
     /*qDebug() << "internalValueChangedCB\n"
              << "  path = " << path << "\n"
