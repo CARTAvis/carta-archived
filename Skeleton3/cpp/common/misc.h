@@ -23,9 +23,9 @@ enum class KnownSkyCS
 };
 
 /// sky formatting option
-enum class SkyFormat
+enum class SkyFormatting
 {
-    Sexagecimal,  /// < e.g. HH:MM:SS.SSS or DD:MM:SS.SSS
+    Sexagesimal,  /// < e.g. HH:MM:SS.SSS or DD:MM:SS.SSS
     Degrees,      /// < raw degrees
     Radians,      /// < raw radians
     Default       /// < pick whatever is appripriate for the current sky system

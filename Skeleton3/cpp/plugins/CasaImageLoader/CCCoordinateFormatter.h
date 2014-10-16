@@ -15,6 +15,10 @@ class CCCoordinateFormatter : public CoordinateFormatterInterface
     CLASS_BOILERPLATE( CCCoordinateFormatter );
 
 public:
+
+    /// shortcut to AxisInfo type
+    typedef Carta::Lib::AxisInfo AxisInfo;
+
     CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS );
 
     virtual CoordinateFormatterInterface *
@@ -59,16 +63,33 @@ public:
     virtual Me &
     setSkyCS( const KnownSkyCS & scs ) override;
 
-    virtual SkyFormat
-    skyFormat() override;
+    virtual SkyFormatting
+    skyFormatting() override;
 
     virtual Me &
-    setSkyFormat( SkyFormat format ) override;
+    setSkyFormatting( SkyFormatting format ) override;
 
 protected:
+
     /// parse casa's coordinate system
-    void parseCasaCS();
+    void
+    parseCasaCS();
 
     std::shared_ptr < casa::CoordinateSystem > m_casaCS;
-    std::vector<Carta::Lib::AxisInfo> m_axisInfos;
+
+    /// cached info per axis
+    std::vector < AxisInfo > m_axisInfos;
+
+    /// precisions
+    std::vector < int > m_precisions;
+
+    /// plain on html output
+    TextFormat m_textOutputFormat;
+
+    /// selected format for sky formatting
+    SkyFormatting m_skyFormatting = SkyFormatting::Radians;
+
+    /// format a world value for the selected axis
+    QString formatWorldValue( int whichAxis, double worldValue);
+
 };

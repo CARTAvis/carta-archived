@@ -47,6 +47,8 @@ public:
     setLongLabel( const HtmlString & longLabel );
 
     /// unit of the axis
+    /// e.g. when converting to 'world' coordinates, what are the units...
+    /// note that for sky coordinates this is not the unit that will be formatted
     QString
     unit() const { return m_unit; }
 

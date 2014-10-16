@@ -35,7 +35,7 @@ public:
     virtual int nAxes() const = 0;
 
     /// for the given pixel coordinate, calculate the world coordinates and
-    /// format them using current settings
+    /// format them using current settings, with units appended where appropriate
     virtual QStringList formatFromPixelCoordinate(const VD& pix) = 0;
 
     /// calculate and format distance between two pixels
@@ -61,11 +61,14 @@ public:
     /// if it was successful.
     virtual Me & setSkyCS( const KnownSkyCS & scs) = 0;
 
-    /// get the current sky formatting (degree, sexagecimal, etc)
-    virtual SkyFormat skyFormat() = 0;
+    /// get the current sky formatting (degree, sexagesimal, etc)
+    /// \note never returns Default
+    virtual SkyFormatting skyFormatting() = 0;
 
     /// set the current sky formatting
-    virtual Me & setSkyFormat(SkyFormat format) = 0;
+    /// if 'Default' is specified, it is automatically converted to the most appropriate
+    /// formatting
+    virtual Me & setSkyFormatting(SkyFormatting format) = 0;
 
     /// get the current precision for an axis
     virtual int axisPrecision(int axis) = 0;
