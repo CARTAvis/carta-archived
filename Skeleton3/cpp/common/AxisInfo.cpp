@@ -49,37 +49,37 @@ AxisInfo::setUnit( const QString & suffix )
     return * this;
 }
 
-static AxisInfo makeAxisInfo(
-        const AxisInfo::KnownType & type,
-        QString longPlain, QString longHtml,
-        QString shortPlain, QString shortHtml,
-        QString unit)
-{
-    AxisInfo inf;
-    inf.setKnownType( type);
-    inf.setLongLabel( HtmlString(longPlain, longHtml));
-    inf.setShortLabel( HtmlString(shortPlain, shortHtml));
-    inf.setUnit( unit);
-    return inf;
-}
+//static AxisInfo makeAxisInfo(
+//        const AxisInfo::KnownType & type,
+//        QString longPlain, QString longHtml,
+//        QString shortPlain, QString shortHtml,
+//        QString unit)
+//{
+//    AxisInfo inf;
+//    inf.setKnownType( type);
+//    inf.setLongLabel( HtmlString(longPlain, longHtml));
+//    inf.setShortLabel( HtmlString(shortPlain, shortHtml));
+//    inf.setUnit( unit);
+//    return inf;
+//}
 
-AxisInfo AxisInfo::get_j2000_ra()
-{
-    return makeAxisInfo(
-                KnownType::DIRECTION_LON,
-                "Right ascension", "Right ascension",
-                "RA", "&alhpa;",
-                "deg");
-}
+//AxisInfo AxisInfo::get_j2000_ra()
+//{
+//    return makeAxisInfo(
+//                KnownType::DIRECTION_LON,
+//                "Right ascension", "Right ascension",
+//                "RA", "&alhpa;",
+//                "deg");
+//}
 
-AxisInfo AxisInfo::get_j2000_dec()
-{
-    return makeAxisInfo(
-                KnownType::DIRECTION_LAT,
-                "Declination", "Declination",
-                "DEC", "&delta;",
-                "deg");
-}
+//AxisInfo AxisInfo::get_j2000_dec()
+//{
+//    return makeAxisInfo(
+//                KnownType::DIRECTION_LAT,
+//                "Declination", "Declination",
+//                "DEC", "&delta;",
+//                "deg");
+//}
 
 
 //QString shortenLongAxisLabel(QString longAxisName)

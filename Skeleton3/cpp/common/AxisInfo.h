@@ -55,17 +55,17 @@ public:
     AxisInfo &
     setUnit( const QString & unit );
 
-    /// helpers for known axis types
-    static AxisInfo get_j2000_ra();
-    static AxisInfo get_j2000_dec();
-    static AxisInfo get_b1950_ra();
-    static AxisInfo get_b1950_dec();
-    static AxisInfo get_icrs_ra();
-    static AxisInfo get_icrs_dec();
-    static AxisInfo get_galactic_ra();
-    static AxisInfo get_galactic_dec();
-    static AxisInfo get_ecliptic_ra();
-    static AxisInfo get_ecliptic_dec();
+//    /// helpers for known axis types
+//    static AxisInfo get_j2000_ra();
+//    static AxisInfo get_j2000_dec();
+//    static AxisInfo get_b1950_ra();
+//    static AxisInfo get_b1950_dec();
+//    static AxisInfo get_icrs_ra();
+//    static AxisInfo get_icrs_dec();
+//    static AxisInfo get_galactic_ra();
+//    static AxisInfo get_galactic_dec();
+//    static AxisInfo get_ecliptic_ra();
+//    static AxisInfo get_ecliptic_dec();
 
 protected:
     HtmlString m_shortLabel, m_longLabel;

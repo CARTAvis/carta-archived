@@ -71,9 +71,12 @@ public:
 
 protected:
 
-    /// parse casa's coordinate system
+    /// parse casacore's coordinate system (all axes)
     void
     parseCasaCS();
+    /// parse casacores's coordinate system (one axis)
+    void
+    parseCasaCSi(int pixelAxis);
 
     std::shared_ptr < casa::CoordinateSystem > m_casaCS;
 

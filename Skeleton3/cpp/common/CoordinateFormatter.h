@@ -59,6 +59,7 @@ public:
     /// set the sky coordinate system
     /// \warning this can fail if conversion not possible/supported. Check skyCS() to see
     /// if it was successful.
+    /// \warning this resets skyFormatting and precisions for the sky axes
     virtual Me & setSkyCS( const KnownSkyCS & scs) = 0;
 
     /// get the current sky formatting (degree, sexagesimal, etc)
