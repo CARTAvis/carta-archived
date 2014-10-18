@@ -28,7 +28,7 @@ static_assert( sizeof(double) == 8, "bad double size");
 // convenience function convert pixel type to int
 int pixelType2int( const PixelType & type);
 
-// convert PixelType to c type
+/// convert PixelType to c type
 template <PixelType pt>
 struct PixelType2CType {};
 
@@ -39,14 +39,43 @@ struct PixelType2CType {};
 template <>
 struct PixelType2CType<PixelType::Byte> {
     typedef std::uint8_t type;
+    static constexpr size_t size = 1;
 };
 
 // Real64 --> double
 template <>
 struct PixelType2CType<PixelType::Real64> {
     typedef double type;
+    static constexpr size_t size = 8;
 };
 
+// Real32 --> float
+template <>
+struct PixelType2CType<PixelType::Real32> {
+    typedef float type;
+    static constexpr size_t size = 4;
+};
+
+// Int64 --> int64_t
+template <>
+struct PixelType2CType<PixelType::Int64> {
+    typedef int64_t type;
+    static constexpr size_t size = 8;
+};
+
+// Int32 --> int32_t
+template <>
+struct PixelType2CType<PixelType::Int32> {
+    typedef int32_t type;
+    static constexpr size_t size = 4;
+};
+
+// Int16 --> int16_t
+template <>
+struct PixelType2CType<PixelType::Int16> {
+    typedef int16_t type;
+    static constexpr size_t size = 2;
+};
 
 // convert ctype to pixeltype
 template <typename cType>
@@ -81,9 +110,6 @@ template <>
 struct CType2PixelType <std::int64_t> {
     static constexpr PixelType type = PixelType::Int64;
 };
-
-
-
 
 }
 
@@ -145,5 +171,18 @@ namespace Carta {
 
 /// convenience function to convert a type to a string
 QString toStr( Image::PixelType t);
+
+///// size of pixel type in bytes
+///// e.g. pixelTypeSizeInBytes(Image::PixelType::Int16)::value is 2
+//template <typename T>
+//struct pixelTypeSizeInBytes
+//{
+//    static_assert( std::is_same<Image::PixelType,T>::value,
+//                   "pixelTypeSizeInBytes only supports ");
+//    static constexpr size_t value = sizeof( Image::PixelType2CType<T>::type);
+
+////    return sizeof( Image::PixelType2CType<T>::type);
+//}
+
 
 }

@@ -774,6 +774,8 @@ void Viewer::initializeDefaultState(){
 
 void Viewer::reloadFrame( bool forceClipRecompute)
 {
+    CARTA_ASSERT( m_image);
+
     qDebug() << "realodFrame m_image=" << m_image.get();
     auto frameSlice = SliceND().next();
     for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {

@@ -56,7 +56,7 @@ class RawViewInterface
 {
 public:
     typedef std::vector < int > VI;
-    typedef Image::PixelType    PixelType;
+    typedef Image::PixelType PixelType;
 
     /// traversal order
     enum class Traversal
@@ -104,7 +104,25 @@ public:
     // experimental APIs below, not yet finalized and definitely not yet implemented
     // ===-----------------------------------------------------------------------===
 
-    /// another high performance accessor to data
+    /// \brief High performance accessor to data, motivated by unix's read().
+    /// \param buffSize max number of bytes to read in
+    /// \param buff result will be stored here
+    /// \param traversal if sequential, c-order traversal is used, if optimal, the pixels
+    /// will be stored in the buffer in some arbitrary order, but fast
+    /// \return number of bytes that were placed into buffer, 0 indicates
+    /// there were no more bytes to read
+    ///
+    virtual int64_t
+    read( int64_t buffSize, char * buff,
+          Traversal traversal = Traversal::Sequential ) = 0;
+    /// reset the position for the next read()
+    virtual void
+    seek( int64_t ind = 0) = 0;
+
+    /// High performance accessor to data, motivated by unix's read(), except
+    /// it's stateless
+    /// the view will have (width*height*pixel_size_in_bytes) bytes in them
+    /// therefore there will be ceil(n_pix/buffSize) chunks
     virtual int64_t
     read( int64_t chunk, int64_t buffSize, char * buff,
           Traversal traversal = Traversal::Sequential ) = 0;
