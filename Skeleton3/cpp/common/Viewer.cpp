@@ -25,11 +25,6 @@
 #include <iostream>
 #include <limits>
 
-
-
-
-
-
 class TestView : public IView
 {
 public:

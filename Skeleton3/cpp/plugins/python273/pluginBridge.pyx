@@ -8,6 +8,9 @@ from libc.stdint cimport int8_t
 import importlib
 import imp
 
+#the following will tell cython to generate #include "pragmaHacks.h"
+cdef extern from "pragmaHack.h":
+    int pragma_hack_i_dont_exist
 
 cdef public void foobar():
     return

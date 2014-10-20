@@ -261,11 +261,7 @@ public:
 /// around images between core and plugins. For example, a plugin that can load
 /// an image would have to implement this interface.
 class ImageInterface
-
-//        : public QObject
 {
-//    Q_OBJECT
-
     CLASS_BOILERPLATE(ImageInterface);
 
 public:
@@ -273,7 +269,6 @@ public:
     typedef Image::PixelType    PixelType;
     typedef std::vector < int > VI;
 
-//    ImageInterface() : QObject() {}
     ImageInterface() { }
 
     /// virtual destructor to make sure we can delete arbitrary images
@@ -323,12 +318,12 @@ public:
     /// get the mask
     /// \todo booleans as bytes is wasting resources, we should specialize
     /// the NdArray::TypedView for bools
-    virtual void
-    getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result ) = 0;
+    virtual NdArray::Byte *
+    getMaskSlice( const SliceND & sliceInfo) = 0;
 
     /// get the errors
-    virtual void
-    getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result ) = 0;
+    virtual NdArray::RawViewInterface  *
+    getErrorSlice( const SliceND & sliceInfo) = 0;
 
     /// return a pointer to a meta data object, which is essentially a collection
     /// of algorithms that allows us to do useful things with metadata stored with

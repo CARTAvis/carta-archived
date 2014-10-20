@@ -88,20 +88,18 @@ public:
     }
 
     /// \todo implement this
-    virtual void
-    getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result ) override
+    virtual NdArray::Byte *
+    getMaskSlice( const SliceND & sliceInfo) override
     {
         Q_UNUSED( sliceInfo );
-        Q_UNUSED( result );
         qFatal( "not implemented" );
     }
 
     /// \todo implement this
-    virtual void
-    getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result ) override
+    virtual NdArray::RawViewInterface *
+    getErrorSlice( const SliceND & sliceInfo) override
     {
         Q_UNUSED( sliceInfo );
-        Q_UNUSED( result );
         qFatal( "not implemented" );
     }
 

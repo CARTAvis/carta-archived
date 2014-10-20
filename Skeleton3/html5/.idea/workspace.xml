@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindow.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindow.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindowImage.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/DisplayWindowImage.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Skeleton3.pro.user" afterPath="$PROJECT_DIR$/../Skeleton3.pro.user" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -582,13 +578,18 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
     <property name="LayoutCode.rearrangeEntriesJavaScript" value="false" />
-    <property name="options.lastSelected" value="reference.settingsdialog.IDE.editor.colors.Font" />
+    <property name="options.lastSelected" value="preferences.pluginManager" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../PureWebRaiViewer-html5/fitsviewer/html5/thirdParty/qooxdoo-3.5-sdk/framework/source/class/qx/theme/modern/Appearance.js" />
     <property name="FullScreen" value="false" />
     <property name="recentsLimit" value="5" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings />
+    </option>
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -1002,12 +1003,12 @@
       <workItem from="1411429249671" duration="8786000" />
       <workItem from="1412472612356" duration="1267000" />
       <workItem from="1412702582707" duration="7358000" />
-      <workItem from="1412878387322" duration="6056000" />
+      <workItem from="1412878387322" duration="6900000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="225050000" />
+    <option name="totallyTimeSpent" value="225894000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
