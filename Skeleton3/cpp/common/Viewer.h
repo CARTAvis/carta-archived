@@ -66,7 +66,7 @@ protected:
 private:
     //Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
     //keys contained in the QList and returns a vector containing their corresponding values.
-    QVector<QString> _parseParamMap( const QString& params, const QList<QString> & keys );
+//    QVector<QString> _parseParamMap( const QString& params, const QList<QString> & keys );
 
     //Sets up a default set of states for constructing the UI if the user
     //has not saved one.

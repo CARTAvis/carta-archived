@@ -120,6 +120,8 @@ void StateLibrary::_initializeStates() {
 
     states.insert(StateKey::CURSOR, State("/cursor", "formatted mouse cursor", false, false));
 
+    states.insert(StateKey::HACKS, State("/hacks", "various hacks for which i'm too laze to edit this file", false, false));
+
 }
 
 QString StateLibrary::getPath(StateKey stateKey, const QString& id) const {

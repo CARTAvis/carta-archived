@@ -76,7 +76,7 @@ public:
     RawView2QImageConverter() {
         // set cache size (in MB)
         m_cache.setMaxCost( 6 * 1024);
-    };
+    }
 
     Me & setView( NdArray::RawViewInterface * rawView) {
         if( ! rawView) {
@@ -87,7 +87,7 @@ public:
         }
         m_rawView = rawView;
         return * this;
-    };
+    }
 
     Me & setFrame( int frame) {
         if( frame > 0) {
@@ -100,12 +100,12 @@ public:
             }
         }
         return * this;
-    };
+    }
 
     Me & setAutoClip( double val) {
         m_autoClip = val;
         return * this;
-    };
+    }
 
     const QImage & go( int frame, bool recomputeClip = true) {
 
@@ -188,8 +188,10 @@ public:
         qDebug() << "cache total=" << m_cache.totalCost() << "MB";
 
         return m_qImage;
-    };
+    }
+
 protected:
+
     QImage m_qImage;
     NdArray::RawViewInterface * m_rawView = nullptr;
     double m_autoClip = 0.95;

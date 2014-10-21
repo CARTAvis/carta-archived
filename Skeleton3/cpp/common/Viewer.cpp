@@ -24,6 +24,77 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <set>
+
+//Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
+//keys contained in the QList and returns a vector containing their corresponding values.
+static
+QVector<QString> parseParameterMap( const QString& params, const QList<QString>& keys )
+{
+    QVector<QString> values;
+    QStringList paramList = params.split( ",");
+    if ( paramList.size() == keys.size() ){
+        values.resize( keys.size());
+        for ( QString param : paramList ){
+            QStringList pair = param.split( ":");
+            if ( pair.size() == 2 ){
+                int keyIndex = keys.indexOf( pair[0] );
+                if ( keyIndex >= 0 ){
+                    values[keyIndex] = pair[1];
+                }
+                else {
+                    qDebug() << "Unrecognized key="<<pair[0];
+                }
+            }
+            else {
+                qDebug() <<"Badly formatted param map="<<param;
+            }
+        }
+    }
+    else {
+        qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
+    }
+    return values;
+}
+
+static
+std::map<QString,QString>
+parseParamMap2( const QString & paramsToParse, const std::set<QString> & keyList )
+{
+    std::map<QString,QString> result;
+    for( const auto & entry : paramsToParse.split( ',')) {
+        auto keyVal = entry.split( ':');
+        if( keyVal.size() != 2) {
+            qWarning() << "bad map format:" << paramsToParse;
+            return {};
+        }
+        auto key = keyVal[0].trimmed();
+        auto val = keyVal[1].trimmed();
+        auto ind = result.find( key);
+        if( ind != result.end()) {
+            qWarning() << "duplicate key:" << paramsToParse;
+            return {};
+        }
+        result.insert( ind, std::make_pair( key, val));
+    }
+    // make sure every key is in parameters
+    for( const auto & key : keyList) {
+        if( ! result.count(key)) {
+            qWarning() << "could not find key=" << key << "in" << paramsToParse;
+            return {};
+        }
+    }
+    // make sure parameters don't have unknown keys
+    for( const auto & kv : result) {
+        if( ! keyList.count( kv.first)) {
+            qWarning() << "unknown key" << kv.first << "in" << paramsToParse;
+            return {};
+        }
+    }
+    return result;
+}
+
+#ifdef DONT_COMPILE
 
 class TestView : public IView
 {
@@ -127,14 +198,15 @@ protected:
     QPointF m_lastMouse;
 };
 
-
+#endif // DONT_COMPILE
 
 
 
 class TestView2 : public IView
 {
 public:
-    TestView2( const QString & viewName, QColor bgColor, QImage img )
+    TestView2( const QString & viewName, QColor bgColor, QImage img,
+               Image::ImageInterface::SharedPtr astroImage)
     {
         m_defaultImage = img;
         m_qimage       = QImage( 100, 100, QImage::Format_RGB888 );
@@ -143,6 +215,7 @@ public:
         m_viewName  = viewName;
         m_connector = nullptr;
         m_bgColor   = bgColor;
+        m_astroImage = astroImage;
     }
 
     void
@@ -188,20 +261,71 @@ public:
     virtual void
     handleMouseEvent( const QMouseEvent & ev )
     {
+        QString str;
+        QTextStream out( & str);
+
+//        out << "ev.x|y=" << ev.x() << " " << ev.y() << "\n";
+//        out << "img.size=" << m_astroImage-> dims()[0] << "x" << m_astroImage-> dims()[1] << "\n";
+//        out << "qimg.size=" << m_qimage.width() << "x" << m_qimage.height() << "\n";
+
         m_lastMouse = QPointF( ev.x(), ev.y() );
         m_connector-> refreshView( this );
 
 		m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
 		m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
+
+//        int imgX = round( double(ev.x()) * m_astroImage-> dims()[0] / m_qimage.width());
+//        int imgY = round( double(ev.y()) * m_astroImage-> dims()[1] / m_qimage.height());
+        int imgX = ev.x() * m_astroImage-> dims()[0] / m_qimage.width();
+        int imgY = ev.y() * m_astroImage-> dims()[1] / m_qimage.height();
+        imgY = m_astroImage-> dims()[1] - imgY - 1;
+
+
+        CoordinateFormatterInterface::SharedPtr cf(
+                m_astroImage-> metaData()-> coordinateFormatter()-> clone());
+
+        std::vector<QString> knownSCS2str { "Unknown", "J2000", "B1950", "ICRS", "Galactic", "Ecliptic"};
+        std::vector<KnownSkyCS> css {
+            KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
+                    KnownSkyCS::Ecliptic, KnownSkyCS::ICRS };
+        out << "Default sky cs:" << knownSCS2str[static_cast<int>( cf-> skyCS())] << "\n";
+        out << "Image cursor:" << imgX << "," << imgY << "\n";
+
+        for( auto cs : css) {
+            cf-> setSkyCS( cs);
+            out << knownSCS2str[static_cast<int>( cf-> skyCS())] << ": ";
+            std::vector< Carta::Lib::AxisInfo> ais;
+            for( int axis = 0 ; axis < cf->nAxes() ; axis ++ ) {
+                const Carta::Lib::AxisInfo & ai = cf-> axisInfo(axis);
+                ais.push_back(ai);
+//                out << "    Axis" << axis << ": "
+//                    << ai.longLabel().html() << "/" << ai.shortLabel().html()
+//                    << "\n";
+            }
+            std::vector<double> pixel( m_astroImage-> dims().size(), 0.0);
+            pixel[0] = imgX;
+            pixel[1] = imgY;
+            auto list = cf-> formatFromPixelCoordinate( pixel);
+            for( size_t i = 0 ; i < ais.size() ; i ++ ) {
+                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+            }
+            out << "\n";
+//            out << list.join("\n") << "\n";
+        }
+
+        str.replace( "\n", "<br />");
+        m_connector-> setState( StateKey::HACKS, "cursorText", str);
+
 	}
 
     virtual void
     handleKeyEvent( const QKeyEvent & /*event*/ )
     { }
 
+signals:
+    void mouseMoved( double x, double y);
+
 protected:
-    QColor m_bgColor;
-    QImage m_defaultImage;
 
     void
     redrawBuffer()
@@ -236,6 +360,9 @@ protected:
             .executeAll();
     } // redrawBuffer
 
+    QColor m_bgColor;
+    QImage m_defaultImage;
+    Image::ImageInterface::SharedPtr m_astroImage;
     IConnector * m_connector;
     QImage m_qimage;
     QString m_viewName;
@@ -293,71 +420,6 @@ Viewer::start()
     // tell all plugins that the core has initialized
     pm-> prepare < Initialize > ().executeAll();
 
-#ifdef DONT_COMPILE
-
-    // associate a callback for a command
-    connector->addCommandCallback( "debug",
-                                   [] ( const QString & cmd, const QString & params,
-                                        const QString & sessionId ) -> QString {
-                                       std::cerr << "lambda command cb:\n"
-                                                 << " " << cmd << "\n"
-                                                 << " " << params << "\n"
-                                                 << " " << sessionId << "\n";
-                                       return "1";
-                                   }
-                                   );
-
-    // associate a callback for a command
-    connector->addCommandCallback(
-        "add",
-        [] ( const QString & /*cmd*/, const QString & params,
-             const QString & /*sessionId*/ ) -> QString {
-            std::cerr << "add command:\n"
-                      << params << "\n";
-            QStringList lst = params.split( " " );
-            double sum = 0;
-            for ( auto & entry: lst ) {
-                bool ok;
-                sum += entry.toDouble( & ok );
-                if ( ! ok ) {
-                    sum = - 1;
-                    break;
-                }
-            }
-            return QString( "add(%1)=%2" ).arg( params ).arg( sum );
-        }
-        );
-
-//    auto xyzCBid =
-    connector-> addStateCallback( "/xyz", [] ( const QString & path, const QString & val ) {
-                                      qDebug() << "lambda state cb:\n"
-                                               << "  path: " << path << "\n"
-                                               << "  val:  " << val;
-                                  }
-                                  );
-
-//    connector->removeStateCallback(xyzCBid);
-
-    static const QString varPrefix = "/myVars";
-    static int pongCount           = 0;
-    connector-> addStateCallback(
-        varPrefix + "/ping",
-        [ = ] ( const QString & path, const QString & val ) {
-            std::cerr << "lcb: " << path << "=" << val << "\n";
-            QString nv = QString::number( pongCount++ );
-            connector-> setState( varPrefix + "/pong", nv );
-        }
-        );
-    connector-> setState( "/xya", "hola" );
-    connector-> setState( "/xyz", "8" );
-
-#endif // dont compile
-
-    // create some views to be rendered on the client side
-    //m_connector-> registerView( new TestView( "view1", QColor( "blue" ) ) );
-    //m_connector-> registerView( new TestView( "view2", QColor( "red" ) ) );
-
-
 
 	// ask plugins to load the image
 	qDebug() << "======== trying to load image ========";
@@ -379,7 +441,9 @@ Viewer::start()
             m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
 
 	        qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
-	        testView2 = new TestView2( "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32) );
+            testView2 = new TestView2(
+                            "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32),
+                            m_image);
 	        m_connector-> registerView( testView2 );
 
             qDebug() << "xyz test";
@@ -527,7 +591,7 @@ Viewer::start()
 	m_connector->addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
 			const QString & params, const QString & /*sessionId*/) -> QString {
 		QList<QString> keys = {"pluginId", "winId"};
-		QVector<QString> dataValues = _parseParamMap( params, keys );
+        QVector<QString> dataValues = parseParameterMap( params, keys );
 		if ( dataValues.size() == keys.size()){
             if ( dataValues[0] == "CasaImageLoader"){
                 std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[1] );
@@ -573,7 +637,7 @@ Viewer::start()
 	m_connector->addCommandCallback( "linkAnimator", [=] (const QString & /*cmd*/,
 			const QString & params, const QString & /*sessionId*/) -> QString {
 		QList<QString> keys = {"animId", "winId"};
-		QVector<QString> dataValues = _parseParamMap( params, keys );
+        QVector<QString> dataValues = parseParameterMap( params, keys );
 		if ( dataValues.size() == keys.size()){
 
 			//Go through our data animators and find the one that is supposed to
@@ -653,7 +717,7 @@ Viewer::start()
     m_connector->addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
                                      const QString & params, const QString & sessionId) -> QString {
         QList<QString> keys = {"id", "data"};
-        QVector<QString> dataValues = _parseParamMap( params, keys );
+        QVector<QString> dataValues = parseParameterMap( params, keys );
         if ( dataValues.size() == keys.size()){
             //Find the data controller indicated DataController.
             std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[0] );
@@ -684,35 +748,6 @@ Viewer::start()
 
 	qDebug() << "Viewer has started...";
 }
-
-QVector<QString> Viewer::_parseParamMap( const QString& params, const QList<QString>& keys ){
-    QVector<QString> values;
-    QStringList paramList = params.split( ",");
-    if ( paramList.size() == keys.size() ){
-        values.resize( keys.size());
-        for ( QString param : paramList ){
-            QStringList pair = param.split( ":");
-            if ( pair.size() == 2 ){
-                int keyIndex = keys.indexOf( pair[0] );
-                if ( keyIndex >= 0 ){
-                    values[keyIndex] = pair[1];
-                }
-                else {
-                    qDebug() << "Unrecognized key="<<pair[0];
-                }
-            }
-            else {
-                qDebug() <<"Badly formatted param map="<<param;
-            }
-        }
-    }
-    else {
-        qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
-    }
-    return values;
-}
-
-
 
 void
 Viewer::scriptedCommandCB( QString command )

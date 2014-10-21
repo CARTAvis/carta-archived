@@ -109,10 +109,12 @@ CCCoordinateFormatter::CCCoordinateFormatter( std::shared_ptr < casa::Coordinate
     parseCasaCS();
 }
 
-CoordinateFormatterInterface *
+CCCoordinateFormatter *
 CCCoordinateFormatter::clone() const
 {
-    qFatal( "not implemented" );
+    CCCoordinateFormatter * res = new CCCoordinateFormatter( * this);
+    res->m_casaCS.reset( new casa::CoordinateSystem( * m_casaCS));
+    return res;
 }
 
 int
@@ -451,7 +453,9 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             m_precisions[pixelAxis] = - 6;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
-            aInfo.setKnownType( aInfo.KnownType::STOKES );
+            aInfo.setKnownType( aInfo.KnownType::STOKES )
+                    .setLongLabel( HtmlString::fromPlain( "Stokes"))
+                    .setShortLabel( HtmlString::fromPlain( "Stokes"));
         }
         else if ( cc.type() == casa::Coordinate::TABULAR ) {
             aInfo.setKnownType( aInfo.KnownType::TABULAR );

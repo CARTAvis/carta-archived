@@ -21,8 +21,7 @@ public:
 
     CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS );
 
-    virtual CoordinateFormatterInterface *
-    clone() const override;
+    virtual CCCoordinateFormatter * clone() const override;
 
     virtual int
     nAxes() const override;

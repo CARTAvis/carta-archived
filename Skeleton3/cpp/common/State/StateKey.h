@@ -35,5 +35,6 @@ enum class StateKey {
     PLUGIN_VERSION,
     PLUGIN_ERRORS,
     PLUGIN_STAMP,
+    HACKS,
     END_KEY
 };
