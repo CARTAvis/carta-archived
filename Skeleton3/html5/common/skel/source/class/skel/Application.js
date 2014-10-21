@@ -86,6 +86,7 @@ qx.Class.define("skel.Application", {
 
 
             this.m_cursorWindow = new skel.boundWidgets.CursorWindow;
+            window.xxx = this.m_cursorWindow;
 
             var connector = mImport( "connector" );
             if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {

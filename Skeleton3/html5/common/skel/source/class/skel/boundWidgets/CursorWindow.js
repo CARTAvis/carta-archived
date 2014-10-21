@@ -6,7 +6,7 @@
  * @ignore( mImport)
  */
 
-/*global mImport */
+/*global mImport,qx */
 
 qx.Class.define( "skel.boundWidgets.CursorWindow", {
     extend: qx.ui.window.Window,
@@ -22,7 +22,7 @@ qx.Class.define( "skel.boundWidgets.CursorWindow", {
         this.m_cursorText.addCB( this._cursorTextCB.bind(this));
         this.m_cursorVisible.addCB( this._visibleCB.bind(this));
 
-        this.setLayout( new qx.ui.layout.Grow);
+        this.setLayout( new qx.ui.layout.Grow());
         this.m_htmlArea = new qx.ui.embed.Html();
         this.m_htmlArea.set({ selectable: false });
         this.add( this.m_htmlArea);
@@ -52,6 +52,17 @@ qx.Class.define( "skel.boundWidgets.CursorWindow", {
 
         _cursorTextCB: function(val) {
             this.m_htmlArea.setHtml( val);
+            if( this.m_sizeSet > 10) return;
+            this.m_sizeSet = this.m_sizeSet || 0;
+            this.m_sizeSet ++;
+
+            var styleMap = this.m_htmlArea.getContentElement().getAllStyles();
+            console.log( "Style map=", styleMap);
+            var size = qx.bom.Label.getHtmlSize( val, styleMap);
+            console.log( "size=", size);
+            this.m_htmlArea.setWidth( size.width);
+            this.m_htmlArea.setHeight( size.height);
+
         },
 
         m_connector: null,
