@@ -8,7 +8,10 @@
 #include <QDir>
 #include <QJsonArray>
 
-class DataLoader {
+#include <State/ObjectManager.h>
+#include <memory>
+
+class DataLoader : public CartaObject {
 
 public:
 
@@ -19,20 +22,44 @@ public:
      * @param sessionId the user's session identifier that may be eventually used to determine
      * 		a search directory or URL for files.
      */
-    static QString getData(const QString& selectionParams,
+    QString getData(const QString& selectionParams,
             const QString& sessionId);
 
-    /// Return the top level directory for the data file search.
-    static QString getRootDir(const QString& sessionId);
+    /**
+     * Returns the name of the file corresponding to the doctored path and session identifier.
+     * @param fakePath a QString identifying a file.
+     * @param sessionId an identifier for the session.
+     * @return the actual path for the file.
+     */
+    QString getFile( const QString& fakePath, const QString& sessionId ) const;
 
     static QString fakeRootDirName;
+    const static QString CLASS_NAME;
+
 private:
 
+    static bool m_registered;
+
+    class Factory : public CartaObjectFactory {
+
+    public:
+
+        Factory():
+            CartaObjectFactory( "DataLoader" ){};
+
+        CartaObject * create (const QString & path, const QString & id)
+        {
+            return new DataLoader (path, id);
+        }
+    };
+
+    /// Return the top level directory for the data file search.
+    QString getRootDir(const QString& sessionId) const;
+
     //Look for eligible data files in a specific directory (recursive).
-    static void processDirectory(const QDir& rootDir, QJsonObject& rootArray);
+    void processDirectory(const QDir& rootDir, QJsonObject& rootArray);
 
     //Add a file to the list of those available in a given directory.
-    static void makeFileNode(QJsonArray& parentArray, const QString& fileName);
-    DataLoader();
-
+    void makeFileNode(QJsonArray& parentArray, const QString& fileName);
+    DataLoader( const QString& path, const QString& id);
 };

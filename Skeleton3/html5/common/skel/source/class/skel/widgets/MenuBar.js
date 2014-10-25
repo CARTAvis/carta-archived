@@ -33,6 +33,13 @@ qx.Class.define("skel.widgets.MenuBar", {
         // Initially show the menu bar.
         this.setAlwaysVisible(this, true);
         this.setZIndex(1000);
+        
+        qx.event.message.Bus.subscribe("layoutGrid", function(
+                message) {
+            var data = message.getData();
+            this.m_gridRows = data["rows"];
+            this.m_gridCols = data["cols"];
+        }, this);
     },
 
     events : {
@@ -427,7 +434,7 @@ qx.Class.define("skel.widgets.MenuBar", {
          */
         _showCustomLayoutPopup : function() {
             if (this.m_layoutCustom == null) {
-                this.m_layoutCustom = new skel.widgets.CustomLayoutPopup();
+                this.m_layoutCustom = new skel.widgets.CustomLayoutPopup(this.m_gridRows, this.m_gridCols);
                 this.m_layoutCustom
                         .addListener(
                                 "rowCount",
@@ -459,6 +466,8 @@ qx.Class.define("skel.widgets.MenuBar", {
         },
 
         m_SAVE_STATE: "statename:firstSave",
+        m_gridRows : 1,
+        m_gridCols : 1,
         m_menuPart : null,
         m_toolPart : null,
         m_layoutCustom : null,

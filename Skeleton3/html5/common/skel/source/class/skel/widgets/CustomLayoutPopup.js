@@ -16,14 +16,15 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
     /**
      * Constructor
      */
-    construct : function() {
+    construct : function( rows, cols ) {
         this.base(arguments);
 
         var rowLabel = new qx.ui.basic.Label("Row Count:");
         this.m_rowCountSpin = new qx.ui.form.Spinner();
         this.m_rowCountSpin.set({
             maximum : this.m_GRID_MAX,
-            minimum : this.m_GRID_MIN
+            minimum : this.m_GRID_MIN,
+            value : rows
         });
         this.m_rowCountSpin.addListener("changeValue", function() {
             this.fireDataEvent("rowCount", this.m_rowCountSpin.getValue());
@@ -33,7 +34,8 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
         this.m_colCountSpin = new qx.ui.form.Spinner();
         this.m_colCountSpin.set({
             maximum : this.m_GRID_MAX,
-            minimum : this.m_GRID_MIN
+            minimum : this.m_GRID_MIN,
+            value : cols
         });
         this.m_colCountSpin.addListener("changeValue", function() {
             this.fireDataEvent("colCount", this.m_colCountSpin.getValue());
@@ -56,6 +58,8 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
             row : 1,
             column : 1
         });
+        
+        
     },
 
     events : {

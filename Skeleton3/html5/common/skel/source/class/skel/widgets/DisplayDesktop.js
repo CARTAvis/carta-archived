@@ -39,6 +39,43 @@ qx.Class
 
                     members : {
 
+                        _addWindowListeners : function(){
+                            this.m_window.addListener("disappear", function() {
+                                if (!this.m_window.isClosed()) {
+                                    var bounds = this.m_window.getBounds();
+                                    var data = {
+                                        row : this.m_row,
+                                        col : this.m_col,
+                                        title : this.m_window.getIdentifier()
+                                    };
+                                    this.fireDataEvent("iconifyWindow", data);
+                                }
+                                ;
+                            }, this);
+
+                            this.m_window.addListener("maximizeWindow",
+                                            function() {
+                                                var appRoot = this
+                                                        .getApplicationRoot();
+                                                appRoot.add(this.m_window);
+                                            }, this);
+
+                            this.m_window.addListener("restoreWindow",
+                                    function() {
+                                        this.restoreWindow(this.m_window
+                                                .getIdentifier());
+                                    }, this);
+
+                            this.m_window.addListener("closeWindow",
+                                    function() {
+                                        this.exclude();
+                                    }, this);
+
+                            this.addListener("resize", this._resetWindowSize,
+                                    this);
+                            
+                        },
+                        
                         /**
                          * Returns an empty list as windows cannot be added in
                          * the middle of a desktop.
@@ -54,25 +91,28 @@ qx.Class
                             return this;
                         },
 
+
+                        
                         /**
-                         * Factory method for making window specialized to
-                         * correct type.
+                         * Returns a list of information concerning windows that
+                         * can be linked to the given source window showing the
+                         * indicated plug-in.
                          * 
                          * @param pluginId
-                         *                {String} an identifier for the type of
-                         *                plugin the window will manage.
+                         *                {String} the name of the plug-in.
+                         * @param sourceWinId
+                         *                {String} an identifier for the window
+                         *                displaying the plug-in that wants
+                         *                information about the links that can
+                         *                emanate frome it.
                          */
-                        _makeWindow : function(pluginId, winId ) {
-                            if (pluginId == skel.widgets.Path.getInstance().CASA_LOADER) {
-                                this.m_window = new skel.widgets.DisplayWindowImage(
-                                        this.m_row, this.m_col, winId);
-                            } else if (pluginId == "animator") {
-                                this.m_window = new skel.widgets.DisplayWindowAnimation(
-                                        this.m_row, this.m_col, winId );
-                            } else {
-                                this.m_window = new skel.widgets.DisplayWindowGenericPlugin(
-                                        this.m_row, this.m_col, pluginId, winId);
+                        getLinkInfo : function(pluginId, sourceWinId) {
+                            var linkInfo = [];
+                            if (this.m_window != null) {
+                                linkInfo.push(this.m_window.getLinkInfo(
+                                        pluginId, sourceWinId));
                             }
+                            return linkInfo;
                         },
 
                         /**
@@ -138,6 +178,29 @@ qx.Class
                             var dims = [ this.getWidth(), this.getHeight() ];
                             return dims;
                         },
+                        
+                        /**
+                         * Factory method for making window specialized to
+                         * correct type.
+                         * 
+                         * @param pluginId
+                         *                {String} an identifier for the type of
+                         *                plugin the window will manage.
+                         * @param index {Number} an index that will be positive when there is more than one window with the same pluginId.
+                         */
+                        _makeWindow : function(pluginId, index ) {
+                            if (pluginId == skel.widgets.Path.getInstance().CASA_LOADER) {
+                                this.m_window = new skel.widgets.DisplayWindowImage(
+                                        this.m_row, this.m_col, index);
+                            } else if (pluginId == "animator") {
+                                this.m_window = new skel.widgets.DisplayWindowAnimation(
+                                        this.m_row, this.m_col, index );
+                            } else {
+                                this.m_window = new skel.widgets.DisplayWindowGenericPlugin(
+                                        this.m_row, this.m_col, pluginId, index);
+                            }
+                            this._addWindowListeners();
+                        },
 
                         /**
                          * Sets the width and height.
@@ -162,93 +225,47 @@ qx.Class
                          * reassigned to this DisplayArea based on whether its
                          * location matches the rowIndex and colIndex passed in.
                          * 
-                         * @param pluginId
-                         *                {String} a new plug-in identifier.
-                         * @param rowIndex
-                         *                {Number} a row index in the layout.
-                         * @param colIndex
-                         *                {Number} a column index in the layout.
+                         * @param pluginId {String} a new plug-in identifier.
+                         * @param index {Number} an index to indicate which one in the case of views having the same plugin.
+                         * @param rowIndex {Number} a row index in the layout.
+                         * @param colIndex {Number} a column index in the layout.
                          */
-                        setView : function(pluginId, rowIndex, colIndex) {
+                        setView : function(pluginId, index, rowIndex, colIndex) {
                             // If this is not the target, return.
-                            if (rowIndex != this.m_row
-                                    || colIndex != this.m_col) {
+                            if (rowIndex != this.m_row || colIndex != this.m_col) {
                                 return false;
                             }
-
-                            var winId = "";
+                            if ( index < 0 && pluginId ){
+                                return false;
+                            }
+                            var existingWindow = false;
                             if (this.m_window != null) {
-                                if (this.m_window.getPlugin() == pluginId) {
-                                    return true;
+                                //Not the same plugin so we will remake the window.
+                                if( this.m_window.getPlugin() != pluginId ) {
+                                    this.removeWindows();
+                                    this.m_window = null;
+                                    this._makeWindow( pluginId, index);
                                 }
-                                winId = this.m_window.getIdentifier();
-                                this.removeWindows();
-                                this.m_window = null;
+                                else {
+                                    existingWindow = true;
+                                }
+                            }
+                            else {
+                                this._makeWindow(pluginId, index);
                             }
 
-                            this._makeWindow(pluginId, winId);
+                            if ( this.m_window != null ){
+                                this.add(this.m_window);
+                                this._resetWindowSize();
 
-                            this.m_window.addListener("disappear", function() {
-                                if (!this.m_window.isClosed()) {
-                                    var bounds = this.m_window.getBounds();
-                                    var data = {
-                                        row : this.m_row,
-                                        col : this.m_col,
-                                        title : this.m_window.getIdentifier()
-                                    };
-                                    this.fireDataEvent("iconifyWindow", data);
+                                this.m_window.open();
+                                if ( existingWindow ){
+                                    this.m_window.initID( index );
                                 }
-                                ;
-                            }, this);
-
-                            this.m_window
-                                    .addListener("maximizeWindow",
-                                            function() {
-                                                var appRoot = this
-                                                        .getApplicationRoot();
-                                                appRoot.add(this.m_window);
-                                            }, this);
-
-                            this.m_window.addListener("restoreWindow",
-                                    function() {
-                                        this.restoreWindow(this.m_window
-                                                .getIdentifier());
-                                    }, this);
-
-                            this.m_window.addListener("closeWindow",
-                                    function() {
-                                        this.exclude();
-                                    }, this);
-
-                            this.addListener("resize", this._resetWindowSize,
-                                    this);
-                            qx.event.message.Bus.subscribe("setView", function(
-                                    message) {
-                                var data = message.getData();
-                                this.setView(data["plugin"], data["row"],
-                                        data["col"]);
-                            }, this);
-
-                            this.m_window.setPlugin(pluginId);
-                            this.add(this.m_window);
-                            this._resetWindowSize();
-
-                            this.m_window.open();
+                            }
                             return true;
                         },
 
-                        /**
-                         * Resets selected status.
-                         * 
-                         * @param win
-                         *                {DisplayWindow} the display window
-                         *                that has been selected.
-                         */
-                        windowSelected : function(win) {
-                            if (this.m_window != null && this.m_window != win) {
-                                this.m_window.setSelected(false, false);
-                            }
-                        },
 
                         /**
                          * Reset the size of the contained window based on the
@@ -404,27 +421,21 @@ qx.Class
                             }
                         },
 
+
+                        
                         /**
-                         * Returns a list of information concerning windows that
-                         * can be linked to the given source window showing the
-                         * indicated plug-in.
+                         * Resets selected status.
                          * 
-                         * @param pluginId
-                         *                {String} the name of the plug-in.
-                         * @param sourceWinId
-                         *                {String} an identifier for the window
-                         *                displaying the plug-in that wants
-                         *                information about the links that can
-                         *                emanate frome it.
+                         * @param win
+                         *                {DisplayWindow} the display window
+                         *                that has been selected.
                          */
-                        getLinkInfo : function(pluginId, sourceWinId) {
-                            var linkInfo = [];
-                            if (this.m_window != null) {
-                                linkInfo.push(this.m_window.getLinkInfo(
-                                        pluginId, sourceWinId));
+                        windowSelected : function(win) {
+                            if (this.m_window != null && this.m_window != win) {
+                                this.m_window.setSelected(false, false);
                             }
-                            return linkInfo;
                         },
+
 
                         m_window : null,
                         m_row : null,

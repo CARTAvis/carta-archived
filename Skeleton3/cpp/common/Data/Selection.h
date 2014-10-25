@@ -6,21 +6,22 @@
 #pragma once
 
 #include <QString>
-#include <State/StateKey.h>
+#include <State/StateInterface.h>
+#include <State/ObjectManager.h>
+#include <QObject>
 
-class DataSelection {
+class Selection : public QObject, public CartaObject {
+
+    Q_OBJECT
 
 public:
 
     /**
-     * Constructor.
-     * @param identifier the lookup id for the selection.
-     * @param lowKey a StateKey representing the lower bound for the selection.
-     * @param indexKey a StateKey representing the current index of the selection.
-     * @param highKey a StateKey representing an upper bound for the selection.
+     * Return the value of the value of the state corresponding to the key.
+     * @param key a lookup key for the state.
+     * @return the value of the state.
      */
-    DataSelection(const QString& identifier, StateKey lowKey, StateKey indexKey,
-            StateKey highKey);
+    int getState(const QString& key ) const;
 
     /**
      * Returns the current index selection;
@@ -62,9 +63,40 @@ public:
      */
     void setLowerBound(int newLowerBound);
 
-    virtual ~DataSelection();
+    virtual ~Selection();
+
+    //Bounds and index for the state.
+    static const QString HIGH_KEY;
+    static const QString INDEX_KEY;
+    static const QString LOW_KEY;
+    static const QString CLASS_NAME;
+
+    static bool m_registered;
+
+signals:
+    void indexChanged( bool forceReload );
 
 private:
+
+    /**
+     * Constructor.
+     * @param prefix a QString identifying what is being selected (image range, channel range, etc).
+     * @param identifier a QString identifying the specific window where this selection applies.
+     */
+    Selection( const QString& prefix, const QString& identifier);
+
+    class Factory : public CartaObjectFactory {
+
+    public:
+
+        CartaObject * create (const QString & path, const QString & id)
+        {
+            return new Selection (path, id);
+        }
+    };
+
+    void _initializeCallbacks();
+
     //Set initial values of the state if they do not already exist.
     void _initializeStates();
 
@@ -72,20 +104,15 @@ private:
     bool _setIndexCheck(int frameValue);
 
     //Returns the value of the passed in key as an integer.
-    int _getValue(StateKey key) const;
+    int _getValue(const QString& key) const;
 
     //Set either the upper or lower bound for the index.
-    void _setFrameBounds(StateKey key, const QString& val);
+    void _setFrameBounds(/*StateKey key*/const QString& key, const QString& val);
 
-    //Set either the upper or lower bound for the index, checking that it is a valid value.
-    void _setFrameBoundsCheck(StateKey key, int bound);
+    //Set the upper, lower, or index value, checking that it is a valid value.
+    bool _setFrameBoundsCheck(/*StateKey key*/const QString& key , int bound);
 
-    //Unique identifier for the selection.
-    QString m_id;
+    StateInterface m_state;
 
-    //Bounds and index for the state.
-    StateKey m_highKey;
-    StateKey m_indexKey;
-    StateKey m_lowKey;
 
 };

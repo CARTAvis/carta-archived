@@ -389,32 +389,21 @@ qx.Class
                                                         function() {
                                                             var sourceId = this.m_sourceLink.winId;
                                                             var destId = lineMatch.winId;
-                                                            var data = {
-                                                                "linkSource" : sourceId,
-                                                                "linkDestination" : destId
-                                                            }
+                                                            var link = new skel.widgets.Link( sourceId, destId );
                                                             lineMatch.linked = false;
                                                             this.update();
-                                                            this
-                                                                    .fireDataEvent(
-                                                                            "linkRemove",
-                                                                            data);
-
+                                                            this.fireDataEvent("linkRemove",link);
                                                         }, this);
-                                        this.m_contextMenu
-                                                .add(removeLinkButton);
+                                        this.m_contextMenu.add(removeLinkButton);
 
-                                        var editLinkButton = new qx.ui.menu.Button(
-                                                "Edit Link...");
+                                        var editLinkButton = new qx.ui.menu.Button("Edit Link...");
                                         editLinkButton
-                                                .addListener(
-                                                        "execute",
+                                                .addListener("execute",
                                                         function() {
                                                             if (this.m_linkDialog == null) {
                                                                 this.m_linkDialog = new skel.widgets.LinkDialog();
                                                             }
-                                                            this.m_linkDialog
-                                                                    .placeToPoint(
+                                                            this.m_linkDialog.placeToPoint(
                                                                             {
                                                                                 left : pt.x,
                                                                                 top : pt.y
@@ -467,12 +456,9 @@ qx.Class
                                         var sourceId = this.m_sourceLink.winId;
                                         var destId = matchingLink.winId;
                                         var twoWay = matchingLink.twoWay;
-                                        var data = {
-                                            "linkSource" : sourceId,
-                                            "linkDestination" : destId
-                                        }
+                                        var link = new skel.widgets.Link( sourceId, destId );
                                         matchingLink.linked = true;
-                                        this.fireDataEvent("link", data);
+                                        this.fireDataEvent("link", link);
                                     }
                                 }
                                 //Clear the link endpoints.

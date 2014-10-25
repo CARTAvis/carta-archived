@@ -178,12 +178,12 @@ protected:
 template <typename T>
 void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> func)
 {
-    qDebug() << "forEachCond";
+    //qDebug() << "forEachCond";
     // get the list of plugins that claim they handle this hook
     HookId hookId = T::StaticHookId;
-    qDebug() << "  static hook id = " << hookId;
+    //qDebug() << "  static hook id = " << hookId;
     auto pluginList = m_pm-> listForHook( hookId);
-    qDebug() << "  plugins registered for this hook: " << pluginList.size();
+    //qDebug() << "  plugins registered for this hook: " << pluginList.size();
 
     // make an actual instance of the Hook
     T hookData( & m_params);

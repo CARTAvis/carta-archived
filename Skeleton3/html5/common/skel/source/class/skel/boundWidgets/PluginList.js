@@ -18,20 +18,18 @@ qx.Class.define("skel.boundWidgets.PluginList", {
     /**
      * Constructor.
      */
-    construct : function() {
-        this.m_connector = mImport("connector");
-        var pathDict = skel.widgets.Path.getInstance();
-        this.m_sharedVar = this.m_connector
-                .getSharedVar(pathDict.PLUGIN_LIST_STAMP);
-        this.m_sharedVar.addCB(this._sharedVarCB.bind(this));
+    construct : function( pluginId ) {
         this.base(arguments, "");
 
         // create the UI
         this._createUI();
 
-        // manually invoke the callback so that the label is immediately updated
-        // with the current value
-        this._sharedVarCB(this.m_sharedVar.get());
+        // Invoke the callback so that the plugin list will be populated.
+        this.m_connector = mImport( "connector");
+        var paramMap = "pluginId:" + pluginId + ",index:0"
+        var pathDict = skel.widgets.Path.getInstance();
+        var regViewCmd = pathDict.getCommandRegisterView();
+        this.m_connector.sendCommand( regViewCmd, paramMap, this._registrationCallback( this ) );
     },
 
     members : {
@@ -65,6 +63,19 @@ qx.Class.define("skel.boundWidgets.PluginList", {
 
             this.add(this.m_table);
         },
+        
+        /**
+         * Callback for when the id of the object containing information about the
+         * plugins has been received; initialize the shared variable and add a CB to it.
+         * @param anObject {PluginList}.
+         */
+        _registrationCallback : function( anObject ){
+            return function( id ){
+                anObject.m_sharedVar = anObject.m_connector.getSharedVar( id );
+                anObject.m_sharedVar.addCB( anObject._sharedVarCB.bind( this ));
+                anObject._sharedVarCB( anObject.m_sharedVar.get());
+            }
+        },
 
         /**
          * Shared var callback. Read in the contents of the plugin list and render it.
@@ -72,30 +83,22 @@ qx.Class.define("skel.boundWidgets.PluginList", {
          * @private
          */
         _sharedVarCB : function(val) {
-            var console = mImport("console");
-
-            var newData = [];
-            var n = parseInt(val);
-            for (var i = 0; i < val; i++) {
-                var base = "/carta/pluginList/"
-                var pIndex = "p" + i;
-                var pluginName = base + "name/" + pIndex;
-                var name = this.m_connector.getSharedVar(pluginName).get();
-                var pluginDescription = base + "description/" + pIndex;
-                var description = this.m_connector.getSharedVar(
-                        pluginDescription).get();
-                var type = this.m_connector.getSharedVar(
-                        base + "type/" + pIndex).get();
-                var version = this.m_connector.getSharedVar(
-                        base + "version/" + pIndex).get();
-                var errors = this.m_connector.getSharedVar(
-                        base + "errors/" + pIndex).get();
+            var plugins = JSON.parse( val );
+            var n = plugins.pluginCount;
+            var newData=[];
+            for (var i = 0; i < n; i++) {
+                var name = plugins.pluginList[i].name;
+                var description = plugins.pluginList[i].description;
+                var type = plugins.pluginList[i].type;
+                var version = plugins.pluginList[i].version;
+                var errors = plugins.pluginList[i].loadErrors;
                 var loaded = (errors === "");
                 newData.push([ name, description, type, version, loaded ]);
             }
 
             this.m_tableModel.setData(newData);
         }
+
 
     }
 

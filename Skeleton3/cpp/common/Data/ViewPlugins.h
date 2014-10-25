@@ -1,0 +1,49 @@
+/***
+ * Manages the data for a view displaying the plugins that have been loaded.
+ *
+ */
+
+#pragma once
+
+#include "State/ObjectManager.h"
+#include "State/StateInterface.h"
+
+
+class ViewPlugins : public CartaObject {
+
+public:
+
+    virtual ~ViewPlugins();
+    const static QString CLASS_NAME;
+private:
+    void _initializeDefaultState();
+    void _insertPlugin( int ind, const QString& name, const QString& description,
+            const QString& type, const QString& version, const QString& errors );
+    StateInterface m_state;
+    static bool m_registered;
+    ViewPlugins( const QString& path, const QString& id );
+
+    class Factory : public CartaObjectFactory {
+
+
+    public:
+
+        Factory():
+            CartaObjectFactory( PLUGINS ){};
+
+        CartaObject * create (const QString & path, const QString & id)
+        {
+            return new ViewPlugins (path, id);
+        }
+    };
+
+    static const QString PLUGINS;
+    static const QString NAME;
+    static const QString DESCRIPTION;
+    static const QString TYPE;
+    static const QString VERSION;
+    static const QString ERRORS;
+    static const QString STAMP;
+	ViewPlugins( const ViewPlugins& other);
+	ViewPlugins operator=( const ViewPlugins& other );
+};

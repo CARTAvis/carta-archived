@@ -3,7 +3,7 @@
  **/
 
 #include "DesktopStateWriter.h"
-#include "common/State/StateLibrary.h"
+#include "common/State/StateInterface.h"
 #include <QDebug>
 #include <QFile>
 
@@ -13,7 +13,7 @@ DesktopStateWriter::DesktopStateWriter(const QString& filePath)
 }
 
 void DesktopStateWriter::addPathData( const QString& path, const QString& value ){
-	QStringList pathParts = path.split( StateLibrary::SEPARATOR );
+	QStringList pathParts = path.split( StateInterface::DELIMITER );
 	if ( pathParts.size() > 1 ){
 		if ( document.isNull()){
 			QDomNode rootNode = document.createElement( pathParts[1] );

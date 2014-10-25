@@ -1,7 +1,6 @@
 #include "ServerConnector.h"
 #include "common/misc.h"
 #include "common/MyQApp.h"
-#include "common/State/StateLibrary.h"
 #include "common/State/StateXmlRestorer.h"
 #include "StateXmlWriter.h"
 
@@ -94,10 +93,9 @@ void ServerConnector::initialize(const InitializeCallback & cb)
     m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
 }*/
 
-void ServerConnector::setState(const StateKey& state, const QString& pageId, const QString &value)
+void ServerConnector::setState(const QString& path, const QString &value)
 {
     Q_ASSERT( m_initialized);
-    QString path = StateLibrary::instance()->getPath( state, pageId);
     std::string pwpath = path.toStdString();
     std::string pwval = value.toStdString();
     qDebug() << "Server setting state="<<pwpath.c_str();
@@ -161,10 +159,9 @@ QString ServerConnector::toQString( const CSI::String source) const {
     return val.c_str();
 }*/
 
-QString ServerConnector::getState(const StateKey& state, const QString& id)
+QString ServerConnector::getState(const QString& path)
 {
     Q_ASSERT( m_initialized);
-    QString path = StateLibrary::instance()->getPath( state, id );
     std::string pwpath = path.toStdString();
     auto pwval = m_stateManager->XmlStateManager().GetValue( pwpath);
     if( !pwval.HasValue()) {

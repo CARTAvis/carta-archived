@@ -15,8 +15,8 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
             /**
              * Constructor.
              */
-            construct : function(row, col, pluginId, winId ) {
-                this.base(arguments, pluginId, row, col, winId );
+            construct : function(row, col, pluginId, index ) {
+                this.base(arguments, pluginId, row, col, index );
                 this.m_links = [];
             },
 
@@ -24,7 +24,7 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                 /**
                  * Implemented to initialize a context menu.
                  */
-                setPlugin : function(label) {
+                windowIdInitialized : function() {
                     this._initDisplaySpecific();
                     arguments.callee.base.apply(this, arguments);
 
@@ -44,7 +44,7 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                  */
                 _initDisplaySpecific : function() {
                     if (this.m_pluginId == "plugins") {
-                        var pluginList = new skel.boundWidgets.PluginList();
+                        var pluginList = new skel.boundWidgets.PluginList( this.m_pluginId );
                         this.m_content.add(pluginList);
                     }
                 },

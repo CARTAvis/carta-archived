@@ -32,6 +32,13 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.m_width = bounds["width"];
             }, this);
         }, this);
+        
+        qx.event.message.Bus.subscribe("setView", function(
+                message) {
+            var data = message.getData();
+            this._setView(data["plugin"], data["row"],
+                    data["col"]);
+        }, this);
 
     },
 
@@ -41,6 +48,17 @@ qx.Class.define("skel.widgets.DisplayMain",
     },
 
     members : {
+        
+        
+        /**
+         * Send a command to the server to clear the layout.
+         */
+        _clearLayout : function(){
+            this._removeWindows();
+            var path = skel.widgets.Path.getInstance();
+            var clearLayoutCmd = path.getCommandClearLayout();
+            this.m_connector.sendCommand(clearLayoutCmd, "", function(){});
+        },
 
         /**
          * Load the data identified by the path.
@@ -107,10 +125,8 @@ qx.Class.define("skel.widgets.DisplayMain",
 
             // row & columns of layout
             var pathDict = skel.widgets.Path.getInstance();
-            this.m_gridRowCount = this.m_connector.getSharedVar(pathDict.LAYOUT_ROWS);
-            this.m_gridColCount = this.m_connector.getSharedVar(pathDict.LAYOUT_COLS);
-            this.m_gridRowCount.addCB(this._resetLayoutCB.bind(this));
-            this.m_gridColCount.addCB(this._resetLayoutCB.bind(this));
+            this.m_layout = this.m_connector.getSharedVar( pathDict.LAYOUT );
+            this.m_layout.addCB( this._resetLayoutCB.bind(this));
         },
         
         /**
@@ -135,7 +151,13 @@ qx.Class.define("skel.widgets.DisplayMain",
                         function(ev) {
                             this.fireDataEvent("iconifyWindow",ev.getData());
                         }, this);
-
+                qx.event.message.Bus.subscribe("addLink", function(ev){
+                    var data = ev.getData();
+                    this.link( data.source, data.destination, true );
+                }, this );
+                qx.event.message.Bus.subscribe( "clearLinks", function(ev){
+                    console.log( "Clearing links needs to be implemented");
+                }, this);
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
                 qx.event.message.Bus.subscribe(
                                 "windowSelected",
@@ -156,12 +178,11 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Display a single image on the screen.
          */
         layoutImage : function() {
-            this.m_connector.sendCommand("/clearLayout", "", function(){});
+            this._clearLayout();
             
-            
-            this.m_gridRowCount.set(2);
-            this.m_gridColCount.set(1);
-            this._setSharedVariablesLayoutPlugin( skel.widgets.Path.getInstance().CASA_LOADER, skel.widgets.DisplayWindow.EXCLUDED );
+            this.setRowCount(2);
+            this.setColCount(1);
+            this._setPlugins( skel.widgets.Path.getInstance().CASA_LOADER, skel.widgets.DisplayWindow.EXCLUDED );
         },
         
         /**
@@ -171,12 +192,11 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         layoutImageAnalysisAnimator : function() {
             
-            
-            this.m_connector.sendCommand("/clearLayout", "", function(){}); 
-            
-            this.m_gridRowCount.set(3);
-            this.m_gridColCount.set(2);
-            this._setSharedVariablesLayoutPlugin( 
+ 
+            this._clearLayout();
+            this.setRowCount(3);
+            this.setColCount(2);
+            this._setPlugins( 
                     skel.widgets.Path.getInstance().CASA_LOADER, "plugins",
                     skel.widgets.DisplayWindow.EXCLUDED, "statistics",
                     skel.widgets.DisplayWindow.EXCLUDED, "animator" );
@@ -249,31 +269,31 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.m_pane.removeWindows();
                 this.removeAll();
             }
-            skel.widgets.DisplayWindow.windowCounter = 0;
         },
 
         /**
          * Resets which plugins are displayed in each window.
          */
-        _resetDisplayedPlugins : function( rowCount, colCount ) {
+        _resetDisplayedPlugins : function( layoutObj ) {
             var index = 0;
-            var pathDict = skel.widgets.Path.getInstance();
-            var basePath = pathDict.LAYOUT_PLUGIN;
-            for (var row = 0; row < rowCount; row++) {
-                for (var col = 0; col < colCount; col++) {
-                    var pluginPath = basePath + pathDict.SEP + this.m_PLUGIN_PREFIX+index;
-                    var name = this.m_connector.getSharedVar( pluginPath).get();
-                    if ( name ){
+            var pluginMap = {}
+            for (var row = 0; row < this.m_gridRowCount; row++) {
+                for (var col = 0; col < this.m_gridColCount; col++) {
+                    var name = layoutObj.plugins[index];
+                    if ( name && typeof(name) == "string" ){
                         if ( name != skel.widgets.DisplayWindow.EXCLUDED ){
-                            this.m_pane.setView(name, row, col);
+                            if ( pluginMap.name ===undefined ){
+                                pluginMap.name = -1;
+                            }
+                            pluginMap.name = pluginMap.name + 1;
+                            this.m_pane.setView(name, pluginMap.name, row, col);
                         }
                         else {
                             this.m_pane.excludeArea( row, col );
-                            skel.widgets.DisplayWindow.windowCounter++;
                         }
                     }
                     else {
-                        this.m_pane.setView( null, row, col );
+                        this.m_pane.setView( null, -1, row, col );
                     }
                     index++;
                 }
@@ -285,10 +305,22 @@ qx.Class.define("skel.widgets.DisplayMain",
          * counts.
          */
         _resetLayoutCB : function() {
-            var rowCount = parseInt(this.m_gridRowCount.get());
-            var colCount = parseInt(this.m_gridColCount.get());
-            this.layout(rowCount, colCount);
-            this._resetDisplayedPlugins( rowCount, colCount );
+            var layoutObjJSON = this.m_layout.get();
+            var layout = JSON.parse( layoutObjJSON );
+            if ( layout.rows > 0 && layout.cols > 0 ){
+                if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
+                    this.m_gridRowCount = layout.rows;
+                    this.m_gridColCount = layout.cols;
+                    var gridData = {
+                            "rows" : this.m_gridRowCount,
+                            "cols" : this.m_gridColCount
+                        }
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                            "layoutGrid", gridData));
+                    this.layout(this.m_gridRowCount, this.m_gridColCount);
+                }
+                this._resetDisplayedPlugins( layout );
+            }
         },
         
         /**
@@ -296,8 +328,13 @@ qx.Class.define("skel.widgets.DisplayMain",
          * @param gridRows {Number} the number of rows in the layout.
          */
         setRowCount : function(gridRows) {
-            this.m_connector.sendCommand("/clearLayout", "", function(){});
-            this.m_gridRowCount.set(gridRows);
+            if ( this.m_gridRowCount != gridRows ){
+                this._clearLayout();
+                var path = skel.widgets.Path.getInstance();
+                var layoutSizeCmd = path.getCommandSetLayoutSize();
+                var params = "rows:"+gridRows + ",cols:"+this.m_gridColCount;
+                this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
+            }
         },
 
         /**
@@ -305,8 +342,13 @@ qx.Class.define("skel.widgets.DisplayMain",
          * @param gridCols {Number} the number of columns in the layout.
          */
         setColCount : function(gridCols) {
-            this.m_connector.sendCommand("/clearLayout", "", function(){});
-            this.m_gridColCount.set(gridCols);
+            if ( this.m_gridColCount != gridCols ){
+                this._clearLayout();
+                var path = skel.widgets.Path.getInstance();
+                var layoutSizeCmd = path.getCommandSetLayoutSize();
+                var params = "rows:"+this.m_gridRowCount + ",cols:"+gridCols;
+                this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
+            }
         },
 
 
@@ -316,15 +358,52 @@ qx.Class.define("skel.widgets.DisplayMain",
          * in each cell.
          */
         
-        _setSharedVariablesLayoutPlugin : function(){
-            
-            var pathDict = skel.widgets.Path.getInstance();
-            var basePath = pathDict.LAYOUT_PLUGIN;
+        _setPlugins : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = path.getCommandSetPlugin();
+            var params = "names:";
             for( var i = 0; i < arguments.length; i++ ){
-                var pluginPath = basePath + pathDict.SEP + this.m_PLUGIN_PREFIX+i;
-                var layoutPlugin = this.m_connector.getSharedVar(pluginPath);
-                layoutPlugin.set( arguments[i]);
+                params = params + arguments[i];
+                if ( i != arguments.length - 1 ){
+                    params = params + "."
+                }
             }
+            this.m_connector.sendCommand( cmd, params, function(){} );
+        },
+        
+        /**
+         * Sends a command to the server letting it now that the displayed plugin
+         * has changed.
+         * @param plugin {String} the name of the new plugin.
+         * @param row {Number} the row index of the window containing the plugin.
+         * @param col {Number} the column index of the window containing the plugin.
+         */
+        _setView : function( plugin, row, col ){
+            var path = skel.widgets.Path.getInstance();
+            var layoutPath = path.LAYOUT;
+            var layoutSharedVar = this.m_connector.getSharedVar(layoutPath);
+            var layoutObj = JSON.parse( layoutSharedVar.get());
+            var index = row * this.m_gridColCount + col;
+            var cmd = path.getCommandSetPlugin();
+            var params = "names:";
+            var i = 0;
+            for( var r = 0; r < this.m_gridRowCount; r++ ){
+                for ( var c = 0; c < this.m_gridColCount; c++ ){
+                    if ( i != index ){
+                        if ( typeof(layoutObj.plugins[i]) =="string" ){
+                            params = params + layoutObj.plugins[i];
+                        }
+                    }
+                    else {
+                        params = params + plugin;
+                    }
+                    if ( i != this.m_gridRowCount * this.m_gridColCount - 1 ){
+                        params = params + ".";
+                    }
+                    i++;
+                }
+            }
+            this.m_connector.sendCommand( cmd, params, function(){} );
         },
 
         m_PLUGIN_PREFIX : "win",
@@ -332,10 +411,12 @@ qx.Class.define("skel.widgets.DisplayMain",
         m_pane : null,
         m_height : 0,
         m_width : 0,
-
-        //State variables
         m_gridRowCount : null,
         m_gridColCount : null,
+
+        //State variables
+        m_layout : null,
+
         m_connector : null
     },
 

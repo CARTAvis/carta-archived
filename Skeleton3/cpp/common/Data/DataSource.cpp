@@ -1,28 +1,42 @@
 #include "DataSource.h"
 #include "Globals.h"
 #include "PluginManager.h"
-#include "IConnector.h"
+
 #include "IImage.h"
 #include "Algorithms/RawView2QImageConverter.h"
 
 #include <QDebug>
 
-DataSource::DataSource(const QString& fileName) :
-    m_image( nullptr ){
-    m_fileName = fileName;
 
-    m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
-    if (m_fileName.trimmed().length() > 0) {
+const QString DataSource::CLASS_NAME = "edu.nrao.carta.DataSource";
+bool DataSource::m_registered =
+    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+                                                   new DataSource::Factory());
+
+const QString DataSource::DATA_PATH = "dataPath";
+
+
+
+DataSource::DataSource(const QString& path, const QString& id) :
+    CartaObject( CLASS_NAME, path, id),
+    m_state( path),
+    m_image( nullptr )
+    {
+        m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
+        _initializeState();
+}
+
+void DataSource::setFileName( const QString& fileName ){
+    m_fileName = fileName.trimmed();
+    if (m_fileName.length() > 0) {
         auto & globals = *Globals::instance();
         auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
         m_image.reset(loadImageHookHelper.first().val());
     }
-
-
-
 }
 
-Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute){
+
+Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue){
     Nullable<QImage> qimg;
     if ( m_image ){
         auto frameSlice = SliceND().next();
@@ -30,30 +44,26 @@ Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute){
             frameSlice.next().index( i == 2 ? frameIndex : 0);
         }
         NdArray::RawViewInterface * frameView = m_image->getDataSlice( frameSlice);
-        resetClipValue();
+        //resetClipValue();
+        m_rawView2QImageConverter-> setAutoClip( clipValue);
         m_rawView2QImageConverter-> setView( frameView);
-        bool clipRecompute = false;
-        auto & globals = *Globals::instance();
-        IConnector* connector = globals.connector();
-        QString clipRecomputeStr = connector->getState(StateKey::AUTO_CLIP, "" );
-        if ( clipRecomputeStr == "1"){
-            clipRecompute = true;
-        }
-        qimg = m_rawView2QImageConverter-> go(frameIndex, clipRecompute || forceClipRecompute);
+        //bool clipRecompute = m_autoClip;
+        qimg = m_rawView2QImageConverter-> go(frameIndex, /*clipRecompute*/autoClip || forceClipRecompute);
         delete frameView;
     }
 
     return qimg;
 }
 
-void DataSource::saveState(QString winId, int index ) {
-    auto & globals = *Globals::instance();
-    IConnector* connector = globals.connector();
-    QString indexStr( winId + "-" + QString::number(index));
-    QString savedFile = connector->getState( StateKey::DATA_PATH, indexStr);
-    if ( savedFile != m_fileName ){
-        connector->setState(StateKey::DATA_PATH, indexStr, m_fileName);
+void DataSource::saveState( ) {
+    QString oldSavedFile = m_state.getValue<QString>( DATA_PATH );
+    if ( m_fileName != oldSavedFile ){
+        m_state.setValue<QString>( DATA_PATH, m_fileName );
     }
+}
+
+void DataSource::_initializeState(){
+    m_state.insertValue<QString>( DATA_PATH, "");
 }
 
 bool DataSource::contains(const QString& fileName) const {
@@ -64,7 +74,7 @@ bool DataSource::contains(const QString& fileName) const {
     return representsData;
 }
 
-void DataSource::resetClipValue(){
+/*void DataSource::resetClipValue(){
     auto & globals = *Globals::instance();
     IConnector* connector = globals.connector();
     QString val = connector->getState( StateKey::CLIP_VALUE, "");
@@ -73,13 +83,13 @@ void DataSource::resetClipValue(){
     double d = val.toDouble( & ok);
     //Use the default if the stat is not set.
     if( ! ok) {
-        m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */);
+        m_rawView2QImageConverter-> setAutoClip( 0.95 );
     }
     else {
         d = clamp( d/100, 0.001, 1.0);
         m_rawView2QImageConverter-> setAutoClip( d);
     }
-}
+}*/
 
 int DataSource::getFrameCount() const {
     int frameCount = 1;

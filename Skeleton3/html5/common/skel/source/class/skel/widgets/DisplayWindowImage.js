@@ -13,16 +13,9 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
     /**
      * Constructor.
      */
-    construct : function(row, col, winId) {
-        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, row, col, winId );
-        this.m_connector = mImport("connector");
+    construct : function(row, col, index) {
+        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, row, col, index );
         this.m_links = [];
-        
-        // listen for appear event, because the html is not generated until the widget
-        // appears
-        var appearListenerId = this.addListener("appear", function(e) {
-            this._initSharedVars();
-        }, this);
 
     },
 
@@ -37,13 +30,14 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
         changeLink : function(sourceWinId, destWinId, addLink) {
             var linkChanged = false;
             if (destWinId == this.m_identifier) {
-                linkChanged = true;
                 var linkIndex = this.m_links.indexOf(sourceWinId);
                 if (addLink && linkIndex < 0) {
+                    linkChanged = true;
                     this.m_links.push(sourceWinId);
                     this._sendLinkCommand(sourceWinId, addLink);
                 } else if (!addLink && linkIndex >= 0) {
                     this.m_links.splice(linkIndex, 1);
+                    linkChanged = true;
                     this._sendLinkCommand(sourceWinId, addLink);
                 }
             }
@@ -71,12 +65,15 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             }
         },
         
+        /**
+         * Notify the server that data has been loaded.
+         * @param path {String} an identifier for locating the data.
+         */
         dataLoaded : function(path) {
             var pathDict = skel.widgets.Path.getInstance();
-            var cmd = pathDict.DATA_LOADED;
+            var cmd = pathDict.getCommandDataLoaded();
             var params = "id:" + this.m_identifier + ",data:" + path;
-            this.m_connector.sendCommand(cmd, params, function() {
-            });
+            this.m_connector.sendCommand(cmd, params, function() {});
 
             /// \todo editing out reference to SelectionCanvas because it's not anywhere in the sources
             // this.m_overlayCanvas = new skel.widgets.SelectionCanvas( this.m_identifier);
@@ -183,21 +180,6 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             }
         },
         
-        _initSharedVars : function(){
-            var pathDict = skel.widgets.Path.getInstance();
-            
-            var lookup = pathDict.DATA_COUNT + "/" + this.m_identifier;
-            this.m_dataCount = this.m_connector.getSharedVar(lookup);
-            this.m_dataCount.addCB(this._dataLoadedCB.bind(this));
-            var dataCountStr = this.m_dataCount.get();
-            if ( dataCountStr != null && dataCountStr.length > 0 ){
-                var dataCount = parseInt( dataCountStr );
-                if ( dataCount > 0 ){
-                    this._dataLoadedCB();
-                }
-            }
-        },
-
         /**
          * Returns whether or not this window can be linked to a window
          * displaying a named plug-in.
@@ -239,9 +221,8 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             }
             var paramMap = "winId:" + this.m_identifier + ",animId:" + animId;
             var pathDict = skel.widgets.Path.getInstance();
-            var linkPath = pathDict.LINK_ANIMATOR;
-            this.m_connector.sendCommand(linkPath, paramMap, function(val) {
-            });
+            var linkPath = pathDict.getCommandLinkAnimator();
+            this.m_connector.sendCommand(linkPath, paramMap, function(val) {});
         },
 
         setDrawMode : function(drawInfo) {
@@ -253,16 +234,17 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
         /**
          * Implemented to initialize the context menu.
          */
-        setPlugin : function(label) {
+        windowIdInitialized : function() {
+            this.m_view = null;
             this._initDisplaySpecific();
             arguments.callee.base.apply(this, arguments);
+            this._dataLoadedCB();
         },
 
-        m_dataCount : null,
         m_regionButton : null,
         m_renderButton : null,
         m_overlayCanvas : null,
-        m_connector : null,
+       
         m_view : null,
         m_dataButton : null,
         m_shapes : [ "Rectangle", "Ellipse", "Point", "Polygon" ]

@@ -15,11 +15,11 @@
 
 class IConnector;
 
-class TestView: public IView {
+class ImageView: public IView {
 
 public:
 
-    TestView(const QString & viewName, QColor bgColor, QImage img);
+    ImageView(const QString & viewName, QColor bgColor, QImage img);
 
     void resetImage(QImage img);
     virtual void registration(IConnector *connector);
@@ -41,5 +41,9 @@ protected:
     QString m_viewName;
     int m_timerId;
     QPointF m_lastMouse;
+private :
+    static const QString MOUSE;
+    static const QString MOUSE_X;
+    static const QString MOUSE_Y;
 };
 

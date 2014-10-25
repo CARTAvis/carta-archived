@@ -2,7 +2,6 @@
 #define ICONNECTOR_H
 
 #include "IView.h"
-#include "State/StateKey.h"
 
 #include <memory>
 #include <functional>
@@ -54,7 +53,7 @@ public:
     virtual void unregisterView( const QString& viewName ) = 0;
 
     /// set state to a new value
-    virtual void setState( const StateKey & state, const QString& id, const QString & value) = 0;
+    virtual void setState( const QString & state,  const QString & value) = 0;
 
     ///Save the state.
     virtual bool saveState(const QString& saveName ) const = 0;
@@ -64,7 +63,7 @@ public:
 
 
     /// read state
-    virtual QString getState( /*const QString & path*/const StateKey& state, const QString& id) = 0;
+    virtual QString getState( const QString & path) = 0;
 
     /// add a callback for a command
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) = 0;

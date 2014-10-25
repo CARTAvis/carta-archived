@@ -1,5 +1,4 @@
 #include "DataLoader.h"
-#include "Globals.h"
 
 #include <QDebug>
 #include <QDirIterator>
@@ -7,6 +6,35 @@
 #include <QJsonObject>
 
 QString DataLoader::fakeRootDirName = "RootDirectory";
+const QString DataLoader::CLASS_NAME = "edu.nrao.carta.DataLoader";
+bool DataLoader::m_registered =
+    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+                                                   new DataLoader::Factory());
+
+
+DataLoader::DataLoader( const QString& path, const QString& id ):
+    CartaObject( CLASS_NAME, path, id ){
+    //Callback for returning a list of data files that can be loaded.
+    addCommandCallback( "getData", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & sessionId) -> QString {
+        QString xml = getData( params, sessionId );
+        return xml;
+    });
+}
+
+QString DataLoader::getFile( const QString& bogusPath, const QString& sessionId ) const {
+    QString path( bogusPath );
+    QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
+    if( ! path.startsWith( fakePath )){
+        /// security issue...
+        qDebug() << "Security issue, filePath="<<path;
+        return "";
+    }
+    QString rootDir = getRootDir( sessionId );
+    QString baseRemoved = path.remove( 0, fakePath.length() );
+    path = QString( "%1%2").arg( rootDir).arg( baseRemoved);
+    return path;
+}
 
 QString DataLoader::getData(const QString& /*selectionParams*/,
         const QString& sessionId) {
@@ -47,13 +75,15 @@ void DataLoader::processDirectory(const QDir& rootDir, QJsonObject& rootObj) {
         if (dit.fileInfo().isDir()) {
             if (fileName.endsWith(".image")) {
                 makeFileNode(dirArray, fileName);
-            } else {
+            }
+            else {
                 QString dirName = dit.fileInfo().absoluteFilePath();
                 QJsonObject dirObject;
                 processDirectory(QDir(dirName), dirObject);
                 dirArray.append(dirObject);
             }
-        } else if (dit.fileInfo().isFile()) {
+        }
+        else if (dit.fileInfo().isFile()) {
             if (fileName.endsWith(".fits")) {
                 makeFileNode(dirArray, fileName);
             }
@@ -71,6 +101,6 @@ void DataLoader::makeFileNode(QJsonArray& parentArray,
     parentArray.append(obj);
 }
 
-QString DataLoader::getRootDir(const QString& /*sessionId*/) {
+QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
     return "/scratch/Images";
 }

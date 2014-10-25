@@ -36,6 +36,7 @@ qx.Class.define("skel.boundWidgets.View", {
         // listen for appear event, because the html is not generated until the widget
         // appears
         var appearListenerId = this.addListener("appear", function(e) {
+            console.log( "Registering view="+this.m_viewName );
             this.m_iview = this.m_connector.registerViewElement(this
                     .getContentElement().getDomElement(), this.m_viewName);
             this.removeListenerById(appearListenerId);

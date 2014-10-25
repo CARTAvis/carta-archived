@@ -78,11 +78,10 @@ public:
     virtual void initialize(const InitializeCallback & cb) Q_DECL_OVERRIDE;
 
     /// set a state 'path' to 'value'
-    virtual void setState(/*const QString & path*/const StateKey& state,
-    		const QString& id, const QString & value) Q_DECL_OVERRIDE;
+    virtual void setState(const QString & path, const QString & value) Q_DECL_OVERRIDE;
 
     /// retrieve a state value
-    virtual QString getState(/*const QString &path*/const StateKey& state, const QString& id) Q_DECL_OVERRIDE;
+    virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
 
     /// save the state tree.
     virtual bool saveState( const QString& saveName ) const Q_DECL_OVERRIDE;

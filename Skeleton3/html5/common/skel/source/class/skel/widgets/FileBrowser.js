@@ -15,18 +15,15 @@ qx.Class.define("skel.widgets.FileBrowser", {
         this._init();
 
         // file system shared variable
-        var connector = mImport("connector");
+        this.m_connector = mImport("connector");
         var path = skel.widgets.Path.getInstance();
-        var filePath = path.FILE_SYSTEM;
-        this.m_files = connector.getSharedVar(filePath);
-        this.m_files.addCB(this._updateTree.bind(this));
-
         var paramMap = "";
-        connector.sendCommand("getData", paramMap, function() {
-        });
+        var cmd = path.getCommandLoadData();
+        this.m_connector.sendCommand(cmd, paramMap, this._loadDataCB( this ));
     },
 
     members : {
+
 
         /**
          * Initializes the UI.
@@ -79,6 +76,15 @@ qx.Class.define("skel.widgets.FileBrowser", {
             this._add(this.m_tree);
             this._add(buttonComposite);
         },
+        
+        /**
+         * Update the tree with the new data.
+         */
+        _loadDataCB : function( anObject ){
+            return function( fileList ){
+                anObject._updateTree( fileList );
+            }
+        },
 
         /**
          * Stores the window that wants to add data.
@@ -103,6 +109,7 @@ qx.Class.define("skel.widgets.FileBrowser", {
         },
 
         m_tree : null,
+        m_connector : null,
         m_controller : null,
         m_files : null,
         m_target : null

@@ -33,18 +33,22 @@ HEADERS += \
     AxisInfo.h \
     CoordinateGridPlotter.h \
     PlotLabelGenerator.h \
-    State/State.h \
-    State/StateKey.h \
-    State/StateLibrary.h \
+    State/ObjectManager.h \
+    State/StateInterface.h \
     State/StateXmlRestorer.h \
-    TestView.h \
-    Data/DataAnimator.h \
-    Data/DataController.h \
+    ImageView.h \
+    Data/Animator.h \
+    Data/AnimatorType.h \
+    Data/Controller.h \
     Data/DataLoader.h \
-    Data/DataSelection.h \
+    Data/Selection.h \
+    Data/Layout.h \
     Data/Region.h \
     Data/DataSource.h \
-    Data/Region.h
+    Data/Region.h \
+    Data/Util.h \
+    Data/ViewManager.h \
+    Data/ViewPlugins.h
 
 SOURCES += \
     Viewer.cpp \
@@ -56,16 +60,21 @@ SOURCES += \
     Algorithms/Graphs/TopoSort.cpp \
     CmdLine.cpp \
     MainConfig.cpp \
-    State/State.cpp \
-    State/StateLibrary.cpp \
+    State/ObjectManager.cpp\
+    State/StateInterface.cpp \
     State/StateXmlRestorer.cpp \
-    TestView.cpp \
-    Data/DataAnimator.cpp \
-    Data/DataController.cpp \
+    ImageView.cpp \
+    Data/Animator.cpp \
+    Data/AnimatorType.cpp \
+    Data/Controller.cpp \
     Data/DataLoader.cpp \
-    Data/DataSelection.cpp \
+    Data/Selection.cpp \
     Data/DataSource.cpp \
+    Data/Layout.cpp \
     Data/Region.cpp \
+    Data/Util.cpp \
+    Data/ViewManager.cpp \
+    Data/ViewPlugins.cpp \
     ScriptedCommandListener.cpp \
     Slice.cpp \
     IImage.cpp \

@@ -6,7 +6,6 @@
 #include "common/misc.h"
 #include "common/LinearMap.h"
 #include "common/MyQApp.h"
-#include "common/State/StateLibrary.h"
 #include "common/State/StateXmlRestorer.h"
 #include "DesktopStateWriter.h"
 #include <iostream>
@@ -64,25 +63,21 @@ void DesktopConnector::initialize(const InitializeCallback & cb)
 }
 
 //void DesktopConnector::setState(const QString & path, const QString & newValue)
-void DesktopConnector::setState(const StateKey& state, const QString& id, const QString & newValue)
+void DesktopConnector::setState(const QString& path, const QString & newValue)
 {
-    // find the value
-	QString path = StateLibrary::instance()->getPath( state, id);
     auto it = m_state.find( path);
     if( it != m_state.end() && it-> second == newValue) {
         // if we alredy have an entry for this path and the stored value is
         // the same as the incoming value, we don't need to do anything
         return;
     }
-    qDebug() << "CPP setState " << path << "=" << newValue;
     m_state[ path ] = newValue;
     emit stateChangedSignal( path, newValue);
 }
 
-//QString DesktopConnector::getState(const QString & path)
-QString DesktopConnector::getState(const StateKey & state, const QString& id )
+
+QString DesktopConnector::getState(const QString & path  )
 {
-	QString path = StateLibrary::instance()->getPath( state, id);
     return m_state[ path ];
 }
 
@@ -90,12 +85,9 @@ QString DesktopConnector::getState(const StateKey & state, const QString& id )
 bool DesktopConnector::saveState(const QString& saveName) const {
 	QString filePath = getStatePath( saveName );
 	DesktopStateWriter writer( filePath );
-	StateLibrary* lib = StateLibrary::instance();
 	for ( std::map<QString,QString>::const_iterator iter = m_state.begin();
 			iter != m_state.end(); ++iter ){
-		if ( lib->isPersistent( iter->first ) ){
-			writer.addPathData( iter->first, iter->second );
-		}
+	    writer.addPathData( iter->first, iter->second );
 	}
 	bool stateSaved = writer.saveState();
 	return stateSaved;
@@ -211,21 +203,7 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
 }
 
 void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
-	QString lookup(key);
-	QString id("");
-	int lastSepIndex = key.lastIndexOf( StateLibrary::SEPARATOR );
-	if ( lastSepIndex >= 0 ){
-		lookup = key.left( lastSepIndex );
-		int lastFieldLength = key.length() - lastSepIndex - 1;
-		id = key.right( lastFieldLength);
-	}
-    StateKey stateKey = StateLibrary::instance()->findKey( lookup );
-    if ( stateKey != StateKey::END_KEY ){
-    	setState( stateKey, id, value);
-    }
-    else {
-    	qWarning() << "Unrecognized state variable "<<key;
-    }
+    setState( key, value );
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
@@ -266,8 +244,6 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 
 void DesktopConnector::refreshViewNow(IView *view)
 {
-
-    qDebug() << "refreshViewNow " << view->name();
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...

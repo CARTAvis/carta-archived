@@ -78,6 +78,8 @@ Globals::Globals()
     m_mainConfig = nullptr;
 }
 
+
+
 IConnector * Globals::connector()
 {
     Q_ASSERT( m_connector != nullptr);

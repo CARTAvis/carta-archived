@@ -29,10 +29,10 @@ public:
     virtual void initialize( const InitializeCallback & cb) Q_DECL_OVERRIDE;
     //virtual void setState(const QString & path, const QString & newValue) Q_DECL_OVERRIDE;
     //virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
-    virtual void setState(const StateKey& state, const QString& id, const QString & newValue) Q_DECL_OVERRIDE;
+    virtual void setState(const QString& state, const QString & newValue) Q_DECL_OVERRIDE;
 
     //Return the value of the state with the given key and window id.
-    virtual QString getState(const StateKey&, const QString& id) Q_DECL_OVERRIDE;
+    virtual QString getState(const QString&) Q_DECL_OVERRIDE;
 
     ///Save the state tree.
     virtual bool saveState(const QString& saveName) const Q_DECL_OVERRIDE;

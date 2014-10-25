@@ -4,7 +4,8 @@
   **/
 
 #include "StateXmlWriter.h"
-#include "common/State/StateLibrary.h"
+#include "common/State/StateInterface.h"
+#include "common/State/ObjectManager.h"
 #include <QDebug>
 
 StateXmlWriter::StateXmlWriter(const QString& filePath){
@@ -18,8 +19,8 @@ StateXmlWriter::StateXmlWriter(const QString& filePath){
 
 bool StateXmlWriter::startElement(const QString & /*namespaceURI*/, const QString & localName,
 					const QString & /*qName*/, const QXmlAttributes & /*atts*/ ){
-
-		if ( localName == StateLibrary::APP_ROOT ){
+        ObjectManager* objManager = ObjectManager::objectManager();
+		if ( localName == objManager->getRootPath() ){
 			m_foundRoot = true;
 		}
 		if ( m_foundRoot ){
@@ -57,16 +58,13 @@ bool StateXmlWriter::characters( const QString& data ){
 			lookup.append( "/"+m_pathNames[i]);
 		}
 
-		m_persistentElement = StateLibrary::instance()->isPersistent( lookup );
-
-		if ( m_persistentElement ){
-			for ( int i = m_tagWriteIndex; i < pathCount-1; i++ ){
-				m_xmlWriter.writeStartElement( m_pathNames[i] );
-			}
-			m_tagWriteIndex= pathCount - 1;
-			m_xmlWriter.writeTextElement( m_pathNames[pathCount-1], data.trimmed());
-		    m_characterWritten = true;
+		for ( int i = m_tagWriteIndex; i < pathCount-1; i++ ){
+			m_xmlWriter.writeStartElement( m_pathNames[i] );
 		}
+		m_tagWriteIndex= pathCount - 1;
+		m_xmlWriter.writeTextElement( m_pathNames[pathCount-1], data.trimmed());
+		m_characterWritten = true;
+
 		if ( m_pathNames.size() > 1 ){
 		    m_pathNames.pop();
 		}

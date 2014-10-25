@@ -6,6 +6,8 @@
 
 #include "Region.h"
 #include "Nullable.h"
+#include "State/ObjectManager.h"
+#include "State/StateInterface.h"
 #include <QImage>
 #include <memory>
 
@@ -14,15 +16,13 @@ class ImageInterface;
 }
 class RawView2QImageConverter;
 
-class DataSource {
+class DataSource : public CartaObject {
 
 public:
-
     /**
-     * Constructor.
-     * @param fileName a locator for finding the data.
+     * Set the location of the data.
      */
-    DataSource(const QString& fileName);
+    void setFileName( const QString& fileName );
 
     /**
      * Loads the data source as a QImage.
@@ -43,7 +43,7 @@ public:
      * @param winId an identifier for the DataController displaying the data.
      * @param index of the data in the DataController.
      */
-    void saveState(QString winId, int dataIndex);
+    void saveState(/*QString winId, int dataIndex*/);
 
     /**
      * Return a QImage representation of this data.
@@ -51,22 +51,49 @@ public:
      * @param forceClipRecompute true if the clip should be recomputed; false if
      *      a cached value can be used.
      */
-    Nullable<QImage> load(int frameIndex, bool forceClipRecompute) const;
+    Nullable<QImage> load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue );
 
     /**
      * Return the number of channels in the image.
      * @return the number of channels in the image.
      */
     int getFrameCount() const;
+
     virtual ~DataSource();
 
+    const static QString CLASS_NAME;
+
 private:
+
+    /**
+     * Constructor.
+     * @param the base path for state identification.
+     * @param id the particular id for this object.
+     */
+    DataSource(const QString& path, const QString& id );
+
+    class Factory : public CartaObjectFactory {
+
+    public:
+
+        CartaObject * create (const QString & path, const QString & id)
+        {
+            return new DataSource (path, id);
+        }
+    };
+
+    void _initializeState();
+
     //Reset the amount of clip to perform on the image.
     void resetClipValue();
 
     //Path for loading data - todo-- do we need to store this?
     QString m_fileName;
     Region m_region;
+
+    static bool m_registered;
+    static const QString DATA_PATH;
+    StateInterface m_state;
 
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_image;

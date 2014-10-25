@@ -11,45 +11,43 @@ qx.Class.define("skel.widgets.DisplayWindow", {
     /**
      * Constructor.
      * 
-     * @param pluginId
-     *                {String} the name of the plugin that will be displayed.
-     * @param row
-     *                {Number} a row in the screen grid.
-     * @param col
-     *                {Number} a column in the screeen grid.
+     * @param pluginId {String} the name of the plugin that will be displayed.
+     * @param row {Number} a row in the screen grid.
+     * @param col {Number} a column in the screeen grid.
+     * @param index {Number} an identification index for the case where we have more than one window for a given pluginId;
      */
-    construct : function(pluginId, row, col, winId ) {
+    construct : function(pluginId, row, col, index ) {
         this.base(arguments);
         this.m_pluginId = pluginId;
-        if ( winId && winId.length > 0 ){
-            this.m_identifier = winId;
-        }
-        else {
-            this.m_identifier = "win" + skel.widgets.DisplayWindow.windowCounter;
-        }
-
-        skel.widgets.DisplayWindow.windowCounter++;
-        var paramMap = "pluginId:" + this.m_pluginId + ",winId:"
-                + this.m_identifier;
-        this.m_connector = mImport("connector");
-        this.m_connector.sendCommand("registerView", paramMap, function() {
-        });
-        var id = this.addListener("appear", function() {
-            var container = this.getContentElement().getDomElement();
-            container.id = this.m_identifier;
-            this.removeListenerById(id);
-        }, this);
-
+        
         this.m_row = row;
         this.m_col = col;
-
-        this._init();
-
         var pathDict = skel.widgets.Path.getInstance();
-        this.m_sharedVarPlugin = this.m_connector
-                .getSharedVar(pathDict.PLUGIN_LIST_STAMP);
-        this.m_sharedVarPlugin.addCB(this._initViewMenuContext.bind(this));
-
+        
+        this._init();
+        this._initContextMenu();
+        
+        if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
+            this.setTitle( this.m_pluginId );
+        }
+        
+        //Get the shared variable that indicates the plugins that have been loaded so
+        //we can display the view options in the context menu.
+        this.m_connector = mImport("connector");
+        var paramMap = "pluginId:plugins,index:0"
+            
+        var regViewCmd = pathDict.getCommandRegisterView();
+        this.m_connector.sendCommand( regViewCmd, paramMap, this._viewPluginsCB( this ) );
+        
+        if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
+            this.initID( index );
+        
+            var id = this.addListener("appear", function() {
+                var container = this.getContentElement().getDomElement();
+                container.id = this.m_identifier;
+                this.removeListenerById(id);
+            }, this);
+        }
     },
 
     events : {
@@ -59,8 +57,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
     },
 
     statics : {
-        // Used for generating unique window ids.
-        windowCounter : 0,
         EXCLUDED : "Hidden"
     },
 
@@ -210,24 +206,26 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         _initContextMenu : function() {
             this.m_linkButton = new qx.ui.menu.Button("Links");
             this.m_linkButton.addListener("execute", function() {
-                var linkData = {
-                    "plugin" : this.m_pluginId,
-                    "window" : this.m_identifier
-                }
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                if ( this.m_identifier ){
+                    var linkData = {
+                            "plugin" : this.m_pluginId,
+                            "window" : this.m_identifier
+                    }
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "showLinks", linkData));
+                }
             }, this);
             this.m_contextMenu.add(this.m_linkButton);
-
+           
             this.m_windwMenu = this._initWindowMenu();
             var windowButton = new qx.ui.menu.Button("Window");
             windowButton.setMenu(this.m_windowMenu);
             this.m_contextMenu.add(windowButton);
-
+            
             this.m_pluginButton = new qx.ui.menu.Button("View");
             this.m_contextMenu.add(this.m_pluginButton);
-            this._initViewMenuContext();
-
+            //this._initViewMenuContext();
+            
             this.setContextMenu(this.m_contextMenu);
         },
 
@@ -250,7 +248,70 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             dataMenu.add(closeButton);
             return dataMenu;
         },
+        
+        /**
+         * Sends a command to the server to get the unique object id (identifier)
+         * for this window.
+         * @param index {Number} used when there is more than one window displaying
+         *      the same plugin.
+         */
+        initID : function( index ){
+          //Get the id of this window.
+          var paramMap = "pluginId:" + this.m_pluginId + ",index:"+index;
+          var pathDict = skel.widgets.Path.getInstance();
+          var regCmd = pathDict.getCommandRegisterView();
+          this.m_connector.sendCommand( regCmd, paramMap, this._registrationCallback(this));
+        },
+        
+        /**
+         * Initialize the shared variable that represents the state of this window.
+         */
+        _initSharedVar : function(){
+            this.m_sharedVar = this.m_connector.getSharedVar( this.m_identifier );
+            this.m_sharedVar.addCB( this._sharedVarCB.bind( this ));
+            this._sharedVarCB( this.m_sharedVar.get());
+        },
 
+
+        /**
+         * Initialize the View menu displaying other plug-ins that have views
+         * available.
+         */
+        _initViewMenu : function() {
+            var pluginMenu = new qx.ui.menu.Menu;
+            var val = this.m_sharedVarPlugin.get();
+            var plugins = JSON.parse( val );
+            for (var i = 0; i < plugins.pluginCount; i++) {
+                var name = plugins.pluginList[i].name;
+                var errors = plugins.pluginList[i].loadErrors;
+                var loaded = (errors === "");
+                if ( loaded ){
+                    var nameButton = new qx.ui.menu.Button(name);
+                    nameButton.row = this.m_row;
+                    nameButton.col = this.m_col;
+                    nameButton.addListener("execute", function() {
+                        var pluginName = this.getLabel();
+                        var data = {
+                            row : this.row,
+                            col : this.col,
+                            plugin : pluginName
+                        }
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
+                    }, nameButton);
+                    pluginMenu.add(nameButton);
+                }
+            }
+            return pluginMenu;
+        },
+        
+        /**
+         * Initialize the submenu displaying alternative plug-ins to view in
+         * this window.
+         */
+        _initViewMenuContext : function() {
+            var pluginMenu = this._initViewMenu();
+            this.m_pluginButton.setMenu(pluginMenu);
+        },
         /**
          * Initialize standard window menu items.
          */
@@ -278,54 +339,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             return this.m_windowMenu;
         },
 
-        /**
-         * Initialize the submenu displaying alternative plug-ins to view in
-         * this window.
-         */
-        _initViewMenuContext : function() {
-            var pluginMenu = this._initViewMenu();
-            this.m_pluginButton.setMenu(pluginMenu);
-        },
-
-        /**
-         * Initialize the View menu displaying other plug-ins that have views
-         * available.
-         */
-        _initViewMenu : function() {
-            var pluginMenu = new qx.ui.menu.Menu;
-            var val = this.m_sharedVarPlugin.get();
-            var pluginCount = parseInt(val);
-            var pathDict = skel.widgets.Path.getInstance();
-            var base = pathDict.PLUGIN_LIST_NAME + pathDict.SEP;
-            for (var i = 0; i < pluginCount; i++) {
-                var pIndex = "p" + i;
-                var pluginLookup = base + pIndex;
-                var name = this.m_connector.getSharedVar(pluginLookup).get();
-
-                var nameButton = new qx.ui.menu.Button(name);
-                nameButton.row = this.m_row;
-                nameButton.col = this.m_col;
-                nameButton.addListener("execute", function() {
-                    var pluginName = this.getLabel();
-                    var data = {
-                        row : this.row,
-                        col : this.col,
-                        plugin : pluginName
-                    }
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "setView", data));
-                }, nameButton);
-                pluginMenu.add(nameButton);
-            }
-            return pluginMenu;
-        },
-
-        /**
-         * Returns whether or not this window is closed.
-         */
-        isClosed : function() {
-            return this.m_closed;
-        },
 
         /**
          * Returns whether or not this window can be linked to a window
@@ -337,6 +350,16 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         isLinkable : function(pluginId) {
             return false;
         },
+        
+
+        /**
+         * Returns whether or not this window is closed.
+         */
+        isClosed : function() {
+            return this.m_closed;
+        },
+
+
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -361,7 +384,24 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.fireDataEvent("maximizeWindow", this);
             this.maximize();
         },
-
+        
+        /**
+         * Callback for when the id of the object containing information about the
+         * C++ object has been received; initialize the shared variable and add a CB to it.
+         * @param anObject {DisplayWindow}.
+         */
+        _registrationCallback : function( anObject ){
+            return function( id ){
+                if ( id && id.length > 0 ){
+                    if ( id != anObject.m_identifier ){
+                        anObject.m_identifier = id;
+                        anObject._initSharedVar();
+                        anObject.windowIdInitialized();
+                    }
+                }
+            }
+        },
+        
         /**
          * Restores the window to its location in the main display.
          */
@@ -379,28 +419,35 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.fireDataEvent("restoreWindow", this);
             this.restore();
         },
+        
+        /**
+         * Callback for a data state change for this window.
+         */
+        _sharedVarCB : function( val ){
+            if ( val ){
+                var winObj = JSON.parse( this.m_sharedVar.get() );
+                //Update the links for this window if they exist.
+                if ( winObj.links && winObj.links.length > 0 ){
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "clearLinks", this.m_identifier));
+                    for ( var i = 0; i < winObj.links.length; i++ ){
+                        var destId = winObj.links[i];
+                        var link = new skel.widgets.Link( this.m_identifier, destId );
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
+                    }
+                }
+            }
+        },
+
+
 
         setDrawMode : function(drawInfo) {
 
         },
 
-        /**
-         * Set the identifier for the plugin that will be displayed.
-         * @param label {String} an identifier for the plugin.
-         */
-        setPlugin : function(label) {
-            //Right now the pluginId is the title, but this will change.
-            this.setTitle(label);
-            this._initContextMenu();
-            if ( label ){
-                //Save the name of the plugin being displayed
-                var pathDict = skel.widgets.Path.getInstance();
-                var basePath = pathDict.LAYOUT_PLUGIN;
-                var pluginPath = basePath + pathDict.SEP + this.m_identifier;
-                var pluginName = this.m_connector.getSharedVar( pluginPath);
-                pluginName.set( label );
-            }
-        },
+       
+        
+        
 
         /**
          * Set the appearance of this window based on whether or not it is selected.
@@ -430,6 +477,25 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             }
             this.m_title.setValue(label);
         },
+        
+        /**
+         * Callback for when the shared variable that represents loaded plugins changes;
+         * updates the view menu.
+         */
+        _viewPluginsCB : function( anObject ){
+            return function( id ){
+                anObject.m_sharedVarPlugin = anObject.m_connector.getSharedVar(id);
+                anObject.m_sharedVarPlugin.addCB(anObject._initViewMenuContext.bind(anObject));
+                anObject._initViewMenuContext();
+            }
+        },
+        
+        /**
+         * Place holder for subclasses to override for code to be executed once the shared
+         * variable has been initialized.
+         */
+        windowIdInitialized : function(){
+        },
 
         m_closed : false,
         m_contextMenu : null,
@@ -438,12 +504,17 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         m_content : null,
 
         m_links : null,
-        m_connector : null,
+
 
         //Identifies the plugin we are displaying.
         m_pluginId : "",
         m_pluginButton : null,
+        
+        //Connected variables 
+        m_connector : null,
         m_sharedVarPlugin : null,
+        m_sharedVar : null,
+        
         m_identifier : "",
         //For now a display friendly title.
         m_title : null,

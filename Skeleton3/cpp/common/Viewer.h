@@ -6,12 +6,13 @@
 #pragma once
 
 #include <QObject>
-#include <QList>
+//#include <QList>
 #include <memory>
 
-class DataAnimator;
-class DataController;
+
 class ScriptedCommandListener;
+class ViewManager;
+
 namespace Image {
 class ImageInterface;
 }
@@ -64,22 +65,11 @@ protected:
     std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
 
 private:
-    //Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
-    //keys contained in the QList and returns a vector containing their corresponding values.
-    QVector<QString> _parseParamMap( const QString& params, const QList<QString> & keys );
+    std::shared_ptr<ViewManager> m_viewManager;
 
-    //Sets up a default set of states for constructing the UI if the user
-    //has not saved one.
-    void initializeDefaultState();
-
-    //A map of DataControllers requested by the client; keys are their unique identifiers.
-    std::map <QString, std::shared_ptr<DataController> > m_dataControllers;
-
-    //A map of DataAnimators requested by the client;  keys are their unique identifiers.
-    std::map <QString, std::shared_ptr<DataAnimator> > m_dataAnimators;
 
 
     /// pointer to connector
-    IConnector * m_connector;
+    //IConnector * m_connector;
 };
 

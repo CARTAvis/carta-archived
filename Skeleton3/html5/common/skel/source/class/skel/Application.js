@@ -216,9 +216,9 @@ qx.Class.define("skel.Application",
              */
             _linksChanged : function( addLink, ev ){
             	var data = ev.getData();
-    			var linkSource = data["linkSource"];
-    			var linkDest = data["linkDestination"];
-    			this.m_desktop.link( linkSource, linkDest, addLink );
+            	var linkSource = data.source;
+    		var linkDest = data.destination;
+    		this.m_desktop.link( linkSource, linkDest, addLink );
             },
             
             /**
