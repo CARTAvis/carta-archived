@@ -10,24 +10,12 @@ Clock1Plugin::Clock1Plugin(QObject *parent) :
 
 bool Clock1Plugin::handleHook(BaseHook &hookData)
 {
-    qDebug() << "ClockPlugin is handling hook #" << hookData.hookId();
-    if( hookData.hookId() == Initialize::StaticHookId ) {
-//        Initialize & initHook = static_cast<Initialize &>( hookData);
-
-        qDebug() << "Woohoo, clock plugin received initialize request.";
-
-//        qDebug() << "You should see debug from Initialize below";
-//        initHook.debug();
-
+    if( isHook<Initialize>( hookData)) {
         return true;
     }
 
-    if( hookData.hookId() == PreRender::StaticHookId ) {
+    if( isHook<PreRender>( hookData)) {
         PreRender & hook = static_cast<PreRender &>( hookData);
-
-        qDebug() << "Prerender hook received by clock plugin";
-        qDebug() << "  " << hook.paramsPtr->viewName;
-        qDebug() << "  " << hook.paramsPtr->imgPtr->size();
 
         QPainter p( hook.paramsPtr->imgPtr);
         QString txt = QTime::currentTime().toString();
@@ -41,7 +29,7 @@ bool Clock1Plugin::handleHook(BaseHook &hookData)
         return true;
     }
 
-    qDebug() << "Sorrry, dont' know how to handle this hook";
+    qWarning() << "Sorrry, dont' know how to handle this hook" << hookData.hookId();
     return false;
 }
 

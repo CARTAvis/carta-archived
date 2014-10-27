@@ -5,7 +5,7 @@
 #pragma once
 
 #include <memory>
-//#include <State/StateKey.h>
+#include "CoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <QString>
@@ -15,6 +15,7 @@
 class ImageView;
 class DataSource;
 class Selection;
+class CoordinateFormatterInterface;
 
 class Controller: public QObject, public CartaObject {
 
@@ -59,6 +60,7 @@ public:
     virtual ~Controller();
 
     static const QString CLASS_NAME;
+    static const QString CURSOR;
 
 signals:
     /**
@@ -94,6 +96,8 @@ private:
     void _initializeSelections();
     void _initializeSelection( std::shared_ptr<Selection> & selection );
 
+    void _updateCursor();
+
     static bool m_registered;
 
     static const QString CLIP_VALUE;
@@ -111,6 +115,8 @@ private:
     //Data available to and managed by this controller.
     QList<std::shared_ptr<DataSource> > m_datas;
 
+    /// coordinate formatter
+    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 
     StateInterface m_state;
 

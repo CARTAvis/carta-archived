@@ -193,25 +193,12 @@ void ViewManager::_initializeDefaultState(){
     _makeController();
     m_animators[0]->addController( m_controllers[0]);
 
-
     //Make a layout and initialize a default state.
     QString layoutId = objManager->createObject( Layout::CLASS_NAME );
     CartaObject* layoutObj = objManager->getObject( layoutId );
     m_layout.reset( dynamic_cast<Layout*>(layoutObj ));
 
     _makePluginList();
-
-
-
-    /*auto & globals = * Globals::instance();
-    auto connector = globals.connector();
-
-    //Animator state.
-    QString defaultAnimState("\"animator\" :{\"linkCount\" : 1,\"link\": [\"win0\"]\"channel\": {\"frameRate\" : 20,\"frameStep\" : 1,\"endBehavior\" : \"Wrap\" } }");
-    const QString animId( "win3");
-    connector->setState( StateKey::ANIMATOR, "win3", defaultAnimState );*/
-
-
 }
 
 void ViewManager::_initializeDataLoader(){
@@ -221,6 +208,13 @@ void ViewManager::_initializeDataLoader(){
         CartaObject* dataLoaderObj = objManager->getObject( dataLoaderId );
         m_dataLoader.reset( dynamic_cast<DataLoader*>( dataLoaderObj ));
     }
+}
+
+void ViewManager::loadFile( QString fileName ){
+    if ( m_controllers.size() == 0 ){
+        _makeController();
+    }
+    m_controllers[0]->addData( fileName );
 }
 
 void ViewManager::_initializeExistingAnimationLinks( int index ){

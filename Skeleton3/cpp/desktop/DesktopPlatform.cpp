@@ -83,7 +83,7 @@ DesktopPlatform::DesktopPlatform()
     // get the filename sfrom the command line
     m_initialFileList = cmdLineInfo.fileList();
     if( m_initialFileList.isEmpty()) {
-        qFatal( "No input files to open...");
+        //qFatal( "No input files to open...");
     }
 
     // create the connector

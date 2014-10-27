@@ -15,11 +15,17 @@ class DataLoader;
 class Layout;
 class ViewPlugins;
 
-class ViewManager : CartaObject {
+class ViewManager : public CartaObject {
 
 public:
 
     virtual ~ViewManager(){}
+
+    /**
+     * Convenience method for loading initial data with Viewer start-up.
+     * @param fileName a locater for the data to load.
+     */
+    void loadFile( QString fileName );
 
     static const QString CLASS_NAME;
 

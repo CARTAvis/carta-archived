@@ -11,18 +11,19 @@
 #include "AxisInfo.h"
 #include <vector>
 #include <QStringList>
-
+#include <memory>
 
 /// \brief coordinate system formatter
 /// \todo make all methods pure virtual
 ///
 class CoordinateFormatterInterface {
-public:
-    /// shortcut to my own type
-    typedef CoordinateFormatterInterface This;
 
-    /// chaining shortcut
-    typedef This & Chain;
+    CLASS_BOILERPLATE(CoordinateFormatterInterface);
+
+public:
+
+    /// \todo we can remove this once we put this class into carta namespace
+    typedef Carta::TextFormat TextFormat;
 
     /// shortcut to a vector of doubles
     typedef std::vector<double> VD;
@@ -40,35 +41,35 @@ public:
     virtual QString calculateFormatDistance( const VD & p1, const VD & p2) = 0;
 
     /// set text output format
-    void setTextOutputFormat(TextFormat fmt);
+    virtual void setTextOutputFormat(TextFormat fmt) = 0;
 
     /// get information about an axis (such as labels, suffix)
-    const AxisInfo & axisInfo(int ind) const;
+    virtual const AxisInfo & axisInfo(int ind) const = 0;
 
     /// disable printing of an axis
-    Chain disableAxis(int ind);
+    virtual Me & disableAxis(int ind) = 0;
 
     /// enable printing of an axis
-    Chain enableAxis(int ind);
+    virtual Me & enableAxis(int ind) = 0;
 
     /// get the sky coordinate system used right now
-    KnownSkyCS skyCS();
+    virtual KnownSkyCS skyCS() = 0;
 
     /// set the sky coordinate system
-    Chain setSkyCS( const KnownSkyCS & scs);
+    virtual Me & setSkyCS( const KnownSkyCS & scs) = 0;
 
     /// get the current sky formatting (degree, sexagecimal, etc)
-    SkyFormat skyFormat();
+    virtual SkyFormat skyFormat() = 0;
 
     /// set the current sky formatting
-    Chain setSkyFormat(SkyFormat format);
+    virtual Me & setSkyFormat(SkyFormat format) = 0;
 
     /// get the current precision for an axis
     virtual int axisPrecision(int axis) = 0;
 
     /// adjust precision for a given axis (or all if axis = -1)
     /// precision = -1 denotes default precision
-    virtual Chain setAxisPrecision(int precision, int axis = -1) = 0;
+    virtual Me & setAxisPrecision(int precision, int axis = -1) = 0;
 
     /// convert pixel coordinates to world coordinates
     virtual bool toWorld(const VD& pixel, VD& world) const = 0;

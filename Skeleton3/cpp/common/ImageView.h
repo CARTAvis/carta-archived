@@ -14,12 +14,13 @@
 //#include <QCoreApplication>
 
 class IConnector;
+class StateInterface;
 
 class ImageView: public IView {
 
 public:
 
-    ImageView(const QString & viewName, QColor bgColor, QImage img);
+    ImageView(const QString & viewName, QColor bgColor, QImage img, StateInterface* mouseState);
 
     void resetImage(QImage img);
     virtual void registration(IConnector *connector);
@@ -29,7 +30,9 @@ public:
     virtual void handleResizeRequest(const QSize & size);
     virtual void handleMouseEvent(const QMouseEvent & ev);
     virtual void handleKeyEvent(const QKeyEvent & /*event*/);
-
+    static const QString MOUSE;
+    static const QString MOUSE_X;
+    static const QString MOUSE_Y;
 protected:
 
     void redrawBuffer();
@@ -41,9 +44,8 @@ protected:
     QString m_viewName;
     int m_timerId;
     QPointF m_lastMouse;
-private :
-    static const QString MOUSE;
-    static const QString MOUSE_X;
-    static const QString MOUSE_Y;
+    StateInterface* m_mouseState;
+
+
 };
 

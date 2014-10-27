@@ -8,14 +8,18 @@
 #include "misc.h"
 #include <QString>
 #include <vector>
+#include <memory>
 
-///
 /// \brief Interface for generating labels for 2d plots along an axis from image metadata.
 /// Dual labels are supported, in case we want to display both pixel and wcs
 /// labels...
 class PlotLabelGeneratorInterface
 {
+    CLASS_BOILERPLATE(PlotLabelGeneratorInterface);
 public:
+
+    /// \todo we can remove this once we put this class into carta namespace
+    typedef Carta::TextFormat TextFormat;
 
     /// shortcut for my own type
     typedef PlotLabelGeneratorInterface This;

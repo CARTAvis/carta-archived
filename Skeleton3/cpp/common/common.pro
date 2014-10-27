@@ -85,11 +85,13 @@ SOURCES += \
     PixelType.cpp \
 
 
-message( "common            PWD=$$PWD")
-message( "common         IN_PWD=$$IN_PWD")
-message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
-message( "common        OUT_PWD=$$OUT_PWD")
+#message( "common            PWD=$$PWD")
+#message( "common         IN_PWD=$$IN_PWD")
+#message( "common _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
+#message( "common        OUT_PWD=$$OUT_PWD")
 
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = stable.h
 #QMAKE_CXXFLAGS += -H
+
+DEPENDPATH += $$PROJECT_ROOT/CartaLib

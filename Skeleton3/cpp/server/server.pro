@@ -26,12 +26,6 @@ SOURCES       = \
 # pureweb related stuff
 PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.1.1/SDK/Redistributable/Libs
 
-win32:INCLUDEPATH += "$${PUREWEB_LIBS}/C++/VS2010/include"
-win32:LIBS += $${PUREWEB_LIBS}/C++/VS2010/lib/CSI.PureWeb.ImageProcessing32d.lib
-win32:LIBS += $${PUREWEB_LIBS}/C++/VS2010/lib/CSI.PureWeb.StateManager32d.lib
-win32:LIBS += $${PUREWEB_LIBS}/C++/VS2010/lib/CSI.Standard32d.lib
-win32:LIBS += $${PUREWEB_LIBS}/C++/VS2010/lib/CSI.Typeless32d.lib
-
 unix:INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
 
 unix:QMAKE_CXXFLAGS += -isystem $${PUREWEB_LIBS}/C++/include
@@ -50,8 +44,11 @@ unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libicutu.so.46
 unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libicuuc.so.46
 unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libjpeg.so.62
 
-
-DEPENDPATH += $$$PROJECT_ROOT/common
-
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+DEPENDPATH += $$$PROJECT_ROOT/common
+
+unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
+unix: PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.so
+DEPENDPATH += $$PROJECT_ROOT/CartaLib
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''

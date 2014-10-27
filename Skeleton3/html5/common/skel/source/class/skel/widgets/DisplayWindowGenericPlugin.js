@@ -27,7 +27,6 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                 windowIdInitialized : function() {
                     this._initDisplaySpecific();
                     arguments.callee.base.apply(this, arguments);
-
                 },
 
                 /**
@@ -37,6 +36,16 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                 getWindowSubMenu : function() {
                     var windowMenuList = []
                     return windowMenuList;
+                },
+                
+               
+                
+                _mouseXLookup : function( anObject ){
+                    return anObject.mouse.X;
+                },
+                
+                _mouseYLookup : function( anObject ){
+                    return anObject.mouse.Y;
                 },
 
                 /**
@@ -93,17 +102,13 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                             // Right now only generic support is statistics.
                             // Need to generalize.
                             if (this.m_title.getValue() == "statistics") {
-                                var mouseXPath = skel.widgets.Path
-                                        .getInstance().MOUSE_X
-                                        + sourceWinId;
-                                var labelx = new skel.boundWidgets.Label(
-                                        "MouseX:", "pix", mouseXPath);
+                                var labelx = new skel.boundWidgets.Label("MouseX:", "pix", sourceWinId, function(anObject){
+                                    return anObject.mouse.Y;
+                                } );
                                 this.m_content.add(labelx);
-                                var mouseYPath = skel.widgets.Path
-                                        .getInstance().MOUSE_Y
-                                        + sourceWinId;
-                                var labely = new skel.boundWidgets.Label(
-                                        "MouseY:", "pix", mouseYPath);
+                                var labely = new skel.boundWidgets.Label("MouseY:", "pix", sourceWinId, function(anObject){
+                                    return anObject.mouse.X;
+                                });
                                 this.m_content.add(labely);
                             }
                         } else if (!addLink && linkIndex >= 0) {

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "common/IImage.h"
 #include <QObject>
 //#include <QList>
 #include <memory>
@@ -13,11 +14,8 @@
 class ScriptedCommandListener;
 class ViewManager;
 
-namespace Image {
-class ImageInterface;
-}
-class RawView2QImageConverter;
-class IConnector;
+//class RawView2QImageConverter;
+//class IConnector;
 
 class Viewer : public QObject
 {
@@ -45,7 +43,9 @@ protected slots:
     /// internal callback for scripted commands
     void scriptedCommandCB(QString command);
 
-    void reloadFrame(bool forceClipRecompute = false);
+    //void reloadFrame(bool forceClipRecompute = false);
+
+    void mouseCB( const QString & path, const QString & val);
 
 protected:
 
@@ -53,16 +53,16 @@ protected:
     ScriptedCommandListener * m_scl = nullptr;
 
     /// pointer to the loaded image
-    Image::ImageInterface * m_image = nullptr;
+    Image::ImageInterface::SharedPtr m_image = nullptr;
 
     /// current frame
-    int m_currentFrame = -1;
+    //int m_currentFrame = -1;
 
     /// are we recomputing clip on frame change?
-    bool m_clipRecompute = true;
+    //bool m_clipRecompute = true;
 
     /// pointer to the rendering algorithm
-    std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
+    //std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
 
 private:
     std::shared_ptr<ViewManager> m_viewManager;
@@ -71,5 +71,8 @@ private:
 
     /// pointer to connector
     //IConnector * m_connector;
+
+    /// coordinate formatter
+    //CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 };
 

@@ -13,11 +13,11 @@
 #include <QDebug>
 #include <QCoreApplication>
 
-const QString ImageView::MOUSE = StateInterface::DELIMITER + "mouse" + StateInterface::DELIMITER;
-const QString ImageView::MOUSE_Y = MOUSE + "x";
-const QString ImageView::MOUSE_X = MOUSE + "y";
+const QString ImageView::MOUSE = "mouse";
+const QString ImageView::MOUSE_Y = MOUSE + StateInterface::DELIMITER +"x";
+const QString ImageView::MOUSE_X = MOUSE + StateInterface::DELIMITER + "y";
 
-ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img){
+ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img, StateInterface* mouseState){
     m_defaultImage = img;
     m_qimage = QImage(100, 100, QImage::Format_RGB888);
     m_qimage.fill(bgColor);
@@ -25,6 +25,7 @@ ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img){
     m_viewName = viewName;
     m_connector = nullptr;
     m_bgColor = bgColor;
+    m_mouseState = mouseState;
 }
 
 void ImageView::resetImage(QImage img) {
@@ -56,13 +57,15 @@ void ImageView::handleResizeRequest(const QSize & size) {
 void ImageView::handleMouseEvent(const QMouseEvent & ev) {
     m_lastMouse = QPointF(ev.x(), ev.y());
     m_connector->refreshView(this);
-
-    m_connector->setState( m_viewName + StateInterface::DELIMITER + MOUSE_X, QString::number(ev.x()));
-    m_connector->setState( m_viewName + StateInterface::DELIMITER + MOUSE_Y, QString::number(ev.y()));
+    m_mouseState->setValue<QString>( MOUSE_X, QString::number(ev.x()));
+    m_mouseState->setValue<QString>( MOUSE_Y, QString::number(ev.y()));
+    m_mouseState->flushState();
 }
 
 void ImageView::handleKeyEvent(const QKeyEvent & /*event*/) {
 }
+
+
 
 void ImageView::redrawBuffer() {
     QPointF center = m_qimage.rect().center();

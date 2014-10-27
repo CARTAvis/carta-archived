@@ -8,6 +8,7 @@
 #include "Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+
 #include <QImage>
 #include <memory>
 
@@ -58,6 +59,8 @@ public:
      * @return the number of channels in the image.
      */
     int getFrameCount() const;
+
+    int getDimensions() const;
 
     virtual ~DataSource();
 

@@ -51,16 +51,13 @@ int main(int argc, char ** argv)
 
     // create the viewer
     Viewer viewer;
-    qDebug() << "Made viewer";
     // prepare closure to execute when connector is initialized
     IConnector::InitializeCallback initCB = [connector, & viewer](bool valid) -> void {
-        qDebug() << "Connector initialized:" << valid;
         viewer.start();
     };
 
     // initialize connector
     connector-> initialize( initCB);
-    qDebug() << "Initialized allback";
     // qt now has control
     return qapp.exec();
 }

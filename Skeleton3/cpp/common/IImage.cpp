@@ -40,23 +40,27 @@ Image::ImageInterface::PixelType Image::ImageInterface::errorType() const
 
 NdArray::RawViewInterface * Image::ImageInterface::getDataSlice(const SliceND & sliceInfo)
 {
+    Q_UNUSED( sliceInfo);
     qFatal( "Calling unimplemented virtual function... ");
 }
 
 
 void Image::ImageInterface::getMaskSlice(const SliceND & sliceInfo, NdArray::Byte & result)
 {
+    Q_UNUSED( sliceInfo);
+    Q_UNUSED( result);
     qFatal( "Calling unimplemented virtual function... ");
 }
 
 
 void Image::ImageInterface::getErrorSlice(const SliceND & sliceInfo, NdArray::RawViewInterface & result)
 {
+    Q_UNUSED( sliceInfo);
+    Q_UNUSED( result);
     qFatal( "Calling unimplemented virtual function... ");
 }
 
-
-Image::MetaDataInterface &Image::ImageInterface::metaData()
+Image::MetaDataInterface::SharedPtr Image::ImageInterface::metaData()
 {
     qFatal( "Calling unimplemented virtual function... ");
 }

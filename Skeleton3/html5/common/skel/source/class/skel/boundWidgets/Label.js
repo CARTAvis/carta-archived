@@ -23,14 +23,16 @@ qx.Class.define("skel.boundWidgets.Label", {
      * If labelPostfix is a function, it is passed the value, and the value is not
      * rendered.
      */
-    construct : function(labelPrefix, labelPostfix, varPath) {
+    construct : function(labelPrefix, labelPostfix, varPath, functionLookup) {
         this.m_connector = mImport("connector");
         this.m_sharedVar = this.m_connector.getSharedVar(varPath);
-
         this.m_sharedVar.addCB(this._sharedVarCB.bind(this));
+        
         this.m_labelPrefix = labelPrefix || "";
         this.m_labelPostfix = labelPostfix || "";
         this.base(arguments, "");
+        
+        this.m_lookupFunction = functionLookup;
 
         // manually invoke the callback so that the label is immediately updated
         // with the current value
@@ -40,6 +42,7 @@ qx.Class.define("skel.boundWidgets.Label", {
     members : {
 
         m_sharedVar : null,
+        m_lookupFunction : null,
         m_connector : null,
         m_labelPrefix : "",
         m_labelPostfix : "",
@@ -51,12 +54,19 @@ qx.Class.define("skel.boundWidgets.Label", {
          * @private
          */
         _sharedVarCB : function(val) {
+            var labelVal="";
+            if ( val ){
+                var controlObj = JSON.parse( val );
+                labelVal = this.m_lookupFunction( controlObj );
+                labelVal = controlObj.mouse.x;
+            }
             if (typeof this.m_labelPostfix === "function") {
-                this.setValue(this.m_labelPrefix + this.m_labelPostfix(val));
+                this.setValue(this.m_labelPrefix + this.m_labelPostfix(labelVal));
             } else {
-                this.setValue(this.m_labelPrefix + val + this.m_labelPostfix);
+                this.setValue(this.m_labelPrefix + labelVal + this.m_labelPostfix);
             }
         },
+        
 
         /**
          * Returns a reference to the shared variable this labels is bound to.

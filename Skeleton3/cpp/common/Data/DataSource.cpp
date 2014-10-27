@@ -1,7 +1,7 @@
 #include "DataSource.h"
 #include "Globals.h"
 #include "PluginManager.h"
-
+#include "CoordinateFormatter.h"
 #include "IImage.h"
 #include "Algorithms/RawView2QImageConverter.h"
 
@@ -31,7 +31,7 @@ void DataSource::setFileName( const QString& fileName ){
     if (m_fileName.length() > 0) {
         auto & globals = *Globals::instance();
         auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
-        m_image.reset(loadImageHookHelper.first().val());
+        m_image = loadImageHookHelper.first().val();
     }
 }
 
@@ -60,6 +60,14 @@ void DataSource::saveState( ) {
     if ( m_fileName != oldSavedFile ){
         m_state.setValue<QString>( DATA_PATH, m_fileName );
     }
+}
+
+int DataSource::getDimensions() const {
+    int imageSize = 0;
+    if ( m_image ){
+        imageSize = m_image->dims().size();
+    }
+    return imageSize;
 }
 
 void DataSource::_initializeState(){

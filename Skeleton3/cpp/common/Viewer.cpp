@@ -1,8 +1,8 @@
 #include "Viewer.h"
 #include "Globals.h"
 #include "IPlatform.h"
-#include "IConnector.h"
-#include "Algorithms/RawView2QImageConverter.h"
+//#include "IConnector.h"
+//#include "Algorithms/RawView2QImageConverter.h"
 #include "State/ObjectManager.h"
 #include "Data/ViewManager.h"
 
@@ -263,11 +263,11 @@ Viewer::Viewer() :
         connect( m_scl, & ScriptedCommandListener::command,
                  this, & Viewer::scriptedCommandCB );
     }
-    qDebug() << "Viewer constructor";
+    /*qDebug() << "Viewer constructor";
     m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
     qDebug() << "Viewer made converter";
-    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */);
-    qDebug() << "Set auto clip";
+    m_rawView2QImageConverter-> setAutoClip( 0.95); //95%
+    qDebug() << "Set auto clip";*/
 }
 
 void
@@ -375,7 +375,7 @@ Viewer::start()
 	/*if ( fname.length() > 0 ){
 	    qDebug() << "Trying to load astroImage...";
 	    auto res2 =Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
-	    if ( res2.isNull() ) {
+        if ( ! res2.isNull() ) {
 	        qDebug() << "Could not find any plugin to load astroImage";
 	        m_image = res2.val();
 
@@ -392,7 +392,7 @@ Viewer::start()
 	    if( 0) {
 	        // some debugging info
 
-	        Image::ImageInterface * img = res2.val();
+            Image::ImageInterface::SharedPtr img = res2.val();
 
 	        qDebug() << "Dimensions: " << QVector <int>::fromStdVector( img->dims() );
 	        qDebug() << "Unit: " << img-> getPixelUnit().toStr();
@@ -454,9 +454,10 @@ Viewer::start()
     QString vmId = objManager->createObject (ViewManager::CLASS_NAME);
     CartaObject* vmObj = objManager->getObject( vmId );
     m_viewManager.reset( dynamic_cast<ViewManager*>(vmObj));
-
+    fname = "/scratch/Images/Orion.cont.image.fits";
     if ( fname.length() > 0 ){
-        reloadFrame( true);
+        //reloadFrame( true);
+        m_viewManager->loadFile( fname );
     }
 
 	qDebug() << "Viewer has started...";
@@ -499,8 +500,9 @@ Viewer::scriptedCommandCB( QString command )
 
 
 
-void Viewer::reloadFrame( bool forceClipRecompute)
+/*void Viewer::reloadFrame( bool forceClipRecompute)
 {
+    qDebug() << "realodFrame m_image=" << m_image.get();
     auto frameSlice = SliceND().next();
     for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
         frameSlice.next().index( i == 2 ? m_currentFrame : 0);
@@ -512,4 +514,23 @@ void Viewer::reloadFrame( bool forceClipRecompute)
     delete frameView;
     //testView2->setImage(qimg);
 
+}*/
+
+void Viewer::mouseCB(const QString & /*path*/, const QString & /*val*/)
+{
+/*    bool ok;
+    double x = m_connector-> getState( StateKey::MOUSE_X, "").toDouble( & ok);
+    if( !ok) {}
+    double y = m_connector-> getState( StateKey::MOUSE_Y, "").toDouble( & ok);
+    if( !ok) {}
+    auto pixCoords = std::vector<double>(m_image->dims().size(), 0.0);
+    pixCoords[0] = x;
+    pixCoords[1] = y;
+    if( pixCoords.size() > 2) {
+        pixCoords[2] = m_currentFrame;
+    }
+    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    qDebug() << "Formatted coordinate:" << list;
+    m_connector-> setState( StateKey::CURSOR, "", list.join("\n").toHtmlEscaped());
+*/
 } // scriptedCommandCB

@@ -38,7 +38,7 @@ void ViewPlugins::_initializeDefaultState(){
     auto pm = Globals::instance()-> pluginManager();
     auto infoList = pm-> getInfoList();
     int ind = 0;
-    int infoListSize = infoList.size()+1;
+    int infoListSize = infoList.size()+2;
     m_state.insertArray( PLUGINS, infoListSize );
     for( auto & entry : infoList) {
         //qDebug() << "  path:" << entry.soPath;
@@ -46,6 +46,8 @@ void ViewPlugins::_initializeDefaultState(){
         ind ++;
     }
     _insertPlugin( ind, "animator", "Animation of data sets", "", "", "");
+    ind++;
+    _insertPlugin( ind, "statistics", "Placeholder for statistics plugin", "", "", "");
     ind++;
     m_state.insertValue<int>( STAMP, ind);
     m_state.flushState();
