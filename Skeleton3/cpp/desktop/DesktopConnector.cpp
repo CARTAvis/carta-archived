@@ -6,8 +6,9 @@
 #include "common/misc.h"
 #include "common/LinearMap.h"
 #include "common/MyQApp.h"
-#include "common/State/StateXmlRestorer.h"
-#include "DesktopStateWriter.h"
+//#include "common/State/StateXmlRestorer.h"
+//#include "common/State/StateReader.h"
+//#include "DesktopStateWriter.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -81,42 +82,11 @@ QString DesktopConnector::getState(const QString & path  )
     return m_state[ path ];
 }
 
-/// save the state tree.
-bool DesktopConnector::saveState(const QString& saveName) const {
-	QString filePath = getStatePath( saveName );
-	DesktopStateWriter writer( filePath );
-	for ( std::map<QString,QString>::const_iterator iter = m_state.begin();
-			iter != m_state.end(); ++iter ){
-	    writer.addPathData( iter->first, iter->second );
-	}
-	bool stateSaved = writer.saveState();
-	return stateSaved;
-}
-
-/// Initialize the state from a file.
-bool DesktopConnector::readState( const QString& saveName ){
-	/// Initialize the state from a file.
-	bool successfulRead = true;
-	QString fileName( getStatePath( saveName ) );
-	QFile file( fileName );
-	if ( !file.open( QIODevice::ReadOnly) ){
-		qDebug() << "State not saved- could not open the file " << fileName<<" for writing.";
-		successfulRead = false;
-	}
-	else {
-		QXmlInputSource fileSource( &file );
-		QXmlSimpleReader xmlReader;
-		StateXmlRestorer contentHandler( this );
-		xmlReader.setContentHandler( &contentHandler );
-		successfulRead = xmlReader.parse( fileSource );
-	}
-	return successfulRead;
-}
 
 /// Return the location where the state is saved.
-QString DesktopConnector::getStatePath( const QString& saveName ) const {
+QString DesktopConnector::getStateLocation( const QString& saveName ) const {
 	//TODO: Generalize this.
-	return "/tmp/"+saveName+".xml";
+	return "/tmp/"+saveName+".json";
 }
 
 IConnector::CallbackID DesktopConnector::addCommandCallback(

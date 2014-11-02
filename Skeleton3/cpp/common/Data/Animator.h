@@ -21,13 +21,16 @@ class Animator : public QObject, public CartaObject {
 
 public:
 
-
-
     /**
      * Adds a Controller to this animator.
      * @param controller the DataController that will be managed.
      */
     void addController( const std::shared_ptr<Controller>& controller );
+
+    /**
+     * Remove all links to other view objects controlled by this animator.
+     */
+    void clearLinks();
 
     /**
      * Returns the number of controllees linked to this Animator.
@@ -42,11 +45,12 @@ public:
      */
     QString getLinkId( int linkindex ) const;
 
+    /**
+     * Return a list of identifiers for all objects that are controlled by this animator.
+     * @return a list of identifiers for objects under the control of this animator.
+     */
+    QList<QString> getLinks() const;
 
-    //Identifier for an image.
-    const static QString IMAGE;
-    //Identifier for a channel.
-    static const QString CHANNEL;
     static const QString CLASS_NAME;
 
 private slots:
@@ -73,7 +77,7 @@ private:
     };
 
     static const QString LINK;
-    static const QString ANIMATION_TYPE;
+    //static const QString ANIMATION_TYPE;
 
     void _adjustStateAnimatorTypes();
     int _getIndex( const std::shared_ptr<Controller>& controller );
@@ -85,9 +89,6 @@ private:
 
     QString _removeAnimator( const QString& type );
     void _resetAnimationParameters();
-
-	//Identifier for this animator.
-	StateInterface m_state;
 
 	//List of controllers managed by this animator.
 	QList<std::shared_ptr<Controller> > m_controllers;

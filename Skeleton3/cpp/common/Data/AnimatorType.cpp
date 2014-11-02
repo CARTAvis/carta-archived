@@ -9,22 +9,34 @@ const QString AnimatorType::END_BEHAVIOR = "endBehavior";
 const QString AnimatorType::RATE = "frameRate";
 const QString AnimatorType::STEP = "frameStep";
 
-const QString AnimatorType::CLASS_NAME = "edu.nrao.carta.AnimatorType";
+const QString AnimatorType::CLASS_NAME = "AnimatorType";
+const QString AnimatorType::ANIMATIONS = "animators";
+
 bool AnimatorType::m_registered =
     ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new AnimatorType::Factory());
 
 AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType, const QString& id*/
         const QString& path, const QString& id ):
-	CartaObject( CLASS_NAME, path, id ),
-	m_state( path ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString selId = objManager->createObject( Selection::CLASS_NAME );
-        CartaObject* selObj = objManager->getObject( selId );
-        m_select.reset( dynamic_cast<Selection*>(selObj) );
+	CartaObject( CLASS_NAME, path, id ){
+        _makeSelection();
 
         _initializeState();
         _initializeCommands();
+}
+
+QString AnimatorType::_makeSelection(){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    QString selId = objManager->createObject( Selection::CLASS_NAME );
+    CartaObject* selObj = objManager->getObject( selId );
+    m_select.reset( dynamic_cast<Selection*>(selObj) );
+    return m_select->getPath();
+}
+
+QString AnimatorType::getStateString() const{
+    StateInterface writeState( m_state );
+    writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
+    return writeState.toString();
 }
 
 
@@ -58,8 +70,15 @@ void AnimatorType::_initializeCommands(){
 
 	addCommandCallback( "getSelection", [=] (const QString & /*cmd*/,
 	                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-	        return QString(m_select->getPath());
-	    });
+	    QString selectId;
+	    if ( m_select != nullptr){
+	        selectId = m_select->getPath();
+	    }
+	    else {
+	        selectId = _makeSelection();
+	    }
+	    return selectId;
+	});
 
 }
 

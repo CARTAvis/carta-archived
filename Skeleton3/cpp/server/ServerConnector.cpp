@@ -1,8 +1,8 @@
 #include "ServerConnector.h"
 #include "common/misc.h"
 #include "common/MyQApp.h"
-#include "common/State/StateXmlRestorer.h"
-#include "StateXmlWriter.h"
+//#include "common/State/StateXmlRestorer.h"
+//#include "StateXmlWriter.h"
 
 
 #include <QTimer>
@@ -102,43 +102,12 @@ void ServerConnector::setState(const QString& path, const QString &value)
     m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
 }
 
-/// Initialize the state from a file.
-bool ServerConnector::readState( const QString& saveName ){
-	bool successfulRead = true;
-	QString fileName( getStatePath( saveName ) );
-	QFile file( fileName );
-	if ( !file.open( QIODevice::ReadOnly) ){
-		qDebug() << "StateXmlContentHandler could not open the file " << fileName<<" for writing.";
-		successfulRead = false;
-	}
-	else {
-		QXmlInputSource fileSource( &file );
-		QXmlSimpleReader xmlReader;
-		StateXmlRestorer contentHandler( this );
-		xmlReader.setContentHandler( &contentHandler );
-		successfulRead = xmlReader.parse( fileSource );
-	}
-	return successfulRead;
-}
-
-QString ServerConnector::getStatePath( const QString& saveName ) const {
+QString ServerConnector::getStateLocation( const QString& saveName ) const {
 	//TODO: generalize this.
-	return "/tmp/"+saveName + ".xml";
+	return "/tmp/"+saveName + ".json";
 }
 
-bool ServerConnector::saveState(const QString& saveName) const {
-	CSI::String stateStr = m_stateManager->XmlStateManager().ToString();
-	QString stateQ = toQString( stateStr );
-	qDebug() << "Serverconnector saveState="<<stateQ;
-	QXmlInputSource source;
-	source.setData(stateQ);
-	QXmlSimpleReader xmlReader;
-	QString fileName( getStatePath( saveName ));
-	StateXmlWriter contentHandler( fileName );
-	xmlReader.setContentHandler( &contentHandler );
-	bool ok = xmlReader.parse( source );
-	return ok;
-}
+
 
 QString ServerConnector::toQString( const CSI::String source) const {
 	std::string treeValueStr = source.As<std::string>();

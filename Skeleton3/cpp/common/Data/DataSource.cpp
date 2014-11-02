@@ -8,7 +8,7 @@
 #include <QDebug>
 
 
-const QString DataSource::CLASS_NAME = "edu.nrao.carta.DataSource";
+const QString DataSource::CLASS_NAME = "DataSource";
 bool DataSource::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataSource::Factory());
@@ -19,7 +19,6 @@ const QString DataSource::DATA_PATH = "dataPath";
 
 DataSource::DataSource(const QString& path, const QString& id) :
     CartaObject( CLASS_NAME, path, id),
-    m_state( path),
     m_image( nullptr )
     {
         m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
@@ -47,8 +46,8 @@ Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute, bool 
         //resetClipValue();
         m_rawView2QImageConverter-> setAutoClip( clipValue);
         m_rawView2QImageConverter-> setView( frameView);
-        //bool clipRecompute = m_autoClip;
-        qimg = m_rawView2QImageConverter-> go(frameIndex, /*clipRecompute*/autoClip || forceClipRecompute);
+        bool clipRecompute = autoClip || forceClipRecompute;
+        qimg = m_rawView2QImageConverter-> go(frameIndex, clipRecompute);
         delete frameView;
     }
 

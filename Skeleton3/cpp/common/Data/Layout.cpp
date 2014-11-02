@@ -8,14 +8,13 @@ const QString Layout::LAYOUT = "Layout";
 const QString Layout::LAYOUT_ROWS = "rows";
 const QString Layout::LAYOUT_COLS = "cols";
 const QString Layout::LAYOUT_PLUGINS = "plugins";
-const QString Layout::CLASS_NAME = "edu.nrao.carta.Layout";
+const QString Layout::CLASS_NAME = "Layout";
 bool Layout::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Layout::Factory());
 
 Layout::Layout( const QString& path, const QString& id):
-    CartaObject( CLASS_NAME, path, id ),
-    m_state( path/*, "{\"rows\":2,\"cols\":2,\"plugins\": [\"CasaImageLoader\",\"plugins\",\"Hidden\",\"animator\"]}"*/ ){
+    CartaObject( CLASS_NAME, path, id ){
     _initializeDefaultState();
     _initializeCommands();
 }

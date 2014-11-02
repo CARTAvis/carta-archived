@@ -12,14 +12,13 @@ const QString ViewPlugins::TYPE = "type";
 const QString ViewPlugins::VERSION = "version";
 const QString ViewPlugins::ERRORS = "loadErrors";
 const QString ViewPlugins::STAMP = "pluginCount";
-const QString ViewPlugins::CLASS_NAME = "edu.nrao.carta.ViewPlugins";
+const QString ViewPlugins::CLASS_NAME = "ViewPlugins";
 bool ViewPlugins::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ViewPlugins::Factory());
 
 ViewPlugins::ViewPlugins( const QString& path, const QString& id):
-    CartaObject( CLASS_NAME, path, id ),
-    m_state( path ){
+    CartaObject( CLASS_NAME, path, id ){
     _initializeDefaultState();
 }
 

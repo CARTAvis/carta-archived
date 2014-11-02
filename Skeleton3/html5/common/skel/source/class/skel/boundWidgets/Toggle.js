@@ -18,17 +18,26 @@ qx.Class.define( "skel.boundWidgets.Toggle",
     {
         extend: skel.widgets.FancyToggle,
 
-        construct: function( label, varPath )
+        construct: function( label, varPath)
         {
+            
             this.m_connector = mImport( "connector");
-            this.m_sharedVar = this.m_connector.getSharedVar( varPath);
-            this.m_sharedVar.addCB( this._sharedVarCB.bind(this));
+            if ( varPath && varPath.length > 0 ){
+                this.m_sharedVar = this.m_connector.getSharedVar( varPath);
+                this.m_sharedVar.addCB( this._sharedVarCB.bind(this));
+            }
             this.m_suspendApplyValue = true;
             this.base( arguments, label );
             this.m_suspendApplyValue = false;
             // manually invoke the callback so that the label is immediately updated
             // with the current value
-            this._sharedVarCB( this.m_sharedVar.get());
+            if ( this.m_sharedVar ){
+                this._sharedVarCB( this.m_sharedVar.get());
+            }
+        },
+        
+        events : {
+            "toggleChanged" : "qx.event.type.Data"
         },
 
         members: {
@@ -43,7 +52,14 @@ qx.Class.define( "skel.boundWidgets.Toggle",
                 if( this.m_suspendApplyValue ) {
                     return;
                 }
-                this.m_sharedVar.set( newValue ? "1" : "0" );
+                if ( this.m_sharedVar ){
+                    this.m_sharedVar.set( newValue ? "1" : "0" );
+                }
+                else {
+                    if ( oldValue != newValue ){
+                        this.fireDataEvent("toggleChanged", newValue);
+                    }
+                }
             },
 
             _sharedVarCB: function( val )

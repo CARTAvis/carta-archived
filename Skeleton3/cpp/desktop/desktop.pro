@@ -8,16 +8,14 @@ HEADERS += \
     MainWindow.h \
     CustomWebPage.h \
     DesktopPlatform.h \
-    DesktopConnector.h \
-    DesktopStateWriter.h
+    DesktopConnector.h
 
 SOURCES += \
     MainWindow.cpp \
     CustomWebPage.cpp \
     DesktopPlatform.cpp \
     desktopMain.cpp \
-    DesktopConnector.cpp \
-    DesktopStateWriter.cpp
+    DesktopConnector.cpp
 
 RESOURCES = resources.qrc
 

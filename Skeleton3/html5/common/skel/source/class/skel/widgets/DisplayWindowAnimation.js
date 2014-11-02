@@ -32,15 +32,9 @@ qx.Class
                             for ( var i = 0; i < this.m_checks.length; i++ ){
                                 var checkName = this.m_supportedAnimations[i];
                                 var selected = this.m_checks[i].getValue();
-                                
-                                //Decide whether the serve thinks the animator is there.
                                 var alreadyThere = false;
-                                for ( var j = 0; j < animObj.animators.length; j++ ){
-                                    var animName = animObj.animators[j];
-                                    if ( animName == checkName ){
-                                       alreadyThere = true;
-                                       break;
-                                    }
+                                if ( animObj.animators[checkName] ){
+                                    alreadyThere = true;
                                 }
                                 
                                 //Decide if the animator's visibility has changed with respect to what the serve thinks.
@@ -72,27 +66,15 @@ qx.Class
                                 var animObj = JSON.parse( this.m_sharedVar.get() );
                                 //Go through the supported animations.  If it is in the list, mark
                                 //as visible; otherwise mark as invisible.
-                                for ( var j = 0; j < this.m_supportedAnimations.length; j++ ){
+                                for ( var j = 0; j < this.m_checks.length; j++ ){
                                     var visible = false;
-                                    for (var i = 0; i < animObj.animators.length; i++) {
-                                        var animName = animObj.animators[i];
-                                        if ( this.m_supportedAnimations[j] == animName ){
-                                            if ( ! this.m_checks[j].getValue() ){
-                                                //Don't trigger sending a command back to the server if we are setting the
-                                                //check through a server side callback.
-                                                this.m_checks[j].removeListenerById( this.m_checks[j].listener );
-                                                this.m_checks[j].setValue( true );
-                                                this.m_checks[i].listener = this.m_checks[i].addListener("changeValue", this._addRemoveAnimators, this );
-                                            }
-                                            visible = true;
-                                            break;
-                                        }
+                                    var checkName = this.m_checks[j].getLabel();
+                                    if ( animObj.animators[checkName]){
+                                        visible = true;
                                     }
-
-                                    if ( !visible ){
-                                        if ( this.m_checks[j].getValue()){
-                                            this.m_checks[j].setValue( false );
-                                        }
+                                    
+                                    if ( this.m_checks[j].getValue() != visible ){
+                                        this.m_checks[j].setValue( visible );
                                     }
                                 }
                                 this._showHideAnimation();

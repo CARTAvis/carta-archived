@@ -19,9 +19,19 @@ class AnimatorType : public QObject, public CartaObject {
 
 public:
 
-    //Set the upper bound for the selection.
+    /**
+     * Sets the upper bound for the selection.
+     * @param a nonnegative upper bound for the selection.
+     */
     void setUpperBound( int value );
+
+    /**
+     * Returns a json string representing the state of this AnimatorType.
+     * @return a Json string representing the state of this AnimatorType.
+     */
+    virtual QString getStateString() const;
     static const QString CLASS_NAME;
+    static const QString ANIMATIONS;
 
 signals:
     void indexChanged(const QString& params);
@@ -50,12 +60,13 @@ private:
 	//Add callbacks for commands.
 	void _initializeCommands();
 
+	QString _makeSelection();
+
 
 	//Set state variables involving the animator
 	void _saveState();
 
 	QString m_animationType;
-	StateInterface m_state;
 	static bool m_registered;
 
     //Animator's channel selection.

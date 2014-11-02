@@ -41,6 +41,9 @@ private:
             return new ViewManager (path, id);
         }
     };
+
+    void _clearLayout();
+
     void _initCallbacks();
 
     void _initializeExistingAnimationLinks( int index );
@@ -50,8 +53,12 @@ private:
     void _initializeDataLoader();
 
     QString _makeAnimator();
+    QString _makeLayout();
     QString _makePluginList();
     QString _makeController();
+
+    bool _readState( const QString& fileName );
+    bool _saveState( const QString& fileName );
 
     //A list of Controllers requested by the client.
     QList <std::shared_ptr<Controller> > m_controllers;
@@ -63,7 +70,7 @@ private:
     std::shared_ptr<Layout> m_layout;
     std::shared_ptr<DataLoader> m_dataLoader;
     std::shared_ptr<ViewPlugins> m_pluginsLoaded;
-    //StateInterface m_state;
+
 	ViewManager( const ViewManager& other);
 	ViewManager operator=( const ViewManager& other );
 };

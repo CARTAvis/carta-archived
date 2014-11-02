@@ -5,11 +5,13 @@
 #include "Data/Layout.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
+#include "State/StateReader.h"
+#include "State/StateWriter.h"
 
 #include <QDir>
 #include <QDebug>
 
-const QString ViewManager::CLASS_NAME = "edu.nrao.carta.ViewManager";
+const QString ViewManager::CLASS_NAME = "ViewManager";
 bool ViewManager::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ViewManager::Factory());
@@ -22,22 +24,28 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     _initCallbacks();
     _initializeDataLoader();
 
-    bool stateRead = ObjectManager::objectManager()->readState( "DefaultState" );
+    bool stateRead = this->_readState( "DefaultState" );
     if ( !stateRead ){
         _initializeDefaultState();
+    }
+}
+
+void ViewManager::_clearLayout(){
+    int controlCount = m_controllers.size();
+    for ( int i = 0; i < controlCount; i++ ){
+        m_controllers[i]->clear();
+    }
+    m_controllers.clear();
+    m_animators.clear();
+    if ( m_layout != nullptr ){
+        m_layout->clear();
     }
 }
 
 void ViewManager::_initCallbacks(){
     addCommandCallback( "clearLayout", [=] (const QString & /*cmd*/,
                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        int controlCount = m_controllers.size();
-        for ( int i = 0; i < controlCount; i++ ){
-            m_controllers[i]->clear();
-        }
-        m_controllers.clear();
-        m_animators.clear();
-        m_layout->clear();
+        _clearLayout();
         return "";
     });
 
@@ -128,7 +136,7 @@ void ViewManager::_initCallbacks(){
         if ( paramList.length() == 2 ){
            saveName = paramList[1];
         }
-        bool result = ObjectManager::objectManager()->saveState(saveName);
+        bool result = _saveState(saveName);
         QString returnVal = "State was successfully saved.";
         if ( !result ){
             returnVal = "There was an error saving state.";
@@ -144,8 +152,7 @@ void ViewManager::_initCallbacks(){
         if ( paramList.length() == 2 ){
             saveName = paramList[1];
         }
-
-        bool result = ObjectManager::objectManager()->readState(saveName);
+        bool result = _readState( saveName );
         QString returnVal = "State was successfully restored.";
         if ( !result ){
             returnVal = "There was an error restoring state.";
@@ -155,51 +162,6 @@ void ViewManager::_initCallbacks(){
 
 }
 
-QString ViewManager::_makeController(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString viewId = objManager->createObject( Controller::CLASS_NAME );
-    CartaObject* controlObj = objManager->getObject( viewId );
-    std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
-    m_controllers.append(target);
-    return target->getPath();
-}
-
-QString ViewManager::_makeAnimator(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString viewId = objManager->createObject( Animator::CLASS_NAME );
-    CartaObject* animObj = objManager->getObject( viewId );
-    std::shared_ptr<Animator> target( dynamic_cast<Animator*>(animObj) );
-    m_animators.append(target);
-    int lastIndex = m_animators.size() - 1;
-    _initializeExistingAnimationLinks( lastIndex );
-    return target->getPath();
-}
-
-QString ViewManager::_makePluginList(){
-    if ( !m_pluginsLoaded ){
-        //Initialize a view showing the plugins that have been loaded
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString pluginsId = objManager->createObject( ViewPlugins::CLASS_NAME );
-        CartaObject* pluginsObj = objManager->getObject( pluginsId );
-        m_pluginsLoaded.reset( dynamic_cast<ViewPlugins*>(pluginsObj ));
-    }
-    QString pluginsPath = m_pluginsLoaded->getPath();
-    return pluginsPath;
-}
-
-void ViewManager::_initializeDefaultState(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    _makeAnimator();
-    _makeController();
-    m_animators[0]->addController( m_controllers[0]);
-
-    //Make a layout and initialize a default state.
-    QString layoutId = objManager->createObject( Layout::CLASS_NAME );
-    CartaObject* layoutObj = objManager->getObject( layoutId );
-    m_layout.reset( dynamic_cast<Layout*>(layoutObj ));
-
-    _makePluginList();
-}
 
 void ViewManager::_initializeDataLoader(){
     if ( !m_dataLoader ){
@@ -210,12 +172,14 @@ void ViewManager::_initializeDataLoader(){
     }
 }
 
-void ViewManager::loadFile( QString fileName ){
-    if ( m_controllers.size() == 0 ){
-        _makeController();
-    }
-    m_controllers[0]->addData( fileName );
+void ViewManager::_initializeDefaultState(){
+    _makeAnimator();
+    _makeController();
+    m_animators[0]->addController( m_controllers[0]);
+    _makeLayout();
+    _makePluginList();
 }
+
 
 void ViewManager::_initializeExistingAnimationLinks( int index ){
     int linkCount = m_animators[index]->getLinkCount();
@@ -233,5 +197,107 @@ void ViewManager::_initializeExistingAnimationLinks( int index ){
     }
 }
 
+void ViewManager::loadFile( QString fileName ){
+    if ( m_controllers.size() == 0 ){
+        _makeController();
+    }
+    m_controllers[0]->addData( fileName );
+}
 
+QString ViewManager::_makeAnimator(){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    QString viewId = objManager->createObject( Animator::CLASS_NAME );
+    CartaObject* animObj = objManager->getObject( viewId );
+    std::shared_ptr<Animator> target( dynamic_cast<Animator*>(animObj) );
+    m_animators.append(target);
+    int lastIndex = m_animators.size() - 1;
+    _initializeExistingAnimationLinks( lastIndex );
+    return target->getPath();
+}
+
+
+QString ViewManager::_makeController(){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    QString viewId = objManager->createObject( Controller::CLASS_NAME );
+    CartaObject* controlObj = objManager->getObject( viewId );
+    std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
+    m_controllers.append(target);
+    return target->getPath();
+}
+
+QString ViewManager::_makeLayout(){
+    if ( !m_layout ){
+        ObjectManager* objManager = ObjectManager::objectManager();
+        QString layoutId = objManager->createObject( Layout::CLASS_NAME );
+        CartaObject* layoutObj = objManager->getObject( layoutId );
+        m_layout.reset( dynamic_cast<Layout*>(layoutObj ));
+    }
+    QString layoutPath = m_layout->getPath();
+    return layoutPath;
+}
+
+QString ViewManager::_makePluginList(){
+    if ( !m_pluginsLoaded ){
+        //Initialize a view showing the plugins that have been loaded
+        ObjectManager* objManager = ObjectManager::objectManager();
+        QString pluginsId = objManager->createObject( ViewPlugins::CLASS_NAME );
+        CartaObject* pluginsObj = objManager->getObject( pluginsId );
+        m_pluginsLoaded.reset( dynamic_cast<ViewPlugins*>(pluginsObj ));
+    }
+    QString pluginsPath = m_pluginsLoaded->getPath();
+    return pluginsPath;
+}
+
+bool ViewManager::_readState( const QString& saveName ){
+    _clearLayout();
+    QString fullLocation = getStateLocation( saveName );
+    StateReader reader( fullLocation );
+    bool successfulRead = reader.restoreState();
+    if ( successfulRead ){
+
+        //Make the controllers specified in the state.
+        QList<std::pair<QString,QString> > controllerStates = reader.getViews(Controller::CLASS_NAME);
+        for ( std::pair<QString,QString> state : controllerStates ){
+            _makeController();
+            m_controllers[m_controllers.size() - 1]->resetState( state.second );
+        }
+
+        //Make the animators specified in the state.
+        QList< std::pair<QString,QString> > animatorStates = reader.getViews(Animator::CLASS_NAME);
+        for ( std::pair<QString,QString> state : animatorStates ){
+            _makeAnimator();
+            int animIndex = m_animators.size() - 1;
+            m_animators[ animIndex ]->resetState( state.second );
+
+            //Now see if this animator needs to be linked to any of the controllers
+            QList<QString> oldLinks = m_animators[ animIndex ]-> getLinks();
+            m_animators[animIndex ]->clearLinks();
+            for ( int i = 0;  i < controllerStates.size(); i++ ){
+                if ( oldLinks.contains( StateInterface::DELIMITER + controllerStates[i].first ) ){
+                    m_animators[animIndex]->addController( m_controllers[i]);
+                }
+            }
+         }
+
+        //Reset the layout
+        QString layoutState = reader.getState(Layout::CLASS_NAME);
+        _makeLayout();
+        m_layout->resetState( layoutState );
+    }
+    return successfulRead;
+}
+
+bool ViewManager::_saveState( const QString& saveName ){
+    QString filePath = getStateLocation( saveName );
+    StateWriter writer( filePath );
+    writer.addPathData( m_layout->getPath(), m_layout->getStateString());
+    for ( int i = 0; i < m_controllers.size(); i++ ){
+        writer.addPathData( m_controllers[i]->getPath(), m_controllers[i]->getStateString() );
+    }
+    for ( int i = 0; i < m_animators.size(); i++ ){
+        writer.addPathData( m_animators[i]->getPath(), m_animators[i]->getStateString() );
+    }
+    bool stateSaved = writer.saveState();
+    return stateSaved;
+}
 

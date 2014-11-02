@@ -83,12 +83,8 @@ public:
     /// retrieve a state value
     virtual QString getState(const QString &path) Q_DECL_OVERRIDE;
 
-    /// save the state tree.
-    virtual bool saveState( const QString& saveName ) const Q_DECL_OVERRIDE;
-
-    /// Initialize the state from a file.
-    virtual bool readState( const QString& fileName ) Q_DECL_OVERRIDE;
-
+    /// Return the location where the state is saved.
+    virtual QString getStateLocation( const QString& saveName ) const;
 
     /// add a command callback
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
@@ -149,9 +145,6 @@ protected:
     bool m_initialized;
 
 private:
-
-    /// Return the location where the state is saved.
-    QString getStatePath( const QString& saveName ) const;
 
     void print( CSI::Typeless treeRoot ) const;
     QString toQString( const CSI::String source) const;

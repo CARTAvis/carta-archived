@@ -19,7 +19,7 @@ const QString Controller::DATA_COUNT = "dataCount";
 const QString Controller::DATA_PATH = "dataPath";
 const QString Controller::CURSOR = "formattedCursorCoordinates";
 
-const QString Controller::CLASS_NAME = "edu.nrao.carta.Controller";
+const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =
     ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Controller::Factory());
@@ -28,8 +28,7 @@ Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
-        m_view(nullptr),
-        m_state( path ){
+        m_view(nullptr){
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_state));
     _initializeSelections();
     _initializeState();
@@ -45,110 +44,6 @@ Controller::Controller( const QString& path, const QString& id ) :
      _loadView( false );
 }
 
-void Controller::_initializeSelections(){
-    _initializeSelection( m_selectChannel );
-    _initializeSelection( m_selectImage );
-}
-
-void Controller::_initializeSelection( std::shared_ptr<Selection> & selection ){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString selectId = objManager->createObject( Selection::CLASS_NAME );
-    CartaObject* selectObj = objManager->getObject( selectId );
-    selection.reset( dynamic_cast<Selection*>(selectObj) );
-}
-
-void Controller::_updateCursor(){
-    QString formattedCursor;
-    QString mouseXStr = m_state.getValue<QString>( ImageView::MOUSE_X );
-    bool validInt = false;
-
-    int mouseX = mouseXStr.toInt(&validInt );
-    if ( !validInt ){
-        return;
-    }
-    QString mouseYStr = m_state.getValue<QString>( ImageView::MOUSE_Y );
-    int mouseY = mouseYStr.toInt( &validInt );
-    if ( !validInt ){
-        return;
-    }
-    int dataIndex = m_selectImage->getIndex();
-
-    int imageDims = this->m_datas[dataIndex]->getDimensions();
-    auto pixCoords = std::vector<double>( imageDims, 0.0);
-    pixCoords[0] = mouseX;
-    pixCoords[1] = mouseY;
-    if( pixCoords.size() > 2) {
-        int frameIndex = m_selectChannel->getIndex();
-        pixCoords[2] = frameIndex;
-    }
-    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
-    qDebug() << "Formatted coordinate:" << list;
-    m_state.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
-    m_state.flushState();
-}
-
-
-
-void Controller::_initializeCallbacks(){
-    //Listen for updates to the clip and reload the frame.
-
-    addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"clipValue"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            bool validClip = false;
-            double clipVal = dataValues[0].toDouble(&validClip);
-            if ( validClip ){
-                m_state.setValue<double>( CLIP_VALUE, clipVal );
-                m_state.flushState();
-                if ( m_view ){
-                    _loadView( true );
-                }
-            }
-            else {
-                qDebug() << "Invalid clip value: "<<params;
-            }
-        }
-        return "";
-    });
-
-    addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QList<QString> keys = {"autoClip"};
-            QVector<QString> dataValues = Util::parseParamMap( params, keys );
-            if ( dataValues.size() == keys.size()){
-                bool validAutoClip = false;
-                bool autoClip = dataValues[0].toInt( &validAutoClip );
-                if ( validAutoClip ){
-                    m_state.setValue<bool>( AUTO_CLIP, autoClip );
-                    m_state.flushState();
-                }
-                else {
-                    qDebug() << "Invalid autoClip params="<<params;
-                }
-            }
-            return "";
-        });
-
-    addCommandCallback( "updateCursor", [=] (const QString & /*cmd*/,
-                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        _updateCursor();
-        return "";
-    });
-}
-
-void Controller::_initializeState(){
-    //Set whether or not to auto clip
-    m_state.insertValue<bool>( AUTO_CLIP, true );
-    m_state.insertValue<double>( CLIP_VALUE, 0.95 );
-    m_state.insertValue<int>(DATA_COUNT, 0 );
-    m_state.insertValue<QString>(CURSOR, "");
-    m_state.insertObject( ImageView::MOUSE );
-    m_state.insertValue<QString>(ImageView::MOUSE_X, 0 );
-    m_state.insertValue<QString>(ImageView::MOUSE_Y, 0 );
-    m_state.flushState();
-}
 
 void Controller::addData(const QString& fileName) {
     //Find the location of the data, if it already exists.
@@ -192,25 +87,13 @@ void Controller::clear(){
 }
 
 
-void Controller::setFrameChannel(const QString& val) {
-    if (m_selectChannel != nullptr) {
-        m_selectChannel->setIndex(val);
-    }
-}
-
-void Controller::setFrameImage(const QString& val) {
-    if (m_selectImage != nullptr) {
-        m_selectImage->setIndex(val);
-    }
-}
-
 int Controller::getState( const QString& type, const QString& key ){
 
     int value = -1;
-    if ( type == Animator::IMAGE ){
+    if ( type == Selection::IMAGE ){
         value = m_selectImage->getState( key );
     }
-    else if ( type == Animator::CHANNEL ){
+    else if ( type == Selection::CHANNEL ){
         value = m_selectChannel->getState( key );
     }
     else {
@@ -219,19 +102,95 @@ int Controller::getState( const QString& type, const QString& key ){
     return value;
 }
 
-void Controller::saveState() {
-    //Note:: we need to save the number of data items that have been added
-    //since otherwise, if data items have been deleted, their states will not
-    //have been deleted, and we need to know when we read the states back in,
-    //which ones represent valid data items and which ones do not.
 
-    int dataCount = m_datas.size();
-    m_state.setValue<int>( DATA_COUNT, dataCount );
-    for (int i = 0; i < dataCount; i++) {
-        m_datas[i]->saveState(/*m_winId, i*/);
-    }
+QString Controller::getStateString() const{
+    StateInterface writeState( m_state );
+    writeState.insertObject( Selection::SELECTIONS );
+    writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::CHANNEL, m_selectChannel->getStateString());
+    writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::IMAGE, m_selectImage->getStateString());
+    return writeState.toString();
 }
 
+
+void Controller::_initializeCallbacks(){
+    //Listen for updates to the clip and reload the frame.
+
+    addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+        QList<QString> keys = {"clipValue"};
+        QVector<QString> dataValues = Util::parseParamMap( params, keys );
+        if ( dataValues.size() == keys.size()){
+            bool validClip = false;
+            QString clipWithoutPercent = dataValues[0].remove("%");
+            double clipVal = dataValues[0].toDouble(&validClip);
+            if ( validClip ){
+                int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
+                if ( oldClipVal != clipVal ){
+                    m_state.setValue<double>( CLIP_VALUE, clipVal );
+                    m_state.flushState();
+                    if ( m_view ){
+                        _loadView( true );
+                    }
+                }
+            }
+            else {
+                qDebug() << "Invalid clip value: "<<params;
+            }
+        }
+        return "";
+    });
+
+    addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            QList<QString> keys = {"autoClip"};
+            QVector<QString> dataValues = Util::parseParamMap( params, keys );
+            if ( dataValues.size() == keys.size()){
+                bool autoClip = false;
+                if ( dataValues[0] == "true"){
+                    autoClip = true;
+                }
+                bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
+                if ( autoClip != oldAutoClip ){
+                    m_state.setValue<bool>( AUTO_CLIP, autoClip );
+                    m_state.flushState();
+                }
+            }
+            return "";
+        });
+
+    addCommandCallback( "updateCursor", [=] (const QString & /*cmd*/,
+                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        _updateCursor();
+        return "";
+    });
+}
+
+
+void Controller::_initializeSelections(){
+    _initializeSelection( m_selectChannel );
+    _initializeSelection( m_selectImage );
+}
+
+
+void Controller::_initializeSelection( std::shared_ptr<Selection> & selection ){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    QString selectId = objManager->createObject( Selection::CLASS_NAME );
+    CartaObject* selectObj = objManager->getObject( selectId );
+    selection.reset( dynamic_cast<Selection*>(selectObj) );
+}
+
+
+void Controller::_initializeState(){
+    //Set whether or not to auto clip
+    m_state.insertValue<bool>( AUTO_CLIP, true );
+    m_state.insertValue<double>( CLIP_VALUE, 0.95 );
+    m_state.insertValue<int>(DATA_COUNT, 0 );
+    m_state.insertValue<QString>(CURSOR, "");
+    m_state.insertObject( ImageView::MOUSE );
+    m_state.insertValue<QString>(ImageView::MOUSE_X, 0 );
+    m_state.insertValue<QString>(ImageView::MOUSE_Y, 0 );
+    m_state.flushState();
+}
 
 
 void Controller::_loadView( bool forceReload ) {
@@ -269,6 +228,61 @@ void Controller::_loadView( bool forceReload ) {
 }
 
 
+void Controller::saveState() {
+    //Note:: we need to save the number of data items that have been added
+    //since otherwise, if data items have been deleted, their states will not
+    //have been deleted, and we need to know when we read the states back in,
+    //which ones represent valid data items and which ones do not.
+
+    int dataCount = m_datas.size();
+    m_state.setValue<int>( DATA_COUNT, dataCount );
+    for (int i = 0; i < dataCount; i++) {
+        m_datas[i]->saveState(/*m_winId, i*/);
+    }
+}
+
+
+void Controller::setFrameChannel(const QString& val) {
+    if (m_selectChannel != nullptr) {
+        m_selectChannel->setIndex(val);
+    }
+}
+
+void Controller::setFrameImage(const QString& val) {
+    if (m_selectImage != nullptr) {
+        m_selectImage->setIndex(val);
+    }
+}
+
+
+void Controller::_updateCursor(){
+    QString formattedCursor;
+    QString mouseXStr = m_state.getValue<QString>( ImageView::MOUSE_X );
+    bool validInt = false;
+
+    int mouseX = mouseXStr.toInt(&validInt );
+    if ( !validInt ){
+        return;
+    }
+    QString mouseYStr = m_state.getValue<QString>( ImageView::MOUSE_Y );
+    int mouseY = mouseYStr.toInt( &validInt );
+    if ( !validInt ){
+        return;
+    }
+    int dataIndex = m_selectImage->getIndex();
+
+    int imageDims = this->m_datas[dataIndex]->getDimensions();
+    auto pixCoords = std::vector<double>( imageDims, 0.0);
+    pixCoords[0] = mouseX;
+    pixCoords[1] = mouseY;
+    if( pixCoords.size() > 2) {
+        int frameIndex = m_selectChannel->getIndex();
+        pixCoords[2] = frameIndex;
+    }
+    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    m_state.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
+    m_state.flushState();
+}
 
 Controller::~Controller(){
     clear();

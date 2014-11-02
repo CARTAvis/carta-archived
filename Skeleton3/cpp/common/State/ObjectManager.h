@@ -10,7 +10,8 @@
 
 #include <map>
 #include <QString>
-
+#include <QTextStream>
+#include "StateInterface.h"
 #include "../IConnector.h"
 
 
@@ -24,12 +25,23 @@ public:
     QString getClassName () const;
     QString getId () const;
     QString getPath () const;
+    /**
+     * Returns a json representation of this object's state.
+     * @return a QString representing this object's state.
+     */
+    virtual QString getStateString() const;
+
+    /**
+     * Reset the state of this object.
+     * @param state a QString representing a new state for this object.
+     */
+    virtual void resetState( const QString& state );
 
 protected:
 
     CartaObject (const QString & className,
-                 const QString & path,
-                 const QString & id);
+            const QString & path,
+            const QString & id);
 
     void addCommandCallback (const QString & command, IConnector::CommandCallback);
 
@@ -44,30 +56,32 @@ protected:
     /// unregister a view with the connector
     void unregisterView();
 
+    //Return the full location for the state with the given name.
+    QString getStateLocation( const QString& name ) const;
+
     QString removeId (const QString & commandAndId);
+
 
     template <typename Object, typename Method>
     class OnCommand {
-    public:
-        OnCommand (Object * object, Method method)
-        : m_method (method), m_object (object)
-        {}
+        public:
+            OnCommand (Object * object, Method method)
+                : m_method (method), m_object (object)
+                {}
 
-        QString operator() (const QString & commandAndId, const QString & parameters,
-                            const QString & sessionID){
-            QString command = m_object->removeId (commandAndId);
-            return (m_object ->* m_method) (command, parameters, sessionID);
-        }
-    private:
+            QString operator() (const QString & commandAndId, const QString & parameters,
+                const QString & sessionID){
+                QString command = m_object->removeId (commandAndId);
+                return (m_object ->* m_method) (command, parameters, sessionID);
+            }
+        private:
 
-        Method m_method;
-        Object * m_object;
+            Method m_method;
+            Object * m_object;
     };
-    /*template <typename Object, typename Method>
-        OnCommand<Object, Method>
-        wrapCommandHandler (Object * object, Method method){
-            return OnCommand<Object, Method> (object, method);
-        }*/
+
+protected:
+    StateInterface m_state;
 
 private:
 
@@ -114,17 +128,18 @@ public:
     void initialize ();
     bool registerClass (const QString & className, CartaObjectFactory * factory);
     ///Initialize the state variables that were persisted.
-    bool readState( const QString& fileName );
-    bool saveState( const QString& fileName );
+    //bool readState( const QString& fileName );
+    //bool saveState( const QString& fileName );
     static ObjectManager * objectManager (); // singleton accessor
     QString getRootPath() const;
+    QString getRoot() const;
 
     class OnCreateObject{
     public:
         OnCreateObject (ObjectManager * objectManager) : m_objectManager (objectManager) {}
 
         QString operator() (const QString & /*command*/, const QString & parameters,
-                            const QString & /*sessionId*/)
+                const QString & /*sessionId*/)
         {
             return m_objectManager -> createObject (parameters);
         }
@@ -135,19 +150,19 @@ public:
     };
 
     class OnDestroyObject{
-        public:
-            OnDestroyObject (ObjectManager * objectManager) : m_objectManager (objectManager) {}
+    public:
+        OnDestroyObject (ObjectManager * objectManager) : m_objectManager (objectManager) {}
 
-            QString operator() (const QString & /*command*/, const QString & parameters,
-                                const QString & /*sessionId*/)
-            {
-                return m_objectManager -> destroyObject (parameters);
-            }
+        QString operator() (const QString & /*command*/, const QString & parameters,
+                const QString & /*sessionId*/)
+        {
+            return m_objectManager -> destroyObject (parameters);
+        }
 
-        private:
+    private:
 
-            ObjectManager * m_objectManager;
-        };
+        ObjectManager * m_objectManager;
+    };
 
     static const QString CreateObject;
     static const QString ClassName;
@@ -183,9 +198,9 @@ private:
         ObjectRegistryEntry () : m_object(nullptr) {}
 
         ObjectRegistryEntry (const QString & className,
-                             const QString & id,
-                             const QString & path,
-                             CartaObject * object)
+                const QString & id,
+                const QString & path,
+                CartaObject * object)
         : m_className (className),
           m_id (id),
           m_object (object),
@@ -219,7 +234,8 @@ private:
 
     ClassRegistry m_classes;
 
-    const QString m_RootPath;
+    const QString m_root;
+    const QString m_sep;
 
     int m_nextId;
 
@@ -238,7 +254,7 @@ public:
     static const QString DoSomething;
 
     QString doSomething (const QString & command, const QString & parameters,
-                         const QString & sessionId);
+            const QString & sessionId);
 
 
 private:

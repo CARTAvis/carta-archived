@@ -282,11 +282,11 @@ qx.Class.define("skel.widgets.DisplayMain",
                     var name = layoutObj.plugins[index];
                     if ( name && typeof(name) == "string" ){
                         if ( name != skel.widgets.DisplayWindow.EXCLUDED ){
-                            if ( pluginMap.name ===undefined ){
-                                pluginMap.name = -1;
+                            if ( pluginMap[name] ===undefined ){
+                                pluginMap[name] = -1;
                             }
-                            pluginMap.name = pluginMap.name + 1;
-                            this.m_pane.setView(name, pluginMap.name, row, col);
+                            pluginMap[name] = pluginMap[name] + 1;
+                            this.m_pane.setView(name, pluginMap[name], row, col);
                         }
                         else {
                             this.m_pane.excludeArea( row, col );

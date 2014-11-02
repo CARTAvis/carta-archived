@@ -27,7 +27,6 @@ private:
     bool _setPlugin( const QStringList& name );
     bool _setLayoutSize( int rows, int cols );
 
-    StateInterface m_state;
     static bool m_registered;
     Layout( const QString& path, const QString& id );
 

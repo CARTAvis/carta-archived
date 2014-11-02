@@ -56,9 +56,11 @@ qx.Class.define("skel.boundWidgets.Label", {
         _sharedVarCB : function(val) {
             var labelVal="";
             if ( val ){
-                var controlObj = JSON.parse( val );
-                labelVal = this.m_lookupFunction( controlObj );
-                labelVal = controlObj.mouse.x;
+                if ( this.m_lookupFunction ){
+                    var controlObj = JSON.parse( val );
+                    labelVal = this.m_lookupFunction( controlObj );
+                    labelVal = controlObj.mouse.x;
+                }
             }
             if (typeof this.m_labelPostfix === "function") {
                 this.setValue(this.m_labelPrefix + this.m_labelPostfix(labelVal));

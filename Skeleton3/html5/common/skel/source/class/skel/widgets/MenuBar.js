@@ -18,6 +18,7 @@ qx.Class.define("skel.widgets.MenuBar", {
      */
     construct : function() {
         this.base(arguments);
+        this.m_connector = mImport("connector");
 
         this.m_menuPart = new skel.widgets.MenuBarPart;
         this.add(this.m_menuPart);
@@ -29,6 +30,7 @@ qx.Class.define("skel.widgets.MenuBar", {
         this.m_toolPart = new skel.widgets.MenuBarPart;
         this.add( this.m_toolPart );
         this._initPresetTools();
+        this._initSubscriptions();
 
         // Initially show the menu bar.
         this.setAlwaysVisible(this, true);
@@ -168,14 +170,18 @@ qx.Class.define("skel.widgets.MenuBar", {
             saveSessionButton.addListener("execute",
                     function() {
                         var connector = mImport("connector");
-                        connector.sendCommand("/saveState",this.m_SAVE_STATE, function(val) {});
+                        var path = skel.widgets.Path.getInstance();
+                        var cmd = path.getCommandSaveState();
+                        connector.sendCommand( cmd,this.m_SAVE_STATE, function(val) {});
                     });
             sessionMenu.add(saveSessionButton);
             var restoreSessionButton = new qx.ui.menu.Button("Restore...");
             restoreSessionButton.addListener("execute",
                     function() {
                         var connector = mImport("connector");
-                        connector.sendCommand("/restoreState", this.m_SAVE_STATE, function(val) {});
+                        var path = skel.widgets.Path.getInstance();
+                        var cmd = path.getCommandRestoreState();
+                        connector.sendCommand( cmd, this.m_SAVE_STATE, function(val) {});
                     });
             sessionMenu.add(restoreSessionButton);
             sessionButton.setMenu(sessionMenu);
@@ -259,7 +265,11 @@ qx.Class.define("skel.widgets.MenuBar", {
          */
         _initPresetTools : function(){
             var pathDict = skel.widgets.Path.getInstance();
-            this.m_toolPart.add(new skel.boundWidgets.Toggle( "Recompute clips on new frame", pathDict.AUTO_CLIP));
+            var toggle = new skel.boundWidgets.Toggle( "Recompute clips on new frame", "");
+            toggle.addListener( "toggleChanged", function(autoClip){
+                this._sendAutoClipCmd( autoClip.getData() );
+            }, this)
+            this.m_toolPart.add( toggle );
             
             // add preset buttons
             var connector = mImport("connector");
@@ -277,12 +287,10 @@ qx.Class.define("skel.widgets.MenuBar", {
                             "Right click also automatically zooms in to the data."
                 });
                 button.addListener("execute", function () {
-                        this.histClipVar.set( e);
-                        button.setValue(true);
+                    this._sendClipValueCmd( e, button );
                 }, this);
                 button.addListener("mouseup", function (event) {
-                        this.histClipVar.set( e);
-                        button.setValue(true);
+                    this._sendClipValueCmd( e, button );
                 }, this);
                 radioGroup.add(button);
                 button.setFocusable(false);
@@ -290,6 +298,30 @@ qx.Class.define("skel.widgets.MenuBar", {
                 this.m_presetButtons.push(button);
             }, this);
             this.m_toolPart.add(presetsContainer);
+        },
+        
+        
+        _initSubscriptions : function(){
+            this.m_activeWindowIds = [];
+            qx.event.message.Bus.subscribe(
+                    "windowSelected",
+                    function(message) {
+                        var selectedWindow = message.getData();
+                        var winId = selectedWindow.getIdentifier();
+                        if ( this.m_activeWindowIds.indexOf( winId ) == -1){
+                            this.m_activeWindowIds.push( winId );
+                        }
+                    }, this);
+            qx.event.message.Bus.subscribe(
+                    "windowUnselected",
+                    function(message) {
+                        var unselectedWindow = message.getData();
+                        var winId = unselectedWindow.getIdentifier();
+                        var windowIndex = this.m_activeWindowIds.indexOf( winId );
+                        if ( windowIndex >= 0){
+                            this.m_activeWindowIds.splice( windowIndex, 1 );
+                        }
+                    }, this);
         },
 
         /**
@@ -305,6 +337,34 @@ qx.Class.define("skel.widgets.MenuBar", {
                 topPosition = false;
             }
             return topPosition;
+        },
+        
+        /**
+         * Sends a command to the server to set the clip value to a new value.
+         * @param button representing the clip that was selected.
+         * @param e the new clip value.
+         */
+        _sendClipValueCmd : function ( e, button ){
+            var path = skel.widgets.Path.getInstance();
+            for ( var i = 0; i < this.m_activeWindowIds.length; i++ ){
+                var clipValueCmd = this.m_activeWindowIds[i]+ path.SEP_COMMAND + path.CLIP_VALUE;
+                var params = "clipValue:"+e;
+                this.m_connector.sendCommand(clipValueCmd, params, function(){});
+            }
+            button.setValue(true);
+        },
+        
+        /**
+         * Sends a command to the server to change the auto clip setting.
+         * @param autoClip true for automatically clipping; false otherwise.
+         */
+        _sendAutoClipCmd : function ( autoClip ){
+            var path = skel.widgets.Path.getInstance();
+            for ( var i = 0; i < this.m_activeWindowIds.length; i++ ){
+                var autoClipCmd = this.m_activeWindowIds[i]+ path.SEP_COMMAND + path.AUTO_CLIP;
+                var params = "autoClip:"+autoClip;
+                this.m_connector.sendCommand( autoClipCmd, params, function(){});
+            }
         },
 
         /**
@@ -436,22 +496,16 @@ qx.Class.define("skel.widgets.MenuBar", {
             if (this.m_layoutCustom == null) {
                 this.m_layoutCustom = new skel.widgets.CustomLayoutPopup(this.m_gridRows, this.m_gridCols);
                 this.m_layoutCustom
-                        .addListener(
-                                "rowCount",
+                        .addListener("rowCount",
                                 function(ev) {
                                     var rowCount = ev.getData();
-                                    this.fireDataEvent(
-                                            "layoutRowCount",
-                                            rowCount);
+                                    this.fireDataEvent("layoutRowCount",rowCount);
                                 }, this);
                 this.m_layoutCustom
-                        .addListener(
-                                "colCount",
+                        .addListener("colCount",
                                 function(ev) {
                                     var colCount = ev.getData();
-                                    this.fireDataEvent(
-                                            "layoutColCount",
-                                            colCount);
+                                    this.fireDataEvent("layoutColCount",colCount);
                                 }, this);
             }
             var rightButton = skel.widgets.Util
@@ -475,7 +529,9 @@ qx.Class.define("skel.widgets.MenuBar", {
         m_layoutButton : null,
         m_prefButton : null,
         m_helpButton : null,
-        m_menuPositionButton : true
+        m_menuPositionButton : true,
+        m_connector : null,
+        m_activeWindowIds : null
     }
 
 });

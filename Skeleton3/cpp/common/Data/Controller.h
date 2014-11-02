@@ -57,6 +57,12 @@ public:
      */
     void saveState();
 
+    /**
+     * Returns a json string representing the state of this controller.
+     * @return a string representing the state of this controller.
+     */
+    virtual QString getStateString() const;
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
@@ -117,8 +123,6 @@ private:
 
     /// coordinate formatter
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
-
-    StateInterface m_state;
 
     Controller(const Controller& other);
     Controller operator=(const Controller& other);

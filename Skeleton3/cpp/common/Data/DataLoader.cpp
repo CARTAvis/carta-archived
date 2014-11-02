@@ -6,7 +6,7 @@
 #include <QJsonObject>
 
 QString DataLoader::fakeRootDirName = "RootDirectory";
-const QString DataLoader::CLASS_NAME = "edu.nrao.carta.DataLoader";
+const QString DataLoader::CLASS_NAME = "DataLoader";
 bool DataLoader::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataLoader::Factory());

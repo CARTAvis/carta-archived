@@ -70,6 +70,11 @@ public:
     static const QString INDEX_KEY;
     static const QString LOW_KEY;
     static const QString CLASS_NAME;
+    static const QString SELECTIONS;
+    //Identifier for an image.
+    const static QString IMAGE;
+    //Identifier for a channel.
+    static const QString CHANNEL;
 
     static bool m_registered;
 
@@ -111,8 +116,5 @@ private:
 
     //Set the upper, lower, or index value, checking that it is a valid value.
     bool _setFrameBoundsCheck(/*StateKey key*/const QString& key , int bound);
-
-    StateInterface m_state;
-
 
 };

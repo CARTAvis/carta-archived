@@ -8,8 +8,6 @@ qx.Class.define("skel.widgets.Path", {
 
     construct : function() {
         this.BASE_PATH = this.SEP + this.CARTA + this.SEP;
-        this.AUTO_CLIP = this.SEP + this.CARTA + this.SEP + "autoClip";
-        this.CLIP_VALUE = this.SEP + this.CARTA + this.SEP + "clipValue";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
@@ -21,10 +19,10 @@ qx.Class.define("skel.widgets.Path", {
     },
     members : {
         BASE_PATH : "",
-        AUTO_CLIP : "",
+        AUTO_CLIP : "setAutoClip",
         CARTA : "CartaObjects",
         CASA_LOADER : "CasaImageLoader",
-        CLIP_VALUE : "",
+        CLIP_VALUE : "setClipValue",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         HIDDEN : "Hidden",
@@ -60,14 +58,23 @@ qx.Class.define("skel.widgets.Path", {
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "clearLayout";
         },
         
+        getCommandRestoreState : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "restoreState";
+        },
+        
         getCommandSetLayoutSize : function(){
             return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setLayoutSize";
         },
         
         getCommandSetPlugin : function(){
             return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setPlugin";
+        },
+        
+        getCommandSaveState : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "saveState";
         }
         
+ 
 
 
     }

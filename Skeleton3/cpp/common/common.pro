@@ -35,7 +35,8 @@ HEADERS += \
     PlotLabelGenerator.h \
     State/ObjectManager.h \
     State/StateInterface.h \
-    State/StateXmlRestorer.h \
+    State/StateReader.h \
+    State/StateWriter.h \
     ImageView.h \
     Data/Animator.h \
     Data/AnimatorType.h \
@@ -62,7 +63,8 @@ SOURCES += \
     MainConfig.cpp \
     State/ObjectManager.cpp\
     State/StateInterface.cpp \
-    State/StateXmlRestorer.cpp \
+    State/StateReader.cpp \
+    State/StateWriter.cpp \
     ImageView.cpp \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \

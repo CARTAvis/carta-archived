@@ -55,12 +55,8 @@ public:
     /// set state to a new value
     virtual void setState( const QString & state,  const QString & value) = 0;
 
-    ///Save the state.
-    virtual bool saveState(const QString& saveName ) const = 0;
-
-    ///Initialize the state variables that were persisted.
-    virtual bool readState( const QString& fileName ) = 0;
-
+    //Return a string indicating the location where state is saved/restored.
+    virtual QString getStateLocation( const QString& saveName ) const = 0;
 
     /// read state
     virtual QString getState( const QString & path) = 0;

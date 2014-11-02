@@ -60,6 +60,10 @@ public:
      */
     int getFrameCount() const;
 
+    /**
+     * Return the number of dimensions in the image.
+     * @return the number of image dimensions.
+     */
     int getDimensions() const;
 
     virtual ~DataSource();
@@ -96,7 +100,6 @@ private:
 
     static bool m_registered;
     static const QString DATA_PATH;
-    StateInterface m_state;
 
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_image;

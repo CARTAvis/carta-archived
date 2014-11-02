@@ -20,7 +20,7 @@ public:
 
     static const QString DELIMITER;
 
-    StateInterface (const QString & path);
+    StateInterface (const QString & path, const QString& type = "", const QString& initialState="");
     StateInterface (const StateInterface & other);
 
     virtual ~StateInterface ();
@@ -34,6 +34,8 @@ public:
     void fetchState ();
     void flushState ();
     QString toString() const;
+    QString toString (const QString & keyString) const;
+
 
 
     // The routines that follow modify the state as currently stored in this
@@ -58,6 +60,8 @@ public:
     // doing a fetchState().
 
     bool hasChanged (const QString & keyString) const;
+
+    QList<QString> getMemberNames (const QString & keyString) const;
 
     // The array routines are used to insert or resize array values.
     //
@@ -95,7 +99,9 @@ public:
     // does not exist an invalid_argument exception is thrown.
 
     void insertObject (const QString & keyString);
+    void insertObject( const QString& keyString, const QString& valueInJson );
     void setObject( const QString& keyString );
+    void setObject( const QString& keyString, const QString& valueInJson );
 
     // These routines set or insert a value into the state at the specified keystring.  The setters
     // require that the specified path exist.  The inserters require that the path prefix (all but
@@ -115,6 +121,8 @@ public:
     void insertValue (const QString & keyString, const T & newValue);
     void insertNull( const QString& keyString );
     void setNull( const QString& keyString );
+
+    void setState( const QString& json );
 
 protected:
 
@@ -144,21 +152,11 @@ private:
     void setTypedValue (const uint & typedValue, const QString & keyString) const;
     void setTypedValue (const uint64_t & typedValue, const QString & keyString) const;
 
-
+    void _restoreState( const QString& json );
 
 };
 
 
-//template <typename T>
-//T StateInterface::getOldValue (const string & keyString) const
-//{
-//    Value & value = getValueAux (keyString, oldState_p);
-//
-//    T typedValue;
-//    getTypedValue (typedValue, value);
-//
-//    return typedValue;
-//}
 
 
 template <typename T>

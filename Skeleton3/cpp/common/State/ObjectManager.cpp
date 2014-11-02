@@ -44,10 +44,20 @@ CartaObject::getPath () const
 CartaObject::CartaObject (const QString & className,
                           const QString & path,
                           const QString & id)
-: m_className (className),
+:
+  m_state( path, className ),
+  m_className (className),
   m_id (id),
-  m_path (path)
-{}
+  m_path (path){
+    }
+
+QString CartaObject::getStateString() const {
+    return m_state.toString();
+}
+
+void CartaObject::resetState( const QString& state ){
+    m_state.setState( state );
+}
 
 void
 CartaObject::addCommandCallback (const QString & rawCommand, IConnector::CommandCallback callback)
@@ -79,6 +89,11 @@ void CartaObject::unregisterView(){
     connector->unregisterView( m_id );
 }
 
+QString CartaObject::getStateLocation( const QString& name ) const {
+    IConnector * connector = Globals::instance()->connector();
+    return connector->getStateLocation( name );
+}
+
 QString
 CartaObject::removeId (const QString & commandAndId)
 {
@@ -95,13 +110,18 @@ const QString ObjectManager::ClassName = "ClassName";
 const QString ObjectManager::DestroyObject = "DestroyObject";
 
 ObjectManager::ObjectManager ()
-:m_RootPath ("/CartaObjects"),
+:       m_root( "CartaObjects"),
+        m_sep( "/"),
     m_nextId (0){
 
 }
 
 QString ObjectManager::getRootPath() const {
-    return m_RootPath;
+    return  m_sep + m_root;
+}
+
+QString ObjectManager::getRoot() const {
+    return m_root;
 }
 
 QString
@@ -123,7 +143,7 @@ ObjectManager::createObject (const QString & className)
             m_nextId ++;
             id = QString::number( m_nextId);
         }
-        QString path (m_RootPath + "/" + id);
+        QString path (m_sep + m_root + m_sep + id);
 
 
         CartaObject* object = factory->create( path, id );
@@ -158,16 +178,7 @@ ObjectManager::destroyObject (const QString & id)
     return "";
 }
 
-///Initialize the state variables that were persisted.
-bool ObjectManager::readState( const QString& fileName ){
-    IConnector * connector = Globals::instance()->connector();
-    return connector->readState( fileName );
-}
 
-bool ObjectManager::saveState( const QString& fileName ){
-    IConnector * connector = Globals::instance()->connector();
-    return connector->saveState( fileName );
-}
 
 CartaObject *
 ObjectManager::getObject (const QString & id)

@@ -463,6 +463,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                 }
             } else {
                 this.setAppearance("display-window");
+                qx.event.message.Bus.dispatch( new qx.event.message.Message( "windowUnselected", this ));
             }
         },
 

@@ -34,13 +34,6 @@ public:
     //Return the value of the state with the given key and window id.
     virtual QString getState(const QString&) Q_DECL_OVERRIDE;
 
-    ///Save the state tree.
-    virtual bool saveState(const QString& saveName) const Q_DECL_OVERRIDE;
-
-    /// Initialize the state from a file.
-    virtual bool readState( const QString& fileName ) Q_DECL_OVERRIDE;
-
-
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) Q_DECL_OVERRIDE;
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
@@ -48,6 +41,9 @@ public:
     void unregisterView( const QString& viewName ) Q_DECL_OVERRIDE;
     virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
     virtual void removeStateCallback( const CallbackID & id);
+
+    /// Return the location where the state is saved.
+    virtual QString getStateLocation( const QString& saveName ) const;
 
 public slots:
     /// javascript calls this to set a state
@@ -146,8 +142,7 @@ protected:
     InitializeCallback m_initializeCallback;
 
 private:
-    /// Return the location where the state is saved.
-   QString getStatePath( const QString& saveName ) const;
+
    std::map< QString, QString > m_state;
 
 };

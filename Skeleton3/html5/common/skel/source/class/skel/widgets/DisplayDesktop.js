@@ -49,8 +49,7 @@ qx.Class
                                         title : this.m_window.getIdentifier()
                                     };
                                     this.fireDataEvent("iconifyWindow", data);
-                                }
-                                ;
+                                };
                             }, this);
 
                             this.m_window.addListener("maximizeWindow",

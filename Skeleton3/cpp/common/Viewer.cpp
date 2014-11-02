@@ -1,8 +1,6 @@
 #include "Viewer.h"
 #include "Globals.h"
 #include "IPlatform.h"
-//#include "IConnector.h"
-//#include "Algorithms/RawView2QImageConverter.h"
 #include "State/ObjectManager.h"
 #include "Data/ViewManager.h"
 
@@ -454,7 +452,6 @@ Viewer::start()
     QString vmId = objManager->createObject (ViewManager::CLASS_NAME);
     CartaObject* vmObj = objManager->getObject( vmId );
     m_viewManager.reset( dynamic_cast<ViewManager*>(vmObj));
-    fname = "/scratch/Images/Orion.cont.image.fits";
     if ( fname.length() > 0 ){
         //reloadFrame( true);
         m_viewManager->loadFile( fname );

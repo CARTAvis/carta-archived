@@ -27,7 +27,7 @@ class StateInterfaceImpl {
 
 private:
 
-    StateInterfaceImpl (const QString & path)
+    StateInterfaceImpl (const QString & path )
     : path_p (path)
     {
         state_p.SetObject();
@@ -38,6 +38,7 @@ private:
         oldState_p.CopyFrom (other.oldState_p, oldState_p.GetAllocator());
         path_p = other.path_p;
         state_p.CopyFrom (other.state_p, state_p.GetAllocator());
+
     }
 
     vector <QString> getKeys (const QString &) const;
@@ -81,9 +82,15 @@ private:
 const QString StateInterface::DELIMITER("/");
 
 
-StateInterface::StateInterface (const QString & path)
-: impl_p (new StateInterfaceImpl (path))
+StateInterface::StateInterface (const QString & path, const QString& type, const QString& initialState )
+: impl_p (new StateInterfaceImpl (path) )
 {
+    if ( type.trimmed().size() > 0  ){
+        insertValue<QString>( "type", type );
+    }
+    if ( initialState.trimmed().size() > 0 ){
+        flushStateImpl( initialState );
+    }
 }
 
 StateInterface::StateInterface (const StateInterface & other)
@@ -105,12 +112,20 @@ StateInterface::~StateInterface ()
     delete impl_p;
 }
 
+void StateInterface::setState( const QString& jsonStr  ){
+    _restoreState( jsonStr );
+}
+
 void
 StateInterface::fetchState ()
 {
     impl_p->oldState_p.CopyFrom (impl_p->state_p, impl_p->state_p.GetAllocator());
-
     QString json = fetchStateImpl ();
+    _restoreState( json );
+}
+
+void StateInterface::_restoreState( const QString& json ){
+
     AsUtf8 jsonUtf8 (json);
 
     impl_p->state_p.Parse (jsonUtf8.data());
@@ -151,6 +166,24 @@ QString StateInterface::toString() const {
     return QString( json.c_str() );
 }
 
+QString
+StateInterface::toString (const QString & keyString) const
+{
+    // This might be replicating the nullary signatured toString, but the
+    // Document object doesn't seem to always play nice as the Value object
+    // which it's supposed to derive from.
+
+    const Value & value = impl_p->getValueAux (keyString, impl_p->state_p);
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+
+    value.Accept (writer);
+    string json = buffer.GetString();
+    return QString( json.c_str() );
+}
+
+
 void
 StateInterfaceImpl::insertObjectAux (const QString & keyString, Value & valueToInsert)
 {
@@ -190,6 +223,33 @@ StateInterfaceImpl::insertObjectAux (const QString & keyString, Value & valueToI
 
     value.AddMember (lastKeyValue, valueToInsert, state_p.GetAllocator());
 }
+
+void
+StateInterface::insertObject (const QString & keyString, const QString & valueInJson)
+{
+    Document newValue;
+
+    newValue.Parse (valueInJson.toStdString().c_str());
+
+    if (newValue.HasParseError()){
+
+        QString message = QString ("StateInterface::insertObject: "
+                                   "Error parsing JSON representation '%1'")
+                              .arg (valueInJson);
+        throw domain_error (message.toStdString());
+    }
+
+    // Apparently it's needed to get a copy of the value out of the
+    // just created document to prevent memory allocation problems
+    // of some sort???
+
+    Value copiedValue;
+    copiedValue.CopyFrom (newValue, impl_p->state_p.GetAllocator());
+
+    impl_p->insertObjectAux (keyString, copiedValue);
+}
+
+
 
 void
 StateInterface::insertArray (const QString & keyString, int size)
@@ -537,6 +597,30 @@ StateInterface::setObject (const QString & keyString)
 }
 
 void
+StateInterface::setObject (const QString & keyString, const QString & valueInJson)
+{
+    // Replace the current value with an empty object
+
+    Value & value = impl_p->getValueAux (keyString, impl_p->state_p);
+
+    Document newDocument;
+    newDocument.Parse (valueInJson.toStdString().c_str());
+
+    if (newDocument.HasParseError()){
+
+        QString message = QString ("StateInterface::insertObject: (inserting into '%2') "
+                                   "Error parsing JSON representation '%1'")
+                              .arg (valueInJson).arg (keyString);
+        throw domain_error (message.toStdString());
+    }
+
+    value.SetObject();
+    value.CopyFrom (newDocument, impl_p->state_p.GetAllocator());
+}
+
+
+
+void
 StateInterface::setNull (const QString & keyString)
 {
     Value & value = impl_p->getValueAux (keyString, impl_p->state_p);
@@ -564,4 +648,26 @@ StateInterface::setArray (const QString & keyString, int size)
 
     resizeArray (keyString, size);
 }
+
+QList<QString>
+StateInterface::getMemberNames (const QString & keyString) const {
+
+    // Get the requested object
+    const Value * value = impl_p->_getValueAux (keyString, impl_p->state_p);
+    if (! value->IsObject()){
+        QString message = QString ("StateInterface::getMemberNames: '%1' is not an object.")
+                          .arg (keyString);
+        throw invalid_argument (message.toStdString());
+    }
+
+    // Get the object's member iterator, and use it to extract the member names
+    Value::ConstMemberIterator iterator = value->MemberBegin();
+    QList<QString> result;
+    while (iterator != value->MemberEnd()){
+        result.append (QString (iterator->name.GetString()));
+        iterator ++;
+    }
+    return result;
+}
+
 

@@ -5,15 +5,17 @@
 const QString Selection::HIGH_KEY = "frameEnd";
 const QString Selection::INDEX_KEY = "frame";
 const QString Selection::LOW_KEY = "frameStart";
-const QString Selection::CLASS_NAME = "edu.nrao.carta.Selection";
+const QString Selection::CLASS_NAME = "Selection";
+const QString Selection::SELECTIONS = "selections";
+const QString Selection::IMAGE = "Image";
+const QString Selection::CHANNEL = "Channel";
 
 bool Selection::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Selection::Factory());
 
 Selection::Selection( const QString& prefix, const QString& identifier ):
-    CartaObject( CLASS_NAME, prefix, identifier ),
-    m_state( prefix){
+    CartaObject( CLASS_NAME, prefix, identifier ){
     _initializeStates( );
 }
 
