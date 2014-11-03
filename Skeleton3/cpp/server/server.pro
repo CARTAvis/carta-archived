@@ -24,7 +24,7 @@ SOURCES       = \
 
 
 # pureweb related stuff
-PUREWEB_LIBS=$$(HOME)/Work/Software/PureWeb/4.1.1/SDK/Redistributable/Libs
+PUREWEB_LIBS=$$absolute_path("../../../ThirdParty/pureweb-4.1.1-sdk/Redistributable/Libs")
 
 unix:INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
 
