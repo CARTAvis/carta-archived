@@ -85,4 +85,6 @@ SOURCES += \
 #PRECOMPILED_HEADER = stable.h
 #QMAKE_CXXFLAGS += -H
 
+INCLUDEPATH += ../../../ThirdParty/rapidjson/include
+
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
