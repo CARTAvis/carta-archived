@@ -10,11 +10,13 @@ TEMPLATE = lib
 DEFINES += CARTALIB_LIBRARY
 
 SOURCES += CartaLib.cpp \
-    HtmlString.cpp
+    HtmlString.cpp \
+    IColormapScalar.cpp
 
 HEADERS += CartaLib.h\
         cartalib_global.h \
-    HtmlString.h
+    HtmlString.h \
+    IColormapScalar.h
 
 unix {
     target.path = /usr/lib

@@ -254,6 +254,7 @@ qx.Class.define("skel.widgets.MenuBar", {
         _initPresetTools : function() {
             var pathDict = skel.widgets.Path.getInstance();
             this.m_toolPart.add(new skel.boundWidgets.Toggle( "Cursor", "/hacks/cursorVisible"));
+            this.m_toolPart.add(new skel.boundWidgets.Toggle( "Colormap", "/hacks/cm-windowVisible"));
             this.m_toolPart.add(new skel.boundWidgets.Toggle( "Recompute clips on new frame", pathDict.AUTO_CLIP));
             
             // add preset buttons

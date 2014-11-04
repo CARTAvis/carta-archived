@@ -44,7 +44,8 @@ HEADERS += \
     Data/DataSelection.h \
     Data/Region.h \
     Data/DataSource.h \
-    Data/Region.h
+    Data/Region.h \
+    Colormaps.h
 
 SOURCES += \
     Viewer.cpp \
@@ -74,6 +75,7 @@ SOURCES += \
     CoordinateGridPlotter.cpp \
     PlotLabelGenerator.cpp \
     PixelType.cpp \
+    Colormaps.cpp
 
 
 #message( "common            PWD=$$PWD")

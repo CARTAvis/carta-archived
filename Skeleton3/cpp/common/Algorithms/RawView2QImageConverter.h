@@ -5,9 +5,12 @@
 
 #pragma once
 
+#include "CartaLib/IColormapScalar.h"
+#include "Colormaps.h"
+#include "IImage.h"
 #include <QImage>
 #include <QCache>
-#include "IImage.h"
+
 
 
 /// compute clip values from the values in a view
@@ -76,6 +79,7 @@ public:
     RawView2QImageConverter() {
         // set cache size (in MB)
         m_cache.setMaxCost( 6 * 1024);
+        m_cmap = std::make_shared<Carta::Core::ColormapFunction>( Carta::Core::ColormapFunction::fire());
     }
 
     Me & setView( NdArray::RawViewInterface * rawView) {
@@ -106,6 +110,13 @@ public:
         m_autoClip = val;
         return * this;
     }
+
+    Me & setColormap( Carta::Lib::IColormapScalar::SharedPtr cmap) {
+        m_cmap = cmap;
+        m_cache.clear();
+        return * this;
+    }
+    Carta::Lib::IColormapScalar::SharedPtr m_cmap;
 
     const QImage & go( int frame, bool recomputeClip = true) {
 
@@ -161,14 +172,17 @@ public:
         Scalar clipdinv = 1.0 / (m_clip2 - m_clip1);
 
         // apply the clips
+        CARTA_ASSERT( m_cmap != nullptr);
         int64_t counter = 0;
         view.forEach( [& outPtr, & clipdinv, & counter, & width, this](const Scalar & ival) {
             if( std::isfinite( ival)) {
                 Scalar val = (ival - m_clip1) * clipdinv;
-                int gray = val * 255;
-                if( gray > 255) gray = 255;
-                if( gray < 0) gray = 0;
-                * outPtr = qRgb( gray, gray, gray);
+                val = clamp<Scalar>( val, 0.0, 1.0);
+                * outPtr = m_cmap->convert( val);
+//                int gray = val * 255;
+//                if( gray > 255) gray = 255;
+//                if( gray < 0) gray = 0;
+//                * outPtr = qRgb( gray, gray, gray);
             }
             else {
                 * outPtr = qRgb( 255, 0, 0);

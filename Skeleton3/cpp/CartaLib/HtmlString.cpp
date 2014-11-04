@@ -3,6 +3,7 @@
  **/
 
 #include "HtmlString.h"
+#include <QTextDocumentFragment>
 
 QString
 Carta::Lib::HtmlString::html() const

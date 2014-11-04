@@ -6,7 +6,6 @@
 
 #include "CartaLib.h"
 #include <QString>
-#include <QTextDocumentFragment>
 
 namespace Carta
 {

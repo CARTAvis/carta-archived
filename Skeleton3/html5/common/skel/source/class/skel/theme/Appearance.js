@@ -28,7 +28,6 @@ qx.Theme.define( "skel.theme.Appearance", {
         {
             style : function(states)
             {
-                console.log("dsssss()", states);
                 return {
                     decorator : (states.winsel ? "window-captionbar-active" :
                         "window-captionbar-inactive"),

@@ -85,8 +85,9 @@ qx.Class.define("skel.Application", {
             win.open();
 
 
-            this.m_cursorWindow = new skel.boundWidgets.CursorWindow;
-            window.xxx = this.m_cursorWindow;
+            // hacks for temporary functionality
+            this.m_cursorWindow = new skel.boundWidgets.CursorWindow();
+            this.m_colormapWindow = new skel.boundWidgets.ColormapWindow();
 
             var connector = mImport( "connector" );
             if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
@@ -351,7 +352,8 @@ qx.Class.define("skel.Application", {
         m_windowLocator: null,
         m_windowLink: null,
         m_fileBrowser: null,
-        m_cursorWindow: null
+        m_cursorWindow: null,
+        m_colormapWindow: null
 
     }
 });

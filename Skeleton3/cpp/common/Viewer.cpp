@@ -1,4 +1,5 @@
 #include "Viewer.h"
+#include "Colormaps.h"
 #include "Globals.h"
 #include "IPlatform.h"
 #include "IConnector.h"
@@ -93,114 +94,6 @@ parseParamMap2( const QString & paramsToParse, const std::set<QString> & keyList
     }
     return result;
 }
-
-#ifdef DONT_COMPILE
-
-class TestView : public IView
-{
-public:
-    TestView( const QString & viewName, QColor bgColor )
-    {
-        m_qimage = QImage( 100, 100, QImage::Format_RGB888 );
-        m_qimage.fill( bgColor );
-
-        m_viewName  = viewName;
-        m_connector = nullptr;
-        m_bgColor   = bgColor;
-    }
-
-    virtual void
-    registration( IConnector * connector )
-    {
-        m_connector = connector;
-    }
-
-    virtual const QString &
-    name() const
-    {
-        return m_viewName;
-    }
-
-    virtual QSize
-    size()
-    {
-        return m_qimage.size();
-    }
-
-    virtual const QImage &
-    getBuffer()
-    {
-        redrawBuffer();
-        return m_qimage;
-    }
-
-    virtual void
-    handleResizeRequest( const QSize & pSize )
-    {
-        QSize size( std::max( pSize.width(), 1), std::max( pSize.height(), 1));
-        m_qimage = QImage( size, m_qimage.format() );
-        m_connector-> refreshView( this );
-    }
-
-    virtual void
-    handleMouseEvent( const QMouseEvent & ev )
-    {
-        m_lastMouse = QPointF( ev.x(), ev.y() );
-        m_connector-> refreshView( this );
-
-		m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
-		m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
-	}
-
-    virtual void
-    handleKeyEvent( const QKeyEvent & /*event*/ )
-    { }
-
-protected:
-    QColor m_bgColor;
-
-    void
-    redrawBuffer()
-    {
-        QPointF center = m_qimage.rect().center();
-        QPointF diff   = m_lastMouse - center;
-        double angle   = atan2( diff.x(), diff.y() );
-        angle *= - 180 / M_PI;
-
-        m_qimage.fill( m_bgColor );
-        {
-            QPainter p( & m_qimage );
-            p.setPen( Qt::NoPen );
-            p.setBrush( QColor( 255, 255, 0, 128 ) );
-            p.drawEllipse( QPoint( m_lastMouse.x(), m_lastMouse.y() ), 10, 10 );
-            p.setPen( QColor( 255, 255, 255 ) );
-            p.drawLine( 0, m_lastMouse.y(), m_qimage.width() - 1, m_lastMouse.y() );
-            p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height() - 1 );
-
-            p.translate( m_qimage.rect().center() );
-            p.rotate( angle );
-            p.translate( - m_qimage.rect().center() );
-            p.setFont( QFont( "Arial", 20 ) );
-            p.setPen( QColor( "white" ) );
-            p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName );
-        }
-
-        // execute the pre-render hook
-        Globals::instance()-> pluginManager()
-            -> prepare < PreRender > ( m_viewName, & m_qimage )
-            .executeAll();
-    } // redrawBuffer
-
-    IConnector * m_connector;
-    QImage m_qimage;
-    QString m_viewName;
-    int m_timerId;
-    QPointF m_lastMouse;
-};
-
-#endif // DONT_COMPILE
-
-
 
 class TestView2 : public IView
 {
@@ -315,7 +208,6 @@ public:
 
         str.replace( "\n", "<br />");
         m_connector-> setState( StateKey::HACKS, "cursorText", str);
-
 	}
 
     virtual void
@@ -388,6 +280,9 @@ Viewer::Viewer() :
 
     m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
     m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */);
+
+    auto rawCmap = std::make_shared<Carta::Core::ColormapFunction>( Carta::Core::ColormapFunction::heat());
+    m_rawView2QImageConverter-> setColormap( rawCmap);
 }
 
 void
@@ -420,6 +315,39 @@ Viewer::start()
     // tell all plugins that the core has initialized
     pm-> prepare < Initialize > ().executeAll();
 
+    // setup some colormap hacks
+    {
+        auto conn = Globals::instance()-> connector();
+        conn->setState(StateKey::HACKS, "cm-names-0", "Gray" );
+        conn->setState(StateKey::HACKS, "cm-names-1", "Heat" );
+        conn->setState(StateKey::HACKS, "cm-names-2", "Spring" );
+        conn->setState(StateKey::HACKS, "cm-count", "3" );
+        conn->setState(StateKey::HACKS, "cm-current", "1" );
+        conn->addStateCallback( "/hacks/cm-current", [this](const QString & /*path*/, const QString & value){
+            qDebug() << "Cmap changed to" << value;
+            bool ok;
+            int ind = value.toInt( & ok);
+            if( ! ok) return;
+            using namespace Carta::Core;
+            std::function<ColormapFunction(void)> fn;
+            if( ind == 0) {
+                fn = & ColormapFunction::gray;
+            }
+            else if( ind == 1) {
+                fn = & ColormapFunction::heat;
+            }
+            else if( ind ==2 ) {
+                fn = & ColormapFunction::spring;
+            }
+            else {
+                return;
+            }
+            auto rawCmap = std::make_shared<Carta::Core::ColormapFunction>( fn());
+            m_rawView2QImageConverter-> setColormap( rawCmap);
+            reloadFrame(true);
+        });
+
+    }
 
 	// ask plugins to load the image
 	qDebug() << "======== trying to load image ========";
