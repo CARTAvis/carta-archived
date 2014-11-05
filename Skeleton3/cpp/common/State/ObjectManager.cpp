@@ -141,7 +141,7 @@ ObjectManager::createObject (const QString & className)
         QString id = factory->getGlobalId();
         if ( id.length() == 0 ){
             m_nextId ++;
-            id = QString::number( m_nextId);
+            id = "c"+QString::number( m_nextId);
         }
         QString path (m_sep + m_root + m_sep + id);
 

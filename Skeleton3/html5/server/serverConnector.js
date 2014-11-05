@@ -446,8 +446,12 @@
     {
 //        m_client.queueCommand( cmd, param, callback );
         m_client.queueCommand( "generic", { cmd: cmd, params: params}, function( caller, data) {
-            console.log( "internal command Cb: ", caller, data);
-            callback( data.getResponse());
+            var response = data.getResponse();
+            if ( response.textContent ){
+                response = response.textContent.replace(/(\r\n|\n|\r)/gm,"");
+                response = response.trim();
+            }
+            callback( response );
         } );
     };
 

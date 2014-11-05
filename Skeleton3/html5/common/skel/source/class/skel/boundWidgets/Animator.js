@@ -34,7 +34,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         // Create the GUI
         this._initUI();
         
-        // Create the shared variables
+        // Create the shared variable for the settings
         this._initSharedVars();
     },
 
@@ -369,7 +369,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
 
         /**
-         * Initialize the shared variables.
+         * Initialize the shared variable for the settings.
          */
         _initSharedVars : function() {
             this.m_connector = mImport("connector");
@@ -379,10 +379,16 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var pathDict = skel.widgets.Path.getInstance();
             var regCmd = this.m_winId + pathDict.SEP_COMMAND + "addAnimator";
             this.m_connector.sendCommand( regCmd, paramMap, this._registrationCB(this));
-            
+        },
+        
+        /**
+         * Initialize the shared variable for the selection.
+         */
+        _initSharedVarsSelection : function(){
              
             //Kick off a command to get frame index, lower bound, and upper bound.
             var pathDict = skel.widgets.Path.getInstance();
+           
             var regCmd = this.m_animId + pathDict.SEP_COMMAND + "getSelection";
             this.m_connector.sendCommand( regCmd, "", this._selectionCB(this));
         },
@@ -525,6 +531,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }
         },
         
+        /**
+         * Initialize the shared variable that controls the settings.
+         */
         _registrationCB : function( anObject ){
             return function( id ){
                 //Initialize the shared variable that manages the rate, endBehavior and step.
@@ -532,13 +541,14 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 anObject.m_sharedVar.addCB( anObject._animationCB.bind( anObject ));
                 anObject._animationCB( anObject.m_sharedVar.get());
                 anObject.m_animId = id;
-                //anObject._initializeSelection();
+                anObject._initSharedVarsSelection();
             }
         },
         
         
-        
-
+        /**
+         * Initialization of the shared variable that controls the selection.
+         */
         _selectionCB : function( anObject ){
             return function( id ){
                 anObject.m_sharedVarSelection = anObject.m_connector.getSharedVar( id );
@@ -547,6 +557,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }
         },
         
+        /**
+         * Callback for a change in the selection.
+         */
         _selectionResetCB : function( val ){
             if ( val ){
                 if ( this._frameCB ){
