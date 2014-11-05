@@ -21,9 +21,11 @@ class DataSource : public CartaObject {
 
 public:
     /**
-     * Set the location of the data.
+     * Returns whether or not the data was successfully loaded.
+     * @param fileName an identifier for the location of a data source.
+     * @return true if the data souce was successfully loaded; false otherwise.
      */
-    void setFileName( const QString& fileName );
+    bool setFileName( const QString& fileName );
 
     /**
      * Loads the data source as a QImage.

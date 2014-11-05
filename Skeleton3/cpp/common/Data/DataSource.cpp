@@ -25,13 +25,26 @@ DataSource::DataSource(const QString& path, const QString& id) :
         _initializeState();
 }
 
-void DataSource::setFileName( const QString& fileName ){
+bool DataSource::setFileName( const QString& fileName ){
     m_fileName = fileName.trimmed();
+    bool successfulLoad = true;
     if (m_fileName.length() > 0) {
-        auto & globals = *Globals::instance();
-        auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
-        m_image = loadImageHookHelper.first().val();
+        try {
+            auto & globals = *Globals::instance();
+            auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
+            auto firstPart = loadImageHookHelper.first();
+            m_image = loadImageHookHelper.first().val();
+        }
+        catch( std::logic_error& err ){
+            qDebug() << "Failed to load image "<<fileName;
+            successfulLoad = false;
+        }
     }
+    else {
+        qDebug() << "Cannot load empty file";
+        successfulLoad = false;
+    }
+    return successfulLoad;
 }
 
 

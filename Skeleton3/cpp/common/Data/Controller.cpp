@@ -70,16 +70,22 @@ void Controller::addData(const QString& fileName) {
 
         saveState();
     }
-    m_datas[targetIndex]->setFileName(fileName );
-    int frameCount = m_datas[targetIndex]->getFrameCount();
-    m_selectChannel->setUpperBound( frameCount );
-    m_selectImage->setIndex(targetIndex);
 
-    //Refresh the view of the data.
-    _loadView( false );
+    bool successfulLoad = m_datas[targetIndex]->setFileName(fileName );
+    if ( successfulLoad ){
+        int frameCount = m_datas[targetIndex]->getFrameCount();
+        m_selectChannel->setUpperBound( frameCount );
+        m_selectImage->setIndex(targetIndex);
 
-    //Notify others there has been a change to the data.
-    emit dataChanged();
+        //Refresh the view of the data.
+        _loadView( false );
+
+        //Notify others there has been a change to the data.
+        emit dataChanged();
+    }
+    else {
+        m_datas.removeAt( targetIndex );
+    }
 }
 
 void Controller::clear(){
