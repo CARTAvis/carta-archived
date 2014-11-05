@@ -23,7 +23,7 @@ class CoordinateFormatterInterface {
 public:
 
     /// \todo we can remove this once we put this class into carta namespace
-    typedef Carta::TextFormat TextFormat;
+    typedef Carta::Lib::TextFormat TextFormat;
 
     /// shortcut to a vector of doubles
     typedef std::vector<double> VD;

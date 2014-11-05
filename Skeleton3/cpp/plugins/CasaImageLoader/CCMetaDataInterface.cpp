@@ -8,7 +8,7 @@
 
 CCMetaDataInterface::CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa::CoordinateSystem> casaCS)
 {
-    m_title = Carta::HtmlString::fromHtml( htmlTitle);
+    m_title = Carta::Lib::HtmlString::fromHtml( htmlTitle);
     m_casaCS = casaCS;
 }
 

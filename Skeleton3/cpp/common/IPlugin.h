@@ -6,10 +6,6 @@
 #include <QDebug>
 #include <cstdint>
 
-//namespace Image {
-//class ImageInterface;
-//}
-
 /// Every hook as a unique ID and we are using 64bit integers for hook IDs
 /// The IDs will allow us to do static_cast<> downcasting inside plugins.
 typedef int64_t HookId;

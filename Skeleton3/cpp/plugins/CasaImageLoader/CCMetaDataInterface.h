@@ -36,7 +36,7 @@ public:
     otherInfo( TextFormat format ) override;
 
 protected:
-    Carta::HtmlString m_title;
+    Carta::Lib::HtmlString m_title;
     std::shared_ptr<casa::CoordinateSystem> m_casaCS;
 
 };

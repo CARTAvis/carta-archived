@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "common/CoordinateFormatter.h"
+#include "common/ICoordinateFormatter.h"
 
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <memory>

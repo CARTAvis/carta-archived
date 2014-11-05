@@ -10,6 +10,7 @@
 
 namespace Image {
 
+/// supported pixel types in images
 enum class PixelType : int {
 
     Byte = 0,

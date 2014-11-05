@@ -29,10 +29,7 @@ HEADERS += \
     ScriptedCommandListener.h \
     PixelType.h \
     Slice.h \
-    CoordinateFormatter.h \
     AxisInfo.h \
-    CoordinateGridPlotter.h \
-    PlotLabelGenerator.h \
     State/State.h \
     State/StateKey.h \
     State/StateLibrary.h \
@@ -45,7 +42,10 @@ HEADERS += \
     Data/Region.h \
     Data/DataSource.h \
     Data/Region.h \
-    Colormaps.h
+    Colormaps.h \
+    ICoordinateFormatter.h \
+    ICoordinateGridPlotter.h \
+    IPlotLabelGenerator.h
 
 SOURCES += \
     Viewer.cpp \
@@ -70,12 +70,12 @@ SOURCES += \
     ScriptedCommandListener.cpp \
     Slice.cpp \
     IImage.cpp \
-    CoordinateFormatter.cpp \
     AxisInfo.cpp \
-    CoordinateGridPlotter.cpp \
-    PlotLabelGenerator.cpp \
     PixelType.cpp \
-    Colormaps.cpp
+    Colormaps.cpp \
+    ICoordinateFormatter.cpp \
+    ICoordinateGridPlotter.cpp \
+    IPlotLabelGenerator.cpp
 
 
 #message( "common            PWD=$$PWD")

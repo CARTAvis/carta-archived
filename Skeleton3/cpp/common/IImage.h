@@ -21,9 +21,9 @@
 #include "Nullable.h"
 #include "misc.h"
 #include "Slice.h"
-#include "CoordinateFormatter.h"
-#include "CoordinateGridPlotter.h"
-#include "PlotLabelGenerator.h"
+#include "ICoordinateFormatter.h"
+#include "ICoordinateGridPlotter.h"
+#include "IPlotLabelGenerator.h"
 #include <QObject>
 #include <functional>
 #include <initializer_list>
@@ -225,7 +225,7 @@ class MetaDataInterface
 
 public:
     /// \todo we can remove this once we put this class into carta namespace
-    typedef Carta::TextFormat TextFormat;
+    typedef Carta::Lib::TextFormat TextFormat;
 
     /// clone yourself
     virtual MetaDataInterface *

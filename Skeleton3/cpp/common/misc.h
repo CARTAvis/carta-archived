@@ -1,20 +1,14 @@
 /*
  * Miscellaneous utilities, for which we have not found a good home.
  *
+ * One day this file should be completely empty.
+ *
  */
 
 #pragma once
 
 #include <QString>
 #include <QDebug>
-#include <QTextDocumentFragment>
-
-#include "CartaLib/HtmlString.h"
-
-namespace Carta {
-typedef Carta::Lib::TextFormat TextFormat;
-typedef Carta::Lib::HtmlString HtmlString;
-}
 
 /// known sky coordinate systems
 enum class KnownSkyCS
