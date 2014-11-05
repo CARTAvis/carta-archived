@@ -6,6 +6,7 @@
 
 #include "CartaLib.h"
 #include <QColor>
+#include <QString>
 #include <memory>
 
 namespace Carta
@@ -20,9 +21,32 @@ class IColormapScalar
     CLASS_BOILERPLATE( IColormapScalar );
 
 public:
+    virtual QString
+    name() = 0;
+
     virtual QRgb
     convert( const double & val ) = 0;
+
+    virtual ~IColormapScalar() {}
 };
+
+class ColormapScalarNamed : public IColormapScalar
+{
+    CLASS_BOILERPLATE( ColormapScalarNamed );
+
+public:
+    ColormapScalarNamed( QString name = "n/a") {
+        m_name = name;
+    }
+
+    virtual QString
+    name() override { return m_name; }
+
+protected:
+
+    QString m_name;
+};
+
 
 /**
  * @brief The IColormapScalarOptimized class

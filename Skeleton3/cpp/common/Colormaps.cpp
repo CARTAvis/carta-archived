@@ -43,9 +43,11 @@ PWLinear::operator() ( double x )
 } // ()
 
 ColormapFunction::ColormapFunction()
+    : ColormapScalarNamed("some colormap")
 { }
 
 ColormapFunction::ColormapFunction( PWLinear & red, PWLinear & green, PWLinear & blue )
+    : ColormapFunction()
 {
     red_   = red;
     green_ = green;

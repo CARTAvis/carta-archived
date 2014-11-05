@@ -31,7 +31,7 @@ private:
 };
 typedef QRgb Rgb;
 
-class ColormapFunction : public Lib::IColormapScalar
+class ColormapFunction : public Lib::ColormapScalarNamed
 {
 public:
     Rgb
