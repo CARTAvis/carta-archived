@@ -97,7 +97,7 @@ bool PyCppPlug::handleHook(BaseHook & hookData)
 {
     qDebug() << "PyCppPlug " << m_params.json.name << " is handling hook #" << hookData.hookId();
 
-    if( hookData.hookId() == PreRender::StaticHookId) {
+    if( hookData.hookId() == PreRender::staticId) {
         PreRender & hook = static_cast<PreRender &>( hookData);
 
         qDebug() << "Prerender hook received by PyCppPlug plugin";
@@ -126,7 +126,7 @@ std::vector<HookId> PyCppPlug::getInitialHookList()
     // TODO: this list should be based on what is implemented in python
     if( pb_hasPreRenderHook( m_pyModId)) {
         return {
-            PreRender::StaticHookId
+            PreRender::staticId
         };
     }
     else {

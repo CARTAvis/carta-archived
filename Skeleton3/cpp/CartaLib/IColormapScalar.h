@@ -15,6 +15,9 @@ namespace Lib
 {
 /**
  * @brief The IColormapScalar class
+ *
+ * This is an interface that plugins have to implement to add a new colormap for
+ * scalcar-type pixels.
  */
 class IColormapScalar
 {
@@ -30,6 +33,12 @@ public:
     virtual ~IColormapScalar() {}
 };
 
+/**
+ * @brief The ColormapScalarNamed class
+ *
+ * Abstract helper class for deriving from IColormapScalar. It just adds a static
+ * name to the colormap.
+ */
 class ColormapScalarNamed : public IColormapScalar
 {
     CLASS_BOILERPLATE( ColormapScalarNamed );

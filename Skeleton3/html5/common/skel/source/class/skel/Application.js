@@ -326,6 +326,7 @@ qx.Class.define("skel.Application", {
             }
             var locations = this.m_desktop.getAddWindowLocations();
             for ( var i = 0; i < locations.length; i++ ){
+                /*jshint loopfunc: true */
                 var loc = locations[i];
                 var windowButton = new qx.ui.form.Button( "","skel/icons/blackCross.png");
                 windowButton.setAppearance( "invisible-button");

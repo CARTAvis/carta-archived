@@ -80,7 +80,6 @@ protected:
     // only PluginManager can construct this
     // TODO: this should be an inner class
     HookHelper() = delete;
-//    HookHelper() {}
     HookHelper( typename T::Params&& params)
         : m_params( std::forward<typename T::Params>( params))
     {}
@@ -175,35 +174,31 @@ protected:
 
 };
 
+/// the workhorse - keep calling each plugin that implementes the hook, followed
+/// by calling the supplied callback function, until we run out of plugins
+/// or the callback return 'false'
 template <typename T>
 void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> func)
 {
-    qDebug() << "forEachCond";
-    // get the list of plugins that claim they handle this hook
-    HookId hookId = T::StaticHookId;
-    qDebug() << "  static hook id = " << hookId;
-    auto pluginList = m_pm-> listForHook( hookId);
-    qDebug() << "  plugins registered for this hook: " << pluginList.size();
+    // retrieve the static hook type
+    HookId hookId = T::staticId;
 
-    // make an actual instance of the Hook
+    // get the list of plugins that claim they handle this hook
+    auto pluginList = m_pm-> listForHook( hookId);
+
+    // make an actual instance of the Hook on the stack and give it a pointer
+    // to the parameters
     T hookData( & m_params);
 
     for( auto pluginInfo : pluginList) {
-        qDebug() << "  calling..." << pluginInfo-> json.name
-
-
-
-                    ;
         bool handled = pluginInfo-> rawPlugin-> handleHook( hookData);
         // skip to the next plugin immediately if this hook was not handled by
         // this plugin
         if( ! handled) {
             continue;
         }
-
         // call the func() with the result of the hook
         bool shouldContinue = func( hookData.result);
-
         // if we should not continue, abort right here
         if( ! shouldContinue) {
             break;

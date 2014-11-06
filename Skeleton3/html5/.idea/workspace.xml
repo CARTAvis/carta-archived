@@ -5,17 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IColormapScalar.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IColormapScalar.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/theme/Appearance.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/theme/Appearance.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/FancyToggle.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/FancyToggle.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/MenuBar.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/widgets/MenuBar.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/common/IPlugin.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
@@ -109,8 +103,8 @@
           <file leaf-file-name="ColormapWindow.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.5468278" vertical-offset="733" max-vertical-offset="1395">
-                  <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.1389728" vertical-offset="733" max-vertical-offset="1395">
+                  <caret line="55" column="33" selection-start-line="55" selection-start-column="33" selection-end-line="55" selection-end-column="33" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
                   </folding>
@@ -225,8 +219,8 @@
           <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.7106109" vertical-offset="4763" max-vertical-offset="5400">
-                  <caret line="355" column="30" selection-start-line="355" selection-start-column="30" selection-end-line="355" selection-end-column="30" />
+                <state vertical-scroll-proportion="0.27652735" vertical-offset="4628" max-vertical-offset="5415">
+                  <caret line="328" column="39" selection-start-line="328" selection-start-column="39" selection-end-line="328" selection-end-column="39" />
                   <folding />
                 </state>
               </provider>
@@ -306,9 +300,9 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/widgets/MenuBar.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/widgets/FancyToggle.js" />
-        <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/theme/Appearance.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
+        <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
       </list>
     </option>
   </component>
@@ -1020,12 +1014,12 @@
       <workItem from="1411429249671" duration="8786000" />
       <workItem from="1412472612356" duration="1267000" />
       <workItem from="1414990435952" duration="605000" />
-      <workItem from="1415074300127" duration="5298000" />
+      <workItem from="1415074300127" duration="6937000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="208481000" />
+    <option name="totallyTimeSpent" value="210120000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
@@ -1442,14 +1436,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7106109" vertical-offset="4763" max-vertical-offset="5400">
-          <caret line="355" column="30" selection-start-line="355" selection-start-column="30" selection-end-line="355" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/theme/Appearance.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6797583" vertical-offset="0" max-vertical-offset="2055">
@@ -1476,10 +1462,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.27652735" vertical-offset="4628" max-vertical-offset="5415">
+          <caret line="328" column="39" selection-start-line="328" selection-start-column="39" selection-end-line="328" selection-end-column="39" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5468278" vertical-offset="733" max-vertical-offset="1395">
-          <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.1389728" vertical-offset="733" max-vertical-offset="1395">
+          <caret line="55" column="33" selection-start-line="55" selection-start-column="33" selection-end-line="55" selection-end-column="33" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

@@ -11,12 +11,15 @@ DEFINES += CARTALIB_LIBRARY
 
 SOURCES += CartaLib.cpp \
     HtmlString.cpp \
-    IColormapScalar.cpp
+    IColormapScalar.cpp \
+    Hooks/ColormapsScalar.cpp
 
 HEADERS += CartaLib.h\
         cartalib_global.h \
     HtmlString.h \
-    IColormapScalar.h
+    IColormapScalar.h \
+    Hooks/ColormapsScalar.h \
+    Hooks/HookIDs.h
 
 unix {
     target.path = /usr/lib

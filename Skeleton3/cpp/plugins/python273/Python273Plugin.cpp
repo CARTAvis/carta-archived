@@ -13,7 +13,7 @@ bool Python273Plugin::handleHook(BaseHook & hookData)
 {
     qDebug() << "Python273Plugin is handling hook #" << hookData.hookId();
 
-    if( hookData.hookId() == LoadPlugin::StaticHookId) {
+    if( hookData.hookId() == LoadPlugin::staticId) {
         LoadPlugin & hook = static_cast<LoadPlugin &>( hookData);
         hook.result = nullptr;
         qDebug() << "Python273Plugin is asked to load plugin" << hook.paramsPtr->json.name;
@@ -35,7 +35,7 @@ bool Python273Plugin::handleHook(BaseHook & hookData)
 std::vector<HookId> Python273Plugin::getInitialHookList()
 {
     return {
-        LoadPlugin::StaticHookId
+        LoadPlugin::staticId
     };
 }
 

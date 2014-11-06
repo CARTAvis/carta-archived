@@ -24,14 +24,14 @@ CasaImageLoader::CasaImageLoader(QObject *parent) :
 bool CasaImageLoader::handleHook(BaseHook & hookData)
 {
     qDebug() << "CasaImageLoader plugin is handling hook #" << hookData.hookId();
-    if( isHook<Initialize>( hookData)) {
+    if( hookData.is<Initialize>()) {
         // Register FITS and Miriad image types
         casa::FITSImage::registerOpenFunction();
         casa::MIRIADImage::registerOpenFunction();
         return true;
     }
 
-    else if( isHook<LoadAstroImage>( hookData)) {
+    else if( hookData.is<LoadAstroImage>()) {
         LoadAstroImage & hook = static_cast<LoadAstroImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
         hook.result = loadImage( fname);
@@ -46,8 +46,8 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
 std::vector<HookId> CasaImageLoader::getInitialHookList()
 {
     return {
-        Initialize::StaticHookId,
-        LoadAstroImage::StaticHookId
+        Initialize::staticId,
+        LoadAstroImage::staticId
     };
 }
 

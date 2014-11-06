@@ -10,11 +10,11 @@ Clock1Plugin::Clock1Plugin(QObject *parent) :
 
 bool Clock1Plugin::handleHook(BaseHook &hookData)
 {
-    if( isHook<Initialize>( hookData)) {
+    if( BaseHook::isHook<Initialize>( hookData)) {
         return true;
     }
 
-    if( isHook<PreRender>( hookData)) {
+    if( BaseHook::isHook<PreRender>( hookData)) {
         PreRender & hook = static_cast<PreRender &>( hookData);
 
         QPainter p( hook.paramsPtr->imgPtr);
@@ -36,7 +36,7 @@ bool Clock1Plugin::handleHook(BaseHook &hookData)
 std::vector<HookId> Clock1Plugin::getInitialHookList()
 {
     return {
-        Initialize::StaticHookId,
-        PreRender::StaticHookId
+        Initialize::staticId,
+        PreRender::staticId
     };
 }
