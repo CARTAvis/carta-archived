@@ -42,9 +42,9 @@ namespace Scripted
 }
 
 /// a macro that adds 'Me' and 'SharedPtr' typedefs to a class
-#define CLASS_BOILERPLATE( class ) \
+#define CLASS_BOILERPLATE( className ) \
 public: \
-    typedef class                  Me; \
+    typedef className              Me; \
     typedef std::shared_ptr < Me > SharedPtr;
 
 

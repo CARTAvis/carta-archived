@@ -16,8 +16,6 @@ namespace Lib
 {
 namespace Hooks
 {
-class ColormapsScalar;
-
 
 class ColormapsScalar : public BaseHook
 {

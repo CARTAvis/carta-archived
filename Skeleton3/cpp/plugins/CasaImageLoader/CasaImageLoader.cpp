@@ -45,6 +45,7 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
 
 std::vector<HookId> CasaImageLoader::getInitialHookList()
 {
+//    forgot_to_define_this();
     return {
         Initialize::staticId,
         LoadAstroImage::staticId

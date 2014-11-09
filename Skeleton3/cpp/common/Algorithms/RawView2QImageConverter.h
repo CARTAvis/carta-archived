@@ -189,6 +189,7 @@ public:
             }
             outPtr ++;
             counter ++;
+            // build the image bottom-up
             if( counter % width == 0) {
                 outPtr -= width * 2;
             }

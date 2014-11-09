@@ -24,13 +24,15 @@ class IColormapScalar
     CLASS_BOILERPLATE( IColormapScalar );
 
 public:
+
     virtual QString
     name() = 0;
 
     virtual QRgb
     convert( const double & val ) = 0;
 
-    virtual ~IColormapScalar() {}
+    virtual
+    ~IColormapScalar() { }
 };
 
 /**
@@ -44,7 +46,9 @@ class ColormapScalarNamed : public IColormapScalar
     CLASS_BOILERPLATE( ColormapScalarNamed );
 
 public:
-    ColormapScalarNamed( QString name = "n/a") {
+
+    ColormapScalarNamed( QString name = "n/a" )
+    {
         m_name = name;
     }
 
@@ -56,7 +60,6 @@ protected:
     QString m_name;
 };
 
-
 /**
  * @brief The IColormapScalarOptimized class
  */
@@ -65,6 +68,7 @@ class IColormapScalarOptimized
     CLASS_BOILERPLATE( IColormapScalarOptimized );
 
 public:
+
     virtual void
     convertArray( const double * val, QRgb * output, u_int64_t count ) = 0;
 };

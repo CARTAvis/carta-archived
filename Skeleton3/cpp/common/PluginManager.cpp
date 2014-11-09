@@ -142,11 +142,13 @@ void PluginManager::loadPlugins()
             }
 
             // call plugins' initialize
+            qDebug() << "Calling plugin's initialize";
             IPlugin::InitInfo initInfo;
             initInfo.pluginPath = pInfo.dirPath;
             pInfo.rawPlugin->initialize( initInfo);
 
             // find out what hooks this plugin wants to listen to
+            qDebug() << "Calling plugin's getInitialHookList";
             auto hooks = pInfo.rawPlugin-> getInitialHookList();
 
             // for each hook the plugin wants to listen to, add it to the appropriate
@@ -154,6 +156,7 @@ void PluginManager::loadPlugins()
             for( auto id : hooks) {
                 m_hook2plugin[id].push_back( & pInfo);
             }
+            qDebug() << "Plugin initialized";
         }
     }
 }
@@ -391,6 +394,7 @@ bool PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
 
     // for cpp plugins, try to load in the actual plugin shared library
     QPluginLoader loader( pInfo.soPath);
+    loader.setLoadHints( QLibrary::ResolveAllSymbolsHint);
     QObject * plugin = loader.instance();
     if( ! plugin) {
         qDebug() << "QPluginLoader error = " << loader.errorString();
@@ -398,6 +402,7 @@ bool PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         // QPluginLoader is not very verbose with error messages, so let's see
         // if we can get QLibrary get us more detailed message
         QLibrary lib( pInfo.soPath);
+        lib.setLoadHints( loader.loadHints());
         if( ! lib.load()) {
             qDebug() << "QLibrary error:" << lib.errorString();
             pInfo.errors << "QLibrary error:" + lib.errorString();
@@ -406,6 +411,7 @@ bool PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
         }
         return false;
     }
+    qDebug() << "Raw plugin loaded.";
 
     // try to cast the loaded qobject to our carta plugin interface
     IPlugin * cartaPlugin = qobject_cast<IPlugin *>( plugin);
@@ -418,6 +424,9 @@ bool PluginManager::loadNativePlugin(PluginManager::PluginInfo & pInfo)
 
     // add info about this plugin to our list
     pInfo.rawPlugin = cartaPlugin;
+
+    qDebug() << "Carta plugin loaded.";
+
     return true;
 }
 

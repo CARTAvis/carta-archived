@@ -29,6 +29,8 @@ struct ResTrait <void> {
 
 class PluginManager;
 
+///
+/// @todo this should be an inner class of PluginManager
 template <typename T>
 class HookHelper
 {
@@ -78,7 +80,6 @@ protected:
     friend class PluginManager;
 
     // only PluginManager can construct this
-    // TODO: this should be an inner class
     HookHelper() = delete;
     HookHelper( typename T::Params&& params)
         : m_params( std::forward<typename T::Params>( params))

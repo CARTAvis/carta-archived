@@ -5,12 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/common/IPlugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Algorithms/RawView2QImageConverter.h" afterPath="$PROJECT_DIR$/../cpp/common/Algorithms/RawView2QImageConverter.h" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -1014,12 +1012,12 @@
       <workItem from="1411429249671" duration="8786000" />
       <workItem from="1412472612356" duration="1267000" />
       <workItem from="1414990435952" duration="605000" />
-      <workItem from="1415074300127" duration="6937000" />
+      <workItem from="1415074300127" duration="7680000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="210120000" />
+    <option name="totallyTimeSpent" value="210863000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
