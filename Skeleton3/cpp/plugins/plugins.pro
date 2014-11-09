@@ -10,6 +10,7 @@ SUBDIRS += python273
 SUBDIRS += noisepy
 SUBDIRS += blurpy
 SUBDIRS += CasaImageLoader
+SUBDIRS += Colormaps1
 
 
 

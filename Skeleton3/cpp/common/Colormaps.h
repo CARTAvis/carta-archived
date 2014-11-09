@@ -17,29 +17,20 @@ namespace Carta
 {
 namespace Core
 {
-class PWLinear
-{
-public:
-    PWLinear &
-    add( double x, double y );
-
-    double
-    operator() ( double x );
-
-private:
-    QList < QPointF > points_;
-};
 typedef QRgb Rgb;
 
 class ColormapFunction : public Lib::ColormapScalarNamed
 {
 public:
+    typedef Carta::Lib::PWLinear PWLinear;
+
     Rgb
     operator() ( double x );
 
     virtual QRgb convert(const double &val) {
         return operator ()(val);
     }
+
 
     ColormapFunction( PWLinear & red, PWLinear & green, PWLinear & blue );
     ColormapFunction();
@@ -86,6 +77,9 @@ private:
 class HistogramColormapFunctor
 {
 public:
+
+    typedef Carta::Lib::PWLinear PWLinear;
+
     HistogramColormapFunctor( double min, double max, ColormapFunction cmap );
     HistogramColormapFunctor();
     Rgb

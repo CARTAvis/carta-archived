@@ -16,12 +16,12 @@ namespace Lib
 {
 namespace Hooks
 {
-
 class ColormapsScalar : public BaseHook
 {
     CARTA_HOOK_BOILER1( ColormapsScalar )
 
 public:
+
     /**
      * @brief Result is a list of colormaps offered by the plugin.
      */

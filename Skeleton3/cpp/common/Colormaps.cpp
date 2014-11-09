@@ -8,42 +8,10 @@ namespace Carta
 {
 namespace Core
 {
-PWLinear &
-PWLinear::add( double x, double y )
-{
-    points_.push_back( QPointF( x, y ) );
-    return * this; // allow chaining
-}
 
-double
-PWLinear::operator() ( double x )
-{
-    if ( ! std::isfinite( x ) || points_.empty() ) {
-        return std::numeric_limits < double >::quiet_NaN();
-    }
-
-    // test boundary conditions
-    if ( x <= points_.first().x() ) {
-        return points_.first().y();
-    }
-    if ( x >= points_.last().x() ) {
-        return points_.last().y();
-    }
-
-    // find the segment and interpolate within it
-    for ( int i = 1 ; i < points_.size() ; i++ ) {
-        if ( x <= points_[i].x() ) {
-            double a =
-                ( points_[i - 1].y() - points_[i].y() ) / ( points_[i - 1].x() - points_[i].x() );
-            double b = points_[i].y() - a * points_[i].x();
-            return a * x + b;
-        }
-    }
-    return std::numeric_limits < double >::quiet_NaN();
-} // ()
 
 ColormapFunction::ColormapFunction()
-    : ColormapScalarNamed("some colormap")
+    : ColormapScalarNamed( "some colormap" )
 { }
 
 ColormapFunction::ColormapFunction( PWLinear & red, PWLinear & green, PWLinear & blue )
@@ -211,6 +179,7 @@ ColormapFunction::aberration()
             PWLinear().add( 0.25, 0 ).add( 0.5, 1 ),
             PWLinear().add( 0, 0 ).add( 0.25, 1 ).add( 0.75, 1 ).add( 1, 0 )
             );
+        map.setName( "aberration" );
     }
     return map;
 }
@@ -227,6 +196,7 @@ ColormapFunction::rgb()
             PWLinear().add( 0.25, 0 ).add( 0.5, 1 ).add( 0.75, 0 ),
             PWLinear().add( 0.5, 0 ).add( 0.75, 1 ).add( 1, 0 )
             );
+        map.setName( "rgb" );
     }
     return map;
 }
@@ -243,6 +213,7 @@ ColormapFunction::velocity()
             PWLinear().add( 0, 0 ).add( 0.5, 1 ).add( 1, 0 ),
             PWLinear().add( 0, 1 ).add( 0.5, 0 )
             );
+        map.setName( "velocity");
     }
     return map;
 }
@@ -332,7 +303,6 @@ ColormapFunction::cubeHelix( double start, double rots, double hue, double gamma
         if ( b > 1 ) {
             b = 1;
         }
-
         red.add( fract, r );
         green.add( fract, g );
         blue.add( fract, b );
