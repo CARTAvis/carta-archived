@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "common/IPlugin.h"
+#include "CartaLib/IColormapScalar.h"
+#include "CartaLib/IPlugin.h"
 
 ///
 /// this is a plugin returned as a result of the hook call when loading a python plugin

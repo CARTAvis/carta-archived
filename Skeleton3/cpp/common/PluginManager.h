@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "IPlugin.h"
-#include "Nullable.h"
+#include "CartaLib/IPlugin.h"
+#include "CartaLib/Nullable.h"
 
 #include <QImage>
 #include <QString>
@@ -43,14 +43,25 @@ public:
     void forEachCond( std::function< bool(typename T::ResultType)> func);
 
     /// as above, but all plugins are processed
-    void forEach( std::function< void(typename T::ResultType)> func) {
-        // code reuse by wrapping the supplied function into one that always return true
-        auto wrapper = [=] (typename T::ResultType && res) -> bool {
-            func( std::forward(res));
+//    void forEach( std::function< void(typename T::ResultType)> func) {
+//        // code reuse by wrapping the supplied function into one that always returns true
+//        auto wrapper = [=] (typename T::ResultType && res) -> bool {
+//            func( std::forward(res));
+//            return true;
+//        };
+//        forEachCond( wrapper);
+//    }
+
+    /// for each plugin call it, and then call func() on the result
+    void forEach( std::function< void(const typename T::ResultType & )> func) {
+        // code reuse by wrapping the supplied function into one that always returns true
+        auto wrapper = [=] (const typename T::ResultType & res) -> bool {
+            func( res);
             return true;
         };
         forEachCond( wrapper);
     }
+
 
     /// execute all plugins and ignore results
     void executeAll() {

@@ -15,11 +15,13 @@
  *
  */
 
+/// @todo move everything here Carta::Lib namespace
+
+
 #pragma once
 
 #include "PixelType.h"
 #include "Nullable.h"
-#include "misc.h"
 #include "Slice.h"
 #include "ICoordinateFormatter.h"
 #include "ICoordinateGridPlotter.h"

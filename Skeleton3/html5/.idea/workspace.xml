@@ -5,10 +5,56 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/GrayColormap.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/GrayColormap.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/AxisInfo.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/AxisInfo.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/AxisInfo.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/AxisInfo.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateFormatter.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateFormatter.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateFormatter.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateFormatter.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateGridPlotter.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateGridPlotter.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateGridPlotter.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateGridPlotter.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IImage.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IImage.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IImage.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IImage.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IPlotLabelGenerator.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlotLabelGenerator.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IPlotLabelGenerator.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlotLabelGenerator.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlugin.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/Nullable.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Nullable.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/PixelType.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/PixelType.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/PixelType.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/PixelType.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/Slice.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Slice.cpp" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/Slice.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Slice.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.h" afterPath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/clock1/Clock1Plugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/clock1/Clock1Plugin.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Colormaps.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Colormaps.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Colormaps.h" afterPath="$PROJECT_DIR$/../cpp/common/Colormaps.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.h" afterPath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Data/DataSource.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Data/DataSource.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Data/DataSource.h" afterPath="$PROJECT_DIR$/../cpp/common/Data/DataSource.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/tester1/GenericPlugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/tester1/GenericPlugin.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/HookIDs.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/HookIDs.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/IColormapScalar.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IColormapScalar.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.h" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/Python273Plugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/Python273Plugin.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Algorithms/RawView2QImageConverter.h" afterPath="$PROJECT_DIR$/../cpp/common/Algorithms/RawView2QImageConverter.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/Tests/SliceTester.cpp" afterPath="$PROJECT_DIR$/../cpp/Tests/SliceTester.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/Tests/Tests.pro" afterPath="$PROJECT_DIR$/../cpp/Tests/Tests.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.h" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/misc.h" afterPath="$PROJECT_DIR$/../cpp/common/misc.h" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -101,8 +147,8 @@
           <file leaf-file-name="ColormapWindow.js" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.1389728" vertical-offset="733" max-vertical-offset="1395">
-                  <caret line="55" column="33" selection-start-line="55" selection-start-column="33" selection-end-line="55" selection-end-column="33" />
+                <state vertical-scroll-proportion="0.3882175" vertical-offset="13" max-vertical-offset="1410">
+                  <caret line="18" column="28" selection-start-line="18" selection-start-column="28" selection-end-line="18" selection-end-column="28" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
                   </folding>
@@ -299,8 +345,8 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/widgets/MenuBar.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/widgets/FancyToggle.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/theme/Appearance.js" />
-        <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
+        <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
       </list>
     </option>
   </component>
@@ -1012,12 +1058,12 @@
       <workItem from="1411429249671" duration="8786000" />
       <workItem from="1412472612356" duration="1267000" />
       <workItem from="1414990435952" duration="605000" />
-      <workItem from="1415074300127" duration="7680000" />
+      <workItem from="1415074300127" duration="8163000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="210863000" />
+    <option name="totallyTimeSpent" value="211346000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
@@ -1439,7 +1485,7 @@
         <state vertical-scroll-proportion="0.6797583" vertical-offset="0" max-vertical-offset="2055">
           <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="n#!!doc" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1470,8 +1516,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.1389728" vertical-offset="733" max-vertical-offset="1395">
-          <caret line="55" column="33" selection-start-line="55" selection-start-column="33" selection-end-line="55" selection-end-column="33" />
+        <state vertical-scroll-proportion="0.3882175" vertical-offset="13" max-vertical-offset="1410">
+          <caret line="18" column="28" selection-start-line="18" selection-start-column="28" selection-end-line="18" selection-end-column="28" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

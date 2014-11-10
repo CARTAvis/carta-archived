@@ -25,13 +25,13 @@ namespace Hooks
 //
 // unique hook IDs
 enum class UniqueHookIDs {
-    Initialize,
-    LoadAstroImage,
-    ColormapsScalar,
-    LoadPlugin,
+    Initialize_ID,
+    LoadAstroImage_ID,
+    ColormapsScalarHook_ID,
+    LoadPlugin_ID,
 
-    PreRender,
-    LoadImage
+    PreRender_ID,
+    LoadImage_ID
 };
 }
 }

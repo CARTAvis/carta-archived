@@ -1,5 +1,7 @@
+#include "CartaLib/CartaLib.h"
+#include "CartaLib/Hooks/ColormapsScalar.h"
+#include "GrayColormap.h"
 #include "Viewer.h"
-#include "Colormaps.h"
 #include "Globals.h"
 #include "IPlatform.h"
 #include "IConnector.h"
@@ -10,7 +12,6 @@
 #include "Data/DataController.h"
 #include "Data/DataLoader.h"
 #include "Data/DataSource.h"
-#include "misc.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
 #include "MyQApp.h"
@@ -30,84 +31,89 @@
 //Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
 //keys contained in the QList and returns a vector containing their corresponding values.
 static
-QVector<QString> parseParameterMap( const QString& params, const QList<QString>& keys )
+QVector < QString >
+parseParameterMap( const QString & params, const QList < QString > & keys )
 {
-    QVector<QString> values;
-    QStringList paramList = params.split( ",");
-    if ( paramList.size() == keys.size() ){
-        values.resize( keys.size());
-        for ( QString param : paramList ){
-            QStringList pair = param.split( ":");
-            if ( pair.size() == 2 ){
+    QVector < QString > values;
+    QStringList paramList = params.split( "," );
+    if ( paramList.size() == keys.size() ) {
+        values.resize( keys.size() );
+        for ( QString param : paramList ) {
+            QStringList pair = param.split( ":" );
+            if ( pair.size() == 2 ) {
                 int keyIndex = keys.indexOf( pair[0] );
-                if ( keyIndex >= 0 ){
+                if ( keyIndex >= 0 ) {
                     values[keyIndex] = pair[1];
                 }
                 else {
-                    qDebug() << "Unrecognized key="<<pair[0];
+                    qDebug() << "Unrecognized key=" << pair[0];
                 }
             }
             else {
-                qDebug() <<"Badly formatted param map="<<param;
+                qDebug() << "Badly formatted param map=" << param;
             }
         }
     }
     else {
-        qDebug() << "Discrepancy between parameter count="<<paramList.size()<<" and key count="<<keys.size();
+        qDebug() << "Discrepancy between parameter count=" << paramList.size() <<
+        " and key count=" << keys.size();
     }
     return values;
-}
+} // parseParameterMap
 
 static
-std::map<QString,QString>
-parseParamMap2( const QString & paramsToParse, const std::set<QString> & keyList )
+std::map < QString, QString >
+parseParamMap2( const QString & paramsToParse, const std::set < QString > & keyList )
 {
-    std::map<QString,QString> result;
-    for( const auto & entry : paramsToParse.split( ',')) {
-        auto keyVal = entry.split( ':');
-        if( keyVal.size() != 2) {
+    std::map < QString, QString > result;
+    for ( const auto & entry : paramsToParse.split( ',' ) ) {
+        auto keyVal = entry.split( ':' );
+        if ( keyVal.size() != 2 ) {
             qWarning() << "bad map format:" << paramsToParse;
-            return {};
+            return { };
         }
         auto key = keyVal[0].trimmed();
         auto val = keyVal[1].trimmed();
-        auto ind = result.find( key);
-        if( ind != result.end()) {
+        auto ind = result.find( key );
+        if ( ind != result.end() ) {
             qWarning() << "duplicate key:" << paramsToParse;
-            return {};
+            return { };
         }
-        result.insert( ind, std::make_pair( key, val));
+        result.insert( ind, std::make_pair( key, val ) );
     }
+
     // make sure every key is in parameters
-    for( const auto & key : keyList) {
-        if( ! result.count(key)) {
+    for ( const auto & key : keyList ) {
+        if ( ! result.count( key ) ) {
             qWarning() << "could not find key=" << key << "in" << paramsToParse;
-            return {};
+            return { };
         }
+
+        // make sure parameters don't have unknown keys
     }
-    // make sure parameters don't have unknown keys
-    for( const auto & kv : result) {
-        if( ! keyList.count( kv.first)) {
+    for ( const auto & kv : result ) {
+        if ( ! keyList.count( kv.first ) ) {
             qWarning() << "unknown key" << kv.first << "in" << paramsToParse;
-            return {};
+            return { };
         }
     }
     return result;
-}
+} // parseParamMap2
 
 class TestView2 : public IView
 {
 public:
+
     TestView2( const QString & viewName, QColor bgColor, QImage img,
-               Image::ImageInterface::SharedPtr astroImage)
+               Image::ImageInterface::SharedPtr astroImage )
     {
         m_defaultImage = img;
         m_qimage       = QImage( 100, 100, QImage::Format_RGB888 );
         m_qimage.fill( bgColor );
 
-        m_viewName  = viewName;
-        m_connector = nullptr;
-        m_bgColor   = bgColor;
+        m_viewName   = viewName;
+        m_connector  = nullptr;
+        m_bgColor    = bgColor;
         m_astroImage = astroImage;
     }
 
@@ -146,7 +152,7 @@ public:
     virtual void
     handleResizeRequest( const QSize & pSize )
     {
-        QSize size( std::max( pSize.width(), 1), std::max( pSize.height(), 1));
+        QSize size( std::max( pSize.width(), 1 ), std::max( pSize.height(), 1 ) );
         m_qimage = QImage( size, m_qimage.format() );
         m_connector-> refreshView( this );
     }
@@ -155,67 +161,62 @@ public:
     handleMouseEvent( const QMouseEvent & ev )
     {
         QString str;
-        QTextStream out( & str);
-
-//        out << "ev.x|y=" << ev.x() << " " << ev.y() << "\n";
-//        out << "img.size=" << m_astroImage-> dims()[0] << "x" << m_astroImage-> dims()[1] << "\n";
-//        out << "qimg.size=" << m_qimage.width() << "x" << m_qimage.height() << "\n";
+        QTextStream out( & str );
 
         m_lastMouse = QPointF( ev.x(), ev.y() );
         m_connector-> refreshView( this );
 
-		m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number(ev.x()));
-		m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number(ev.y()));
+        m_connector-> setState( StateKey::MOUSE_X, m_viewName, QString::number( ev.x() ) );
+        m_connector-> setState( StateKey::MOUSE_Y, m_viewName, QString::number( ev.y() ) );
 
-//        int imgX = round( double(ev.x()) * m_astroImage-> dims()[0] / m_qimage.width());
-//        int imgY = round( double(ev.y()) * m_astroImage-> dims()[1] / m_qimage.height());
         int imgX = ev.x() * m_astroImage-> dims()[0] / m_qimage.width();
         int imgY = ev.y() * m_astroImage-> dims()[1] / m_qimage.height();
         imgY = m_astroImage-> dims()[1] - imgY - 1;
 
-
         CoordinateFormatterInterface::SharedPtr cf(
-                m_astroImage-> metaData()-> coordinateFormatter()-> clone());
+            m_astroImage-> metaData()-> coordinateFormatter()-> clone() );
 
-        std::vector<QString> knownSCS2str { "Unknown", "J2000", "B1950", "ICRS", "Galactic", "Ecliptic"};
-        std::vector<KnownSkyCS> css {
+        std::vector < QString > knownSCS2str {
+            "Unknown", "J2000", "B1950", "ICRS", "Galactic",
+            "Ecliptic"
+        };
+        std::vector < KnownSkyCS > css {
             KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-                    KnownSkyCS::Ecliptic, KnownSkyCS::ICRS };
-        out << "Default sky cs:" << knownSCS2str[static_cast<int>( cf-> skyCS())] << "\n";
+            KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
+        };
+        out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
 
-        for( auto cs : css) {
-            cf-> setSkyCS( cs);
-            out << knownSCS2str[static_cast<int>( cf-> skyCS())] << ": ";
-            std::vector< Carta::Lib::AxisInfo> ais;
-            for( int axis = 0 ; axis < cf->nAxes() ; axis ++ ) {
-                const Carta::Lib::AxisInfo & ai = cf-> axisInfo(axis);
-                ais.push_back(ai);
-//                out << "    Axis" << axis << ": "
-//                    << ai.longLabel().html() << "/" << ai.shortLabel().html()
-//                    << "\n";
+        for ( auto cs : css ) {
+            cf-> setSkyCS( cs );
+            out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+            std::vector < Carta::Lib::AxisInfo > ais;
+            for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
+                const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
+                ais.push_back( ai );
             }
-            std::vector<double> pixel( m_astroImage-> dims().size(), 0.0);
+            std::vector < double > pixel( m_astroImage-> dims().size(), 0.0 );
             pixel[0] = imgX;
             pixel[1] = imgY;
-            auto list = cf-> formatFromPixelCoordinate( pixel);
-            for( size_t i = 0 ; i < ais.size() ; i ++ ) {
+            auto list = cf-> formatFromPixelCoordinate( pixel );
+            for ( size_t i = 0 ; i < ais.size() ; i++ ) {
                 out << ais[i].shortLabel().html() << ":" << list[i] << " ";
             }
             out << "\n";
-//            out << list.join("\n") << "\n";
         }
 
-        str.replace( "\n", "<br />");
-        m_connector-> setState( StateKey::HACKS, "cursorText", str);
-	}
+        str.replace( "\n", "<br />" );
+        m_connector-> setState( StateKey::HACKS, "cursorText", str );
+    } // handleMouseEvent
 
     virtual void
     handleKeyEvent( const QKeyEvent & /*event*/ )
     { }
 
 signals:
-    void mouseMoved( double x, double y);
+
+    void
+    mouseMoved( double x, double y );
 
 protected:
 
@@ -278,11 +279,12 @@ Viewer::Viewer() :
                  this, & Viewer::scriptedCommandCB );
     }
 
-    m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
-    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */);
+    m_rawView2QImageConverter = std::make_shared < RawView2QImageConverter > ();
+    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */ );
 
-    auto rawCmap = std::make_shared<Carta::Core::ColormapFunction>( Carta::Core::ColormapFunction::heat());
-    m_rawView2QImageConverter-> setColormap( rawCmap);
+    // assign a default colormap to the view
+    auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
+    m_rawView2QImageConverter-> setColormap( rawCmap );
 }
 
 void
@@ -293,7 +295,7 @@ Viewer::start()
     auto & globals = * Globals::instance();
     m_connector = globals.connector();
 
-    m_connector->setState( StateKey::AUTO_CLIP,"", "1");
+    m_connector->setState( StateKey::AUTO_CLIP, "", "1" );
 
     // initialize plugin manager
     globals.setPluginManager( new PluginManager );
@@ -317,365 +319,450 @@ Viewer::start()
 
     // setup some colormap hacks
     {
+        // get all colormaps provided by core
+        static std::vector < Carta::Lib::IColormapScalar::SharedPtr > allColormaps;
+        allColormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
+
+        // ask plugins for colormaps
+        auto hh =
+            Globals::instance()-> pluginManager()-> prepare < Carta::Lib::Hooks::
+                                                                  ColormapsScalarHook > ();
+
+        auto lam =
+            [] /*& allColormaps*/ ( const Carta::Lib::Hooks::ColormapsScalarHook::ResultType &
+                                    cmaps ) {
+            allColormaps.insert( allColormaps.end(), cmaps.begin(), cmaps.end() );
+        };
+        hh.forEach( lam );
+
+        qDebug() << "We have" << allColormaps.size() << "colormaps:";
+        for ( auto & cmap : allColormaps ) {
+            qDebug() << "    " << cmap-> name();
+        }
         auto conn = Globals::instance()-> connector();
-        conn->setState(StateKey::HACKS, "cm-names-0", "Gray" );
-        conn->setState(StateKey::HACKS, "cm-names-1", "Heat" );
-        conn->setState(StateKey::HACKS, "cm-names-2", "Spring" );
-        conn->setState(StateKey::HACKS, "cm-count", "3" );
-        conn->setState(StateKey::HACKS, "cm-current", "1" );
-        conn->addStateCallback( "/hacks/cm-current", [this](const QString & /*path*/, const QString & value){
+        for ( size_t i = 0 ; i < allColormaps.size() ; i++ ) {
+            conn->setState( StateKey::HACKS, QString( "cm-names-%1" ).arg(
+                                i ), allColormaps[i]-> name() );
+        }
+        conn->setState( StateKey::HACKS, "cm-count", QString::number( allColormaps.size() ) );
+        conn->setState( StateKey::HACKS, "cm-current", "0" );
+        auto colormapCB = [this] ( const QString & /*path*/, const QString & value ) {
             qDebug() << "Cmap changed to" << value;
             bool ok;
-            int ind = value.toInt( & ok);
-            if( ! ok) return;
-            using namespace Carta::Core;
-            std::function<ColormapFunction(void)> fn;
-            if( ind == 0) {
-                fn = & ColormapFunction::gray;
-            }
-            else if( ind == 1) {
-                fn = & ColormapFunction::heat;
-            }
-            else if( ind ==2 ) {
-                fn = & ColormapFunction::spring;
-            }
-            else {
+            int ind = value.toInt( & ok );
+            if ( ! ok ) {
                 return;
             }
-            auto rawCmap = std::make_shared<Carta::Core::ColormapFunction>( fn());
-            m_rawView2QImageConverter-> setColormap( rawCmap);
-            reloadFrame(true);
-        });
-
+            using namespace Carta::Core;
+            if ( ind < 0 || size_t( ind ) >= allColormaps.size() ) {
+                CARTA_ASSERT( "colormap index out of range!" );
+                return;
+            }
+            m_rawView2QImageConverter-> setColormap( allColormaps[ind] );
+            reloadFrame( true );
+        };
+        conn->addStateCallback(
+            "/hacks/cm-current",
+            colormapCB
+            );
     }
 
-	// ask plugins to load the image
-	qDebug() << "======== trying to load image ========";
-	//QString fname = Globals::fname();
-	QString fname;
-	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
-		fname = Globals::instance()-> platform()-> initialFileList() [0];
-	}
+    // ask plugins to load the image
+    qDebug() << "======== trying to load image ========";
+
+    //QString fname = Globals::fname();
+    QString fname;
+    if ( ! Globals::instance()-> platform()-> initialFileList().isEmpty() ) {
+        fname = Globals::instance()-> platform()-> initialFileList()[0];
+    }
 
     // ask one of the plugins to load the image
-	if ( fname.length() > 0 ){
-	    qDebug() << "Trying to load astroImage...";
-	    auto res2 =Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
+    if ( fname.length() > 0 ) {
+        qDebug() << "Trying to load astroImage...";
+        auto res2 =
+            Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
         if ( ! res2.isNull() ) {
-	        qDebug() << "Could not find any plugin to load astroImage";
-	        m_image = res2.val();
+            qDebug() << "Could not find any plugin to load astroImage";
+            m_image = res2.val();
 
-            CARTA_ASSERT( m_image);
+            CARTA_ASSERT( m_image );
             m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
 
-	        qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
+            qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
             testView2 = new TestView2(
-                            "view3", QColor( "pink" ), QImage(10, 10, QImage::Format_ARGB32),
-                            m_image);
-	        m_connector-> registerView( testView2 );
+                "view3", QColor( "pink" ), QImage( 10, 10, QImage::Format_ARGB32 ),
+                m_image );
+            m_connector-> registerView( testView2 );
 
             qDebug() << "xyz test";
             CoordinateFormatterInterface::VD pixel;
-            pixel.resize( m_coordinateFormatter->nAxes(), 0);
-            auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel);
-            qDebug() << "0->" << fmt.join("|");
+            pixel.resize( m_coordinateFormatter->nAxes(), 0 );
+            auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+            qDebug() << "0->" << fmt.join( "|" );
             auto skycs = KnownSkyCS::Galactic;
-            m_coordinateFormatter-> setSkyCS( skycs);
-            qDebug() << "set skycs to" << int(skycs)
-                     << "now it is" << int(m_coordinateFormatter-> skyCS());
-            fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel);
-            qDebug() << "0->" << fmt.join("|");
+            m_coordinateFormatter-> setSkyCS( skycs );
+            qDebug() << "set skycs to" << int (skycs)
+                     << "now it is" << int ( m_coordinateFormatter-> skyCS() );
+            fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+            qDebug() << "0->" << fmt.join( "|" );
 
-	        // convert the loaded image into QImage
+            // convert the loaded image into QImage
             m_currentFrame = 0;
-	        reloadFrame( true);
-//        delete frameView;
-	    }
+            reloadFrame( true );
 
-	    if( 0) {
-	        // some debugging info
+//        delete frameView;
+        }
+
+        if ( 0 ) {
+            // some debugging info
 
             Image::ImageInterface::SharedPtr img = res2.val();
 
-	        qDebug() << "Dimensions: " << QVector <int>::fromStdVector( img->dims() );
-	        qDebug() << "Unit: " << img-> getPixelUnit().toStr();
-	        // let's get a view (the whole image)
-	        NdArray::RawViewInterface * rawView = img-> getDataSlice( SliceND({Slice1D().step(3)}));
-            CARTA_ASSERT( rawView);
+            qDebug() << "Dimensions: " << QVector < int >::fromStdVector( img->dims() );
+            qDebug() << "Unit: " << img-> getPixelUnit().toStr();
+
+            // let's get a view (the whole image)
+            NdArray::RawViewInterface * rawView = img-> getDataSlice( SliceND( { Slice1D().step( 3 ) }
+                                                                               ) );
+            CARTA_ASSERT( rawView );
 
 //	        if( ! rawView) {
 //	            qFatal( "Raw view is null");
 //	        }
 
             qDebug() << "View dimensions:" << rawView->dims();
-	        typedef std::vector<int> VI;
-	        VI pos( img->dims().size(), 0);
-	        const char * rawPtr = rawView->get( pos);
-	        for( size_t i = 0 ; i < sizeof( double) ; i ++ ) {
-	            qDebug() << static_cast<int>(rawPtr[i]);
-	        }
-	        NdArray::TypedView<float> fv(rawView, false);
-	        pos = VI( img->dims().size(), 0);
-	        qDebug() << "fview @" << pos << "=" << fv.get( pos);
-	        pos[0] = 1;
-	        qDebug() << "fview @" << pos << "=" << fv.get( pos);
+            typedef std::vector < int > VI;
+            VI pos( img->dims().size(), 0 );
+            const char * rawPtr = rawView->get( pos );
+            for ( size_t i = 0 ; i < sizeof( double ) ; i++ ) {
+                qDebug() << static_cast < int > ( rawPtr[i] );
+            }
+            NdArray::TypedView < float > fv( rawView, false );
+            pos = VI( img->dims().size(), 0 );
+            qDebug() << "fview @" << pos << "=" << fv.get( pos );
+            pos[0] = 1;
+            qDebug() << "fview @" << pos << "=" << fv.get( pos );
 
-	        {
-	            // [3:7:2,5:6]
-	            auto slice = SliceND().start(3).step(2).end(7)
-                         .next().start(5).end(6);
-	            NdArray::RawViewInterface * rawView = img-> getDataSlice( slice);
-	            NdArray::TypedView<float> fv(rawView, true);
-	            qDebug().nospace();
-	            int64_t count = 0;
-	            fv.forEach([&count]( const float & val) {
-	                qDebug() << val << " ";
-	                count ++;
-	            });
-	            qDebug() << "foreach processed " << count << "items";
-	            qDebug().space();
-	        }
+            {
+                // [3:7:2,5:6]
+                auto slice = SliceND().start( 3 ).step( 2 ).end( 7 )
+                                 .next().start( 5 ).end( 6 );
+                NdArray::RawViewInterface * rawView = img-> getDataSlice( slice );
+                NdArray::TypedView < float > fv( rawView, true );
+                qDebug().nospace();
+                int64_t count = 0;
+                fv.forEach([& count] ( const float & val ) {
+                               qDebug() << val << " ";
+                               count++;
+                           }
+                           );
+                qDebug() << "foreach processed " << count << "items";
+                qDebug().space();
+            }
 
-	        if( false){
-	            // [0:5,0:5,0,0]
-	            auto slice = SliceND().start(0).end(5)
-                         .next().start(0).end(5)
-                         .next().index(0)
-                         .next().index(0);
-	            NdArray::RawViewInterface * rawView = img-> getDataSlice( slice);
-	            NdArray::TypedView<float> fv(rawView, true);
-	            qDebug().nospace();
-	            int64_t count = 0;
-	            fv.forEach([&count]( const float & val) {
-	                qDebug() << val << " ";
-	                count ++;
-	            });
-	            qDebug() << "foreach processed " << count << "items";
-	            qDebug().space();
-	        }
-	    }
-	}
+            if ( false ) {
+                // [0:5,0:5,0,0]
+                auto slice = SliceND().start( 0 ).end( 5 )
+                                 .next().start( 0 ).end( 5 )
+                                 .next().index( 0 )
+                                 .next().index( 0 );
+                NdArray::RawViewInterface * rawView = img-> getDataSlice( slice );
+                NdArray::TypedView < float > fv( rawView, true );
+                qDebug().nospace();
+                int64_t count = 0;
+                fv.forEach([& count] ( const float & val ) {
+                               qDebug() << val << " ";
+                               count++;
+                           }
+                           );
+                qDebug() << "foreach processed " << count << "items";
+                qDebug().space();
+            }
+        }
+    }
 
-	// tell clients about our plugins
-	{
-		auto pm = Globals::instance()-> pluginManager();
-		auto infoList = pm-> getInfoList();
-		int ind = 0;
-		for( auto & entry : infoList) {
-			//qDebug() << "  path:" << entry.soPath;
-			QString index = QString("p%1").arg(ind);
-            m_connector-> setState( StateKey::PLUGIN_NAME, index, entry.json.name);
-            m_connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.json.description);
-            m_connector-> setState( StateKey::PLUGIN_TYPE, index, entry.json.typeString);
-            m_connector-> setState( StateKey::PLUGIN_VERSION, index, entry.json.version);
-            m_connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join("|"));
-			ind ++;
-		}
-		QString pluginCountStr = QString::number( ind);
-		m_connector-> setState( StateKey::PLUGIN_STAMP, "", pluginCountStr);
-	}
+    // tell clients about our plugins
+    {
+        auto pm       = Globals::instance()-> pluginManager();
+        auto infoList = pm-> getInfoList();
+        int ind       = 0;
+        for ( auto & entry : infoList ) {
+            //qDebug() << "  path:" << entry.soPath;
+            QString index = QString( "p%1" ).arg( ind );
+            m_connector-> setState( StateKey::PLUGIN_NAME, index, entry.json.name );
+            m_connector-> setState( StateKey::PLUGIN_DESCRIPTION, index, entry.json.description );
+            m_connector-> setState( StateKey::PLUGIN_TYPE, index, entry.json.typeString );
+            m_connector-> setState( StateKey::PLUGIN_VERSION, index, entry.json.version );
+            m_connector-> setState( StateKey::PLUGIN_ERRORS, index, entry.errors.join( "|" ) );
+            ind++;
+        }
+        QString pluginCountStr = QString::number( ind );
+        m_connector-> setState( StateKey::PLUGIN_STAMP, "", pluginCountStr );
+    }
 
-	m_connector->addCommandCallback( "/clearLayout", [=] (const QString & /*cmd*/,
-	            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-	    m_dataControllers.clear();
-	    m_dataAnimators.clear();
-	    return "";
-	});
+    m_connector->addCommandCallback(
+        "/clearLayout", [ = ] ( const QString & /*cmd*/,
+                                const QString & /*params*/,
+                                const QString & /*sessionId*/ ) ->
+            QString {
+            m_dataControllers.clear();
+            m_dataAnimators.clear();
+            return "";
+        }
+        );
 
-	//Callback for saving state.
-	m_connector->addCommandCallback( "/saveState", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
-		QStringList paramList = params.split( ":");
-		QString saveName="DefaultState";
-		if ( paramList.length() == 2 ){
-			saveName = paramList[1];
-		}
-		bool result = m_connector->saveState(saveName);
-		QString returnVal = "State was successfully saved.";
-		if ( !result ){
-			returnVal = "There was an error saving state.";
-		}
-		return returnVal;
-	});
+    //Callback for saving state.
+    m_connector->addCommandCallback(
+        "/saveState", [ = ] ( const QString & /*cmd*/,
+                              const QString & params,
+                              const QString & /*sessionId*/ ) ->
+            QString {
+            QStringList paramList = params.split( ":" );
+            QString saveName = "DefaultState";
+            if ( paramList.length() == 2 ) {
+                saveName = paramList[1];
+            }
+            bool result = m_connector->saveState( saveName );
+            QString returnVal = "State was successfully saved.";
+            if ( ! result ) {
+                returnVal = "There was an error saving state.";
+            }
+            return returnVal;
+        }
+        );
 
-	//Callback for restoring state.
-	m_connector->addCommandCallback( "/restoreState", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
-		QStringList paramList = params.split( ":");
-		QString saveName="DefaultState";
-		if ( paramList.length() == 2 ){
-			saveName = paramList[1];
-		}
+    //Callback for restoring state.
+    m_connector->addCommandCallback(
+        "/restoreState", [ = ] ( const QString & /*cmd*/,
+                                 const QString & params,
+                                 const QString & /*sessionId*/ ) ->
+            QString {
+            QStringList paramList = params.split( ":" );
+            QString saveName = "DefaultState";
+            if ( paramList.length() == 2 ) {
+                saveName = paramList[1];
+            }
+            bool result = m_connector->readState( saveName );
+            QString returnVal = "State was successfully restored.";
+            if ( ! result ) {
+                returnVal = "There was an error restoring state.";
+            }
+            return returnVal;
+        }
+        );
 
-		bool result = m_connector->readState(saveName);
-		QString returnVal = "State was successfully restored.";
-		if ( !result ){
-			returnVal = "There was an error restoring state.";
-		}
-		return returnVal;
-	});
+    //Callback for registering a view.
+    m_connector->addCommandCallback(
+        "registerView", [ = ] ( const QString & /*cmd*/,
+                                const QString & params,
+                                const QString & /*sessionId*/ ) ->
+            QString {
+            QList < QString > keys = { "pluginId", "winId" };
+            QVector < QString > dataValues =
+                parseParameterMap( params, keys );
+            if ( dataValues.size() == keys.size() ) {
+                if ( dataValues[0] == "CasaImageLoader" ) {
+                    std::map < QString,
+                               std::shared_ptr < DataController > >::
+                    iterator it =
+                        m_dataControllers.find( dataValues[1] );
+                    if ( it == m_dataControllers.end() ) {
+                        //Need to make more generic.
+                        std::shared_ptr < DataController > target( new
+                                                                   DataController() );
+                        m_dataControllers[dataValues[1]] = target;
+                        m_dataControllers[dataValues[1]]->setId(
+                            dataValues[1] );
+                    }
+                }
+                else if ( dataValues[0] == "animator" ) {
+                    std::map < QString,
+                               std::shared_ptr < DataAnimator > >::
+                    iterator it =
+                        m_dataAnimators.find( dataValues[1] );
+                    if ( it == m_dataAnimators.end() ) {
+                        std::shared_ptr < DataAnimator > target( new
+                                                                 DataAnimator(
+                                                                     dataValues
+                                                                     [
+                                                                         1
+                                                                     ] ) );
+                        m_dataAnimators[dataValues[1]] = target;
 
-	//Callback for registering a view.
-	m_connector->addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
-		QList<QString> keys = {"pluginId", "winId"};
-        QVector<QString> dataValues = parseParameterMap( params, keys );
-		if ( dataValues.size() == keys.size()){
-            if ( dataValues[0] == "CasaImageLoader"){
-                std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[1] );
-                if ( it == m_dataControllers.end() ){
-                    //Need to make more generic.
-					std::shared_ptr<DataController> target(new DataController());
-					m_dataControllers[dataValues[1]]= target;
-					m_dataControllers[dataValues[1]]->setId( dataValues[1] );
-				}
-			}
-            else if ( dataValues[0] == "animator"){
-                std::map<QString, std::shared_ptr<DataAnimator> >::iterator it = m_dataAnimators.find( dataValues[1] );
-                if ( it == m_dataAnimators.end() ){
-                    std::shared_ptr<DataAnimator> target(new DataAnimator( dataValues[1]));
-                    m_dataAnimators[dataValues[1]]= target;
-
-                    //Make sure there aren't any existing data controllers that need to be added to it.
-                    QString linkCountStr = m_connector->getState( StateKey::ANIMATOR_LINK_COUNT, dataValues[1]);
-                    bool validCount = false;
-                    int linkCount = linkCountStr.toInt( &validCount );
-                    if ( validCount ){
-                        for ( int i = 0; i < linkCount; i++ ){
-                            QString indexStr( dataValues[1]+"-"+QString::number(i));
-                            QString controllerId = m_connector->getState( StateKey::ANIMATOR_LINK, indexStr );
-                            std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( controllerId );
-                            if ( it != m_dataControllers.end()){
-                                m_dataAnimators[dataValues[1]]->addController( it->second);
-                            }
-                            else {
-                                qDebug() << "Register view could not find controller id="<<controllerId;
+                        //Make sure there aren't any existing data controllers that need to be added to it.
+                        QString linkCountStr =
+                            m_connector->getState( StateKey::
+                                                       ANIMATOR_LINK_COUNT,
+                                                   dataValues[1] );
+                        bool validCount = false;
+                        int linkCount =
+                            linkCountStr.toInt( & validCount );
+                        if ( validCount ) {
+                            for ( int i = 0 ; i < linkCount ; i++ ) {
+                                QString indexStr( dataValues[1] +
+                                                  "-" +
+                                                  QString::number(
+                                                      i ) );
+                                QString controllerId =
+                                    m_connector->getState(
+                                        StateKey::
+                                            ANIMATOR_LINK,
+                                        indexStr );
+                                std::map < QString,
+                                           std::shared_ptr <
+                                               DataController > >::
+                                    iterator it =
+                                    m_dataControllers.find(
+                                        controllerId );
+                                if ( it != m_dataControllers.end() ) {
+                                    m_dataAnimators[dataValues[1]]->
+                                        addController( it->second );
+                                }
+                                else {
+                                    qDebug() <<
+                                    "Register view could not find controller id="
+                                             << controllerId;
+                                }
                             }
                         }
                     }
-
                 }
             }
-		}
-		QString viewId("");
-		return viewId;
-	});
+            QString viewId( "" );
+            return viewId;
+        }
+        );
 
-	//Callback for linking an animator with whatever it is going to animate.
-	m_connector->addCommandCallback( "linkAnimator", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
-		QList<QString> keys = {"animId", "winId"};
-        QVector<QString> dataValues = parseParameterMap( params, keys );
-		if ( dataValues.size() == keys.size()){
+    //Callback for linking an animator with whatever it is going to animate.
+    m_connector->addCommandCallback(
+        "linkAnimator", [ = ] ( const QString & /*cmd*/,
+                                const QString & params,
+                                const QString & /*sessionId*/ ) ->
+            QString {
+            QList < QString > keys = { "animId", "winId" };
+            QVector < QString > dataValues =
+                parseParameterMap( params, keys );
+            if ( dataValues.size() == keys.size() ) {
+                //Go through our data animators and find the one that is supposed to
+                //be hooked up to.  If there is not an existing data animator, create one.
+                std::map < QString,
+                           std::shared_ptr < DataAnimator > >::
+                    iterator it = m_dataAnimators.find( dataValues[0] );
+                if ( it == m_dataAnimators.end() ) {
+                    std::shared_ptr < DataAnimator > target( new
+                                                             DataAnimator(
+                                                                 dataValues
+                                                                 [0] ) );
+                    m_dataAnimators[dataValues[0]] = target;
 
-			//Go through our data animators and find the one that is supposed to
-			//be hooked up to.  If there is not an existing data animator, create one.
-			std::map<QString, std::shared_ptr<DataAnimator> >::iterator it = m_dataAnimators.find( dataValues[0] );
-			if ( it == m_dataAnimators.end() ){
-				std::shared_ptr<DataAnimator> target(new DataAnimator( dataValues[0]));
-				m_dataAnimators[dataValues[0]]= target;
-				//See if there is any existing data that needs to be added to it.
-				QString linkCountStr = m_connector->getState(StateKey::ANIMATOR_LINK_COUNT, dataValues[0]);
-				bool validLinkCount = false;
-				int linkCount = linkCountStr.toInt( &validLinkCount );
-				if ( validLinkCount ){
-				    for (int i = 0; i < linkCount; i++) {
-				        QString indexStr( dataValues[0] +"-" + QString::number(i) );
-				        QString dataLink = m_connector->getState(StateKey::ANIMATOR_LINK, indexStr);
-				        //Now add the DataController that should be animated to the located DataAnimator.
-				        std::map<QString, std::shared_ptr<DataController> >::iterator itData = m_dataControllers.find( dataLink );
-				        if ( itData != m_dataControllers.end() ){
-				            m_dataAnimators[dataValues[0]]->addController( itData->second );
-				        }
-				     }
-				}
-			}
+                    //See if there is any existing data that needs to be added to it.
+                    QString linkCountStr =
+                        m_connector->getState( StateKey::
+                                                   ANIMATOR_LINK_COUNT,
+                                               dataValues[0] );
+                    bool validLinkCount = false;
+                    int linkCount =
+                        linkCountStr.toInt( & validLinkCount );
+                    if ( validLinkCount ) {
+                        for ( int i = 0 ; i < linkCount ; i++ ) {
+                            QString indexStr( dataValues[0] + "-" +
+                                              QString::number( i ) );
+                            QString dataLink =
+                                m_connector->getState(
+                                    StateKey::
+                                        ANIMATOR_LINK,
+                                    indexStr );
 
-			//Now add the DataController that should be animated to the located DataAnimator.
-			std::map<QString, std::shared_ptr<DataController> >::iterator itData = m_dataControllers.find( dataValues[1] );
-			if ( itData != m_dataControllers.end() ){
-				m_dataAnimators[dataValues[0]]->addController( itData->second );
-			}
-		}
-		return "";
-	});
+                            //Now add the DataController that should be animated to the located DataAnimator.
+                            std::map < QString,
+                                       std::shared_ptr <
+                                           DataController > >::
+                                iterator itData =
+                                m_dataControllers.find( dataLink );
+                            if ( itData != m_dataControllers.end() ) {
+                                m_dataAnimators[dataValues[0]]->
+                                    addController(
+                                    itData->second );
+                            }
+                        }
+                    }
+                }
 
-    // everything below is a hack... just to test performance for switching frames
-    /*auto movieCallback = [this](const QString &, const QString & val) {
-        double x, y;
-        QStringList lst = val.split( "_");
-        if( lst.size() < 2) return;
-        bool ok;
-        x = lst[0].toDouble( & ok);
-        if( ! ok) return;
-        y = lst[1].toDouble( & ok);
-        if( ! ok) return;
-        x = clamp<double>( x, 0, 1);
-        y = clamp<double>( y, 0, 1);
+                //Now add the DataController that should be animated to the located DataAnimator.
+                std::map < QString,
+                           std::shared_ptr < DataController > >::
+                    iterator itData =
+                    m_dataControllers.find( dataValues[1] );
+                if ( itData != m_dataControllers.end() ) {
+                    m_dataAnimators[dataValues[0]]->addController(
+                        itData->second );
+                }
+            }
+            return "";
+        }
+        );
 
-        int nFrames = 1;
-        if( m_image->dims().size() >2) { nFrames = m_image->dims()[2]; }
-        int frame = x * nFrames;
-        frame = clamp( frame, 0, nFrames-1);
-        if( frame == m_currentFrame) return;
-        m_currentFrame = frame;
-
-        qDebug() << "switching to frame" << frame;
-
-        // convert the loaded image into QImage
-        reloadFrame();
-    };
-
-    m_connector->addStateCallback( "/movieControl", movieCallback);
-    */
-
-    if ( fname.length() > 0 ){
-        reloadFrame( true);
+    if ( fname.length() > 0 ) {
+        reloadFrame( true );
     }
 
-	//Callback for returning a list of data files that can be loaded.
-	m_connector->addCommandCallback( "getData", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & sessionId) -> QString {
-		QString xml = DataLoader::getData( params, sessionId );
-		m_connector->setState( StateKey::AVAILABLE_DATA, "", xml );
-		return xml;
-	});
+    //Callback for returning a list of data files that can be loaded.
+    m_connector->addCommandCallback(
+        "getData", [ = ] ( const QString & /*cmd*/,
+                           const QString & params,
+                           const QString & sessionId ) -> QString {
+            QString xml = DataLoader::getData( params, sessionId );
+            m_connector->setState( StateKey::AVAILABLE_DATA, "", xml );
+            return xml;
+        }
+        );
 
     //Callback for adding a data source to a DataController.
-    m_connector->addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-                                     const QString & params, const QString & sessionId) -> QString {
-        QList<QString> keys = {"id", "data"};
-        QVector<QString> dataValues = parseParameterMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            //Find the data controller indicated DataController.
-            std::map<QString, std::shared_ptr<DataController> >::iterator it = m_dataControllers.find( dataValues[0] );
-            if ( it != m_dataControllers.end()){
-                //Add the data to it.
-                QString path = dataValues[1];
-                QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
-                if( ! path.startsWith( fakePath )){
-                    /// security issue...
-                    qDebug() << "Security issue, filePath="<<path;
-                    return "";
+    m_connector->addCommandCallback(
+        "dataLoaded", [ = ] ( const QString & /*cmd*/,
+                              const QString & params,
+                              const QString & sessionId ) -> QString {
+            QList < QString > keys = { "id", "data" };
+            QVector < QString > dataValues =
+                parseParameterMap( params, keys );
+            if ( dataValues.size() == keys.size() ) {
+                //Find the data controller indicated DataController.
+                std::map < QString,
+                           std::shared_ptr < DataController > >::
+                    iterator it =
+                    m_dataControllers.find( dataValues[0] );
+                if ( it != m_dataControllers.end() ) {
+                    //Add the data to it.
+                    QString path = dataValues[1];
+                    QString fakePath( QDir::separator() +
+                                      DataLoader::fakeRootDirName );
+                    if ( ! path.startsWith( fakePath ) ) {
+                        /// security issue...
+                        qDebug() << "Security issue, filePath=" <<
+                        path;
+                        return "";
+                    }
+                    path =
+                        QString( "%1%2" ).arg( DataLoader::getRootDir(
+                                                   sessionId ) )
+                            .arg( path.remove( 0, fakePath.length() ) );
+                    m_dataControllers[dataValues[0]]->addData( path );
                 }
-                path = QString( "%1%2").arg( DataLoader::getRootDir( sessionId))
-                       .arg( path.remove( 0, fakePath.length()));
-                m_dataControllers[dataValues[0]]->addData( path );
+                else {
+                    qDebug() <<
+                    "Could not find data controller for: " << params;
+                }
             }
-            else {
-                qDebug() << "Could not find data controller for: "<<params;
-            }
+            return "";
         }
-        return "";
-    });
+        );
 
     bool stateRead = m_connector->readState( "DefaultState" );
-    if ( !stateRead ){
+    if ( ! stateRead ) {
         initializeDefaultState();
     }
-
-	qDebug() << "Viewer has started...";
-}
+    qDebug() << "Viewer has started...";
+} // start
 
 void
 Viewer::scriptedCommandCB( QString command )
@@ -689,13 +776,13 @@ Viewer::scriptedCommandCB( QString command )
     if ( args.size() == 2 && args[0].toLower() == "load" ) {
         qDebug() << "Trying to load" << args[1];
         auto loadImageHookHelper = Globals::instance()->pluginManager()->
-                    prepare < LoadImage >(args[1], 0);
-        Nullable <QImage> res = loadImageHookHelper.first();
-        if ( res.isNull() ){
+                                       prepare < LoadImage > ( args[1], 0 );
+        Nullable < QImage > res = loadImageHookHelper.first();
+        if ( res.isNull() ) {
             qDebug() << "Could not find any plugin to load image";
         }
         else {
-            qDebug() << "Image loaded: "<< res.val().size();
+            qDebug() << "Image loaded: " << res.val().size();
             testView2->setImage( res.val() );
         }
     }
@@ -707,62 +794,64 @@ Viewer::scriptedCommandCB( QString command )
     else {
         qWarning() << "Sorry, unknown command";
     }
-}
+} // scriptedCommandCB
 
-void Viewer::initializeDefaultState(){
+void
+Viewer::initializeDefaultState()
+{
     auto & globals = * Globals::instance();
     auto connector = globals.connector();
-    connector->setState(StateKey::ANIMATOR_LINK_COUNT,"win3", "1");
-    connector->setState(StateKey::ANIMATOR_LINK, "win3-0", "win0");
-    connector->setState(StateKey::ANIMATOR_IMAGE_STEP, "win3", "1");
-    connector->setState(StateKey::ANIMATOR_IMAGE_RATE, "win3", "20");
-    connector->setState(StateKey::ANIMATOR_IMAGE_END_BEHAVIOR, "win3", "wrap");
+    connector->setState( StateKey::ANIMATOR_LINK_COUNT, "win3", "1" );
+    connector->setState( StateKey::ANIMATOR_LINK, "win3-0", "win0" );
+    connector->setState( StateKey::ANIMATOR_IMAGE_STEP, "win3", "1" );
+    connector->setState( StateKey::ANIMATOR_IMAGE_RATE, "win3", "20" );
+    connector->setState( StateKey::ANIMATOR_IMAGE_END_BEHAVIOR, "win3", "wrap" );
 
     //Convention, traverse left to right then top to bottom.  Rows then columns.
     //Need to have a special key for excluded ones.
-    connector->setState(StateKey::LAYOUT_PLUGIN, "win0", "CasaImageLoader");
-    connector->setState(StateKey::LAYOUT_PLUGIN, "win1", "plugins");
-    connector->setState(StateKey::LAYOUT_PLUGIN, "win2", "Hidden");
-    connector->setState(StateKey::LAYOUT_PLUGIN, "win3", "animator");
+    connector->setState( StateKey::LAYOUT_PLUGIN, "win0", "CasaImageLoader" );
+    connector->setState( StateKey::LAYOUT_PLUGIN, "win1", "plugins" );
+    connector->setState( StateKey::LAYOUT_PLUGIN, "win2", "Hidden" );
+    connector->setState( StateKey::LAYOUT_PLUGIN, "win3", "animator" );
 
-    const QString gridPart("2");
-    connector->setState(StateKey::LAYOUT_ROWS, "", gridPart);
-    connector->setState(StateKey::LAYOUT_COLS, "", gridPart);
-}
+    const QString gridPart( "2" );
+    connector->setState( StateKey::LAYOUT_ROWS, "", gridPart );
+    connector->setState( StateKey::LAYOUT_COLS, "", gridPart );
+} // initializeDefaultState
 
-void Viewer::reloadFrame( bool forceClipRecompute)
+void
+Viewer::reloadFrame( bool forceClipRecompute )
 {
-    CARTA_ASSERT( m_image);
+    CARTA_ASSERT( m_image );
 
     qDebug() << "realodFrame m_image=" << m_image.get();
     auto frameSlice = SliceND().next();
-    for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
-        frameSlice.next().index( i == 2 ? m_currentFrame : 0);
+    for ( size_t i = 2 ; i < m_image->dims().size() ; i++ ) {
+        frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
     }
-    NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice);
-    m_rawView2QImageConverter-> setView( frameView);
+    NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice );
+    m_rawView2QImageConverter-> setView( frameView );
     QImage qimg = m_rawView2QImageConverter-> go(
-                      m_currentFrame, m_clipRecompute || forceClipRecompute);
+        m_currentFrame, m_clipRecompute || forceClipRecompute );
     delete frameView;
-    testView2->setImage(qimg);
-
+    testView2->setImage( qimg );
 }
 
-void Viewer::mouseCB(const QString & /*path*/, const QString & /*val*/)
+void
+Viewer::mouseCB( const QString & /*path*/, const QString & /*val*/ )
 {
     bool ok;
-    double x = m_connector-> getState( StateKey::MOUSE_X, "").toDouble( & ok);
-    if( !ok) {}
-    double y = m_connector-> getState( StateKey::MOUSE_Y, "").toDouble( & ok);
-    if( !ok) {}
-    auto pixCoords = std::vector<double>(m_image->dims().size(), 0.0);
+    double x = m_connector-> getState( StateKey::MOUSE_X, "" ).toDouble( & ok );
+    if ( ! ok ) { }
+    double y = m_connector-> getState( StateKey::MOUSE_Y, "" ).toDouble( & ok );
+    if ( ! ok ) { }
+    auto pixCoords = std::vector < double > ( m_image->dims().size(), 0.0 );
     pixCoords[0] = x;
     pixCoords[1] = y;
-    if( pixCoords.size() > 2) {
+    if ( pixCoords.size() > 2 ) {
         pixCoords[2] = m_currentFrame;
     }
-    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords );
     qDebug() << "Formatted coordinate:" << list;
-    m_connector-> setState( StateKey::CURSOR, "", list.join("\n").toHtmlEscaped());
-
+    m_connector-> setState( StateKey::CURSOR, "", list.join( "\n" ).toHtmlEscaped() );
 } // scriptedCommandCB

@@ -16,6 +16,7 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
         this.setLayout( new qx.ui.layout.Flow(5,5));
         this.setMinWidth( 100);
         this.setMinHeight( 100);
+        this.setWidth( 300);
         this.setAlwaysOnTop( true);
 
         this.addListener( "minimize", this._userHidWindow.bind(this));

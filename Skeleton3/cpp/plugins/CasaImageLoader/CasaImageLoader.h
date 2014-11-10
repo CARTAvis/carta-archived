@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "common/IPlugin.h"
+#include "CartaLib/IPlugin.h"
 #include <QObject>
 #include <QString>
 

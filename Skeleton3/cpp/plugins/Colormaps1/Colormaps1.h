@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "common/IPlugin.h"
+#include "CartaLib/IPlugin.h"
+#include "CartaLib/IColormapScalar.h"
 #include <QObject>
 #include <QString>
 #include <vector>
-#include "CartaLib/IColormapScalar.h"
 
 class Colormap1 : public QObject, public IPlugin
 {
@@ -26,7 +26,7 @@ public:
 
 protected:
 
-    /// get the actual list
+    /// get the actual list of colormaps
     std::vector < Carta::Lib::IColormapScalar::SharedPtr >
     getColormaps();
 };

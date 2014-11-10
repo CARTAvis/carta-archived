@@ -1,5 +1,4 @@
 #include "ServerConnector.h"
-#include "common/misc.h"
 #include "common/MyQApp.h"
 #include "common/State/StateLibrary.h"
 #include "common/State/StateXmlRestorer.h"

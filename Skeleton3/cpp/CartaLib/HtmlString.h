@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "CartaLib.h"
 #include <QString>
 
 namespace Carta

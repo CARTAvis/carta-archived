@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "common/IImage.h"
+#include "CartaLib/IImage.h"
 #include <QObject>
 #include <QList>
 #include <memory>

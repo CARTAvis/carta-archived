@@ -7,7 +7,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IColormapScalar.h"
-#include "common/IPlugin.h"
+#include "CartaLib/IPlugin.h"
 #include <vector>
 
 namespace Carta
@@ -16,9 +16,9 @@ namespace Lib
 {
 namespace Hooks
 {
-class ColormapsScalar : public BaseHook
+class ColormapsScalarHook : public BaseHook
 {
-    CARTA_HOOK_BOILER1( ColormapsScalar )
+    CARTA_HOOK_BOILER1( ColormapsScalarHook )
 
 public:
 
@@ -37,7 +37,7 @@ public:
      *
      * @todo make hook constructors protected, so that only hook helper can create them
      */
-    ColormapsScalar( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
+    ColormapsScalarHook( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
     {
         CARTA_ASSERT( is < Me > () );
     }
@@ -48,3 +48,7 @@ public:
 }
 }
 }
+
+//class Boo : public QObject {
+//    Q_OBJECT
+//};

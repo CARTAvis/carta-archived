@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include "CartaLib/IPlugin.h"
 #include <QObject>
-#include "common/IPlugin.h"
 #include <QString>
 
 /// this is the main plugin that is exported from the dynamic library

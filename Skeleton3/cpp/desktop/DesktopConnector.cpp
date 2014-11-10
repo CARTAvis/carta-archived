@@ -3,7 +3,6 @@
  **/
 
 #include "DesktopConnector.h"
-#include "common/misc.h"
 #include "common/LinearMap.h"
 #include "common/MyQApp.h"
 #include "common/State/StateLibrary.h"

@@ -6,8 +6,8 @@
 #pragma once
 
 #include "CartaLib/IColormapScalar.h"
-#include "Colormaps.h"
-#include "IImage.h"
+#include "CartaLib/IImage.h"
+#include "GrayColormap.h"
 #include <QImage>
 #include <QCache>
 
@@ -79,7 +79,7 @@ public:
     RawView2QImageConverter() {
         // set cache size (in MB)
         m_cache.setMaxCost( 6 * 1024);
-        m_cmap = std::make_shared<Carta::Core::ColormapFunction>( Carta::Core::ColormapFunction::fire());
+        m_cmap = std::make_shared<Carta::Core::GrayColormap>();
     }
 
     Me & setView( NdArray::RawViewInterface * rawView) {

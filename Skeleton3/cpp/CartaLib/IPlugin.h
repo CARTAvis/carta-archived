@@ -1,3 +1,5 @@
+/// @todo move everything here Carta::Lib namespace
+
 #pragma once
 
 #include "CartaLib/Hooks/HookIDs.h"
@@ -14,9 +16,9 @@ typedef int64_t HookId;
 /// base hook event
 /// Currently the purpose of this base class is to implement IDs
 /// TODO: does this need inheritance from QObject
-class BaseHook : public QObject
+class BaseHook // : public QObject
 {
-    Q_OBJECT
+//    Q_OBJECT
 
 public:
     /// TODO: I have not yet figured out how to specialize some of the templates for
@@ -117,10 +119,16 @@ public:
     ~IPlugin() { }
 };
 
-#define CARTA_HOOK_BOILER1(name) \
+/*
+#define BLAH_CARTA_HOOK_BOILER1(name) \
     Q_OBJECT ;\
     CLASS_BOILERPLATE(name) ;\
-    static constexpr HookId staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name);
+    static constexpr HookId staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID);
+*/
+
+#define CARTA_HOOK_BOILER1(name) \
+    CLASS_BOILERPLATE(name) ;\
+    static constexpr HookId staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID);
 
 /// initialize hook is called once at the beginning of the application
 class Initialize : public BaseHook
@@ -224,6 +232,7 @@ public:
         QString    pluginDir;
         PluginJson json;
     };
+    enum { StaticHookId = 6 };
     LoadPlugin( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }
 
     ResultType result;

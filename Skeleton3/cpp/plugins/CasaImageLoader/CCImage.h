@@ -5,9 +5,9 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/IImage.h"
 #include "CCRawView.h"
 #include "CCMetaDataInterface.h"
-#include "common/IImage.h"
 #include "images/Images/ImageInterface.h"
 #include <QDebug>
 #include <memory>

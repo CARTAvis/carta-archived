@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "common/misc.h"
-#include "common/IImage.h"
+#include "CartaLib/IImage.h"
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <memory>
 

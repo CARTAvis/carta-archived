@@ -7,7 +7,6 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/HtmlString.h"
-#include "misc.h"
 #include <QString>
 #include <vector>
 #include <memory>

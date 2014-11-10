@@ -1,3 +1,5 @@
+#ifdef DONT_COMPILE
+
 /**
  * Some built in colormaps...
  **/
@@ -17,59 +19,31 @@ namespace Carta
 {
 namespace Core
 {
-typedef QRgb Rgb;
 
+/// this class implements core colormaps
 class ColormapFunction : public Lib::ColormapScalarNamed
 {
 public:
+
     typedef Carta::Lib::PWLinear PWLinear;
 
-    Rgb
+    QRgb
     operator() ( double x );
 
-    virtual QRgb convert(const double &val) {
-        return operator ()(val);
+    virtual QRgb
+    convert( const double & val )
+    {
+        return operator() ( val );
     }
-
 
     ColormapFunction( PWLinear & red, PWLinear & green, PWLinear & blue );
     ColormapFunction();
 
-    // predefined colormaps
-    static ColormapFunction
-    gray();
 
-    static ColormapFunction
-    heat();
 
-    static ColormapFunction
-    fire();
-
-    static ColormapFunction
-    spring();
-
-    static ColormapFunction
-    sea();
-
-    static ColormapFunction
-    sunbow();
-
-    static ColormapFunction
-    mutant();
-
-    static ColormapFunction
-    aberration();
-
-    static ColormapFunction
-    rgb();
-
-    static ColormapFunction
-    velocity();
-
-    static ColormapFunction
-    cubeHelix( double start, double rots, double hue, double gamma );
 
 private:
+
     PWLinear red_, green_, blue_;
 };
 
@@ -82,10 +56,11 @@ public:
 
     HistogramColormapFunctor( double min, double max, ColormapFunction cmap );
     HistogramColormapFunctor();
-    Rgb
+    QRgb
     operator() ( double x );
 
 private:
+
     PWLinear histogramFunction_;
     ColormapFunction colormapFunction_;
 };
@@ -107,15 +82,15 @@ private:
 class CachedRgbFunction
 {
 public:
+
     CachedRgbFunction();
-    CachedRgbFunction( HistogramColormapFunctor fn, double min, double max, int n, Rgb nanColor );
+    CachedRgbFunction( HistogramColormapFunctor fn, double min, double max, int n, QRgb nanColor );
     inline QRgb
     qrgb( const double & x ) const
     {
         if ( ! std::isfinite( x ) ) {
             return nanColor_;
         }
-
         if ( diff <= 0 ) {
             if ( x < min_ ) {
                 return minRes;
@@ -125,33 +100,31 @@ public:
             }
         }
         int ind = round( ( x - min_ ) * dInvN1 );
-        if ( ind < 0 ) { return minRes; }
-        if ( ind > n1 ) { return maxRes; }
-        return cache[ind];
+        if ( ind < 0 ) { return minRes; } if ( ind > n1 ) { return maxRes; } return cache[ind];
     } // qrgb
 
 private:
-    inline const Rgb &
+
+    inline const QRgb &
     operator() ( const double & x ) const;
 
-    QVector < Rgb > cache;
+    QVector < QRgb > cache;
     double min_, max_;
-    Rgb nanColor_;
+    QRgb nanColor_;
     double diff, dInvN1;
-    Rgb minRes, maxRes;
+    QRgb minRes, maxRes;
     int n1;
 
     void
-    init( HistogramColormapFunctor fn, double min, double max, int n, Rgb nanColor );
+    init( HistogramColormapFunctor fn, double min, double max, int n, QRgb nanColor );
 };
 
-inline const Rgb &
+inline const QRgb &
 CachedRgbFunction::operator() ( const double & x ) const
 {
     if ( ! std::isfinite( x ) ) {
         return nanColor_;
     }
-
     if ( diff <= 0 ) {
         if ( x < min_ ) {
             return minRes;
@@ -171,3 +144,5 @@ CachedRgbFunction::operator() ( const double & x ) const
 } // ()
 }
 }
+
+#endif

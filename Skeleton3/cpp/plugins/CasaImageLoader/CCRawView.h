@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "common/IImage.h"
+#include "CartaLib/IImage.h"
 #include "lattices/Lattices/LatticeStepper.h"
 #include "lattices/Lattices/LatticeIterator.h"
 #include "casa/Arrays/IPosition.h"

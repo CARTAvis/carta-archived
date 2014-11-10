@@ -37,10 +37,8 @@ public:
 };
 
 /**
- * @brief The ColormapScalarNamed class
- *
- * Abstract helper class for deriving from IColormapScalar. It just adds a static
- * name to the colormap.
+ * @brief Abstract helper class for deriving from IColormapScalar. It just adds a static
+ * name to the IColormapScalar.
  */
 class ColormapScalarNamed : public IColormapScalar
 {
@@ -48,7 +46,7 @@ class ColormapScalarNamed : public IColormapScalar
 
 public:
 
-    ColormapScalarNamed( QString name = "n/a" )
+    ColormapScalarNamed( QString name /*= "n/a"*/ )
     {
         m_name = name;
     }
