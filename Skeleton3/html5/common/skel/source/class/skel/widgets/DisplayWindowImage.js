@@ -52,16 +52,23 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
                 this.m_content.remove(this.m_title);
                 this.m_content.setLayout(new qx.ui.layout.Canvas());
             }
+           
+            
+            
             if (this.m_view == null) {
                 this.m_view = new skel.boundWidgets.View(this.m_identifier);
             }
+            
+            if ( this.m_drawCanvas == null ){
+                this.m_drawCanvas = new skel.widgets.Draw.Canvas( this.m_identifier, this.m_view);
+            }
+            
+            var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
             if (this.m_content.indexOf(this.m_view) < 0) {
-                this.m_content.add(this.m_view, {
-                    left : "0%",
-                    right : "0%",
-                    top : "0%",
-                    bottom : "0%"
-                });
+                this.m_content.add(this.m_view, overlayMap );
+            }
+            if ( this.m_content.indexOf( this.m_drawCanvas) < 0 ){
+                this.m_content.add(this.m_drawCanvas, overlayMap);
             }
         },
         
@@ -74,13 +81,6 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             var cmd = pathDict.getCommandDataLoaded();
             var params = "id:" + this.m_identifier + ",data:" + path;
             this.m_connector.sendCommand(cmd, params, function() {});
-
-            /// \todo editing out reference to SelectionCanvas because it's not anywhere in the sources
-            // this.m_overlayCanvas = new skel.widgets.SelectionCanvas( this.m_identifier);
-            this.m_overlayCanvas = null;
-
-            //this.m_content.add(this.m_overlayCanvas, {left:"0%",right:"0%",top:"0%",bottom: "0%"});
-
         },
 
         /**
@@ -171,7 +171,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
                     var buttonText = this.getLabel();
                     var data = {
                         shape : buttonText,
-                        multiShape : false
+                        multiShape : keepMode
                     };
                     qx.event.message.Bus.dispatch(new qx.event.message.Message(
                             "drawModeChanged", data));
@@ -226,8 +226,8 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
         },
 
         setDrawMode : function(drawInfo) {
-            if (this.m_overlayCanvas != null) {
-                this.m_overlayCanvas.setDrawMode(drawInfo);
+            if (this.m_drawCanvas != null) {
+                this.m_drawCanvas.setDrawMode(drawInfo);
             }
         },
 
@@ -243,7 +243,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
 
         m_regionButton : null,
         m_renderButton : null,
-        m_overlayCanvas : null,
+        m_drawCanvas : null,
        
         m_view : null,
         m_dataButton : null,

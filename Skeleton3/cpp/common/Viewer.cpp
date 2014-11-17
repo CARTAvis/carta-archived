@@ -453,7 +453,6 @@ Viewer::start()
     CartaObject* vmObj = objManager->getObject( vmId );
     m_viewManager.reset( dynamic_cast<ViewManager*>(vmObj));
     if ( fname.length() > 0 ){
-        //reloadFrame( true);
         m_viewManager->loadFile( fname );
     }
 

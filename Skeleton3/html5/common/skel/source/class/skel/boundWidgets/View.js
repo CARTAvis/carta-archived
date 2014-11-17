@@ -29,14 +29,14 @@ qx.Class.define("skel.boundWidgets.View", {
         this.m_connector = mImport("connector");
 
         this.base(arguments);
-        this.m_viewName = viewName;
+        var path = skel.widgets.Path.getInstance();
+        this.m_viewName = viewName + path.SEP + path.VIEW;
 
         var setZeroTimeout = mImport("setZeroTimeout");
 
         // listen for appear event, because the html is not generated until the widget
         // appears
         var appearListenerId = this.addListener("appear", function(e) {
-            console.log( "Registering view="+this.m_viewName );
             this.m_iview = this.m_connector.registerViewElement(this
                     .getContentElement().getDomElement(), this.m_viewName);
             this.removeListenerById(appearListenerId);
@@ -92,29 +92,25 @@ qx.Class.define("skel.boundWidgets.View", {
         },
 
         _mouseMoveCB: function (event) {
-            var pt = this._localPos(event);
-            if (this.m_isDragging) {
-                this._sendCoords( pt);
+            if( typeof this.m_iview.mouseMoveCB == "function"){
+                this.m_iview.mouseMoveCB( event );
             }
+            //Todo: write for server connector.
         },
 
        _mouseDownCB: function (event) {
-//                fv.GLOBAL_DEBUG && fv.console.log("mousedown " + event.getButton());
-           this.capture();
-           var pt = this._localPos(event);
-           this.m_isDragging = true;
-           this._sendCoords( pt);
+
+
        },
 
        _mouseUpCB: function (event) {
-           this.releaseCapture();
-           this.m_isDragging = false;
+
        },
 
        _sendCoords: function( pt) {
-           var sv = this.m_connector.getSharedVar( "/movieControl");
-           sv.set( "" + pt.x / this.getBounds().width + "_" + pt.y / this.getBounds().height);
+ 
         },
+        
 
 
         m_viewName : null,

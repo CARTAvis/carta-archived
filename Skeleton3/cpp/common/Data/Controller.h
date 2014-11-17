@@ -14,6 +14,8 @@
 
 class ImageView;
 class DataSource;
+class Region;
+class RegionRectangle;
 class Selection;
 class CoordinateFormatterInterface;
 
@@ -101,7 +103,8 @@ private:
     void _initializeCallbacks();
     void _initializeSelections();
     void _initializeSelection( std::shared_ptr<Selection> & selection );
-
+    QString _makeRegion( const QString& regionType );
+    void _saveRegions();
     void _updateCursor();
 
     static bool m_registered;
@@ -110,6 +113,7 @@ private:
     static const QString AUTO_CLIP;
     static const QString DATA_COUNT;
     static const QString DATA_PATH;
+    static const QString REGIONS;
 
     //Data Selections
     std::shared_ptr<Selection> m_selectChannel;
@@ -120,6 +124,12 @@ private:
 
     //Data available to and managed by this controller.
     QList<std::shared_ptr<DataSource> > m_datas;
+
+    QList<std::shared_ptr<Region> > m_regions;
+
+    //Separate state for mouse events since they get updated rapidly and not
+    //everyone wants to listen to them.
+    StateInterface m_stateMouse;
 
     /// coordinate formatter
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;

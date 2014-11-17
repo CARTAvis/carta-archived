@@ -102,12 +102,14 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                             // Right now only generic support is statistics.
                             // Need to generalize.
                             if (this.m_title.getValue() == "statistics") {
-                                var labelx = new skel.boundWidgets.Label("MouseX:", "pix", sourceWinId, function(anObject){
-                                    return anObject.mouse.Y;
+                                var path = skel.widgets.Path.getInstance();
+                                var viewPath = sourceWinId + path.SEP + path.VIEW;
+                                var labelx = new skel.boundWidgets.Label("MouseX:", "pix", viewPath, function(anObject){
+                                    return anObject.mouse.y;
                                 } );
                                 this.m_content.add(labelx);
-                                var labely = new skel.boundWidgets.Label("MouseY:", "pix", sourceWinId, function(anObject){
-                                    return anObject.mouse.X;
+                                var labely = new skel.boundWidgets.Label("MouseY:", "pix", viewPath, function(anObject){
+                                    return anObject.mouse.x;
                                 });
                                 this.m_content.add(labely);
                             }

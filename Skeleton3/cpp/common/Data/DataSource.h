@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "Region.h"
 #include "Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
@@ -98,7 +97,6 @@ private:
 
     //Path for loading data - todo-- do we need to store this?
     QString m_fileName;
-    Region m_region;
 
     static bool m_registered;
     static const QString DATA_PATH;

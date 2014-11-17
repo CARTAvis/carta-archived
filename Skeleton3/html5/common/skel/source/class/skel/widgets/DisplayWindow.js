@@ -35,18 +35,25 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         //we can display the view options in the context menu.
         this.m_connector = mImport("connector");
         var paramMap = "pluginId:plugins,index:0"
-            
         var regViewCmd = pathDict.getCommandRegisterView();
         this.m_connector.sendCommand( regViewCmd, paramMap, this._viewPluginsCB( this ) );
         
         if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
             this.initID( index );
-        
             var id = this.addListener("appear", function() {
                 var container = this.getContentElement().getDomElement();
-                container.id = this.m_identifier;
+                if ( this.m_identifier !=""){
+                    container.id = this.m_identifier;
+                }
+                else {
+                    container.id = this.m_pluginId;
+                    this.m_identifier = this.m_pluginId;
+                }
                 this.removeListenerById(id);
             }, this);
+        }
+        else {
+            console.log( "Not initializing m_pluginId="+this.m_pluginId );
         }
     },
 

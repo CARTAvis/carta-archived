@@ -9,7 +9,7 @@ GenericPlugin::GenericPlugin(QObject *parent) :
 
 bool GenericPlugin::handleHook(BaseHook &hookData)
 {
-    qDebug() << "GenericPlugin is handling hook #" << hookData.hookId();
+    //qDebug() << "GenericPlugin is handling hook #" << hookData.hookId();
     if( hookData.hookId() == Initialize::StaticHookId ) {
 //        Initialize & initHook = static_cast<Initialize &>( hookData);
 
@@ -24,9 +24,9 @@ bool GenericPlugin::handleHook(BaseHook &hookData)
     if( hookData.hookId() == PreRender::StaticHookId ) {
         PreRender & hook = static_cast<PreRender &>( hookData);
 
-        qDebug() << "Prerender hook received by generic plugin";
-        qDebug() << "  " << hook.paramsPtr->viewName;
-        qDebug() << "  " << hook.paramsPtr->imgPtr->size();
+        //qDebug() << "Prerender hook received by generic plugin";
+        //qDebug() << "  " << hook.paramsPtr->viewName;
+        //qDebug() << "  " << hook.paramsPtr->imgPtr->size();
 
         QPainter p( hook.paramsPtr->imgPtr);
         QString txt = "(C) Generic Plugin";

@@ -33,6 +33,7 @@ public:
     static const QString MOUSE;
     static const QString MOUSE_X;
     static const QString MOUSE_Y;
+    static const QString VIEW;
 protected:
 
     void redrawBuffer();

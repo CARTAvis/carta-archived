@@ -33,7 +33,7 @@ qx.Class.define("skel.boundWidgets.Label", {
         this.base(arguments, "");
         
         this.m_lookupFunction = functionLookup;
-
+      
         // manually invoke the callback so that the label is immediately updated
         // with the current value
         this._sharedVarCB(this.m_sharedVar.get());
@@ -59,11 +59,10 @@ qx.Class.define("skel.boundWidgets.Label", {
                 if ( this.m_lookupFunction ){
                     var controlObj = JSON.parse( val );
                     labelVal = this.m_lookupFunction( controlObj );
-                    labelVal = controlObj.mouse.x;
                 }
             }
             if (typeof this.m_labelPostfix === "function") {
-                this.setValue(this.m_labelPrefix + this.m_labelPostfix(labelVal));
+                this.setValue(this.m_labelPrefix + this.m_label+Postfix(labelVal));
             } else {
                 this.setValue(this.m_labelPrefix + labelVal + this.m_labelPostfix);
             }

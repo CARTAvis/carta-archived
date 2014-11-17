@@ -14,6 +14,7 @@
 #include <QCoreApplication>
 
 const QString ImageView::MOUSE = "mouse";
+const QString ImageView::VIEW = "view";
 const QString ImageView::MOUSE_Y = MOUSE + StateInterface::DELIMITER +"x";
 const QString ImageView::MOUSE_X = MOUSE + StateInterface::DELIMITER + "y";
 
@@ -22,7 +23,7 @@ ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img, State
     m_qimage = QImage(100, 100, QImage::Format_RGB888);
     m_qimage.fill(bgColor);
 
-    m_viewName = viewName;
+    m_viewName = viewName + StateInterface::DELIMITER+VIEW;
     m_connector = nullptr;
     m_bgColor = bgColor;
     m_mouseState = mouseState;
@@ -57,6 +58,7 @@ void ImageView::handleResizeRequest(const QSize & size) {
 void ImageView::handleMouseEvent(const QMouseEvent & ev) {
     m_lastMouse = QPointF(ev.x(), ev.y());
     m_connector->refreshView(this);
+
     m_mouseState->setValue<QString>( MOUSE_X, QString::number(ev.x()));
     m_mouseState->setValue<QString>( MOUSE_Y, QString::number(ev.y()));
     m_mouseState->flushState();

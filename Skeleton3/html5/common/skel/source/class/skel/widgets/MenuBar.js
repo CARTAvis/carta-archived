@@ -42,6 +42,7 @@ qx.Class.define("skel.widgets.MenuBar", {
             this.m_gridRows = data["rows"];
             this.m_gridCols = data["cols"];
         }, this);
+       
     },
 
     events : {
@@ -341,8 +342,8 @@ qx.Class.define("skel.widgets.MenuBar", {
         
         /**
          * Sends a command to the server to set the clip value to a new value.
-         * @param button representing the clip that was selected.
-         * @param e the new clip value.
+         * @param button {qx.ui.toolbar.RadioButton} representing the clip that was selected.
+         * @param e {DataEvent} the new clip value.
          */
         _sendClipValueCmd : function ( e, button ){
             var path = skel.widgets.Path.getInstance();
@@ -356,7 +357,7 @@ qx.Class.define("skel.widgets.MenuBar", {
         
         /**
          * Sends a command to the server to change the auto clip setting.
-         * @param autoClip true for automatically clipping; false otherwise.
+         * @param autoClip {bool} true for automatically clipping; false otherwise.
          */
         _sendAutoClipCmd : function ( autoClip ){
             var path = skel.widgets.Path.getInstance();

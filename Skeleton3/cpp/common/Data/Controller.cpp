@@ -3,6 +3,8 @@
 #include "Data/Controller.h"
 #include "Data/DataSource.h"
 #include "Data/Selection.h"
+#include "Data/Region.h"
+#include "Data/RegionRectangle.h"
 #include "Data/Animator.h"
 #include "Data/Util.h"
 #include "ImageView.h"
@@ -18,6 +20,7 @@ const QString Controller::AUTO_CLIP = "autoClip";
 const QString Controller::DATA_COUNT = "dataCount";
 const QString Controller::DATA_PATH = "dataPath";
 const QString Controller::CURSOR = "formattedCursorCoordinates";
+const QString Controller::REGIONS = "regions";
 
 const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =
@@ -28,10 +31,12 @@ Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
-        m_view(nullptr){
-    m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_state));
+        m_view(nullptr),
+        m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
+
+    m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
     _initializeSelections();
-    _initializeState();
+
 
      connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
      connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
@@ -42,6 +47,8 @@ Controller::Controller( const QString& path, const QString& id ) :
 
      //Load the view.
      _loadView( false );
+
+     _initializeState();
 }
 
 
@@ -169,6 +176,34 @@ void Controller::_initializeCallbacks(){
         _updateCursor();
         return "";
     });
+
+    addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+        QList<QString> keys = {"type", "index"};
+        QVector<QString> dataValues = Util::parseParamMap( params, keys );
+        QString shapePath;
+        if ( dataValues.size() == keys.size()){
+            bool validIndex = false;
+            int index = dataValues[1].toInt( &validIndex );
+            if ( validIndex ){
+                int regionCount = m_regions.size();
+                if ( 0 <= index && index < regionCount ){
+                    //Measure the index from the end.
+                    shapePath = m_regions[index]->getPath();
+                }
+                else {
+                    shapePath = _makeRegion( dataValues[0]);
+                    if ( shapePath.size() == 0 ){
+                        qDebug()<<"Error registerShape unsupported shape: "<<params;
+                    }
+                    else {
+                        saveState();
+                    }
+                }
+            }
+        }
+        return shapePath;
+    });
 }
 
 
@@ -187,15 +222,26 @@ void Controller::_initializeSelection( std::shared_ptr<Selection> & selection ){
 
 
 void Controller::_initializeState(){
+
     //Set whether or not to auto clip
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<double>( CLIP_VALUE, 0.95 );
     m_state.insertValue<int>(DATA_COUNT, 0 );
-    m_state.insertValue<QString>(CURSOR, "");
-    m_state.insertObject( ImageView::MOUSE );
-    m_state.insertValue<QString>(ImageView::MOUSE_X, 0 );
-    m_state.insertValue<QString>(ImageView::MOUSE_Y, 0 );
+
+
+    //For testing only.
+    //_makeRegion( RegionRectangle::CLASS_NAME );
+    int regionCount = m_regions.size();
+    m_state.insertArray(REGIONS, regionCount );
+    //_saveRegions();
     m_state.flushState();
+
+    m_stateMouse.insertObject( ImageView::MOUSE );
+    m_stateMouse.insertValue<QString>(CURSOR, "");
+    m_stateMouse.insertValue<QString>(ImageView::MOUSE_X, 0 );
+    m_stateMouse.insertValue<QString>(ImageView::MOUSE_Y, 0 );
+    m_stateMouse.flushState();
+
 }
 
 
@@ -233,6 +279,18 @@ void Controller::_loadView( bool forceReload ) {
     }
 }
 
+QString Controller::_makeRegion( const QString& regionType ){
+    QString shapePath = Region::makeRegion( regionType );
+    if ( shapePath.size() > 0 ){
+        ObjectManager* objManager = ObjectManager::objectManager();
+        CartaObject* shapeObj = objManager->getObject( shapePath );
+        shapePath = shapeObj->getPath();
+        std::shared_ptr<Region> target( dynamic_cast<Region*>(shapeObj) );
+        m_regions.append(target);
+
+     }
+    return shapePath;
+}
 
 void Controller::saveState() {
     //Note:: we need to save the number of data items that have been added
@@ -244,6 +302,22 @@ void Controller::saveState() {
     m_state.setValue<int>( DATA_COUNT, dataCount );
     for (int i = 0; i < dataCount; i++) {
         m_datas[i]->saveState(/*m_winId, i*/);
+    }
+    int regionCount = m_regions.size();
+    m_state.resizeArray( REGIONS, regionCount );
+    _saveRegions();
+    m_state.flushState();
+}
+
+void Controller::_saveRegions(){
+    int regionCount = m_regions.size();
+    for ( int i = 0; i < regionCount; i++ ){
+        QString arrayStr = REGIONS + StateInterface::DELIMITER + QString::number(i);
+        QString regionType= m_regions[i]->getType();
+        QString regionId = m_regions[i]->getPath();
+        m_state.setObject( arrayStr );
+        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "type", regionType );
+        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "id", regionId );
     }
 }
 
@@ -270,7 +344,7 @@ void Controller::_updateCursor(){
     if ( !validInt ){
         return;
     }
-    QString mouseYStr = m_state.getValue<QString>( ImageView::MOUSE_Y );
+    QString mouseYStr = m_stateMouse.getValue<QString>( ImageView::MOUSE_Y );
     int mouseY = mouseYStr.toInt( &validInt );
     if ( !validInt ){
         return;
@@ -286,8 +360,9 @@ void Controller::_updateCursor(){
         pixCoords[2] = frameIndex;
     }
     auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
-    m_state.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
-    m_state.flushState();
+    m_stateMouse.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
+
+    m_stateMouse.flushState();
 }
 
 Controller::~Controller(){

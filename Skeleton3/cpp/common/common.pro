@@ -47,6 +47,7 @@ HEADERS += \
     Data/Region.h \
     Data/DataSource.h \
     Data/Region.h \
+    Data/RegionRectangle.h \
     Data/Util.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h
@@ -74,6 +75,7 @@ SOURCES += \
     Data/DataSource.cpp \
     Data/Layout.cpp \
     Data/Region.cpp \
+    Data/RegionRectangle.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

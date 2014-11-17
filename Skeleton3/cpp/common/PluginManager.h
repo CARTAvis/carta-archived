@@ -189,7 +189,7 @@ void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> fu
     T hookData( & m_params);
 
     for( auto pluginInfo : pluginList) {
-        qDebug() << "  calling..." << pluginInfo-> json.name
+        //qDebug() << "  calling..." << pluginInfo-> json.name
 
 
 

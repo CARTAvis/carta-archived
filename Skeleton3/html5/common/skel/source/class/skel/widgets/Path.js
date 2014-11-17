@@ -36,11 +36,18 @@ qx.Class.define("skel.widgets.Path", {
         SEP : "/",
         SEP_COMMAND : ":",
         ZOOM : "",
+        VIEW : "view",
         VIEW_MANAGER : "ViewManager",
+        
+        getCommandRegisterShape : function(winId){
+            return winId + this.SEP_COMMAND +"registerShape";
+        },
         
         getCommandRegisterView : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "registerView";
         },
+        
+        
         
         getCommandLoadData : function(){
             return this.BASE_PATH + this.DATA_LOADER + this.SEP_COMMAND + "getData";
@@ -68,6 +75,10 @@ qx.Class.define("skel.widgets.Path", {
         
         getCommandSetPlugin : function(){
             return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setPlugin";
+        },
+        
+        getCommandShapeChanged : function(shapeId){
+            return shapeId + this.SEP_COMMAND +"shapeChanged";
         },
         
         getCommandSaveState : function(){

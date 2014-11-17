@@ -67,9 +67,19 @@ qx.Class.define("skel.widgets.Util", {
          */
         getCenter : function(widget) {
             var widgetBounds = widget.getBounds();
-            var box = widget.getContentLocation();
-            var xCoord = box.left + Math.round(widgetBounds["width"] / 2);
-            var yCoord = box.top + Math.round(widgetBounds["height"] / 2);
+            var box = widget.getContentLocation("box");
+            var left = 0;
+            var top = 0;
+            if ( box ){
+                left = box.left;
+                top = box.top;
+            }
+            var xCoord = left;
+            var yCoord = top;
+            if ( widgetBounds ){
+                xCoord = left + Math.round(widgetBounds["width"] / 2);
+                yCoord = top + Math.round(widgetBounds["height"] / 2);
+            }
             return [ xCoord, yCoord ];
         },
 
@@ -80,9 +90,17 @@ qx.Class.define("skel.widgets.Util", {
         localPos : function(event) {
             var target = event.getTarget();
             var box = target.getContentLocation("box");
-            return {
-                x : event.getDocumentLeft() - box.left,
-                y : event.getDocumentTop() - box.top
+           
+            var left = event.getDocumentLeft();
+            var top = event.getDocumentTop();
+            if ( box ){
+                left = left - box.left;
+                top = top - box.top;
+            }
+            
+            return  {
+                x : left,
+                y : top
             };
         }
 
