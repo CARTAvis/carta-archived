@@ -15,9 +15,8 @@ cdef extern from "pragmaHack.h":
 cdef public void foobar():
     return
 
-# cdef int moddId
+# module-globals
 moddId = 1
-
 mods = {}
 
 # list of mods
@@ -55,6 +54,15 @@ cdef public int  pb_loadModule( string fname, string modName):
         mods[ mod.getId()] = mod
     return mod.getId()
 
+# check if the plugin has ColormapScalarHook
+cdef public bool pb_hasColormapScalarHook( int id):
+    if not id in mods:
+        return False
+    return hasattr(mods[id].loadedMod, 'colormapScalarHook')
+
+
+
+# check to see if the python plugin has pre-render hook
 cdef public bool pb_hasPreRenderHook( int id):
     if not id in mods:
         return False
@@ -66,28 +74,7 @@ import numpy as np
 
 np.import_array()
 
-
-# cdef public bool pb_callPreRenderHook( int id, int w, int h, const char * data):
-#     print("pb_callPreRenderHook id=", id, w, h)
-#     # numpy_array = np.asarray(<np.int8_t[:w, :h]> data)
-#     cdef view.array my_array = view.array(shape=(w, h), itemsize=sizeof(char), format="i", mode="c", allocate_buffer=False)
-#     my_array.data = <char *> data
-#     print( "first bytes:", my_array[0,0])
-#     return True
-
-# cdef public bool pb_callPreRenderHook( int id, int w, int h, vector[char] & data):
-#     print("pb_callPreRenderHook id=", id, w, h, data.size())
-#     data[0] = 123
-#     if not id in mods:
-#         print("!!! could not find mod", id)
-#         return False
-#     print("weird", hasattr( mods[id].loadedMod, 'preRenderHook'), mods[id], mods[id].loadedMod)
-#     newData = mods[id].loadedMod.preRenderHook(w, h, data)
-#     for i, x in enumerate(newData):
-#         data[i] = newData[i]
-#
-#     return True
-
+# this calls the pre-render hook defined in the python plugin
 cdef public bool pb_callPreRenderHook( int id, int w, int h, int stride, unsigned char * data):
     print("pb_callPreRenderHook id=", id, w, h)
     if not id in mods:
@@ -104,12 +91,5 @@ cdef public bool pb_callPreRenderHook( int id, int w, int h, int stride, unsigne
 
     return True
 
-# # pyData = data
-    # # my_array = np.asarray(<np.int8_t[:w, :h]> pyData)
-    # my_array = np.array( data)
-    #
-    # print( "first bytes:", my_array[0,0])
-    # return True
-
-
+# just a debug statement
 print( "Last line of pluginBridge.pyx...." )

@@ -5,56 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/GrayColormap.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../cpp/common/GrayColormap.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/AxisInfo.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/AxisInfo.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/AxisInfo.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/AxisInfo.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateFormatter.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateFormatter.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateFormatter.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateFormatter.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateGridPlotter.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateGridPlotter.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/ICoordinateGridPlotter.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/ICoordinateGridPlotter.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IImage.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IImage.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IImage.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IImage.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IPlotLabelGenerator.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlotLabelGenerator.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IPlotLabelGenerator.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlotLabelGenerator.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlugin.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/Nullable.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Nullable.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/PixelType.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/PixelType.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/PixelType.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/PixelType.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/Slice.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Slice.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/../cpp/common/Slice.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Slice.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCCoordinateFormatter.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCImage.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCMetaDataInterface.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CCRawView.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" afterPath="$PROJECT_DIR$/../cpp/CartaLib/CartaLib.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" afterPath="$PROJECT_DIR$/../cpp/plugins/CasaImageLoader/CasaImageLoader.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.h" afterPath="$PROJECT_DIR$/../cpp/plugins/casatest1/CasaTest1.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/clock1/Clock1Plugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/clock1/Clock1Plugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" afterPath="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Colormaps.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Colormaps.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Colormaps.h" afterPath="$PROJECT_DIR$/../cpp/common/Colormaps.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.h" afterPath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Data/DataSource.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Data/DataSource.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Data/DataSource.h" afterPath="$PROJECT_DIR$/../cpp/common/Data/DataSource.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/tester1/GenericPlugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/tester1/GenericPlugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/HookIDs.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/HookIDs.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/HtmlString.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/IColormapScalar.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IColormapScalar.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/PluginManager.h" afterPath="$PROJECT_DIR$/../cpp/common/PluginManager.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlugin.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/Python273Plugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/Python273Plugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Algorithms/RawView2QImageConverter.h" afterPath="$PROJECT_DIR$/../cpp/common/Algorithms/RawView2QImageConverter.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/Tests/SliceTester.cpp" afterPath="$PROJECT_DIR$/../cpp/Tests/SliceTester.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/Tests/Tests.pro" afterPath="$PROJECT_DIR$/../cpp/Tests/Tests.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/Viewer.h" afterPath="$PROJECT_DIR$/../cpp/common/Viewer.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/common.pro" afterPath="$PROJECT_DIR$/../cpp/common/common.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/common/misc.h" afterPath="$PROJECT_DIR$/../cpp/common/misc.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py" afterPath="$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/python273.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/python273.pro" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -144,7 +102,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ColormapWindow.js" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="ColormapWindow.js" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.3882175" vertical-offset="13" max-vertical-offset="1410">
@@ -250,34 +208,32 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="pluginBridge.pyx" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="pluginBridge.pyx" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="495" max-vertical-offset="1815">
-                  <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.71648693" vertical-offset="450" max-vertical-offset="1515">
+                  <caret line="61" column="0" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="noisepy.py" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="435">
+                  <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Application.js" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.27652735" vertical-offset="4628" max-vertical-offset="5415">
+                <state vertical-scroll-proportion="-6.3703704" vertical-offset="4628" max-vertical-offset="5415">
                   <caret line="328" column="39" selection-start-line="328" selection-start-column="39" selection-end-line="328" selection-end-column="39" />
                   <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="MenuBar.js" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/widgets/MenuBar.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-9.185185" vertical-offset="3592" max-vertical-offset="7215">
-                  <caret line="256" column="98" selection-start-line="256" selection-start-column="98" selection-end-line="256" selection-end-column="98" />
-                  <folding>
-                    <element signature="n#!!doc" expanded="true" />
-                  </folding>
                 </state>
               </provider>
             </entry>
@@ -339,7 +295,6 @@
         <option value="$PROJECT_DIR$/desktop/desktopConnector.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Label.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js" />
-        <option value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/Toggle.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/View.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/widgets/MenuBar.js" />
@@ -347,6 +302,8 @@
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/theme/Appearance.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/Application.js" />
         <option value="$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/ColormapWindow.js" />
+        <option value="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
+        <option value="$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py" />
       </list>
     </option>
   </component>
@@ -642,7 +599,7 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../PureWebRaiViewer-html5/fitsviewer/html5" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py" />
     <property name="FullScreen" value="false" />
     <property name="recentsLimit" value="5" />
   </component>
@@ -1058,12 +1015,12 @@
       <workItem from="1411429249671" duration="8786000" />
       <workItem from="1412472612356" duration="1267000" />
       <workItem from="1414990435952" duration="605000" />
-      <workItem from="1415074300127" duration="8163000" />
+      <workItem from="1415074300127" duration="11560000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="211346000" />
+    <option name="totallyTimeSpent" value="214743000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
@@ -1116,14 +1073,6 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="496" max-vertical-offset="1710">
-          <caret line="64" column="29" selection-start-line="64" selection-start-column="29" selection-end-line="64" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/server/serverConnector.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="5340" max-vertical-offset="7545">
@@ -1396,14 +1345,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="495" max-vertical-offset="1770">
-          <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/boundWidgets/PluginList.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1455">
@@ -1508,7 +1449,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/skel/source/class/skel/Application.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.27652735" vertical-offset="4628" max-vertical-offset="5415">
+        <state vertical-scroll-proportion="-6.3703704" vertical-offset="4628" max-vertical-offset="5415">
           <caret line="328" column="39" selection-start-line="328" selection-start-column="39" selection-end-line="328" selection-end-column="39" />
           <folding />
         </state>
@@ -1521,6 +1462,22 @@
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="435">
+          <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.71648693" vertical-offset="450" max-vertical-offset="1515">
+          <caret line="61" column="0" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

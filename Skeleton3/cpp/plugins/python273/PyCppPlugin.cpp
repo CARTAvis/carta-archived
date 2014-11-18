@@ -1,6 +1,7 @@
 #include <Python.h>
 #include "PyCppPlugin.h"
 #include "pluginBridge.h"
+#include "CartaLib/Hooks/ColormapsScalar.h"
 #include <QPainter>
 #include <QDebug>
 #include <dlfcn.h>
@@ -91,6 +92,7 @@ PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
         throw "Forget it";
     }
     qDebug() << "Do we have prerender hook:" << pb_hasPreRenderHook(m_pyModId);
+    qDebug() << "Do we have colormap hook:" << pb_hasColormapScalarHook(m_pyModId);
 }
 
 bool PyCppPlug::handleHook(BaseHook & hookData)
@@ -117,21 +119,28 @@ bool PyCppPlug::handleHook(BaseHook & hookData)
 
         return true;
     }
-    qWarning() << "Sorrry, dont' know how to handle this hook";
+    qWarning() << "PyCppPlug:: Sorrry, don't know how to handle this hook" << hookData.hookId();
     return false;
 }
 
 std::vector<HookId> PyCppPlug::getInitialHookList()
 {
-    // TODO: this list should be based on what is implemented in python
+    // compile the list of hooks
+    std::vector<HookId> list;
     if( pb_hasPreRenderHook( m_pyModId)) {
-        return {
-            PreRender::staticId
-        };
+        list.push_back( PreRender::staticId);
+    }
+
+    if( pb_hasColormapScalarHook( m_pyModId)) {
+        qWarning() << "PyCppPlug: has colormap xyz";
+        list.push_back( Carta::Lib::Hooks::ColormapsScalarHook::staticId);
     }
     else {
-        return {};
+        qWarning() << "PyCppPlug: does not have colormap xyz";
     }
+
+    // return the list
+    return list;
 }
 
 void PyCppPlug::initialize(const IPlugin::InitInfo & /*InitInfo*/)

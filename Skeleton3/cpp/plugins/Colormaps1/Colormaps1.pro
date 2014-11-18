@@ -30,7 +30,12 @@ copy_files.commands = ${COPY_FILE} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy_files.CONFIG += no_link target_predeps
 QMAKE_EXTRA_COMPILERS += copy_files
 
-unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
-INCLUDEPATH += $$PWD/../../common
-DEPENDPATH += $$PWD/../../common
-unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
+#unix: LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
+#unix: PRE_TARGETDEPS += $$OUT_PWD/../../CartaLib/libCartaLib.so
+#DEPENDPATH += $$PROJECT_ROOT/CartaLib
+#QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../../CartaLib\''
+
+#unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
+#INCLUDEPATH += $$PWD/../../common
+#DEPENDPATH += $$PWD/../../common
+#unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a

@@ -1,4 +1,4 @@
-/// This plugin can read image formats that casacore supports.
+/// This plugin adds support for plugins written in Python 2.7.3.
 
 #pragma once
 

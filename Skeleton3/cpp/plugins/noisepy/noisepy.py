@@ -17,6 +17,7 @@ def preRenderHook(w, h, data):
     for y in range(0,h):
         if y % 2 < 1:
             myShape[y,...] = 0
-#    for i, x in enumerate(data):
-#        if (i // (w*3)) % 10 < 5:
-#           data[i] = 0
+
+def colormapScalarHook():
+    print("colormapScalarHook from noisepy.py");
+

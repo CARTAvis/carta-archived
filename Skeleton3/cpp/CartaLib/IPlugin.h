@@ -119,16 +119,9 @@ public:
     ~IPlugin() { }
 };
 
-/*
-#define BLAH_CARTA_HOOK_BOILER1(name) \
-    Q_OBJECT ;\
-    CLASS_BOILERPLATE(name) ;\
-    static constexpr HookId staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID);
-*/
-
 #define CARTA_HOOK_BOILER1(name) \
     CLASS_BOILERPLATE(name) ;\
-    static constexpr HookId staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID);
+    enum { staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID) };
 
 /// initialize hook is called once at the beginning of the application
 class Initialize : public BaseHook
@@ -142,7 +135,6 @@ public:
 
     ResultType result;
 };
-
 
 /// just before rendering a view, plugins are given a chance to modify the rendered image
 class PreRender : public BaseHook

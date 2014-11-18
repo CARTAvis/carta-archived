@@ -394,11 +394,9 @@ Viewer::start()
                 m_image );
             m_connector-> registerView( testView2 );
 
-            qDebug() << "xyz test";
             CoordinateFormatterInterface::VD pixel;
             pixel.resize( m_coordinateFormatter->nAxes(), 0 );
             auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-            qDebug() << "0->" << fmt.join( "|" );
             auto skycs = KnownSkyCS::Galactic;
             m_coordinateFormatter-> setSkyCS( skycs );
             qDebug() << "set skycs to" << int (skycs)
