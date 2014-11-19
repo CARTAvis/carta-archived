@@ -5,14 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e5ea0e0-da11-436b-9423-805f417dc080" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/Colormaps1/Colormaps1.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/IPlugin.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/IPlugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/PyCppPlugin.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/Python273Plugin.h" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/Python273Plugin.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py" afterPath="$PROJECT_DIR$/../cpp/plugins/noisepy/noisepy.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/pluginBridge.pyx" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/plugins/python273/python273.pro" afterPath="$PROJECT_DIR$/../cpp/plugins/python273/python273.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/ColormapsScalar.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/HookIDs.h" afterPath="$PROJECT_DIR$/../cpp/CartaLib/Hooks/HookIDs.h" />
     </list>
     <ignored path="html5.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -312,6 +306,7 @@
     <config-path />
   </component>
   <component name="ProjectFrameBounds">
+    <option name="x" value="-3840" />
     <option name="y" value="24" />
     <option name="width" value="1920" />
     <option name="height" value="1176" />
@@ -1015,15 +1010,15 @@
       <workItem from="1411429249671" duration="8786000" />
       <workItem from="1412472612356" duration="1267000" />
       <workItem from="1414990435952" duration="605000" />
-      <workItem from="1415074300127" duration="11560000" />
+      <workItem from="1415074300127" duration="12753000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="214743000" />
+    <option name="totallyTimeSpent" value="215936000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1920" height="1176" extended-state="6" />
+    <frame x="-3840" y="24" width="1920" height="1176" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
