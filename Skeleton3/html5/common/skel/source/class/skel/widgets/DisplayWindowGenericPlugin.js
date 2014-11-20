@@ -52,7 +52,8 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                  * Display specific UI initialization.
                  */
                 _initDisplaySpecific : function() {
-                    if (this.m_pluginId == "plugins") {
+                    var path = skel.widgets.Path.getInstance();
+                    if (this.m_pluginId == path.PLUGINS ) {
                         var pluginList = new skel.boundWidgets.PluginList( this.m_pluginId );
                         this.m_content.add(pluginList);
                     }
@@ -67,11 +68,12 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                  */
                 isLinkable : function(pluginId) {
                     var linkable = false;
-                    if (pluginId == skel.widgets.Path.getInstance().CASA_LOADER 
+                    var path = skel.widgets.Path.getInstance();
+                    if (pluginId == path.CASA_LOADER 
                             && this.m_pluginId == "statistics") {
                         linkable = true;
-                    } else if (pluginId == "animator"
-                            && this.m_pluginId != "plugins") {
+                    } 
+                    else if (pluginId == path.ANIMATOR && this.m_pluginId != path.PLUGINS) {
                         linkable = true;
                     }
                     return linkable;

@@ -40,6 +40,7 @@ HEADERS += \
     ImageView.h \
     Data/Animator.h \
     Data/AnimatorType.h \
+    Data/Colormap.h \
     Data/Controller.h \
     Data/DataLoader.h \
     Data/Selection.h \
@@ -69,6 +70,7 @@ SOURCES += \
     ImageView.cpp \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \
+    Data/Colormap.cpp \
     Data/Controller.cpp \
     Data/DataLoader.cpp \
     Data/Selection.cpp \

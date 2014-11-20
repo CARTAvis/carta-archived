@@ -202,10 +202,11 @@ qx.Class.define("skel.widgets.DisplayMain",
             this._clearLayout();
             this.setRowCount(3);
             this.setColCount(2);
+            var path = skel.widgets.Path.getInstance();
             this._setPlugins( 
-                    skel.widgets.Path.getInstance().CASA_LOADER, "plugins",
+                    path.CASA_LOADER, path.PLUGINS,
                     skel.widgets.DisplayWindow.EXCLUDED, "statistics",
-                    skel.widgets.DisplayWindow.EXCLUDED, "animator" );
+                    skel.widgets.DisplayWindow.EXCLUDED, path.ANIMATOR );
      
             /*this.layout(3, 2);
 
@@ -228,11 +229,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             this.m_pane.setAreaWidth(Math.floor(this.m_width* (1 - imagePercent)), 2, 1);
             */
         },
-
-
-
-
-
 
         /**
          * Adds or removes the link from the window identified

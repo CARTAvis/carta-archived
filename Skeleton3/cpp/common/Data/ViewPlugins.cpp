@@ -1,6 +1,7 @@
 #include "Data/ViewPlugins.h"
 #include "Globals.h"
 #include "PluginManager.h"
+#include "Animator.h"
 
 #include <QDir>
 #include <QDebug>
@@ -44,7 +45,7 @@ void ViewPlugins::_initializeDefaultState(){
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
     }
-    _insertPlugin( ind, "animator", "Animation of data sets", "", "", "");
+    _insertPlugin( ind, Animator::CLASS_NAME, "Animation of data sets", "", "", "");
     ind++;
     _insertPlugin( ind, "statistics", "Placeholder for statistics plugin", "", "", "");
     ind++;

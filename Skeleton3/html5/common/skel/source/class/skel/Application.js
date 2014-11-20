@@ -123,6 +123,21 @@ qx.Class.define("skel.Application",
 			    this.m_mainContainer.remove( this.m_fileBrowser );
 			}
 		}, this );
+                
+                qx.event.message.Bus.subscribe( "showColormap", function( message ){
+                    if ( this.m_colormapDialog == null ){
+                            this.m_colormapDialog = new skel.widgets.Colormap.ColormapDialog();
+                    }
+                    if ( this.m_mainContainer.indexOf( this.m_colormapDialog ) < 0 ){
+                            this.m_mainContainer.add( this.m_colormapDialog, { top :"15%", left: "15%"});
+                    }
+                }, this );
+            
+                qx.event.message.Bus.subscribe( "closeColormap", function( message ){
+                    if ( this.m_colormapDialog != null && this.m_mainContainer.indexOf( this.m_colormapDialog) >= 0 ){
+                        this.m_mainContainer.remove( this.m_colormapDialog );
+                    }
+                }, this );
             },
 
 
@@ -335,11 +350,11 @@ qx.Class.define("skel.Application",
             m_desktop: null,
             m_menuBar: null,
             m_statusBar: null,
-        	m_mainContainer: null,
-        	m_windowLocator: null,
-        	m_windowLink: null,
-        	m_fileBrowser: null
-        
+            m_mainContainer: null,
+            m_windowLocator: null,
+            m_windowLink: null,
+            m_fileBrowser: null,
+            m_colormapDialog: null
         }
     });
 

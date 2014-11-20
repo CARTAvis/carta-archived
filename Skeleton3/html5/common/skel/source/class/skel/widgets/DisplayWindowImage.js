@@ -106,9 +106,17 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
 
             var renderButton = new qx.ui.toolbar.MenuButton("Render");
             renderButton.setMenu(this._initMenuRender());
+            
+            var colorMapButton = new qx.ui.toolbar.MenuButton( "Colormap");
+            colorMapButton.addListener( "execute", function() {
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "showColormap", this));
+            }, this);
+            
             windowMenuList.push(dataButton);
             windowMenuList.push(regionButton);
             windowMenuList.push(renderButton);
+            windowMenuList.push( colorMapButton );
 
             return windowMenuList;
         },
@@ -128,6 +136,13 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             this.m_renderButton = new qx.ui.menu.Button("Render");
             this.m_renderButton.setMenu(this._initMenuRender());
             this.m_contextMenu.add(this.m_renderButton);
+            
+            var colorMapButton = new qx.ui.menu.Button( "Colormap");
+            colorMapButton.addListener( "execute", function() {
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "showColormap", this));
+            }, this);
+            this.m_contextMenu.add( colorMapButton );
         },
 
         /**
@@ -187,8 +202,8 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          */
         isLinkable : function(pluginId) {
             var linkable = false
-
-            if (pluginId == "animator" || pluginId == this.m_pluginId) {
+            var path = skel.widgets.Path.getInstance();
+            if (pluginId == path.ANIMATOR || pluginId == this.m_pluginId) {
                 linkable = true;
             }
             return linkable;
@@ -228,6 +243,12 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
         setDrawMode : function(drawInfo) {
             if (this.m_drawCanvas != null) {
                 this.m_drawCanvas.setDrawMode(drawInfo);
+            }
+        },
+        
+        showColormap : function(){
+            if ( this.m_colormap == null ){
+                this.m_colormap = new skel.widgets.Colormap.ColormapDialog();
             }
         },
 

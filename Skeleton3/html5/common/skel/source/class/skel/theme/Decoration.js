@@ -14,7 +14,16 @@ qx.Theme.define("skel.theme.Decoration",
 
   decorations :
   {
-	 
+      "focused-inset" :
+      {
+        style :
+        {
+          width : 1,
+          innerWidth: 1,
+          color : [ "border-focused-dark-shadow", "border-focused-light", "border-focused-light", "border-focused-dark-shadow" ],
+          innerColor : [ "border-focused-dark", "border-focused-light-shadow", "border-focused-light-shadow", "border-focused-dark" ]
+        }
+      },
 	  
 	  "light-border" :
       {
@@ -60,6 +69,30 @@ qx.Theme.define("skel.theme.Decoration",
                backgroundColor : "background"
            }
         },
+        
+        "slider-red" :
+        {
+           style :
+            {          
+                backgroundColor : "#FF0000"
+            }
+         },
+         
+         "slider-blue" :
+         {
+            style :
+             {          
+                 backgroundColor : "#0000FF"
+             }
+          },
+          
+          "slider-green" :
+          {
+             style :
+              {          
+                  backgroundColor : "#00FF00"
+              }
+           },
        
        "win" :
        {

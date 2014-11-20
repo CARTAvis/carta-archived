@@ -62,7 +62,7 @@ qx.Class.define("skel.boundWidgets.Label", {
                 }
             }
             if (typeof this.m_labelPostfix === "function") {
-                this.setValue(this.m_labelPrefix + this.m_label+Postfix(labelVal));
+                this.setValue(this.m_labelPrefix + this.m_label+labelVal);
             } else {
                 this.setValue(this.m_labelPrefix + labelVal + this.m_labelPostfix);
             }

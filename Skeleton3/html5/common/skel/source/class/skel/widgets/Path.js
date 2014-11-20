@@ -18,11 +18,13 @@ qx.Class.define("skel.widgets.Path", {
         this.ZOOM = this.BASE_PATH + "zoom" + this.SEP;
     },
     members : {
-        BASE_PATH : "",
+        ANIMATOR : "Animator",
         AUTO_CLIP : "setAutoClip",
+        BASE_PATH : "",
         CARTA : "CartaObjects",
         CASA_LOADER : "CasaImageLoader",
         CLIP_VALUE : "setClipValue",
+        COLORMAP : "Colormap",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         HIDDEN : "Hidden",
@@ -32,6 +34,7 @@ qx.Class.define("skel.widgets.Path", {
         MOUSE : "mouse",
         MOUSE_X : "",
         MOUSE_Y : "",
+        PLUGINS : "ViewPlugins",
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",

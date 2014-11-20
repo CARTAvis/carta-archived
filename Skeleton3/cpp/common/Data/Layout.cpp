@@ -1,4 +1,7 @@
 #include "Data/Layout.h"
+#include "Data/Colormap.h"
+#include "Data/Animator.h"
+#include "Data/ViewPlugins.h"
 #include "Util.h"
 
 #include <QDir>
@@ -64,7 +67,7 @@ void Layout::_initializeDefaultState(){
     m_state.insertArray( LAYOUT_PLUGINS, 4 );
     m_state.insertValue<int>( LAYOUT_ROWS, 2 );
     m_state.insertValue<int>( LAYOUT_COLS, 2 );
-    QStringList pluginNames = {"CasaImageLoader", "plugins", "Hidden", "animator"};
+    QStringList pluginNames = {"CasaImageLoader", ViewPlugins::CLASS_NAME, "Hidden", Animator::CLASS_NAME};
     _setPlugin( pluginNames );
 }
 

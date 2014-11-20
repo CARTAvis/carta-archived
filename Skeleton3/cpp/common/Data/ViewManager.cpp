@@ -1,5 +1,6 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
+#include "Data/Colormap.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
 #include "Data/Layout.h"
@@ -76,29 +77,7 @@ void ViewManager::_initCallbacks(){
         QVector<QString> dataValues = Util::parseParamMap( params, keys );
         QString viewId( "" );
         if ( dataValues.size() == keys.size()){
-            if ( dataValues[0] == "CasaImageLoader"){
-                bool validIndex = false;
-                int dataIndex = dataValues[1].toInt( &validIndex );
-                if ( validIndex  && 0 <= dataIndex && dataIndex < m_controllers.size()){
-                    viewId = m_controllers[dataIndex]->getPath();
-                }
-                else {
-                    viewId = _makeController();
-                }
-            }
-            else if ( dataValues[0] == "animator"){
-                bool validIndex = false;
-                int animIndex = dataValues[1].toInt( &validIndex );
-                if ( validIndex && 0 <= animIndex && animIndex < m_animators.size()){
-                    viewId = m_animators[animIndex]->getPath();
-                }
-                else {
-                    viewId = _makeAnimator();
-                }
-            }
-            else if ( dataValues[0] == "plugins"){
-                viewId = _makePluginList();
-            }
+            viewId = _makeWindow( dataValues );
         }
         return viewId;
     });
@@ -246,6 +225,44 @@ QString ViewManager::_makePluginList(){
     }
     QString pluginsPath = m_pluginsLoaded->getPath();
     return pluginsPath;
+}
+
+QString ViewManager::_makeWindow( QVector<QString>& dataValues ){
+    QString viewId("");
+    if ( dataValues[0] == "CasaImageLoader"){
+        bool validIndex = false;
+        int dataIndex = dataValues[1].toInt( &validIndex );
+        if ( validIndex  && 0 <= dataIndex && dataIndex < m_controllers.size()){
+            viewId = m_controllers[dataIndex]->getPath();
+        }
+        else {
+            viewId = _makeController();
+        }
+    }
+    else if ( dataValues[0] == Animator::CLASS_NAME ){
+        bool validIndex = false;
+        int animIndex = dataValues[1].toInt( &validIndex );
+        if ( validIndex && 0 <= animIndex && animIndex < m_animators.size()){
+            viewId = m_animators[animIndex]->getPath();
+        }
+        else {
+            viewId = _makeAnimator();
+        }
+    }
+    else if ( dataValues[0] == ViewPlugins::CLASS_NAME ){
+        viewId = _makePluginList();
+    }
+    /*else if ( dataValues[0] == Colormap::CLASS_NAME ){
+        ObjectManager* objManager = ObjectManager::objectManager();
+        QString id = objManager->createObject( Colormap::CLASS_NAME );
+        CartaObject* controlObj = objManager->getObject( id );
+        viewId = controlObj->getPath();
+        qDebug() << "made colormap path="<<viewId;
+    }*/
+    else {
+        qDebug() << "Unrecognized top level window type: "<<dataValues[0];
+    }
+    return viewId;
 }
 
 bool ViewManager::_readState( const QString& saveName ){

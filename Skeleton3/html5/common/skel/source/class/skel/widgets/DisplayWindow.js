@@ -34,7 +34,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         //Get the shared variable that indicates the plugins that have been loaded so
         //we can display the view options in the context menu.
         this.m_connector = mImport("connector");
-        var paramMap = "pluginId:plugins,index:0"
+        var paramMap = "pluginId:" + pathDict.PLUGINS +",index:0"
         var regViewCmd = pathDict.getCommandRegisterView();
         this.m_connector.sendCommand( regViewCmd, paramMap, this._viewPluginsCB( this ) );
         
@@ -430,7 +430,8 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         /**
          * Callback for a data state change for this window.
          */
-        _sharedVarCB : function( val ){
+        _sharedVarCB : function( ){
+            var val = this.m_sharedVar.get();
             if ( val ){
                 var winObj = JSON.parse( this.m_sharedVar.get() );
                 //Update the links for this window if they exist.

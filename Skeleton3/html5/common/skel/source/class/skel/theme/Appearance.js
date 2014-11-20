@@ -34,7 +34,7 @@ qx.Theme.define("skel.theme.Appearance",
           }
       },
       
-   
+
       
       "splitpane": {
     	  style: function(states){

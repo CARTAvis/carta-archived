@@ -188,13 +188,16 @@ qx.Class
                          * @param index {Number} an index that will be positive when there is more than one window with the same pluginId.
                          */
                         _makeWindow : function(pluginId, index ) {
-                            if (pluginId == skel.widgets.Path.getInstance().CASA_LOADER) {
+                            var path = skel.widgets.Path.getInstance();
+                            if (pluginId == path.CASA_LOADER) {
                                 this.m_window = new skel.widgets.DisplayWindowImage(
                                         this.m_row, this.m_col, index);
-                            } else if (pluginId == "animator") {
+                            } 
+                            else if (pluginId == path.ANIMATOR) {
                                 this.m_window = new skel.widgets.DisplayWindowAnimation(
                                         this.m_row, this.m_col, index );
-                            } else {
+                            } 
+                            else {
                                 this.m_window = new skel.widgets.DisplayWindowGenericPlugin(
                                         this.m_row, this.m_col, pluginId, index);
                             }

@@ -56,6 +56,7 @@ private:
     QString _makeLayout();
     QString _makePluginList();
     QString _makeController();
+    QString _makeWindow( QVector<QString>& dataValues );
 
     bool _readState( const QString& fileName );
     bool _saveState( const QString& fileName );
