@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "IPlugin.h"
-#include "Nullable.h"
+#include "CartaLib/IPlugin.h"
+#include "CartaLib/Nullable.h"
 
 #include <QImage>
 #include <QString>
@@ -29,6 +29,8 @@ struct ResTrait <void> {
 
 class PluginManager;
 
+///
+/// @todo this should be an inner class of PluginManager
 template <typename T>
 class HookHelper
 {
@@ -41,14 +43,25 @@ public:
     void forEachCond( std::function< bool(typename T::ResultType)> func);
 
     /// as above, but all plugins are processed
-    void forEach( std::function< void(typename T::ResultType)> func) {
-        // code reuse by wrapping the supplied function into one that always return true
-        auto wrapper = [=] (typename T::ResultType && res) -> bool {
-            func( std::forward(res));
+//    void forEach( std::function< void(typename T::ResultType)> func) {
+//        // code reuse by wrapping the supplied function into one that always returns true
+//        auto wrapper = [=] (typename T::ResultType && res) -> bool {
+//            func( std::forward(res));
+//            return true;
+//        };
+//        forEachCond( wrapper);
+//    }
+
+    /// for each plugin call it, and then call func() on the result
+    void forEach( std::function< void(const typename T::ResultType & )> func) {
+        // code reuse by wrapping the supplied function into one that always returns true
+        auto wrapper = [=] (const typename T::ResultType & res) -> bool {
+            func( res);
             return true;
         };
         forEachCond( wrapper);
     }
+
 
     /// execute all plugins and ignore results
     void executeAll() {
@@ -78,9 +91,7 @@ protected:
     friend class PluginManager;
 
     // only PluginManager can construct this
-    // TODO: this should be an inner class
     HookHelper() = delete;
-//    HookHelper() {}
     HookHelper( typename T::Params&& params)
         : m_params( std::forward<typename T::Params>( params))
     {}
@@ -175,35 +186,31 @@ protected:
 
 };
 
+/// the workhorse - keep calling each plugin that implementes the hook, followed
+/// by calling the supplied callback function, until we run out of plugins
+/// or the callback return 'false'
 template <typename T>
 void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> func)
 {
     //qDebug() << "forEachCond";
-    // get the list of plugins that claim they handle this hook
-    HookId hookId = T::StaticHookId;
-    //qDebug() << "  static hook id = " << hookId;
-    auto pluginList = m_pm-> listForHook( hookId);
-    //qDebug() << "  plugins registered for this hook: " << pluginList.size();
+    HookId hookId = T::staticId;
 
-    // make an actual instance of the Hook
+    // get the list of plugins that claim they handle this hook
+    auto pluginList = m_pm-> listForHook( hookId);
+
+    // make an actual instance of the Hook on the stack and give it a pointer
+    // to the parameters
     T hookData( & m_params);
 
     for( auto pluginInfo : pluginList) {
-        //qDebug() << "  calling..." << pluginInfo-> json.name
-
-
-
-                    ;
         bool handled = pluginInfo-> rawPlugin-> handleHook( hookData);
         // skip to the next plugin immediately if this hook was not handled by
         // this plugin
         if( ! handled) {
             continue;
         }
-
         // call the func() with the result of the hook
         bool shouldContinue = func( hookData.result);
-
         // if we should not continue, abort right here
         if( ! shouldContinue) {
             break;

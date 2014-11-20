@@ -1,7 +1,7 @@
 #ifndef GENERICPLUGIN_H
 #define GENERICPLUGIN_H
 
-#include "common/IPlugin.h"
+#include "CartaLib/IPlugin.h"
 #include <QObject>
 #include <QString>
 

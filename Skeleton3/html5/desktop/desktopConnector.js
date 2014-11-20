@@ -276,9 +276,9 @@
             st.value = val;
             // now go through all callbacks and call them
             try {
-                st.callbacks.callEveryone(st.value);
-            } catch (err) {
-                window.console.error("Caught error ", err);
+                st.callbacks.callEveryone( st.value );
+            } catch ( err) {
+                window.console.error( "Caught error ", err);
             }
         });
 

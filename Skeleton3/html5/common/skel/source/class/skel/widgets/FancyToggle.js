@@ -26,9 +26,9 @@ qx.Class.define( "skel.widgets.FancyToggle",
 
         /**
          * Constructor
-         * @param labelPrefix {String}
-         * @param labelPostfix {String|Function}
-         * @param varPath {String} Path to the bound shared variable
+         * @param label {String}
+         * @param icon1 {String?null}
+         * @param icon2 {String?null}
          *
          * If no icons are specified, the default ones are used.
          * If only one icon is specified, it is used whether the toggle is on or off.

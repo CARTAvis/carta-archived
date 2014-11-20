@@ -19,7 +19,8 @@ SOURCES += \
 
 HEADERS += \
      Python273Plugin.h \
-    PyCppPlugin.h
+    PyCppPlugin.h \
+    pragmaHack.h
 
 OTHER_FILES += \
     plugin.json \
@@ -52,7 +53,8 @@ CYTHONSOURCES = pluginBridge.pyx
 cythoncpp.input = CYTHONSOURCES
 cythoncpp.output = ${QMAKE_FILE_BASE}.cpp
 #cythoncpp.commands = python $$_PRO_FILE_PWD_/setup.py build_ext --inplace
-cythoncpp.commands = python setup.py build_ext --inplace
+#cythoncpp.commands = python setup.py build_ext --inplace
+cythoncpp.commands = python -m cython --cplus -f pluginBridge.pyx
 cythoncpp.variable_out = SOURCES
 cythoncpp.name = cython Sources ${QMAKE_FILE_IN}
 cythoncpp.CONFIG += target_predeps

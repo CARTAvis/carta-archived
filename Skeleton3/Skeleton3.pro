@@ -18,7 +18,7 @@ SUBDIRS += scriptedClient
 SUBDIRS += scripts
 #SUBDIRS += html5
 
-OTHER_FILES += readme.txt
+OTHER_FILES += readme.txt uncrustify.cfg
 
 
 # make sure user did not specify debug version...

@@ -1,6 +1,5 @@
 #include "MainWindow.h"
 #include "CustomWebPage.h"
-#include "common/misc.h"
 #include <QtWidgets>
 #include <QtNetwork>
 #include <QtWebKitWidgets>

@@ -17,7 +17,7 @@
 #pragma once
 
 #include "Nullable.h"
-#include "misc.h"
+#include <QString>
 #include <cstdint>
 
 

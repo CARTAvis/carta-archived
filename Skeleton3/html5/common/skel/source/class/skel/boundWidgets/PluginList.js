@@ -56,6 +56,26 @@ qx.Class.define("skel.boundWidgets.PluginList", {
             };
 
             this.m_table = new qx.ui.table.Table(this.m_tableModel, custom);
+//            this.m_table.setAllowShrinkY( true);
+//            this.m_table.setAllowStretchY( true);
+//            this.m_table.setAllowGrowY( true);
+//            this.m_table.setMinHeight(100);
+//            this.setAllowShrinkY( true);
+//            this.setAllowStretchY( true);
+//            this.setAllowGrowY( true);
+//            this.setMinHeight(100);
+            this.m_table.set({
+                minWidth: 100,
+                minHeight: 100,
+                allowStretchX: true,
+                allowStretchY: true
+            });
+            this.set({
+                minWidth: 100,
+                minHeight: 100,
+                allowStretchX: true,
+                allowStretchY: true
+            });
 
             var colModel = this.m_table.getTableColumnModel();
             colModel.setDataCellRenderer(4,
@@ -92,7 +112,7 @@ qx.Class.define("skel.boundWidgets.PluginList", {
                 var type = plugins.pluginList[i].type;
                 var version = plugins.pluginList[i].version;
                 var errors = plugins.pluginList[i].loadErrors;
-                var loaded = (errors === "");
+                var loaded = (errors === "" || errors === null);
                 newData.push([ name, description, type, version, loaded ]);
             }
 

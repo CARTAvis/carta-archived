@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include "misc.h"
+#include "CartaLib/CartaLib.h"
+#include "CartaLib/HtmlString.h"
 #include <QString>
 #include <vector>
 #include <memory>
@@ -19,7 +20,7 @@ class PlotLabelGeneratorInterface
 public:
 
     /// \todo we can remove this once we put this class into carta namespace
-    typedef Carta::TextFormat TextFormat;
+    typedef Carta::Lib::TextFormat TextFormat;
 
     /// shortcut for my own type
     typedef PlotLabelGeneratorInterface This;
