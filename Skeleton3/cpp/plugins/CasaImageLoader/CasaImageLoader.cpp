@@ -28,6 +28,7 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
         // Register FITS and Miriad image types
         casa::FITSImage::registerOpenFunction();
         casa::MIRIADImage::registerOpenFunction();
+        qDebug() << "FITSImage registered";
         return true;
     }
 
@@ -96,8 +97,8 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
         }
     }
     // if we failed to open the lattice, we are done :(
-    if( lat == 0 ) {
-        qDebug() << "\t-out of ideas, bailing out";
+    if( lat == nullptr ) {
+        qDebug() << "\t-lat is nullptr, out of ideas, bailing out";
         return nullptr;
     }
 

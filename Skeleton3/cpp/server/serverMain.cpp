@@ -91,8 +91,8 @@ int main(int argc, char ** argv)
         if( ! valid) {
             qFatal( "Could not initialize connector");
         }
-        hackViewer.start();
         viewer.start();
+        hackViewer.start();
     };
 
     // initialize connector

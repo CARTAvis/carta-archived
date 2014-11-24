@@ -22,7 +22,9 @@ class TestView2 : public IView
 public:
 
     TestView2( QString prefix,
-               QString viewName, QColor bgColor, QImage img,
+               QString viewName,
+               QColor bgColor,
+               QImage img,
                Image::ImageInterface::SharedPtr astroImage )
     {
         m_defaultImage = img;
@@ -267,34 +269,34 @@ HackViewer::start()
         qDebug() << "Trying to load astroImage...";
         auto res2 =
             Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
-        if ( ! res2.isNull() ) {
-            qDebug() << "Could not find any plugin to load astroImage";
-            m_image = res2.val();
-
-            CARTA_ASSERT( m_image );
-            m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
-
-            qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
-            testView2 = new TestView2(
-                "/hacks",
-                "view3", QColor( "pink" ), QImage( 10, 10, QImage::Format_ARGB32 ),
-                m_image );
-            m_connector-> registerView( testView2 );
-
-            CoordinateFormatterInterface::VD pixel;
-            pixel.resize( m_coordinateFormatter->nAxes(), 0 );
-            auto fmt   = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-            auto skycs = KnownSkyCS::Galactic;
-            m_coordinateFormatter-> setSkyCS( skycs );
-            qDebug() << "set skycs to" << int (skycs)
-                     << "now it is" << int ( m_coordinateFormatter-> skyCS() );
-            fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-            qDebug() << "0->" << fmt.join( "|" );
-
-            // convert the loaded image into QImage
-            m_currentFrame = 0;
-            reloadFrame( true );
+        if ( res2.isNull() ) {
+            qFatal( "Could not find any plugin to load astroImage" );
         }
+        m_image = res2.val();
+
+        CARTA_ASSERT( m_image );
+        m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
+
+        qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
+        testView2 = new TestView2(
+            "/hacks",
+            "hackView", QColor( "pink" ), QImage( 10, 10, QImage::Format_ARGB32 ),
+            m_image );
+        m_connector-> registerView( testView2 );
+
+        CoordinateFormatterInterface::VD pixel;
+        pixel.resize( m_coordinateFormatter->nAxes(), 0 );
+        auto fmt   = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+        auto skycs = KnownSkyCS::Galactic;
+        m_coordinateFormatter-> setSkyCS( skycs );
+        qDebug() << "set skycs to" << int (skycs)
+                 << "now it is" << int ( m_coordinateFormatter-> skyCS() );
+        fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+        qDebug() << "0->" << fmt.join( "|" );
+
+        // convert the loaded image into QImage
+        m_currentFrame = 0;
+        reloadFrame( true );
     }
 
     if ( fname.length() > 0 ) {

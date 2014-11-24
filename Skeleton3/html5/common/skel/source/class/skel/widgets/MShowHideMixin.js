@@ -79,7 +79,9 @@ qx.Mixin.define("skel.widgets.MShowHideMixin", {
             }
         },
 
-        m_alwaysVisible : false,
+        // setting default to true because it causes annoying flicker and very high CPU
+        // on my computer (pavol)
+        m_alwaysVisible : true,
         m_shown : true,
         m_animationSize : 30,
         m_mouseMargin : 30
