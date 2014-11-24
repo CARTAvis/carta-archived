@@ -1,7 +1,9 @@
 /**
  * Base class for Windows displaying plugins.
  */
-/*global mImport */
+/* global mImport,qx,skel,console */
+/* jshint strict: false */
+
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
@@ -27,22 +29,22 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         this._init();
         this._initContextMenu();
         
-        if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
+        if ( this.m_pluginId && this.m_plugInd !== pathDict.HIDDEN ){
             this.setTitle( this.m_pluginId );
         }
         
         //Get the shared variable that indicates the plugins that have been loaded so
         //we can display the view options in the context menu.
         this.m_connector = mImport("connector");
-        var paramMap = "pluginId:plugins,index:0"
+        var paramMap = "pluginId:plugins,index:0";
         var regViewCmd = pathDict.getCommandRegisterView();
         this.m_connector.sendCommand( regViewCmd, paramMap, this._viewPluginsCB( this ) );
         
-        if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
+        if ( this.m_pluginId && this.m_plugInd !== pathDict.HIDDEN ){
             this.initID( index );
             var id = this.addListener("appear", function() {
                 var container = this.getContentElement().getDomElement();
-                if ( this.m_identifier !=""){
+                if ( this.m_identifier !== ""){
                     container.id = this.m_identifier;
                 }
                 else {
@@ -81,7 +83,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          *                {boolean} true if the link should be added; false if
          *                the link should be removed.
          */
-        changeLink : function(sourceWinId, destWinId, addLink) {
+        changeLink : function( /*sourceWinId, destWinId, addLink*/) {
             return false;
         },
 
@@ -136,7 +138,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          */
         getLinkInfo : function(pluginId, sourceWinId) {
             var linkInfo = new skel.widgets.LinkInfo();
-            if (this.m_identifier == sourceWinId) {
+            if (this.m_identifier === sourceWinId) {
                 linkInfo.source = true;
             }
             var midPoint = skel.widgets.Util.getCenter(this);
@@ -165,8 +167,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * Return specialized menu items for this window.
          */
         getWindowMenu : function() {
-            var specializedMenu = this.getWindowSubMenu();
-            return specializedMenu;
+            return this.getWindowSubMenu();
         },
 
         /**
@@ -188,10 +189,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.setShowClose(false);
             this.setUseResizeFrame(false);
             this.setContentPadding(0, 0, 0, 0);
-//            this.setAllowGrowX(true);
-//            this.setAllowGrowY(true);
-//            this.setAllowShrinkX(true);
-//            this.setAllowShrinkY(true);
             this.setAllowStretchX(true);
             this.setAllowStretchY(true);
             this.setMovable(false);
@@ -207,7 +204,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.add(this.m_scrollArea, {
                 flex : 1
             });
-            this.m_contextMenu = new qx.ui.menu.Menu;
+            this.m_contextMenu = new qx.ui.menu.Menu();
 
             this.addListener("mousedown", function(ev) {
                 this.setSelected(true, ev.isCtrlPressed());
@@ -224,7 +221,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                     var linkData = {
                             "plugin" : this.m_pluginId,
                             "window" : this.m_identifier
-                    }
+                    };
                     qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "showLinks", linkData));
                 }
@@ -286,13 +283,12 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this._sharedVarCB( this.m_sharedVar.get());
         },
 
-
         /**
          * Initialize the View menu displaying other plug-ins that have views
          * available.
          */
         _initViewMenu : function() {
-            var pluginMenu = new qx.ui.menu.Menu;
+            var pluginMenu = new qx.ui.menu.Menu();
             var val = this.m_sharedVarPlugin.get();
             var plugins = JSON.parse( val );
             for (var i = 0; i < plugins.pluginCount; i++) {
@@ -309,7 +305,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                             row : this.row,
                             col : this.col,
                             plugin : pluginName
-                        }
+                        };
                         qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
                     }, nameButton);
                     pluginMenu.add(nameButton);
@@ -353,7 +349,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             return this.m_windowMenu;
         },
 
-
         /**
          * Returns whether or not this window can be linked to a window
          * displaying a named plug-in.
@@ -365,15 +360,12 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             return false;
         },
         
-
         /**
          * Returns whether or not this window is closed.
          */
         isClosed : function() {
             return this.m_closed;
         },
-
-
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -407,13 +399,13 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         _registrationCallback : function( anObject ){
             return function( id ){
                 if ( id && id.length > 0 ){
-                    if ( id != anObject.m_identifier ){
+                    if ( id !== anObject.m_identifier ){
                         anObject.m_identifier = id;
                         anObject._initSharedVar();
                         anObject.windowIdInitialized();
                     }
                 }
-            }
+            };
         },
         
         /**
@@ -422,7 +414,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         _restore : function() {
             var restoreIndex = this.m_windowMenu.indexOf(this.m_restoreButton);
             var maxIndex = this.m_windowMenu.indexOf(this.m_maximizeButton);
-            if (maxIndex == -1) {
+            if (maxIndex === -1) {
                 this.m_windowMenu.addAt(this.m_maximizeButton, restoreIndex);
             }
             if (restoreIndex >= 0) {
@@ -453,15 +445,9 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             }
         },
 
-
-
         setDrawMode : function(drawInfo) {
 
         },
-
-       
-        
-        
 
         /**
          * Set the appearance of this window based on whether or not it is selected.
@@ -505,7 +491,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                 anObject.m_sharedVarPlugin = anObject.m_connector.getSharedVar(id);
                 anObject.m_sharedVarPlugin.addCB(anObject._initViewMenuContext.bind(anObject));
                 anObject._initViewMenuContext();
-            }
+            };
         },
         
         /**

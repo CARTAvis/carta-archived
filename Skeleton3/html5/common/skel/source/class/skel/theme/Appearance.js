@@ -8,6 +8,9 @@
 
  ************************************************************************ */
 
+/* globals qx */
+/* jshint strict: false */
+
 qx.Theme.define( "skel.theme.Appearance", {
 
     extend: qx.theme.modern.Appearance,
