@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "common/misc.h"
-#include "common/IImage.h"
+#include "CartaLib/IImage.h"
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <memory>
 
@@ -36,7 +35,7 @@ public:
     otherInfo( TextFormat format ) override;
 
 protected:
-    Carta::HtmlString m_title;
+    Carta::Lib::HtmlString m_title;
     std::shared_ptr<casa::CoordinateSystem> m_casaCS;
 
 };

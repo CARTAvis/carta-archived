@@ -12,6 +12,7 @@
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>
         <codeStyleSettings language="JavaScript">
+          <option name="RIGHT_MARGIN" value="100" />
           <option name="BRACE_STYLE" value="5" />
           <option name="METHOD_BRACE_STYLE" value="2" />
           <option name="ELSE_ON_NEW_LINE" value="true" />
@@ -40,4 +41,3 @@
     <option name="USE_PER_PROJECT_SETTINGS" value="true" />
   </component>
 </project>
-

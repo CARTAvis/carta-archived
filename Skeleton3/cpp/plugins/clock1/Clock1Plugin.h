@@ -1,7 +1,7 @@
 #ifndef CLOCK1PLUGIN_H
 #define CLOCK1PLUGIN_H
 
-#include "common/IPlugin.h"
+#include "CartaLib/IPlugin.h"
 #include <QObject>
 #include <QString>
 

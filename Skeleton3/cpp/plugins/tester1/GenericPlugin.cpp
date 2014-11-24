@@ -9,8 +9,8 @@ GenericPlugin::GenericPlugin(QObject *parent) :
 
 bool GenericPlugin::handleHook(BaseHook &hookData)
 {
-    //qDebug() << "GenericPlugin is handling hook #" << hookData.hookId();
-    if( hookData.hookId() == Initialize::StaticHookId ) {
+    qDebug() << "GenericPlugin is handling hook #" << hookData.hookId();
+    if( hookData.is<Initialize>()) {
 //        Initialize & initHook = static_cast<Initialize &>( hookData);
 
         qDebug() << "Woohoo, generic plugin received initialize request.";
@@ -21,7 +21,7 @@ bool GenericPlugin::handleHook(BaseHook &hookData)
         return true;
     }
 
-    if( hookData.hookId() == PreRender::StaticHookId ) {
+    if( hookData.hookId() == PreRender::staticId ) {
         PreRender & hook = static_cast<PreRender &>( hookData);
 
         //qDebug() << "Prerender hook received by generic plugin";
@@ -48,7 +48,7 @@ bool GenericPlugin::handleHook(BaseHook &hookData)
 std::vector<HookId> GenericPlugin::getInitialHookList()
 {
     return {
-        Initialize::StaticHookId,
-        PreRender::StaticHookId
+        Initialize::staticId,
+        PreRender::staticId
     };
 }

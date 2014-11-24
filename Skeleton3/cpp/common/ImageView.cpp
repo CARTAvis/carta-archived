@@ -2,7 +2,6 @@
 #include "Globals.h"
 #include "IPlatform.h"
 #include "IConnector.h"
-#include "misc.h"
 #include "PluginManager.h"
 #include "State/StateInterface.h"
 

@@ -1,8 +1,3 @@
-/**
- *
- **/
-
-
 #include "ScriptedCommandListener.h"
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -22,8 +17,6 @@ ScriptedCommandListener::ScriptedCommandListener(int port, QObject * parent)
     if( ! m_tcpServer-> listen( QHostAddress::AnyIPv4, port)) {
         throw std::runtime_error("Coud not listen for scripted commands on given port");
     }
-
-
 }
 
 void ScriptedCommandListener::newConnectionCB()

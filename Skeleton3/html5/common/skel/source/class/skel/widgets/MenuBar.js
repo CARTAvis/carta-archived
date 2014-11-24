@@ -55,8 +55,9 @@ qx.Class.define("skel.widgets.MenuBar", {
         "menuMoved" : "qx.event.type.Data",
         "newWindow" : "qx.event.type.Data",
         "shareSession" : "qx.event.type.Data",
-        "statusAlwaysVisible" : "qx.event.type.Data"
-
+        "statusAlwaysVisible" : "qx.event.type.Data",
+        /// emitted when cursor window toggle is clicked
+        "showCursorWindow" : "qx.event.type.Data"
     },
 
     members : {
@@ -264,13 +265,16 @@ qx.Class.define("skel.widgets.MenuBar", {
         /**
          * Initialize a tool bar containing 'quick' access buttons.
          */
-        _initPresetTools : function(){
+        _initPresetTools : function() {
             var pathDict = skel.widgets.Path.getInstance();
             var toggle = new skel.boundWidgets.Toggle( "Recompute clips on new frame", "");
             toggle.addListener( "toggleChanged", function(autoClip){
                 this._sendAutoClipCmd( autoClip.getData() );
             }, this)
             this.m_toolPart.add( toggle );
+
+            this.m_toolPart.add(new skel.boundWidgets.Toggle( "Cursor", "/hacks/cursorVisible"));
+            this.m_toolPart.add(new skel.boundWidgets.Toggle( "Colormap", "/hacks/cm-windowVisible"));
             
             // add preset buttons
             var connector = mImport("connector");

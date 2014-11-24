@@ -15,15 +15,17 @@
  *
  */
 
+/// @todo move everything here Carta::Lib namespace
+
+
 #pragma once
 
 #include "PixelType.h"
 #include "Nullable.h"
-#include "misc.h"
 #include "Slice.h"
-#include "CoordinateFormatter.h"
-#include "CoordinateGridPlotter.h"
-#include "PlotLabelGenerator.h"
+#include "ICoordinateFormatter.h"
+#include "ICoordinateGridPlotter.h"
+#include "IPlotLabelGenerator.h"
 #include <QObject>
 #include <functional>
 #include <initializer_list>
@@ -56,7 +58,7 @@ class RawViewInterface
 {
 public:
     typedef std::vector < int > VI;
-    typedef Image::PixelType    PixelType;
+    typedef Image::PixelType PixelType;
 
     /// traversal order
     enum class Traversal
@@ -104,7 +106,25 @@ public:
     // experimental APIs below, not yet finalized and definitely not yet implemented
     // ===-----------------------------------------------------------------------===
 
-    /// another high performance accessor to data
+    /// \brief High performance accessor to data, motivated by unix's read().
+    /// \param buffSize max number of bytes to read in
+    /// \param buff result will be stored here
+    /// \param traversal if sequential, c-order traversal is used, if optimal, the pixels
+    /// will be stored in the buffer in some arbitrary order, but fast
+    /// \return number of bytes that were placed into buffer, 0 indicates
+    /// there were no more bytes to read
+    ///
+    virtual int64_t
+    read( int64_t buffSize, char * buff,
+          Traversal traversal = Traversal::Sequential ) = 0;
+    /// reset the position for the next read()
+    virtual void
+    seek( int64_t ind = 0) = 0;
+
+    /// High performance accessor to data, motivated by unix's read(), except
+    /// it's stateless
+    /// the view will have (width*height*pixel_size_in_bytes) bytes in them
+    /// therefore there will be ceil(n_pix/buffSize) chunks
     virtual int64_t
     read( int64_t chunk, int64_t buffSize, char * buff,
           Traversal traversal = Traversal::Sequential ) = 0;
@@ -207,7 +227,7 @@ class MetaDataInterface
 
 public:
     /// \todo we can remove this once we put this class into carta namespace
-    typedef Carta::TextFormat TextFormat;
+    typedef Carta::Lib::TextFormat TextFormat;
 
     /// clone yourself
     virtual MetaDataInterface *
@@ -234,17 +254,16 @@ public:
     /// (eg. complete FITS header)
     virtual QStringList
     otherInfo( TextFormat format = TextFormat::Plain ) = 0;
+
+    /// get information about coordinates
+
 };
 
 /// Main interface class for representing an image inside the viewer. This is used to pass
 /// around images between core and plugins. For example, a plugin that can load
 /// an image would have to implement this interface.
 class ImageInterface
-
-//        : public QObject
 {
-//    Q_OBJECT
-
     CLASS_BOILERPLATE(ImageInterface);
 
 public:
@@ -252,7 +271,6 @@ public:
     typedef Image::PixelType    PixelType;
     typedef std::vector < int > VI;
 
-//    ImageInterface() : QObject() {}
     ImageInterface() { }
 
     /// virtual destructor to make sure we can delete arbitrary images
@@ -302,12 +320,12 @@ public:
     /// get the mask
     /// \todo booleans as bytes is wasting resources, we should specialize
     /// the NdArray::TypedView for bools
-    virtual void
-    getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result ) = 0;
+    virtual NdArray::Byte *
+    getMaskSlice( const SliceND & sliceInfo) = 0;
 
     /// get the errors
-    virtual void
-    getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result ) = 0;
+    virtual NdArray::RawViewInterface  *
+    getErrorSlice( const SliceND & sliceInfo) = 0;
 
     /// return a pointer to a meta data object, which is essentially a collection
     /// of algorithms that allows us to do useful things with metadata stored with
@@ -383,6 +401,6 @@ test_apis()
 
     // get info about axis 3
     auto meta      = ii-> metaData();
-    AxisInfo axis3 = meta-> coordinateFormatter()-> axisInfo( 3 );
+    Carta::Lib::AxisInfo axis3 = meta-> coordinateFormatter()-> axisInfo( 3 );
     Q_UNUSED( axis3 );
 } // test_apis

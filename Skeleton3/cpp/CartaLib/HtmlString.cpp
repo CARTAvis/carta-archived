@@ -3,9 +3,15 @@
  **/
 
 #include "HtmlString.h"
+#include <QTextDocumentFragment>
+
+namespace Carta
+{
+namespace Lib
+{
 
 QString
-Carta::Lib::HtmlString::html() const
+HtmlString::html() const
 {
     if ( m_html.isNull() ) {
         return m_plain.toHtmlEscaped();
@@ -16,7 +22,7 @@ Carta::Lib::HtmlString::html() const
 }
 
 QString
-Carta::Lib::HtmlString::plain() const
+HtmlString::plain() const
 {
     if ( m_plain.isNull() ) {
         return QTextDocumentFragment::fromHtml( m_html ).toPlainText();
@@ -26,25 +32,28 @@ Carta::Lib::HtmlString::plain() const
     }
 }
 
-Carta::Lib::HtmlString
-Carta::Lib::HtmlString::fromHtml( QString html )
+HtmlString
+HtmlString::fromHtml( QString html )
 {
     HtmlString res;
     res.m_html = html;
     return res;
 }
 
-Carta::Lib::HtmlString Carta::Lib::HtmlString::fromPlain(QString plain)
+HtmlString HtmlString::fromPlain(QString plain)
 {
     HtmlString res;
     res.m_plain = plain;
     return res;
 }
 
-Carta::Lib::HtmlString::HtmlString( QString plain, QString html )
+HtmlString::HtmlString( QString plain, QString html )
 {
     m_plain = plain.isNull() ? "" : plain;
     m_html  = html.isNull() ? "" : html;
 }
 
-Carta::Lib::HtmlString::HtmlString() { }
+HtmlString::HtmlString() { }
+
+}
+}

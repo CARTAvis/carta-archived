@@ -5,9 +5,9 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/IImage.h"
 #include "CCRawView.h"
 #include "CCMetaDataInterface.h"
-#include "common/IImage.h"
 #include "images/Images/ImageInterface.h"
 #include <QDebug>
 #include <memory>
@@ -88,20 +88,18 @@ public:
     }
 
     /// \todo implement this
-    virtual void
-    getMaskSlice( const SliceND & sliceInfo, NdArray::Byte & result ) override
+    virtual NdArray::Byte *
+    getMaskSlice( const SliceND & sliceInfo) override
     {
         Q_UNUSED( sliceInfo );
-        Q_UNUSED( result );
         qFatal( "not implemented" );
     }
 
     /// \todo implement this
-    virtual void
-    getErrorSlice( const SliceND & sliceInfo, NdArray::RawViewInterface & result ) override
+    virtual NdArray::RawViewInterface *
+    getErrorSlice( const SliceND & sliceInfo) override
     {
         Q_UNUSED( sliceInfo );
-        Q_UNUSED( result );
         qFatal( "not implemented" );
     }
 
@@ -129,9 +127,12 @@ public:
         QString htmlTitle = casaImage->imageInfo().objectName().c_str();
         htmlTitle = htmlTitle.toHtmlEscaped();
 
+        // make our own copy of the coordinate system using 'clone'
+        std::shared_ptr<casa::CoordinateSystem> casaCS(
+                    static_cast<casa::CoordinateSystem *> (casaImage->coordinates().clone()));
+//                = std::make_shared<casa::CoordinateSystem>(casaImage-> coordinates());
+
         // construct a meta data instance
-        std::shared_ptr<casa::CoordinateSystem> casaCS
-                = std::make_shared<casa::CoordinateSystem>(casaImage-> coordinates());
         img-> m_meta = std::make_shared < CCMetaDataInterface > ( htmlTitle, casaCS );
 
         return img;

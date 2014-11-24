@@ -1,9 +1,9 @@
-/// This plugin can read image formats that casacore supports.
+/// This plugin adds support for plugins written in Python 2.7.3.
 
 #pragma once
 
+#include "CartaLib/IPlugin.h"
 #include <QObject>
-#include "common/IPlugin.h"
 #include <QString>
 
 /// this is the main plugin that is exported from the dynamic library

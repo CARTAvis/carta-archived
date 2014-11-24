@@ -5,9 +5,12 @@
 
 #pragma once
 
+#include "CartaLib/IColormapScalar.h"
+#include "CartaLib/IImage.h"
+#include "common/GrayColormap.h"
 #include <QImage>
 #include <QCache>
-#include "IImage.h"
+
 
 
 /// compute clip values from the values in a view
@@ -59,7 +62,7 @@ typename std::tuple<Scalar,Scalar> computeClips(
 class RawView2QImageConverter {
 public:
     typedef RawView2QImageConverter & Me;
-    typedef float Scalar;
+    typedef double Scalar;
 
     struct CachedImage {
         QImage img;
@@ -76,7 +79,8 @@ public:
     RawView2QImageConverter() {
         // set cache size (in MB)
         m_cache.setMaxCost( 6 * 1024);
-    };
+        m_cmap = std::make_shared<Carta::Core::GrayColormap>();
+    }
 
     Me & setView( NdArray::RawViewInterface * rawView) {
         if( ! rawView) {
@@ -87,7 +91,7 @@ public:
         }
         m_rawView = rawView;
         return * this;
-    };
+    }
 
     Me & setFrame( int frame) {
         if( frame > 0) {
@@ -100,20 +104,24 @@ public:
             }
         }
         return * this;
-    };
+    }
 
     Me & setAutoClip( double val) {
         m_autoClip = val;
         return * this;
-    };
+    }
+
+    Me & setColormap( Carta::Lib::IColormapScalar::SharedPtr cmap) {
+        m_cmap = cmap;
+        m_cache.clear();
+        return * this;
+    }
+    Carta::Lib::IColormapScalar::SharedPtr m_cmap;
 
     const QImage & go( int frame, bool recomputeClip = true) {
 
         // let's see if we have the result in cache
         CachedImage * img = m_cache[ frame];
-//        img = nullptr;
-//        qDebug() << "Cache check #" << m_frame;
-
         if( img) {
             bool match = false;
             // we have something in cache, let's see if it matches what we want
@@ -127,6 +135,7 @@ public:
                     match = true;
                 }
             }
+            // if we found a match, return it and we're done
             if( match) {
                 qDebug() << "Cache hit #" << frame;
                 return img->img;
@@ -153,55 +162,38 @@ public:
 
         // construct image using clips (clipd, clipinv)
         m_qImage = QImage( width, height, QImage::Format_ARGB32);
-        if( m_qImage.bytesPerLine() != width * 4) {
+        auto bytesPerLine = m_qImage.bytesPerLine();
+        if( bytesPerLine != width * 4) {
             throw std::runtime_error( "qimage does not have consecutive memory...");
         }
-        QRgb * outPtr = reinterpret_cast<QRgb *>( m_qImage.bits());
+        QRgb * outPtr = reinterpret_cast<QRgb *>( m_qImage.bits() + width * (height-1) * 4);
 
         // precalculate linear transformation coeff.
-        float clipdinv = 1.0 / (m_clip2 - m_clip1);
+        Scalar clipdinv = 1.0 / (m_clip2 - m_clip1);
 
         // apply the clips
-        view.forEach( [& outPtr, & clipdinv, this](const float & ival) {
+        CARTA_ASSERT( m_cmap != nullptr);
+        int64_t counter = 0;
+        view.forEach( [& outPtr, & clipdinv, & counter, & width, this](const Scalar & ival) {
             if( std::isfinite( ival)) {
-                float val = (ival - m_clip1) * clipdinv;
-                int gray = val * 255;
-                if( gray > 255) gray = 255;
-                if( gray < 0) gray = 0;
-                * outPtr = qRgb( gray, gray, gray);
+                Scalar val = (ival - m_clip1) * clipdinv;
+                val = clamp<Scalar>( val, 0.0, 1.0);
+                * outPtr = m_cmap->convert( val);
+//                int gray = val * 255;
+//                if( gray > 255) gray = 255;
+//                if( gray < 0) gray = 0;
+//                * outPtr = qRgb( gray, gray, gray);
             }
             else {
                 * outPtr = qRgb( 255, 0, 0);
             }
             outPtr ++;
+            counter ++;
+            // build the image bottom-up
+            if( counter % width == 0) {
+                outPtr -= width * 2;
+            }
         });
-
-//        // construct image using clips (clipd, clipinv)
-//        static std::vector < QRgb > outBuffer;
-//        outBuffer.resize( width * height);
-//        QRgb * outPtr = & outBuffer[0];
-
-//        // precalculate linear transformation coeff.
-//        float clipdinv = 1.0 / (m_clip2 - m_clip1);
-
-//        // apply the clips
-//        view.forEach( [& outPtr, & clipdinv, this](const float & ival) {
-//            if( std::isfinite( ival)) {
-//                float val = (ival - m_clip1) * clipdinv;
-//                int gray = val * 255;
-//                if( gray > 255) gray = 255;
-//                if( gray < 0) gray = 0;
-//                * outPtr = qRgb( gray, gray, gray);
-//            }
-//            else {
-//                * outPtr = qRgb( 255, 0, 0);
-//            }
-//            outPtr ++;
-//        });
-
-//        // construct the qimage from the temporary buffer
-//        m_qImage = QImage( reinterpret_cast<uchar *>( & outBuffer[0]),
-//                width, height, QImage::Format_ARGB32);
 
         // stick this into the cache so we don't need to recompute it
         m_cache.insert( frame,
@@ -211,13 +203,15 @@ public:
         qDebug() << "cache total=" << m_cache.totalCost() << "MB";
 
         return m_qImage;
-    };
+    }
+
 protected:
+
     QImage m_qImage;
     NdArray::RawViewInterface * m_rawView = nullptr;
     double m_autoClip = 0.95;
     QCache<int,CachedImage> m_cache;
-    float m_clip1 = 1.0/0.0, m_clip2 = 0.0;
+    double m_clip1 = 1.0/0.0, m_clip2 = 0.0;
 };
 
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "common/IPlugin.h"
+#include "CartaLib/IPlugin.h"
 #include <QObject>
 #include <QString>
 
@@ -18,6 +18,8 @@ public:
     CasaImageLoader(QObject *parent = 0);
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
+
+    void forgot_to_define_this();
 
 private:
 

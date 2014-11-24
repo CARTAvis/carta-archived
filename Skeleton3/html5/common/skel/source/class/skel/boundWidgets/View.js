@@ -29,8 +29,10 @@ qx.Class.define("skel.boundWidgets.View", {
         this.m_connector = mImport("connector");
 
         this.base(arguments);
-        var path = skel.widgets.Path.getInstance();
-        this.m_viewName = viewName + path.SEP + path.VIEW;
+        this.m_viewName = viewName;
+        // reverting the following change because it does not make sense
+        //var path = skel.widgets.Path.getInstance();
+        //this.m_viewName = viewName + path.SEP + path.VIEW;
 
         var setZeroTimeout = mImport("setZeroTimeout");
 
@@ -42,8 +44,6 @@ qx.Class.define("skel.boundWidgets.View", {
             this.removeListenerById(appearListenerId);
 
             this.m_iview.updateSize();
-
-            window.gview = this.m_iview;
         }, this);
 
         this.addListener("resize", function(/*e*/) {

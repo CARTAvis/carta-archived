@@ -41,7 +41,7 @@ qx.Mixin.define("skel.widgets.MShowHideMixin", {
         show : function(hidable, show) {
             if (show != this.m_shown && !this.m_alwaysVisible) {
                 this.m_shown = show;
-                var duration = 1000;
+                var duration = 2;
                 var frame = new qx.bom.AnimationFrame();
                 frame.on("frame", function(timePassed) {
                     var percent = timePassed / duration;

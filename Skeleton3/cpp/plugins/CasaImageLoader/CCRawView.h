@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "common/IImage.h"
+#include "CartaLib/IImage.h"
 #include "lattices/Lattices/LatticeStepper.h"
 #include "lattices/Lattices/LatticeIterator.h"
 #include "casa/Arrays/IPosition.h"
@@ -47,6 +47,23 @@ public:
     virtual const VI &
     currentPos() override;
 
+    virtual int64_t
+    read( int64_t buffSize, char * buff,
+          Traversal traversal = Traversal::Sequential ) override
+    {
+        Q_UNUSED( buffSize);
+        Q_UNUSED( buff);
+        Q_UNUSED( traversal);
+        qFatal( "not implemented");
+    }
+
+    virtual void
+    seek(int64_t ind) override
+    {
+        Q_UNUSED( ind);
+        qFatal( "not implemented");
+    }
+
     /// another high performance accessor to data
     /// motivated by unix read() but stateless (i.e. one needs to supply the
     /// chunk number)
@@ -84,6 +101,7 @@ protected:
     SliceND::ApplyResult m_appliedSlice;
     VI m_viewDims;
     PType m_buff;
+
 };
 
 // constructor

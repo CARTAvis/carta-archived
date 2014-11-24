@@ -4,20 +4,19 @@
 
 #pragma once
 
-#include <memory>
-#include "CoordinateFormatter.h"
+#include "CartaLib/ICoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <QString>
 #include <QList>
 #include <QObject>
+#include <memory>
 
 class ImageView;
 class DataSource;
 class Region;
 class RegionRectangle;
 class Selection;
-class CoordinateFormatterInterface;
 
 class Controller: public QObject, public CartaObject {
 

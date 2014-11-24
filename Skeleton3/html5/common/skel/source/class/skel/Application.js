@@ -76,6 +76,22 @@ qx.Class.define("skel.Application",
 
             _afterConnect: function()
             {
+
+            var win = new qx.ui.window.Window("Hack view");
+            win.setWidth(300);
+            win.setHeight(200);
+            win.setShowMinimize(false);
+            win.setLayout( new qx.ui.layout.Grow());
+            win.setContentPadding( 5, 5, 5, 5);
+            win.add( new skel.boundWidgets.View( "view3"));
+            this.getRoot().add(win, {left:20, top:220});
+            win.open();
+
+
+            // hacks for temporary functionality
+            this.m_cursorWindow = new skel.boundWidgets.CursorWindow();
+            this.m_colormapWindow = new skel.boundWidgets.ColormapWindow();
+
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                     console.log( "Connection not established yet...");
@@ -335,11 +351,12 @@ qx.Class.define("skel.Application",
             m_desktop: null,
             m_menuBar: null,
             m_statusBar: null,
-        	m_mainContainer: null,
-        	m_windowLocator: null,
-        	m_windowLink: null,
-        	m_fileBrowser: null
-        
+            m_mainContainer: null,
+            m_windowLocator: null,
+            m_windowLink: null,
+            m_fileBrowser: null,
+            m_cursorWindow: null,
+            m_colormapWindow: null
         }
     });
 

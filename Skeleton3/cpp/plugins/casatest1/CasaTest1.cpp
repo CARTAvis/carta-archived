@@ -22,14 +22,14 @@ CasaTest1::CasaTest1(QObject *parent) :
 bool CasaTest1::handleHook(BaseHook & hookData)
 {
     qDebug() << "CasaTest Plugin is handling hook #" << hookData.hookId();
-    if( hookData.hookId() == Initialize::StaticHookId ) {
+    if( hookData.hookId() == Initialize::staticId ) {
         // Register FITS and Miriad image types
         casa::FITSImage::registerOpenFunction();
         casa::MIRIADImage::registerOpenFunction();
         return true;
     }
 
-    if( hookData.hookId() == LoadImage::StaticHookId) {
+    if( hookData.hookId() == LoadImage::staticId) {
         LoadImage & hook = static_cast<LoadImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
         auto channel = hook.paramsPtr->frame;
@@ -43,10 +43,9 @@ bool CasaTest1::handleHook(BaseHook & hookData)
 
 std::vector<HookId> CasaTest1::getInitialHookList()
 {
-	qDebug() << "CasaTest1 returuning initialHook list LoadImage"<<LoadImage::StaticHookId;
     return {
-        Initialize::StaticHookId,
-        LoadImage::StaticHookId
+        Initialize::staticId,
+        LoadImage::staticId
     };
 }
 

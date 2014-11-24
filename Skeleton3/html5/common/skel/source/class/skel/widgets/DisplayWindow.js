@@ -182,14 +182,21 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          */
         _init : function() {
             // Make the window decorations invisible.
-            this.getChildControl("captionbar").setVisibility("excluded");
+//            this.getChildControl("captionbar").setVisibility("excluded");
             this.setShowMinimize(false);
             this.setShowMaximize(false);
             this.setShowClose(false);
             this.setUseResizeFrame(false);
             this.setContentPadding(0, 0, 0, 0);
-            this.setAllowGrowX(true);
-            this.setAllowGrowY(true);
+//            this.setAllowGrowX(true);
+//            this.setAllowGrowY(true);
+//            this.setAllowShrinkX(true);
+//            this.setAllowShrinkY(true);
+            this.setAllowStretchX(true);
+            this.setAllowStretchY(true);
+            this.setMovable(false);
+            this.maximize();
+            this.setCaption( "win"+Math.random());
 
             this.setLayout(new qx.ui.layout.VBox(0));
             this.m_scrollArea = new qx.ui.container.Scroll();
@@ -463,13 +470,15 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          */
         setSelected : function(selected, multiple) {
             if (selected) {
-                this.setAppearance("display-window-selected");
+                //this.setAppearance("display-window-selected");
+                this.getChildControl("captionbar" ).addState( "winsel");
                 if (!multiple) {
                     qx.event.message.Bus.dispatch(new qx.event.message.Message(
                             "windowSelected", this));
                 }
             } else {
-                this.setAppearance("display-window");
+                //this.setAppearance("display-window");
+                this.getChildControl("captionbar" ).removeState( "winsel");
                 qx.event.message.Bus.dispatch( new qx.event.message.Message( "windowUnselected", this ));
             }
         },
@@ -479,6 +488,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * @param label {String} a title for the window.
          */
         setTitle : function(label) {
+            this.setCaption( label);
             if (this.m_title == null) {
                 this.m_title = new skel.boundWidgets.Label(label, "", "");
                 this.m_content.add(this.m_title);
@@ -531,10 +541,10 @@ qx.Class.define("skel.widgets.DisplayWindow", {
     },
 
     properties : {
-        appearance : {
-            refine : true,
-            init : "display-window"
-        }
+//        appearance : {
+//            refine : true,
+//            init : "display-window"
+//        }
 
     }
 

@@ -19,20 +19,22 @@ SOURCES += \
 
 HEADERS += \
      Python273Plugin.h \
-    PyCppPlugin.h
+    PyCppPlugin.h \
+    pragmaHack.h
 
 OTHER_FILES += \
     plugin.json \
     pluginBridge.pyx \
     setup.py
 
-# experiment with
-#relative_path(filePath[, base])
-#Returns the path to filePath relative to base. If base is not specified,
-#it is the current project directory. This function is a wrapper around QDir::relativeFilePath.
+unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
+INCLUDEPATH += $$PWD/../../common
+DEPENDPATH += $$PWD/../../common
+unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
 
-
-# copy json to build directory
+# ---------------------------------------------------------
+# copy json & python files to build directory
+# ---------------------------------------------------------
 MYFILES = plugin.json
 MYFILES += $$files($${PWD}/*.py)
 MYFILES += $$files($${PWD}/*.pyx)
@@ -46,13 +48,14 @@ QMAKE_EXTRA_COMPILERS += copy_files
 
 
 # ---------------------------------------------------------
-# experiment with cython
+# cython rules
 # ---------------------------------------------------------
 CYTHONSOURCES = pluginBridge.pyx
 cythoncpp.input = CYTHONSOURCES
 cythoncpp.output = ${QMAKE_FILE_BASE}.cpp
 #cythoncpp.commands = python $$_PRO_FILE_PWD_/setup.py build_ext --inplace
-cythoncpp.commands = python setup.py build_ext --inplace
+#cythoncpp.commands = python setup.py build_ext --inplace
+cythoncpp.commands = python -m cython --cplus -f pluginBridge.pyx
 cythoncpp.variable_out = SOURCES
 cythoncpp.name = cython Sources ${QMAKE_FILE_IN}
 cythoncpp.CONFIG += target_predeps

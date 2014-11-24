@@ -99,7 +99,6 @@ qx.Class.define("skel.boundWidgets.PluginList", {
             this.m_tableModel.setData(newData);
         }
 
-
     }
 
 });

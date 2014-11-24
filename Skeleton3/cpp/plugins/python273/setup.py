@@ -5,10 +5,12 @@ from distutils.core import setup
 from Cython.Build import cythonize
 
 setup(
-    name = 'Hello world app',
+    name = 'c++/python bridge',
     ext_modules = cythonize(
         "pluginBridge.pyx",                # source
+        extra_compile_args=["-O3"]
 #        language="c++",
-#        include_dirs = [ "/scratch/cy" ],
         ),
+
+
 )

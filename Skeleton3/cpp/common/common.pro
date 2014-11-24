@@ -12,27 +12,17 @@ HEADERS += \
     IConnector.h \
     IPlatform.h \
     Viewer.h \
-    misc.h \
     IView.h \
     LinearMap.h \
     MyQApp.h \
     CallbackList.h \
     PluginManager.h \
-    IPlugin.h \
-    Nullable.h \
-    IImage.h \
     Globals.h \
     Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
     MainConfig.h \
     ScriptedCommandListener.h \
-    PixelType.h \
-    Slice.h \
-    CoordinateFormatter.h \
-    AxisInfo.h \
-    CoordinateGridPlotter.h \
-    PlotLabelGenerator.h \
     State/ObjectManager.h \
     State/StateInterface.h \
     State/StateReader.h \
@@ -50,7 +40,10 @@ HEADERS += \
     Data/RegionRectangle.h \
     Data/Util.h \
     Data/ViewManager.h \
-    Data/ViewPlugins.h
+    Data/ViewPlugins.h \
+    GrayColormap.h \
+    ColormapsOptimization.h \
+    HackViewer.h
 
 SOURCES += \
     Viewer.cpp \
@@ -80,13 +73,9 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     ScriptedCommandListener.cpp \
-    Slice.cpp \
-    IImage.cpp \
-    CoordinateFormatter.cpp \
-    AxisInfo.cpp \
-    CoordinateGridPlotter.cpp \
-    PlotLabelGenerator.cpp \
-    PixelType.cpp \
+    GrayColormap.cpp \
+    ColormapsOptimization.cpp \
+    HackViewer.cpp
 
 
 #message( "common            PWD=$$PWD")

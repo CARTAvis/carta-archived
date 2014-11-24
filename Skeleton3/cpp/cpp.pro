@@ -4,12 +4,12 @@ TEMPLATE = subdirs
 # OTHER_FILES += common.pri
 
 SUBDIRS = \
+    CartaLib \
     common \
     desktop \
     server \
     plugins \
     Tests \
-    CartaLib
 
 # explicit dependencies, much better for make -j4...
 desktop.depends = common

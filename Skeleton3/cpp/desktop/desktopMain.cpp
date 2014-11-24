@@ -4,18 +4,30 @@
 
 #include "DesktopPlatform.h"
 #include "common/Viewer.h"
+#include "common/HackViewer.h"
 #include "common/MyQApp.h"
 #include "common/CmdLine.h"
 #include "common/MainConfig.h"
 #include "common/Globals.h"
 #include <QDebug>
 
+///
+/// \brief main entry point for desktop viewer
+/// \param argc standard argc
+/// \param argv standard argv
+/// \return standard main return (0=success)
+///
+/// @todo refactor some of the common code in desktopMain and serverMain into a commonMain
+///
+/// @warning keep this in sync with serverMain until refactored to commonMain
+///
 int main(int argc, char ** argv)
 {
     //
     // initialize Qt
     //
     MyQApp qapp( argc, argv);
+
 #ifdef QT_DEBUG
     MyQApp::setApplicationName( "Skeleton3-desktop-debug");
 #else
@@ -28,44 +40,64 @@ int main(int argc, char ** argv)
     auto & globals = * Globals::instance();
 
     // parse command line arguments & environment variables
+    // ====================================================
     auto cmdLineInfo = CmdLine::parse( MyQApp::arguments());
     globals.setCmdLineInfo( & cmdLineInfo);
 
     // load the config file
+    // ====================
     QString configFilePath = cmdLineInfo.configFilePath();
     auto mainConfig = MainConfig::parse( configFilePath);
     globals.setMainConfig( & mainConfig);
     qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - ");
 
     // initialize platform
-    // platform gets command line & main config file via globals ?!?!?
+    // ===================
+    // platform gets command line & main config file via globals
     auto platform = new DesktopPlatform();
     globals.setPlatform( platform);
 
     // prepare connector
+    // =================
+    // connector is created via platform, but we put it into globals explicitely here
     IConnector * connector = platform-> connector();
     if( ! connector) {
         qFatal( "Could not initialize connector!");
     }
     globals.setConnector( connector);
 
+    // initialize plugin manager
+    // =========================
+    globals.setPluginManager( new PluginManager );
+    auto pm = globals.pluginManager();
+    // tell plugin manager where to find plugins
+    pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories() );
+    // find and load plugins
+    pm-> loadPlugins();
+    qDebug() << "Loading plugins...";
+    auto infoList = pm-> getInfoList();
+    qDebug() << "List of plugins: [" << infoList.size() << "]";
+    for ( const auto & entry : infoList ) {
+        qDebug() << "  path:" << entry.json.name;
+    }
+
     // create the viewer
+    // =================
     Viewer viewer;
+    HackViewer hackViewer;
     // prepare closure to execute when connector is initialized
-    IConnector::InitializeCallback initCB = [connector, & viewer](bool valid) -> void {
+    IConnector::InitializeCallback initCB = [&](bool valid) -> void {
+        if( ! valid) {
+            qFatal( "Could not initialize connector");
+        }
         viewer.start();
+        hackViewer.start();
     };
 
     // initialize connector
     connector-> initialize( initCB);
+
     // qt now has control
     return qapp.exec();
 }
 
-// TODO: MyQApp, command line parsing, config file parsing and Platform are all
-// boiler plate code. All these should be probably into single code, maybe even
-// into Platform. The problem with this right now is that DesktopPlatform is
-// a QObject, and Qt for some reason chokes on instantiating QObject derived
-// classes before QApplication is initialized... The reason DesktopPlatform is
-// a QObject derived class is that we use it in webkit to give javascript direct
-// access to platform commands, which at the moment is only the fullscreen api...

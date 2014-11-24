@@ -9,12 +9,35 @@ TEMPLATE = lib
 
 DEFINES += CARTALIB_LIBRARY
 
-SOURCES += CartaLib.cpp \
-    HtmlString.cpp
+SOURCES += \
+    CartaLib.cpp \
+    HtmlString.cpp \
+    IColormapScalar.cpp \
+    Hooks/ColormapsScalar.cpp \
+    IImage.cpp \
+    PixelType.cpp \
+    Slice.cpp \
+    AxisInfo.cpp \
+    ICoordinateFormatter.cpp \
+    ICoordinateGridPlotter.cpp \
+    IPlotLabelGenerator.cpp
 
-HEADERS += CartaLib.h\
-        cartalib_global.h \
-    HtmlString.h
+HEADERS += \
+    CartaLib.h\
+    cartalib_global.h \
+    HtmlString.h \
+    IColormapScalar.h \
+    Hooks/ColormapsScalar.h \
+    Hooks/HookIDs.h \
+    IPlugin.h \
+    IImage.h \
+    PixelType.h \
+    Nullable.h \
+    Slice.h \
+    AxisInfo.h \
+    ICoordinateFormatter.h \
+    ICoordinateGridPlotter.h \
+    IPlotLabelGenerator.h
 
 unix {
     target.path = /usr/lib

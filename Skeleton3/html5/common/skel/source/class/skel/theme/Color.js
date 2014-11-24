@@ -1,25 +1,26 @@
 /* ************************************************************************
 
-   Copyright:
+ Copyright:
 
-   License:
+ License:
 
-   Authors:
+ Authors:
 
-************************************************************************ */
+ ************************************************************************ */
 
-qx.Theme.define("skel.theme.Color",
-{
-  extend : qx.theme.modern.Color,
+qx.Theme.define( "skel.theme.Color", {
+    extend: qx.theme.modern.Color,
 
-  colors :
-  {
-	  "text":  "#000000", //black
-	  "background": "#E6E6CC", //oyster
-	  "border": "#CCCC99", //light yellow-green
-	  "selection": "#6699CC", //blue danube
-	  "warning": "#FF9900", //orange peel
-	  "dialogBackground": "#E0E0E0", //rock
-	  "blank" : "#FFFFFF" //white
-  }
-});
+    colors: {
+        "text"            : "#000000", //black
+        "background"      : "#E6E6CC", //oyster
+        "border"          : "#CCCC99", //light yellow-green
+//        "selection"       : "#6699CC", //blue danube
+        "selection"       : "#FF0000",
+        "selection2"      : "#66CCB8",
+        "warning"         : "#FF9900", //orange peel
+        "dialogBackground": "#E0E0E0", //rock
+        "red": "#FF0000",
+        "blank"           : "#FFFFFF" //white
+    }
+} );

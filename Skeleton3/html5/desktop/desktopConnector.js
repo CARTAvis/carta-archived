@@ -1,20 +1,22 @@
 /**
- * Desktop connector. See IConnector.js for documentation regarding the API.
- * This is just an implementation.
+ * Implementation of IConnector.js for the desktop version. See the
+ * IConnector.js for documentation of the API.
  */
 
 /* JsHint options */
 /* global mExport, mImport, QtConnector, QtConnector.* */
 /* jshint eqnull:true */
 
-(function() {
+
+(function()
+{
     "use strict";
 
-    var connector = mExport("connector", {});
-    var setZeroTimeout = mImport("setZeroTimeout");
-    var console = mImport("console");
-    var defer = mImport("defer");
-    var CallbackList = mImport("CallbackList");
+    var connector = mExport( "connector", {} );
+    var setZeroTimeout = mImport( "setZeroTimeout" );
+    var console = mImport( "console" );
+    var defer = mImport( "defer" );
+    var CallbackList = mImport( "CallbackList");
 
     /**
      * Numerical constants representing status of the connection.
@@ -22,17 +24,17 @@
      * @type {{}}
      */
     connector.CONNECTION_STATUS = {
-        CONNECTED : 1,
-        CONNECTING : 2,
-        FAILED : 3,
-        STALLED : 4,
-        DISCONNECTED : 5,
-        UNKNOWN : 6
+        CONNECTED   : 1,
+        CONNECTING  : 2,
+        FAILED      : 3,
+        STALLED     : 4,
+        DISCONNECTED: 5,
+        UNKNOWN     : 6
     };
 
     connector.VIEW_CALLBACK_RESON = {
-        UPDATED : 1,
-        TX_CHANGED : 2
+        UPDATED   : 1,
+        TX_CHANGED: 2
     };
 
     // private variables
@@ -40,7 +42,7 @@
     var m_connectionCB = null;
     // we keep following information for every state:
     // - path (so that individual shared variables don't need to keep their own
-    // copies)
+    //   copies)
     // - value
     // - callback list
     // We start with an empty state
@@ -58,6 +60,7 @@
     /***
      * Note:  The assumption above is wrong.  Command results arrive back in stack order.
      */
+    // TODO: this is a bug (https://github.com/Astroua/CARTAvis/issues/4)
     QtConnector.jsCommandResultsSignal
             .connect(function(result) {
                 //console.log( "DesktopConnector callback result="+result);
@@ -101,7 +104,7 @@
             console.warn("Ignoring update for unconnected view '" + viewName
                     + "'");
             return;
-        }
+        } 
         buffer.assignToHTMLImageElement(view.m_imgTag);
     });
 
@@ -137,11 +140,11 @@
         // create an image tag inside the container
         this.m_container = container;
         this.m_viewName = viewName;
-        this.m_imgTag = document.createElement("img");
-        this.m_imgTag.setAttribute("max-width", "100%");
-        this.m_imgTag.setAttribute("max-height", "100%");
-        // console.log( "imgTag = ", this.m_imgTag );
-        this.m_container.appendChild(this.m_imgTag);
+        this.m_imgTag = document.createElement( "img" );
+        this.m_imgTag.setAttribute( "max-width", "100%");
+        this.m_imgTag.setAttribute( "max-height", "100%");
+//        console.log( "imgTag = ", this.m_imgTag );
+        this.m_container.appendChild( this.m_imgTag );
 
         // register mouse move event handler
         this.m_imgTag.onmousemove = this.mouseMoveCB.bind(this);
@@ -151,10 +154,7 @@
         // delay in milliseconds ( -1 means no delay, 0 means zero timeout
         this.MouseMoveDelay = -1;
         this.m_mouseMoveTimeoutHandle = null;
-        this.m_mousePos = {
-            x : 0,
-            y : 0
-        };
+        this.m_mousePos = { x : 0, y: 0 };
         this.m_mousePosSlotScheduled = false;
     };
 
@@ -234,37 +234,40 @@
     View.prototype.addViewCallback = function(callback) {
     };
 
-    connector.registerViewElement = function(divElement, viewName) {
-        //var view = m_views[viewName];
-        /*if (view !== undefined) {
-            throw new Error("Trying to re-register existing view '" + viewName
-                    + "'");
-        }*/
-        //if ( view == undefined ){
-            var view = new View(divElement, viewName);
-            m_views[viewName] = view;
-        //}
+    connector.registerViewElement = function( divElement, viewName )
+    {
+        var view = m_views[ viewName];
+        if( view !== undefined) {
+            throw new Error("Trying to re-register existing view '" + viewName + "'");
+        }
+        view = new View( divElement, viewName );
+        m_views[ viewName] = view;
         return view;
     };
 
-    connector.setInitialUrl = function( /* url */) {
+    connector.setInitialUrl = function( /*url*/ )
+    {
         // we don't need urls
     };
 
-    connector.getConnectionStatus = function() {
+    connector.getConnectionStatus = function()
+    {
         return m_connectionStatus;
     };
 
-    connector.setConnectionCB = function(callback) {
+
+    connector.setConnectionCB = function( callback )
+    {
         m_connectionCB = callback;
     };
 
-    connector.connect = function() {
-        if (m_connectionCB == null) {
-            console.warn("No connection callback specified!!!");
+    connector.connect = function()
+    {
+        if( m_connectionCB == null ) {
+            console.warn( "No connection callback specified!!!" );
         }
 
-        if (window.QtPlatform !== undefined || window.QtConnector !== undefined) {
+        if( window.QtPlatform !== undefined || window.QtConnector !== undefined ) {
             m_connectionStatus = connector.CONNECTION_STATUS.CONNECTED;
         }
 
@@ -276,9 +279,9 @@
             st.value = val;
             // now go through all callbacks and call them
             try {
-                st.callbacks.callEveryone(st.value);
-            } catch (err) {
-                window.console.error("Caught error ", err);
+                st.callbacks.callEveryone( st.value );
+            } catch ( err) {
+                window.console.error( "Caught error ", err);
             }
         });
 
@@ -333,14 +336,17 @@
         this.set = function(value) {
             if (typeof value === "boolean") {
                 value = value ? "1" : "0";
-            } else if (typeof value === "string") {
+            }
+            else if( typeof value === "string" ) {
                 // do nothing, this will be verbatim
                 value = value;
-            } else if (typeof value === "number") {
+            }
+            else if( typeof value === "number" ) {
                 // convert number
                 value = "" + value;
-            } else {
-                console.error("value has weird type: ", value, m_statePtr.path);
+            }
+            else {
+                console.error( "value has weird type: ", value, m_statePtr.path );
                 throw "don't know how to set value";
             }
             QtConnector.jsSetStateSlot(m_statePtr.path, value);
@@ -382,14 +388,11 @@
 
     connector.sendCommand = function(cmd, params, callback) {
         if (callback != null && typeof callback !== "function") {
-            console.error(
-                    "What are you doing! I need a function for callback, not:",
-                    callback);
-            throw new Error("callback not a function in connector.sendCommand");
+
+            throw new Error("callback must be a function");
         }
-        //console.log( "Desktop cmd="+cmd+ " callback="+callback);
-        m_commandCallbacks.push(callback);
-        QtConnector.jsSendCommandSlot(cmd, params);
+        m_commandCallbacks.push( callback);
+        QtConnector.jsSendCommandSlot( cmd, params);
     };
 
 })();

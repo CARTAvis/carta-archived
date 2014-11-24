@@ -46,6 +46,7 @@ public:
     virtual QString getStateLocation( const QString& saveName ) const;
 
 public slots:
+
     /// javascript calls this to set a state
     void jsSetStateSlot( const QString & key, const QString & value);
     /// javascript calls this to send a command
@@ -59,6 +60,7 @@ public slots:
     void stateChangedSlot( const QString & key, const QString & value);
 
 signals:
+
     /// we emit this signal when state is changed (either by c++ or by javascript)
     /// we listen to this signal, and so does javascript
     /// our listener then calls callbacks registered for this value
@@ -67,9 +69,8 @@ signals:
     /// we emit this signal when command results are ready
     /// javascript listens to it
     void jsCommandResultsSignal( const QString & results);
-
+    /// emitted by c++ when we want javascript to repaint the view
     void jsViewUpdatedSignal( const QString & viewName, const QImage & img);
-//    void jsViewUpdatedSignal( const QString & viewName, const QPixmap & img);
 
 public:
 
@@ -77,65 +78,25 @@ public:
     std::map<QString,  CommandCallbackList> m_commandCallbackMap;
 
     // list of callbacks
-//    typedef std::vector<StateChangedCallback> StateCBList;
     typedef CallbackList<CSR, CSR> StateCBList;
 
-    // for each state we maintain a list of callbacks
+    /// for each state we maintain a list of callbacks
     std::map<QString, StateCBList *> m_stateCallbackList;
 
-    // IDs for command callbacks
+    /// IDs for command callbacks
     CallbackID m_callbackNextId;
-
 
     /// private info we keep with each view
     struct ViewInfo;
-
-    /// moving outside the class because it needs slots/signals
-//    struct ViewInfo;
 
     /// map of view names to view infos
     std::map< QString, ViewInfo *> m_views;
 
     ViewInfo * findViewInfo(const QString &viewName);
 
-    /*
-    // custom event for view refresh
-    class ViewRefreshEvent : public QEvent {
-    public:
-        ViewRefreshEvent( QEvent::Type type, IView * iview) : QEvent( type) {
-            m_iview = iview;
-        }
-        IView * view() { return m_iview; }
-    protected:
-        IView * m_iview;
-    };
-
-    // custom event type for view refreshes
-    QEvent::Type getRefreshViewEventType(){
-        static bool done = false;
-        static QEvent::Type res;
-        if( ! done) {
-            done = true;
-            res = static_cast< QEvent::Type > ( QEvent::registerEventType());
-        }
-        return res;
-    }
-
-    virtual void customEvent(QEvent * e) Q_DECL_OVERRIDE
-    {
-        if( e->type() != getRefreshViewEventType()) {
-            return;
-        }
-        e-> accept();
-        ViewRefreshEvent * re = static_cast<ViewRefreshEvent *> (e);
-        // do the real refresh of the view
-        refreshViewNow( re->view());
-    }
-    */
-
     virtual void refreshViewNow(IView *view);
 
-    /// TODO: should we move some of these to protected section?
+    /// @todo move as may of these as possible to protected section
 
 protected:
 

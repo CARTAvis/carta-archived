@@ -56,7 +56,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             
             
             if (this.m_view == null) {
-                this.m_view = new skel.boundWidgets.View(this.m_identifier);
+                this.m_view = new skel.boundWidgets.View(this.m_identifier + "/view");
             }
             
             if ( this.m_drawCanvas == null ){

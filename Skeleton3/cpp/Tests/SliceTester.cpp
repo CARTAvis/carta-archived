@@ -3,8 +3,8 @@
  **/
 
 #include "catch.h"
-#include "../common/Slice.h"
-#include "../common/IImage.h"
+#include "CartaLib/Slice.h"
+#include "CartaLib/IImage.h"
 #include <QString>
 #include <QTextStream>
 #include <string>

@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "CartaLib.h"
 #include <QString>
-#include <QTextDocumentFragment>
 
 namespace Carta
 {
@@ -16,13 +14,14 @@ namespace Lib
 enum class TextFormat
 {
     Plain, ///< request plain text version
-    Html   ///< request html text version
+    Html    ///< request html text version
 };
 
 /// holds a representation of a string in plain and html formats
 class HtmlString
 {
 public:
+
     /// constructs an empty string (both texts will be set to "")
     HtmlString();
 
@@ -50,7 +49,9 @@ public:
     plain() const;
 
 protected:
+
     QString m_html, m_plain;
 };
 }
 } // Carta::Lib
+

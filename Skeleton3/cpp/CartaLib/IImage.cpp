@@ -6,9 +6,6 @@
 
 #include "IImage.h"
 
-
-
-
 const Unit &Image::ImageInterface::getPixelUnit() const
 {
     qFatal( "Calling unimplemented virtual function... ");
@@ -45,18 +42,16 @@ NdArray::RawViewInterface * Image::ImageInterface::getDataSlice(const SliceND & 
 }
 
 
-void Image::ImageInterface::getMaskSlice(const SliceND & sliceInfo, NdArray::Byte & result)
+NdArray::Byte * Image::ImageInterface::getMaskSlice(const SliceND & sliceInfo)
 {
     Q_UNUSED( sliceInfo);
-    Q_UNUSED( result);
     qFatal( "Calling unimplemented virtual function... ");
 }
 
 
-void Image::ImageInterface::getErrorSlice(const SliceND & sliceInfo, NdArray::RawViewInterface & result)
+NdArray::RawViewInterface * Image::ImageInterface::getErrorSlice(const SliceND & sliceInfo)
 {
     Q_UNUSED( sliceInfo);
-    Q_UNUSED( result);
     qFatal( "Calling unimplemented virtual function... ");
 }
 
