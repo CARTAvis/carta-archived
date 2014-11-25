@@ -11,6 +11,17 @@
 #include <QDir>
 #include <QDebug>
 
+class ViewManager::Factory : public CartaObjectFactory {
+
+public:
+    Factory():
+        CartaObjectFactory( "ViewManager" ){};
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new ViewManager (path, id);
+    }
+};
+
 const QString ViewManager::CLASS_NAME = "ViewManager";
 bool ViewManager::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,

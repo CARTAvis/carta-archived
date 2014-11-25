@@ -15,7 +15,7 @@ class Selection;
 
 class AnimatorType : public QObject, public CartaObject {
 
-	Q_OBJECT
+    Q_OBJECT
 
 public:
 
@@ -43,31 +43,23 @@ private:
      * @param winId an identifier for the animator.
      */
     AnimatorType( const QString& path, const QString& id );
-    class Factory : public CartaObjectFactory {
+    class Factory;
 
-    public:
+    //Initialize an individual animator's state (image, channel, etc).
+    void _initializeState( /*StateKey keyStep, StateKey keyRate,
+                                                          StateKey keyEnd, IConnector* connector*/ );
 
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new AnimatorType (path, id);
-        }
-    };
+    //Add callbacks for commands.
+    void _initializeCommands();
 
-	//Initialize an individual animator's state (image, channel, etc).
-	void _initializeState( /*StateKey keyStep, StateKey keyRate,
-	        StateKey keyEnd, IConnector* connector*/ );
-
-	//Add callbacks for commands.
-	void _initializeCommands();
-
-	QString _makeSelection();
+    QString _makeSelection();
 
 
-	//Set state variables involving the animator
-	void _saveState();
+    //Set state variables involving the animator
+    void _saveState();
 
-	QString m_animationType;
-	static bool m_registered;
+    QString m_animationType;
+    static bool m_registered;
 
     //Animator's channel selection.
     std::shared_ptr<Selection> m_select;
@@ -75,6 +67,6 @@ private:
     const static QString END_BEHAVIOR;
     const static QString RATE;
     const static QString STEP;
-	AnimatorType( const AnimatorType& other);
-	AnimatorType operator=( const AnimatorType& other );
+    AnimatorType( const AnimatorType& other);
+    AnimatorType operator=( const AnimatorType& other );
 };

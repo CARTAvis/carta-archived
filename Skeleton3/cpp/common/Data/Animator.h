@@ -17,7 +17,7 @@ class IConnector;
 
 class Animator : public QObject, public CartaObject {
 
-	Q_OBJECT
+    Q_OBJECT
 
 public:
 
@@ -54,10 +54,10 @@ public:
     static const QString CLASS_NAME;
 
 private slots:
-	//Adjusts internal state based on the state in the child controllers.
-	void _adjustStateController();
-	void _imageIndexChanged( const QString& params );
-	void _channelIndexChanged( const QString& params );
+    //Adjusts internal state based on the state in the child controllers.
+    void _adjustStateController();
+    void _imageIndexChanged( const QString& params );
+    void _channelIndexChanged( const QString& params );
 
 private:
     /**
@@ -66,15 +66,7 @@ private:
      */
     Animator( const QString& path, const QString & id );
 
-    class Factory : public CartaObjectFactory {
-
-    public:
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new Animator (path, id);
-        }
-    };
+    class Factory;
 
     static const QString LINK;
     //static const QString ANIMATION_TYPE;
@@ -90,16 +82,16 @@ private:
     QString _removeAnimator( const QString& type );
     void _resetAnimationParameters();
 
-	//List of controllers managed by this animator.
-	QList<std::shared_ptr<Controller> > m_controllers;
+    /// List of controllers managed by this animator.
+    QList<std::shared_ptr<Controller> > m_controllers;
 
 
-	//Individual animation types.
-	QMap<QString, std::shared_ptr<AnimatorType> > m_animators;
+    /// Individual animation types.
+    QMap<QString, std::shared_ptr<AnimatorType> > m_animators;
 
 
-	static bool m_registered;
+    static bool m_registered;
 
-	Animator( const Animator& other);
-	Animator operator=( const Animator& other );
+    Animator( const Animator& other);
+    Animator operator=( const Animator& other );
 };

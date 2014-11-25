@@ -20,10 +20,10 @@ public:
      * be loaded.
      * @param selectionParams a filter for choosing specific types of data files.
      * @param sessionId the user's session identifier that may be eventually used to determine
-     * 		a search directory or URL for files.
+     *        a search directory or URL for files.
      */
     QString getData(const QString& selectionParams,
-            const QString& sessionId);
+                    const QString& sessionId);
 
     /**
      * Returns the name of the file corresponding to the doctored path and session identifier.
@@ -40,18 +40,7 @@ private:
 
     static bool m_registered;
 
-    class Factory : public CartaObjectFactory {
-
-    public:
-
-        Factory():
-            CartaObjectFactory( "DataLoader" ){};
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new DataLoader (path, id);
-        }
-    };
+    class Factory;
 
     /// Return the top level directory for the data file search.
     QString getRootDir(const QString& sessionId) const;

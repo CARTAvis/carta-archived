@@ -30,22 +30,11 @@ private:
     static bool m_registered;
     Layout( const QString& path, const QString& id );
 
-    class Factory : public CartaObjectFactory {
-
-    public:
-
-        Factory():
-            CartaObjectFactory( LAYOUT ){};
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new Layout (path, id);
-        }
-    };
+    class Factory;
 
     static const QString LAYOUT_ROWS;
     static const QString LAYOUT_COLS;
     static const QString LAYOUT_PLUGINS;
-	Layout( const Layout& other);
-	Layout operator=( const Layout& other );
+    Layout( const Layout& other);
+    Layout operator=( const Layout& other );
 };

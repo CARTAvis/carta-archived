@@ -2,12 +2,7 @@
  * Show/hide animation for classes implementing the IHidable interface.
  */
 
-/**
-
-
-
-
- ************************************************************************ */
+/* global qx */
 
 qx.Mixin.define("skel.widgets.MShowHideMixin", {
 
@@ -18,7 +13,7 @@ qx.Mixin.define("skel.widgets.MShowHideMixin", {
          * its visibility should be determined based on proximity.
          * @param hidable {skel.widgets.IHidable} the animation object.
          * @param alwaysVisible {boolean} true if the animation object should always
-         * 	be shown; false otherwise.
+         * be shown; false otherwise.
          */
         setAlwaysVisible : function(hidable, alwaysVisible) {
             if (alwaysVisible != this.m_alwaysVisible) {
@@ -36,7 +31,7 @@ qx.Mixin.define("skel.widgets.MShowHideMixin", {
          * Trigger an animation that shows/hides the animation object.
          * @param hidable {skel.widgets.IHidable} the animation object.
          * @param show {boolean} true if the animation object should become visible;
-         * 	false otherwise.
+         * false otherwise.
          */
         show : function(hidable, show) {
             if (show != this.m_shown && !this.m_alwaysVisible) {

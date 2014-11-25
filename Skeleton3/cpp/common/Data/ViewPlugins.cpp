@@ -5,6 +5,20 @@
 #include <QDir>
 #include <QDebug>
 
+class ViewPlugins::Factory : public CartaObjectFactory {
+
+public:
+
+    Factory():
+        CartaObjectFactory( PLUGINS ){};
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new ViewPlugins (path, id);
+    }
+};
+
+
 const QString ViewPlugins::PLUGINS = "pluginList";
 const QString ViewPlugins::NAME = "name";
 const QString ViewPlugins::DESCRIPTION = "description";

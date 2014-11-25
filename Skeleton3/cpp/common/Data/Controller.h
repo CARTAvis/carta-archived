@@ -30,8 +30,8 @@ public:
 
     /**
      * Add data to this controller.
-     * @param fileName the location of the data; 
-     * 			this could represent a url or an absolute path on a local filesystem.
+     * @param fileName the location of the data;
+     *        this could represent a url or an absolute path on a local filesystem.
      */
     void addData(const QString& fileName);
 
@@ -87,15 +87,7 @@ private:
      */
     Controller( const QString& id, const QString& path );
 
-    class Factory : public CartaObjectFactory {
-
-     public:
-
-         CartaObject * create (const QString & path, const QString & id)
-         {
-             return new Controller (path, id);
-         }
-     };
+    class Factory;
 
     //Provide default values for state.
     void _initializeState();

@@ -1,7 +1,7 @@
 /**
  * A 'tape deck' UI for animating data.
  */
-/*global mImport */
+
 /*******************************************************************************
  * @ignore( mImport)
  * 
@@ -15,14 +15,15 @@
  * @asset(skel/icons/dblarrowright.png)
  ******************************************************************************/
 
+/* global mImport, qx, skel, console */
+
 qx.Class.define("skel.boundWidgets.Animator", {
     extend : qx.ui.core.Widget,
 
     /**
      * Constructor.
      * 
-     * @param title
-     *                {String} descriptor for what will be animated (Channel,
+     * @param title {String} descriptor for what will be animated (Channel,
      *                Region, Image, etc).
      */
     construct : function(title,  winId) {
@@ -511,7 +512,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Start the animation.
          * @param forward {Boolean} true if the frame position should be increased; false,
-         * 			if the frame position should be decreased.
+         *        if the frame position should be decreased.
          */
         _play : function(forward) {
             if (this.m_timer) {
@@ -542,7 +543,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 anObject._animationCB( anObject.m_sharedVar.get());
                 anObject.m_animId = id;
                 anObject._initSharedVarsSelection();
-            }
+            };
         },
         
         
@@ -554,7 +555,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 anObject.m_sharedVarSelection = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVarSelection.addCB( anObject._selectionResetCB.bind( anObject ));
                 anObject._selectionResetCB( anObject.m_sharedVarSelection.get());
-            }
+            };
         },
         
         /**

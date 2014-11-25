@@ -19,9 +19,9 @@ public:
 
     virtual bool characters( const QString& ch );
     virtual bool startElement(const QString & namespaceURI, const QString & localName,
-    					const QString & qName, const QXmlAttributes & atts );
+                              const QString & qName, const QXmlAttributes & atts );
     virtual bool endElement ( const QString & namespaceURI, const QString & localName,
-    		const QString & qName );
+                              const QString & qName );
     virtual bool startDocument();
     virtual bool endDocument();
 protected:

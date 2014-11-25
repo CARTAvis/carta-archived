@@ -2,7 +2,7 @@
  * A display window specialized for viewing images.
  */
 
-/*global mImport */
+/*global mImport, qx, skel */
 /**
  @ignore( mImport)
  ************************************************************************ */
@@ -150,7 +150,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * Initializes the rendes context menu.
          */
         _initMenuRender : function() {
-            var renderMenu = new qx.ui.menu.Menu;
+            var renderMenu = new qx.ui.menu.Menu();
             renderMenu.add(new qx.ui.menu.Button("Raster"));
             renderMenu.add(new qx.ui.menu.Button("Contour"));
             renderMenu.add(new qx.ui.menu.Button("Field"));
@@ -162,7 +162,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * Initializes a menu button for drawing a shape such as a rectangle or ellipse.
          * @param menu {qx.ui.menu.Menu} the containing menu for the shape button.
          * @param keepMode {boolean} whether the cursor should stay in draw mode or revert
-         * 		back when the shape is finished.
+         * back when the shape is finished.
          */
         _initShapeButtons : function(menu, keepMode) {
             for (var i = 0; i < this.m_shapes.length; i++) {
@@ -186,7 +186,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * @param pluginId {String} a name identifying a plug-in.
          */
         isLinkable : function(pluginId) {
-            var linkable = false
+            var linkable = false;
 
             if (pluginId == "animator" || pluginId == this.m_pluginId) {
                 linkable = true;

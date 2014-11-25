@@ -17,7 +17,7 @@ protected:
      * Resets the internal state of this rectangle based on the information passed in.
      * @param params a QString describing the internal rectangle state.
      */
-    virtual void resetState( const QString params );
+    virtual void resetState( const QString & params ) override;
 
     /**
      * Returns a string identifying the region type.

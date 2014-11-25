@@ -29,7 +29,7 @@ protected:
      * Reset the state of this region.
      * @param params a QString describing the new internal state of this region.
      */
-    virtual void resetState( const QString params ) = 0;
+//    virtual void resetState( const QString params ) = 0;
     /**
      * Construct a region.
      */

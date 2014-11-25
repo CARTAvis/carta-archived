@@ -5,6 +5,15 @@
 
 #include <QDebug>
 
+class Animator::Factory : public CartaObjectFactory {
+
+public:
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Animator (path, id);
+    }
+};
 
 const QString Animator::LINK = "links";
 //const QString Animator::ANIMATION_TYPE = "animators";

@@ -42,8 +42,8 @@ contains( CARTA_CONFIG, gdb) {
     message( "- NO debugger support")
 }
 contains( CARTA_CONFIG, dbgout) {
-    QMAKE_CXXFLAGS += -DCARTA_DEBUG_OUTPUT
-    QMAKE_CFLAGS += -DCARTA_DEBUG_OUTPUT
+    QMAKE_CXXFLAGS += -DCARTA_DEBUG_OUTPUT -Wextra -Woverloaded-virtual -Wnon-virtual-dtor
+    QMAKE_CFLAGS += -DCARTA_DEBUG_OUTPUT -Wextra
     message( "+ extra debug output")
 } else {
     QMAKE_CXXFLAGS += -DQT_NO_DEBUG_OUTPUT

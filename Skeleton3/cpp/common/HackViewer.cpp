@@ -336,6 +336,9 @@ HackViewer::reloadFrame( bool forceClipRecompute )
 }
 
 /// experiment, currently unused
+///
+
+/*
 static
 std::map < QString, QString >
 parseParamMap2( const QString & paramsToParse, const std::set < QString > & keyList )
@@ -374,3 +377,4 @@ parseParamMap2( const QString & paramsToParse, const std::set < QString > & keyL
     }
     return result;
 } // parseParamMap2
+*/

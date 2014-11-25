@@ -31,16 +31,7 @@ public:
 
 private:
     ViewManager( const QString& path, const QString& id);
-    class Factory : public CartaObjectFactory {
-
-    public:
-        Factory():
-          CartaObjectFactory( "ViewManager" ){};
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new ViewManager (path, id);
-        }
-    };
+    class Factory;
 
     void _clearLayout();
 
@@ -71,6 +62,6 @@ private:
     std::shared_ptr<DataLoader> m_dataLoader;
     std::shared_ptr<ViewPlugins> m_pluginsLoaded;
 
-	ViewManager( const ViewManager& other);
-	ViewManager operator=( const ViewManager& other );
+    ViewManager( const ViewManager& other);
+    ViewManager operator=( const ViewManager& other );
 };

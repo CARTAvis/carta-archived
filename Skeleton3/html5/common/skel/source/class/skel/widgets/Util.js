@@ -2,6 +2,8 @@
  * Utility class for determining the location of widgets.
  */
 
+/* global qx */
+
 qx.Class.define("skel.widgets.Util", {
     type : "static",
     statics : {
@@ -13,9 +15,7 @@ qx.Class.define("skel.widgets.Util", {
          *                determined.
          */
         getLeft : function(widget) {
-            var widgetBounds = widget.getBounds();
-            var widgetLeft = widgetBounds["left"];
-            return widgetLeft;
+            return widget.getBounds().left;
         },
 
         /**
@@ -27,8 +27,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getRight : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetRight = widgetBounds["left"] + widgetBounds["width"];
-            return widgetRight;
+            return widgetBounds.left + widgetBounds.width;
         },
 
         /**
@@ -39,9 +38,7 @@ qx.Class.define("skel.widgets.Util", {
          *                determined.
          */
         getTop : function(widget) {
-            var widgetBounds = widget.getBounds();
-            var widgetTop = widgetBounds["top"];
-            return widgetTop;
+            return widget.getBounds().top;
         },
 
         /**
@@ -53,8 +50,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getBottom : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetBottom = widgetBounds["top"] + widgetBounds["height"];
-            return widgetBottom;
+            return widgetBounds.top + widgetBounds.height;
         },
 
         /**
@@ -77,8 +73,8 @@ qx.Class.define("skel.widgets.Util", {
             var xCoord = left;
             var yCoord = top;
             if ( widgetBounds ){
-                xCoord = left + Math.round(widgetBounds["width"] / 2);
-                yCoord = top + Math.round(widgetBounds["height"] / 2);
+                xCoord = left + Math.round(widgetBounds.width / 2);
+                yCoord = top + Math.round(widgetBounds.height / 2);
             }
             return [ xCoord, yCoord ];
         },

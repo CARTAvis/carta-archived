@@ -15,6 +15,16 @@
 
 using namespace std;
 
+class Controller::Factory : public CartaObjectFactory {
+
+public:
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Controller (path, id);
+    }
+};
+
 const QString Controller::CLIP_VALUE = "clipValue";
 const QString Controller::AUTO_CLIP = "autoClip";
 const QString Controller::DATA_COUNT = "dataCount";

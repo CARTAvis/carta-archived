@@ -18,24 +18,12 @@ public:
 private:
     void _initializeDefaultState();
     void _insertPlugin( int ind, const QString& name, const QString& description,
-            const QString& type, const QString& version, const QString& errors );
+                        const QString& type, const QString& version, const QString& errors );
 
     static bool m_registered;
     ViewPlugins( const QString& path, const QString& id );
 
-    class Factory : public CartaObjectFactory {
-
-
-    public:
-
-        Factory():
-            CartaObjectFactory( PLUGINS ){};
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new ViewPlugins (path, id);
-        }
-    };
+    class Factory;
 
     static const QString PLUGINS;
     static const QString NAME;
@@ -44,6 +32,6 @@ private:
     static const QString VERSION;
     static const QString ERRORS;
     static const QString STAMP;
-	ViewPlugins( const ViewPlugins& other);
-	ViewPlugins operator=( const ViewPlugins& other );
+    ViewPlugins( const ViewPlugins& other);
+    ViewPlugins operator=( const ViewPlugins& other );
 };

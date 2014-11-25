@@ -4,6 +4,19 @@
 #include <QDir>
 #include <QDebug>
 
+class Layout::Factory : public CartaObjectFactory {
+
+public:
+
+    Factory():
+        CartaObjectFactory( LAYOUT ){};
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Layout (path, id);
+    }
+};
+
 const QString Layout::LAYOUT = "Layout";
 const QString Layout::LAYOUT_ROWS = "rows";
 const QString Layout::LAYOUT_COLS = "cols";

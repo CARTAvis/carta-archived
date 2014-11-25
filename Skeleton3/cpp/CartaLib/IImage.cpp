@@ -59,3 +59,9 @@ Image::MetaDataInterface::SharedPtr Image::ImageInterface::metaData()
 {
     qFatal( "Calling unimplemented virtual function... ");
 }
+
+
+Image::MetaDataInterface::~MetaDataInterface()
+{
+
+}

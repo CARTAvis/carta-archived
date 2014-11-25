@@ -18,8 +18,6 @@ class PluginManager;
 namespace CmdLine { class ParsedInfo; }
 namespace MainConfig { class ParsedInfo; }
 
-
-
 class Globals {
 
     friend class StateInterface;

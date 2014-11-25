@@ -3,6 +3,15 @@
 
 #include <QDebug>
 
+class AnimatorType::Factory : public CartaObjectFactory {
+
+public:
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new AnimatorType (path, id);
+    }
+};
 
 const QString AnimatorType::COMMAND_SET_FRAME = "setFrame";
 const QString AnimatorType::END_BEHAVIOR = "endBehavior";
