@@ -62,9 +62,9 @@ qx.Class.define( "skel.boundWidgets.View", {
 
         }, this );
 
-        this.addListener( "mousemove", this._mouseMoveCB );
-        this.addListener( "mousedown", this._mouseDownCB );
-        this.addListener( "mouseup", this._mouseUpCB );
+        //this.addListener( "mousemove", this._mouseMoveCB );
+        //this.addListener( "mousedown", this._mouseDownCB );
+        //this.addListener( "mouseup", this._mouseUpCB );
     },
 
     events: {},
@@ -96,30 +96,32 @@ qx.Class.define( "skel.boundWidgets.View", {
                 y: event.getDocumentTop() - box.top
             };
         },
+        /*
+         _mouseMoveCB: function( event )
+         {
+         if( typeof this.m_iview.mouseMoveCB === "function" ) {
+         this.m_iview.mouseMoveCB( event );
+         }
+         // Todo: write for server connector.
+         },
 
-        _mouseMoveCB: function( event )
-        {
-            if( typeof this.m_iview.mouseMoveCB === "function" ) {
-                this.m_iview.mouseMoveCB( event );
-            }
-            // Todo: write for server connector.
-        },
-
-        _mouseDownCB: function( event )
-        {
+         _mouseDownCB: function( event )
+         {
 
 
-        },
+         },
 
-        _mouseUpCB: function( event )
-        {
+         _mouseUpCB: function( event )
+         {
 
-        },
+         },
 
-        _sendCoords: function( pt )
-        {
+         _sendCoords: function( pt )
+         {
 
-        },
+         },
+
+         */
 
         /**
          * @type {String} unique name of the view

@@ -127,7 +127,7 @@ public:
         }
 
         str.replace( "\n", "<br />" );
-        m_connector-> setState( m_prefix + "cursorText", str );
+        m_connector-> setState( "/hacks/cursorText", str );
     } // handleMouseEvent
 
     virtual void
@@ -135,9 +135,6 @@ public:
     { }
 
 signals:
-
-    void
-    mouseMoved( double x, double y );
 
 protected:
 
@@ -186,9 +183,10 @@ protected:
 
 static TestView2 * testView2 = nullptr;
 
-HackViewer::HackViewer() :
+HackViewer::HackViewer(QString prefix) :
     QObject( nullptr )
 {
+    m_statePrefix = prefix;
     m_rawView2QImageConverter = std::make_shared < RawView2QImageConverter > ();
     m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */ );
 
@@ -305,16 +303,18 @@ HackViewer::start()
     qDebug() << "HackViewer has been initialized.";
 } // start
 
+// prefixed setState
 void
 HackViewer::setState( const QString & path, const QString & value )
 {
-    m_connector->setState( QString( "/hacks/" ) + path, value );
+    m_connector->setState( m_statePrefix + "/" + path, value );
 }
 
+// prefixed getState
 QString
 HackViewer::getState( const QString & path )
 {
-    return m_connector->getState( "/hacks/" + path );
+    return m_connector->getState( m_statePrefix + "/" + path );
 }
 
 void

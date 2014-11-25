@@ -2,15 +2,12 @@
  *
  **/
 
-
 #include "MyQApp.h"
 #include <QMutexLocker>
 #include <QMutex>
 #include <QEvent>
 #include <QThreadStorage>
 #include <QDebug>
-
-//IPlatform * MyQApp::m_platform = nullptr;
 
 MyQApp::MyQApp(int & argc, char ** argv) :
     QApplication( argc, argv)
@@ -19,20 +16,21 @@ MyQApp::MyQApp(int & argc, char ** argv) :
     setApplicationVersion( "0.0.1");
 }
 
-typedef DeferHelper2::VoidFunc VoidFunc;
+typedef DeferHelper::VoidFunc VoidFunc;
 
+// we need this
 Q_DECLARE_METATYPE( VoidFunc)
 
 ///
-/// \brief deferHelpers contains a list of helpers, one for each thread
+/// \brief contains one helper per thread
 ///
-static QThreadStorage< DeferHelper2 *> deferHelpers;
+static QThreadStorage< DeferHelper *> deferHelpers;
 
 void defer(const VoidFunc & function)
 {
     // create a helper in this thread if not yet created
     if( ! deferHelpers.hasLocalData()) {
-        deferHelpers.setLocalData( new DeferHelper2);
+        deferHelpers.setLocalData( new DeferHelper);
     }
 
     // queue up the function execution in this same thread
@@ -40,13 +38,12 @@ void defer(const VoidFunc & function)
     deferHelpers.localData()-> queue( function);
 }
 
-
 ///
 /// \brief queues up the execution of a function by calling the execute slot
 ///        via queued connection
 /// \param func
 ///
-void DeferHelper2::queue(const DeferHelper2::VoidFunc &func)
+void DeferHelper::queue(const DeferHelper::VoidFunc &func)
 {
     qRegisterMetaType<VoidFunc>("VoidFunc");
     QMetaObject::invokeMethod( this, "execute", Qt::QueuedConnection, Q_ARG( VoidFunc, func));
@@ -56,7 +53,7 @@ void DeferHelper2::queue(const DeferHelper2::VoidFunc &func)
 /// \brief executes the function \param func immediately
 /// \param func function to execute
 ///
-void DeferHelper2::execute(const DeferHelper2::VoidFunc &func)
+void DeferHelper::execute(const DeferHelper::VoidFunc &func)
 {
     func();
 }

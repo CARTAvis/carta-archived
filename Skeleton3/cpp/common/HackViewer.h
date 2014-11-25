@@ -24,7 +24,7 @@ class HackViewer : public QObject
 public:
     /// constructor
     /// should be called when platform is initialized, but connector isn't
-    explicit HackViewer();
+    explicit HackViewer( QString prefix = "/hacks");
 
     /// this should be called when connector is already initialized (i.e. it's
     /// safe to start setting/getting state)
@@ -55,6 +55,8 @@ protected:
 
     /// coordinate formatter
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+
+    QString m_statePrefix;
 
     //void reloadFrame(bool forceClipRecompute = false);
 

@@ -132,8 +132,7 @@
      */
     var View = function(container, viewName) {
         // QtWebKit does not support drawing to the canvas (they claim they do,
-        // but
-        // it coredumps). So we'll use <img> tag instead. That works well
+        // but it coredumps). So we'll use <img> tag instead. That works well
         // enough.
         // TODO: investigate performance using QWebFactoryPlugin vs <img> tag
 

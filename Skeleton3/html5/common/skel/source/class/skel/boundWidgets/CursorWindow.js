@@ -11,8 +11,9 @@
 qx.Class.define( "skel.boundWidgets.CursorWindow", {
     extend: qx.ui.window.Window,
 
-    construct: function() {
+    construct: function( statePrefix) {
         this.base( arguments, "Cursor");
+        this.m_statePrefix = statePrefix;
         this.addListener( "minimize", this._userHidWindow.bind(this));
         this.addListener( "close", this._userHidWindow.bind(this));
 

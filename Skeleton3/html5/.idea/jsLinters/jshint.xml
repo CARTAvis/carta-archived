@@ -55,7 +55,7 @@
     <option scripturl="false" />
     <option shadow="false" />
     <option smarttabs="false" />
-    <option strict="true" />
+    <option strict="false" />
     <option sub="false" />
     <option supernew="false" />
     <option trailing="false" />
@@ -68,4 +68,3 @@
     <option yui="false" />
   </component>
 </project>
-

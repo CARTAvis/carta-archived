@@ -86,9 +86,16 @@ qx.Class.define("skel.widgets.Util", {
         /**
          * Returns mouse event's local position (with respect to the event
          * target)
+         *
+         * Fixing getTarget() to getCurrentTarget(), but I am not sure how reliable this is.
+         * I think the right way to do this is to get the "box" of the element on which you
+         * received the event and subract it from the mouse x/y. Or you could pass the
+         * box to this function.
          */
         localPos : function(event) {
-            var target = event.getTarget();
+
+            //var target = event.getTarget();
+            var target = event.getCurrentTarget();
             var box = target.getContentLocation("box");
            
             var left = event.getDocumentLeft();
