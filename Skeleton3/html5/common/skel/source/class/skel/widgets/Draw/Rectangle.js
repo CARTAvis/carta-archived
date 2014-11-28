@@ -2,7 +2,10 @@
  * A rectangular shape.
  */
 
+/* global qx, skel, console */
+
 qx.Class.define("skel.widgets.Draw.Rectangle", {
+
     extend : skel.widgets.Draw.Shape,
 
     construct : function( winId ){
@@ -10,11 +13,11 @@ qx.Class.define("skel.widgets.Draw.Rectangle", {
         this.m_topLeft = {
             x : 0,
             y : 0
-        },
+        };
         this.m_bottomRight = {
             x : 0,
             y : 0
-        }
+        };
     },
     
     members : {

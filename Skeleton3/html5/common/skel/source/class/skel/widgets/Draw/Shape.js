@@ -2,13 +2,14 @@
  * Represents a link from a source to a destination.
  */
 
-/*global mImport */
+/*global mImport, qx, skel, console */
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
 
 
 qx.Class.define("skel.widgets.Draw.Shape", {
+
     extend : qx.core.Object,
 
     construct : function( winId, shapeType ){
@@ -146,18 +147,18 @@ qx.Class.define("skel.widgets.Draw.Shape", {
                     var mouseTL = {
                         x: this.m_topLeft.x + dx,
                         y: this.m_topLeft.y + dy
-                    }
+                    };
                     var mouseBR = {
                         x: this.m_bottomRight.x + dx,
                         y: this.m_bottomRight.y + dy
-                    }
+                    };
                     shapeChanged = this.doMove( mouseTL, mouseBR );
                 }
                 else {
                     var mouseMovePt = {
                         x: dx,
                         y: dy
-                    }
+                    };
                     shapeChanged = this.doResize( mouseMovePt );
                 }
             }
@@ -176,7 +177,12 @@ qx.Class.define("skel.widgets.Draw.Shape", {
             var pathDict = skel.widgets.Path.getInstance();
             var regShapeCmd = pathDict.getCommandRegisterShape( this.m_winId );
             var params = "type:"+this.m_shapeType+",index:"+index;
-            this.m_connector.sendCommand( regShapeCmd, params, this._shapeCB( this ) );
+
+            // this is weird (Pavol)
+            // this.m_connector.sendCommand( regShapeCmd, params, this._shapeCB( this ) );
+
+            // did you mean this?
+            this.m_connector.sendCommand( regShapeCmd, params, this.setShapeId.bind(this));
         },
         
         /**
@@ -215,7 +221,7 @@ qx.Class.define("skel.widgets.Draw.Shape", {
         _shapeCB : function( anObject ){
              return function( id ){
                  anObject.setShapeId( id );
-             }
+             };
         },
         
         /**
