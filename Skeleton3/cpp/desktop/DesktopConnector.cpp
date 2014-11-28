@@ -30,10 +30,11 @@ struct DesktopConnector::ViewInfo
 
     /// last received client size
     QSize clientSize;
-    // linear maps convert x,y from client to image coordinates
+
+    /// linear maps convert x,y from client to image coordinates
     LinearMap1D tx, ty;
 
-    // refresh timer for this object
+    /// refresh timer for this object
     QTimer refreshTimer;
 
     ViewInfo( IView * pview )
@@ -62,17 +63,34 @@ void DesktopConnector::initialize(const InitializeCallback & cb)
     m_initializeCallback = cb;
 }
 
-//void DesktopConnector::setState(const QString & path, const QString & newValue)
 void DesktopConnector::setState(const QString& path, const QString & newValue)
 {
+    // find the path
     auto it = m_state.find( path);
-    if( it != m_state.end() && it-> second == newValue) {
-        // if we alredy have an entry for this path and the stored value is
-        // the same as the incoming value, we don't need to do anything
+
+    // if we cannot find it, insert it, together with the new value, and emit a change
+    if( it == m_state.end()) {
+        m_state[path] = newValue;
+        emit stateChangedSignal( path, newValue);
         return;
     }
-    m_state[ path ] = newValue;
-    emit stateChangedSignal( path, newValue);
+
+    // if we did find it, but the value is different, set it to new value (optimized)
+    // and emit signal
+    if( it-> second != newValue) {
+        it-> second = newValue;
+        emit stateChangedSignal( path, newValue);
+    }
+
+    // otherwise don't do anything at all
+
+//    if( it != m_state.end() && it-> second == newValue) {
+//        // if we alredy have an entry for this path and the stored value is
+//        // the same as the incoming value, we don't want to do anything
+//        return;
+//    }
+//    m_state[path] = newValue;
+//    emit stateChangedSignal( path, newValue);
 }
 
 
@@ -172,21 +190,24 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
 }
 
 void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
+    // it's ok to call setState directly, because callbacks will be invoked
+    // from there asynchronously
     setState( key, value );
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 {
-    // call all registered callbacks and collect results
-    auto & allCallbacks = m_commandCallbackMap[ cmd];
-    QStringList results;
-    for( auto & cb : allCallbacks) {
-        results += cb( cmd, parameter, "1"); // session id fixed to "1"
-    }
+    // call all registered callbacks and collect results, but asynchronously
+    defer( [cmd, parameter, this ]() {
+        auto & allCallbacks = m_commandCallbackMap[ cmd];
+        QStringList results;
+        for( auto & cb : allCallbacks) {
+            results += cb( cmd, parameter, "1"); // session id fixed to "1"
+        }
 
-    // pass results back to javascript
-    emit jsCommandResultsSignal( results.join("|"));
-
+        // pass results back to javascript
+        emit jsCommandResultsSignal( results.join("|"));
+    });
 }
 
 void DesktopConnector::jsConnectorReadySlot()
@@ -196,8 +217,9 @@ void DesktopConnector::jsConnectorReadySlot()
     qDebug() << "JS Connector is ready!!!!";
 
     // time to call the initialize callback
-//    defer( std::bind( m_initializeCallback, true));
-    m_initializeCallback(true);
+    defer( std::bind( m_initializeCallback, true));
+
+//    m_initializeCallback(true);
 }
 
 DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & viewName)
@@ -254,9 +276,12 @@ void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int
     }
 
     IView * view = viewInfo-> view;
-    viewInfo->clientSize = QSize( width, height);
-    view-> handleResizeRequest( QSize( width, height));
-    refreshView( view);
+    viewInfo-> clientSize = QSize( width, height);
+
+    defer([this,view,viewInfo](){
+        view-> handleResizeRequest( viewInfo-> clientSize);
+        refreshView( view);
+    });
 }
 
 void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)

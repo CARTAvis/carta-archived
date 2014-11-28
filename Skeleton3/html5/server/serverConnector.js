@@ -34,7 +34,7 @@
         UNKNOWN     : 6
     };
 
-    connector.VIEW_CALLBACK_RESON = {
+    connector.VIEW_CALLBACK_REASON = {
         UPDATED   : 1,
         TX_CHANGED: 2
     };

@@ -58,9 +58,9 @@ qx.Class.define( "skel.boundWidgets.CursorWindow", {
             this.m_sizeSet ++;
 
             var styleMap = this.m_htmlArea.getContentElement().getAllStyles();
-            console.log( "Style map=", styleMap);
+            //console.log( "Style map=", styleMap);
             var size = qx.bom.Label.getHtmlSize( val, styleMap);
-            console.log( "size=", size);
+            //console.log( "size=", size);
             this.m_htmlArea.setWidth( size.width);
             this.m_htmlArea.setHeight( size.height);
 

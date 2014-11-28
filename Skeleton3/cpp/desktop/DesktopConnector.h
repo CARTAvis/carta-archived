@@ -53,9 +53,12 @@ public slots:
     void jsSendCommandSlot( const QString & cmd, const QString & parameter);
     /// javascript calls this to let us know js connector is ready
     void jsConnectorReadySlot();
-
+    /// javascript calls this when view is resized
     void jsUpdateViewSlot( const QString & viewName, int width, int height);
+    /// javascript calls this on mouse move inside a view
+    /// \deprecated
     void jsMouseMoveSlot( const QString & viewName, int x, int y);
+
     /// this is the callback for stateChangedSignal
     void stateChangedSlot( const QString & key, const QString & value);
 
@@ -101,10 +104,7 @@ public:
 protected:
 
     InitializeCallback m_initializeCallback;
-
-private:
-
-   std::map< QString, QString > m_state;
+    std::map< QString, QString > m_state;
 
 };
 

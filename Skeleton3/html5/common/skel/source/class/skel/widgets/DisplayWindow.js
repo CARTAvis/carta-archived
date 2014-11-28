@@ -477,6 +477,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.setCaption( label);
             if (this.m_title == null) {
                 this.m_title = new skel.boundWidgets.Label(label, "", "");
+                this.m_title.exclude();
                 this.m_content.add(this.m_title);
             }
             this.m_title.setValue(label);

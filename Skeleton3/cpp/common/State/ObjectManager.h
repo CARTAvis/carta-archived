@@ -170,6 +170,7 @@ public:
 
 private:
 
+    /// stores a pair< QString, CartaObjectFactory >
     class ClassRegistryEntry {
 
     public:
@@ -191,6 +192,7 @@ private:
         CartaObjectFactory * m_factory;
     };
 
+    /// stores a tuple<QString, QString, QString, CartaObject>
     class ObjectRegistryEntry {
 
     public:
@@ -232,6 +234,7 @@ private:
 
     typedef std::map <QString, ClassRegistryEntry> ClassRegistry;
 
+    // note m_classes[name].getClassName() == name
     ClassRegistry m_classes;
 
     const QString m_root;
