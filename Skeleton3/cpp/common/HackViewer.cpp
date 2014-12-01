@@ -6,6 +6,7 @@
 #include "Globals.h"
 #include "IConnector.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
+#include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QPainter>
 #include <set>
 
@@ -266,7 +267,8 @@ HackViewer::start()
     if ( fname.length() > 0 ) {
         qDebug() << "Trying to load astroImage...";
         auto res2 =
-            Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
+            Globals::instance()-> pluginManager()
+                -> prepare < Carta::Lib::Hooks::LoadAstroImage > ( fname ).first();
         if ( res2.isNull() ) {
             qFatal( "Could not find any plugin to load astroImage" );
         }

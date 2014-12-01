@@ -1,5 +1,6 @@
 #include "CasaImageLoader.h"
 #include "CCImage.h"
+#include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
 #include <QPainter>
 #include <QTime>
@@ -15,6 +16,8 @@
 #include <memory>
 #include <algorithm>
 #include <cstdint>
+
+typedef Carta::Lib::Hooks::LoadAstroImage LoadAstroImage;
 
 CasaImageLoader::CasaImageLoader(QObject *parent) :
     QObject(parent)

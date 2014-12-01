@@ -20,7 +20,8 @@ SOURCES += \
     AxisInfo.cpp \
     ICoordinateFormatter.cpp \
     ICoordinateGridPlotter.cpp \
-    IPlotLabelGenerator.cpp
+    IPlotLabelGenerator.cpp \
+    Hooks/LoadAstroImage.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -37,7 +38,8 @@ HEADERS += \
     AxisInfo.h \
     ICoordinateFormatter.h \
     ICoordinateGridPlotter.h \
-    IPlotLabelGenerator.h
+    IPlotLabelGenerator.h \
+    Hooks/LoadAstroImage.h
 
 unix {
     target.path = /usr/lib

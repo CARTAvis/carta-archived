@@ -2,9 +2,11 @@
 #include "Globals.h"
 #include "PluginManager.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/Hooks/LoadAstroImage.h"
 #include "Algorithms/RawView2QImageConverter.h"
 
 #include <QDebug>
+
 
 
 const QString DataSource::CLASS_NAME = "DataSource";
@@ -29,10 +31,9 @@ bool DataSource::setFileName( const QString& fileName ){
     bool successfulLoad = true;
     if (m_fileName.length() > 0) {
         try {
-            auto & globals = *Globals::instance();
-            auto loadImageHookHelper = globals.pluginManager()->prepare <LoadAstroImage>( m_fileName );
-            auto firstPart = loadImageHookHelper.first();
-            m_image = loadImageHookHelper.first().val();
+            m_image = Globals::instance()-> pluginManager()
+                      -> prepare <Carta::Lib::Hooks::LoadAstroImage>( m_fileName )
+                      .first().val();
         }
         catch( std::logic_error& err ){
             qDebug() << "Failed to load image "<<fileName;

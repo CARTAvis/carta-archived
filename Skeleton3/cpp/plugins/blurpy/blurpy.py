@@ -28,3 +28,5 @@ def preRenderHook(w, h, data):
 
 # grayscale blur:
 #    myShape[...] = ndimage.gaussian_filter( myShape, sigma=5)
+
+print("end of blurpy.py")
