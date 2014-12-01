@@ -61,8 +61,8 @@ qx.Class.define("skel.widgets.Draw.Shape", {
          * Draws this shape with decorators to reflect various states.
          * @param ctx {Object} the painting context.
          * @param active {boolean} whether or not this shape is selected.
-         * @param hovered {boolean} whether or not the mouse is hovered over this shape.
-         * @param resizing {boolean} whether or not the mouse is around the edge of this shape for resizing.
+         * @param hover {boolean} whether or not the mouse is hovered over this shape.
+         * @param resize {boolean} whether or not the mouse is around the edge of this shape for resizing.
          * @param translator {skel.widgets.Draw.ImageMouseTranslator} used to translate image/mouse coordinates.
          */
         _drawDecorators : function( ctx, active, hover, resize, translator ){
@@ -146,18 +146,18 @@ qx.Class.define("skel.widgets.Draw.Shape", {
                     var mouseTL = {
                         x: this.m_topLeft.x + dx,
                         y: this.m_topLeft.y + dy
-                    }
+                    };
                     var mouseBR = {
                         x: this.m_bottomRight.x + dx,
                         y: this.m_bottomRight.y + dy
-                    }
+                    };
                     shapeChanged = this.doMove( mouseTL, mouseBR );
                 }
                 else {
                     var mouseMovePt = {
                         x: dx,
                         y: dy
-                    }
+                    };
                     shapeChanged = this.doResize( mouseMovePt );
                 }
             }
@@ -215,7 +215,7 @@ qx.Class.define("skel.widgets.Draw.Shape", {
         _shapeCB : function( anObject ){
              return function( id ){
                  anObject.setShapeId( id );
-             }
+             };
         },
         
         /**
@@ -224,12 +224,17 @@ qx.Class.define("skel.widgets.Draw.Shape", {
          */
         _shapeChangedCB : function(){
             var val = this.m_sharedVar.get();
-            if ( val != null ){
-                var shape = JSON.parse( val );
-                var updated = this.updateShape( shape );
-                //Trigger a redraw if the shape was updated.
-                if ( updated ){
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message("shapeChanged", ""));
+            if ( val !== null ){
+                try {
+                    var shape = JSON.parse( val );
+                    var updated = this.updateShape( shape );
+                    //Trigger a redraw if the shape was updated.
+                    if ( updated ){
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message("shapeChanged", ""));
+                    }
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
                 }
             }
         },

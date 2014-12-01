@@ -1,8 +1,9 @@
 #include "CartaLib/IImage.h"
 #include "DataSource.h"
+#include "Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
-#include "CoordinateFormatter.h"
+#include "CartaLib/ICoordinateFormatter.h"
 #include "Algorithms/RawView2QImageConverter.h"
 
 #include <QDebug>
@@ -22,6 +23,9 @@ DataSource::DataSource(const QString& path, const QString& id) :
     m_image( nullptr )
     {
         m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
+        // assign a default colormap to the view
+        auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
+        m_rawView2QImageConverter-> setColormap( rawCmap );
         _initializeState();
 }
 
@@ -45,6 +49,13 @@ bool DataSource::setFileName( const QString& fileName ){
         successfulLoad = false;
     }
     return successfulLoad;
+}
+
+void DataSource::setColorMap( int index ){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
+    Colormaps* maps = dynamic_cast<Colormaps*>(obj);
+    m_rawView2QImageConverter-> setColormap( maps->getColorMap( index ) );
 }
 
 

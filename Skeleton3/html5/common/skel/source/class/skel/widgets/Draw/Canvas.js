@@ -59,8 +59,8 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             
             qx.event.message.Bus.subscribe("mainOffsetsChanged", function(message) {
                 var data = message.getData();
-                this.m_offsetX = data["offsetX"];
-                this.m_offsetY = data["offsetY"];
+                this.m_offsetX = data.offsetX;
+                this.m_offsetY = data.offsetY;
             }, this);
         },
 
@@ -80,7 +80,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
                 this.m_drawRegion._draw( width, height, ctx );
 
                 // draw frozen cursor
-                if( this.m_frozenCursor != null) {
+                if( this.m_frozenCursor !== null) {
                     ctx.strokeStyle = "rgb(0,255,0)";
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -145,7 +145,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
                 // if this is not a drag event, just update the mouse location & tell the view
                 if( ! this.m_drawRegion.isMouseDown() ) {
                     this.m_mouse = pt;
-                    if ( this.m_view != null ){
+                    if ( this.m_view !== null ){
                         event.pageX = pt.x - this.m_offsetX;
                         event.pageY = pt.y + this.m_offsetY;
                         this.m_view._mouseMoveCB(event);
@@ -208,7 +208,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             },
             
             setFrozenCursor: function ( x, y) {
-                if( x == null)
+                if( x === null)
                     this.m_frozenCursor = null;
                 else
                     this.m_frozenCursor = { x: x, y: y};

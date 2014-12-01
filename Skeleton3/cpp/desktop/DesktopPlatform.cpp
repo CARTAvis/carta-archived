@@ -76,6 +76,7 @@ DesktopPlatform::DesktopPlatform()
     auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
     if( cmdLineInfo.htmlPath().isEmpty()) {
         url = QUrl("qrc:///html5/desktop/desktopIndex.html");
+        //url = QUrl( "file:///home/susan/git/CARTAvis/Skeleton3/html5/desktop/desktopIndex.html");
     } else {
         url = QUrl::fromUserInput( cmdLineInfo.htmlPath());
     }

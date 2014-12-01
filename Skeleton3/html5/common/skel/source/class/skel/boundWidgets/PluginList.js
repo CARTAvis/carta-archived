@@ -26,7 +26,7 @@ qx.Class.define("skel.boundWidgets.PluginList", {
 
         // Invoke the callback so that the plugin list will be populated.
         this.m_connector = mImport( "connector");
-        var paramMap = "pluginId:" + pluginId + ",index:0"
+        var paramMap = "pluginId:" + pluginId + ",index:0";
         var pathDict = skel.widgets.Path.getInstance();
         var regViewCmd = pathDict.getCommandRegisterView();
         this.m_connector.sendCommand( regViewCmd, paramMap, this._registrationCallback( this ) );
@@ -56,14 +56,6 @@ qx.Class.define("skel.boundWidgets.PluginList", {
             };
 
             this.m_table = new qx.ui.table.Table(this.m_tableModel, custom);
-//            this.m_table.setAllowShrinkY( true);
-//            this.m_table.setAllowStretchY( true);
-//            this.m_table.setAllowGrowY( true);
-//            this.m_table.setMinHeight(100);
-//            this.setAllowShrinkY( true);
-//            this.setAllowStretchY( true);
-//            this.setAllowGrowY( true);
-//            this.setMinHeight(100);
             this.m_table.set({
                 minWidth: 100,
                 minHeight: 100,
@@ -94,7 +86,7 @@ qx.Class.define("skel.boundWidgets.PluginList", {
                 anObject.m_sharedVar = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVar.addCB( anObject._sharedVarCB.bind( this ));
                 anObject._sharedVarCB( anObject.m_sharedVar.get());
-            }
+            };
         },
 
         /**
@@ -103,20 +95,26 @@ qx.Class.define("skel.boundWidgets.PluginList", {
          * @private
          */
         _sharedVarCB : function(val) {
-            var plugins = JSON.parse( val );
-            var n = plugins.pluginCount;
-            var newData=[];
-            for (var i = 0; i < n; i++) {
-                var name = plugins.pluginList[i].name;
-                var description = plugins.pluginList[i].description;
-                var type = plugins.pluginList[i].type;
-                var version = plugins.pluginList[i].version;
-                var errors = plugins.pluginList[i].loadErrors;
-                var loaded = (errors === "" || errors === null);
-                newData.push([ name, description, type, version, loaded ]);
+            if ( val ){
+                try {
+                    var plugins = JSON.parse( val );
+                    var n = plugins.pluginCount;
+                    var newData=[];
+                    for (var i = 0; i < n; i++) {
+                        var name = plugins.pluginList[i].name;
+                        var description = plugins.pluginList[i].description;
+                        var type = plugins.pluginList[i].type;
+                        var version = plugins.pluginList[i].version;
+                        var errors = plugins.pluginList[i].loadErrors;
+                        var loaded = (errors === "" || errors === null);
+                        newData.push([ name, description, type, version, loaded ]);
+                    }
+                    this.m_tableModel.setData(newData);
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
+                }
             }
-
-            this.m_tableModel.setData(newData);
         }
 
 

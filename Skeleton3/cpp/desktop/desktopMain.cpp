@@ -52,7 +52,7 @@ int main(int argc, char ** argv)
     // create the viewer
     Viewer viewer;
     // prepare closure to execute when connector is initialized
-    IConnector::InitializeCallback initCB = [connector, & viewer](bool valid) -> void {
+    IConnector::InitializeCallback initCB = [connector, & viewer](bool /*valid*/) -> void {
         viewer.start();
     };
 

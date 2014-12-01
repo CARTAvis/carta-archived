@@ -5,15 +5,18 @@
 #pragma once
 
 #include <memory>
-#include "CoordinateFormatter.h"
+#include "CartaLib/ICoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <QString>
 #include <QList>
 #include <QObject>
 
-class ImageView;
+
 class DataSource;
+class Colormap;
+class Histogram;
+class ImageView;
 class Region;
 class RegionRectangle;
 class Selection;
@@ -81,6 +84,8 @@ private slots:
     //Refresh the view based on the latest data selection information.
     void _loadView( bool forceReload = false );
 
+    void _colorMapChanged( int index );
+
 private:
 
     /**
@@ -124,6 +129,11 @@ private:
 
     //Data available to and managed by this controller.
     QList<std::shared_ptr<DataSource> > m_datas;
+
+    //Colormap
+    std::shared_ptr<Colormap> m_colorMap;
+
+    std::shared_ptr<Histogram>m_histogram;
 
     QList<std::shared_ptr<Region> > m_regions;
 

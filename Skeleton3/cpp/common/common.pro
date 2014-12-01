@@ -31,8 +31,10 @@ HEADERS += \
     Data/Animator.h \
     Data/AnimatorType.h \
     Data/Colormap.h \
+    Data/Colormaps.h \
     Data/Controller.h \
     Data/DataLoader.h \
+    Data/Histogram.h \
     Data/Selection.h \
     Data/Layout.h \
     Data/Region.h \
@@ -41,7 +43,7 @@ HEADERS += \
     Data/RegionRectangle.h \
     Data/Util.h \
     GrayColormap.h \
-    ColormapsOptimization.h
+    ColormapsOptimization.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h
 
@@ -63,8 +65,10 @@ SOURCES += \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \
     Data/Colormap.cpp \
+    Data/Colormaps.cpp \
     Data/Controller.cpp \
     Data/DataLoader.cpp \
+    Data/Histogram.cpp \
     Data/Selection.cpp \
     Data/DataSource.cpp \
     Data/Layout.cpp \

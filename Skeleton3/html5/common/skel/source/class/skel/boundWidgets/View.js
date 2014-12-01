@@ -48,7 +48,7 @@ qx.Class.define("skel.boundWidgets.View", {
 
         this.addListener("resize", function(/*e*/) {
             // only continue if the dom element has been created
-            if (null == this.getContentElement().getDomElement()) {
+            if (null === this.getContentElement().getDomElement()) {
                 return;
             }
 

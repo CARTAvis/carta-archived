@@ -111,23 +111,17 @@ void Animator::_imageIndexChanged( const QString& params ){
 void Animator::_initializeCallbacks(){
     addCommandCallback( "addAnimator", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"type"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        QString animatorId;
-        if ( dataValues.size() == keys.size()){
-            animatorId = _initializeAnimator( dataValues[0] );
-        }
+        std::set<QString> keys = {"type"};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString animatorId = _initializeAnimator( dataValues[*keys.begin()] );
         return animatorId;
     });
 
     addCommandCallback( "removeAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            QList<QString> keys = {"type"};
-            QVector<QString> dataValues = Util::parseParamMap( params, keys );
-            QString animatorId;
-            if ( dataValues.size() == keys.size()){
-               animatorId = _removeAnimator( dataValues[0] );
-            }
+            std::set<QString> keys = {"type"};
+            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            QString animatorId = _removeAnimator( dataValues[*keys.begin()] );
             return animatorId;
         });
 }

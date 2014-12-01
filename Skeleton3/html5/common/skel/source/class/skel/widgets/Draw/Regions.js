@@ -147,7 +147,7 @@ qx.Class.define("skel.widgets.Draw.Regions",
                     // Tell all the shapes the mouse has moved so they can act on it, if appropriate.
                     if ( this.m_mouseDownPt ){
                         var movePt = this.m_translator.mouse2serverImage( this.m_lastMouse );
-                        var downPt = this.m_translator.mouse2serverImage( this.m_mouseDownPt )
+                        var downPt = this.m_translator.mouse2serverImage( this.m_mouseDownPt );
                         var dx = movePt.x - downPt.x;
                         var dy = movePt.y - downPt.y;
                         for ( var ind = 0; ind < this.m_shapes.length; ind++ ) {
@@ -159,7 +159,7 @@ qx.Class.define("skel.widgets.Draw.Regions",
                 else {
                     //Mouse is being dragged while in the down state.
                     if (!this.m_clickEvent  && this.m_mouseDownPt ) {
-                        if ( this.m_shape == null ){
+                        if ( this.m_shape === null ){
                             this._initShape();
                         }
                         if ( this.m_shape !== null ){
@@ -203,48 +203,57 @@ qx.Class.define("skel.widgets.Draw.Regions",
              */
             _regionsChangedCB : function(){
                 var val = this.m_sharedVar.get();
-                var controlState = JSON.parse( val );
-                var regionCount = controlState.regions.length;
-                var shapeCount = this.m_shapes.length;
-                var redraw = false;
-               
-               //Remove any shapes the server does not know about.
-               for ( var i = shapeCount-1; i >= 0; i--){
-                    //If it has an id from the server and is no longer there, remove it.
-                    var shapeId = this.m_shapes[i].getShapeId();
-                    if ( shapeId != null ){
-                        var serverShape = false;
-                        for ( var j = 0; j < regionCount; j++ ){
-                            if ( controlState.regions[j].id == shapeId ){
-                                serverShape = true;
-                                break;
+                if ( !val ){
+                    return;
+                }
+                var i = 0;
+                try {
+                    var controlState = JSON.parse( val );
+                    var regionCount = controlState.regions.length;
+                    var shapeCount = this.m_shapes.length;
+                    var redraw = false;
+                   
+                   //Remove any shapes the server does not know about.
+                   for ( i = shapeCount-1; i >= 0; i--){
+                        //If it has an id from the server and is no longer there, remove it.
+                        var shapeId = this.m_shapes[i].getShapeId();
+                        if ( shapeId !== null ){
+                            var serverShape = false;
+                            for ( var j = 0; j < regionCount; j++ ){
+                                if ( controlState.regions[j].id == shapeId ){
+                                    serverShape = true;
+                                    break;
+                                }
+                            }
+                            if ( !serverShape ){
+                                redraw = true;
+                                this.m_shapes.splice(i,1);
                             }
                         }
-                        if ( !serverShape ){
+                    }
+                   
+                    for ( i = 0; i < regionCount; i++){
+                        var shape = controlState.regions[i];
+                    
+                        //If it is a new shape, add it to the list.
+                        if ( !this.containsShape( shape.type, shape.id ) ){
+                            var shapeNew = new skel.widgets.Draw.Rectangle( this.m_winId);
+                            shapeNew.setShapeId( shape.id );
+                            this.m_shapes.splice(i,0,shapeNew);
                             redraw = true;
-                            this.m_shapes.splice(i,1);
                         }
+                     }
+                    
+                     
+                     //Trigger a redraw
+                    if ( redraw ){
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                                "shapeChanged", ""));
                     }
                 }
-                
-
-                for ( var i = 0; i < regionCount; i++){
-                    var shape = controlState.regions[i];
-                
-                    //If it is a new shape, add it to the list.
-                    if ( !this.containsShape( shape.type, shape.id ) ){
-                        var shapeNew = new skel.widgets.Draw.Rectangle( this.m_winId);
-                        shapeNew.setShapeId( shape.id );
-                        this.m_shapes.splice(i,0,shapeNew);
-                        redraw = true;
-                    }
-                 }
-                
-                 
-                 //Trigger a redraw
-                if ( redraw ){
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "shapeChanged", ""));
+                catch( err ){
+                    console.log( "Could not parse: "+val );
+                    return;
                 }
             },
             
@@ -274,9 +283,9 @@ qx.Class.define("skel.widgets.Draw.Regions",
              *      and whether or not multiple shapes will be drawn.
              */
             setDrawMode: function( drawInfo ){
-                this.m_drawOnce = !drawInfo["multiShape"];
-                if ( this.m_drawKey != drawInfo["shape"] ){
-                    this.m_drawKey =  drawInfo["shape"];
+                this.m_drawOnce = !drawInfo.multiShape;
+                if ( this.m_drawKey != drawInfo.shape ){
+                    this.m_drawKey =  drawInfo.shape;
                 }
             },
             

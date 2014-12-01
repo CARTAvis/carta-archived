@@ -5,6 +5,20 @@
 qx.Class.define("skel.widgets.Util", {
     type : "static",
     statics : {
+        
+        /**
+         * Adds an 'id' attribute to the widget's html div.
+         * @param widget {qx.ui.basic.Widget}
+         * @param testId {String} a unique id for locating the html element.
+         */
+        addTestId : function( widget, testId ){
+            //Testing Id
+            widget.addListener("appear", function() {
+                var container = this.getContentElement().getDomElement();
+                container.id = testId;
+            }, widget );
+        },
+        
         /**
          * Returns the 'left' position of the widget.
          * 
@@ -14,7 +28,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getLeft : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetLeft = widgetBounds["left"];
+            var widgetLeft = widgetBounds.left;
             return widgetLeft;
         },
 
@@ -27,7 +41,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getRight : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetRight = widgetBounds["left"] + widgetBounds["width"];
+            var widgetRight = widgetBounds.left + widgetBounds.width;
             return widgetRight;
         },
 
@@ -40,7 +54,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getTop : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetTop = widgetBounds["top"];
+            var widgetTop = widgetBounds.top;
             return widgetTop;
         },
 
@@ -53,7 +67,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getBottom : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetBottom = widgetBounds["top"] + widgetBounds["height"];
+            var widgetBottom = widgetBounds.top + widgetBounds.height;
             return widgetBottom;
         },
 
@@ -77,8 +91,8 @@ qx.Class.define("skel.widgets.Util", {
             var xCoord = left;
             var yCoord = top;
             if ( widgetBounds ){
-                xCoord = left + Math.round(widgetBounds["width"] / 2);
-                yCoord = top + Math.round(widgetBounds["height"] / 2);
+                xCoord = left + Math.round(widgetBounds.width / 2);
+                yCoord = top + Math.round(widgetBounds.height / 2);
             }
             return [ xCoord, yCoord ];
         },

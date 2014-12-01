@@ -46,6 +46,7 @@ private:
 
     void _initCallbacks();
 
+    void _initializeColorMaps();
     void _initializeExistingAnimationLinks( int index );
     //Sets up a default set of states for constructing the UI if the user
     //has not saved one.

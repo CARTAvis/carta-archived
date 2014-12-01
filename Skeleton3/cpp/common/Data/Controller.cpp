@@ -1,7 +1,9 @@
 #include "State/ObjectManager.h"
 
 #include "Data/Controller.h"
+#include "Data/Colormap.h"
 #include "Data/DataSource.h"
+#include "Data/Histogram.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
 #include "Data/RegionRectangle.h"
@@ -12,6 +14,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QList>
 #include <memory>
+#include <set>
 
 using namespace std;
 
@@ -37,9 +40,9 @@ Controller::Controller( const QString& path, const QString& id ) :
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
     _initializeSelections();
 
-
      connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
      connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
+
 
      _initializeCallbacks();
 
@@ -99,6 +102,13 @@ void Controller::clear(){
     unregisterView();
 }
 
+void Controller::_colorMapChanged( int index ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorMap( index );
+    }
+    _loadView( true );
+}
+
 
 int Controller::getState( const QString& type, const QString& key ){
 
@@ -130,46 +140,44 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"clipValue"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            bool validClip = false;
-            QString clipWithoutPercent = dataValues[0].remove("%");
-            double clipVal = dataValues[0].toDouble(&validClip);
-            if ( validClip ){
-                int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
-                if ( oldClipVal != clipVal ){
-                    m_state.setValue<double>( CLIP_VALUE, clipVal );
-                    m_state.flushState();
-                    if ( m_view ){
-                        _loadView( true );
-                    }
+        std::set<QString> keys = {"clipValue"};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        bool validClip = false;
+        QString clipKey = *keys.begin();
+        QString clipWithoutPercent = dataValues[clipKey].remove("%");
+        double clipVal = dataValues[clipKey].toDouble(&validClip);
+        if ( validClip ){
+            int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
+            if ( oldClipVal != clipVal ){
+                m_state.setValue<double>( CLIP_VALUE, clipVal );
+                m_state.flushState();
+                if ( m_view ){
+                    _loadView( true );
                 }
             }
-            else {
-                qDebug() << "Invalid clip value: "<<params;
-            }
+        }
+        else {
+            qDebug() << "Invalid clip value: "<<params;
         }
         return "";
     });
 
     addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            QList<QString> keys = {"autoClip"};
-            QVector<QString> dataValues = Util::parseParamMap( params, keys );
-            if ( dataValues.size() == keys.size()){
-                bool autoClip = false;
-                if ( dataValues[0] == "true"){
-                    autoClip = true;
-                }
-                bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
-                if ( autoClip != oldAutoClip ){
-                    m_state.setValue<bool>( AUTO_CLIP, autoClip );
-                    m_state.flushState();
-                }
-            }
-            return "";
-        });
+        std::set<QString> keys = {"autoClip"};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString clipKey = *keys.begin();
+        bool autoClip = false;
+        if ( dataValues[clipKey] == "true"){
+            autoClip = true;
+        }
+        bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
+        if ( autoClip != oldAutoClip ){
+            m_state.setValue<bool>( AUTO_CLIP, autoClip );
+            m_state.flushState();
+        }
+        return "";
+    });
 
     addCommandCallback( "updateCursor", [=] (const QString & /*cmd*/,
                             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -177,28 +185,52 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+    addCommandCallback( "registerColormap", [=] (const QString & /*cmd*/,
+                                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            if ( m_colorMap == nullptr ){
+                ObjectManager* objManager = ObjectManager::objectManager();
+                QString mapId = objManager->createObject( Colormap::CLASS_NAME );
+                CartaObject* mapObj = objManager->getObject( mapId );
+                m_colorMap.reset( dynamic_cast<Colormap*>(mapObj) );
+                connect( m_colorMap.get(), SIGNAL(colorMapChanged(int)), this, SLOT(_colorMapChanged(int)));
+            }
+            return m_colorMap->getPath();
+        });
+
+    addCommandCallback( "registerHistogram", [=] (const QString & /*cmd*/,
+                                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                if ( m_histogram == nullptr ){
+                    ObjectManager* objManager = ObjectManager::objectManager();
+                    QString mapId = objManager->createObject( Histogram::CLASS_NAME );
+                    CartaObject* mapObj = objManager->getObject( mapId );
+                    m_histogram.reset( dynamic_cast<Histogram*>(mapObj) );
+                }
+                return m_histogram->getPath();
+            });
+
+
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"type", "index"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
+        const QString TYPE( "type");
+        const QString INDEX( "index");
+        std::set<QString> keys = {TYPE, INDEX};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
         QString shapePath;
-        if ( dataValues.size() == keys.size()){
-            bool validIndex = false;
-            int index = dataValues[1].toInt( &validIndex );
-            if ( validIndex ){
-                int regionCount = m_regions.size();
-                if ( 0 <= index && index < regionCount ){
-                    //Measure the index from the end.
-                    shapePath = m_regions[index]->getPath();
+        bool validIndex = false;
+        int index = dataValues[INDEX].toInt( &validIndex );
+        if ( validIndex ){
+            int regionCount = m_regions.size();
+            if ( 0 <= index && index < regionCount ){
+                //Measure the index from the end.
+                shapePath = m_regions[index]->getPath();
+            }
+            else {
+                shapePath = _makeRegion( dataValues[TYPE]);
+                if ( shapePath.size() == 0 ){
+                    qDebug()<<"Error registerShape unsupported shape: "<<params;
                 }
                 else {
-                    shapePath = _makeRegion( dataValues[0]);
-                    if ( shapePath.size() == 0 ){
-                        qDebug()<<"Error registerShape unsupported shape: "<<params;
-                    }
-                    else {
-                        saveState();
-                    }
+                    saveState();
                 }
             }
         }
@@ -363,8 +395,55 @@ void Controller::_updateCursor(){
     m_stateMouse.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
 
     m_stateMouse.flushState();
+
+
+    // ask one of the plugins to load the image
+     /*   if ( fname.length() > 0 ) {
+            qDebug() << "Trying to load astroImage...";
+            auto res2 =
+                Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
+            if ( ! res2.isNull() ) {
+                qDebug() << "Could not find any plugin to load astroImage";
+                m_image = res2.val();
+
+                CARTA_ASSERT( m_image );
+                m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
+
+                qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
+                testView2 = new TestView2(
+                    "view3", QColor( "pink" ), QImage( 10, 10, QImage::Format_ARGB32 ),
+                    m_image );
+                m_connector-> registerView( testView2 );
+
+                qDebug() << "xyz test";
+                CoordinateFormatterInterface::VD pixel;
+                pixel.resize( m_coordinateFormatter->nAxes(), 0 );
+                auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+                qDebug() << "0->" << fmt.join( "|" );
+                auto skycs = KnownSkyCS::Galactic;
+                m_coordinateFormatter-> setSkyCS( skycs );
+                qDebug() << "set skycs to" << int (skycs)
+                         << "now it is" << int ( m_coordinateFormatter-> skyCS() );
+                fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+                qDebug() << "0->" << fmt.join( "|" );
+
+                // convert the loaded image into QImage
+                m_currentFrame = 0;
+                reloadFrame( true );
+
+    //        delete frameView;
+            }
+
+
+        }*/
+
+
+
 }
 
 Controller::~Controller(){
     clear();
 }
+
+
+

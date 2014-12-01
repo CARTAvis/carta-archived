@@ -74,7 +74,7 @@ qx.Class.define("skel.Application", {
         _afterConnect: function()
         {
 
-            var win = new qx.ui.window.Window("Hack view");
+            /*var win = new qx.ui.window.Window("Hack view");
             win.setWidth(300);
             win.setHeight(200);
             win.setShowMinimize(false);
@@ -83,12 +83,8 @@ qx.Class.define("skel.Application", {
             win.add( new skel.boundWidgets.View( "view3"));
             this.getRoot().add(win, {left:20, top:220});
             win.open();
-
-
-            // hacks for temporary functionality
-            this.m_cursorWindow = new skel.boundWidgets.CursorWindow();
-            this.m_colormapWindow = new skel.boundWidgets.ColormapWindow();
-
+            */
+            
             var connector = mImport( "connector" );
             if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED) {
                 console.log( "Connection not established yet...");
@@ -101,7 +97,7 @@ qx.Class.define("skel.Application", {
 
             this.m_desktop = new skel.widgets.DisplayMain();
             this.m_mainContainer.add( this.m_desktop, { top: "0%", bottom: "0%", left: "0%", right: "0%"});
-            this.m_statusBar = new skel.widgets.StatusBar();
+            this.m_statusBar = new skel.widgets.Menu.StatusBar();
             this.m_mainContainer.add( this.m_statusBar, {bottom: "0%", left: "0%", right: "0%"} );
 
             this._initMenuBar();
@@ -140,17 +136,14 @@ qx.Class.define("skel.Application", {
                 qx.event.message.Bus.subscribe( "showColormap", function( message ){
                     if ( this.m_colormapDialog == null ){
                             this.m_colormapDialog = new skel.widgets.Colormap.ColormapDialog();
+                            this.getRoot().add( this.m_colormapDialog, { top :"15%", left: "15%"});
                     }
-                    if ( this.m_mainContainer.indexOf( this.m_colormapDialog ) < 0 ){
-                            this.m_mainContainer.add( this.m_colormapDialog, { top :"15%", left: "15%"});
-                    }
+                    var data = message.getData();
+                    this.m_colormapDialog.setId( data.controlId );
+                    var mapIndex = this.getRoot().indexOf( this.m_colormapDialog );
+                    this.m_colormapDialog.open();
                 }, this );
-            
-                qx.event.message.Bus.subscribe( "closeColormap", function( message ){
-                    if ( this.m_colormapDialog != null && this.m_mainContainer.indexOf( this.m_colormapDialog) >= 0 ){
-                        this.m_mainContainer.remove( this.m_colormapDialog );
-                    }
-                }, this );
+
         },
 
 
@@ -160,7 +153,7 @@ qx.Class.define("skel.Application", {
          * Initialize the menu bar.
          */
         _initMenuBar : function(){
-            this.m_menuBar = new skel.widgets.MenuBar();
+            this.m_menuBar = new skel.widgets.Menu.MenuBar();
             this.m_menuBar.addListener("layoutImage",function(){
                 this._hideWindows();
                 this.m_desktop.layoutImage();
@@ -302,7 +295,7 @@ qx.Class.define("skel.Application", {
             var winId = linkSource["window"];
             var linkInfo = this.m_desktop.getLinkInfo( pluginId, winId );
             if ( this.m_windowLink == null ){
-                this.m_windowLink = new skel.widgets.LinkCanvas();
+                this.m_windowLink = new skel.widgets.Link.LinkCanvas();
                 var resizeLinkWindow = function(desktop, linkWindow){
                     var left = skel.widgets.Util.getLeft( desktop );
                     var top = skel.widgets.Util.getTop( desktop );
@@ -367,9 +360,8 @@ qx.Class.define("skel.Application", {
         m_mainContainer: null,
         m_windowLocator: null,
         m_windowLink: null,
-            m_fileBrowser: null,
-            m_colormapDialog: null
-        m_colormapWindow: null
+        m_fileBrowser: null,
+        m_colormapDialog: null
     }
 });
 

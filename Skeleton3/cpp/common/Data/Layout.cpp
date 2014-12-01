@@ -25,39 +25,38 @@ Layout::Layout( const QString& path, const QString& id):
 void Layout::_initializeCommands(){
     addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"rows", "cols"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            QString rowStr = dataValues[0];
-            QString colStr = dataValues[1];
-            bool valid = false;
-            int rows = rowStr.toInt( &valid );
+        const QString ROWS( "rows");
+        const QString COLS( "cols");
+        std::set<QString> keys = {ROWS, COLS};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString rowStr = dataValues[ROWS];
+        QString colStr = dataValues[COLS];
+        bool valid = false;
+        int rows = rowStr.toInt( &valid );
+        if ( valid ){
+            int cols = colStr.toInt( &valid );
             if ( valid ){
-                int cols = colStr.toInt( &valid );
-                if ( valid ){
-                    _setLayoutSize( rows, cols);
-                }
-                else {
-                    qDebug() << "Invalid layout cols: "<<params;
-                }
+                _setLayoutSize( rows, cols);
             }
             else {
-                qDebug() << "Invalid layout rows: "<<params;
+                qDebug() << "Invalid layout cols: "<<params;
             }
+        }
+        else {
+            qDebug() << "Invalid layout rows: "<<params;
         }
         return "";
     });
 
     addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"names"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            QStringList names = dataValues[0].split(".");
-            bool valid = _setPlugin( names );
-            if ( !valid ){
-                qDebug() << "Invalid layout params: "<<params;
-            }
+        const QString NAMES( "names");
+        std::set<QString> keys = { NAMES };
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QStringList names = dataValues[0].split(".");
+        bool valid = _setPlugin( names );
+        if ( !valid ){
+            qDebug() << "Invalid layout params: "<<params;
         }
         return "";
     });

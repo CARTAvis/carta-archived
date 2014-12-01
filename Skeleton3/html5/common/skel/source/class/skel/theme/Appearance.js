@@ -13,16 +13,7 @@ qx.Theme.define( "skel.theme.Appearance", {
     extend: qx.theme.modern.Appearance,
 
     appearances: {
-//        "display-window": {
-//            alias  : "window",
-//            include: "window",
-//            style  : function()
-//            {
-//                return {
-//                    decorator: "win"
-//                };
-//            }
-//        },
+
 
         "window/captionbar" :
         {
@@ -39,16 +30,6 @@ qx.Theme.define( "skel.theme.Appearance", {
         },
 
 
-//        "display-window-selected": {
-//            alias  : "window",
-//            include: "window",
-//            style  : function( states )
-//            {
-//                return {
-//                    decorator: "window-pane-active"
-//                };
-//            }
-//        },
 
 
         "splitpane": {

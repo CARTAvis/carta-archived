@@ -1,6 +1,6 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
-#include "Data/Colormap.h"
+#include "Data/Colormaps.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
 #include "Data/Layout.h"
@@ -24,6 +24,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_pluginsLoaded( nullptr ){
     _initCallbacks();
     _initializeDataLoader();
+    _initializeColorMaps();
 
     bool stateRead = this->_readState( "DefaultState" );
     if ( !stateRead ){
@@ -53,18 +54,18 @@ void ViewManager::_initCallbacks(){
     //Callback for adding a data source to a Controller.
     addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
             const QString & params, const QString & sessionId) -> QString {
-        QList<QString> keys = {"id", "data"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            for ( int i = 0; i < m_controllers.size(); i++ ){
-                if ( dataValues[0]  == m_controllers[i]->getPath() ){
-                    //Add the data to it.
-                    QString path = dataValues[1];
-                    _initializeDataLoader();
-                    path = m_dataLoader->getFile( path, sessionId );
-                    m_controllers[i]->addData( path );
-                    break;
-                }
+        const QString ID( "id");
+        const QString DATA( "data");
+        std::set<QString> keys = {ID,DATA};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        for ( int i = 0; i < m_controllers.size(); i++ ){
+            if ( dataValues[ID]  == m_controllers[i]->getPath() ){
+                //Add the data to it.
+                QString path = dataValues[DATA];
+                _initializeDataLoader();
+                path = m_dataLoader->getFile( path, sessionId );
+                m_controllers[i]->addData( path );
+                break;
             }
         }
         return "";
@@ -73,34 +74,36 @@ void ViewManager::_initCallbacks(){
     //Callback for registering a view.
     addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"pluginId", "index"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        QString viewId( "" );
-        if ( dataValues.size() == keys.size()){
-            viewId = _makeWindow( dataValues );
-        }
+        const QString PLUGIN_ID( "pluginId");
+        const QString INDEX( "index");
+        std::set<QString> keys = {PLUGIN_ID, INDEX};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QVector<QString> dataVector( keys.size() );
+        dataVector[0] = dataValues[PLUGIN_ID];
+        dataVector[1] = dataValues[INDEX];
+        QString viewId = _makeWindow( dataVector );
         return viewId;
     });
 
     //Callback for linking an animator with whatever it is going to animate.
     addCommandCallback( "linkAnimator", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"animId", "winId"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            //Go through our data animators and find the one that is supposed to
-            //be hooked up to.
-            for (int i = 0; i < m_animators.size(); i++ ){
-                if ( m_animators[i]->getPath()  == dataValues[0] ){
-                    //Hook up the corresponding controller
-                    for ( int j = 0; j < m_controllers.size(); j++ ){
-                        if ( m_controllers[j]->getPath() == dataValues[1] ){
-                            m_animators[i]->addController( m_controllers[j]);
-                            break;
-                        }
+        const QString ANIM_ID( "animId");
+        const QString WIN_ID( "winId");
+        std::set<QString> keys = {ANIM_ID, WIN_ID};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        //Go through our data animators and find the one that is supposed to
+        //be hooked up to.
+        for (int i = 0; i < m_animators.size(); i++ ){
+            if ( m_animators[i]->getPath()  == dataValues[ANIM_ID] ){
+                //Hook up the corresponding controller
+                for ( int j = 0; j < m_controllers.size(); j++ ){
+                    if ( m_controllers[j]->getPath() == dataValues[WIN_ID] ){
+                        m_animators[i]->addController( m_controllers[j]);
+                        break;
                     }
-                    break;
                 }
+                break;
             }
         }
         return "";
@@ -138,7 +141,11 @@ void ViewManager::_initCallbacks(){
         }
         return returnVal;
     });
+}
 
+void ViewManager::_initializeColorMaps(){
+   ObjectManager* objManager = ObjectManager::objectManager();
+   QString id = objManager->createObject( Colormaps::CLASS_NAME );
 }
 
 
@@ -252,13 +259,6 @@ QString ViewManager::_makeWindow( QVector<QString>& dataValues ){
     else if ( dataValues[0] == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
     }
-    /*else if ( dataValues[0] == Colormap::CLASS_NAME ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString id = objManager->createObject( Colormap::CLASS_NAME );
-        CartaObject* controlObj = objManager->getObject( id );
-        viewId = controlObj->getPath();
-        qDebug() << "made colormap path="<<viewId;
-    }*/
     else {
         qDebug() << "Unrecognized top level window type: "<<dataValues[0];
     }

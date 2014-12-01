@@ -45,7 +45,7 @@ protected slots:
 
     //void reloadFrame(bool forceClipRecompute = false);
 
-    void mouseCB( const QString & path, const QString & val);
+    //void mouseCB( const QString & path, const QString & val);
 
 protected:
 
@@ -55,24 +55,8 @@ protected:
     /// pointer to the loaded image
     Image::ImageInterface::SharedPtr m_image = nullptr;
 
-    /// current frame
-    //int m_currentFrame = -1;
-
-    /// are we recomputing clip on frame change?
-    //bool m_clipRecompute = true;
-
-    /// pointer to the rendering algorithm
-    //std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
 
 private:
     std::shared_ptr<ViewManager> m_viewManager;
-
-
-
-    /// pointer to connector
-    //IConnector * m_connector;
-
-    /// coordinate formatter
-    //CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 };
 

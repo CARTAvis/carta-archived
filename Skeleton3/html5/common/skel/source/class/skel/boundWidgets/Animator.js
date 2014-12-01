@@ -21,9 +21,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
     /**
      * Constructor.
      * 
-     * @param title
-     *                {String} descriptor for what will be animated (Channel,
-     *                Region, Image, etc).
+     * @param title {String} descriptor for what will be animated (Channel,Region, Image, etc).
+     * @param winId {String} the unique server id.
      */
     construct : function(title,  winId) {
         this.base(arguments);
@@ -41,19 +40,26 @@ qx.Class.define("skel.boundWidgets.Animator", {
     members : {
         /**
          * Callback for when the animator settings shared variable has changed value.
+         * @param val {String} the new settings.
          */
-        _animationCB : function( val ){
-            var animObj = JSON.parse( this.m_sharedVar.get() );
-            this._endBehaviorCB( animObj.endBehavior );
-            this._frameStepCB( animObj.frameStep );
-            this._frameRateCB( animObj.frameRate );
+        _animationCB : function( ){
+            var val = this.m_sharedVar.get();
+            try {
+                var animObj = JSON.parse( val );
+                this._endBehaviorCB( animObj.endBehavior );
+                this._frameStepCB( animObj.frameStep );
+                this._frameRateCB( animObj.frameRate );
+            }
+            catch( err ){
+                console.log( "Could not parse: "+val );
+            }
         },
         
         /**
          * Update the new frame position.
          */
         _applyFrame : function() {
-            if (this.m_indexText != null) {
+            if (this.m_indexText !== null) {
                 this.m_indexText.setValue(this.getFrame() + "");
             }
         },
@@ -62,7 +68,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Update the maximum number of frames available.
          */
         _applyFrameUpperBound : function() {
-            if (this.m_endLabel != null) {
+            if (this.m_endLabel !== null) {
                 this.m_endLabel.setValue(this.getFrameUpperBound() + "");
             }
         },
@@ -108,6 +114,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Callback for behavior when the frame is at the lower or upper extreme
          * of its range.
+         * @param val {String} the new end behavior.
          */
         _endBehaviorCB : function(val) {
             if (val) {
@@ -139,6 +146,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Callback for the frame end behavior.
+         * @param val {Number} the new upper bound.
          */
         _frameEndCB : function(val) {
             if (val) {
@@ -148,6 +156,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Callback for the frame step size.
+         * @param val {Number} the new step size.
          */
         _frameStepCB : function(val) {
             if (val) {
@@ -157,6 +166,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Callback for the speed of the animation.
+         * @param val {Number} the new speed.
          */
         _frameRateCB : function(val) {
             if (val) {
@@ -166,6 +176,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Callback for the frame lower bound.
+         * @param val {Number} the new lower bound.
          */
         _frameStartCB : function(val) {
             if (val) {
@@ -266,8 +277,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 var value = this.m_indexText.getValue();
                 var valueInt = parseInt(value);
                 if (!isNaN(valueInt)) {
-                    if (valueInt <= this.m_slider.getMaximum()
-                            && valueInt >= this.m_slider.getMinimum()) {
+                    if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
                         if ( valueInt != this.getFrame() ){
                             this._setFrame(valueInt);
                         }
@@ -539,10 +549,10 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 //Initialize the shared variable that manages the rate, endBehavior and step.
                 anObject.m_sharedVar = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVar.addCB( anObject._animationCB.bind( anObject ));
-                anObject._animationCB( anObject.m_sharedVar.get());
+                anObject._animationCB();
                 anObject.m_animId = id;
                 anObject._initSharedVarsSelection();
-            }
+            };
         },
         
         
@@ -554,7 +564,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 anObject.m_sharedVarSelection = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVarSelection.addCB( anObject._selectionResetCB.bind( anObject ));
                 anObject._selectionResetCB( anObject.m_sharedVarSelection.get());
-            }
+            };
         },
         
         /**
@@ -563,10 +573,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _selectionResetCB : function( val ){
             if ( val ){
                 if ( this._frameCB ){
-                    var frameObj = JSON.parse( val );
-                    this._frameCB( frameObj.frame );
-                    this._frameStartCB( frameObj.frameStart );
-                    this._frameEndCB( frameObj.frameEnd );
+                    try {
+                        var frameObj = JSON.parse( val );
+                        this._frameCB( frameObj.frame );
+                        this._frameStartCB( frameObj.frameStart );
+                        this._frameEndCB( frameObj.frameEnd );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse: "+val );
+                    }
                 }
             }
         },
@@ -576,7 +591,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * @param behavior {String} a descriptor for the behavior.
          */
         _setEndBehavior : function(behavior) {
-            if (this.m_stateEndBehavior != null) {
+            if (this.m_stateEndBehavior !== null) {
                 this.m_stateEndBehavior.set(behavior);
             }
         },
@@ -586,7 +601,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * @param frameIndex {Number} the new frame value.
          */
         _setFrame : function(frameIndex) {
-            if (this.m_connector != null) {
+            if (this.m_connector !== null) {
                 var paramMap = frameIndex.toString();
                 var path = skel.widgets.Path.getInstance();
                 var setFramePath = this.m_animId + path.SEP_COMMAND + "setFrame";

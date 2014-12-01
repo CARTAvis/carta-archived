@@ -26,11 +26,9 @@ QString Region::makeRegion( const QString& type ){
 void Region::_initializeCallbacks(){
     addCommandCallback( "shapeChanged", [=] (const QString & /*cmd*/,
                                     const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"info"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            resetState( dataValues[0]);
-        };
+        std::set<QString> keys = { "info"};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        resetState( dataValues[ *keys.begin()]);
         return "";
     });
 }

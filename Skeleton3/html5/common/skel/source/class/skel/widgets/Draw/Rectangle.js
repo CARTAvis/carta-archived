@@ -10,11 +10,11 @@ qx.Class.define("skel.widgets.Draw.Rectangle", {
         this.m_topLeft = {
             x : 0,
             y : 0
-        },
+        };
         this.m_bottomRight = {
             x : 0,
             y : 0
-        }
+        };
     },
     
     members : {
