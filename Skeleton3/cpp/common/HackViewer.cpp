@@ -331,7 +331,7 @@ HackViewer::reloadFrame( bool forceClipRecompute )
     }
     NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice );
     m_rawView2QImageConverter-> setView( frameView );
-    QImage qimg = m_rawView2QImageConverter-> go(
+    const QImage & qimg = m_rawView2QImageConverter-> go(
         m_currentFrame, m_clipRecompute || forceClipRecompute );
     delete frameView;
     testView2->setImage( qimg );

@@ -75,7 +75,8 @@ SOURCES += \
     ScriptedCommandListener.cpp \
     GrayColormap.cpp \
     ColormapsOptimization.cpp \
-    HackViewer.cpp
+    HackViewer.cpp \
+    Algorithms/RawView2QImageConverter.cpp
 
 
 #message( "common            PWD=$$PWD")
