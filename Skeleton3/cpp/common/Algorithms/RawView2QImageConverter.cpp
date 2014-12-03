@@ -12,7 +12,6 @@
 
 namespace ScalarPixelToRgb
 {
-
 /// conversion of raw pixel (double) to QRgb (8 bit color/rgb channel)
 ///
 /// NaN takes a different path, the following are for non-nans
@@ -55,7 +54,24 @@ namespace ScalarPixelToRgb
 /// return qrgb
 
 /// RGB as triplet of doubles in range 0..1
-typedef std::array< double, 3 > DRgb;
+typedef std::array < double, 3 > DRgb;
+
+template < typename Scalar >
+class IScalar2Scalar
+{
+    CLASS_BOILERPLATE( IScalar2Scalar );
+
+public:
+
+    virtual void
+    setMinMax( Scalar & min, Scalar & max ) = 0;
+
+    virtual void
+    convert( Scalar & val ) = 0;
+
+    virtual
+    ~IScalar2Scalar() { }
+};
 
 /// interface for implementing stage 1 (double-> double)
 class Id2d
@@ -75,38 +91,74 @@ public:
 };
 
 /// interface for implementing stage 3 (normalized double -> DRgb)
+/// this is the most generic colormap
 class Id2DRgb
 {
-    CLASS_BOILERPLATE(Id2DRgb);
+    CLASS_BOILERPLATE( Id2DRgb );
+
 public:
 
-    virtual void convert( const double & val, DRgb & result) = 0;
-    virtual ~Id2DRgb() {}
+    virtual void
+    convert( const double & val, DRgb & result ) = 0;
+
+    virtual
+    ~Id2DRgb() { }
+};
+
+/// primitive gray scale colormap
+class GrayCMap : public Id2DRgb
+{
+    CLASS_BOILERPLATE( GrayCMap );
+
+public:
+
+    virtual void convert(const double & val, DRgb & result) override
+    {
+        result.fill( val);
+    }
 };
 
 /// interface for implementing stage 4 (Drgb -> Drgb)
 class IDRgb2DRgb
 {
-    CLASS_BOILERPLATE(IDRgb2DRgb);
+    CLASS_BOILERPLATE( IDRgb2DRgb );
+
 public:
-    virtual void convert( DRgb & drgb) = 0;
-    virtual ~IDRgb2DRgb() {}
+
+    virtual void
+    convert( DRgb & drgb ) = 0;
+
+    virtual
+    ~IDRgb2DRgb() { }
 };
 
-/// the overall interface if we ever wanted to replace the whole pipeline
-class Id2QRgb
+/// the minimal interface representing an implemented pipeline
+/// - if we ever wanted to replace the whole pipeline
+class Id2DQRgb
 {
-    CLASS_BOILERPLATE(Id2QRgb);
+    CLASS_BOILERPLATE( Id2DQRgb );
+
 public:
-    virtual void setMinMax( double min, double max) = 0;
-    virtual void convert( const double & val, QRgb & result) = 0;
-    virtual ~Id2QRgb() {}
+
+    virtual void
+    setMinMax( double min, double max ) = 0;
+
+    /// do the conversion up to stage 4
+    virtual void
+    convert( const double & val, DRgb & result ) = 0;
+
+    /// do the conversion including stage 5
+    virtual void
+    convert( const double & val, QRgb & result ) = 0;
+
+    virtual
+    ~Id2DQRgb() { }
 };
 
 /// composite function for converting pixels to rgb
 /// can have multiple stage 1 (double->double) functions, and one stage 2 (double->rgb),
 /// followed by multiple rgb2rgb
-class CompositeD2QRgb : public Id2QRgb
+class CompositeD2QRgb : public Id2DQRgb
 {
     CLASS_BOILERPLATE( CompositeD2QRgb );
 
@@ -114,62 +166,83 @@ public:
 
     // e.g. log scaling, gamma correction
     void
-    addStage1( Id2d::SharedPtr func );
+    addStage1( Id2d::SharedPtr func )
+    {
+        m_stage1.push_back( func );
+    }
 
     // e.g. colormap
     void
-    setStage3( Id2DRgb::SharedPtr func );
+    setStage3( Id2DRgb::SharedPtr func )
+    {
+        m_stage3 = func;
+    }
 
     // e.g. invert
     void
-    addStage4( IDRgb2DRgb::SharedPtr func);
+    addStage4( IDRgb2DRgb::SharedPtr func )
+    {
+        m_stage4.push_back( func );
+    }
 
-    virtual void setMinMax( double min, double max) override
+    virtual void
+    setMinMax( double min, double max ) override
     {
         m_min = min;
         m_max = max;
-        for( auto & s : m_stage1) {
-            s-> setMinMax( m_min, m_max);
+        for ( auto & s : m_stage1 ) {
+            s-> setMinMax( m_min, m_max );
         }
     }
 
-    virtual void convert(const double & p_val, QRgb & result) override
+    virtual void
+    convert( const double & p_val, DRgb & result ) override
     {
-        if( std::isnan(p_val)) {
-            result = qRgb( 255, 0, 0);
-            return;
+        CARTA_ASSERT( ! std::isnan( p_val ) );
+
+        // stage 0: clamp
+        double val = clamp( p_val, m_min, m_max );
+
+        // stage 1: scalar to scalar
+        for ( auto & s : m_stage1 ) {
+            s-> convert( val );
         }
 
-        /// stage 0: clamp
-        double val = clamp( p_val, m_min, m_max);
-        /// stage 1:
-        for( auto & s : m_stage1) {
-            s-> convert( val);
+        // stage 2: normalize
+        val = ( val - m_min ) / ( m_max - m_min );
+
+        // stage 3: scalar -> drgb
+        m_stage3-> convert( val, result );
+
+        // stage 4: drgb -> drgb
+        for ( auto & s : m_stage4 ) {
+            s-> convert( result );
         }
-        /// stage 2: normalize
-        val = (val - m_min) / (m_max - m_min);
-        /// stage 3:
+    } // convert
+
+    virtual void
+    convert( const double & p_val, QRgb & result ) override
+    {
+        CARTA_ASSERT( ! std::isnan( p_val ) );
+
         DRgb drgb;
-        m_stage3-> convert( val, drgb);
-        /// stage 4:
-        for ( auto & s : m_stage4) {
-            s-> convert( drgb);
-        }
+        convert( p_val, drgb );
+
         /// stage 5:
-        result = qRgb( round(drgb[0] * 255), round(drgb[1] * 255), round(drgb[2] * 255));
-    }
+        result = qRgb( round( drgb[0] * 255 ), round( drgb[1] * 255 ), round( drgb[2] * 255 ) );
+    } // convert
 
 protected:
 
-    typedef Id2d Stage1;
-    typedef Id2DRgb Stage3;
+    typedef Id2d       Stage1;
+    typedef Id2DRgb    Stage3;
     typedef IDRgb2DRgb Stage4;
 
     std::vector < Stage1::SharedPtr > m_stage1;
     Stage3::SharedPtr m_stage3;
     std::vector < Stage4::SharedPtr > m_stage4;
 
-    double m_min, m_max; // needed for stage 3 (normalization)
+    double m_min = 0, m_max = 1; // needed for stage 3 (normalization)
 };
 
 /// adapter for implementing double -> double from std::function
@@ -189,8 +262,9 @@ public:
     }
 
     virtual void
-    convert( double & val ) override {
-        val = m_func( val);
+    convert( double & val ) override
+    {
+        val = m_func( val );
     }
 
 protected:
@@ -199,37 +273,44 @@ protected:
 };
 
 /// algorithm for caching a double->rgb function
-class CachedD2Rgb : public Id2QRgb
+class CachedD2Rgb : public Id2DQRgb
 {
     CLASS_BOILERPLATE( CachedD2Rgb );
 
 public:
 
-    static Id2QRgb *
-    create( Id2QRgb & funcToCache, int nSegments );
+    static Id2DQRgb *
+    create( Id2DQRgb & funcToCache, int nSegments );
 };
 
 /// default implementation of pixel transfer
-class DefaultD2Rgb : public Id2QRgb {
+/// basically just applies gray colormap
+class DefaultD2Rgb : public Id2DQRgb
+{
 public:
 
-    DefaultD2Rgb() {
-        m_comp = std::make_shared<CompositeD2QRgb>();
+    DefaultD2Rgb()
+    {
+        m_comp = std::make_shared < CompositeD2QRgb > ();
+        m_comp-> setStage3( std::make_shared < GrayCMap > () );
     }
 
-    virtual void setMinMax(double min, double max)
-    {
-    }
-    virtual void convert(const double & val, QRgb & result)
-    {
-    }
+    virtual void
+    setMinMax( double min, double max )
+    { }
+
+    virtual void
+    convert( const double & val, DRgb & result ) override
+    { }
+
+    virtual void
+    convert( const double & val, QRgb & result ) override
+    { }
 
 protected:
 
     CompositeD2QRgb::SharedPtr m_comp;
 };
-
-
 }
 
 /// compute clip values from the values in a view
@@ -260,10 +341,10 @@ computeClips(
     }
     Scalar clip1, clip2;
     Scalar hist = ( 1.0 - perc ) / 2.0;
-    int x1      = allValues.size() * hist;
+    int x1 = allValues.size() * hist;
     std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
     clip1 = allValues[x1];
-    x1    = allValues.size() - 1 - x1;
+    x1 = allValues.size() - 1 - x1;
     std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
     clip2 = allValues[x1];
 
@@ -288,11 +369,11 @@ struct RawView2QImageConverter::CachedImage {
 
     CachedImage( QImage pImg, double c1, double c2, bool spec, double p )
     {
-        img             = pImg;
-        clip1           = c1;
-        clip2           = c2;
+        img = pImg;
+        clip1 = c1;
+        clip2 = c2;
         specificToFrame = spec;
-        perc            = p;
+        perc = p;
     }
 };
 
@@ -381,7 +462,7 @@ RawView2QImageConverter::go( int frame, bool recomputeClip )
     if ( ! std::isfinite( m_clip1 ) || recomputeClip ) {
         std::tie( m_clip1, m_clip2 ) = computeClips < Scalar > ( view, m_autoClip );
     }
-    int width  = m_rawView->dims()[0];
+    int width = m_rawView->dims()[0];
     int height = m_rawView->dims()[1];
 
     // make sure there is at least 1 finite value, if not, return a black image
@@ -406,11 +487,11 @@ RawView2QImageConverter::go( int frame, bool recomputeClip )
     // apply the clips
     CARTA_ASSERT( m_cmap != nullptr );
     int64_t counter = 0;
-    auto lambda     = [& outPtr, & clipdinv, & counter, & width, this] ( const Scalar & ival )
+    auto lambda = [& outPtr, & clipdinv, & counter, & width, this] ( const Scalar & ival )
     {
         if ( std::isfinite( ival ) ) {
             Scalar val = ( ival - m_clip1 ) * clipdinv;
-            val      = clamp < Scalar > ( val, 0.0, 1.0 );
+            val = clamp < Scalar > ( val, 0.0, 1.0 );
             * outPtr = m_cmap->convert( val );
         }
         else {
