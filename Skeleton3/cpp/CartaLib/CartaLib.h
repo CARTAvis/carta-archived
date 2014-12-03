@@ -46,7 +46,7 @@ namespace Scripted
 #define CLASS_BOILERPLATE( className ) \
 public: \
     typedef className              Me; \
-    typedef std::shared_ptr < Me > SharedPtr;
+    typedef std::shared_ptr < Me > SharedPtr
 
 
 /// currently does nothing, but may serve as a place to keep global settings for

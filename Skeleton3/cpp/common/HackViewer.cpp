@@ -7,6 +7,7 @@
 #include "IConnector.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "common/GrayColormap.h"
 #include <QPainter>
 #include <set>
 
