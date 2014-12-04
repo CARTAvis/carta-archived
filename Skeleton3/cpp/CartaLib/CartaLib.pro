@@ -39,7 +39,9 @@ HEADERS += \
     ICoordinateFormatter.h \
     ICoordinateGridPlotter.h \
     IPlotLabelGenerator.h \
-    Hooks/LoadAstroImage.h
+    Hooks/LoadAstroImage.h \
+    PixelPipeline/Id2d.h \
+    TPixelPipeline/IScalar2Scalar.h
 
 unix {
     target.path = /usr/lib

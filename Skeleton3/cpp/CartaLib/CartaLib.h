@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <cassert>
 #include <iostream>
+#include <memory>
 
 /// all carta code lives here (or will eventually)
 namespace Carta
