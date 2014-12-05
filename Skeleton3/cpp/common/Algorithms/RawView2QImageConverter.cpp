@@ -100,20 +100,20 @@ RawView2QImageConverter::setView( NdArray::RawViewInterface * rawView )
     return * this;
 }
 
-RawView2QImageConverter::Me &
-RawView2QImageConverter::setFrame( int frame )
-{
-    if ( frame > 0 ) {
-        int nFrames = 0;
-        if ( m_rawView->dims().size() > 2 ) {
-            nFrames = m_rawView->dims()[2];
-        }
-        if ( frame >= nFrames ) {
-            throw std::runtime_error( "not enough frames in this image" );
-        }
-    }
-    return * this;
-}
+//RawView2QImageConverter::Me &
+//RawView2QImageConverter::setFrame( int frame )
+//{
+//    if ( frame > 0 ) {
+//        int nFrames = 0;
+//        if ( m_rawView->dims().size() > 2 ) {
+//            nFrames = m_rawView->dims()[2];
+//        }
+//        if ( frame >= nFrames ) {
+//            throw std::runtime_error( "not enough frames in this image" );
+//        }
+//    }
+//    return * this;
+//}
 
 RawView2QImageConverter::Me &
 RawView2QImageConverter::setAutoClip( double val )

@@ -2,6 +2,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include <QRgb>
+#include <stdexcept>
 
 namespace Carta
 {
@@ -65,6 +66,7 @@ public:
     virtual void
     setMinMax( double & min, double & max ) = 0;
 
+    /// in-place conversion
     virtual void
     convert( double & val ) = 0;
 
@@ -80,6 +82,7 @@ class Id2DRgb
 
 public:
 
+    /// in-place conversion
     virtual void
     convert( const double & val, DRgb & result ) = 0;
 
@@ -132,7 +135,7 @@ public:
 
     /// do the conversion including stage 5
     virtual void
-    convert( const double & val, QRgb & result ) = 0;
+    convertq( const double & val, QRgb & result ) = 0;
 
     virtual
     ~Id2DQRgb() { }
@@ -204,7 +207,7 @@ public:
     } // convert
 
     virtual void
-    convert( const double & p_val, QRgb & result ) override
+    convertq( const double & p_val, QRgb & result ) override
     {
         CARTA_ASSERT( ! std::isnan( p_val ) );
 
@@ -217,8 +220,8 @@ public:
 
 protected:
 
-    typedef Id2d       Stage1;
-    typedef Id2DRgb    Stage3;
+    typedef Id2d Stage1;
+    typedef Id2DRgb Stage3;
     typedef IDRgb2DRgb Stage4;
 
     std::vector < Stage1::SharedPtr > m_stage1;
@@ -255,17 +258,6 @@ protected:
     std::function < double (double) > m_func;
 };
 
-/// algorithm for caching a double->rgb function
-class CachedD2Rgb : public Id2DQRgb
-{
-    CLASS_BOILERPLATE( CachedD2Rgb );
-
-public:
-
-    static Id2DQRgb *
-    create( Id2DQRgb & funcToCache, int nSegments );
-};
-
 /// default implementation of pixel transfer
 /// basically just applies gray colormap
 class DefaultD2Rgb : public Id2DQRgb
@@ -291,15 +283,81 @@ public:
     }
 
     virtual void
-    convert( const double & val, QRgb & result ) override
+    convertq( const double & val, QRgb & result ) override
     {
-        m_comp-> convert( val, result );
+        m_comp-> convertq( val, result );
     }
 
 protected:
 
     CompositeD2QRgb::SharedPtr m_comp;
 };
+
+void drgb2qrgb( const DRgb & drgb, QRgb & result) {
+    result = qRgb( round( drgb[0] * 255 ), round( drgb[1] * 255 ), round( drgb[2] * 255 ) );
 }
-}
-}
+
+
+/// algorithm for caching a double->rgb function
+class CachedD2Rgb : public Id2DQRgb
+{
+    CLASS_BOILERPLATE( CachedD2Rgb );
+
+public:
+
+    /// creates a default cache
+    CachedD2Rgb() {}
+
+    /// \brief create a cached version of the supplied function
+    /// \param funcToCache function to cache
+    /// \param nSegments how many segments to create for caching
+    /// \param min minimum value
+    /// \param max maximum value
+    /// \return the cached version, caller assumes ownership
+    /// @warning funcToCache's state may be changed during the process
+    template < typename Func >
+    void cache( Func & funcToCache, int64_t nSegments, double min, double max )
+    {
+        CARTA_ASSERT( nSegments > 1);
+        CARTA_ASSERT( min < max);
+        m_cache.resize( nSegments);
+        double delta = (max - min) / (nSegments-1);
+        funcToCache.setMinMax( min, max);
+        for( int64_t i = 0 ; i < nSegments ; i ++ ) {
+            double x = min + i * delta;
+            funcToCache.convert( x, m_cache[i] );
+        }
+    }
+
+    std::vector<DRgb> m_cache;
+    DRgb m_nanColor {{ 1.0, 0.0, 0.0 }};
+    double m_min = 0, m_max = 1;
+
+    virtual void convert( const double & x, DRgb & result) override {
+        double d = (m_max - m_min) / (m_cache.size() - 1);
+        double dInvN1 = 1 / d;
+        int64_t n1 = m_cache.size() - 1;
+        int64_t ind = round( ( x - m_min ) * dInvN1 );
+        if ( ind < 0 ) { result = m_cache[0]; return; }
+        if ( ind > n1 ) { result = m_cache.back(); return; }
+        result = m_cache[ind];
+    }
+
+    virtual void convertq( const double & x, QRgb & result) override {
+        DRgb drgb;
+        convert( x, drgb);
+        drgb2qrgb( drgb, result);
+    }
+
+    virtual void setMinMax(double min, double max) override
+    {
+        Q_UNUSED( min);
+        Q_UNUSED( max);
+        throw std::runtime_error( "probably not want to call this");
+    }
+};
+
+
+} // namespace PixelPipeline
+} // namespace Lib
+} // namespace Carta

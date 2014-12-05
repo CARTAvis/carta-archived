@@ -6,7 +6,6 @@ namespace Carta
 {
 namespace Lib
 {
-
 /// same as PixelPipeline but templated
 /// this is more customizable, but I'm not sure how well it would work across
 /// shared library boundaries
@@ -42,8 +41,8 @@ test1()
 {
     std::shared_ptr < IScalar2Scalar < double > > x;
 
-    // this below does not compile...
-    // typename IScalar2Scalar<double>::SharedPtr y;
+    // this below does not compile... (but now it does, wth, c++ sucks)
+    IScalar2Scalar < double >::SharedPtr yy;
 
     // but this does !!!
     typedef IScalar2Scalar < double > XYZ;
@@ -51,6 +50,7 @@ test1()
 
     // and it works
     static_assert( std::is_same < decltype( x ), decltype( y ) >::value, "oops" );
+    static_assert( std::is_same < decltype( x ), decltype( yy ) >::value, "oops" );
 }
 
 /// interface for implementing stage 3 (normalized scalar -> ScalarRgb)
@@ -133,9 +133,9 @@ class Composite : public IScalar2ScalarRgbAndQRgb < InputScalar, OutputScalar >
 
 public:
 
-    typedef IScalar2Scalar < InputScalar >                  Stage1;
+    typedef IScalar2Scalar < InputScalar > Stage1;
     typedef IScalar2ScalarRgb < InputScalar, OutputScalar > Stage3;
-    typedef IScalarRgb2ScalarRgb < OutputScalar >           Stage4;
+    typedef IScalarRgb2ScalarRgb < OutputScalar > Stage4;
 
     // e.g. log scaling, gamma correction
     void
@@ -169,7 +169,7 @@ public:
     }
 
     virtual void
-    convert( InputScalar p_val, ScalarRgb < OutputScalar >  & result ) override
+    convert( InputScalar p_val, ScalarRgb < OutputScalar > & result ) override
     {
         CARTA_ASSERT( ! std::isnan( p_val ) );
 
@@ -214,7 +214,9 @@ protected:
     InputScalar m_min = 0, m_max = 1; // needed for stage 3 (normalization)
 };
 
-void test2() {
+void
+test2()
+{
     Composite < double, float > composite;
 }
 
@@ -246,10 +248,14 @@ protected:
     std::function < Scalar( Scalar ) > m_func;
 };
 
-void test3() {
-    FunctionD2DAdapter < double > adapter( [](double x) { return 1-x; });
+void
+test3()
+{
+    FunctionD2DAdapter < double > adapter([] (double x) { return 1 - x;
+                                          }
+                                          );
     double x = 7;
-    adapter.convert( x);
+    adapter.convert( x );
 }
 
 /// algorithm for caching a double->rgb function
@@ -274,7 +280,7 @@ public:
     DefaultPipeline()
     {
         m_comp = std::make_shared < Comp > ();
-        m_comp-> setStage3( std::make_shared < GrayCMap < InputScalar, OutputScalar> > () );
+        m_comp-> setStage3( std::make_shared < GrayCMap < InputScalar, OutputScalar > > () );
     }
 
     virtual void
@@ -301,11 +307,16 @@ protected:
     typename Comp::SharedPtr m_comp;
 };
 
-void test4() {
-    DefaultPipeline < double, double> pipe;
-    pipe.setMinMax( 1.0, 2.0);
+void
+test4()
+{
+    DefaultPipeline < double, double > pipe;
+    pipe.setMinMax( 1.0, 2.0 );
     ScalarRgb < double > drgb;
-    pipe.convert( 1.4, drgb);
+    pipe.convert( 1.4, drgb );
+
+    IScalar2Scalar < int >::SharedPtr ptr;
+    Composite < int, int >::SharedPtr x;
 }
 }
 }
