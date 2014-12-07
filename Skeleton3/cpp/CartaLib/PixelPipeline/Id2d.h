@@ -54,17 +54,15 @@ namespace PixelPipeline
 /// return qrgb
 
 /// RGB as triplet of doubles in range 0..1
-typedef std::array < double, 3 > DRgb;
+typedef std::array < double, 3 > NormRgb;
+typedef double norm_double;
 
-/// interface for implementing stage 1 (double-> double)
+/// generic double->double converter
 class Id2d
 {
     CLASS_BOILERPLATE( Id2d );
 
 public:
-
-    virtual void
-    setMinMax( double & min, double & max ) = 0;
 
     /// in-place conversion
     virtual void
@@ -74,77 +72,91 @@ public:
     ~Id2d() { }
 };
 
+/// interface for implementing stage 1 (double-> double)
+/// but as a stage in the staged pipeline, so it needs concept of min/max
+class IStage1 : public Id2d
+{
+    CLASS_BOILERPLATE( IStage1 );
+
+public:
+
+    virtual void
+    setMinMax( double & min, double & max ) = 0;
+};
+
 /// interface for implementing stage 3 (normalized double -> DRgb)
 /// this is the most generic colormap
-class Id2DRgb
+class Inormd2NormRgb
 {
-    CLASS_BOILERPLATE( Id2DRgb );
+    CLASS_BOILERPLATE( Inormd2NormRgb );
 
 public:
 
     /// in-place conversion
     virtual void
-    convert( const double & val, DRgb & result ) = 0;
+    convert( norm_double val, NormRgb & result ) = 0;
 
     virtual
-    ~Id2DRgb() { }
+    ~Inormd2NormRgb() { }
 };
 
+typedef Inormd2NormRgb IColormap;
+
 /// primitive gray scale colormap
-class GrayCMap : public Id2DRgb
+class GrayCMap : public IColormap
 {
     CLASS_BOILERPLATE( GrayCMap );
 
 public:
 
     virtual void
-    convert( const double & val, DRgb & result ) override
+    convert( norm_double val, NormRgb & result ) override
     {
         result.fill( val );
     }
 };
 
 /// interface for implementing stage 4 (Drgb -> Drgb)
-class IDRgb2DRgb
+class INormRgb2NormRgb
 {
-    CLASS_BOILERPLATE( IDRgb2DRgb );
+    CLASS_BOILERPLATE( INormRgb2NormRgb );
 
 public:
 
     virtual void
-    convert( DRgb & drgb ) = 0;
+    convert( NormRgb & drgb ) = 0;
 
     virtual
-    ~IDRgb2DRgb() { }
+    ~INormRgb2NormRgb() { }
 };
 
 /// the minimal interface representing an implemented pipeline
 /// - if we ever wanted to replace the whole pipeline
-class Id2DQRgb
+class Id2NormQRgb
 {
-    CLASS_BOILERPLATE( Id2DQRgb );
+    CLASS_BOILERPLATE( Id2NormQRgb );
 
 public:
 
-    virtual void
-    setMinMax( double min, double max ) = 0;
+//    virtual void
+//    setMinMax( double min, double max ) = 0;
 
     /// do the conversion up to stage 4
     virtual void
-    convert( const double & val, DRgb & result ) = 0;
+    convert( double val, NormRgb & result ) = 0;
 
     /// do the conversion including stage 5
     virtual void
-    convertq( const double & val, QRgb & result ) = 0;
+    convertq( double val, QRgb & result ) = 0;
 
     virtual
-    ~Id2DQRgb() { }
+    ~Id2NormQRgb() { }
 };
 
 /// composite function for converting pixels to rgb
 /// can have multiple stage 1 (double->double) functions, and one stage 2 (double->rgb),
 /// followed by multiple rgb2rgb
-class CompositeD2QRgb : public Id2DQRgb
+class CompositeD2QRgb : public Id2NormQRgb
 {
     CLASS_BOILERPLATE( CompositeD2QRgb );
 
@@ -152,27 +164,27 @@ public:
 
     // e.g. log scaling, gamma correction
     void
-    addStage1( Id2d::SharedPtr func )
+    addStage1( IStage1::SharedPtr func )
     {
         m_stage1.push_back( func );
     }
 
     // e.g. colormap
     void
-    setStage3( Id2DRgb::SharedPtr func )
+    setStage3( IColormap::SharedPtr func )
     {
         m_stage3 = func;
     }
 
     // e.g. invert
     void
-    addStage4( IDRgb2DRgb::SharedPtr func )
+    addStage4( INormRgb2NormRgb::SharedPtr func )
     {
         m_stage4.push_back( func );
     }
 
     virtual void
-    setMinMax( double min, double max ) override
+    setMinMax( double min, double max )
     {
         m_min = min;
         m_max = max;
@@ -182,9 +194,10 @@ public:
     }
 
     virtual void
-    convert( const double & p_val, DRgb & result ) override
+    convert( double p_val, NormRgb & result ) override
     {
         CARTA_ASSERT( ! std::isnan( p_val ) );
+        CARTA_ASSERT( m_stage3 );
 
         // stage 0: clamp
         double val = clamp( p_val, m_min, m_max );
@@ -207,11 +220,9 @@ public:
     } // convert
 
     virtual void
-    convertq( const double & p_val, QRgb & result ) override
+    convertq( double p_val, QRgb & result ) override
     {
-        CARTA_ASSERT( ! std::isnan( p_val ) );
-
-        DRgb drgb;
+        NormRgb drgb;
         convert( p_val, drgb );
 
         /// stage 5:
@@ -220,12 +231,12 @@ public:
 
 protected:
 
-    typedef Id2d Stage1;
-    typedef Id2DRgb Stage3;
-    typedef IDRgb2DRgb Stage4;
+//    typedef Id2d Stage1;
+    typedef Inormd2NormRgb Stage3;
+    typedef INormRgb2NormRgb Stage4;
 
-    std::vector < Stage1::SharedPtr > m_stage1;
-    Stage3::SharedPtr m_stage3;
+    std::vector < IStage1::SharedPtr > m_stage1;
+    Stage3::SharedPtr m_stage3 = std::make_shared < GrayCMap > ();
     std::vector < Stage4::SharedPtr > m_stage4;
 
     double m_min = 0, m_max = 1; // needed for stage 3 (normalization)
@@ -240,12 +251,12 @@ public:
         : m_func( func )
     { }
 
-    virtual void
-    setMinMax( double & min, double & max ) override
-    {
-        Q_UNUSED( min );
-        Q_UNUSED( max );
-    }
+//    virtual void
+//    setMinMax( double & min, double & max ) override
+//    {
+//        Q_UNUSED( min );
+//        Q_UNUSED( max );
+//    }
 
     virtual void
     convert( double & val ) override
@@ -258,55 +269,22 @@ protected:
     std::function < double (double) > m_func;
 };
 
-/// default implementation of pixel transfer
-/// basically just applies gray colormap
-class DefaultD2Rgb : public Id2DQRgb
+inline void
+drgb2qrgb( const NormRgb & drgb, QRgb & result )
 {
-public:
-
-    DefaultD2Rgb()
-    {
-        m_comp = std::make_shared < CompositeD2QRgb > ();
-        m_comp-> setStage3( std::make_shared < GrayCMap > () );
-    }
-
-    virtual void
-    setMinMax( double min, double max )
-    {
-        m_comp-> setMinMax( min, max );
-    }
-
-    virtual void
-    convert( const double & val, DRgb & result ) override
-    {
-        m_comp-> convert( val, result );
-    }
-
-    virtual void
-    convertq( const double & val, QRgb & result ) override
-    {
-        m_comp-> convertq( val, result );
-    }
-
-protected:
-
-    CompositeD2QRgb::SharedPtr m_comp;
-};
-
-void drgb2qrgb( const DRgb & drgb, QRgb & result) {
     result = qRgb( round( drgb[0] * 255 ), round( drgb[1] * 255 ), round( drgb[2] * 255 ) );
 }
 
-
 /// algorithm for caching a double->rgb function
-class CachedD2Rgb : public Id2DQRgb
+template < class Func >
+class CachedPipeline : public Id2NormQRgb
 {
-    CLASS_BOILERPLATE( CachedD2Rgb );
+    CLASS_BOILERPLATE( CachedPipeline );
 
 public:
 
     /// creates a default cache
-    CachedD2Rgb() {}
+    CachedPipeline() { }
 
     /// \brief create a cached version of the supplied function
     /// \param funcToCache function to cache
@@ -315,49 +293,183 @@ public:
     /// \param max maximum value
     /// \return the cached version, caller assumes ownership
     /// @warning funcToCache's state may be changed during the process
-    template < typename Func >
-    void cache( Func & funcToCache, int64_t nSegments, double min, double max )
+    void
+    cache( Func & funcToCache, int64_t nSegments, double min, double max )
     {
-        CARTA_ASSERT( nSegments > 1);
-        CARTA_ASSERT( min < max);
-        m_cache.resize( nSegments);
-        double delta = (max - min) / (nSegments-1);
-        funcToCache.setMinMax( min, max);
-        for( int64_t i = 0 ; i < nSegments ; i ++ ) {
+        CARTA_ASSERT( nSegments > 1 );
+        CARTA_ASSERT( min < max );
+        m_cache.resize( nSegments );
+        double delta = ( max - min ) / ( nSegments - 1 );
+        funcToCache.setMinMax( min, max );
+        for ( int64_t i = 0 ; i < nSegments ; i++ ) {
             double x = min + i * delta;
             funcToCache.convert( x, m_cache[i] );
         }
     }
 
-    std::vector<DRgb> m_cache;
-    DRgb m_nanColor {{ 1.0, 0.0, 0.0 }};
+    std::vector < NormRgb > m_cache;
+    NormRgb m_nanColor { { 1.0, 0.0, 0.0 } };
     double m_min = 0, m_max = 1;
 
-    virtual void convert( const double & x, DRgb & result) override {
-        double d = (m_max - m_min) / (m_cache.size() - 1);
+    virtual void
+    convert( double x, NormRgb & result ) override
+    {
+        double d = ( m_max - m_min ) / ( m_cache.size() - 1 );
         double dInvN1 = 1 / d;
         int64_t n1 = m_cache.size() - 1;
         int64_t ind = round( ( x - m_min ) * dInvN1 );
-        if ( ind < 0 ) { result = m_cache[0]; return; }
-        if ( ind > n1 ) { result = m_cache.back(); return; }
+        if ( Q_UNLIKELY( ind < 0 ) ) {
+            result = m_cache[0];
+            return;
+        }
+        if ( Q_UNLIKELY( ind > n1 ) ) {
+            result = m_cache.back();
+            return;
+        }
         result = m_cache[ind];
     }
 
-    virtual void convertq( const double & x, QRgb & result) override {
-        DRgb drgb;
-        convert( x, drgb);
-        drgb2qrgb( drgb, result);
+    virtual void
+    convertq( double x, QRgb & result ) override
+    {
+        NormRgb drgb;
+        convert( x, drgb );
+        drgb2qrgb( drgb, result );
     }
 
-    virtual void setMinMax(double min, double max) override
+    virtual void
+    setMinMax( double min, double max ) override
     {
-        Q_UNUSED( min);
-        Q_UNUSED( max);
-        throw std::runtime_error( "probably not want to call this");
+        Q_UNUSED( min );
+        Q_UNUSED( max );
+        throw std::runtime_error( "probably not want to call this" );
     }
 };
 
+/// reversable implementing stage1
+class ReversableStage1 : public IStage1
+{
+    CLASS_BOILERPLATE( ReversableStage1 );
 
+public:
+
+    void
+    setReversed( bool flag )
+    {
+        m_reversed = flag;
+    }
+
+    virtual void
+    convert( double & val ) override
+    {
+        if ( ! m_reversed ) { return; }
+
+        // val = m_max - val + m_min;
+        val = m_minMaxSum - val;
+    }
+
+    virtual void
+    setMinMax( double & min, double & max ) override
+    {
+        m_minMaxSum = min + max;
+    }
+
+private:
+
+    double m_minMaxSum = 1.0;
+    bool m_reversed = false;
+};
+
+/// invertible stage3
+class InvertibleStage4 : public INormRgb2NormRgb
+{
+    CLASS_BOILERPLATE( InvertibleStage4 );
+
+public:
+
+    void
+    setInverted( bool flag )
+    {
+        m_inverted = flag;
+    }
+
+    virtual void
+    convert( NormRgb & drgb ) override
+    {
+        if ( ! m_inverted ) {
+            return;
+        }
+        drgb[0] = 1.0 - drgb[0];
+        drgb[1] = 1.0 - drgb[1];
+        drgb[2] = 1.0 - drgb[2];
+    }
+
+private:
+
+    bool m_inverted;
+};
+
+/// customizable pipeline:
+/// - invert, reverse, colormap, log/gamma/cycles, manual clip
+class CustomizablePipeline : public Id2NormQRgb
+{
+    CLASS_BOILERPLATE( CustomizablePipeline );
+
+public:
+
+    CustomizablePipeline()
+    {
+        m_pipe.reset( new CompositeD2QRgb() );
+        m_reversible = std::make_shared < ReversableStage1 > ();
+        m_pipe-> addStage1( m_reversible );
+        m_invertible = std::make_shared < InvertibleStage4 > ();
+        m_pipe-> addStage4( m_invertible );
+    }
+
+    void
+    setInvert( bool flag )
+    {
+        m_invertible-> setInverted( flag );
+    }
+
+    void
+    setReverse( bool flag )
+    {
+        m_reversible-> setReversed( flag );
+    }
+
+    void
+    setColormap( Inormd2NormRgb::SharedPtr colormap ) {
+        m_pipe-> setStage3( colormap);
+    }
+
+//    void
+//    setScalingFunc( IStage1::SharedPtr scaleFunc ) { }
+
+    virtual void
+    setMinMax( double min, double max )
+    {
+        m_pipe-> setMinMax( min, max);
+    }
+
+    virtual void
+    convert( double val, Carta::Lib::PixelPipeline::NormRgb & result )
+    {
+        m_pipe-> convert( val, result);
+    }
+
+    virtual void
+    convertq( double val, QRgb & result )
+    {
+        m_pipe-> convertq( val, result);
+    }
+
+private:
+
+    CompositeD2QRgb::UniquePtr m_pipe;
+    ReversableStage1::SharedPtr m_reversible;
+    InvertibleStage4::SharedPtr m_invertible;
+};
 } // namespace PixelPipeline
 } // namespace Lib
 } // namespace Carta

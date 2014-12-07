@@ -12,54 +12,7 @@
 #include <functional>
 #include <array>
 
-/// compute clip values from the values in a view
-template < typename Scalar >
-static
-typename std::tuple < Scalar, Scalar >
-computeClips(
-    NdArray::TypedView < Scalar > & view,
-    double perc
-    )
-{
-    // read in all values from the view into an array
-    // we need our own copy because we'll do quickselect on it...
-    std::vector < Scalar > allValues;
-    view.forEach(
-        [& allValues] ( const Scalar & val ) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
-            }
-        }
-        );
 
-    // indicate bad clip if no finite numbers were found
-    if ( allValues.size() == 0 ) {
-        return std::make_tuple(
-                   std::numeric_limits < Scalar >::quiet_NaN(),
-                   std::numeric_limits < Scalar >::quiet_NaN() );
-    }
-    Scalar clip1, clip2;
-    Scalar hist = ( 1.0 - perc ) / 2.0;
-    int x1 = allValues.size() * hist;
-    std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-    clip1 = allValues[x1];
-    x1 = allValues.size() - 1 - x1;
-    std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-    clip2 = allValues[x1];
-
-    if ( 0 ) {
-        // debug
-        int64_t count = 0;
-        for ( auto & x : allValues ) {
-            if ( x >= clip1 && x <= clip2 ) {
-                count++;
-            }
-        }
-        qDebug() << "autoClip(" << perc << ")=" << count * 100.0 / allValues.size();
-    }
-
-    return std::make_tuple( clip1, clip2 );
-} // computeClips
 
 struct RawView2QImageConverter::CachedImage {
     QImage img;
