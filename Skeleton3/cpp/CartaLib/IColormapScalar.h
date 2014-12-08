@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CartaLib.h"
+#include "PixelPipeline/Id2d.h"
 #include <QColor>
 #include <QString>
 #include <memory>
@@ -20,17 +21,24 @@ namespace Lib
  * This is an interface that plugins have to implement to add a new colormap for
  * scalcar-type pixels.
  */
-class IColormapScalar
+class IColormapScalar /*: public PixelPipeline::IColormap*/
 {
     CLASS_BOILERPLATE( IColormapScalar );
 
 public:
 
+    using norm_double = PixelPipeline::norm_double;
+    using NormRgb = PixelPipeline::NormRgb;
+
     virtual QString
     name() = 0;
 
-    virtual QRgb
-    convert( const double & val ) = 0;
+//    virtual QRgb
+//    convert( const double & val ) = 0;
+
+    virtual void
+    convert( norm_double val, NormRgb & result ) = 0;
+
 
     virtual
     ~IColormapScalar() { }

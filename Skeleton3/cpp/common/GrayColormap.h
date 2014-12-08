@@ -2,7 +2,7 @@
  * Implementation of gray colormap. This is the only built-in colormap in carta core.
  **/
 
-#include <CartaLib/IColormapScalar.h>
+#include "CartaLib/IColormapScalar.h"
 
 #pragma once
 
@@ -22,8 +22,8 @@ public:
     virtual QString
     name() override;
 
-    virtual QRgb
-    convert( const double & val ) override;
+    virtual void
+    convert( norm_double val, NormRgb & result ) override;
 };
 }
 }

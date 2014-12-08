@@ -109,27 +109,27 @@ protected:
 /// \param m_qImage
 template < class Pipeline >
 void
-rawView2QImage( NdArray::RawViewInterface * m_rawView, Pipeline & pipe, QImage & m_qImage )
+rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
     typedef double Scalar;
-    QSize size( m_rawView->dims()[0], m_rawView->dims()[1] );
+    QSize size( rawView->dims()[0], rawView->dims()[1] );
 
-    if ( m_qImage.format() != QImage::Format_ARGB32 ||
-         m_qImage.size() != size ) {
-        m_qImage = QImage( size, QImage::Format_ARGB32 );
+    if ( qImage.format() != QImage::Format_ARGB32 ||
+         qImage.size() != size ) {
+        qImage = QImage( size, QImage::Format_ARGB32 );
     }
 
     // construct image using clips (clipd, clipinv)
-    auto bytesPerLine = m_qImage.bytesPerLine();
+    auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
 
     // start with a pointer to the beginning of last row (we are constructing image
     // bottom-up)
     QRgb * outPtr = reinterpret_cast < QRgb * > (
-        m_qImage.bits() + size.width() * ( size.height() - 1 ) * 4 );
+        qImage.bits() + size.width() * ( size.height() - 1 ) * 4 );
 
     // make a double view
-    NdArray::TypedView < Scalar > view( m_rawView, false );
+    NdArray::TypedView < Scalar > view( rawView, false );
 
     /// @todo for more efficiency we should switch to the higher performance view apis
     /// and apply some basic openmp/cilk
@@ -215,45 +215,72 @@ protected:
 /// - user defined stages
 /// - stages implementable through plugins
 
+namespace Carta
+{
+namespace Core
+{
 class RawView2QImageConverter3
 {
-    CLASS_BOILERPLATE(RawView2QImageConverter3);
+    CLASS_BOILERPLATE( RawView2QImageConverter3 );
+
 public:
 
-    /// what size cache should we use (in bytes) for the image caching
-    void
+    RawView2QImageConverter3();
+
+    /// what size cache should we use (in bytes) for image caching
+    Me &
     setImageCacheSize( int64_t size );
 
     /// how many entries to use for pipeline caching
-    void
-    setPipleCacheSize( int64_t size);
+    Me &
+    setPipelineCacheSize( int64_t size );
 
-    /// \warning the pointer is kept for invocation of go(). Make sure it's valid
-    /// during a call to go()!
+    /// Sets the view on which we'll operate
+    /// @param rawView pointer to the raw view, caller retains ownership but read
+    /// the warning below
     /// @param id string unique for the view, as it will be used by caching
     /// it could be something like "/home/john/file.fits//0:20:10,::-1,1:20:2"
+    /// \warning the pointer is kept for invocations of convert() and computeClips().
+    /// Make sure it's valid
+    /// during a call to go()!
     Me &
     setView( NdArray::RawViewInterface * rawView, QString id = "" );
 
     /// compute clips using the current view (set by setView())
     /// @param clip for example 0.95 means 95%
-    void
+    Me &
     computeClips( double clip );
 
     /// manual setting of clips
-    void
+    Me &
     setClips( double min, double max );
 
-    void
+    Me &
     setInvert( bool flag )
     ;
 
-    void
+    Me &
     setReverse( bool flag )
     ;
 
-    void
-    setColormap( Carta::Lib::PixelPipeline::Inormd2NormRgb::SharedPtr colormap )
+    Me &
+    setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
     ;
 
+    /// do the actual conversion with the previously set parameters
+    void convert(QImage & img);
+
+private:
+    /// pointer to the view
+    NdArray::RawViewInterface * m_rawView = nullptr;
+    NdArray::TypedView<double>::UniquePtr m_typedView;
+    /// cache for images
+    QCache < QString, QImage > m_imageCache;
+    /// unoptimized pipeline
+    Lib::PixelPipeline::CustomizablePipeline::UniquePtr m_customPipeline;
+    /// optimized pipeline
+    Lib::PixelPipeline::CachedPipeline::UniquePtr m_cachedPipeline;
+
 };
+}
+}

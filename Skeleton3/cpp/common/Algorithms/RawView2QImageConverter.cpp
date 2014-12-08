@@ -1,4 +1,5 @@
 /// \todo This is getting way too object oriented. We should probably refactor this into
+
 /// pure template implementation to regain some speed via vectorization, at least for
 /// the cached pixel transfer function case.
 
@@ -11,8 +12,6 @@
 
 #include <functional>
 #include <array>
-
-
 
 struct RawView2QImageConverter::CachedImage {
     QImage img;
@@ -139,12 +138,16 @@ RawView2QImageConverter::go( int frame, bool recomputeClip )
     // apply the clips
     CARTA_ASSERT( m_cmap != nullptr );
     int64_t counter = 0;
-    auto lambda = [& outPtr, & clipdinv, & counter, & width, this] ( const Scalar & ival )
+    Carta::Lib::PixelPipeline::NormRgb normRgb;
+    auto lambda = [&] ( const Scalar & ival )
     {
         if ( std::isfinite( ival ) ) {
             Scalar val = ( ival - m_clip1 ) * clipdinv;
             val = clamp < Scalar > ( val, 0.0, 1.0 );
-            * outPtr = m_cmap->convert( val );
+
+//            * outPtr = m_cmap->convert( val );
+            m_cmap->convert( val, normRgb );
+            Carta::Lib::PixelPipeline::normRgb2QRgb( normRgb, * outPtr );
         }
         else {
             * outPtr = qRgb( 255, 0, 0 );
@@ -168,3 +171,59 @@ RawView2QImageConverter::go( int frame, bool recomputeClip )
 
     return m_qImage;
 } // go
+
+namespace Carta
+{
+namespace Core
+{
+RawView2QImageConverter3::RawView2QImageConverter3()
+{
+    m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePipeline );
+}
+
+void
+RawView2QImageConverter3::convert( QImage & img )
+{
+    ::rawView2QImage( m_rawView, * m_customPipeline, img );
+}
+
+RawView2QImageConverter3 &
+RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
+{
+    m_customPipeline->setColormap( colormap );
+    return * this;
+}
+
+RawView2QImageConverter3 &
+RawView2QImageConverter3::setPipelineCacheSize( int64_t size )
+{
+    Q_UNUSED( size );
+    return * this;
+}
+
+RawView2QImageConverter3 &
+RawView2QImageConverter3::setView( NdArray::RawViewInterface * rawView, QString id )
+{
+    Q_UNUSED( id );
+    m_typedView.reset( new NdArray::TypedView < double > ( rawView, false ) );
+    return * this;
+}
+
+RawView2QImageConverter3 &
+RawView2QImageConverter3::computeClips( double clip )
+{
+    CARTA_ASSERT( m_typedView );
+    double min, max;
+    std::tie( min, max ) = ::computeClips < double > ( * m_typedView, clip );
+    setClips( min, max );
+    return * this;
+}
+
+RawView2QImageConverter3 &
+RawView2QImageConverter3::setClips( double min, double max )
+{
+    m_customPipeline-> setMinMax( min, max );
+    return * this;
+}
+}
+}

@@ -108,7 +108,9 @@ PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
 }
 
 
-namespace colormap_impl {
+namespace colormap_impl
+{
+
 class ColormapHelper : public Carta::Lib::IColormapScalar
 {
     CLASS_BOILERPLATE( ColormapHelper);
@@ -127,15 +129,13 @@ public:
     PyObject * m_pyObj;
     int m_pluginId;
 
-    // IColormapScalar interface
-public:
     virtual QString name() override
     {
         return pb_colormapScalarGetName( m_pyObj).c_str();
     }
-    virtual QRgb convert(const double & val) override
+    virtual void convert(norm_double val, NormRgb & nrgb) override
     {
-        return pb_colormapScalarConvert( m_pyObj, val);
+        pb_colormapScalarConvert( m_pyObj, val, & nrgb[0]);
     }
 };
 

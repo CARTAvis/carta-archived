@@ -137,12 +137,18 @@ cdef public string pb_colormapScalarGetName( PyObject * pyobj):
     return (<object>pyobj).name()
 
 # run the convert function
-cdef public unsigned int pb_colormapScalarConvert( PyObject * pyobj, double val):
+cdef public void pb_colormapScalarConvert( PyObject * pyobj, double val, double * result):
     a = (<object>pyobj).convert( val)
-    cdef int r = <int> (a[0] * 255)
-    cdef int g = <int> (a[1] * 255)
-    cdef int b = <int> (a[2] * 255)
-    return (0xffu << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff)
+    result[0] = a[0]
+    result[1] = a[1]
+    result[2] = a[2]
+
+# cdef public unsigned int pb_colormapScalarConvert( PyObject * pyobj, double val):
+#     a = (<object>pyobj).convert( val)
+#     cdef int r = <int> (a[0] * 255)
+#     cdef int g = <int> (a[1] * 255)
+#     cdef int b = <int> (a[2] * 255)
+#     return (0xffu << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff)
 
 class TestClass:
     def method(self,x):

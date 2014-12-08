@@ -86,9 +86,9 @@ public:
 
 /// interface for implementing stage 3 (normalized double -> DRgb)
 /// this is the most generic colormap
-class Inormd2NormRgb
+class IColormap
 {
-    CLASS_BOILERPLATE( Inormd2NormRgb );
+    CLASS_BOILERPLATE( IColormap );
 
 public:
 
@@ -97,10 +97,8 @@ public:
     convert( norm_double val, NormRgb & result ) = 0;
 
     virtual
-    ~Inormd2NormRgb() { }
+    ~IColormap() { }
 };
-
-typedef Inormd2NormRgb IColormap;
 
 /// primitive gray scale colormap
 class GrayCMap : public IColormap
@@ -232,7 +230,7 @@ public:
 protected:
 
 //    typedef Id2d Stage1;
-    typedef Inormd2NormRgb Stage3;
+    typedef IColormap Stage3;
     typedef INormRgb2NormRgb Stage4;
 
     std::vector < IStage1::SharedPtr > m_stage1;
@@ -270,18 +268,20 @@ protected:
 };
 
 inline void
-drgb2qrgb( const NormRgb & drgb, QRgb & result )
+normRgb2QRgb( const NormRgb & drgb, QRgb & result )
 {
     result = qRgb( round( drgb[0] * 255 ), round( drgb[1] * 255 ), round( drgb[2] * 255 ) );
 }
 
 /// algorithm for caching a double->rgb function
-template < class Func >
+//template < class Func >
 class CachedPipeline : public Id2NormQRgb
 {
     CLASS_BOILERPLATE( CachedPipeline );
 
 public:
+
+    typedef Id2NormQRgb Func;
 
     /// creates a default cache
     CachedPipeline() { }
@@ -300,7 +300,7 @@ public:
         CARTA_ASSERT( min < max );
         m_cache.resize( nSegments );
         double delta = ( max - min ) / ( nSegments - 1 );
-        funcToCache.setMinMax( min, max );
+//        funcToCache.setMinMax( min, max );
         for ( int64_t i = 0 ; i < nSegments ; i++ ) {
             double x = min + i * delta;
             funcToCache.convert( x, m_cache[i] );
@@ -334,16 +334,16 @@ public:
     {
         NormRgb drgb;
         convert( x, drgb );
-        drgb2qrgb( drgb, result );
+        normRgb2QRgb( drgb, result );
     }
 
-    virtual void
-    setMinMax( double min, double max ) override
-    {
-        Q_UNUSED( min );
-        Q_UNUSED( max );
-        throw std::runtime_error( "probably not want to call this" );
-    }
+//    virtual void
+//    setMinMax( double min, double max ) override
+//    {
+//        Q_UNUSED( min );
+//        Q_UNUSED( max );
+//        throw std::runtime_error( "probably not want to call this" );
+//    }
 };
 
 /// reversable implementing stage1
@@ -439,7 +439,7 @@ public:
     }
 
     void
-    setColormap( Inormd2NormRgb::SharedPtr colormap ) {
+    setColormap( IColormap::SharedPtr colormap ) {
         m_pipe-> setStage3( colormap);
     }
 

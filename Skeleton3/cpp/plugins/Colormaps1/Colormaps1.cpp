@@ -41,13 +41,24 @@ public:
 
     typedef Carta::Lib::PWLinear PWLinear;
 
-    QRgb
-    operator() ( double x );
+//    QRgb
+//    operator() ( double x );
 
-    virtual QRgb
-    convert( const double & val ) override
+//    virtual QRgb
+//    convert( const double & val ) override
+//    {
+//        return operator() ( val );
+//    }
+
+    virtual void
+    convert( norm_double val, NormRgb & nrgb ) override
     {
-        return operator() ( val );
+        if ( ! std::isfinite( val ) ) {
+            nrgb.fill(0.0);
+        }
+        nrgb[0] = m_red(val);
+        nrgb[1] = m_green(val);
+        nrgb[2] = m_blue(val);
     }
 
     virtual QString name() override
@@ -79,14 +90,14 @@ MyColormapFunc::MyColormapFunc( QString name, PWLinear & red, PWLinear & green, 
     m_blue  = blue;
 }
 
-QRgb
-MyColormapFunc::operator() ( double x )
-{
-    if ( ! std::isfinite( x ) ) {
-        return 0;
-    }
-    return qRgb( 255 * m_red( x ), 255 * m_green( x ), 255 * m_blue( x ) );
-}
+//QRgb
+//MyColormapFunc::operator() ( double x )
+//{
+//    if ( ! std::isfinite( x ) ) {
+//        return 0;
+//    }
+//    return qRgb( 255 * m_red( x ), 255 * m_green( x ), 255 * m_blue( x ) );
+//}
 
 /// ================================================================================
 /// cube helix function as described here:

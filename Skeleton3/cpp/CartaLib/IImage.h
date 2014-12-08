@@ -143,6 +143,7 @@ public:
 template < typename Type >
 class TypedView
 {
+    CLASS_BOILERPLATE( TypedView );
 public:
     typedef std::vector < int > VI;
 
