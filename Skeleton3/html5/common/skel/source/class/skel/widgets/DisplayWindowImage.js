@@ -52,9 +52,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
                 this.m_content.remove(this.m_title);
                 this.m_content.setLayout(new qx.ui.layout.Canvas());
             }
-           
-            
-            
+
             if (this.m_view == null) {
                 this.m_view = new skel.boundWidgets.View(this.m_identifier + "/view");
             }

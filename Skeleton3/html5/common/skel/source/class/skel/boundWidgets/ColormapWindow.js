@@ -13,7 +13,16 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
 
     construct: function() {
         this.base( arguments, "Colormap");
-        this.setLayout( new qx.ui.layout.Flow(5,5));
+        this.setLayout( new qx.ui.layout.VBox( 5));
+        this.m_ui = {};
+        this.m_ui.topPane = new qx.ui.container.Composite( new qx.ui.layout.Flow(2,2));
+        this.m_ui.bottomPane = new qx.ui.container.Composite( new qx.ui.layout.HBox(5));
+        this.add( this.m_ui.topPane, { flex: 1 });
+        this.add( new qx.ui.core.Widget().set({ backgroundColor: "black", height: 1 }));
+        this.add( this.m_ui.bottomPane);
+        this.m_ui.cacheColormapToggle = new skel.boundWidgets.Toggle( "Cache", "/hacks/cm-cache");
+        this.m_ui.bottomPane.add( this.m_ui.cacheColormapToggle);
+        //this.setLayout( new qx.ui.layout.Flow(5,5));
         this.setMinWidth( 100);
         this.setMinHeight( 100);
         this.setWidth( 300);
@@ -57,14 +66,15 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
         _countCB: function(val) {
             if(val == null) return;
             var count = parseInt( val);
-            this.removeAll();
+            this.m_ui.topPane.removeAll();
             this.m_cmaps = [];
             for( var i = 0 ; i < count ; i ++ ) {
                 var name = this.m_connector.getSharedVar("/hacks/cm-names-" + i ).get();
                 var toggle = new skel.widgets.FancyToggle( name);
+                toggle.setPadding( 2);
                 toggle.addListener( "execute", this._toggleCB.bind(this, i, name));
                 this.m_cmaps[i] = { toggle: toggle };
-                this.add( toggle);
+                this.m_ui.topPane.add( toggle);
             }
         },
 
@@ -78,6 +88,7 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
 
         _toggleCB : function (ind, name) {
             console.log( "toggle cb", arguments);
+            this.m_cmaps[ind].toggle.setValue( true);
             this.m_currentColormap.set(ind);
         },
 

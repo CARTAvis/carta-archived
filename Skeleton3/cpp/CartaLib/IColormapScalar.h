@@ -16,12 +16,10 @@ namespace Carta
 namespace Lib
 {
 /**
- * @brief The IColormapScalar class
- *
- * This is an interface that plugins have to implement to add a new colormap for
- * scalcar-type pixels.
+ * This is the interface that plugins have to implement to add a new colormap for
+ * scalcar-type pixels. It is the raw IColormap inteface with a name added.
  */
-class IColormapScalar /*: public PixelPipeline::IColormap*/
+class IColormapScalar : public PixelPipeline::IColormap
 {
     CLASS_BOILERPLATE( IColormapScalar );
 
@@ -36,12 +34,11 @@ public:
 //    virtual QRgb
 //    convert( const double & val ) = 0;
 
-    virtual void
-    convert( norm_double val, NormRgb & result ) = 0;
+//    virtual void
+//    convert( norm_double val, NormRgb & result ) = 0;
 
-
-    virtual
-    ~IColormapScalar() { }
+//    virtual
+//    ~IColormapScalar() { }
 };
 
 /**
