@@ -13,9 +13,9 @@
 
 namespace StateKey
 {
-QString MOUSE_X   = "mouse_x";
-QString MOUSE_Y   = "mouse_y";
-QString HACKS     = "hacks";
+QString MOUSE_X = "mouse_x";
+QString MOUSE_Y = "mouse_y";
+QString HACKS = "hacks";
 QString AUTO_CLIP = "auto_clip";
 }
 
@@ -29,21 +29,23 @@ public:
                QImage img,
                Image::ImageInterface::SharedPtr astroImage )
     {
-        m_defaultImage = img;
-        m_qimage       = QImage( 100, 100, QImage::Format_RGB888 );
+//        m_defaultImage = img;
+        m_defaultImage = QPixmap::fromImage( img);
+        m_qimage = QImage( 100, 100, QImage::Format_RGB888 );
         m_qimage.fill( bgColor );
 
-        m_viewName   = viewName;
-        m_connector  = nullptr;
-        m_bgColor    = bgColor;
+        m_viewName = viewName;
+        m_connector = nullptr;
+        m_bgColor = bgColor;
         m_astroImage = astroImage;
-        m_prefix     = prefix + "/" + viewName;
+        m_prefix = prefix + "/" + viewName;
     }
 
     void
     setImage( const QImage & img )
     {
-        m_defaultImage = img;
+//        m_defaultImage = img;
+        m_defaultImage = QPixmap::fromImage( img);
         m_connector-> refreshView( this );
     }
 
@@ -65,6 +67,7 @@ public:
         return m_qimage.size();
     }
 
+    /// @todo Investigate QPixmap performance vs QImage
     virtual const QImage &
     getBuffer()
     {
@@ -144,14 +147,23 @@ protected:
     redrawBuffer()
     {
         QPointF center = m_qimage.rect().center();
-        QPointF diff   = m_lastMouse - center;
-        double angle   = atan2( diff.x(), diff.y() );
+        QPointF diff = m_lastMouse - center;
+        double angle = atan2( diff.x(), diff.y() );
         angle *= - 180 / M_PI;
 
         m_qimage.fill( m_bgColor );
         {
             QPainter p( & m_qimage );
-            p.drawImage( m_qimage.rect(), m_defaultImage );
+//            p.drawImage( m_qimage.rect(), m_defaultImage );
+//            p.setRenderHint( QPainter::SmoothPixmapTransform);
+//            QImage tmpImage = m_defaultImage.scaled( m_qimage.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+//            p.drawImage( m_qimage.rect(), tmpImage);
+
+            QPixmap tmpPixmap = m_defaultImage.scaled( m_qimage.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            p.drawPixmap( m_qimage.rect(), tmpPixmap);
+
+//            p.drawPixmap( m_qimage.rect(), m_defaultImage);
+
             p.setPen( Qt::NoPen );
             p.setBrush( QColor( 255, 255, 0, 128 ) );
             p.drawEllipse( QPoint( m_lastMouse.x(), m_lastMouse.y() ), 10, 10 );
@@ -174,7 +186,8 @@ protected:
     } // redrawBuffer
 
     QColor m_bgColor;
-    QImage m_defaultImage;
+//    QImage m_defaultImage;
+    QPixmap m_defaultImage;
     Image::ImageInterface::SharedPtr m_astroImage;
     IConnector * m_connector;
     QImage m_qimage;
@@ -185,12 +198,15 @@ protected:
 
 static TestView2 * testView2 = nullptr;
 
-HackViewer::HackViewer(QString prefix) :
+HackViewer::HackViewer( QString prefix ) :
     QObject( nullptr )
 {
     m_statePrefix = prefix;
-    m_rawView2QImageConverter = std::make_shared < RawView2QImageConverter > ();
-    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */ );
+
+//    m_rawView2QImageConverter = std::make_shared < RawView2QImageConverter > ();
+    m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
+
+//    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */ );
 
     // assign a default colormap to the view
     auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
@@ -228,7 +244,6 @@ HackViewer::start()
         for ( auto & cmap : allColormaps ) {
             qDebug() << "    " << cmap-> name();
         }
-        auto conn = Globals::instance()-> connector();
         for ( size_t i = 0 ; i < allColormaps.size() ; i++ ) {
             setState( QString( "cm-names-%1" ).arg( i ), allColormaps[i]-> name() );
         }
@@ -247,12 +262,14 @@ HackViewer::start()
                 return;
             }
             m_rawView2QImageConverter-> setColormap( allColormaps[ind] );
-            reloadFrame( true );
+            reloadFrame();
         };
-        conn->addStateCallback(
-            "/hacks/cm-current",
-            colormapCB
-            );
+
+//        m_connector->addStateCallback(
+//            "/hacks/cm-current",
+//            colormapCB
+//            );
+        addStateCallback( "cm-current", colormapCB );
     }
 
     // ask plugins to load the image
@@ -287,7 +304,7 @@ HackViewer::start()
 
         CoordinateFormatterInterface::VD pixel;
         pixel.resize( m_coordinateFormatter->nAxes(), 0 );
-        auto fmt   = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+        auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
         auto skycs = KnownSkyCS::Galactic;
         m_coordinateFormatter-> setSkyCS( skycs );
         qDebug() << "set skycs to" << int (skycs)
@@ -297,12 +314,40 @@ HackViewer::start()
 
         // convert the loaded image into QImage
         m_currentFrame = 0;
-        reloadFrame( true );
+        reloadFrame();
     }
 
     if ( fname.length() > 0 ) {
-        reloadFrame( true );
+        reloadFrame();
     }
+
+    QString pixelCachingOn = "pixelCacheOn";
+    QString pixelCacheSize = "pixelCacheSize";
+    QString pixelCacheInterpolationOn = "pixelCacheInterpolationOn";
+    setState( pixelCachingOn, m_cmapUseCaching ? "1" : "0");
+    setState( pixelCacheInterpolationOn, m_cmapUseInterpolatedCaching ? "1" : "0");
+    setState( pixelCacheSize, QString::number( m_cmapCacheSize));
+
+    typedef const QString & CSR;
+    addStateCallback( pixelCachingOn, [this] ( CSR, CSR val) {
+        m_cmapUseCaching = val == "1";
+        reloadFrame();
+    });
+    addStateCallback( pixelCacheInterpolationOn, [this] ( CSR, CSR val) {
+        m_cmapUseInterpolatedCaching = val == "1";
+        reloadFrame();
+    });
+    addStateCallback( pixelCacheSize, [&] ( CSR, CSR val) {
+        bool ok;
+        m_cmapCacheSize = val.toInt( & ok);
+        if( ! ok || m_cmapCacheSize < 2) {
+            m_cmapCacheSize = 2;
+        }
+        setState( pixelCacheSize, QString::number( m_cmapCacheSize));
+        reloadFrame();
+    });
+
+
     qDebug() << "HackViewer has been initialized.";
 } // start
 
@@ -320,23 +365,41 @@ HackViewer::getState( const QString & path )
     return m_connector->getState( m_statePrefix + "/" + path );
 }
 
+IConnector::CallbackID
+HackViewer::addStateCallback( QString path, IConnector::StateChangedCallback cb )
+{
+    return m_connector-> addStateCallback( m_statePrefix + "/" + path, cb );
+}
+
 void
-HackViewer::reloadFrame( bool forceClipRecompute )
+HackViewer::reloadFrame()
 {
     CARTA_ASSERT( m_image );
 
-    qDebug() << "realodFrame m_image=" << m_image.get();
+    qDebug() << "reloadFrame ppCacheSize" << m_cmapCacheSize;
+
+    // prepare slice description (entire frame)
     auto frameSlice = SliceND().next();
     for ( size_t i = 2 ; i < m_image->dims().size() ; i++ ) {
         frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
     }
-    NdArray::RawViewInterface * frameView = m_image-> getDataSlice( frameSlice );
-    m_rawView2QImageConverter-> setView( frameView );
-    const QImage & qimg = m_rawView2QImageConverter-> go(
-        m_currentFrame, m_clipRecompute || forceClipRecompute );
-    delete frameView;
+
+    // get the data slice
+    NdArray::RawViewInterface::UniquePtr frameView ( m_image-> getDataSlice( frameSlice ));
+
+    // make an image out of it
+    QImage qimg;
+    m_rawView2QImageConverter-> setView( frameView.get() );
+    m_rawView2QImageConverter-> computeClips( 0.95 );
+    m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize);
+    m_rawView2QImageConverter-> setPixelPipelineInterpolation( m_cmapUseInterpolatedCaching);
+    m_rawView2QImageConverter-> setPixelPipelineCacheEnabled( m_cmapUseCaching);
+    m_rawView2QImageConverter-> convert( qimg );
+
+    // display the image
     testView2->setImage( qimg );
-}
+
+} // reloadFrame
 
 /// experiment, currently unused
 ///

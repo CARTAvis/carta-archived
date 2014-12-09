@@ -181,23 +181,39 @@ RawView2QImageConverter3::RawView2QImageConverter3()
     m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePipeline );
 }
 
+/// @todo some optimization would be useful here, i.e. no need to recompute the cached
+/// pipeline every single time... only when related parameters are changed, but this would
+/// require some interesting refactoring to not loose the template speedup, without
+/// affecting memory consumption
 void
 RawView2QImageConverter3::convert( QImage & img )
 {
-    ::rawView2QImage( m_rawView, * m_customPipeline, img );
-}
+    CARTA_ASSERT( m_typedView );
+    CARTA_ASSERT( m_customPipeline );
+
+    if ( m_cmapCachingEnabled ) {
+        if ( m_cmapCachingInterpolated ) {
+            Lib::PixelPipeline::CachedPipeline < false > cached;
+            cached.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
+            ::rawView2QImage( m_typedView-> rawView(), cached, img );
+        }
+        else {
+            Lib::PixelPipeline::CachedPipeline < true > cached;
+            cached.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
+            ::rawView2QImage( m_typedView-> rawView(), cached, img );
+        }
+    }
+    else {
+        ::rawView2QImage( m_typedView-> rawView(), * m_customPipeline, img );
+    }
+} // convert
 
 RawView2QImageConverter3 &
 RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
 {
+    CARTA_ASSERT( m_customPipeline );
+    CARTA_ASSERT( colormap );
     m_customPipeline->setColormap( colormap );
-    return * this;
-}
-
-RawView2QImageConverter3 &
-RawView2QImageConverter3::setPipelineCacheSize( int64_t size )
-{
-    Q_UNUSED( size );
     return * this;
 }
 
@@ -222,6 +238,9 @@ RawView2QImageConverter3::computeClips( double clip )
 RawView2QImageConverter3 &
 RawView2QImageConverter3::setClips( double min, double max )
 {
+    CARTA_ASSERT( m_customPipeline );
+    m_clipMin = min;
+    m_clipMax = max;
     m_customPipeline-> setMinMax( min, max );
     return * this;
 }

@@ -16,13 +16,21 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
         this.setLayout( new qx.ui.layout.VBox( 5));
         this.m_ui = {};
         this.m_ui.topPane = new qx.ui.container.Composite( new qx.ui.layout.Flow(2,2));
-        this.m_ui.bottomPane = new qx.ui.container.Composite( new qx.ui.layout.HBox(5));
+        this.m_ui.bottomPane = new qx.ui.container.Composite(
+            new qx.ui.layout.HBox(5).set({ alignY: "middle"}));
         this.add( this.m_ui.topPane, { flex: 1 });
         this.add( new qx.ui.core.Widget().set({ backgroundColor: "black", height: 1 }));
         this.add( this.m_ui.bottomPane);
-        this.m_ui.cacheColormapToggle = new skel.boundWidgets.Toggle( "Cache", "/hacks/cm-cache");
+        this.m_ui.cacheColormapToggle = new skel.boundWidgets.Toggle(
+            "Cache", "/hacks/pixelCacheOn");
         this.m_ui.bottomPane.add( this.m_ui.cacheColormapToggle);
-        //this.setLayout( new qx.ui.layout.Flow(5,5));
+        this.m_ui.interpolateToggle = new skel.boundWidgets.Toggle(
+            "Interpolate", "/hacks/pixelCacheInterpolationOn");
+        this.m_ui.bottomPane.add( this.m_ui.interpolateToggle);
+        this.m_ui.cacheSizeTF = new skel.boundWidgets.TextField(
+            "/hacks/pixelCacheSize");
+        this.m_ui.bottomPane.add( this.m_ui.cacheSizeTF, { flex: 1 });
+
         this.setMinWidth( 100);
         this.setMinHeight( 100);
         this.setWidth( 300);

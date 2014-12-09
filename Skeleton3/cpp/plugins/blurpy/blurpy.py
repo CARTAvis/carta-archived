@@ -10,7 +10,7 @@ import scipy
 import numpy as np
 from random import randrange
 
-def preRenderHook(w, h, data):
+def no_preRenderHook(w, h, data):
     print("preRenderHook from blurpy.py", w, h, len(data))
 
     myShape = data

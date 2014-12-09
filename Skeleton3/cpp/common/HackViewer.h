@@ -39,14 +39,18 @@ protected:
     // prefixed version of set state
     void setState(const QString & path,  const QString & value);
 
+    // prefixed version of getState
     QString getState(const QString & path);
+
+    // prefixed version of addStateCallback
+    IConnector::CallbackID addStateCallback( QString path, IConnector::StateChangedCallback cb);
 
     /// pointer to the loaded image
     Image::ImageInterface::SharedPtr m_image = nullptr;
     /// are we recomputing clip on frame change?
     bool m_clipRecompute = true;
     /// pointer to the rendering algorithm
-    std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
+    Carta::Core::RawView2QImageConverter3::UniquePtr m_rawView2QImageConverter;
     /// current frame
     int m_currentFrame = -1;
 
@@ -56,9 +60,12 @@ protected:
     /// coordinate formatter
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 
+    /// our own part of the state
     QString m_statePrefix;
 
-    //void reloadFrame(bool forceClipRecompute = false);
+    bool m_cmapUseCaching = true;
+    bool m_cmapUseInterpolatedCaching = true;
+    int m_cmapCacheSize = 1000;
 
-    void reloadFrame(bool forceClipRecompute);
+    void reloadFrame();
 };

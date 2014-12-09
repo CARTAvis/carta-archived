@@ -83,12 +83,12 @@ PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
     initPythonBridgeOnce();
 
     // test of pyobject interaction
-    PyObject * pyo = pb_testGetObj();
-    qDebug() << "xyz pyo refcnt" << Py_REFCNT(pyo);
-    std::string res = pb_testRunMethod( pyo, 3.5);
-    Py_XDECREF(pyo);
-    QString qres = res.c_str();
-    qDebug() << "xyz res=" << qres;
+//    PyObject * pyo = pb_testGetObj();
+//    qDebug() << "pyo refcnt" << Py_REFCNT(pyo);
+//    std::string res = pb_testRunMethod( pyo, 3.5);
+//    Py_XDECREF(pyo);
+//    QString qres = res.c_str();
+//    qDebug() << "res=" << qres;
 
     // make sure this plugin has name.py module
     QString fname = QString( "%1/%2.py")
@@ -193,11 +193,11 @@ std::vector<HookId> PyCppPlug::getInitialHookList()
     }
 
     if( pb_hasColormapScalarHook( m_pyModId)) {
-        qWarning() << "PyCppPlug: has colormap xyz";
+        qWarning() << "PyCppPlug: has colormaps";
         list.push_back( Carta::Lib::Hooks::ColormapsScalarHook::staticId);
     }
     else {
-        qWarning() << "PyCppPlug: does not have colormap xyz";
+        qWarning() << "PyCppPlug: does not have colormaps";
     }
 
     // return the list

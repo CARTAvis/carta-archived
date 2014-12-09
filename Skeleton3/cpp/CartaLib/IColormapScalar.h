@@ -41,11 +41,11 @@ public:
 //    ~IColormapScalar() { }
 };
 
+#ifdef DONT_COMPILE
 /**
  * @brief Abstract helper class for deriving from IColormapScalar. It just adds a static
  * name to the IColormapScalar.
  */
-#ifdef DONT_COMPILE
 class ColormapScalarNamed : public IColormapScalar
 {
     CLASS_BOILERPLATE( ColormapScalarNamed );

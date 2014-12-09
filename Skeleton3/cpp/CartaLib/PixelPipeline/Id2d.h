@@ -181,7 +181,7 @@ public:
         m_stage4.push_back( func );
     }
 
-    virtual void
+    void
     setMinMax( double min, double max )
     {
         m_min = min;
@@ -274,8 +274,8 @@ normRgb2QRgb( const NormRgb & drgb, QRgb & result )
 }
 
 /// algorithm for caching a double->rgb function
-//template < class Func >
-class CachedPipeline : public Id2NormQRgb
+template < bool interpolated>
+class CachedPipeline /*: public Id2NormQRgb*/
 {
     CLASS_BOILERPLATE( CachedPipeline );
 
@@ -292,59 +292,85 @@ public:
     /// \param min minimum value
     /// \param max maximum value
     /// \return the cached version, caller assumes ownership
-    /// @warning funcToCache's state may be changed during the process
+    /// @warning funcToCache should already be prepped with min/max if applicable
     void
     cache( Func & funcToCache, int64_t nSegments, double min, double max )
     {
         CARTA_ASSERT( nSegments > 1 );
         CARTA_ASSERT( min < max );
+        m_min = min;
+        m_max = max;
         m_cache.resize( nSegments );
         double delta = ( max - min ) / ( nSegments - 1 );
-//        funcToCache.setMinMax( min, max );
         for ( int64_t i = 0 ; i < nSegments ; i++ ) {
             double x = min + i * delta;
             funcToCache.convert( x, m_cache[i] );
         }
+
+        // pre-cache some stuff
+        m_d = ( m_max - m_min ) / ( m_cache.size() - 1 );
+        m_dInvN1 = 1 / m_d;
+        m_n1 = m_cache.size() - 1;
     }
 
-    std::vector < NormRgb > m_cache;
-    NormRgb m_nanColor { { 1.0, 0.0, 0.0 } };
-    double m_min = 0, m_max = 1;
+    void
+    convert( double x, NormRgb & result );
 
-    virtual void
-    convert( double x, NormRgb & result ) override
-    {
-        double d = ( m_max - m_min ) / ( m_cache.size() - 1 );
-        double dInvN1 = 1 / d;
-        int64_t n1 = m_cache.size() - 1;
-        int64_t ind = round( ( x - m_min ) * dInvN1 );
-        if ( Q_UNLIKELY( ind < 0 ) ) {
-            result = m_cache[0];
-            return;
-        }
-        if ( Q_UNLIKELY( ind > n1 ) ) {
-            result = m_cache.back();
-            return;
-        }
-        result = m_cache[ind];
-    }
-
-    virtual void
-    convertq( double x, QRgb & result ) override
+    void
+    convertq( double x, QRgb & result ) /*override*/
     {
         NormRgb drgb;
         convert( x, drgb );
         normRgb2QRgb( drgb, result );
     }
 
-//    virtual void
-//    setMinMax( double min, double max ) override
-//    {
-//        Q_UNUSED( min );
-//        Q_UNUSED( max );
-//        throw std::runtime_error( "probably not want to call this" );
-//    }
+private:
+
+    std::vector < NormRgb > m_cache;
+//    NormRgb m_nanColor { { 1.0, 0.0, 0.0 } };
+    double m_min = 0, m_max = 1;
+    double m_d, m_dInvN1, m_n1;
+
 };
+
+
+template <>
+inline void CachedPipeline<false>::convert(double x, NormRgb & result) /*override*/
+{
+    int64_t ind = round( ( x - m_min ) * m_dInvN1 );
+    if ( Q_UNLIKELY( ind < 0 ) ) {
+        result = m_cache[0];
+        return;
+    }
+    if ( Q_UNLIKELY( ind >= m_n1 ) ) {
+        result = m_cache.back();
+        return;
+    }
+    result = m_cache[ind];
+}
+
+template <>
+inline void CachedPipeline<true>::convert(double x, NormRgb & result) /*override*/
+{
+    double dind = ( x - m_min ) * m_dInvN1;
+
+    double intpart;
+    double frac = std::modf (dind , & intpart);
+    int64_t ind = intpart;
+
+    if ( Q_UNLIKELY( ind < 0 ) ) {
+        result = m_cache[0];
+        return;
+    }
+    if ( Q_UNLIKELY( ind >= m_n1 ) ) {
+        result = m_cache.back();
+        return;
+    }
+
+    result[0] = m_cache[ind][0] * (1-frac) + m_cache[ind+1][0] * frac;
+    result[1] = m_cache[ind][1] * (1-frac) + m_cache[ind+1][1] * frac;
+    result[2] = m_cache[ind][2] * (1-frac) + m_cache[ind+1][2] * frac;
+}
 
 /// reversable implementing stage1
 class ReversableStage1 : public IStage1
@@ -470,6 +496,8 @@ private:
     ReversableStage1::SharedPtr m_reversible;
     InvertibleStage4::SharedPtr m_invertible;
 };
+
+
 } // namespace PixelPipeline
 } // namespace Lib
 } // namespace Carta

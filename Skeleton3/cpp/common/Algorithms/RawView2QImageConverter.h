@@ -129,14 +129,20 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
         qImage.bits() + size.width() * ( size.height() - 1 ) * 4 );
 
     // make a double view
-    NdArray::TypedView < Scalar > view( rawView, false );
+    NdArray::TypedView < Scalar > typedView( rawView, false );
 
     /// @todo for more efficiency we should switch to the higher performance view apis
     /// and apply some basic openmp/cilk
     int64_t counter = 0;
+    QRgb nanColor = qRgb( 255, 0, 0);
     auto lambda = [&] ( const Scalar & ival )
     {
-        pipe.convertq( ival, * outPtr );
+        if( ! std::isnan( ival)) {
+            pipe.convertq( ival, * outPtr );
+        }
+        else {
+             * outPtr = nanColor;
+        }
         outPtr++;
         counter++;
 
@@ -145,7 +151,7 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
             outPtr -= size.width() * 2;
         }
     };
-    view.forEach( lambda );
+    typedView.forEach( lambda );
 } // rawView2QImage
 
 #include "CartaLib/PixelPipeline/Id2d.h"
@@ -233,7 +239,25 @@ public:
 
     /// how many entries to use for pipeline caching
     Me &
-    setPipelineCacheSize( int64_t size );
+    setPixelPipelineCacheSize( int64_t size ) {
+        if( size < 2) size = 2;
+        m_cmapCacheSize = size;
+        return * this;
+    }
+
+    /// whether to use linear interpolation for pixel pipeline cache
+    Me &
+    setPixelPipelineInterpolation( bool flag ) {
+        m_cmapCachingInterpolated = flag;
+        return * this;
+    }
+
+    /// whether to use pipeline cache at all
+    Me &
+    setPixelPipelineCacheEnabled( bool flag ) {
+        m_cmapCachingEnabled = flag;
+        return * this;
+    }
 
     /// Sets the view on which we'll operate
     /// @param rawView pointer to the raw view, caller retains ownership but read
@@ -272,14 +296,23 @@ public:
 
 private:
     /// pointer to the view
-    NdArray::RawViewInterface * m_rawView = nullptr;
+//    NdArray::RawViewInterface * m_rawView = nullptr;
     NdArray::TypedView<double>::UniquePtr m_typedView;
     /// cache for images
     QCache < QString, QImage > m_imageCache;
     /// unoptimized pipeline
     Lib::PixelPipeline::CustomizablePipeline::UniquePtr m_customPipeline;
     /// optimized pipeline
-    Lib::PixelPipeline::CachedPipeline::UniquePtr m_cachedPipeline;
+//    Lib::PixelPipeline::CachedPipeline::UniquePtr m_cachedPipeline;
+
+    /// do pixel caching or not
+    bool m_cmapCachingEnabled = true;
+    /// do pixel caching using interpolation or not
+    bool m_cmapCachingInterpolated = false;
+    /// requested cache size for pixel pipepline caching
+    int m_cmapCacheSize = 1000;
+
+    double m_clipMin = 0.0, m_clipMax = 1.0;
 
 };
 }
