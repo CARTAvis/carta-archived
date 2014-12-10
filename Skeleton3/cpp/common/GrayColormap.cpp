@@ -16,11 +16,10 @@ GrayColormap::name()
     return "Gray";
 }
 
-QRgb
-GrayColormap::convert( const double & val )
+void GrayColormap::convert(Lib::IColormapScalar::norm_double val, Lib::IColormapScalar::NormRgb & result)
 {
-    int gray = 255 * val + 0.5; // round
-    return qRgb( gray, gray, gray );
+    result.fill( val);
 }
+
 }
 }

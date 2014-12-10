@@ -81,16 +81,62 @@ PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
 
     initPythonBridgeOnce();
 
+    // test of pyobject interaction
+//    PyObject * pyo = pb_testGetObj();
+//    qDebug() << "pyo refcnt" << Py_REFCNT(pyo);
+//    std::string res = pb_testRunMethod( pyo, 3.5);
+//    Py_XDECREF(pyo);
+//    QString qres = res.c_str();
+//    qDebug() << "res=" << qres;
+
     // make sure this plugin has name.py module
     QString fname = QString( "%1/%2.py")
                     .arg( params.pluginDir).arg( params.json.name);
     qDebug() << "Asking python to load" << fname;
-    m_pyModId = pb_loadModule( fname.toStdString(), params.json.name.toStdString());
+    std::string cfname = fname.toStdString();
+    std::string cfmodname = params.json.name.toStdString();
+    m_pyModId = pb_loadModule( cfname, cfmodname);
+//    m_pyModId = pb_loadModule( fname.toStdString(), params.json.name.toStdString());
     qDebug() << "m_pyModId=" << m_pyModId;
     if( m_pyModId < 0) {
         throw "Forget it";
     }
     qDebug() << "Do we have prerender hook:" << pb_hasPreRenderHook(m_pyModId);
+
+}
+
+
+namespace colormap_impl
+{
+
+class ColormapHelper : public Carta::Lib::IColormapScalar
+{
+    CLASS_BOILERPLATE( ColormapHelper);
+
+public:
+    ColormapHelper( int pluginId, PyObject * obj) {
+        m_pluginId = pluginId;
+        m_pyObj = obj;
+        Py_XINCREF( m_pyObj);
+    }
+
+    virtual ~ColormapHelper() {
+        Py_XDECREF( m_pyObj);
+    }
+
+    PyObject * m_pyObj;
+    int m_pluginId;
+
+    virtual QString name() override
+    {
+        return pb_colormapScalarGetName( m_pyObj).c_str();
+    }
+    virtual void convert(norm_double val, NormRgb & nrgb) override
+    {
+        pb_colormapScalarConvert( m_pyObj, val, & nrgb[0]);
+    }
+};
+
 }
 
 bool PyCppPlug::handleHook(BaseHook & hookData)
@@ -117,21 +163,43 @@ bool PyCppPlug::handleHook(BaseHook & hookData)
 
         return true;
     }
-    qWarning() << "Sorrry, dont' know how to handle this hook";
+
+    if( hookData.is<Carta::Lib::Hooks::ColormapsScalarHook>()) {
+        Carta::Lib::Hooks::ColormapsScalarHook & hook =
+                static_cast<Carta::Lib::Hooks::ColormapsScalarHook &>( hookData);
+        // get the list of raw python objects representing the colormaps
+        std::vector<PyObject*> rawList = pb_colormapScalarGetColormaps( m_pyModId);
+        qDebug() << "found" << rawList.size() << "colormaps";
+        // wrap them up
+        for( PyObject * pyCmap : rawList) {
+            qDebug() << "pycmap refcnt" << Py_REFCNT(pyCmap);
+            auto wrappedCmap = std::make_shared<colormap_impl::ColormapHelper>( m_pyModId, pyCmap);
+            hook.result.push_back( wrappedCmap);
+        }
+        return true;
+    }
+    qWarning() << "PyCppPlug:: Sorrry, don't know how to handle this hook" << hookData.hookId();
     return false;
 }
 
 std::vector<HookId> PyCppPlug::getInitialHookList()
 {
-    // TODO: this list should be based on what is implemented in python
+    // compile the list of hooks
+    std::vector<HookId> list;
     if( pb_hasPreRenderHook( m_pyModId)) {
-        return {
-            PreRender::staticId
-        };
+        list.push_back( PreRender::staticId);
+    }
+
+    if( pb_hasColormapScalarHook( m_pyModId)) {
+        qWarning() << "PyCppPlug: has colormaps";
+        list.push_back( Carta::Lib::Hooks::ColormapsScalarHook::staticId);
     }
     else {
-        return {};
+        qWarning() << "PyCppPlug: does not have colormaps";
     }
+
+    // return the list
+    return list;
 }
 
 void PyCppPlug::initialize(const IPlugin::InitInfo & /*InitInfo*/)

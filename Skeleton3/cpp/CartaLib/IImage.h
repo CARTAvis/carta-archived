@@ -56,7 +56,10 @@ namespace NdArray
 /// convenenient to actually access the arrays.
 class RawViewInterface
 {
+    CLASS_BOILERPLATE( RawViewInterface );
+
 public:
+
     typedef std::vector < int > VI;
     typedef Image::PixelType PixelType;
 
@@ -143,6 +146,7 @@ public:
 template < typename Type >
 class TypedView
 {
+    CLASS_BOILERPLATE( TypedView );
 public:
     typedef std::vector < int > VI;
 
@@ -189,6 +193,11 @@ public:
             Q_ASSERT( m_rawView != nullptr );
             delete m_rawView;
         }
+    }
+
+    /// return the associated raw view
+    RawViewInterface * rawView() {
+        return m_rawView;
     }
 
 protected:

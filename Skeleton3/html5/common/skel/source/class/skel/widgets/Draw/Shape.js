@@ -125,13 +125,14 @@ qx.Class.define("skel.widgets.Draw.Shape", {
          * @param id {String} the server unique id.
          */
         matches : function ( type, id ){
-            var matching = false;
-            if ( type == this.m_shapeType ){
-                if ( id == this.m_shapeId ){
-                    matching = true;
-                }
-            }
-            return matching;
+            //var matching = false;
+            //if ( type == this.m_shapeType ){
+            //    if ( id == this.m_shapeId ){
+            //        matching = true;
+            //    }
+            //}
+            //return matching;
+            return type === this.m_shapeType && id === this.m_shapeId;
         },
         
         /**

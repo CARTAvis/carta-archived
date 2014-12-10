@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CartaLib.h"
+#include "PixelPipeline/Id2d.h"
 #include <QColor>
 #include <QString>
 #include <memory>
@@ -15,27 +16,32 @@ namespace Carta
 namespace Lib
 {
 /**
- * @brief The IColormapScalar class
- *
- * This is an interface that plugins have to implement to add a new colormap for
- * scalar-type pixels.
+ * This is the interface that plugins have to implement to add a new colormap for
+ * scalcar-type pixels. It is the raw IColormap inteface with a name added.
  */
-class IColormapScalar
+class IColormapScalar : public PixelPipeline::IColormap
 {
     CLASS_BOILERPLATE( IColormapScalar );
 
 public:
 
+    using norm_double = PixelPipeline::norm_double;
+    using NormRgb = PixelPipeline::NormRgb;
+
     virtual QString
     name() = 0;
 
-    virtual QRgb
-    convert( const double & val ) = 0;
+//    virtual QRgb
+//    convert( const double & val ) = 0;
 
-    virtual
-    ~IColormapScalar() { }
+//    virtual void
+//    convert( norm_double val, NormRgb & result ) = 0;
+
+//    virtual
+//    ~IColormapScalar() { }
 };
 
+#ifdef DONT_COMPILE
 /**
  * @brief Abstract helper class for deriving from IColormapScalar. It just adds a static
  * name to the IColormapScalar.
@@ -67,45 +73,50 @@ protected:
 
     QString m_name;
 };
+#endif
 
 /**
  * @brief Allows specification of a 1D function as piece-wise linear, then
  * query the values of the function using opeartor()
  *
  * @todo This should be moved into it's own file.
+ * @todo There is no optimization.
  */
 class PWLinear
 {
 public:
 
+    /// add a point
+    /// @warning make sure the newly added point's 'x' is greater than
+    /// the previous point's 'x'
     PWLinear &
     add( double x, double y )
     {
-        points_.push_back( QPointF( x, y ) );
+        m_points.push_back( QPointF( x, y ) );
         return * this; // allow chaining
     }
 
     double
     operator() ( double x )
     {
-        if ( ! std::isfinite( x ) || points_.empty() ) {
+        if ( ! std::isfinite( x ) || m_points.empty() ) {
             return std::numeric_limits < double >::quiet_NaN();
         }
 
         // test boundary conditions
-        if ( x <= points_.first().x() ) {
-            return points_.first().y();
+        if ( x <= m_points.first().x() ) {
+            return m_points.first().y();
         }
-        if ( x >= points_.last().x() ) {
-            return points_.last().y();
+        if ( x >= m_points.last().x() ) {
+            return m_points.last().y();
         }
 
-        // find the segment and interpolate within it
-        for ( int i = 1 ; i < points_.size() ; i++ ) {
-            if ( x <= points_[i].x() ) {
+        // find the segment and linearly interpolate within it
+        for ( int i = 1 ; i < m_points.size() ; i++ ) {
+            if ( x <= m_points[i].x() ) {
                 double a =
-                    ( points_[i - 1].y() - points_[i].y() ) / ( points_[i - 1].x() - points_[i].x() );
-                double b = points_[i].y() - a * points_[i].x();
+                    ( m_points[i - 1].y() - m_points[i].y() ) / ( m_points[i - 1].x() - m_points[i].x() );
+                double b = m_points[i].y() - a * m_points[i].x();
                 return a * x + b;
             }
         }
@@ -114,7 +125,7 @@ public:
 
 private:
 
-    QList < QPointF > points_;
+    QList < QPointF > m_points;
 };
 }
 }
