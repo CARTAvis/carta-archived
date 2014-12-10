@@ -53,7 +53,7 @@ public:
     virtual void unregisterView( const QString& viewName ) = 0;
 
     /// set state to a new value
-    virtual void setState( const QString & state,  const QString & value) = 0;
+    virtual void setState( const QString & path,  const QString & value) = 0;
 
     //Return a string indicating the location where state is saved/restored.
     virtual QString getStateLocation( const QString& saveName ) const = 0;

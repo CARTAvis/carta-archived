@@ -1,7 +1,7 @@
 /**
  * A 'tape deck' UI for animating data.
  */
-/*global mImport */
+
 /*******************************************************************************
  * @ignore( mImport)
  * 
@@ -14,6 +14,8 @@
  * @asset(skel/icons/dblarrowleft.png)
  * @asset(skel/icons/dblarrowright.png)
  ******************************************************************************/
+
+/* global mImport, qx, skel, console */
 
 qx.Class.define("skel.boundWidgets.Animator", {
     extend : qx.ui.core.Widget,
@@ -118,13 +120,22 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _endBehaviorCB : function(val) {
             if (val) {
-                if (val == "Wrap") {
-                    this.m_endWrapRadio.setValue(true);
-                } else if (val == "Reverse") {
-                    this.m_endReverseRadio.setValue(true);
-                } else if (val == "Jump") {
-                    this.m_endJumpRadio.setValue(true);
-                } else {
+                if ( val == this.m_endWrapRadio.getLabel()){
+                    if ( ! this.m_endWrapRadio.getValue()){
+                        this.m_endWrapRadio.setValue( true );
+                    }
+                }
+                else if ( val == this.m_endReverseRadio.getLabel()){
+                    if ( ! this.m_endReverseRadio.getValue()){
+                        this.m_endReverseRadio.setValue( true );
+                    }
+                }
+                else if ( val == this.m_endJumpRadio.getLabel()){
+                    if ( ! this.m_endJumpRadio.getValue()){
+                        this.m_endJumpRadio.setValue( true );
+                    }
+                }
+                else {
                     console.log("Unrecognized end behavior: " + val);
                 }
             }
@@ -160,7 +171,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _frameStepCB : function(val) {
             if (val) {
-                this.setFrameStep( val );
+                if ( val !== this.m_stepSpin.getValue()){
+                    this.setFrameStep( val );
+                }
             }
         },
 
@@ -170,7 +183,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _frameRateCB : function(val) {
             if (val) {
-                this.m_speedSpinBox.setValue(val);
+                if ( val != this.m_speedSpinBox.getValue()){
+                    this.m_speedSpinBox.setValue(val);
+                }
             }
         },
 
@@ -261,7 +276,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this._add(locationComposite);
             this._add(sliderComposite);
             this._add(buttonComposite);
-
             this.m_timer = new qx.event.Timer(1000);
             this._setTimerSpeed();
         },
@@ -311,46 +325,41 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_endWrapRadio = new qx.ui.form.RadioButton("Wrap");
             this.m_endWrapRadio.addListener("changeValue", function() {
                 if (this.m_endWrapRadio.getValue()) {
-                    this._setEndBehavior("Wrap");
+                    this._sendEndBehavior(this.m_endWrapRadio.getLabel());
                 }
             }, this);
+            
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
             this.m_endReverseRadio.addListener("changeValue", function() {
                 if (this.m_endReverseRadio.getValue()) {
-                    this._setEndBehavior("Reverse");
+                    this._sendEndBehavior(this.m_endReverseRadio.getLabel());
                 }
             }, this);
+            
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
             this.m_endJumpRadio.addListener("changeValue", function() {
                 if (this.m_endJumpRadio.getValue()) {
-                    this._setEndBehavior("Jump");
+                    this._sendEndBehavior(this.m_endJumpRadio.getLabel());
                 }
             }, this);
+           
             var endRadioGroup = new qx.ui.form.RadioGroup();
-            endRadioGroup.add(this.m_endWrapRadio);
-            endRadioGroup.add(this.m_endReverseRadio);
-            endRadioGroup.add(this.m_endJumpRadio);
-            /*if (this.m_stateEndBehavior != null) {
-                this._endBehaviorCB(this.m_stateEndBehavior.get());
-            }*/
+            endRadioGroup.add(this.m_endWrapRadio, this.m_endReverseRadio, this.m_endJumpRadio);
 
             var speedLabel = new qx.ui.basic.Label("Rate:");
             this.m_speedSpinBox = new qx.ui.form.Spinner(1, 10, 100);
-            /*if (this.m_stateFrameRate != null) {
-                this._frameRateCB(this.m_stateFrameRate.get());
-            }*/
-            /*this.m_speedSpinBox.addListener("changeValue", function() {
 
+            this.m_speedSpinBox.addListener("changeValue", function() {
                 this._setTimerSpeed();
-                this.m_stateFrameRate.set(this.m_speedSpinBox.getValue());
-            }, this);*/
+                this._sendFrameRate();
+            }, this);
             var stepLabel = new qx.ui.basic.Label("Step:");
-            var stepSpinBox = new qx.ui.form.Spinner(1, 1, 100);
-            this.bind("frameUpperBound", stepSpinBox, "maximum");
-            stepSpinBox.bind("value", this, "frameStep");
-            /*if (this.m_stateFrameStep != null) {
-                this._frameStepCB(this.m_stateFrameStep.get());
-            }*/
+            this.m_stepSpin = new qx.ui.form.Spinner(1, 1, 100);
+            this.bind("frameUpperBound", this.m_stepSpin, "maximum");
+            this.m_stepSpin.bind("value", this, "frameStep");
+            this.m_stepSpin.addListener( "changeValue", function(){
+                this._sendFrameStep();
+            });
 
             this.m_settingsComposite = new qx.ui.container.Composite();
             this.m_settingsComposite.setLayout(new qx.ui.layout.HBox(5));
@@ -358,7 +367,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 flex : 1
             });
             this.m_settingsComposite.add(stepLabel);
-            this.m_settingsComposite.add(stepSpinBox);
+            this.m_settingsComposite.add(this.m_stepSpin);
             this.m_settingsComposite.add(new qx.ui.core.Spacer(10, 10), {
                 flex : 1
             });
@@ -521,7 +530,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Start the animation.
          * @param forward {Boolean} true if the frame position should be increased; false,
-         * 			if the frame position should be decreased.
+         *        if the frame position should be decreased.
          */
         _play : function(forward) {
             if (this.m_timer) {
@@ -587,12 +596,16 @@ qx.Class.define("skel.boundWidgets.Animator", {
         },
 
         /**
-         * Set whether frames at upper or lower bounds should wrap, reverse, etc.
-         * @param behavior {String} a descriptor for the behavior.
+         * Send a command to the server indicating the new end behavior (wrap, jump, etc).
+         * @param behavior {String} a descriptor for the end behavior.
          */
-        _setEndBehavior : function(behavior) {
-            if (this.m_stateEndBehavior !== null) {
-                this.m_stateEndBehavior.set(behavior);
+        _sendEndBehavior : function(behavior) {
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setEndBehavior";
+                var params = "endBehavior:"+behavior;
+                
+                this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
 
@@ -606,6 +619,30 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 var path = skel.widgets.Path.getInstance();
                 var setFramePath = this.m_animId + path.SEP_COMMAND + "setFrame";
                 this.m_connector.sendCommand(setFramePath, paramMap, function(val) {});
+            }
+        },
+        
+        /**
+         * Send a command to the server indicating the new frame rate.
+         */
+        _sendFrameRate : function() {
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setFrameRate";
+                var params = "frameRate:"+this.m_speedSpinBox.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
+         * Send a command to the server indicating the new frame step size.
+         */
+        _sendFrameStep : function() {
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setFrameStep";
+                var params = "frameStep:"+this.m_stepSpin.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
 
@@ -648,6 +685,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_timerListener : null,
         m_indexText : null,
         m_endWrapRadio : null,
+        m_stepSpin : null,
         m_endReverseRadio : null,
         m_endJumpRadio : null,
         m_playButton : null,

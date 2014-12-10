@@ -1,8 +1,9 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
-#include "Data/Colormaps.h"
+#include "Data/Colormap.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
+#include "Data/Histogram.h"
 #include "Data/Layout.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
@@ -11,6 +12,17 @@
 
 #include <QDir>
 #include <QDebug>
+
+class ViewManager::Factory : public CartaObjectFactory {
+
+public:
+    Factory():
+        CartaObjectFactory( "ViewManager" ){};
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new ViewManager (path, id);
+    }
+};
 
 const QString ViewManager::CLASS_NAME = "ViewManager";
 bool ViewManager::m_registered =
@@ -23,8 +35,6 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_dataLoader( nullptr ),
       m_pluginsLoaded( nullptr ){
     _initCallbacks();
-    _initializeDataLoader();
-    _initializeColorMaps();
 
     bool stateRead = this->_readState( "DefaultState" );
     if ( !stateRead ){
@@ -62,7 +72,7 @@ void ViewManager::_initCallbacks(){
             if ( dataValues[ID]  == m_controllers[i]->getPath() ){
                 //Add the data to it.
                 QString path = dataValues[DATA];
-                _initializeDataLoader();
+                _makeDataLoader();
                 path = m_dataLoader->getFile( path, sessionId );
                 m_controllers[i]->addData( path );
                 break;
@@ -143,20 +153,6 @@ void ViewManager::_initCallbacks(){
     });
 }
 
-void ViewManager::_initializeColorMaps(){
-   ObjectManager* objManager = ObjectManager::objectManager();
-   QString id = objManager->createObject( Colormaps::CLASS_NAME );
-}
-
-
-void ViewManager::_initializeDataLoader(){
-    if ( !m_dataLoader ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString dataLoaderId = objManager->createObject( DataLoader::CLASS_NAME );
-        CartaObject* dataLoaderObj = objManager->getObject( dataLoaderId );
-        m_dataLoader.reset( dynamic_cast<DataLoader*>( dataLoaderObj ));
-    }
-}
 
 void ViewManager::_initializeDefaultState(){
     _makeAnimator();
@@ -164,8 +160,9 @@ void ViewManager::_initializeDefaultState(){
     m_animators[0]->addController( m_controllers[0]);
     _makeLayout();
     _makePluginList();
+    _makeHistogram();
+    _makeColorMap();
 }
-
 
 void ViewManager::_initializeExistingAnimationLinks( int index ){
     int linkCount = m_animators[index]->getLinkCount();
@@ -191,9 +188,7 @@ void ViewManager::loadFile( QString fileName ){
 }
 
 QString ViewManager::_makeAnimator(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString viewId = objManager->createObject( Animator::CLASS_NAME );
-    CartaObject* animObj = objManager->getObject( viewId );
+    CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
     std::shared_ptr<Animator> target( dynamic_cast<Animator*>(animObj) );
     m_animators.append(target);
     int lastIndex = m_animators.size() - 1;
@@ -201,21 +196,37 @@ QString ViewManager::_makeAnimator(){
     return target->getPath();
 }
 
+QString ViewManager::_makeColorMap(){
+   CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
+   std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
+   m_colormaps.append(target);
+   return target->getPath();
+}
 
 QString ViewManager::_makeController(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString viewId = objManager->createObject( Controller::CLASS_NAME );
-    CartaObject* controlObj = objManager->getObject( viewId );
+    CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
     std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
     m_controllers.append(target);
     return target->getPath();
 }
 
+void ViewManager::_makeDataLoader(){
+    if ( m_dataLoader == nullptr ){
+        CartaObject* dataLoaderObj = Util::createObject( DataLoader::CLASS_NAME );
+        m_dataLoader.reset( dynamic_cast<DataLoader*>( dataLoaderObj ));
+    }
+}
+
+QString ViewManager::_makeHistogram(){
+    CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
+    std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
+    m_histograms.append(target);
+    return target->getPath();
+}
+
 QString ViewManager::_makeLayout(){
     if ( !m_layout ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString layoutId = objManager->createObject( Layout::CLASS_NAME );
-        CartaObject* layoutObj = objManager->getObject( layoutId );
+        CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
         m_layout.reset( dynamic_cast<Layout*>(layoutObj ));
     }
     QString layoutPath = m_layout->getPath();
@@ -225,9 +236,7 @@ QString ViewManager::_makeLayout(){
 QString ViewManager::_makePluginList(){
     if ( !m_pluginsLoaded ){
         //Initialize a view showing the plugins that have been loaded
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString pluginsId = objManager->createObject( ViewPlugins::CLASS_NAME );
-        CartaObject* pluginsObj = objManager->getObject( pluginsId );
+        CartaObject* pluginsObj = Util::createObject( ViewPlugins::CLASS_NAME );
         m_pluginsLoaded.reset( dynamic_cast<ViewPlugins*>(pluginsObj ));
     }
     QString pluginsPath = m_pluginsLoaded->getPath();
@@ -254,6 +263,26 @@ QString ViewManager::_makeWindow( QVector<QString>& dataValues ){
         }
         else {
             viewId = _makeAnimator();
+        }
+    }
+    else if ( dataValues[0] == Colormap::CLASS_NAME ){
+        bool validIndex = false;
+        int colorIndex = dataValues[1].toInt( &validIndex );
+        if ( validIndex && 0 <= colorIndex && colorIndex < m_colormaps.size()){
+            viewId = m_colormaps[colorIndex]->getPath();
+        }
+        else {
+            viewId = _makeColorMap();
+        }
+    }
+    else if ( dataValues[0] == Histogram::CLASS_NAME ){
+        bool validIndex = false;
+        int histIndex = dataValues[1].toInt( &validIndex );
+        if ( validIndex && 0 <= histIndex && histIndex < m_histograms.size()){
+            viewId = m_histograms[histIndex]->getPath();
+        }
+        else {
+            viewId = _makeHistogram();
         }
     }
     else if ( dataValues[0] == ViewPlugins::CLASS_NAME ){

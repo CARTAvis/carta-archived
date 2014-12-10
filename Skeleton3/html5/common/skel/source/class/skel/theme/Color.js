@@ -20,7 +20,7 @@ qx.Theme.define( "skel.theme.Color", {
         "selection2"      : "#66CCB8",
         "warning"         : "#FF9900", //orange peel
         "dialogBackground": "#E0E0E0", //rock
-        "red": "#FF0000",
+        "error": "#FF0000",
         "blank"           : "#FFFFFF" //white
     }
 } );

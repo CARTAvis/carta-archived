@@ -18,8 +18,6 @@ class PluginManager;
 namespace CmdLine { class ParsedInfo; }
 namespace MainConfig { class ParsedInfo; }
 
-
-
 class Globals {
 
     friend class StateInterface;
@@ -32,7 +30,8 @@ public:
     /// singleton pattern
     static Globals * instance();
 
-
+    /// get the connector
+    IConnector * connector();
 
     /// set the connector
     void setConnector(IConnector *connector);
@@ -67,8 +66,5 @@ protected:
 
     // private constructor
     Globals();
-private:
-    /// get the connector
-    IConnector * connector();
 };
 

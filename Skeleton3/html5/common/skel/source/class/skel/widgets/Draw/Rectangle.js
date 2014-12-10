@@ -2,7 +2,10 @@
  * A rectangular shape.
  */
 
+/* global qx, skel, console */
+
 qx.Class.define("skel.widgets.Draw.Rectangle", {
+
     extend : skel.widgets.Draw.Shape,
 
     construct : function( winId ){

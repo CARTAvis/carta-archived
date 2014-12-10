@@ -5,6 +5,15 @@
 
 #include <QDebug>
 
+class Animator::Factory : public CartaObjectFactory {
+
+public:
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Animator (path, id);
+    }
+};
 
 const QString Animator::LINK = "links";
 //const QString Animator::ANIMATION_TYPE = "animators";
@@ -129,9 +138,7 @@ void Animator::_initializeCallbacks(){
 QString Animator::_initAnimator( const QString& type ){
     QString animId;
     if ( !m_animators.contains( type ) ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        animId = objManager->createObject( AnimatorType::CLASS_NAME );
-        CartaObject* animObj = objManager->getObject( animId );
+        CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
         shared_ptr<AnimatorType> val(dynamic_cast<AnimatorType*>(animObj));
         m_animators.insert(type, val );
         _adjustStateAnimatorTypes();

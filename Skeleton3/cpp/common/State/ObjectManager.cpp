@@ -13,7 +13,8 @@
 
 using namespace std;
 
-QList<QString> CartaObjectFactory::globalIds = {"DataLoader","Layout", "ViewManager"};
+QList<QString> CartaObjectFactory::globalIds = {"Clips", "Colormaps",
+        "DataLoader","Layout", "ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;

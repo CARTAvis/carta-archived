@@ -5,6 +5,20 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+
+class DataLoader::Factory : public CartaObjectFactory {
+
+public:
+
+    Factory():
+        CartaObjectFactory( "DataLoader" ){};
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new DataLoader (path, id);
+    }
+};
+
 QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
 bool DataLoader::m_registered =

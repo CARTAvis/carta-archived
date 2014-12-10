@@ -12,6 +12,8 @@
 class Animator;
 class Controller;
 class DataLoader;
+class Histogram;
+class Colormap;
 class Layout;
 class ViewPlugins;
 
@@ -31,32 +33,24 @@ public:
 
 private:
     ViewManager( const QString& path, const QString& id);
-    class Factory : public CartaObjectFactory {
-
-    public:
-        Factory():
-          CartaObjectFactory( "ViewManager" ){};
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new ViewManager (path, id);
-        }
-    };
+    class Factory;
 
     void _clearLayout();
 
     void _initCallbacks();
 
-    void _initializeColorMaps();
     void _initializeExistingAnimationLinks( int index );
     //Sets up a default set of states for constructing the UI if the user
     //has not saved one.
     void _initializeDefaultState();
-    void _initializeDataLoader();
 
     QString _makeAnimator();
     QString _makeLayout();
     QString _makePluginList();
     QString _makeController();
+    QString _makeHistogram();
+    QString _makeColorMap();
+    void _makeDataLoader();
     QString _makeWindow( QVector<QString>& dataValues );
 
     bool _readState( const QString& fileName );
@@ -68,11 +62,17 @@ private:
     //A list of Animators requested by the client.
     QList < std::shared_ptr<Animator> > m_animators;
 
+    //Colormap
+    QList<std::shared_ptr<Colormap>  >m_colormaps;
+
+    //Histogram
+    QList<std::shared_ptr<Histogram> >m_histograms;
+
     static bool m_registered;
     std::shared_ptr<Layout> m_layout;
     std::shared_ptr<DataLoader> m_dataLoader;
     std::shared_ptr<ViewPlugins> m_pluginsLoaded;
 
-	ViewManager( const ViewManager& other);
-	ViewManager operator=( const ViewManager& other );
+    ViewManager( const ViewManager& other);
+    ViewManager operator=( const ViewManager& other );
 };

@@ -8,6 +8,8 @@
 
  ************************************************************************ */
 
+/* globals qx */
+
 qx.Theme.define( "skel.theme.Decoration", {
     extend: qx.theme.modern.Decoration,
 

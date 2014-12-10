@@ -8,15 +8,15 @@
  * 
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
+qx.Class.define("skel.widgets.Window.DisplayWindowGenericPlugin",
         {
-            extend : skel.widgets.DisplayWindow,
+            extend : skel.widgets.Window.DisplayWindow,
 
             /**
              * Constructor.
              */
-            construct : function(row, col, pluginId, index ) {
-                this.base(arguments, pluginId, row, col, index );
+            construct : function(row, col, pluginId, index, detached ) {
+                this.base(arguments, pluginId, row, col, index, detached );
                 this.m_links = [];
             },
 
@@ -34,7 +34,7 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                  * on the main menu when this window is selected.
                  */
                 getWindowSubMenu : function() {
-                    var windowMenuList = []
+                    var windowMenuList = [];
                     return windowMenuList;
                 },
                 
@@ -69,8 +69,7 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
                 isLinkable : function(pluginId) {
                     var linkable = false;
                     var path = skel.widgets.Path.getInstance();
-                    if (pluginId == path.CASA_LOADER 
-                            && this.m_pluginId == "statistics") {
+                    if (pluginId == path.CASA_LOADER && this.m_pluginId == "statistics") {
                         linkable = true;
                     } 
                     else if (pluginId == path.ANIMATOR && this.m_pluginId != path.PLUGINS) {
@@ -103,7 +102,7 @@ qx.Class.define("skel.widgets.DisplayWindowGenericPlugin",
 
                             // Right now only generic support is statistics.
                             // Need to generalize.
-                            if (this.m_title.getValue() == "statistics") {
+                            if (this.m_pluginId == "statistics") {
                                 var path = skel.widgets.Path.getInstance();
                                 var viewPath = sourceWinId + path.SEP + path.VIEW;
                                 var labelx = new skel.boundWidgets.Label("MouseX:", "pix", viewPath, function(anObject){

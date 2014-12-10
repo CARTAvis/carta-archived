@@ -26,6 +26,7 @@ public:
      * @brief Result is a list of colormaps offered by the plugin.
      */
     typedef std::vector < IColormapScalar::SharedPtr > ResultType;
+
     /**
      * @brief No input
      */
@@ -48,7 +49,3 @@ public:
 }
 }
 }
-
-//class Boo : public QObject {
-//    Q_OBJECT
-//};

@@ -1,5 +1,5 @@
 /**
- * Displays a file browser.
+ * Controls for the color map model selection.
  */
 /*global mImport */
 /*******************************************************************************
@@ -38,6 +38,15 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
             this._add( modelGroup );
         },
         
+        /**
+         * Set the server side id of the color map.
+         * @param id {String} the unique server side id of this color map.
+         */
+        setId : function( id ){
+            this.m_id = id;
+        },
+        
+        m_id : null,
         m_gammaRadio : null,
         m_logRadio : null
     }

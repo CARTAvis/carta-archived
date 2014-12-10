@@ -18,6 +18,16 @@
 
 using namespace std;
 
+class Controller::Factory : public CartaObjectFactory {
+
+public:
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Controller (path, id);
+    }
+};
+
 const QString Controller::CLIP_VALUE = "clipValue";
 const QString Controller::AUTO_CLIP = "autoClip";
 const QString Controller::DATA_COUNT = "dataCount";
@@ -45,7 +55,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 
      _initializeCallbacks();
-
+     qDebug() << "Controller registering view";
      registerView(m_view.get());
 
      //Load the view.
@@ -67,10 +77,7 @@ void Controller::addData(const QString& fileName) {
 
     //Add the data if it is not already there.
     if (targetIndex == -1) {
-        //std::shared_ptr<DataSource> targetSource(new DataSource(fileName));
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString dataSourceId = objManager->createObject( DataSource::CLASS_NAME );
-        CartaObject* dataSource = objManager->getObject( dataSourceId );
+        CartaObject* dataSource = Util::createObject( DataSource::CLASS_NAME );
         std::shared_ptr<DataSource> targetSource( dynamic_cast<DataSource*>(dataSource));
         targetIndex = m_datas.size();
         m_datas.push_back(targetSource);
@@ -185,28 +192,9 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
-    addCommandCallback( "registerColormap", [=] (const QString & /*cmd*/,
-                                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            if ( m_colorMap == nullptr ){
-                ObjectManager* objManager = ObjectManager::objectManager();
-                QString mapId = objManager->createObject( Colormap::CLASS_NAME );
-                CartaObject* mapObj = objManager->getObject( mapId );
-                m_colorMap.reset( dynamic_cast<Colormap*>(mapObj) );
-                connect( m_colorMap.get(), SIGNAL(colorMapChanged(int)), this, SLOT(_colorMapChanged(int)));
-            }
-            return m_colorMap->getPath();
-        });
 
-    addCommandCallback( "registerHistogram", [=] (const QString & /*cmd*/,
-                                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                if ( m_histogram == nullptr ){
-                    ObjectManager* objManager = ObjectManager::objectManager();
-                    QString mapId = objManager->createObject( Histogram::CLASS_NAME );
-                    CartaObject* mapObj = objManager->getObject( mapId );
-                    m_histogram.reset( dynamic_cast<Histogram*>(mapObj) );
-                }
-                return m_histogram->getPath();
-            });
+
+
 
 
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
@@ -246,9 +234,7 @@ void Controller::_initializeSelections(){
 
 
 void Controller::_initializeSelection( std::shared_ptr<Selection> & selection ){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString selectId = objManager->createObject( Selection::CLASS_NAME );
-    CartaObject* selectObj = objManager->getObject( selectId );
+    CartaObject* selectObj = Util::createObject( Selection::CLASS_NAME );
     selection.reset( dynamic_cast<Selection*>(selectObj) );
 }
 

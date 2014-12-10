@@ -18,7 +18,7 @@ namespace Lib
  * @brief The IColormapScalar class
  *
  * This is an interface that plugins have to implement to add a new colormap for
- * scalcar-type pixels.
+ * scalar-type pixels.
  */
 class IColormapScalar
 {

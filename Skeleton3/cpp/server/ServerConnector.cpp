@@ -83,49 +83,32 @@ void ServerConnector::initialize(const InitializeCallback & cb)
     defer( std::bind( cb, m_initialized));
 } // initialize
 
-/*void ServerConnector::setState(const QString &path, const QString &value)
-{
-    Q_ASSERT( m_initialized);
-
-    std::string pwpath = path.toStdString();
-    std::string pwval = value.toStdString();
-    m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
-}*/
-
-void ServerConnector::setState(const QString& path, const QString &value)
+void
+ServerConnector::setState(const QString & path, const QString & value)
 {
     Q_ASSERT( m_initialized);
     std::string pwpath = path.toStdString();
     std::string pwval = value.toStdString();
-    qDebug() << "Server setting state="<<pwpath.c_str();
-    m_stateManager->XmlStateManager().SetValue( pwpath, pwval);
+    m_stateManager-> XmlStateManager().SetValue( pwpath, pwval);
 }
 
-QString ServerConnector::getStateLocation( const QString& saveName ) const {
+// 1.) why is this not a static function?
+// 2.) why is it part of a connector at all?
+QString ServerConnector::getStateLocation( const QString & saveName ) const {
 	//TODO: generalize this.
 	return "/tmp/"+saveName + ".json";
 }
 
-
-
+// Commenting this out because (a) it was not used, (b) it was probably not converting
+// CSI::String to std::string correctly. (Pavol)
+/*
 QString ServerConnector::toQString( const CSI::String source) const {
-	std::string treeValueStr = source.As<std::string>();
-	QString treeValueQ = treeValueStr.c_str();
-	return treeValueQ;
+    std::string treeValueStr = source.As<std::string>();
+    QString treeValueQ = treeValueStr.c_str();
+    return treeValueQ;
 }
+*/
 
-/*QString ServerConnector::getState(const QString &path)
-{
-    Q_ASSERT( m_initialized);
-    qDebug() << "GETSTATE path2="<<path;
-    std::string pwpath = path.toStdString();
-    auto pwval = m_stateManager->XmlStateManager().GetValue( pwpath);
-    if( !pwval.HasValue()) {
-        return QString();
-    }
-    std::string val = pwval.ValueOr( "").As<std::string>();
-    return val.c_str();
-}*/
 
 QString ServerConnector::getState(const QString& path)
 {
@@ -145,11 +128,10 @@ QString ServerConnector::getState(const QString& path)
     return val;
 }
 
-
 IConnector::CallbackID ServerConnector::addCommandCallback(const QString &cmd, const IConnector::CommandCallback &cb)
 {
     m_commandCallbackMap[cmd].push_back( cb);
-    return m_callbackNextId++;
+    return m_callbackNextId ++;
 }
 
 void ServerConnector::OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer &, CSI::EmptyEventArgs &)
@@ -160,18 +142,21 @@ void ServerConnector::OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer
 
 void ServerConnector::genericCommandListener(CSI::Guid sessionid, const CSI::Typeless &command, CSI::Typeless &responses)
 {
-    std::string cmd = command["cmd"].As<std::string>();
-    std::string params = command["params"].As<std::string>();
+    QString cmd = command["cmd"].ValueOr("").ToAscii().begin();
+    QString params = command["params"].ValueOr("").ToAscii().begin();
+    QString sid = sessionid.ToString().ToAscii().begin();
 
-
-    auto & allCallbacks = m_commandCallbackMap[ cmd.c_str()];
+    auto & allCallbacks = m_commandCallbackMap[ cmd];
     QStringList results;
     for( auto & cb : allCallbacks) {
-        QString p1 = cmd.c_str();
-        QString p2 = params.c_str();
-        QString p3 = sessionid.ToString().As<std::string>().c_str();
-        results += cb( p1, p2, p3);
+        results += cb( cmd, params, sid);
     }
+
+    // \todo do we want to allow more than one command listener? If we do, do we want to
+    // concatenate the results like this? Or do we want to pass to the callbacks the current
+    // value of the result and let it decide whether to append to it or overwrite it, or
+    // whatever else it might want to do with it? In that case do we care about the order
+    // of the callbacks, i.e. would we want to be able to control it with some priority system?
     responses["result"] = results.join("|").toStdString();
 }
 
@@ -200,10 +185,6 @@ const std::map<QString, QString> & ServerConnector::urlParams()
     return m_urlParams;
 }
 
-// this is getting called directly by PureWeb, which means it could potentially
-// be called inside SetValue()... which is not what we want. So instead we do
-// the real work inside the delayed version (below), which we invoke by sending
-// ourselves a signal connected via queued connection...
 void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &val)
 {
 
@@ -214,27 +195,22 @@ void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &va
         newVal = val.NewValue().Value().ToAscii().begin();
     }
 
-    // BAD:::!!!
+    // Note: DON'T DO THIS:
     //    QString path = val.Path().As< QString >();
-    //    QString newVal = val.NewValue().As< QString >();
+    // As it would use ostream operator << overloading, breaking at spaces...
 
-    /*qDebug() << "internalValueChangedCB\n"
-             << "  path = " << path << "\n"
-             << "  newValue = " << newVal << "\n";
-*/
+    // Pureweb could be calling this method directly from inside SetValue()...
+    // which is not what we want. So instead we do the real work using defer()
     defer( [ path, newVal, this ] () {
         auto & callbacks = m_stateCallbackList[ path];
         for( auto & cb : callbacks) {
             cb( path, newVal);
         }
-
     });
-
-
-    // invoke the delayed version asap
-//    emit delayedInternalValueChangedSignal( val);
 }
 
+/// internal class used by ServerConnector to bridge between PureWeb's view and Carta's
+/// connector view
 class PWIViewConverter : public CSI::PureWeb::Server::IRenderedView
 {
 public:

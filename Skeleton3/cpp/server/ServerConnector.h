@@ -147,7 +147,7 @@ protected:
 private:
 
     void print( CSI::Typeless treeRoot ) const;
-    QString toQString( const CSI::String source) const;
+//    QString toQString( const CSI::String source) const;
 };
 
 #endif // SERVERCONNECTOR_H

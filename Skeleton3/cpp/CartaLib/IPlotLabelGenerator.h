@@ -61,4 +61,6 @@ public:
     /// set text output mode
     virtual This & setTextMode( const TextFormat & format) = 0;
 
+    virtual ~ PlotLabelGeneratorInterface();
+
 };

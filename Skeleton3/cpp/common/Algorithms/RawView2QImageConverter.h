@@ -7,7 +7,7 @@
 
 #include "CartaLib/IColormapScalar.h"
 #include "CartaLib/IImage.h"
-#include "GrayColormap.h"
+#include "common/GrayColormap.h"
 #include <QImage>
 #include <QCache>
 

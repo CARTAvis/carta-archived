@@ -6,18 +6,19 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.DisplayWindow", {
-    extend : qx.ui.window.Window,
+qx.Class.define("skel.widgets.Window.DisplayWindow", {
+    extend : skel.widgets.Window.MoveResizeWindow,
+  
     /**
      * Constructor.
      * 
      * @param pluginId {String} the name of the plugin that will be displayed.
      * @param row {Number} a row in the screen grid.
-     * @param col {Number} a column in the screeen grid.
+     * @param col {Number} a column in the screen grid.
      * @param index {Number} an identification index for the case where we have more than one window for a given pluginId;
      */
-    construct : function(pluginId, row, col, index ) {
-        this.base(arguments);
+    construct : function(pluginId, row, col, index, detached ) {
+        this.base(arguments, detached );
         this.m_pluginId = pluginId;
         
         this.m_row = row;
@@ -25,6 +26,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         var pathDict = skel.widgets.Path.getInstance();
         
         this._init();
+        
         this._initContextMenu();
         
         if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
@@ -34,15 +36,18 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         //Get the shared variable that indicates the plugins that have been loaded so
         //we can display the view options in the context menu.
         this.m_connector = mImport("connector");
-        var paramMap = "pluginId:" + pathDict.PLUGINS +",index:0"
+        
+        var paramMap = "pluginId:" + pathDict.PLUGINS +",index:0";
         var regViewCmd = pathDict.getCommandRegisterView();
         this.m_connector.sendCommand( regViewCmd, paramMap, this._viewPluginsCB( this ) );
-        
         if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
-            this.initID( index );
+            var regNeeded = skel.widgets.Window.WindowFactory.isRegistrationNeeded( this.m_pluginId );
+            if ( regNeeded ){
+                this.initID( index );
+            }
             var id = this.addListener("appear", function() {
                 var container = this.getContentElement().getDomElement();
-                if ( this.m_identifier !=""){
+                if ( this.m_identifier !==""){
                     container.id = this.m_identifier;
                 }
                 else {
@@ -98,7 +103,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             var basePath = pathDict.LAYOUT_PLUGIN;
             var pluginPath = basePath + pathDict.SEP + this.m_identifier;
             var pluginName = this.m_connector.getSharedVar( pluginPath).get();
-            pluginName.set( skel.widgets.DisplayWindow.EXCLUDED );
+            pluginName.set( skel.widgets.Window.DisplayWindow.EXCLUDED );
         },
 
         /**
@@ -135,7 +140,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          *                can emanate frome it.
          */
         getLinkInfo : function(pluginId, sourceWinId) {
-            var linkInfo = new skel.widgets.LinkInfo();
+            var linkInfo = new skel.widgets.Link.LinkInfo();
             if (this.m_identifier == sourceWinId) {
                 linkInfo.source = true;
             }
@@ -181,22 +186,17 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * Initialize the GUI properties of this window.
          */
         _init : function() {
-            // Make the window decorations invisible.
-//            this.getChildControl("captionbar").setVisibility("excluded");
             this.setShowMinimize(false);
             this.setShowMaximize(false);
             this.setShowClose(false);
             this.setUseResizeFrame(false);
             this.setContentPadding(0, 0, 0, 0);
-//            this.setAllowGrowX(true);
-//            this.setAllowGrowY(true);
-//            this.setAllowShrinkX(true);
-//            this.setAllowShrinkY(true);
+
             this.setAllowStretchX(true);
             this.setAllowStretchY(true);
             this.setMovable(false);
             this.maximize();
-            this.setCaption( "win"+Math.random());
+            //this.setCaption( "win"+Math.random());
 
             this.setLayout(new qx.ui.layout.VBox(0));
             this.m_scrollArea = new qx.ui.container.Scroll();
@@ -207,7 +207,8 @@ qx.Class.define("skel.widgets.DisplayWindow", {
             this.add(this.m_scrollArea, {
                 flex : 1
             });
-            this.m_contextMenu = new qx.ui.menu.Menu;
+            this.m_contextMenu = new qx.ui.menu.Menu();
+            this.m_contextMenu.addListener( "appear", this._contextMenuEvent, this);
 
             this.addListener("mousedown", function(ev) {
                 this.setSelected(true, ev.isCtrlPressed());
@@ -218,28 +219,27 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * Initializes a generic window context menu.
          */
         _initContextMenu : function() {
-            this.m_linkButton = new qx.ui.menu.Button("Links");
-            this.m_linkButton.addListener("execute", function() {
-                if ( this.m_identifier ){
-                    var linkData = {
-                            "plugin" : this.m_pluginId,
-                            "window" : this.m_identifier
+            if ( ! this.isDetached() ){
+                this.m_linkButton = new qx.ui.menu.Button("Links");
+                this.m_linkButton.addListener("execute", function() {
+                    if ( this.m_identifier ){
+                        var linkData = {
+                                "plugin" : this.m_pluginId,
+                                "window" : this.m_identifier
+                        };
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                            "showLinks", linkData));
                     }
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "showLinks", linkData));
-                }
-            }, this);
-            this.m_contextMenu.add(this.m_linkButton);
-           
-            this.m_windwMenu = this._initWindowMenu();
-            var windowButton = new qx.ui.menu.Button("Window");
-            windowButton.setMenu(this.m_windowMenu);
-            this.m_contextMenu.add(windowButton);
-            
-            this.m_pluginButton = new qx.ui.menu.Button("View");
-            this.m_contextMenu.add(this.m_pluginButton);
-            //this._initViewMenuContext();
-            
+                }, this);
+                this.m_contextMenu.add(this.m_linkButton);
+               
+                this.m_windowMenu = this._initWindowMenu();
+                var windowButton = new qx.ui.menu.Button("Window");
+                windowButton.setMenu(this.m_windowMenu);
+                this.m_contextMenu.add(windowButton);
+                this.m_pluginButton = new qx.ui.menu.Button( "View");
+                this.m_contextMenu.add(this.m_pluginButton);
+            }
             this.setContextMenu(this.m_contextMenu);
         },
 
@@ -292,27 +292,36 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * available.
          */
         _initViewMenu : function() {
-            var pluginMenu = new qx.ui.menu.Menu;
+            var pluginMenu = new qx.ui.menu.Menu();
             var val = this.m_sharedVarPlugin.get();
-            var plugins = JSON.parse( val );
-            for (var i = 0; i < plugins.pluginCount; i++) {
-                var name = plugins.pluginList[i].name;
-                var errors = plugins.pluginList[i].loadErrors;
-                var loaded = (errors === "");
-                if ( loaded ){
-                    var nameButton = new qx.ui.menu.Button(name);
-                    nameButton.row = this.m_row;
-                    nameButton.col = this.m_col;
-                    nameButton.addListener("execute", function() {
+            if ( val ){
+                try {
+                    var plugins = JSON.parse( val );
+                    var buttonFunction = function( ){
                         var pluginName = this.getLabel();
                         var data = {
                             row : this.row,
                             col : this.col,
                             plugin : pluginName
-                        }
+                        };
                         qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
-                    }, nameButton);
-                    pluginMenu.add(nameButton);
+                    };
+                    
+                    for (var i = 0; i < plugins.pluginCount; i++) {
+                        var name = plugins.pluginList[i].name;
+                        var errors = plugins.pluginList[i].loadErrors;
+                        var loaded = (errors === "");
+                        if ( loaded ){
+                            var nameButton = new qx.ui.menu.Button(name);
+                            nameButton.row = this.m_row;
+                            nameButton.col = this.m_col;
+                            nameButton.addListener("execute", buttonFunction, nameButton);
+                            pluginMenu.add(nameButton);
+                        }
+                    }
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
                 }
             }
             return pluginMenu;
@@ -323,33 +332,37 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          * this window.
          */
         _initViewMenuContext : function() {
-            var pluginMenu = this._initViewMenu();
-            this.m_pluginButton.setMenu(pluginMenu);
+            if ( ! this.isDetached() ){
+                var pluginMenu = this._initViewMenu();
+                this.m_pluginButton.setMenu(pluginMenu);
+            }
         },
         /**
          * Initialize standard window menu items.
          */
         _initWindowMenu : function() {
-            this.m_windowMenu = new qx.ui.menu.Menu;
-            this.m_minimizeButton = new qx.ui.menu.Button("Minimize");
-            this.m_minimizeButton.addListener("execute", function() {
-                this.hide();
-            }, this);
-            this.m_maximizeButton = new qx.ui.menu.Button("Maximize");
-            this.m_maximizeButton.addListener("execute", function() {
-                this._maximize();
-            }, this);
-            this.m_restoreButton = new qx.ui.menu.Button("Restore");
-            this.m_restoreButton.addListener("execute", function() {
-                this._restore();
-            }, this);
-            this.m_closeButton = new qx.ui.menu.Button("Close");
-            this.m_closeButton.addListener("execute", function() {
-                this._close();
-            }, this);
-            this.m_windowMenu.add(this.m_maximizeButton);
-            this.m_windowMenu.add(this.m_minimizeButton);
-            this.m_windowMenu.add(this.m_closeButton);
+            if ( ! this.isDetached() ){
+                this.m_windowMenu = new qx.ui.menu.Menu();
+                this.m_minimizeButton = new qx.ui.menu.Button("Minimize");
+                this.m_minimizeButton.addListener("execute", function() {
+                    this.hide();
+                }, this);
+                this.m_maximizeButton = new qx.ui.menu.Button("Maximize");
+                this.m_maximizeButton.addListener("execute", function() {
+                    this._maximize();
+                }, this);
+                this.m_restoreButton = new qx.ui.menu.Button("Restore");
+                this.m_restoreButton.addListener("execute", function() {
+                    this._restore();
+                }, this);
+                this.m_closeButton = new qx.ui.menu.Button("Close");
+                this.m_closeButton.addListener("execute", function() {
+                    this._close();
+                }, this);
+                this.m_windowMenu.add(this.m_maximizeButton);
+                this.m_windowMenu.add(this.m_minimizeButton);
+                this.m_windowMenu.add(this.m_closeButton);
+            }
             return this.m_windowMenu;
         },
 
@@ -372,6 +385,8 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         isClosed : function() {
             return this.m_closed;
         },
+        
+
 
 
 
@@ -413,7 +428,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                         anObject.windowIdInitialized();
                     }
                 }
-            }
+            };
         },
         
         /**
@@ -440,16 +455,21 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         _sharedVarCB : function( ){
             var val = this.m_sharedVar.get();
             if ( val ){
-                var winObj = JSON.parse( this.m_sharedVar.get() );
-                //Update the links for this window if they exist.
-                if ( winObj.links && winObj.links.length > 0 ){
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "clearLinks", this.m_identifier));
-                    for ( var i = 0; i < winObj.links.length; i++ ){
-                        var destId = winObj.links[i];
-                        var link = new skel.widgets.Link( this.m_identifier, destId );
-                        qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
+                try {
+                    var winObj = JSON.parse( val );
+                    //Update the links for this window if they exist.
+                    if ( winObj.links && winObj.links.length > 0 ){
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                            "clearLinks", this.m_identifier));
+                        for ( var i = 0; i < winObj.links.length; i++ ){
+                            var destId = winObj.links[i];
+                            var link = new skel.widgets.Link.Link( this.m_identifier, destId );
+                            qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
+                        }
                     }
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
                 }
             }
         },
@@ -471,7 +491,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          */
         setSelected : function(selected, multiple) {
             var console = mImport("console");
-            console.log( "setSelected", selected, this.m_identifier);
             this.setActive( false);
             if( selected) {
                 this.getChildControl("captionbar" ).addState( "winsel");
@@ -485,17 +504,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                     "windowSelected", this));
             }
 
-//            if (selected) {
-//                this.setAppearance("display-window-selected");
-//                this.getChildControl("captionbar" ).setAppearance("winSel");
-//                if (!multiple) {
-//                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-//                            "windowSelected", this));
-//                }
-//            } else {
-//                this.setAppearance("display-window");
-//                this.getChildControl("captionbar" ).setAppearance("winUnSel");
-//            }
         },
 
         /**
@@ -504,11 +512,6 @@ qx.Class.define("skel.widgets.DisplayWindow", {
          */
         setTitle : function(label) {
             this.setCaption( label);
-            if (this.m_title == null) {
-                this.m_title = new skel.boundWidgets.Label(label, "", "");
-                this.m_content.add(this.m_title);
-            }
-            this.m_title.setValue(label);
         },
         
         /**
@@ -520,7 +523,7 @@ qx.Class.define("skel.widgets.DisplayWindow", {
                 anObject.m_sharedVarPlugin = anObject.m_connector.getSharedVar(id);
                 anObject.m_sharedVarPlugin.addCB(anObject._initViewMenuContext.bind(anObject));
                 anObject._initViewMenuContext();
-            }
+            };
         },
         
         /**
@@ -548,19 +551,10 @@ qx.Class.define("skel.widgets.DisplayWindow", {
         m_sharedVarPlugin : null,
         m_sharedVar : null,
         
+        //Server side object id
         m_identifier : "",
-        //For now a display friendly title.
-        m_title : null,
         m_row : 0,
         m_col : 0
-    },
-
-    properties : {
-//        appearance : {
-//            refine : true,
-//            init : "display-window"
-//        }
-
     }
 
 });

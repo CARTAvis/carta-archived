@@ -30,6 +30,7 @@ HEADERS += \
     ImageView.h \
     Data/Animator.h \
     Data/AnimatorType.h \
+    Data/Clips.h \
     Data/Colormap.h \
     Data/Colormaps.h \
     Data/Controller.h \
@@ -45,7 +46,9 @@ HEADERS += \
     GrayColormap.h \
     ColormapsOptimization.h \
     Data/ViewManager.h \
-    Data/ViewPlugins.h
+    Data/ViewPlugins.h \
+    ColormapsOptimization.h \
+    HackViewer.h
 
 SOURCES += \
     Viewer.cpp \
@@ -64,6 +67,7 @@ SOURCES += \
     ImageView.cpp \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \
+    Data/Clips.cpp \
     Data/Colormap.cpp \
     Data/Colormaps.cpp \
     Data/Controller.cpp \
@@ -79,7 +83,8 @@ SOURCES += \
     Data/ViewPlugins.cpp \
     ScriptedCommandListener.cpp \
     GrayColormap.cpp \
-    ColormapsOptimization.cpp
+    ColormapsOptimization.cpp \
+    HackViewer.cpp
 
 
 #message( "common            PWD=$$PWD")

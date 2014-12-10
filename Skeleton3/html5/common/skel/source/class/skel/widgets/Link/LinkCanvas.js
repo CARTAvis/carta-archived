@@ -4,7 +4,7 @@
 
 qx.Class
         .define(
-                "skel.widgets.LinkCanvas",
+                "skel.widgets.Link.LinkCanvas",
                 {
                     extend : qx.ui.embed.Canvas,
 
@@ -61,17 +61,17 @@ qx.Class
                          *                rendering ctx to draw to
                          */
                         _draw : function(width, height, ctx) {
-                            if (this.m_sourceLink != null) {
+                            if (this.m_sourceLink !== null) {
                                 this.base(arguments);
 
                                 ctx.clearRect(0, 0, width, height);
 
                                 ctx.lineWidth = this.m_LINE_WIDTH;
-                                ctx.strokeStyle = skel.theme.Color.colors["blank"];
+                                ctx.strokeStyle = skel.theme.Color.colors.blank;
                                 this._drawPart(ctx);
 
                                 ctx.lineWidth = this.m_LINE_WIDTH_CORE;
-                                ctx.strokeStyle = skel.theme.Color.colors["text"];
+                                ctx.strokeStyle = skel.theme.Color.colors.text;
                                 this._drawPart(ctx);
 
                             }
@@ -82,15 +82,10 @@ qx.Class
                             for (var i = 0; i < this.m_destLinks.length; i++) {
                                 this._drawMark(this.m_destLinks[i], ctx);
                                 if (this.m_destLinks[i].linked) {
-                                    this._drawConnector(
-                                            this.m_sourceLink.locationX
-                                                    - this.m_left,
-                                            this.m_sourceLink.locationY
-                                                    - this.m_top,
-                                            this.m_destLinks[i].locationX
-                                                    - this.m_left,
-                                            this.m_destLinks[i].locationY
-                                                    - this.m_top,
+                                    this._drawConnector( this.m_sourceLink.locationX - this.m_left,
+                                            this.m_sourceLink.locationY - this.m_top,
+                                            this.m_destLinks[i].locationX - this.m_left,
+                                            this.m_destLinks[i].locationY - this.m_top,
                                             this.m_destLinks[i].twoWay, ctx);
                                 }
                             }
@@ -100,8 +95,7 @@ qx.Class
                         _getArrowEnd : function(x0, y0, x1, y1, reverse) {
                             var xDiff = x1 - x0;
                             var yDiff = y1 - y0;
-                            var distance = Math.sqrt(Math.pow(xDiff, 2)
-                                    + Math.pow(yDiff, 2));
+                            var distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
                             var ANGLE = 30 * Math.PI / 180;
                             var cosAngle = Math.cos(ANGLE);
                             var sinAngle = Math.sin(ANGLE);
@@ -111,16 +105,12 @@ qx.Class
                                 multiplier = -1;
                             }
                             var scaling = ARROW_LENGTH / distance;
-                            var xEnd = x1
-                                    - (xDiff * cosAngle - yDiff * sinAngle
-                                            * multiplier) * scaling;
-                            var yEnd = y1
-                                    - (yDiff * cosAngle + xDiff * sinAngle
-                                            * multiplier) * scaling;
+                            var xEnd = x1 - (xDiff * cosAngle - yDiff * sinAngle * multiplier) * scaling;
+                            var yEnd = y1 - (yDiff * cosAngle + xDiff * sinAngle * multiplier) * scaling;
                             return {
                                 x : xEnd,
                                 y : yEnd
-                            }
+                            };
                         },
 
                         /**
@@ -191,25 +181,22 @@ qx.Class
                         _drawMark : function(linkInfo, ctx) {
 
                             // Outer border
-                            ctx.fillStyle = skel.theme.Color.colors["blank"];
+                            ctx.fillStyle = skel.theme.Color.colors.blank;
                             this._drawMarkPart(linkInfo, ctx, this.m_DIAGONAL);
 
                             // Inner mark.
                             if (linkInfo.source) {
-                                ctx.fillStyle = skel.theme.Color.colors["selection"];
+                                ctx.fillStyle = skel.theme.Color.colors.selection;
                             } else {
-                                ctx.fillStyle = skel.theme.Color.colors["text"];
+                                ctx.fillStyle = skel.theme.Color.colors.text;
                             }
-                            this._drawMarkPart(linkInfo, ctx,
-                                    this.m_DIAGONAL_CORE);
+                            this._drawMarkPart(linkInfo, ctx, this.m_DIAGONAL_CORE);
                         },
 
                         _drawMarkPart : function(linkInfo, ctx, diagonal) {
                             ctx.beginPath();
-                            var centerX = Math.round(linkInfo.locationX
-                                    - this.m_left /*- diagonal / 2 */);
-                            var centerY = Math.round(linkInfo.locationY
-                                    - this.m_top /*- diagonal / 2 */);
+                            var centerX = Math.round(linkInfo.locationX - this.m_left /*- diagonal / 2 */);
+                            var centerY = Math.round(linkInfo.locationY - this.m_top /*- diagonal / 2 */);
                             ctx.arc(centerX, centerY, diagonal, 0, Math.PI * 2);
                             ctx.fill();
                             ctx.restore();
@@ -226,9 +213,7 @@ qx.Class
                          */
 
                         _drawNewLink : function(ctx) {
-                            if (this.m_linkStart != null
-                                    && this.m_linkEnd != null) {
-
+                            if (this.m_linkStart !== null && this.m_linkEnd !== null) {
                                 this._drawLine(this.m_linkStart.x,
                                         this.m_linkStart.y, this.m_linkEnd.x,
                                         this.m_linkEnd.y, ctx);
@@ -281,21 +266,14 @@ qx.Class
                         _matchesLine : function(pt) {
                             var matchingDestination = null;
                             for (var i = 0; i < this.m_destLinks.length; i++) {
-                                var xDiff = this.m_sourceLink.locationX
-                                        - this.m_destLinks[i].locationX;
+                                var xDiff = this.m_sourceLink.locationX - this.m_destLinks[i].locationX;
                                 var distance = this.m_ERROR_MARGIN;
-                                if (xDiff != 0) {
-                                    var slope = (this.m_sourceLink.locationY - this.m_destLinks[i].locationY)
-                                            / xDiff;
-                                    var yIntercept = (this.m_sourceLink.locationY - this.m_top)
-                                            - slope
-                                            * (this.m_sourceLink.locationX - this.m_left);
-                                    distance = Math.abs(pt.y - slope * pt.x
-                                            - yIntercept)
-                                            / Math.sqrt(slope * slope + 1);
+                                if (xDiff !== 0) {
+                                    var slope = (this.m_sourceLink.locationY - this.m_destLinks[i].locationY) / xDiff;
+                                    var yIntercept = (this.m_sourceLink.locationY - this.m_top) - slope * (this.m_sourceLink.locationX - this.m_left);
+                                    distance = Math.abs(pt.y - slope * pt.x - yIntercept) / Math.sqrt(slope * slope + 1);
                                 } else {
-                                    distance = Math.abs(pt.x
-                                            - this.m_sourceLink.locationX);
+                                    distance = Math.abs(pt.x - this.m_sourceLink.locationX);
                                 }
 
                                 if (distance < this.m_ERROR_MARGIN) {
@@ -307,16 +285,14 @@ qx.Class
                                     var maxX = Math.min(
                                             this.m_sourceLink.locationX,
                                             this.m_destLinks[i].locationX);
-                                    if (minX == maxX
-                                            || (minX <= pt.x && pt.x <= maxX)) {
+                                    if (minX == maxX || (minX <= pt.x && pt.x <= maxX)) {
                                         var minY = Math.min(
                                                 this.m_sourceLink.locationY,
                                                 this.m_destLinks[i].locationY);
                                         var maxY = Math.min(
                                                 this.m_sourceLink.locationY,
                                                 this.m_destLinks[i].locationY);
-                                        if (minY == maxY
-                                                || (minY <= pt.y && pt.y <= maxY)) {
+                                        if (minY == maxY || (minY <= pt.y && pt.y <= maxY)) {
                                             matchingDestination = this.m_destLinks[i];
                                             break;
                                         }
@@ -339,12 +315,9 @@ qx.Class
                          */
                         _matchesPoint : function(pt, link) {
                             var linkMatch = false;
-                            var xDistance = Math.abs(pt.x - link.locationX
-                                    + this.m_left);
-                            var yDistance = Math.abs(pt.y - link.locationY
-                                    + this.m_top);
-                            if (xDistance < this.m_ERROR_MARGIN
-                                    && yDistance < this.m_ERROR_MARGIN) {
+                            var xDistance = Math.abs(pt.x - link.locationX + this.m_left);
+                            var yDistance = Math.abs(pt.y - link.locationY + this.m_top);
+                            if (xDistance < this.m_ERROR_MARGIN && yDistance < this.m_ERROR_MARGIN) {
                                 linkMatch = true;
                             }
                             return linkMatch;
@@ -357,30 +330,29 @@ qx.Class
                         _mouseDownCB : function(ev) {
                             if (this.m_touchDevice)
                                 return;
+                            var pt;
                             //Start drawing a new connecting link
                             if (ev.getButton() === "left") {
 
-                                var pt = skel.widgets.Util.localPos(ev);
+                                pt = skel.widgets.Util.localPos(this, ev);
                                 var sourceMatch = this._matchesPoint(pt,
                                         this.m_sourceLink);
                                 if (sourceMatch) {
                                     this.capture();
                                     this.m_linkStart = {
-                                        x : this.m_sourceLink.locationX
-                                                - this.m_left,
-                                        y : this.m_sourceLink.locationY
-                                                - this.m_top
-                                    }
+                                        x : this.m_sourceLink.locationX - this.m_left,
+                                        y : this.m_sourceLink.locationY - this.m_top
+                                    };
                                     this.update();
                                 }
                             }
                             //Show the context menu if the point is "close to" a line connector.
                             else if (ev.getButton() == "right") {
-                                var pt = skel.widgets.Util.localPos(ev);
+                                pt = skel.widgets.Util.localPos(this, ev);
                                 var lineMatch = this._matchesLine(pt);
-                                if (lineMatch != null) {
-                                    if (this.m_contextMenu == null) {
-                                        this.m_contextMenu = new qx.ui.menu.Menu;
+                                if (lineMatch !== null) {
+                                    if (this.m_contextMenu === null) {
+                                        this.m_contextMenu = new qx.ui.menu.Menu();
                                         var removeLinkButton = new qx.ui.menu.Button(
                                                 "Remove Link");
                                         removeLinkButton
@@ -397,11 +369,10 @@ qx.Class
                                         this.m_contextMenu.add(removeLinkButton);
 
                                         var editLinkButton = new qx.ui.menu.Button("Edit Link...");
-                                        editLinkButton
-                                                .addListener("execute",
+                                        editLinkButton.addListener("execute",
                                                         function() {
-                                                            if (this.m_linkDialog == null) {
-                                                                this.m_linkDialog = new skel.widgets.LinkDialog();
+                                                            if (this.m_linkDialog === null) {
+                                                                this.m_linkDialog = new skel.widgets.Link.LinkDialog();
                                                             }
                                                             this.m_linkDialog.placeToPoint(
                                                                             {
@@ -430,8 +401,8 @@ qx.Class
                             if (this.m_touchDevice)
                                 return;
                             if (ev.getButton() === "left") {
-                                if (this.m_linkStart != null) {
-                                    var pt = skel.widgets.Util.localPos(ev);
+                                if (this.m_linkStart !== null) {
+                                    var pt = skel.widgets.Util.localPos(this, ev);
                                     this.m_linkEnd = pt;
                                     this.update();
                                 }
@@ -447,11 +418,11 @@ qx.Class
                                 return;
                             if (ev.getButton() === "left") {
                                 this.releaseCapture();
-                                var pt = skel.widgets.Util.localPos(ev);
+                                var pt = skel.widgets.Util.localPos(this, ev);
                                 //If we are close to a destination link, then add the link.
                                 var matchingLink = this
                                         ._getDestinationMatch(pt);
-                                if (matchingLink != null) {
+                                if (matchingLink !== null) {
                                     if (!matchingLink.linked) {
                                         var sourceId = this.m_sourceLink.winId;
                                         var destId = matchingLink.winId;

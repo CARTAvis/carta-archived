@@ -10,7 +10,7 @@
 
  ************************************************************************ */
 
-qx.Class.define("skel.widgets.MenuBarPartContainer", {
+qx.Class.define("skel.widgets.Menu.MenuBarPartContainer", {
     extend : qx.ui.toolbar.PartContainer,
 
     /**
@@ -27,9 +27,9 @@ qx.Class.define("skel.widgets.MenuBarPartContainer", {
          */
         setLayoutHorizontal : function(horizontal) {
             if (horizontal) {
-                this._setLayout(new qx.ui.layout.HBox);
+                this._setLayout(new qx.ui.layout.HBox());
             } else {
-                this._setLayout(new qx.ui.layout.VBox);
+                this._setLayout(new qx.ui.layout.VBox());
             }
         }
 

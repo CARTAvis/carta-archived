@@ -8,10 +8,10 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.StatusBar", {
+qx.Class.define("skel.widgets.Menu.StatusBar", {
     extend : qx.ui.core.Widget,
-    implement : skel.widgets.IHidable,
-    include : skel.widgets.MShowHideMixin,
+    implement : skel.widgets.Menu.IHidable,
+    include : skel.widgets.Menu.MShowHideMixin,
 
     construct : function() {
         this.base(arguments);
@@ -82,11 +82,10 @@ qx.Class.define("skel.widgets.StatusBar", {
          * Removes the button representing an iconfied window from the status
          * bar.
          * 
-         * @param removeButton
-         *                {qx.ui.toolbar.MenuButton} the button to remove.
+         * @param removeButton {qx.ui.toolbar.MenuButton} the button to remove.
          */
         _removeIconifiedWindow : function(removeButton) {
-            if (removeButton != null) {
+            if (removeButton !== null) {
                 this.m_iconifiedWindows.remove(removeButton);
             }
         },
@@ -104,13 +103,12 @@ qx.Class.define("skel.widgets.StatusBar", {
          */
         addIconifiedWindow : function(ev, restoreListener) {
             var data = ev.getData();
-            var menuButton = new qx.ui.toolbar.MenuButton("Restore: "
-                    + data["title"]);
+            var menuButton = new qx.ui.toolbar.MenuButton("Restore: " + data.title);
             menuButton.setAlignX("right");
             menuButton.setShowArrow(false);
             this.m_iconifiedWindows.add(menuButton);
             menuButton.addListener("execute", function() {
-                restoreListener.restoreWindow(data['row'], data['col']);
+                restoreListener.restoreWindow(data.row, data.col);
             }, restoreListener);
             menuButton.addListener("execute", function() {
                 this._removeIconifiedWindow(menuButton);
@@ -144,11 +142,13 @@ qx.Class.define("skel.widgets.StatusBar", {
         },
 
         animateSize : function(percent, show) {
+            var newSize;
             if (show) {
-                var newSize = Math.round(percent * this.m_animationSize);
+                newSize = Math.round(percent * this.m_animationSize);
                 this.setHeight(newSize);
-            } else {
-                var newSize = Math.round((1 - percent) * this.m_animationSize);
+            } 
+            else {
+                newSize = Math.round((1 - percent) * this.m_animationSize);
                 this.setHeight(newSize);
             }
         },
@@ -191,7 +191,7 @@ qx.Class.define("skel.widgets.StatusBar", {
         },
 
         _shareSessionCB : function(url, error) {
-            if (url != null) {
+            if (url !== null) {
                 this.setSharedUrl(url);
             } else if (error) {
                 this.showError(error);
@@ -207,7 +207,7 @@ qx.Class.define("skel.widgets.StatusBar", {
             var statusCopy = this;
             if (sessionShared) {
                 con.shareSession(function(url, error) {
-                    statusCopy._shareSessionCB(url, error)
+                    statusCopy._shareSessionCB(url, error);
                 }, "a", null, 60 * 60 * 1000000000);
             } else {
                 con.unShareSession(function(error) {

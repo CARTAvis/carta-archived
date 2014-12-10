@@ -8,12 +8,13 @@ qx.Class.define("skel.widgets.Path", {
 
     construct : function() {
         this.BASE_PATH = this.SEP + this.CARTA + this.SEP;
+        this.CLIPS = this.BASE_PATH + "Clips";
+        this.COLORMAPS = this.BASE_PATH + "Colormaps";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
-        this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP,
-                this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y"
-                        + this.SEP
+        this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
+        this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.REGION = this.BASE_PATH + "region" + this.SEP;
         this.ZOOM = this.BASE_PATH + "zoom" + this.SEP;
     },
@@ -24,10 +25,13 @@ qx.Class.define("skel.widgets.Path", {
         CARTA : "CartaObjects",
         CASA_LOADER : "CasaImageLoader",
         CLIP_VALUE : "setClipValue",
-        COLORMAP : "Colormap",
+        CLIPS : "",
+        COLORMAP_PLUGIN : "Colormap",
+        COLORMAPS : "",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         HIDDEN : "Hidden",
+        HISTOGRAM_PLUGIN : "Histogram",
         LAYOUT : "",
         LAYOUT_MANAGER : "Layout",
         LAYOUT_PLUGIN : "",
@@ -41,6 +45,8 @@ qx.Class.define("skel.widgets.Path", {
         ZOOM : "",
         VIEW : "view",
         VIEW_MANAGER : "ViewManager",
+        
+       
         
         getCommandRegisterShape : function(winId){
             return winId + this.SEP_COMMAND +"registerShape";
@@ -56,6 +62,8 @@ qx.Class.define("skel.widgets.Path", {
             return this.BASE_PATH + this.DATA_LOADER + this.SEP_COMMAND + "getData";
         },
             
+
+        
         getCommandDataLoaded : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "dataLoaded";
         },

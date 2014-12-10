@@ -10,7 +10,7 @@
 
  ************************************************************************ */
 
-qx.Class.define("skel.widgets.MenuBarPart", {
+qx.Class.define("skel.widgets.Menu.MenuBarPart", {
     extend : qx.ui.toolbar.Part,
 
     /**
@@ -28,11 +28,11 @@ qx.Class.define("skel.widgets.MenuBarPart", {
         setLayoutHorizontal : function(horizontal) {
             this.m_horizontal = horizontal;
             if (horizontal) {
-                this._setLayout(new qx.ui.layout.HBox);
+                this._setLayout(new qx.ui.layout.HBox());
             } else {
-                this._setLayout(new qx.ui.layout.VBox);
+                this._setLayout(new qx.ui.layout.VBox());
             }
-            if (this.m_control != null) {
+            if (this.m_control !== null) {
                 this.m_control.setLayoutHorizontal(this.m_horizontal);
             }
         },
@@ -49,7 +49,7 @@ qx.Class.define("skel.widgets.MenuBarPart", {
                 break;
 
             case "container":
-                this.m_control = new skel.widgets.MenuBarPartContainer();
+                this.m_control = new skel.widgets.Menu.MenuBarPartContainer();
                 this.m_control.setLayoutHorizontal(this.m_horizontal);
                 this.m_control.addListener("syncAppearance",
                         this.__onSyncAppearance, this);

@@ -52,7 +52,7 @@ public:
 //        forEachCond( wrapper);
 //    }
 
-    /// for each plugin call it, and then call func() on the result
+    /// for each plugin: call plugin, and then call func() on the result
     void forEach( std::function< void(const typename T::ResultType & )> func) {
         // code reuse by wrapping the supplied function into one that always returns true
         auto wrapper = [=] (const typename T::ResultType & res) -> bool {
@@ -192,7 +192,6 @@ protected:
 template <typename T>
 void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> func)
 {
-    //qDebug() << "forEachCond";
     HookId hookId = T::staticId;
 
     // get the list of plugins that claim they handle this hook

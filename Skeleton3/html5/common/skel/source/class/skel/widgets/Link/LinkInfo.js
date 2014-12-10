@@ -3,7 +3,7 @@
  * window.
  */
 
-qx.Class.define("skel.widgets.LinkInfo", {
+qx.Class.define("skel.widgets.Link.LinkInfo", {
     extend : qx.core.Object,
 
     construct : function() {

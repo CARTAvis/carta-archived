@@ -16,7 +16,7 @@
 
 qx.Class.define( "skel.boundWidgets.Toggle",
     {
-        extend: skel.widgets.FancyToggle,
+        extend: skel.widgets.CustomUI.FancyToggle,
 
         construct: function( label, varPath)
         {

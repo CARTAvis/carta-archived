@@ -11,7 +11,7 @@
 
  ************************************************************************ */
 
-qx.Interface.define("skel.widgets.IHidable", {
+qx.Interface.define("skel.widgets.Menu.IHidable", {
 
     members : {
 

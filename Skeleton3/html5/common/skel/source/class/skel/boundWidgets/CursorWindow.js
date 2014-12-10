@@ -11,8 +11,9 @@
 qx.Class.define( "skel.boundWidgets.CursorWindow", {
     extend: qx.ui.window.Window,
 
-    construct: function() {
+    construct: function( statePrefix) {
         this.base( arguments, "Cursor");
+        this.m_statePrefix = statePrefix;
         this.addListener( "minimize", this._userHidWindow.bind(this));
         this.addListener( "close", this._userHidWindow.bind(this));
 
@@ -57,9 +58,9 @@ qx.Class.define( "skel.boundWidgets.CursorWindow", {
             this.m_sizeSet ++;
 
             var styleMap = this.m_htmlArea.getContentElement().getAllStyles();
-            console.log( "Style map=", styleMap);
+            //console.log( "Style map=", styleMap);
             var size = qx.bom.Label.getHtmlSize( val, styleMap);
-            console.log( "size=", size);
+            //console.log( "size=", size);
             this.m_htmlArea.setWidth( size.width);
             this.m_htmlArea.setHeight( size.height);
 

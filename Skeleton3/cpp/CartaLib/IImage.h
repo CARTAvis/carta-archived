@@ -255,7 +255,7 @@ public:
     virtual QStringList
     otherInfo( TextFormat format = TextFormat::Plain ) = 0;
 
-    /// get information about coordinates
+    virtual ~MetaDataInterface();
 
 };
 

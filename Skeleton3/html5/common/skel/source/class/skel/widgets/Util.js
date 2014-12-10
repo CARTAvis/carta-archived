@@ -2,23 +2,13 @@
  * Utility class for determining the location of widgets.
  */
 
+/* global qx */
+
 qx.Class.define("skel.widgets.Util", {
     type : "static",
     statics : {
         
-        /**
-         * Adds an 'id' attribute to the widget's html div.
-         * @param widget {qx.ui.basic.Widget}
-         * @param testId {String} a unique id for locating the html element.
-         */
-        addTestId : function( widget, testId ){
-            //Testing Id
-            widget.addListener("appear", function() {
-                var container = this.getContentElement().getDomElement();
-                container.id = testId;
-            }, widget );
-        },
-        
+
         /**
          * Returns the 'left' position of the widget.
          * 
@@ -27,22 +17,18 @@ qx.Class.define("skel.widgets.Util", {
          *                determined.
          */
         getLeft : function(widget) {
-            var widgetBounds = widget.getBounds();
-            var widgetLeft = widgetBounds.left;
-            return widgetLeft;
+            return widget.getBounds().left;
         },
 
         /**
          * Returns the 'right' position of the widget.
          * 
-         * @param widget
-         *                {qx.ui.core.Widget} the widget whose position is to be
+         * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
         getRight : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetRight = widgetBounds.left + widgetBounds.width;
-            return widgetRight;
+            return widgetBounds.left + widgetBounds.width;
         },
 
         /**
@@ -53,9 +39,7 @@ qx.Class.define("skel.widgets.Util", {
          *                determined.
          */
         getTop : function(widget) {
-            var widgetBounds = widget.getBounds();
-            var widgetTop = widgetBounds.top;
-            return widgetTop;
+            return widget.getBounds().top;
         },
 
         /**
@@ -67,8 +51,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         getBottom : function(widget) {
             var widgetBounds = widget.getBounds();
-            var widgetBottom = widgetBounds.top + widgetBounds.height;
-            return widgetBottom;
+            return widgetBounds.top + widgetBounds.height;
         },
 
         /**
@@ -100,9 +83,13 @@ qx.Class.define("skel.widgets.Util", {
         /**
          * Returns mouse event's local position (with respect to the event
          * target)
+         *
+         * Fixing getTarget() to getCurrentTarget(), but I am not sure how reliable this is.
+         * I think the right way to do this is to get the "box" of the element on which you
+         * received the event and subract it from the mouse x/y. Or you could pass the
+         * box to this function.
          */
-        localPos : function(event) {
-            var target = event.getTarget();
+        localPos : function( target, event) {
             var box = target.getContentLocation("box");
            
             var left = event.getDocumentLeft();

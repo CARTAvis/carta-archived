@@ -4,7 +4,9 @@
  *
  */
 
-/*global mImport */
+/* global mImport, qx, skel */
+/* jshint strict: false */
+
 /**
  @ignore( mImport)
  ************************************************************************ */
@@ -94,7 +96,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
 
             _keyDownCB: function (event) {
 
-                if( event.getKeyCode() == 32) {
+                if( event.getKeyCode() === 32) {
                     this._emit( "ui.mainWindow.keyDown", {
                         keyCode: event.getKeyCode(),
                         mouseX: this.m_mouse.x,
@@ -138,9 +140,9 @@ qx.Class.define("skel.widgets.Draw.Canvas",
              * Callback for mouse move events.
              */
             _mouseMoveCB: function (event) {
-                if( this.m_touchDevice) return;
+                if( this.m_touchDevice)  { return; }
                 // convert event to local widget coordinates
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
 
                 // if this is not a drag event, just update the mouse location & tell the view
                 if( ! this.m_drawRegion.isMouseDown() ) {
@@ -148,7 +150,11 @@ qx.Class.define("skel.widgets.Draw.Canvas",
                     if ( this.m_view !== null ){
                         event.pageX = pt.x - this.m_offsetX;
                         event.pageY = pt.y + this.m_offsetY;
-                        this.m_view._mouseMoveCB(event);
+                        // generating fake events is not that simple :(
+                        // We could probably fudge it to work with
+                        // desktop connector where we control the sources, but I doubt it would
+                        // be easy to do with pureweb...
+                        //this.m_view._mouseMoveCB(event);
                     }
                 }
                 else {
@@ -165,7 +171,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             _mouseDownCB: function (event) {
                 if( this.m_touchDevice) return;
                 this.capture();
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
                 if( event.getButton() === "left") {
                     this.m_drawRegion._mouseDownCB( pt );
                 }
@@ -178,7 +184,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             _mouseUpCB: function (event) {
                 if( this.m_touchDevice) return;
                 this.releaseCapture();
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
                 if( event.getButton() !== "left") {
                     return;
                 }
@@ -191,7 +197,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             
             _mouseWheelCB: function (event) {
                 if( this.m_touchDevice) return;
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
                 var data = {
                     x: pt.x,
                     y: pt.y,
@@ -232,8 +238,8 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             m_mouse: null,
 
             m_drawModes : {
-            	ZOOM: 0,
-            	SHAPE: 1
+                ZOOM: 0,
+                SHAPE: 1
             },
             m_view : null,
             m_offsetX : 0,

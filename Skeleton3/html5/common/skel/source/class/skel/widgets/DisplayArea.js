@@ -188,10 +188,10 @@ qx.Class
                          * Notifies children that data has been loaded.
                          */
                         dataLoaded : function(path) {
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 this.m_areaFirst.dataLoaded(path);
                             }
-                            if (this.m_areaSecond != null) {
+                            if (this.m_areaSecond !== null) {
                                 this.m_areaSecond.dataLoaded(path);
                             }
                         },
@@ -200,10 +200,10 @@ qx.Class
                          * Notifies children that data has been unloaded.
                          */
                         dataUnloaded : function(path) {
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 this.m_areaFirst.dataUnloaded(path);
                             }
-                            if (this.m_areaSecond != null) {
+                            if (this.m_areaSecond !== null) {
                                 this.m_areaSecond.dataUnloaded(path);
                             }
                         },
@@ -238,29 +238,28 @@ qx.Class
                          */
                         getAddWindowLocations : function() {
                             var locations = [];
-                            if (this.m_pane != null) {
+                            var i = 0;
+                            if (this.m_pane !== null) {
                                 var loc = this._getSplitterLocation();
                                 if (loc.length > 0) {
                                     loc.push(this);
                                     locations.push(loc);
-                                    if (this.m_areaFirst != null) {
+                                    if (this.m_areaFirst !== null) {
                                         var areaFirstLocs = this.m_areaFirst
                                                 .getAddWindowLocations();
-                                        for (var i = 0; i < areaFirstLocs.length; i++) {
+                                        for ( i = 0; i < areaFirstLocs.length; i++) {
                                             locations.push(areaFirstLocs[i]);
                                         }
                                     }
-                                    if (this.m_areaSecond != null) {
-                                        var areaSecondLocs = this.m_areaSecond
-                                                .getAddWindowLocations(locations);
-                                        for (var i = 0; i < areaSecondLocs.length; i++) {
+                                    if (this.m_areaSecond !== null) {
+                                        var areaSecondLocs = this.m_areaSecond.getAddWindowLocations(locations);
+                                        for ( i = 0; i < areaSecondLocs.length; i++) {
                                             var areaLoc = areaSecondLocs[i];
                                             if (this.m_pane.getOrientation() == "horizontal") {
-                                                areaLoc[0] = areaLoc[0]
-                                                        + loc[0];
-                                            } else {
-                                                areaLoc[1] = areaLoc[1]
-                                                        + loc[1];
+                                                areaLoc[0] = areaLoc[0] + loc[0];
+                                            } 
+                                            else {
+                                                areaLoc[1] = areaLoc[1] + loc[1];
                                             }
                                             locations.push(areaLoc);
                                         }
@@ -312,17 +311,16 @@ qx.Class
                          */
                         getLinkInfo : function(pluginId, sourceWinId) {
                             var linkInfo = [];
-                            if (this.m_areaFirst != null) {
-                                var firstInfo = this.m_areaFirst.getLinkInfo(
-                                        pluginId, sourceWinId);
-                                for (var i = 0; i < firstInfo.length; i++) {
+                            var i = 0;
+                            if (this.m_areaFirst !== null) {
+                                var firstInfo = this.m_areaFirst.getLinkInfo( pluginId, sourceWinId);
+                                for ( i = 0; i < firstInfo.length; i++) {
                                     linkInfo.push(firstInfo[i]);
                                 }
                             }
-                            if (this.m_areaSecond != null) {
-                                var secondInfo = this.m_areaSecond.getLinkInfo(
-                                        pluginId, sourceWinId);
-                                for (var i = 0; i < secondInfo.length; i++) {
+                            if (this.m_areaSecond !== null) {
+                                var secondInfo = this.m_areaSecond.getLinkInfo( pluginId, sourceWinId);
+                                for ( i = 0; i < secondInfo.length; i++) {
                                     linkInfo.push(secondInfo[i]);
                                 }
                             }
@@ -348,10 +346,8 @@ qx.Class
                             var splitterWidth = splitterRight - splitterLeft;
                             var splitterHeight = splitterBottom - splitterTop;
                             if (splitterWidth > 0 && splitterHeight > 0) {
-                                var xPos = Math.floor(splitterLeft
-                                        + splitterWidth / 2);
-                                var yPos = Math.floor(splitterTop
-                                        + splitterHeight / 2);
+                                var xPos = Math.floor(splitterLeft + splitterWidth / 2);
+                                var yPos = Math.floor(splitterTop + splitterHeight / 2);
                                 loc = [ xPos, yPos ];
                             }
                             return loc;
@@ -369,9 +365,8 @@ qx.Class
                         getWinId : function(sourceRow, sourceCol) {
                             var winId = this.m_areaFirst.getWinId(sourceRow,
                                     sourceCol);
-                            if (winId.length == 0) {
-                                winId = this.m_areaSecond.getWinId(sourceRow,
-                                        sourceCol);
+                            if (winId.length === 0) {
+                                winId = this.m_areaSecond.getWinId(sourceRow, sourceCol);
                             }
                             return winId;
                         },
@@ -406,7 +401,7 @@ qx.Class
                         _makeArea : function(colWidth, rowHeight, rowIndex,
                                 colIndex, includeView) {
 
-                            var area = new skel.widgets.DisplayDesktop(
+                            var area = new skel.widgets.Window.DisplayDesktop(
                                     rowIndex, colIndex).set({
                                 width : colWidth,
                                 height : rowHeight,
@@ -455,11 +450,9 @@ qx.Class
                          * Returns whether or not the window with the given id
                          * was restored.
                          * 
-                         * @param row
-                         *                {Number} the layout row of the window
+                         * @param row {Number} the layout row of the window
                          *                to be restored.
-                         * @param col
-                         *                {Number} the layout column of the
+                         * @param col {Number} the layout column of the
                          *                window to be restored.
                          */
                         restoreWindow : function(row, col) {
@@ -547,17 +540,11 @@ qx.Class
                                     decreaseWidth, decreaseHeight);
                         },
 
-
-
-
-
-
-
                         setDrawMode : function(drawInfo) {
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 this.m_areaFirst.setDrawMode(drawInfo);
                             }
-                            if (this.m_areaSecond != null) {
+                            if (this.m_areaSecond !== null) {
                                 this.m_areaSecond.setDrawMode(drawInfo);
                             }
                         },
@@ -572,12 +559,12 @@ qx.Class
                          */
                         setView : function(pluginId, index, rowIndex, colIndex) {
                             var pluginAssigned = false;
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 pluginAssigned = this.m_areaFirst.setView(
                                         pluginId, index, rowIndex, colIndex);
                             }
                             if (!pluginAssigned) {
-                                if (this.m_areaSecond != null) {
+                                if (this.m_areaSecond !== null) {
                                     pluginAssigned = this.m_areaSecond.setView(
                                             pluginId, index, rowIndex, colIndex);
                                 }
@@ -593,12 +580,12 @@ qx.Class
                          */
                         setAreaHeight : function(height, rowIndex, colIndex) {
                             var heightSet = false;
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 heightSet = this.m_areaFirst.setAreaHeight(
                                         height, rowIndex, colIndex);
                             }
                             if (!heightSet) {
-                                if (this.m_areaSecond != null) {
+                                if (this.m_areaSecond !== null) {
                                     heightSet = this.m_areaSecond
                                             .setAreaHeight(height, rowIndex,
                                                     colIndex);
@@ -616,12 +603,12 @@ qx.Class
 
                         setAreaWidth : function(width, rowIndex, colIndex) {
                             var widthSet = false;
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 widthSet = this.m_areaFirst.setAreaWidth(width,
                                         rowIndex, colIndex);
                             }
                             if (!widthSet) {
-                                if (this.m_areaSecond != null) {
+                                if (this.m_areaSecond !== null) {
                                     widthSet = this.m_areaSecond.setAreaWidth(
                                             width, rowIndex, colIndex);
                                 }
@@ -634,7 +621,7 @@ qx.Class
                          * Notifies children that the given window was selected.
                          * 
                          * @param win
-                         *                {skel.widgets.DisplayWindow} the
+                         *                {skel.widgets.Window.DisplayWindow} the
                          *                selected window.
                          */
                         windowSelected : function(win) {

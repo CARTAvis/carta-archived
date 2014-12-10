@@ -14,15 +14,7 @@ namespace Lib
 {
 namespace Hooks
 {
-//
-// we leave this undefined... so if a hook forgets to specialize this, we get a nice
-// compiler error. I am kidding about 'nice'.
-//
-//template < typename Hook >
-//struct GetStaticHookId {
-//};
 
-//
 // unique hook IDs
 enum class UniqueHookIDs {
     Initialize_ID,

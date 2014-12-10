@@ -8,10 +8,10 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.MenuBar", {
+qx.Class.define("skel.widgets.Menu.MenuBar", {
     extend : qx.ui.toolbar.ToolBar,
-    implement : skel.widgets.IHidable,
-    include : skel.widgets.MShowHideMixin,
+    implement : skel.widgets.Menu.IHidable,
+    include : skel.widgets.Menu.MShowHideMixin,
 
     /**
      * Constructor.
@@ -20,14 +20,14 @@ qx.Class.define("skel.widgets.MenuBar", {
         this.base(arguments);
         this.m_connector = mImport("connector");
 
-        this.m_menuPart = new skel.widgets.MenuBarPart;
+        this.m_menuPart = new skel.widgets.Menu.MenuBarPart();
         this.add(this.m_menuPart);
         this._initMenu();
         this.addListener("appear", this._setAnimationSize, this);
 
         this.addSpacer();
         
-        this.m_toolPart = new skel.widgets.MenuBarPart;
+        this.m_toolPart = new skel.widgets.Menu.MenuBarPart();
         this.add( this.m_toolPart );
         this._initPresetTools();
         this._initSubscriptions();
@@ -39,8 +39,8 @@ qx.Class.define("skel.widgets.MenuBar", {
         qx.event.message.Bus.subscribe("layoutGrid", function(
                 message) {
             var data = message.getData();
-            this.m_gridRows = data["rows"];
-            this.m_gridCols = data["cols"];
+            this.m_gridRows = data.rows;
+            this.m_gridCols = data.cols;
         }, this);
        
     },
@@ -103,44 +103,40 @@ qx.Class.define("skel.widgets.MenuBar", {
          * and whether the animation is proceeding to show or
          * hide the menu bar.
          * 
-         * @param percent
-         *                {Number} the progress of the
-         *                animation.
-         * @param show
-         *                {Boolean} whether or not the menu bar
-         *                is in the process of being shown.
+         * @param percent {Number} the progress of the animation.
+         * @param show {Boolean} whether or not the menu bar is in the process of being shown.
          */
-
         animateSize : function(percent, show) {
+            var calc = 0;
+            var calcStr = "";
+            var newSize = 0;
             if (show) {
                 if (this.isTop()) {
-                    var calc = Math.round((1 - percent)
-                            * (100 - this.m_animationSize)
-                            + this.m_animationSize);
-                    var calcStr = calc + "%";
+                    calc = Math.round((1 - percent) * (100 - this.m_animationSize) + this.m_animationSize);
+                    calcStr = calc + "%";
                     this.setLayoutProperties({
                         bottom : calcStr
                     });
-                } else {
-                    var newSize = Math.round(percent
-                            * this.m_animationSize);
+                } 
+                else {
+                    newSize = Math.round(percent * this.m_animationSize);
                     this.setWidth(newSize);
                     this.setMinWidth(newSize);
                     this.setMaxWidth(newSize);
                 }
-            } else {
+            } 
+            else {
                 if (this.isTop()) {
                     var leftOverSize = 100 - this.m_animationSize;
-                    var calcNum = percent * leftOverSize
-                            + this.m_animationSize;
-                    var calc = Math.round(calcNum);
-                    var calcStr = calc + "%";
+                    var calcNum = percent * leftOverSize + this.m_animationSize;
+                    calc = Math.round(calcNum);
+                    calcStr = calc + "%";
                     this.setLayoutProperties({
                         bottom : calcStr
                     });
-                } else {
-                    var newSize = Math.round((1 - percent)
-                            * this.m_animationSize);
+                } 
+                else {
+                    newSize = Math.round((1 - percent) * this.m_animationSize);
                     this.setWidth(newSize);
                     this.setMinWidth(newSize);
                     this.setMaxWidth(newSize);
@@ -172,7 +168,7 @@ qx.Class.define("skel.widgets.MenuBar", {
             saveSessionButton.addListener("execute",
                     function() {
                         var connector = mImport("connector");
-                        var path = skel.widgets.Path.getInstance();
+                        var path = skel.widgets.Util.Path.getInstance();
                         var cmd = path.getCommandSaveState();
                         connector.sendCommand( cmd,this.m_SAVE_STATE, function(val) {});
                     });
@@ -181,7 +177,7 @@ qx.Class.define("skel.widgets.MenuBar", {
             restoreSessionButton.addListener("execute",
                     function() {
                         var connector = mImport("connector");
-                        var path = skel.widgets.Path.getInstance();
+                        var path = skel.widgets.Util.Path.getInstance();
                         var cmd = path.getCommandRestoreState();
                         connector.sendCommand( cmd, this.m_SAVE_STATE, function(val) {});
                     });
@@ -270,7 +266,7 @@ qx.Class.define("skel.widgets.MenuBar", {
             var toggle = new skel.boundWidgets.Toggle( "Recompute clips on new frame", "");
             toggle.addListener( "toggleChanged", function(autoClip){
                 this._sendAutoClipCmd( autoClip.getData() );
-            }, this)
+            }, this);
             this.m_toolPart.add( toggle );
             
             // add preset buttons
@@ -348,10 +344,11 @@ qx.Class.define("skel.widgets.MenuBar", {
          */
         _sendClipValueCmd : function ( e, button ){
             var path = skel.widgets.Path.getInstance();
+            var func = function(){};
             for ( var i = 0; i < this.m_activeWindowIds.length; i++ ){
                 var clipValueCmd = this.m_activeWindowIds[i]+ path.SEP_COMMAND + path.CLIP_VALUE;
                 var params = "clipValue:"+e;
-                this.m_connector.sendCommand(clipValueCmd, params, function(){});
+                this.m_connector.sendCommand(clipValueCmd, params, func );
             }
             button.setValue(true);
         },
@@ -362,10 +359,11 @@ qx.Class.define("skel.widgets.MenuBar", {
          */
         _sendAutoClipCmd : function ( autoClip ){
             var path = skel.widgets.Path.getInstance();
+            var func = function(){};
             for ( var i = 0; i < this.m_activeWindowIds.length; i++ ){
                 var autoClipCmd = this.m_activeWindowIds[i]+ path.SEP_COMMAND + path.AUTO_CLIP;
                 var params = "autoClip:"+autoClip;
-                this.m_connector.sendCommand( autoClipCmd, params, function(){});
+                this.m_connector.sendCommand( autoClipCmd, params, func );
             }
         },
 
@@ -374,14 +372,15 @@ qx.Class.define("skel.widgets.MenuBar", {
          * the window that is selected.
          */
         addWindowMenu : function(ev) {
-            if (this.m_windowButtons != null) {
-                for (var i = 0; i < this.m_windowButtons.length; i++) {
+            var i = 0;
+            if (this.m_windowButtons ) {
+                for ( i = 0; i < this.m_windowButtons.length; i++) {
                     this.m_menuPart
                             .remove(this.m_windowButtons[i]);
                 }
             }
             this.m_windowButtons = ev.getData();
-            for (var i = 0; i < this.m_windowButtons.length; i++) {
+            for ( i = 0; i < this.m_windowButtons.length; i++) {
                 this.m_menuPart.add(this.m_windowButtons[i]);
             }
         },
@@ -424,10 +423,9 @@ qx.Class.define("skel.widgets.MenuBar", {
                     this._setAnimationSize, this);
             if (this.isTop()) {
                 var bounds = this.getBounds();
-                var statusHeight = bounds["height"];
-                var appBounds = this.getApplicationRoot()
-                        .getBounds();
-                var appHeight = appBounds["height"];
+                var statusHeight = bounds.height;
+                var appBounds = this.getApplicationRoot().getBounds();
+                var appHeight = appBounds.height;
                 this.m_animationSize = 100 - Math
                         .round(statusHeight / appHeight * 100);
                 this.m_mouseMargin = 40;
@@ -495,25 +493,21 @@ qx.Class.define("skel.widgets.MenuBar", {
          * in the screen grid.
          */
         _showCustomLayoutPopup : function() {
-            if (this.m_layoutCustom == null) {
+            if (this.m_layoutCustom === null) {
                 this.m_layoutCustom = new skel.widgets.CustomLayoutPopup(this.m_gridRows, this.m_gridCols);
-                this.m_layoutCustom
-                        .addListener("rowCount",
+                this.m_layoutCustom.addListener("rowCount",
                                 function(ev) {
                                     var rowCount = ev.getData();
                                     this.fireDataEvent("layoutRowCount",rowCount);
                                 }, this);
-                this.m_layoutCustom
-                        .addListener("colCount",
+                this.m_layoutCustom.addListener("colCount",
                                 function(ev) {
                                     var colCount = ev.getData();
                                     this.fireDataEvent("layoutColCount",colCount);
                                 }, this);
             }
-            var rightButton = skel.widgets.Util
-                    .getRight(this.m_layoutButton);
-            var topButton = skel.widgets.Util
-                    .getTop(this.m_layoutButton);
+            var rightButton = skel.widgets.Util.getRight(this.m_layoutButton);
+            var topButton = skel.widgets.Util.getTop(this.m_layoutButton);
             this.m_layoutCustom.placeToPoint({
                 left : rightButton,
                 top : topButton

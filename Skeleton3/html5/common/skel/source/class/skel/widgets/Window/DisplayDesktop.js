@@ -8,7 +8,7 @@
 
 qx.Class
         .define(
-                "skel.widgets.DisplayDesktop",
+                "skel.widgets.Window.DisplayDesktop",
                 {
                     extend : qx.ui.window.Desktop,
 
@@ -49,7 +49,7 @@ qx.Class
                                         title : this.m_window.getIdentifier()
                                     };
                                     this.fireDataEvent("iconifyWindow", data);
-                                };
+                                }
                             }, this);
 
                             this.m_window.addListener("maximizeWindow",
@@ -107,7 +107,7 @@ qx.Class
                          */
                         getLinkInfo : function(pluginId, sourceWinId) {
                             var linkInfo = [];
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 linkInfo.push(this.m_window.getLinkInfo(
                                         pluginId, sourceWinId));
                             }
@@ -128,9 +128,8 @@ qx.Class
                          */
                         getWinId : function(sourceRow, sourceCol) {
                             var winId = "";
-                            if (this.m_row == sourceRow
-                                    && this.m_col == sourceCol) {
-                                if (this.m_window != null) {
+                            if (this.m_row == sourceRow && this.m_col == sourceCol) {
+                                if (this.m_window !== null) {
                                     winId = this.m_window.getIdentifier();
                                 }
                             }
@@ -155,7 +154,7 @@ qx.Class
                          */
                         changeLink : function(sourceWinId, destWinId, addLink) {
                             var linkSet = false;
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 linkSet = this.m_window.changeLink(sourceWinId,
                                         destWinId, addLink);
                             }
@@ -188,19 +187,8 @@ qx.Class
                          * @param index {Number} an index that will be positive when there is more than one window with the same pluginId.
                          */
                         _makeWindow : function(pluginId, index ) {
-                            var path = skel.widgets.Path.getInstance();
-                            if (pluginId == path.CASA_LOADER) {
-                                this.m_window = new skel.widgets.DisplayWindowImage(
-                                        this.m_row, this.m_col, index);
-                            } 
-                            else if (pluginId == path.ANIMATOR) {
-                                this.m_window = new skel.widgets.DisplayWindowAnimation(
-                                        this.m_row, this.m_col, index );
-                            } 
-                            else {
-                                this.m_window = new skel.widgets.DisplayWindowGenericPlugin(
-                                        this.m_row, this.m_col, pluginId, index);
-                            }
+                            this.m_window = skel.widgets.Window.WindowFactory.makeWindow( pluginId, index, 
+                                    this.m_row, this.m_col, false );
                             this._addWindowListeners();
                         },
 
@@ -241,7 +229,7 @@ qx.Class
                                 return false;
                             }
                             var existingWindow = false;
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 //Not the same plugin so we will remake the window.
                                 if( this.m_window.getPlugin() != pluginId ) {
                                     this.removeWindows();
@@ -256,7 +244,7 @@ qx.Class
                                 this._makeWindow(pluginId, index);
                             }
 
-                            if ( this.m_window != null ){
+                            if ( this.m_window !== null ){
                                 this.add(this.m_window);
                                 this._resetWindowSize();
 
@@ -275,9 +263,9 @@ qx.Class
                          */
                         _resetWindowSize : function() {
                             var bounds = this.getBounds();
-                            if (bounds != null) {
-                                this.m_window.setWidth(bounds["width"]);
-                                this.m_window.setHeight(bounds["height"]);
+                            if (bounds !== null) {
+                                this.m_window.setWidth(bounds.width );
+                                this.m_window.setHeight(bounds.height);
                             }
                         },
 
@@ -294,8 +282,7 @@ qx.Class
                          */
                         restoreWindow : function(row, col) {
                             var restored = false;
-                            if (this.m_window != null && this.m_row == row
-                                    && this.m_col == col) {
+                            if (this.m_window !== null && this.m_row == row && this.m_col == col) {
                                 restored = true;
                                 var appRoot = this.getApplicationRoot();
                                 if (appRoot.indexOf(this.m_window) != -1) {
@@ -312,7 +299,7 @@ qx.Class
                          * Remove all DisplayWindows.
                          */
                         removeWindows : function() {
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 qx.event.Registration
                                         .removeAllListeners(this.m_window);
                                 this.removeAll();
@@ -336,8 +323,7 @@ qx.Class
                          */
                         setAreaWidth : function(width, rowIndex, colIndex) {
                             var target = true;
-                            if (rowIndex != this.m_row
-                                    || colIndex != this.m_col) {
+                            if (rowIndex !== this.m_row || colIndex !== this.m_col) {
                                 target = false;
                             } else {
                                 this.setWidth(width);
@@ -362,8 +348,7 @@ qx.Class
                          */
                         setAreaHeight : function(height, rowIndex, colIndex) {
                             var target = true;
-                            if (rowIndex != this.m_row
-                                    || colIndex != this.m_col) {
+                            if (rowIndex !== this.m_row || colIndex !== this.m_col) {
                                 target = false;
                             } else {
                                 this.setHeight(height);
@@ -399,7 +384,7 @@ qx.Class
                          *                the data.
                          */
                         dataLoaded : function(path) {
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 this.m_window.dataLoaded(path);
                             }
                         },
@@ -412,13 +397,13 @@ qx.Class
                          *                for the data.
                          */
                         dataUnloaded : function(path) {
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 this.m_window.dataUnloaded(path);
                             }
                         },
 
                         setDrawMode : function(drawInfo) {
-                            if (this.m_window != null) {
+                            if (this.m_window !== null) {
                                 this.m_window.setDrawMode(drawInfo);
                             }
                         },
@@ -433,7 +418,7 @@ qx.Class
                          *                that has been selected.
                          */
                         windowSelected : function(win) {
-                            if (this.m_window != null && this.m_window != win) {
+                            if (this.m_window !== null && this.m_window !== win) {
                                 this.m_window.setSelected(false, false);
                             }
                         },

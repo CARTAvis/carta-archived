@@ -1,14 +1,30 @@
 #include "Data/Layout.h"
 #include "Data/Colormap.h"
 #include "Data/Animator.h"
+#include "Data/Colormap.h"
+#include "Data/Histogram.h"
 #include "Data/ViewPlugins.h"
 #include "Util.h"
 
 #include <QDir>
 #include <QDebug>
 
+class Layout::Factory : public CartaObjectFactory {
+
+public:
+
+    Factory():
+        CartaObjectFactory( LAYOUT ){};
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Layout (path, id);
+    }
+};
+
 const QString Layout::LAYOUT = "Layout";
 const QString Layout::LAYOUT_ROWS = "rows";
+const QString Layout::HIDDEN = "Hidden";
 const QString Layout::LAYOUT_COLS = "cols";
 const QString Layout::LAYOUT_PLUGINS = "plugins";
 const QString Layout::CLASS_NAME = "Layout";
@@ -25,12 +41,10 @@ Layout::Layout( const QString& path, const QString& id):
 void Layout::_initializeCommands(){
     addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString ROWS( "rows");
-        const QString COLS( "cols");
-        std::set<QString> keys = {ROWS, COLS};
+        std::set<QString> keys = {LAYOUT_ROWS, LAYOUT_COLS};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QString rowStr = dataValues[ROWS];
-        QString colStr = dataValues[COLS];
+        QString rowStr = dataValues[LAYOUT_ROWS];
+        QString colStr = dataValues[LAYOUT_COLS];
         bool valid = false;
         int rows = rowStr.toInt( &valid );
         if ( valid ){
@@ -53,7 +67,7 @@ void Layout::_initializeCommands(){
         const QString NAMES( "names");
         std::set<QString> keys = { NAMES };
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QStringList names = dataValues[0].split(".");
+        QStringList names = dataValues[NAMES].split(".");
         bool valid = _setPlugin( names );
         if ( !valid ){
             qDebug() << "Invalid layout params: "<<params;
@@ -63,10 +77,12 @@ void Layout::_initializeCommands(){
 }
 
 void Layout::_initializeDefaultState(){
-    m_state.insertArray( LAYOUT_PLUGINS, 4 );
-    m_state.insertValue<int>( LAYOUT_ROWS, 2 );
+    m_state.insertArray( LAYOUT_PLUGINS, 6 );
+    m_state.insertValue<int>( LAYOUT_ROWS, 3 );
     m_state.insertValue<int>( LAYOUT_COLS, 2 );
-    QStringList pluginNames = {"CasaImageLoader", ViewPlugins::CLASS_NAME, "Hidden", Animator::CLASS_NAME};
+    QStringList pluginNames = {"CasaImageLoader", Animator::CLASS_NAME,
+            HIDDEN, Colormap::CLASS_NAME,
+            HIDDEN, Histogram::CLASS_NAME};
     _setPlugin( pluginNames );
 }
 

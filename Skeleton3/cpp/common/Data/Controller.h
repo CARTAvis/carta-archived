@@ -4,18 +4,16 @@
 
 #pragma once
 
-#include <memory>
 #include "CartaLib/ICoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <QString>
 #include <QList>
 #include <QObject>
+#include <memory>
 
 
 class DataSource;
-class Colormap;
-class Histogram;
 class ImageView;
 class Region;
 class RegionRectangle;
@@ -34,8 +32,8 @@ public:
 
     /**
      * Add data to this controller.
-     * @param fileName the location of the data; 
-     * 			this could represent a url or an absolute path on a local filesystem.
+     * @param fileName the location of the data;
+     *        this could represent a url or an absolute path on a local filesystem.
      */
     void addData(const QString& fileName);
 
@@ -93,15 +91,7 @@ private:
      */
     Controller( const QString& id, const QString& path );
 
-    class Factory : public CartaObjectFactory {
-
-     public:
-
-         CartaObject * create (const QString & path, const QString & id)
-         {
-             return new Controller (path, id);
-         }
-     };
+    class Factory;
 
     //Provide default values for state.
     void _initializeState();
@@ -130,10 +120,7 @@ private:
     //Data available to and managed by this controller.
     QList<std::shared_ptr<DataSource> > m_datas;
 
-    //Colormap
-    std::shared_ptr<Colormap> m_colorMap;
 
-    std::shared_ptr<Histogram>m_histogram;
 
     QList<std::shared_ptr<Region> > m_regions;
 

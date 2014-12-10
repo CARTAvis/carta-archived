@@ -28,7 +28,7 @@ void RegionRectangle::_initializeState(){
     //m_state.flushState();
 }
 
-void RegionRectangle::resetState( const QString params ){
+void RegionRectangle::resetState(const QString & params ){
     QStringList coords = params.split( " ");
     int coordCount = coords.size();
     if ( coordCount == 4 ){

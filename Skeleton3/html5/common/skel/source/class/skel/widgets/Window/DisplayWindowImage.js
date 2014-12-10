@@ -7,16 +7,16 @@
  @ignore( mImport)
  ************************************************************************ */
 
-qx.Class.define("skel.widgets.DisplayWindowImage", {
-    extend : skel.widgets.DisplayWindow,
+qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
+    extend : skel.widgets.Window.DisplayWindow,
 
     /**
      * Constructor.
      */
-    construct : function(row, col, index) {
-        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, row, col, index );
+    construct : function(row, col, index, detached) {
+        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, row, col, index, detached );
         this.m_links = [];
-
+        this.m_content.setLayout(new qx.ui.layout.Canvas());
     },
 
     members : {
@@ -48,18 +48,11 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * Call back that initializes the View when data is loaded.
          */
         _dataLoadedCB : function(){
-            if (this.m_content.indexOf(this.m_title) >= 0) {
-                this.m_content.remove(this.m_title);
-                this.m_content.setLayout(new qx.ui.layout.Canvas());
-            }
-           
-            
-            
-            if (this.m_view == null) {
+            if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View(this.m_identifier);
             }
-            
-            if ( this.m_drawCanvas == null ){
+           
+            if ( this.m_drawCanvas === null ){
                 this.m_drawCanvas = new skel.widgets.Draw.Canvas( this.m_identifier, this.m_view);
             }
             
@@ -88,7 +81,6 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          */
         dataUnloaded : function(path) {
             this.m_content.removeAll();
-            this.m_content.add(this.m_title);
         },
 
         /**
@@ -96,7 +88,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * window when this window is selected.
          */
         getWindowSubMenu : function() {
-            var windowMenuList = []
+            var windowMenuList = [];
 
             var dataButton = new qx.ui.toolbar.MenuButton("Data");
             dataButton.setMenu(this._initDataMenu());
@@ -107,16 +99,13 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             var renderButton = new qx.ui.toolbar.MenuButton("Render");
             renderButton.setMenu(this._initMenuRender());
             
-            var colorMapButton = new qx.ui.toolbar.MenuButton( "Colormap");
-            colorMapButton.addListener( "execute", function() {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "showColormap", this));
-            }, this);
+            var showButton = new qx.ui.toolbar.MenuButton( "Show");
+            showButton.setMenu( this._initMenuShow());
             
             windowMenuList.push(dataButton);
             windowMenuList.push(regionButton);
             windowMenuList.push(renderButton);
-            windowMenuList.push( colorMapButton );
+            windowMenuList.push(showButton);
 
             return windowMenuList;
         },
@@ -137,24 +126,21 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             this.m_renderButton.setMenu(this._initMenuRender());
             this.m_contextMenu.add(this.m_renderButton);
             
-            var colorMapButton = new qx.ui.menu.Button( "Colormap");
-            colorMapButton.addListener( "execute", function() {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "showColormap", this));
-            }, this);
-            this.m_contextMenu.add( colorMapButton );
+            var showButton = new qx.ui.menu.Button( "Popup...");
+            showButton.setMenu( this._initMenuShow());
+            this.m_contextMenu.add( showButton );
         },
 
         /**
          * Initializes the region drawing context menu.
          */
         _initMenuRegion : function() {
-            var regionMenu = new qx.ui.menu.Menu;
+            var regionMenu = new qx.ui.menu.Menu();
             this._initShapeButtons(regionMenu, false);
 
             var multiRegionButton = new qx.ui.menu.Button("Multi");
             regionMenu.add(multiRegionButton);
-            var multiRegionMenu = new qx.ui.menu.Menu;
+            var multiRegionMenu = new qx.ui.menu.Menu();
             this._initShapeButtons(multiRegionMenu, true);
 
             multiRegionButton.setMenu(multiRegionMenu);
@@ -162,15 +148,46 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
         },
 
         /**
-         * Initializes the rendes context menu.
+         * Initializes the renders context menu.
          */
         _initMenuRender : function() {
-            var renderMenu = new qx.ui.menu.Menu;
+            var renderMenu = new qx.ui.menu.Menu();
             renderMenu.add(new qx.ui.menu.Button("Raster"));
             renderMenu.add(new qx.ui.menu.Button("Contour"));
             renderMenu.add(new qx.ui.menu.Button("Field"));
             renderMenu.add(new qx.ui.menu.Button("Vector"));
             return renderMenu;
+        },
+        
+        /**
+         * Initializes the show context menu.
+         */
+        _initMenuShow : function() {
+            var showMenu = new qx.ui.menu.Menu();
+            var path = skel.widgets.Path.getInstance();
+            var colormapButton = new qx.ui.menu.Button( path.COLORMAP_PLUGIN );
+            skel.widgets.TestID.addTestId( colormapButton, skel.widgets.TestID.COLOR_MAP_BUTTON);
+            colormapButton.addListener( "execute", function(){
+                var data  = {
+                    winId : this.m_identifier,
+                    pluginId : path.COLORMAP_PLUGIN
+                };
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "showPopupWindow", data));
+            }, this );
+            showMenu.add( colormapButton );
+            var histogramButton = new qx.ui.menu.Button( path.HISTOGRAM_PLUGIN );
+            skel.widgets.TestID.addTestId( histogramButton, skel.widgets.TestID.HISTOGRAM_BUTTON);
+            histogramButton.addListener( "execute", function(){
+                var data = {
+                    winId : this.m_identifier,
+                    pluginId : path.HISTOGRAM_PLUGIN
+                };
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "showPopupWindow", data));
+            }, this );
+            showMenu.add( histogramButton );
+            return showMenu;
         },
 
         /**
@@ -180,17 +197,18 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * 		back when the shape is finished.
          */
         _initShapeButtons : function(menu, keepMode) {
+            var drawFunction = function(ev) {
+                var buttonText = this.getLabel();
+                var data = {
+                    shape : buttonText,
+                    multiShape : keepMode
+                };
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "drawModeChanged", data));
+            };
             for (var i = 0; i < this.m_shapes.length; i++) {
                 var shapeButton = new qx.ui.menu.Button(this.m_shapes[i]);
-                shapeButton.addListener("execute", function(ev) {
-                    var buttonText = this.getLabel();
-                    var data = {
-                        shape : buttonText,
-                        multiShape : keepMode
-                    };
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "drawModeChanged", data));
-                }, shapeButton);
+                shapeButton.addListener("execute", drawFunction, shapeButton);
                 menu.add(shapeButton);
             }
         },
@@ -201,7 +219,7 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
          * @param pluginId {String} a name identifying a plug-in.
          */
         isLinkable : function(pluginId) {
-            var linkable = false
+            var linkable = false;
             var path = skel.widgets.Path.getInstance();
             if (pluginId == path.ANIMATOR || pluginId == this.m_pluginId) {
                 linkable = true;
@@ -239,18 +257,16 @@ qx.Class.define("skel.widgets.DisplayWindowImage", {
             var linkPath = pathDict.getCommandLinkAnimator();
             this.m_connector.sendCommand(linkPath, paramMap, function(val) {});
         },
+        
+
 
         setDrawMode : function(drawInfo) {
-            if (this.m_drawCanvas != null) {
+            if (this.m_drawCanvas !== null) {
                 this.m_drawCanvas.setDrawMode(drawInfo);
             }
         },
         
-        showColormap : function(){
-            if ( this.m_colormap == null ){
-                this.m_colormap = new skel.widgets.Colormap.ColormapDialog();
-            }
-        },
+ 
 
         /**
          * Implemented to initialize the context menu.

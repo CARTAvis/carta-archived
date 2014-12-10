@@ -1,20 +1,22 @@
 /**
- * Desktop connector. See IConnector.js for documentation regarding the API.
- * This is just an implementation.
+ * Implementation of IConnector.js for the desktop version. See the
+ * IConnector.js for documentation of the API.
  */
 
 /* JsHint options */
 /* global mExport, mImport, QtConnector, QtConnector.* */
 /* jshint eqnull:true */
 
-(function() {
+
+(function()
+{
     "use strict";
 
-    var connector = mExport("connector", {});
-    var setZeroTimeout = mImport("setZeroTimeout");
-    var console = mImport("console");
-    var defer = mImport("defer");
-    var CallbackList = mImport("CallbackList");
+    var connector = mExport( "connector", {} );
+    var setZeroTimeout = mImport( "setZeroTimeout" );
+    var console = mImport( "console" );
+    var defer = mImport( "defer" );
+    var CallbackList = mImport( "CallbackList");
 
     /**
      * Numerical constants representing status of the connection.
@@ -22,17 +24,17 @@
      * @type {{}}
      */
     connector.CONNECTION_STATUS = {
-        CONNECTED : 1,
-        CONNECTING : 2,
-        FAILED : 3,
-        STALLED : 4,
-        DISCONNECTED : 5,
-        UNKNOWN : 6
+        CONNECTED   : 1,
+        CONNECTING  : 2,
+        FAILED      : 3,
+        STALLED     : 4,
+        DISCONNECTED: 5,
+        UNKNOWN     : 6
     };
 
-    connector.VIEW_CALLBACK_RESON = {
-        UPDATED : 1,
-        TX_CHANGED : 2
+    connector.VIEW_CALLBACK_REASON = {
+        UPDATED   : 1,
+        TX_CHANGED: 2
     };
 
     // private variables
@@ -40,7 +42,7 @@
     var m_connectionCB = null;
     // we keep following information for every state:
     // - path (so that individual shared variables don't need to keep their own
-    // copies)
+    //   copies)
     // - value
     // - callback list
     // We start with an empty state
@@ -58,50 +60,47 @@
     /***
      * Note:  The assumption above is wrong.  Command results arrive back in stack order.
      */
-    QtConnector.jsCommandResultsSignal
-            .connect(function(result) {
-                //console.log( "DesktopConnector callback result="+result);
-                if (m_commandCallbacks.length < 1) {
-                    console
-                            .warn("Received command results but no callbacks for this!!!");
-                    console.warn("The result: ", result);
-                    return;
-                }
-                /***
-                 * Note:  Code below was changed because callbacks do not come back in 
-                 * the same order they were called, but in stack order.  Code is single-threaded
-                 * for the desktop version.
-                 * Example:   Cmd ->setPlugin
-                 *                  Does a state change on the server.  On the Javascript
-                 *                  side we have a state listener.  This state listener triggers:
-                 *                  Cmd ->registerView (returns objectId)
-                 *                  Cmd ->registerView (returns objectId)
-                 *            Finally the command setPlugin returns from the server.
-                 */
-                //var cb = m_commandCallbacks.shift();
-                var cb = m_commandCallbacks.pop();
-                if (cb == null) {
-                    console.log( "Desktop skipping cb was null");
-                    // skip this callback
-                    return;
-                }
-                if (typeof cb !== "function") {
-                    console
-                            .warn("Registered callback for command is not a function!");
-                } else {
-                    //console.log( "DesktopConnector calling cb="+cb + "callbackCount="+ m_commandCallbacks.length);
-                    cb(result);
-                }
-            });
+    // TODO: this is a bug (https://github.com/Astroua/CARTAvis/issues/4)
+    QtConnector.jsCommandResultsSignal.connect(function(result) {
+        //console.log( "DesktopConnector callback result="+result);
+        if (m_commandCallbacks.length < 1) {
+            console
+                .warn("Received command results but no callbacks for this!!!");
+            console.warn("The result: ", result);
+            return;
+        }
+        /***
+         * Note:  Code below was changed because callbacks do not come back in
+         * the same order they were called, but in stack order.  Code is single-threaded
+         * for the desktop version.
+         * Example:   Cmd ->setPlugin
+         *                  Does a state change on the server.  On the Javascript
+         *                  side we have a state listener.  This state listener triggers:
+         *                  Cmd ->registerView (returns objectId)
+         *                  Cmd ->registerView (returns objectId)
+         *            Finally the command setPlugin returns from the server.
+         */
+        var cb = m_commandCallbacks.shift();
+        //var cb = m_commandCallbacks.pop();
+        if (cb == null) {
+            console.log( "Desktop skipping cb was null");
+            // skip this callback
+            return;
+        }
+        if (typeof cb !== "function") {
+            console.warn("Registered callback for command is not a function!");
+        } else {
+            cb( result );
+        }
+    });
 
     // listen for jsViewUpdatedSignal to render the image
     QtConnector.jsViewUpdatedSignal.connect(function(viewName, buffer) {
         var view = m_views[viewName];
         if (view == null) {
-            console.warn("Ignoring update for unconnected view '" + viewName
-                    + "'");
+            console.warn("Ignoring update for unconnected view '" + viewName + "'");
             return;
-        }
+        } 
         buffer.assignToHTMLImageElement(view.m_imgTag);
     });
 
@@ -129,19 +128,17 @@
      */
     var View = function(container, viewName) {
         // QtWebKit does not support drawing to the canvas (they claim they do,
-        // but
-        // it coredumps). So we'll use <img> tag instead. That works well
+        // but it coredumps). So we'll use <img> tag instead. That works well
         // enough.
         // TODO: investigate performance using QWebFactoryPlugin vs <img> tag
 
         // create an image tag inside the container
         this.m_container = container;
         this.m_viewName = viewName;
-        this.m_imgTag = document.createElement("img");
-        this.m_imgTag.setAttribute("max-width", "100%");
-        this.m_imgTag.setAttribute("max-height", "100%");
-        // console.log( "imgTag = ", this.m_imgTag );
-        this.m_container.appendChild(this.m_imgTag);
+        this.m_imgTag = document.createElement( "img" );
+        this.m_imgTag.setAttribute( "max-width", "100%");
+        this.m_imgTag.setAttribute( "max-height", "100%");
+        this.m_container.appendChild( this.m_imgTag );
 
         // register mouse move event handler
         this.m_imgTag.onmousemove = this.mouseMoveCB.bind(this);
@@ -151,10 +148,7 @@
         // delay in milliseconds ( -1 means no delay, 0 means zero timeout
         this.MouseMoveDelay = -1;
         this.m_mouseMoveTimeoutHandle = null;
-        this.m_mousePos = {
-            x : 0,
-            y : 0
-        };
+        this.m_mousePos = { x : 0, y: 0 };
         this.m_mousePosSlotScheduled = false;
     };
 
@@ -234,37 +228,40 @@
     View.prototype.addViewCallback = function(callback) {
     };
 
-    connector.registerViewElement = function(divElement, viewName) {
-        //var view = m_views[viewName];
-        /*if (view !== undefined) {
-            throw new Error("Trying to re-register existing view '" + viewName
-                    + "'");
-        }*/
-        //if ( view == undefined ){
-            var view = new View(divElement, viewName);
-            m_views[viewName] = view;
-        //}
+    connector.registerViewElement = function( divElement, viewName )
+    {
+        var view = m_views[ viewName];
+        if( view !== undefined) {
+            throw new Error("Trying to re-register existing view '" + viewName + "'");
+        }
+        view = new View( divElement, viewName );
+        m_views[ viewName] = view;
         return view;
     };
 
-    connector.setInitialUrl = function( /* url */) {
+    connector.setInitialUrl = function( /*url*/ )
+    {
         // we don't need urls
     };
 
-    connector.getConnectionStatus = function() {
+    connector.getConnectionStatus = function()
+    {
         return m_connectionStatus;
     };
 
-    connector.setConnectionCB = function(callback) {
+
+    connector.setConnectionCB = function( callback )
+    {
         m_connectionCB = callback;
     };
 
-    connector.connect = function() {
-        if (m_connectionCB == null) {
-            console.warn("No connection callback specified!!!");
+    connector.connect = function()
+    {
+        if( m_connectionCB == null ) {
+            console.warn( "No connection callback specified!!!" );
         }
 
-        if (window.QtPlatform !== undefined || window.QtConnector !== undefined) {
+        if( window.QtPlatform !== undefined || window.QtConnector !== undefined ) {
             m_connectionStatus = connector.CONNECTION_STATUS.CONNECTED;
         }
 
@@ -306,8 +303,6 @@
     };
 
     function SharedVar(path) {
-        //console.log("Creating shared variable:", path);
-
         // make a copy of this to use in private/priviledged functions
         var m_that = this;
         // save a pointer to the state info associated with path
@@ -319,7 +314,7 @@
                 throw "callback is not a function!!";
             }
             // add callback to the list of all callbacks for this state key
-            var cbId = m_statePtr.callbacks.add(callback)
+            var cbId = m_statePtr.callbacks.add(callback);
             // return the id
             return cbId;
         };
@@ -333,14 +328,17 @@
         this.set = function(value) {
             if (typeof value === "boolean") {
                 value = value ? "1" : "0";
-            } else if (typeof value === "string") {
+            }
+            else if( typeof value === "string" ) {
                 // do nothing, this will be verbatim
                 value = value;
-            } else if (typeof value === "number") {
+            }
+            else if( typeof value === "number" ) {
                 // convert number
                 value = "" + value;
-            } else {
-                console.error("value has weird type: ", value, m_statePtr.path);
+            }
+            else {
+                console.error( "value has weird type: ", value, m_statePtr.path );
                 throw "don't know how to set value";
             }
             QtConnector.jsSetStateSlot(m_statePtr.path, value);
@@ -368,28 +366,27 @@
             return m_that;
         };
 
-        console.log("current value:", m_statePtr.value);
+        console.log("new var[" + path + "] = ", m_statePtr.value);
     }
 
     // create or get a cached copy of a shared variable for this path
     connector.getSharedVar = function(path) {
         var sv = m_sharedVars[path];
-        if (sv != null)
+        if (sv != null) {
             return sv;
-        m_sharedVars[path] = new SharedVar(path);
-        return m_sharedVars[path];
+        }
+        var newVar = new SharedVar(path);
+        m_sharedVars[path] = newVar;
+        return newVar;
     };
 
     connector.sendCommand = function(cmd, params, callback) {
         if (callback != null && typeof callback !== "function") {
-            console.error(
-                    "What are you doing! I need a function for callback, not:",
-                    callback);
-            throw new Error("callback not a function in connector.sendCommand");
+
+            throw new Error("callback must be a function, null, or undefined");
         }
-        //console.log( "Desktop cmd="+cmd+ " callback="+callback);
-        m_commandCallbacks.push(callback);
-        QtConnector.jsSendCommandSlot(cmd, params);
+        m_commandCallbacks.push( callback);
+        QtConnector.jsSendCommandSlot( cmd, params);
     };
 
 })();

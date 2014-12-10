@@ -2,9 +2,25 @@
 #include "Globals.h"
 #include "PluginManager.h"
 #include "Animator.h"
+#include "Histogram.h"
+#include "Colormap.h"
 
 #include <QDir>
 #include <QDebug>
+
+class ViewPlugins::Factory : public CartaObjectFactory {
+
+public:
+
+    Factory():
+        CartaObjectFactory( PLUGINS ){};
+
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new ViewPlugins (path, id);
+    }
+};
+
 
 const QString ViewPlugins::PLUGINS = "pluginList";
 const QString ViewPlugins::NAME = "name";
@@ -38,7 +54,7 @@ void ViewPlugins::_initializeDefaultState(){
     auto pm = Globals::instance()-> pluginManager();
     auto infoList = pm-> getInfoList();
     int ind = 0;
-    int infoListSize = infoList.size()+2;
+    int infoListSize = infoList.size()+4;
     m_state.insertArray( PLUGINS, infoListSize );
     for( auto & entry : infoList) {
         //qDebug() << "  path:" << entry.soPath;
@@ -48,6 +64,10 @@ void ViewPlugins::_initializeDefaultState(){
     _insertPlugin( ind, Animator::CLASS_NAME, "Animation of data sets", "", "", "");
     ind++;
     _insertPlugin( ind, "statistics", "Placeholder for statistics plugin", "", "", "");
+    ind++;
+    _insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
+    ind++;
+    _insertPlugin( ind, Colormap::CLASS_NAME, "Colormap", "", "", "");
     ind++;
     m_state.insertValue<int>( STAMP, ind);
     m_state.flushState();

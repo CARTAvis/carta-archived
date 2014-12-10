@@ -76,7 +76,6 @@ DesktopPlatform::DesktopPlatform()
     auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
     if( cmdLineInfo.htmlPath().isEmpty()) {
         url = QUrl("qrc:///html5/desktop/desktopIndex.html");
-        //url = QUrl( "file:///home/susan/git/CARTAvis/Skeleton3/html5/desktop/desktopIndex.html");
     } else {
         url = QUrl::fromUserInput( cmdLineInfo.htmlPath());
     }
@@ -95,6 +94,7 @@ DesktopPlatform::DesktopPlatform()
 
     // create main window
     m_mainWindow = new MainWindow();
+    m_mainWindow-> resize( 1000, 700);
 
     // add platform and connector to JS exports
     m_mainWindow->exportToJs( "QtPlatform", this);

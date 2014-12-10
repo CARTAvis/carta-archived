@@ -1,8 +1,8 @@
-#include "CartaLib/IImage.h"
 #include "DataSource.h"
 #include "Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
+#include "CartaLib/IImage.h"
 #include "CartaLib/ICoordinateFormatter.h"
 #include "Algorithms/RawView2QImageConverter.h"
 

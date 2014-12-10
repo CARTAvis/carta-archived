@@ -20,7 +20,7 @@
  */
 
 
-qx.Class.define( "skel.widgets.FancyToggle",
+qx.Class.define( "skel.widgets.CustomUI.FancyToggle",
     {
         extend: qx.ui.form.ToggleButton,
 

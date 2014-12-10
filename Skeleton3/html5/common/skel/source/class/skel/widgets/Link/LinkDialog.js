@@ -7,7 +7,7 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.LinkDialog", {
+qx.Class.define("skel.widgets.Link.LinkDialog", {
     extend : qx.ui.popup.Popup,
 
     construct : function() {

@@ -27,6 +27,12 @@ public:
     bool setFileName( const QString& fileName );
 
     /**
+     * Set a new color map to use.
+     * @param index a color map index.
+     */
+    void setColorMap( int index );
+
+    /**
      * Loads the data source as a QImage.
      * @param frameIndex the channel to load.
      * @param true to force a recompute of the image clip.
