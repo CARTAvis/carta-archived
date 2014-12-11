@@ -45,10 +45,10 @@ unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libicuuc.so.46
 unix:LIBS += $${PUREWEB_LIBS}/C++/lib/libjpeg.so.62
 
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
-unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.so
 DEPENDPATH += $$$PROJECT_ROOT/common
 
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
 unix: PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.so
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
-QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/lib\''

@@ -40,6 +40,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     if ( !stateRead ){
         _initializeDefaultState();
     }
+    _makeDataLoader();
 }
 
 void ViewManager::_clearLayout(){
@@ -72,7 +73,6 @@ void ViewManager::_initCallbacks(){
             if ( dataValues[ID]  == m_controllers[i]->getPath() ){
                 //Add the data to it.
                 QString path = dataValues[DATA];
-                _makeDataLoader();
                 path = m_dataLoader->getFile( path, sessionId );
                 m_controllers[i]->addData( path );
                 break;
@@ -159,10 +159,8 @@ void ViewManager::_initializeDefaultState(){
     _makeController();
     m_animators[0]->addController( m_controllers[0]);
     _makeLayout();
-    _makeDataLoader();
     _makePluginList();
-    _makeHistogram();
-    _makeColorMap();
+
 }
 
 void ViewManager::_initializeExistingAnimationLinks( int index ){
