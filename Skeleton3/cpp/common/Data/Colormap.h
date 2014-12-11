@@ -39,6 +39,9 @@ private:
     const static QString COLOR_MAP_INDEX;
     const static QString REVERSE;
     const static QString INVERT;
+    const static QString RED_PERCENT;
+    const static QString GREEN_PERCENT;
+    const static QString BLUE_PERCENT;
     const static QString COLOR_MIX;
     const static QString COLOR_MIX_RED;
     const static QString COLOR_MIX_GREEN;

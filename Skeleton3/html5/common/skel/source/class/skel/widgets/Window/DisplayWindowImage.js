@@ -128,6 +128,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             
             var showButton = new qx.ui.menu.Button( "Popup...");
             showButton.setMenu( this._initMenuShow());
+            skel.widgets.TestID.addTestId( showButton, skel.widgets.TestID.SHOW_POPUP_BUTTON);
             this.m_contextMenu.add( showButton );
         },
 

@@ -159,6 +159,7 @@ void ViewManager::_initializeDefaultState(){
     _makeController();
     m_animators[0]->addController( m_controllers[0]);
     _makeLayout();
+    _makeDataLoader();
     _makePluginList();
     _makeHistogram();
     _makeColorMap();

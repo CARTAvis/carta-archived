@@ -14,9 +14,12 @@ const QString Colormap::COLOR_MAP_INDEX = "colorMapIndex";
 const QString Colormap::REVERSE = "reverse";
 const QString Colormap::INVERT = "invert";
 const QString Colormap::COLOR_MIX = "colorMix";
-const QString Colormap::COLOR_MIX_RED = COLOR_MIX + StateInterface::DELIMITER + "redPercent";
-const QString Colormap::COLOR_MIX_GREEN = COLOR_MIX + StateInterface::DELIMITER + "greenPercent";
-const QString Colormap::COLOR_MIX_BLUE = COLOR_MIX + StateInterface::DELIMITER + "bluePercent";
+const QString Colormap::RED_PERCENT = "redPercent";
+const QString Colormap::GREEN_PERCENT = "greenPercent";
+const QString Colormap::BLUE_PERCENT = "bluePercent";
+const QString Colormap::COLOR_MIX_RED = COLOR_MIX + StateInterface::DELIMITER + RED_PERCENT;
+const QString Colormap::COLOR_MIX_GREEN = COLOR_MIX + StateInterface::DELIMITER + GREEN_PERCENT;
+const QString Colormap::COLOR_MIX_BLUE = COLOR_MIX + StateInterface::DELIMITER + BLUE_PERCENT;
 
 std::shared_ptr<Colormaps> Colormap::m_colors = nullptr;
 
@@ -114,17 +117,17 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
 
 QString Colormap::_commandSetColorMix( const QString& params ){
     QString result;
-    std::set<QString> keys = {COLOR_MIX_RED, COLOR_MIX_GREEN, COLOR_MIX_BLUE};
+    std::set<QString> keys = {RED_PERCENT, GREEN_PERCENT, BLUE_PERCENT};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
 
     bool validRed = false;
-    bool redChanged = _processColorStr( COLOR_MIX_RED, dataValues[COLOR_MIX_RED], &validRed );
+    bool redChanged = _processColorStr( COLOR_MIX_RED, dataValues[RED_PERCENT], &validRed );
 
     bool validBlue = false;
-    bool blueChanged = _processColorStr( COLOR_MIX_BLUE, dataValues[COLOR_MIX_BLUE], &validBlue );
+    bool blueChanged = _processColorStr( COLOR_MIX_BLUE, dataValues[BLUE_PERCENT], &validBlue );
 
     bool validGreen = false;
-    bool greenChanged = _processColorStr( COLOR_MIX_GREEN, dataValues[COLOR_MIX_GREEN], &validGreen);
+    bool greenChanged = _processColorStr( COLOR_MIX_GREEN, dataValues[GREEN_PERCENT], &validGreen);
 
     if ( redChanged || blueChanged || greenChanged ){
         m_state.flushState();

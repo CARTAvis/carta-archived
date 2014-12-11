@@ -24,9 +24,11 @@ qx.Class.define("skel.widgets.TestID", {
         //the TESTIDS_START and TESTIDS_END tags.
         TESTIDS_START : null,
         COLOR_MAP_BUTTON : "showColorMapDialog",
+        HISTOGRAM_BUTTON : "showHistogramDialog",
         HISTOGRAM_BIN_COUNT_CHECK : "showHistogramBinCount",
         HISTOGRAM_BIN_COUNT_INPUT : "histogramBinCountTextField",
         HISTOGRAM_BIN_COUNT_SLIDER : "histogramBinCountSlider",
+        SHOW_POPUP_BUTTON : "popupDisplayWindow",
         TESTIDS_END : null
     }
 

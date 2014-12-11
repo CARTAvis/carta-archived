@@ -1,6 +1,7 @@
 #include <Python.h>
 #include "PyCppPlugin.h"
 #include "pluginBridge.h"
+#include "CartaLib/Hooks/ColormapsScalar.h"
 #include <QPainter>
 #include <QDebug>
 #include <dlfcn.h>

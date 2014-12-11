@@ -2,6 +2,7 @@
 #include "Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
+#include "GrayColormap.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "Algorithms/RawView2QImageConverter.h"
