@@ -33,4 +33,4 @@ QMAKE_EXTRA_COMPILERS += copy_files
 unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
 INCLUDEPATH += $$PWD/../../common
 DEPENDPATH += $$PWD/../../common
-unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
+unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.so

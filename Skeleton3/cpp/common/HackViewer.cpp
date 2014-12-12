@@ -337,7 +337,7 @@ HackViewer::start()
         m_cmapUseInterpolatedCaching = val == "1";
         reloadFrame();
     });
-    addStateCallback( pixelCacheSize, [&] ( CSR, CSR val) {
+    addStateCallback( pixelCacheSize, [=] ( CSR, CSR val) {
         bool ok;
         m_cmapCacheSize = val.toInt( & ok);
         if( ! ok || m_cmapCacheSize < 2) {
@@ -346,8 +346,6 @@ HackViewer::start()
         setState( pixelCacheSize, QString::number( m_cmapCacheSize));
         reloadFrame();
     });
-
-
     qDebug() << "HackViewer has been initialized.";
 } // start
 
