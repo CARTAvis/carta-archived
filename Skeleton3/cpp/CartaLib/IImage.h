@@ -163,6 +163,12 @@ public:
         m_converterFunc = getConverter < Type > ( rawView->pixelType() );
     }
 
+    /// get the max. dimensions allowed in this accessor
+    const VI &
+    dims() {
+        return m_rawView-> dims();
+    }
+
     /// extract the data and convert it to double
     /// \param pos position of the element to extract (in destination coordinates)
     /// \return the extracted value at the given position pos

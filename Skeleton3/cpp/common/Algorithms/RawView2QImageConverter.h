@@ -19,6 +19,7 @@ computeClips(
     double perc
     )
 {
+    qDebug() << "computeClips" << view.dims();
     // read in all values from the view into an array
     // we need our own copy because we'll do quickselect on it...
     std::vector < Scalar > allValues;
@@ -111,6 +112,7 @@ template < class Pipeline >
 void
 rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
+    qDebug() << "rv2qi" << rawView-> dims();
     typedef double Scalar;
     QSize size( rawView->dims()[0], rawView->dims()[1] );
 

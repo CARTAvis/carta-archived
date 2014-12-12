@@ -26,6 +26,9 @@ int main(int argc, char ** argv)
     //
     // initialize Qt
     //
+    // don't require a window manager even though we're a QGuiApplication
+//    qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+
     MyQApp qapp( argc, argv);
 
 #ifdef QT_DEBUG

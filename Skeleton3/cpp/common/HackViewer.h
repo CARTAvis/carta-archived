@@ -63,9 +63,19 @@ protected:
     /// our own part of the state
     QString m_statePrefix;
 
+    /// options for controlling the pixel pipeline (cmap)
     bool m_cmapUseCaching = true;
     bool m_cmapUseInterpolatedCaching = true;
     int m_cmapCacheSize = 1000;
 
-    void reloadFrame();
+    /// reload frame timer
+    bool m_reloadFrameQueued = false;
+
+    /// schedules a reload of the current frame
+    void scheduleFrameReload();
+
+protected slots:
+
+    /// this does the actual frame reload
+    void _reloadFrameNow();
 };

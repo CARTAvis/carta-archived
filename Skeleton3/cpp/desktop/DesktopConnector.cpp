@@ -43,7 +43,7 @@ struct DesktopConnector::ViewInfo
         clientSize = QSize(1,1);
         refreshTimer.setSingleShot( true);
         // just long enough that two successive calls will result in only one redraw :)
-        refreshTimer.setInterval( 1);
+        refreshTimer.setInterval( 1000 / 120);
     }
 
 };
@@ -243,28 +243,38 @@ void DesktopConnector::refreshViewNow(IView *view)
     }
     // get the image from view
     const QImage & origImage = view-> getBuffer();
-    // scale the image to fit the client size
-    QImage destImage = origImage.scaled(
-                viewInfo->clientSize, Qt::KeepAspectRatio,
-                //                Qt::SmoothTransformation);
-                Qt::FastTransformation);
-    // calculate the offset needed to center the image
-    int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
-    int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
-    QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
-    pix.fill( qRgba( 0, 0, 0, 0));
-    QPainter p( & pix);
-    p.setCompositionMode( QPainter::CompositionMode_Source);
-    p.drawImage( xOffset, yOffset, destImage );
 
-    // remember the transformations we did to the image in the viewInfo so that we can
-    // properly translate mouse events etc
-    viewInfo-> tx = LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
-                                 0, origImage.width()-1);
-    viewInfo-> ty = LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
-                                 0, origImage.height()-1);
+    if( false || origImage.size() != viewInfo->clientSize) {
+        qDebug() << "Having to re-scale the image, this is slow";
+        // scale the image to fit the client size, in case it wasn't scaled alerady
+        QImage destImage = origImage.scaled(
+                               viewInfo->clientSize, Qt::KeepAspectRatio,
+                               //                Qt::SmoothTransformation);
+                               Qt::FastTransformation);
+        // calculate the offset needed to center the image
+        int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
+        int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
+        QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
+        pix.fill( qRgba( 0, 0, 0, 0));
+        QPainter p( & pix);
+        p.setCompositionMode( QPainter::CompositionMode_Source);
+        p.drawImage( xOffset, yOffset, destImage );
 
-    emit jsViewUpdatedSignal( view-> name(), pix);
+        // remember the transformations we did to the image in the viewInfo so that we can
+        // properly translate mouse events etc
+        viewInfo-> tx = LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
+                                     0, origImage.width()-1);
+        viewInfo-> ty = LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
+                                     0, origImage.height()-1);
+
+        emit jsViewUpdatedSignal( view-> name(), pix);
+    }
+    else {
+        viewInfo-> tx = LinearMap1D( 0, 1, 0, 1);
+        viewInfo-> ty = LinearMap1D( 0, 1, 0, 1);
+
+        emit jsViewUpdatedSignal( view-> name(), origImage);
+    }
 }
 
 void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)

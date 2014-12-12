@@ -19,7 +19,7 @@ const QString ImageView::MOUSE_X = MOUSE + StateInterface::DELIMITER + "y";
 
 ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img, StateInterface* mouseState){
     m_defaultImage = img;
-    m_qimage = QImage(100, 100, QImage::Format_RGB888);
+    m_qimage = QImage(100, 100, QImage::Format_ARGB32_Premultiplied);
     m_qimage.fill(bgColor);
 
     m_viewName = viewName + StateInterface::DELIMITER+VIEW;
