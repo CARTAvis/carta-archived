@@ -244,8 +244,8 @@ void DesktopConnector::refreshViewNow(IView *view)
     // get the image from view
     const QImage & origImage = view-> getBuffer();
 
-    if( false || origImage.size() != viewInfo->clientSize) {
-        qDebug() << "Having to re-scale the image, this is slow";
+    if( origImage.size() != viewInfo->clientSize) {
+        qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
         // scale the image to fit the client size, in case it wasn't scaled alerady
         QImage destImage = origImage.scaled(
                                viewInfo->clientSize, Qt::KeepAspectRatio,
@@ -270,6 +270,7 @@ void DesktopConnector::refreshViewNow(IView *view)
         emit jsViewUpdatedSignal( view-> name(), pix);
     }
     else {
+        qDebug() << "Re-scale not needed";
         viewInfo-> tx = LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = LinearMap1D( 0, 1, 0, 1);
 

@@ -359,7 +359,7 @@ HackViewer::start()
         }
         );
     addStateCallback(
-        pixelCacheSize, [&] ( CSR, CSR val ) {
+        pixelCacheSize, [=] ( CSR, CSR val ) {
             bool ok;
             m_cmapCacheSize = val.toInt( & ok );
             if ( ! ok || m_cmapCacheSize < 2 ) {
