@@ -13,12 +13,19 @@ qx.Class.define("skel.widgets.TestID", {
          * @param testId {String} a unique id for locating the html element.
          */
         addTestId : function( widget, testId ){
-            //Testing Id
-            widget.addListener("appear", function() {
-                var container = this.getContentElement().getDomElement();
-                container.id = testId;
-            }, widget );
+            //Ids must be unique in the app so only use the id if we
+            //have not already done so.
+            if ( skel.widgets.TestID.widgetIds.indexOf( testId ) < 0 ){
+                //Testing Id
+                widget.addListener("appear", function() {
+                    var container = this.getContentElement().getDomElement();
+                    container.id = testId;
+                }, widget );
+                skel.widgets.TestID.widgetIds.push( testId );
+            }
         },
+        
+        widgetIds : [],
         
         //Only ids used for uniquely identifying html elements should go between
         //the TESTIDS_START and TESTIDS_END tags.

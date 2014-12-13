@@ -145,6 +145,34 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         },
         
         /**
+         * If the list of available clip values on the server changes, update the GUI.
+         */
+        _clipsChangedCB : function(){
+            var clipsJson = this.m_sharedVarClips.get();
+            if ( clipsJson ){
+                var presets = JSON.parse( clipsJson );
+                this.m_presetsContainer.removeAll();
+                var radioGroup = new qx.ui.form.RadioGroup();
+                radioGroup.setAllowEmptySelection(true);
+                this.m_clipButtons = [];
+                for ( var i = 0; i < presets.clipCount; i++ ){
+                    var clipValue = presets.clipList[i];
+                    var clipPercent = clipValue * 100 + "%";
+                    var button = new qx.ui.toolbar.RadioButton(clipPercent).set({
+                        toolTipText: "Set histogram to show " + presets.clipList[i] + " of the data.<br>" +
+                            "Right click also automatically zooms in to the data."
+                    });
+                    button.addListener("execute", this._sendClipValueCmd, this );
+                    button.addListener("mouseup", this._sendClipValueCmd, this );
+                    radioGroup.add(button);
+                    button.setFocusable(false);
+                    this.m_presetsContainer.add(button);
+                    this.m_clipButtons.push(button);
+                }
+            }
+        },
+        
+        /**
          * Initializes the main menu.
          */
         _initMenu : function() {
@@ -269,34 +297,18 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             }, this);
             this.m_toolPart.add( toggle );
             
-            // add preset buttons
-            var connector = mImport("connector");
-            this.histClipVar = connector.getSharedVar( pathDict.CLIP_VALUE);
-            var presetsContainer = new qx.ui.container.Composite(
+            // add clip buttons
+            this.m_presetsContainer = new qx.ui.container.Composite(
                     new qx.ui.layout.HBox(5).set({alignX: "center"})
                 );
-            var radioGroup = new qx.ui.form.RadioGroup();
-            radioGroup.setAllowEmptySelection(true);
-            var presets = [ "95%", "98%", "99%", "99.5%", "99.9%", "99.99%", "100%" ];
-            this.m_presetButtons = [];
-            presets.forEach(function (e, ind) {
-                var button = new qx.ui.toolbar.RadioButton(e).set({
-                        toolTipText: "Set histogram to show " + e + " of the data.<br>" +
-                            "Right click also automatically zooms in to the data."
-                });
-                button.addListener("execute", function () {
-                    this._sendClipValueCmd( e, button );
-                }, this);
-                button.addListener("mouseup", function (event) {
-                    this._sendClipValueCmd( e, button );
-                }, this);
-                radioGroup.add(button);
-                button.setFocusable(false);
-                presetsContainer.add(button);
-                this.m_presetButtons.push(button);
-            }, this);
-            this.m_toolPart.add(presetsContainer);
+            this.m_toolPart.add(this.m_presetsContainer);
+            var connector = mImport("connector");
+            this.m_sharedVarClips = connector.getSharedVar( pathDict.CLIPS );
+            this.m_sharedVarClips.addCB( this._clipsChangedCB.bind( this ));
+            this._clipsChangedCB( this.m_sharedVarClips.get());
         },
+        
+
         
         
         _initSubscriptions : function(){
@@ -329,8 +341,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         isTop : function() {
             var topPosition = true;
             // User has the option of changing it to top, which
-            // means it is not
-            // currently top.
+            // means it is not currently top.
             if (this.m_menuPositionButton.getLabel() == "Top") {
                 topPosition = false;
             }
@@ -339,18 +350,29 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         
         /**
          * Sends a command to the server to set the clip value to a new value.
-         * @param button {qx.ui.toolbar.RadioButton} representing the clip that was selected.
-         * @param e {DataEvent} the new clip value.
          */
-        _sendClipValueCmd : function ( e, button ){
-            var path = skel.widgets.Path.getInstance();
-            var func = function(){};
-            for ( var i = 0; i < this.m_activeWindowIds.length; i++ ){
-                var clipValueCmd = this.m_activeWindowIds[i]+ path.SEP_COMMAND + path.CLIP_VALUE;
-                var params = "clipValue:"+e;
-                this.m_connector.sendCommand(clipValueCmd, params, func );
+        _sendClipValueCmd : function (){
+            //Decide which button is selected;
+            var selectedButton = null;
+            var i = 0;
+            for ( i = 0; i < this.m_clipButtons.length; i++ ){
+                if ( this.m_clipButtons[i].getValue()){
+                    selectedButton = this.m_clipButtons[i];
+                    break;
+                }
             }
-            button.setValue(true);
+            if ( selectedButton !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var func = function(){};
+                for ( i = 0; i < this.m_activeWindowIds.length; i++ ){
+                    var clipValueCmd = this.m_activeWindowIds[i]+ path.SEP_COMMAND + path.CLIP_VALUE;
+                    var percentLabel = selectedButton.getLabel();
+                    var percentVal = percentLabel.substring(0, percentLabel.length-1);
+                    var e  = percentVal / 100;
+                    var params = "clipValue:"+e;
+                    this.m_connector.sendCommand(clipValueCmd, params, func );
+                }
+            }
         },
         
         /**
@@ -516,6 +538,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         },
 
         m_SAVE_STATE: "statename:firstSave",
+        m_clipButtons : null,
         m_gridRows : 1,
         m_gridCols : 1,
         m_menuPart : null,
@@ -527,6 +550,8 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         m_helpButton : null,
         m_menuPositionButton : true,
         m_connector : null,
+        m_presetsContainer : null,
+        m_sharedVarClips : null,
         m_activeWindowIds : null
     }
 
