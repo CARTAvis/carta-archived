@@ -2,7 +2,6 @@
  * Pavol's experiments
  */
 
-
 #pragma once
 
 #include "CartaLib/IImage.h"
@@ -11,7 +10,74 @@
 #include "PluginManager.h"
 #include "IPlatform.h"
 
+#include <QPixmap>
 #include <QObject>
+
+namespace Hacks
+{
+class TestView2 : public QObject, public IView
+{
+    Q_OBJECT
+
+public:
+
+    TestView2( QString prefix,
+               QString viewName,
+               QColor bgColor,
+               Image::ImageInterface::SharedPtr astroImage );
+
+    // image to be rendered:
+    QImage m_qImageToRender;
+
+    void
+    scheduleRedraw();
+
+    virtual void
+    registration( IConnector * connector ) override;
+
+    virtual const QString &
+    name() const override;
+
+    virtual QSize
+    size() override;
+
+    virtual const QImage &
+    getBuffer() override;
+
+    QImage &
+    getBufferRW() { return m_imageBuffer; }
+
+    virtual void
+    handleResizeRequest( const QSize & pSize ) override;
+
+    virtual void
+    handleMouseEvent( const QMouseEvent & ev ) override; // handleMouseEvent
+
+    virtual void
+    handleKeyEvent( const QKeyEvent & /*event*/ ) override
+    { }
+
+signals:
+
+    void
+    resized();
+
+    void
+    mouseX( double );
+
+protected:
+
+    void
+    redrawBuffer(); // redrawBuffer
+
+    QColor m_bgColor;
+    Image::ImageInterface::SharedPtr m_astroImage;
+    IConnector * m_connector;
+    QImage m_imageBuffer;
+    QString m_viewName, m_prefix;
+    QPointF m_lastMouse;
+};
+}
 
 ///
 /// \brief The HackView class contains Pavol's experiments.
@@ -21,14 +87,18 @@
 class HackViewer : public QObject
 {
     Q_OBJECT
+
 public:
+
     /// constructor
     /// should be called when platform is initialized, but connector isn't
-    explicit HackViewer( QString prefix = "/hacks");
+    explicit
+    HackViewer( QString prefix = "/hacks" );
 
     /// this should be called when connector is already initialized (i.e. it's
     /// safe to start setting/getting state)
-    void start();
+    void
+    start();
 
 signals:
 
@@ -37,22 +107,28 @@ public slots:
 protected:
 
     // prefixed version of set state
-    void setState(const QString & path,  const QString & value);
+    void
+    setState( const QString & path,  const QString & value );
 
     // prefixed version of getState
-    QString getState(const QString & path);
+    QString
+    getState( const QString & path );
 
     // prefixed version of addStateCallback
-    IConnector::CallbackID addStateCallback( QString path, IConnector::StateChangedCallback cb);
+    IConnector::CallbackID
+    addStateCallback( QString path, IConnector::StateChangedCallback cb );
 
     /// pointer to the loaded image
-    Image::ImageInterface::SharedPtr m_image = nullptr;
+    Image::ImageInterface::SharedPtr m_astroImage = nullptr;
+
     /// are we recomputing clip on frame change?
     bool m_clipRecompute = true;
+
     /// pointer to the rendering algorithm
     Carta::Core::RawView2QImageConverter3::UniquePtr m_rawView2QImageConverter;
+
     /// current frame
-    int m_currentFrame = -1;
+    int m_currentFrame = - 1;
 
     /// pointer to connector
     IConnector * m_connector;
@@ -70,12 +146,26 @@ protected:
 
     /// reload frame timer
     bool m_reloadFrameQueued = false;
+    bool m_repaintFrameQueued = false;
 
     /// schedules a reload of the current frame
-    void scheduleFrameReload();
+    void
+    scheduleFrameReload();
+
+    void
+    scheduleFrameRepaint();
+
+    double m_pixelZoom = 1.0;
+    QImage m_wholeImage;
+
+    Hacks::TestView2 * m_testView2 = nullptr;
 
 protected slots:
 
     /// this does the actual frame reload
-    void _reloadFrameNow();
+    void
+    _reloadFrameNow();
+
+    void
+    _repaintFrameNow();
 };

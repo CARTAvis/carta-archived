@@ -49,15 +49,6 @@ public: \
     typedef std::unique_ptr < Me > UniquePtr; \
     typedef std::shared_ptr < Me > SharedPtr
 
-/// currently does nothing, but may serve as a place to keep global settings for
-/// the whole library
-class CARTALIBSHARED_EXPORT CartaLib
-{
-public:
-
-    CartaLib();
-};
-
 namespace Carta
 {
 namespace Lib
