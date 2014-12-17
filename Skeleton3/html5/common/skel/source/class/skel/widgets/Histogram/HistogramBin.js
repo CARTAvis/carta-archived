@@ -11,10 +11,11 @@
 qx.Class.define("skel.widgets.Histogram.HistogramBin", {
     extend : qx.ui.core.Widget,
 
-    construct : function( title ) {
+    
+    construct : function() {
         this.base(arguments);
         this.m_connector = mImport("connector");
-        this._init( title );
+        this._init();
     },
     
     statics : {
@@ -27,13 +28,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
         /**
          * Initializes the UI.
          */
-        _init : function( title ) {
+        _init : function() {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
-            
-            var binCountGroup = new qx.ui.groupbox.GroupBox( "Bin Count");
-            binCountGroup.setLayout( new qx.ui.layout.VBox(2));
-            this._add( binCountGroup );
             
             this.m_binCountText = new skel.widgets.CustomUI.NumericTextField(0,this.m_MAX_BINS);
             this.m_binCountText.addListener("textChanged",
@@ -45,7 +42,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
                         }
                 }, this);
             skel.widgets.TestID.addTestId( this.m_binCountText, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_INPUT);
-            binCountGroup.add( this.m_binCountText );
+            this._add( this.m_binCountText );
             
             this.m_binCountSlider = new qx.ui.form.Slider();
             this.m_binCountSlider.setMinimum( 0 );
@@ -60,7 +57,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this);
             skel.widgets.TestID.addTestId( this.m_binCountSlider, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_SLIDER);
-            binCountGroup.add( this.m_binCountSlider );
+            this._add( this.m_binCountSlider );
         },
         
         /**

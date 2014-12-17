@@ -13,6 +13,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
 
         /**
          * Constructor.
+         * @param row {Number} the row location.
+         * @param col {Number} the column location.
+         * @param index {Number} an index in case of multiple windows displaying color maps.
+         * @param detached {boolean} true for a pop-up; false for an in-line display.
          */
         construct : function(row, col, index, detached ) {
             this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, row, col, index, detached );
@@ -33,6 +37,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
              *                destination.
              * @param addLink {boolean} true if the link should be added;
              *                false if the link should be removed.
+             * @return {boolean} true if the link changed status; false, otherwise.
              */
             changeLink : function(sourceWinId, destWinId, addLink) {
                 var linkChanged = false;
@@ -53,6 +58,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             /**
              * Returns plug-in context menu items that should be displayed
              * on the main menu when this window is selected.
+             * @return {Array}.
              */
             getWindowSubMenu : function() {
                 var windowMenuList = [];
@@ -120,6 +126,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
              * displaying a named plug-in.
              * 
              * @param pluginId {String} a name identifying a plug-in.
+             * @return {boolean} true if this window supports linking to the plug-in; false,
+             *          otherwise.
              */
             isLinkable : function(pluginId) {
                 var linkable = false;

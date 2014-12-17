@@ -42,7 +42,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
     members : {
         /**
          * Callback for when the animator settings shared variable has changed value.
-         * @param val {String} the new settings.
          */
         _animationCB : function( ){
             var val = this.m_sharedVar.get();
@@ -283,6 +282,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Initialize the part of the UI concerned with the current location of
          * the animator.
+         * @return {qx.ui.container.Composite} a container containing the location UI.
          */
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
@@ -417,6 +417,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Initialize the slider controls.
+         * @return {qx.ui.container.Composite} a container containing the slider controls.
          */
         _initSliderControls : function() {
             var lowBoundSpinner = new qx.ui.form.Spinner(0, 0, 100);
@@ -451,6 +452,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Initialize the tape recorder part of the UI.
+         * @return {qx.ui.container.Composite} a container containing the tape recorder.
          */
         _initToolBar : function() {
             // Toolbar
@@ -552,6 +554,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
         /**
          * Initialize the shared variable that controls the settings.
+         * @param anObject {skel.boundWidgets.Animator}.
+         * @return {Function} the registration callback.
          */
         _registrationCB : function( anObject ){
             return function( id ){
@@ -567,6 +571,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
         /**
          * Initialization of the shared variable that controls the selection.
+         * @param anObject {skel.boundWidgets.Animator}.
+         * @return {Function} the selection callback.
          */
         _selectionCB : function( anObject ){
             return function( id ){
@@ -578,6 +584,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
         /**
          * Callback for a change in the selection.
+         * @param val {String} the JSON representing the animation selection.
          */
         _selectionResetCB : function( val ){
             if ( val ){

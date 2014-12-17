@@ -1,6 +1,7 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
 #include "Data/Colormap.h"
+#include "Data/Colormaps.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
 #include "Data/Histogram.h"
@@ -34,6 +35,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_layout( nullptr ),
       m_dataLoader( nullptr ),
       m_pluginsLoaded( nullptr ){
+    Util::findSingletonObject( Colormaps::CLASS_NAME );
     _initCallbacks();
 
     bool stateRead = this->_readState( "DefaultState" );
@@ -155,6 +157,7 @@ void ViewManager::_initCallbacks(){
 
 
 void ViewManager::_initializeDefaultState(){
+
     _makeAnimator();
     _makeController();
     m_animators[0]->addController( m_controllers[0]);

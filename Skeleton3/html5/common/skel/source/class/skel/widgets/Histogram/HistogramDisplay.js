@@ -52,16 +52,14 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
                 var params = "colored:"+this.m_coloredCheck.getValue();
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this);
-            this.m_styleGroup.add( this.m_logCheck );
-            this.m_styleGroup.add( this.m_coloredCheck );
+            this._add( this.m_logCheck );
+            this._add( this.m_coloredCheck );
         },
         
         /**
          * Initialize whether to use a line, outline, or fill style for display points.
          */
         _initStyle : function(){
-            this.m_styleGroup = new qx.ui.groupbox.GroupBox( "Display");
-            this.m_styleGroup.setLayout( new qx.ui.layout.VBox(2));
             
             this.m_lineRadio = new qx.ui.form.RadioButton( "Line");
             this.m_lineRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
@@ -85,10 +83,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
             var styleGroupRadio = new qx.ui.form.RadioGroup();
             styleGroupRadio.add( this.m_lineRadio, this.m_barRadio, this.m_fillRadio );
          
-            this.m_styleGroup.add( this.m_lineRadio );
-            this.m_styleGroup.add( this.m_barRadio );
-            this.m_styleGroup.add( this.m_fillRadio );
-            this._add( this.m_styleGroup);
+            this._add( this.m_lineRadio );
+            this._add( this.m_barRadio );
+            this._add( this.m_fillRadio );
         },
         
         /**
@@ -158,7 +155,6 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
         
         m_id : null,
         m_connector : null,
-        m_styleGroup : null,
         m_lineRadio : null,
         m_barRadio : null,
         m_fillRadio : null,

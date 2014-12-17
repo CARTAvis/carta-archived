@@ -128,8 +128,7 @@ private:
     //everyone wants to listen to them.
     StateInterface m_stateMouse;
 
-    /// coordinate formatter
-    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+
 
     Controller(const Controller& other);
     Controller operator=(const Controller& other);

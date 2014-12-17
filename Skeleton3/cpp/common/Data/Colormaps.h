@@ -36,11 +36,14 @@ public:
     const static QString CLASS_NAME;
 private:
     void _initializeDefaultState();
+    void _initializeCallbacks();
+    QString _commandGetColorStops( const QString& params );
 
     std::vector < std::shared_ptr<Carta::Lib::IColormapScalar> > m_colormaps;
 
     static bool m_registered;
     const static QString COLOR_MAPS;
+    const static QString COLOR_INDEX;
     const static QString COLOR_MAP_COUNT;
     Colormaps( const QString& path, const QString& id );
 

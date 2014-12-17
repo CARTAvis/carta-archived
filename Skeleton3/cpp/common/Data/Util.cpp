@@ -65,6 +65,15 @@ CartaObject* Util::createObject( const QString& objectName ){
     return cartaObj;
 }
 
+CartaObject* Util::findSingletonObject( const QString& objectName ){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    CartaObject* obj = objManager->getObject( objectName );
+    if ( obj == NULL ){
+        obj = createObject( objectName );
+    }
+    return obj;
+}
+
 Util::~Util(){
 
 }

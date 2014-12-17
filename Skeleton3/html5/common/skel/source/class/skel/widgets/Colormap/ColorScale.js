@@ -27,19 +27,20 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         CMD_REVERSE_MAP : "reverseColormap",
         CMD_SET_MAP : "setColormap"
     },
+    
+    events : {
+        "colorIndexChanged" : "qx.event.type.Data"
+    },
 
     members : {
-
 
         /**
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.Grow();
             this._setLayout(widgetLayout);
             
-            var scaleGroup = new qx.ui.groupbox.GroupBox( "Map");
-            scaleGroup.setLayout( new qx.ui.layout.VBox(2));
             this.m_invertCheck = new qx.ui.form.CheckBox( "Invert");
             this.m_invertCheck.addListener( "changeValue", function(e){
                 var checked = e.getData();
@@ -56,9 +57,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var params = "reverse:"+checked;
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this );
-            scaleGroup.add( this.m_invertCheck );
-            scaleGroup.add( this.m_reverseCheck );
-            this._add( scaleGroup );
+            
             
             var mapComposite = new qx.ui.container.Composite();
             mapComposite.setLayout(new qx.ui.layout.HBox(2));
@@ -72,9 +71,14 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var params = "name:"+mapName;
                 this.m_connector.sendCommand( cmd, params, function(){});
             },this);
+            mapComposite.add( new qx.ui.core.Spacer(50));
             mapComposite.add( mapLabel );
             mapComposite.add( this.m_mapCombo );
-            scaleGroup.add( mapComposite );
+            mapComposite.add( this.m_reverseCheck );
+            mapComposite.add( this.m_invertCheck );
+            mapComposite.add( new qx.ui.core.Spacer(50));
+            this._add( mapComposite );
+           
         },
         
         /**
@@ -85,6 +89,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var val = this.m_sharedVarMaps.get();
                 if ( val ){
                     try {
+                        var oldName = this.m_mapCombo.getValue();
                         var colorMaps = JSON.parse( val );
                         var mapCount = colorMaps.colorMapCount;
                         this.m_mapCombo.removeAll();
@@ -92,6 +97,17 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                             var colorMapName = colorMaps.maps[i];
                             var tempItem = new qx.ui.form.ListItem( colorMapName );
                             this.m_mapCombo.add( tempItem );
+                        }
+                        //Try to reset the old selection
+                        if ( oldName !== null ){
+                            this.m_mapCombo.setValue( oldName );
+                        }
+                        //Select the first item
+                        else if ( mapCount > 0 ){
+                            var selectables = this.m_mapCombo.getChildrenContainer().getSelectables(true);
+                            if ( selectables.length > 0 ){
+                                this.m_mapCombo.setValue( selectables[0].getLabel());
+                            }
                         }
                     }
                     catch( err ){
@@ -111,6 +127,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             }
         },
         
+        
         /**
          * Set the selected color map.
          * @param mapIndex {Number} the index of the selected color map.
@@ -124,6 +141,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var newValue = mapItem.getLabel();
                 if ( currValue != newValue ){
                     this.m_mapCombo.setValue( newValue );
+                    
                 }
             }
         },
@@ -145,6 +163,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 this.m_reverseCheck.setValue(  reverseMap );
             }
         },
+        
         
         m_invertCheck : null,
         m_reverseCheck : null,

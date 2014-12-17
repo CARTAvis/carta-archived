@@ -17,6 +17,7 @@ qx.Class.define("skel.boundWidgets.PluginList", {
 
     /**
      * Constructor.
+     * @param pluginId {String} an identifier indicating this widget displays all available plugins.
      */
     construct : function( pluginId ) {
         this.base(arguments, "");
@@ -68,6 +69,7 @@ qx.Class.define("skel.boundWidgets.PluginList", {
          * Callback for when the id of the object containing information about the
          * plugins has been received; initialize the shared variable and add a CB to it.
          * @param anObject {PluginList}.
+         * @return {Function} the registration callback.
          */
         _registrationCallback : function( anObject ){
             return function( id ){

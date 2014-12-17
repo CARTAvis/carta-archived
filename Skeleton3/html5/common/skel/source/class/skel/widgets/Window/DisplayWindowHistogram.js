@@ -13,6 +13,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
 
         /**
          * Constructor.
+         * @param row {Number} the row location.
+         * @param col {Number} the column location.
+         * @param index {Number} an index in case of multiple windows displaying color maps.
+         * @param detached {boolean} true for a pop-up; false for an in-line display.
          */
         construct : function(row, col, pluginId, index, detached ) {
             this.base(arguments, skel.widgets.Path.getInstance().HISTOGRAM_PLUGIN, row, col, index, detached );
@@ -31,6 +35,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              *                destination.
              * @param addLink {boolean} true if the link should be added;
              *                false if the link should be removed.
+             * @return {boolean} true if the link changed status; false otherwise.
              */
             changeLink : function(sourceWinId, destWinId, addLink) {
                 var linkChanged = false;
@@ -49,16 +54,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             },
             
             /**
-             * Returns plug-in context menu items that should be displayed
-             * on the main menu when this window is selected.
-             */
-            getWindowSubMenu : function() {
-                var windowMenuList = [];
-                return windowMenuList;
-            },
-            
-
-            /**
              * Display specific UI initialization.
              */
             _initDisplaySpecific : function() {
@@ -76,8 +71,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              * Returns whether or not this window can be linked to a window
              * displaying a named plug-in.
              * 
-             * @param pluginId
-             *                {String} a name identifying a plug-in.
+             * @param pluginId {String} a name identifying a plug-in.
+             * @return {boolean} true if this window can be linked to the plug-in;
+             *          false otherwise.
              */
             isLinkable : function(pluginId) {
                 var linkable = false;

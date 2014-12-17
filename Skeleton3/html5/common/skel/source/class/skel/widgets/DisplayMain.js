@@ -95,6 +95,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         /**
          * Returns a list of screen locations where new windows
          * can be added.
+         * @return {Array} the locations where new windows can be added.
          */
         getAddWindowLocations : function() {
             var locations = [];
@@ -109,8 +110,10 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Returns a list of information concerning windows that can be linked to
          * the given source window showing the indicated plug-in.
          * @param pluginId {String} the name of the plug-in.
-         * @param sourceWinId {String} an identifier for the window displaying the
-         *      plug-in that wants information about the links that can emanate frome it.
+         * @param sourceId {String} an identifier for the window displaying the
+         *      plug-in that wants information about the links that can originate from it.
+         * @return {String} information about links that can be established from the specified
+         *      window/plug-in.
          */
         getLinkInfo : function(pluginId, sourceId) {
             var linkInfo = [];
@@ -275,6 +278,8 @@ qx.Class.define("skel.widgets.DisplayMain",
 
         /**
          * Resets which plugins are displayed in each window.
+         * @param layoutObj {Object} information about the plug-ins that
+         *      should be displayed.
          */
         _resetDisplayedPlugins : function( layoutObj ) {
             var index = 0;
@@ -282,7 +287,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             for (var row = 0; row < this.m_gridRowCount; row++) {
                 for (var col = 0; col < this.m_gridColCount; col++) {
                     var name = layoutObj.plugins[index];
-                    console.log( "Processing plugin="+name);
                     if ( name && typeof(name) == "string" && name.length > 0 ){
                         if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
                             if ( pluginMap[name] ===undefined ){
@@ -312,7 +316,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             if ( layoutObjJSON ){
                 try {
                     var layout = JSON.parse( layoutObjJSON );
-                    console.log( "_resetLayoutCB rows="+layout.rows+" cols="+layout.cols);
                     if ( layout.rows > 0 && layout.cols > 0 ){
                         if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
                             this.m_gridRowCount = layout.rows;
@@ -323,10 +326,8 @@ qx.Class.define("skel.widgets.DisplayMain",
                                 };
                             qx.event.message.Bus.dispatch(new qx.event.message.Message(
                                     "layoutGrid", gridData));
-                            console.log( "_resetLayoutCB calling layout");
                             this.layout(this.m_gridRowCount, this.m_gridColCount);
                         }
-                        console.log( "_resetlayoutCB resetting displayed plugins");
                         this._resetDisplayedPlugins( layout );
                     }
                 }

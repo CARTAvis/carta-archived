@@ -28,11 +28,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramZoom", {
         _init : function( ) {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
-
-            var zoomGroup = new qx.ui.groupbox.GroupBox( "Zoom Range");
-            zoomGroup.setLayout( new qx.ui.layout.VBox(2));
             
-            this._add( zoomGroup );
             this.m_fullRange = new qx.ui.form.Button( "Full" );
             this.m_fullRange.addListener( "execute", function(){
                 var path = skel.widgets.Path.getInstance();
@@ -47,8 +43,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramZoom", {
                 var params = "";
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this );
-            zoomGroup.add( this.m_fullRange );
-            zoomGroup.add( this.m_selectedRange );
+            this._add( this.m_fullRange );
+            this._add( this.m_selectedRange );
         },
         
         /**

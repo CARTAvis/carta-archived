@@ -60,7 +60,7 @@ Histogram::Histogram( const QString& path, const QString& id):
 
     //Load the available clips.
     if ( m_clips == nullptr ){
-        CartaObject* obj = Util::createObject( Clips::CLASS_NAME );
+        CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
         m_clips.reset(dynamic_cast<Clips*>(obj));
     }
 }

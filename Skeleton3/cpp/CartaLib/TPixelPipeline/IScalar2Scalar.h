@@ -36,7 +36,7 @@ public:
     ~IScalar2Scalar() { }
 };
 
-void
+/*void
 test1()
 {
     std::shared_ptr < IScalar2Scalar < double > > x;
@@ -51,7 +51,7 @@ test1()
     // and it works
     static_assert( std::is_same < decltype( x ), decltype( y ) >::value, "oops" );
     static_assert( std::is_same < decltype( x ), decltype( yy ) >::value, "oops" );
-}
+}*/
 
 /// interface for implementing stage 3 (normalized scalar -> ScalarRgb)
 /// this is the most generic colormap
@@ -214,11 +214,11 @@ protected:
     InputScalar m_min = 0, m_max = 1; // needed for stage 3 (normalization)
 };
 
-void
+/*void
 test2()
 {
     Composite < double, float > composite;
-}
+}*/
 
 /// adapter for implementing double -> double from std::function
 template < typename Scalar >
@@ -248,7 +248,7 @@ protected:
     std::function < Scalar( Scalar ) > m_func;
 };
 
-void
+/*void
 test3()
 {
     FunctionD2DAdapter < double > adapter([] (double x) { return 1 - x;
@@ -256,7 +256,7 @@ test3()
                                           );
     double x = 7;
     adapter.convert( x );
-}
+}*/
 
 /// algorithm for caching a double->rgb function
 template < typename InputScalar, typename OutputScalar >
@@ -307,7 +307,7 @@ protected:
     typename Comp::SharedPtr m_comp;
 };
 
-void
+/*void
 test4()
 {
     DefaultPipeline < double, double > pipe;
@@ -317,7 +317,7 @@ test4()
 
     IScalar2Scalar < int >::SharedPtr ptr;
     Composite < int, int >::SharedPtr x;
-}
+}*/
 }
 }
 }

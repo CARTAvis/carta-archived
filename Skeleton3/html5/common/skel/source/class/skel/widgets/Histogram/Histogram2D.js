@@ -34,8 +34,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
          * Initialize the 2D foot print settings.
          */
         _initFootPrint : function(){
-            var footPrintGroup = new qx.ui.groupbox.GroupBox( "2D Foot Print");
-            footPrintGroup.setLayout( new qx.ui.layout.VBox(2));
             
             this.m_imageRadio = new qx.ui.form.RadioButton( "Image");
             this.m_imageRadio.addListener( "changeValue", function(){
@@ -58,14 +56,14 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
             var footPrintRadio = new qx.ui.form.RadioGroup();
             footPrintRadio.add( this.m_imageRadio, this.m_regionRadio, this.m_regionAllRadio );
             
-            footPrintGroup.add( this.m_imageRadio );
-            footPrintGroup.add( this.m_regionRadio );
-            footPrintGroup.add( this.m_regionAllRadio );
-            this._add( footPrintGroup );
+            this._add( this.m_imageRadio );
+            this._add( this.m_regionRadio );
+            this._add( this.m_regionAllRadio );
         },
         
         /**
          * Notify the server that the 2D footprint has changed.
+         * @param footPrint {String} identifier for the type of 2D footprint.
          */
         _sendFootPrintCmd : function( footPrint ){
             var path = skel.widgets.Path.getInstance();

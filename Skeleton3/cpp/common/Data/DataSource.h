@@ -7,7 +7,7 @@
 #include "CartaLib/Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-
+#include "CartaLib/ICoordinateFormatter.h"
 #include <QImage>
 #include <memory>
 
@@ -15,6 +15,7 @@ namespace Image {
 class ImageInterface;
 }
 class RawView2QImageConverter;
+class ICoordinateFormatter;
 
 class DataSource : public CartaObject {
 
@@ -73,6 +74,8 @@ public:
      */
     int getDimensions() const;
 
+    QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
+
     virtual ~DataSource();
 
     const static QString CLASS_NAME;
@@ -101,6 +104,8 @@ private:
     //Reset the amount of clip to perform on the image.
     void resetClipValue();
 
+
+
     //Path for loading data - todo-- do we need to store this?
     QString m_fileName;
 
@@ -112,4 +117,8 @@ private:
 
     /// pointer to the rendering algorithm
     std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
+
+    /// coordinate formatter
+    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+
 };

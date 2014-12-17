@@ -42,8 +42,6 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          * plane or multiple planes.
          */
         _initPlane : function(){
-            var planeGroup = new qx.ui.groupbox.GroupBox( "Plane");
-            planeGroup.setLayout( new qx.ui.layout.VBox(2));
             
             this.m_planeAll = new qx.ui.form.RadioButton( "All");
             this.m_planeAll.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, function(){
@@ -51,7 +49,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
                     this._planeModeChanged();
                 }
             }, this );
-            planeGroup.add( this.m_planeAll );
+            this._add( this.m_planeAll );
             
             var singleComposite = new qx.ui.container.Composite();
             singleComposite.setLayout(new qx.ui.layout.HBox(2));
@@ -94,12 +92,11 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             //The value of the min spinner is the minimum value for the max spinner.
             this.m_rangeMinSpin.bind( "value", this.m_rangeMaxSpin, "minimum");
             
-            
             var radGroup = new qx.ui.form.RadioGroup();
             radGroup.add(this.m_planeAll, this.m_planeSingle, this.m_planeRange );
-            planeGroup.add( singleComposite );
-            planeGroup.add( rangeComposite );
-            this._add( planeGroup );
+            this._add( singleComposite );
+            this._add( rangeComposite );
+
         },
         
         /**
@@ -182,9 +179,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
         },
         
         /**
-         * Set whether or not this histogram is of a single plane.
-         * @param singlePlane {boolean} true if the histogram is computed from a single
-         *      plane; false, otherwise.
+         * Set whether or not this histogram is of a single plane, range of planes, or
+         *      a full cube.
+         * @param mode {String} an identifier for the plane(s) to use in computing the histogram..
          */
         setPlaneMode : function ( mode ){
             if ( mode == this.m_planeAll.getLabel()){

@@ -47,7 +47,7 @@ Colormap::Colormap( const QString& path, const QString& id):
 
     //Load the available color maps.
     if ( m_colors == nullptr ){
-        CartaObject* obj = Util::createObject( Colormaps::CLASS_NAME );
+        CartaObject* obj = Util::findSingletonObject( Colormaps::CLASS_NAME );
         m_colors.reset( dynamic_cast<Colormaps*>( obj ));
     }
 }

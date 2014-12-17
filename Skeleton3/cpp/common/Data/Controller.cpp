@@ -367,17 +367,9 @@ void Controller::_updateCursor(){
     if ( !validInt ){
         return;
     }
-    int dataIndex = m_selectImage->getIndex();
-
-    int imageDims = this->m_datas[dataIndex]->getDimensions();
-    auto pixCoords = std::vector<double>( imageDims, 0.0);
-    pixCoords[0] = mouseX;
-    pixCoords[1] = mouseY;
-    if( pixCoords.size() > 2) {
-        int frameIndex = m_selectChannel->getIndex();
-        pixCoords[2] = frameIndex;
-    }
-    auto list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
+    QStringList list = m_datas[imageIndex]->formatCoordinates( mouseX, mouseY, frameIndex );
     m_stateMouse.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
 
     m_stateMouse.flushState();

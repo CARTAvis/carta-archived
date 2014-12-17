@@ -61,10 +61,6 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
             
-            var clipGroup = new qx.ui.groupbox.GroupBox( "Clip (Jy/beam)");
-            this._add( clipGroup );
-            clipGroup.setLayout( new qx.ui.layout.VBox(2));
-
             //Minimum
             var minComposite = new qx.ui.container.Composite();
             minComposite.setLayout(new qx.ui.layout.HBox(2));
@@ -123,10 +119,10 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                 }
             }, this );
             
-            clipGroup.add( minComposite );
-            clipGroup.add( maxComposite );
-            clipGroup.add( percentComposite );
-            clipGroup.add( this.m_applyImageClip );
+            this._add( minComposite );
+            this._add( maxComposite );
+            this._add( percentComposite );
+            this._add( this.m_applyImageClip );
         },
         
         /**

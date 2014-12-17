@@ -47,51 +47,91 @@ qx.Class.define("skel.widgets.Path", {
         VIEW_MANAGER : "ViewManager",
         
        
-        
+        /**
+         * Returns the command for announcing the creation of a shape.
+         * @param winId {String} the server side id of the object displaying the shape.
+         * @return {String} command for registering the shape.
+         */
         getCommandRegisterShape : function(winId){
             return winId + this.SEP_COMMAND +"registerShape";
         },
         
+        /**
+         * Returns the command for obtaining the unique identifier of a top level object.
+         * @return {String} command for obtaining the unique identifier of a top level object.
+         */
         getCommandRegisterView : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "registerView";
         },
         
-        
-        
+        /**
+         * Returns the command for getting a list of available data to load.
+         * @return {String} command for getting a list of available data to load.
+         */
         getCommandLoadData : function(){
             return this.BASE_PATH + this.DATA_LOADER + this.SEP_COMMAND + "getData";
         },
             
-
-        
+        /**
+         * Returns the command for loading selected data.
+         * @return {String} command for loading selected data.
+         */
         getCommandDataLoaded : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "dataLoaded";
         },
         
+        /**
+         * Returns the command for indicating which object the animator should control.
+         * @return {String} command for linking the animator with a controlled object.
+         */
         getCommandLinkAnimator : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "linkAnimator";
         },
         
+        /**
+         * Returns the command for resetting (emptying) the layout.
+         * @return {String} command for resetting the layout.
+         */
         getCommandClearLayout : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "clearLayout";
         },
         
+        /**
+         * Returns the command for restoring state.
+         * @return {String} command for restoring state.
+         */
         getCommandRestoreState : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "restoreState";
         },
         
+        /**
+         * Returns the command for resizing the number of rows/columns in the layout.
+         * @return {String} command for resizing the layout.
+         */
         getCommandSetLayoutSize : function(){
             return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setLayoutSize";
         },
         
+        /**
+         * Returns the command for updating the plug-in that is displayed.
+         * @return {String} command for updating the displayed plug-in.
+         */
         getCommandSetPlugin : function(){
             return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setPlugin";
         },
         
+        /**
+         * Returns the command for updating a shape.
+         * @return {String} command for updating a shape.
+         */
         getCommandShapeChanged : function(shapeId){
             return shapeId + this.SEP_COMMAND +"shapeChanged";
         },
         
+        /**
+         * Returns the command for saving state.
+         * @return {String} command for saving state.
+         */
         getCommandSaveState : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "saveState";
         }

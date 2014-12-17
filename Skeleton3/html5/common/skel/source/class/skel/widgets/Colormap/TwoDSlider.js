@@ -22,6 +22,8 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
             this.base(arguments);
 
             this.setSyncDimension( true);
+            this.setAllowGrowX( true );
+            this.setAllowGrowY( true );
 
             this.m_mouse = null;
 

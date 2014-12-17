@@ -186,6 +186,7 @@ qx.Class.define( "skel.widgets.Window.MoveResizeWindow",
              * Returns true if the cursor is indicating the bottom of the
              * window will be resized; false otherwise.
              * @param cursor {String} a cursor identifier.
+             * @return {boolean} true for a bottom resize; false otherwise.
              */
             _isResizeSouth : function( cursor ){
                 var resizeSouth = false;
@@ -201,6 +202,7 @@ qx.Class.define( "skel.widgets.Window.MoveResizeWindow",
              * Returns true if the cursor is indicating the top of the
              * window will be resized; false otherwise.
              * @param cursor {String} a cursor identifier.
+             * @return {boolean} true for a top resize; false otherwise.
              */
             _isResizeNorth : function( cursor ){
                 var resizeNorth = false;
@@ -216,6 +218,7 @@ qx.Class.define( "skel.widgets.Window.MoveResizeWindow",
              * Returns true if the cursor is indicating the right of the
              * window will be resized; false otherwise.
              * @param cursor {String} a cursor identifier.
+             * @return {boolean} true for a right resize; false otherwise.
              */
             _isResizeWest : function( cursor ){
                 var resizeEast = false;
@@ -295,7 +298,6 @@ qx.Class.define( "skel.widgets.Window.MoveResizeWindow",
             
             /**
              * Callback for a mouse release event.
-             * @param event {MouseEvent}.
              */
             _mouseUpCB : function(){
                 this.m_mouseDown = null;

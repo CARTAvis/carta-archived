@@ -15,6 +15,8 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
 
     /**
      * Constructor
+     * @param rows {Number} the current layout row count.
+     * @param cols {Number} the current layout column count.
      */
     construct : function( rows, cols ) {
         this.base(arguments);

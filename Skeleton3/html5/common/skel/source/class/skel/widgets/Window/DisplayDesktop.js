@@ -39,6 +39,9 @@ qx.Class
 
                     members : {
 
+                        /**
+                         * Adds listeners.
+                         */
                         _addWindowListeners : function(){
                             this.m_window.addListener("disappear", function() {
                                 if (!this.m_window.isClosed()) {
@@ -78,6 +81,7 @@ qx.Class
                         /**
                          * Returns an empty list as windows cannot be added in
                          * the middle of a desktop.
+                         * @return {Array} an empty array.
                          */
                         getAddWindowLocations : function() {
                             return [];
@@ -85,25 +89,24 @@ qx.Class
 
                         /**
                          * Returns this.
+                         * @return {skel.widgets.DisplayDesktop}.
                          */
                         getDisplayArea : function() {
                             return this;
                         },
-
-
                         
                         /**
                          * Returns a list of information concerning windows that
                          * can be linked to the given source window showing the
                          * indicated plug-in.
                          * 
-                         * @param pluginId
-                         *                {String} the name of the plug-in.
-                         * @param sourceWinId
-                         *                {String} an identifier for the window
+                         * @param pluginId {String} the name of the plug-in.
+                         * @param sourceWinId {String} an identifier for the window
                          *                displaying the plug-in that wants
                          *                information about the links that can
-                         *                emanate frome it.
+                         *                originate from it.
+                         * @return {String} information about links that can be established
+                         *      from the given plug-in and window.
                          */
                         getLinkInfo : function(pluginId, sourceWinId) {
                             var linkInfo = [];
@@ -120,11 +123,11 @@ qx.Class
                          * location of its window; otherwise, returns an empty
                          * string.
                          * 
-                         * @param sourceRow
-                         *                {Number} a row location on the screen.
-                         * @param sourceCol
-                         *                {Number} a column location on the
+                         * @param sourceRow {Number} a row location on the screen.
+                         * @param sourceCol {Number} a column location on the
                          *                screen.
+                         * @return {String} the identifier for the window at the specified
+                         *      location or an empty string if there is no such window.
                          */
                         getWinId : function(sourceRow, sourceCol) {
                             var winId = "";
@@ -141,16 +144,14 @@ qx.Class
                          * the destination window was successfully added or
                          * removed; false otherwise.
                          * 
-                         * @param sourceWinId
-                         *                {String} an identifier for the link
+                         * @param sourceWinId {String} an identifier for the link
                          *                source.
-                         * @param destWinId
-                         *                {String} an identifier for the link
+                         * @param destWinId {String} an identifier for the link
                          *                destination.
-                         * @param addLink
-                         *                {boolean} true if the link should be
+                         * @param addLink {boolean} true if the link should be
                          *                added; false if the link should be
                          *                removed.
+                         * @return {boolean} true if the link status changed; false otherwise.
                          */
                         changeLink : function(sourceWinId, destWinId, addLink) {
                             var linkSet = false;
@@ -163,6 +164,7 @@ qx.Class
 
                         /**
                          * Returns the row and column of its managed window.
+                         * @return {Array} containing [row,column] location.
                          */
                         _getLastIndices : function() {
                             var indices = [ this.m_row, this.m_col ];
@@ -171,6 +173,7 @@ qx.Class
 
                         /**
                          * Returns the width and height.
+                         * @return {Array} containing [width,height] information.
                          */
                         _getDimensions : function() {
                             var dims = [ this.getWidth(), this.getHeight() ];
@@ -181,8 +184,7 @@ qx.Class
                          * Factory method for making window specialized to
                          * correct type.
                          * 
-                         * @param pluginId
-                         *                {String} an identifier for the type of
+                         * @param pluginId {String} an identifier for the type of
                          *                plugin the window will manage.
                          * @param index {Number} an index that will be positive when there is more than one window with the same pluginId.
                          */
@@ -195,14 +197,10 @@ qx.Class
                         /**
                          * Sets the width and height.
                          * 
-                         * @param width
-                         *                {Number} the new width.
-                         * @param height
-                         *                {Number} the new height.
-                         * @param decreaseWidth
-                         *                {Boolean} - currently ignored.
-                         * @param decreaseHeight
-                         *                {Boolean} - currently ignored.
+                         * @param width {Number} the new width.
+                         * @param height {Number} the new height.
+                         * @param decreaseWidth {Boolean} - currently ignored.
+                         * @param decreaseHeight {Boolean} - currently ignored.
                          */
                         _setDimensions : function(width, height, decreaseWidth,
                                 decreaseHeight) {
@@ -219,6 +217,7 @@ qx.Class
                          * @param index {Number} an index to indicate which one in the case of views having the same plugin.
                          * @param rowIndex {Number} a row index in the layout.
                          * @param colIndex {Number} a column index in the layout.
+                         * @return {boolean} true if the plugin was reassigned; false otherwise.
                          */
                         setView : function(pluginId, index, rowIndex, colIndex) {
                             // If this is not the target, return.
@@ -273,12 +272,11 @@ qx.Class
                          * Returns whether or not the window was restored based
                          * on whether or not the location matches this one.
                          * 
-                         * @param row
-                         *                {Number} the layout row of the window
+                         * @param row {Number} the layout row of the window
                          *                to be restored.
-                         * @param col
-                         *                {Number} the layout column of the
+                         * @param col {Number} the layout column of the
                          *                window to be restored.
+                         * @return {boolean} true if the window was restored; false otherwise.
                          */
                         restoreWindow : function(row, col) {
                             var restored = false;
@@ -311,15 +309,12 @@ qx.Class
                          * location of this desktop compared to the layout row
                          * and column index passed in.
                          * 
-                         * @param width
-                         *                {Number} horizontal of the display
-                         *                area.
-                         * @param rowIndex
-                         *                {Number} a layout row index
+                         * @param width {Number} horizontal of the display area.
+                         * @param rowIndex {Number} a layout row index
                          *                identifying the area.
-                         * @param colIndex
-                         *                {Number} a layout column index
+                         * @param colIndex {Number} a layout column index
                          *                identifying the area.
+                         * @return {boolean} true if the width was set; false otherwise.
                          */
                         setAreaWidth : function(width, rowIndex, colIndex) {
                             var target = true;
@@ -336,15 +331,13 @@ qx.Class
                          * the location of this desktop compared to the layout
                          * row and column index passed in.
                          * 
-                         * @param height
-                         *                {Number} vertical height of the
+                         * @param height {Number} vertical height of the
                          *                display area.
-                         * @param rowIndex
-                         *                {Number} a layout row index
+                         * @param rowIndex {Number} a layout row index
                          *                identifying the area.
-                         * @param colIndex
-                         *                {Number} a layout column index
+                         * @param colIndex {Number} a layout column index
                          *                identifying the area.
+                         * @return {boolean} true if the height was set; false, otherwise.
                          */
                         setAreaHeight : function(height, rowIndex, colIndex) {
                             var target = true;
@@ -362,10 +355,10 @@ qx.Class
                          * column index. Returns whether or not this
                          * DisplayDesktop was removed from the display.
                          * 
-                         * @param row
-                         *                {Number} a row index in the layout.
-                         * @param col
-                         *                {Number} a col index in the layout.
+                         * @param row {Number} a row index in the layout.
+                         * @param col {Number} a column index in the layout.
+                         * @return {boolean} true if it was removed; false otherwise.
+                         * 
                          */
                         excludeArea : function(row, col) {
                             var excluded = false;

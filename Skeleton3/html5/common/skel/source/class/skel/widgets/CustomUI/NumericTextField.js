@@ -7,7 +7,11 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
     {
         extend: qx.ui.container.Composite,
 
-
+        /**
+         * Constructor.
+         * @param minValue {Number} the minimum value allowed in the text field.
+         * @param maxValue {Number} the maximum value allowed in the text field.
+         */
         construct: function ( minValue, maxValue ) {
             this.base(arguments);
             this.m_minValue = minValue;

@@ -80,6 +80,8 @@ qx.Class.define("skel.widgets.FileBrowser", {
         
         /**
          * Update the tree with the new data.
+         * @param anObject {skel.widgets.FileBrowser}.
+         * @return {Function} callback for updating the UI with available image files.
          */
         _loadDataCB : function( anObject ){
             return function( fileList ){
@@ -89,6 +91,7 @@ qx.Class.define("skel.widgets.FileBrowser", {
 
         /**
          * Stores the window that wants to add data.
+         * @param source {String} an identifier for the window that needs to load data.
          */
         setTarget : function(source) {
             this.m_target = source;

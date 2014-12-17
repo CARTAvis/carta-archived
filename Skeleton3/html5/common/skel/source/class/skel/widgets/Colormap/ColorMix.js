@@ -48,17 +48,14 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.VBox(0);
             this._setLayout(widgetLayout);
-            
-            
-            var group = new qx.ui.groupbox.GroupBox( "Color Values");
-            group.setLayout( new qx.ui.layout.VBox(2));
-            
+            this.setAllowGrowX( true );
             
             var sliderContainer = new qx.ui.container.Composite();
-            sliderContainer.setHeight( 200 );
-            sliderContainer.setLayout( new qx.ui.layout.HBox(2));
+            sliderContainer.setHeight( 50 );
+            sliderContainer.setAllowGrowX( true );
+            sliderContainer.setLayout( new qx.ui.layout.VBox(2));
             this.m_redSlider = new qx.ui.form.Slider();
             this.m_redSlider.setDecorator( "slider-red");
             this._initSlider( this.m_redSlider, sliderContainer );
@@ -68,12 +65,11 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             this.m_blueSlider = new qx.ui.form.Slider();
             this._initSlider( this.m_blueSlider, sliderContainer );
             this.m_blueSlider.setDecorator( "slider-blue" );
-            group.add( sliderContainer );
-            this._add( group );
+            this._add( sliderContainer );
             
-            this.m_synchronizeCheck = new qx.ui.form.CheckBox( "Synch");
+            this.m_synchronizeCheck = new qx.ui.form.CheckBox( "Synchronize Colors");
             this.m_synchronizeCheck.setValue( true );
-            group.add( this.m_synchronizeCheck );
+            //this._add( this.m_synchronizeCheck );
         },
         
         /**
@@ -103,7 +99,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             slider.setSingleStep( 1 );
             slider.setPageStep( 10 );
             slider.setFocusable( false );
-            slider.setOrientation( "vertical");
+            slider.setOrientation( "horizontal");
             sliderGroup.add( slider );
         },
         
@@ -143,6 +139,9 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         
         /**
          * Update the GUI with the new color mix percents.
+         * @param redPercent {Number} a decimal in [0,1] indicating the red percentage.
+         * @param greenPercent {Number} a decimal in [0,1] indicating the green percentage.
+         * @param bluePercent {Number} a decimal in [0,1] indicating the blue percentage.
          */
         setMix : function( redPercent, greenPercent, bluePercent ){
             var red = this._percentToValue( redPercent );
@@ -151,6 +150,26 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             this.m_redSlider.setValue( red );
             this.m_blueSlider.setValue( blue );
             this.m_greenSlider.setValue( green );
+        },
+        
+        /**
+         * Adds menu items to the container.
+         * @param container {qx.ui.container.Container}.
+         */
+        addMenuItems : function( container){
+            if ( container.indexOf( this.m_synchronizeCheck) < 0 ){
+                container.add( this.m_synchronizeCheck );
+            }
+        },
+        
+        /**
+         * Removes menu items from the container.
+         * @param container {qx.ui.container.Container}.
+         */
+        removeMenuItems : function( container ){
+            if ( container.indexOf( this.m_synchronizeCheck) >= 0 ){
+                container.remove( this.m_synchronizeCheck);
+            }
         },
         
         m_id : null,

@@ -17,10 +17,8 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
      */
     construct : function( ) {
         this.base(arguments);
-        this.set({
-            width : 700,
-            height : 400
-        });
+        this.setAllowGrowX( true );
+        this.setAllowGrowY( true );
         this._setLayout(new qx.ui.layout.VBox(0));
         this.m_content = new qx.ui.container.Composite();
         this.m_content.setLayout(new qx.ui.layout.VBox(0));
@@ -37,10 +35,9 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             var widgetLayout = new qx.ui.layout.HBox(2);
             this.m_content.setLayout(widgetLayout);
             this._initMain();
-            
             this._initControls( );
 
-            this._add( this.m_controlComposite);
+            this.m_content.add( this.m_controlComposite, {flex: 1});
         },
         
 
@@ -49,7 +46,9 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
          */
         _initControls : function(){
             this.m_controlComposite = new qx.ui.container.Composite();
-            this.m_controlComposite.setLayout( new qx.ui.layout.HBox(2));
+            this.m_controlComposite.setAllowGrowX( true );
+            this.m_controlComposite.setAllowGrowY( true );
+            this.m_controlComposite.setLayout( new qx.ui.layout.Grow());
             this._layoutControls( );
             
         },
@@ -63,30 +62,28 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this.m_mainComposite.setAllowGrowX( true );
             this.m_mainComposite.setAllowGrowY( true );
             
-            var settingsComposite = new qx.ui.container.Composite();
-            settingsComposite.setLayout( new qx.ui.layout.HBox(2));
+            this.m_settingsComposite = new qx.ui.container.Composite();
+            this.m_settingsComposite.setLayout( new qx.ui.layout.HBox(2));
             
-            this.m_scaleVisible = new qx.ui.form.CheckBox( "Map...");
+            this.m_scaleVisible = new qx.ui.form.CheckBox( "Show Maps");
             this.m_scaleVisible.setValue( true );
             this.m_scaleVisible.addListener("execute", this._layoutControls, this);
-            this.m_modelVisible = new qx.ui.form.CheckBox( "Model...");
+            this.m_modelVisible = new qx.ui.form.CheckBox( "Show Models");
             this.m_modelVisible.setValue( true );
             this.m_modelVisible.addListener("execute", this._layoutControls, this);
-            this.m_paramsVisible = new qx.ui.form.CheckBox( "Parameters...");
-            this.m_paramsVisible.setValue( true );
-            this.m_paramsVisible.addListener("execute", this._layoutControls, this);
-            this.m_colorMixVisible = new qx.ui.form.CheckBox( "Color Values...");
+            
+            this.m_colorMixVisible = new qx.ui.form.CheckBox( "Show Color Mix");
             this.m_colorMixVisible.setValue( true );
             this.m_colorMixVisible.addListener("execute", this._layoutControls, this);
 
-            settingsComposite.add( this.m_colorMixVisible );
-            settingsComposite.add( this.m_scaleVisible );
-            settingsComposite.add( this.m_modelVisible );
-            settingsComposite.add( this.m_paramsVisible );
+            this.m_settingsComposite.add( this.m_colorMixVisible );
+            this.m_settingsComposite.add( this.m_scaleVisible );
+            this.m_settingsComposite.add( this.m_modelVisible );
             
             
-            this.m_mainComposite._add( settingsComposite );
+            this.m_mainComposite._add( this.m_settingsComposite );
             this.m_content.add(this.m_mainComposite, {flex:1});
+            
         },
         
         /**
@@ -95,14 +92,15 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         _initView : function(){
             if ( this.m_view === null ){
                 var path = skel.widgets.Path.getInstance();
-                this.m_view = new skel.boundWidgets.View( this.m_id );
+                this.m_view = new skel.widgets.Colormap.ColorGradient();
                 this.m_view.setAllowGrowX( true );
                 this.m_view.setAllowGrowY( true );
+                
                 
                 this.m_colorComposite = new qx.ui.container.Composite();
                 this.m_colorComposite.setAllowGrowX( true );
                 this.m_colorComposite.setAllowGrowY( true );
-                this.m_colorComposite.setLayout( new qx.ui.layout.HBox(2));
+                this.m_colorComposite.setLayout( new qx.ui.layout.VBox(0));
                 this.m_mainComposite.add( this.m_colorComposite, {flex:1} );
                 this._layoutColorPanel();
             }
@@ -114,10 +112,25 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         _layoutColorPanel : function(){
             if ( this.m_colorComposite !== null ){
                 this.m_colorComposite.removeAll();
+                //Red,blue green sliders
                 if ( this.m_colorMixVisible.getValue() ){
                     this.m_colorComposite.add( this.m_colorMixSettings );
+                    this.m_colorMixSettings.addMenuItems( this.m_settingsComposite );
                 }
-                this.m_colorComposite.add( this.m_view, {flex:1} );
+                else {
+                    this.m_colorMixSettings.removeMenuItems( this.m_settingsComposite );
+                }
+                
+                //colorGradient
+                if ( this.m_view !== null ){
+                    this.m_colorComposite.add( this.m_view );
+                }
+                
+                //color map settings
+                if ( this.m_scaleVisible.getValue()){
+                    this.m_colorComposite.add( this.m_scaleSettings);
+                }
+               
             }
         },
         
@@ -126,32 +139,41 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
          */
         _layoutControls : function( ){
             this.m_controlComposite.removeAll();
+            
+            //Display combo for map choices added on top of the gradient
             if ( this.m_scaleVisible.getValue()){
-                if ( !this.m_scaleSettings ){
+                if ( this.m_scaleSettings === null ){
                     this.m_scaleSettings = new skel.widgets.Colormap.ColorScale();
                 }
-                this.m_controlComposite.add( this.m_scaleSettings );
             }
+            
+            //Model displaying the grid
             if ( this.m_modelVisible.getValue()){
                 if ( this.m_modelSettings === null ){
                     this.m_modelSettings = new skel.widgets.Colormap.ColorModel();
                 }
-                this.m_controlComposite.add( this.m_modelSettings );
-            }
-            if ( this.m_paramsVisible.getValue()){
-                if ( this.m_paramSettings === null ){
-                    this.m_paramSettings = new skel.widgets.Colormap.ColorModelParameters();
+                if ( this.m_controlComposite.indexOf( this.m_modelSettings) < 0 ){
+                    this.m_controlComposite.add( this.m_modelSettings );
                 }
-                this.m_controlComposite.add( this.m_paramSettings );
+                //this.m_modelSettings.addMenuItems( this.m_settingsComposite );
             }
+            else {
+                if ( this.m_controlComposite.indexOf( this.m_modelSettings ) >= 0 ){
+                    this.m_controlComposite.remove( this.m_modelSettings );
+                }
+                //this.m_modelSettings.removeMenuItems( this.m_settingsComposite );
+            }
+          
+            //Red,blue,green sliders in color panel.
             if ( this.m_colorMixVisible.getValue()){
                 if ( this.m_colorMixSettings === null ){
                     this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
                 }
-                
             }
+           
             this._layoutColorPanel();
         },
+        
         
         /**
          * Callback for when the selected color map changes on the server.
@@ -173,8 +195,9 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                         if ( this.m_colorMixSettings !== null ){
                             this.m_colorMixSettings.setMix( cMap.colorMix.redPercent, cMap.colorMix.greenPercent, cMap.colorMix.bluePercent );
                         }
-                        if ( this.m_paramSettings !== null ){
-                            console.log( "Need to figure out parameter settings better");
+                       
+                        if ( this.m_view !== null ){
+                            this.m_view.setColorIndex( cMap.colorMapIndex );
                         }
                     }
                     catch( err ){
@@ -186,7 +209,6 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         
         /**
          * Register to get updates on the selected color map from the server.
-         * @param anObject {skel.widgets.Colormap.ColorMapDialog}
          */
         _registerMapCB : function( ){
             var path = skel.widgets.Path.getInstance();
@@ -207,8 +229,6 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                     this.m_colorMixSettings.setId( this.m_id );
                     this.m_modelSettings.setId( this.m_id );
                     this.m_scaleSettings.setId( this.m_id );
-                    this.m_paramSettings.setId( this.m_id );
-                    
                     this._registerMapCB();
                 }
             }
@@ -217,6 +237,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         //Layout
         m_controlComposite : null,
         m_mainComposite : null,
+        m_settingsComposite : null,
         m_colorComposite : null,
         m_content : null,
         
@@ -228,8 +249,6 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         m_colorMixSettings : null,
         m_modelVisible : null,
         m_modelSettings : null,
-        m_paramsVisible : null,
-        m_paramSettings : null,
         m_scaleVisible : null,
         m_scaleSettings : null,
         
