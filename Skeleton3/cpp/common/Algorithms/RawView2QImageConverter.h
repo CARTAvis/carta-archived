@@ -158,59 +158,6 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
 
 #include "CartaLib/PixelPipeline/Id2d.h"
 
-// converter capable of computing clips
-
-class RawView2QImageConverter2
-{
-    CLASS_BOILERPLATE( RawView2QImageConverter2 );
-
-public:
-
-    typedef double Scalar;
-
-    RawView2QImageConverter2();
-
-    /// what size cache should we use (in bytes)
-    void
-    setCacheSize( int64_t size );
-
-    /// \warning the pointer is kept for invocation of go(). Make sure it's valid
-    /// during a call to go()!
-    /// @param id string unique for the view, as it will be used by caching
-    Me &
-    setView( NdArray::RawViewInterface * rawView, QString id = "" );
-
-    /// compute clips using the current view (set by setView())
-    /// @param clip for example 0.95 means 95%
-    void
-    computeClips( double clip );
-
-    /// manual setting of clips
-    void
-    setClips( double min, double max );
-
-    /// set the pixel pipeline (uncached)
-    void
-    setPixelPipeline( Carta::Lib::PixelPipeline::Id2NormQRgb * pipeline );
-
-    /// destructor
-    ~RawView2QImageConverter2();
-
-    const QImage &
-    go( int frame, bool recomputeClip = true );
-
-protected:
-
-    struct CachedImage;
-    QImage m_qImage;
-    Carta::Lib::IColormapScalar::SharedPtr m_cmap;
-    NdArray::RawViewInterface * m_rawView = nullptr;
-    double m_autoClip = 0.95;
-
-    QCache < int, CachedImage > m_cache;
-    double m_clip1 = 1.0 / 0.0, m_clip2 = 0.0;
-};
-
 /// controlling raw data to image conversion:
 /// - invert on/off
 /// - reverse on/off
@@ -292,6 +239,8 @@ public:
     Me &
     setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
     ;
+
+    QString getCmapPreview( int n = 10);
 
     /// do the actual conversion with the previously set parameters
     void convert(QImage & img);

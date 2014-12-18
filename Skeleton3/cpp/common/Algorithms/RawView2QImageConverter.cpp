@@ -181,6 +181,17 @@ RawView2QImageConverter3::RawView2QImageConverter3()
     m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePipeline );
 }
 
+QString RawView2QImageConverter3::getCmapPreview(int n) {
+    QStringList list;
+    for( int i = 0 ; i <= n ; i ++ ) {
+        double x = (m_clipMax - m_clipMin) / n * i + m_clipMin;
+        QRgb col;
+        m_customPipeline-> convertq( x, col);
+        list << QColor(col).name().mid(1);
+    }
+    return list.join(",");
+}
+
 /// @todo some optimization would be useful here, i.e. no need to recompute the cached
 /// pipeline every single time... only when related parameters are changed, but this would
 /// require some interesting refactoring to not loose the template speedup, without

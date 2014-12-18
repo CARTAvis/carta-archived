@@ -407,6 +407,8 @@ HackViewer::_reloadFrameNow()
     // convert the data to image
     m_rawView2QImageConverter-> convert( m_wholeImage );
 
+    setState( "cm-preview", m_rawView2QImageConverter-> getCmapPreview(300));
+
     _repaintFrameNow();
 } // scheduleFrameReload
 

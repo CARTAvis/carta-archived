@@ -15,6 +15,25 @@
 
 namespace Hacks
 {
+
+
+class CustomRenderer : public QObject
+{
+    Q_OBJECT
+public:
+    CustomRenderer() : QObject() {}
+    virtual ~CustomRenderer() {}
+
+    void setResolution( QSize);
+
+signals:
+
+    void progress( QImage);
+    void done( QImage);
+    void error( QString);
+
+};
+
 class TestView2 : public QObject, public IView
 {
     Q_OBJECT
