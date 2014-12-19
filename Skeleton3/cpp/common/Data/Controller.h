@@ -7,6 +7,7 @@
 #include "CartaLib/ICoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
+#include <Data/IColoredView.h>
 #include <QString>
 #include <QList>
 #include <QObject>
@@ -20,7 +21,7 @@ class RegionRectangle;
 class Selection;
 class CoordinateFormatterInterface;
 
-class Controller: public QObject, public CartaObject {
+class Controller: public QObject, public CartaObject, public IColoredView {
 
     Q_OBJECT
 
@@ -36,6 +37,12 @@ public:
      *        this could represent a url or an absolute path on a local filesystem.
      */
     void addData(const QString& fileName);
+
+    /**
+     * Updates the view when the color map changes.
+     * @param colorMapName the name of the new colormap.
+     */
+    virtual void colorMapChanged( const QString& colorMapName );
 
     /**
      * Make a channel selection.
@@ -82,7 +89,6 @@ private slots:
     //Refresh the view based on the latest data selection information.
     void _loadView( bool forceReload = false );
 
-    void _colorMapChanged( int index );
 
 private:
 

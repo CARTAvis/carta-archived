@@ -14,7 +14,11 @@
 namespace Image {
 class ImageInterface;
 }
-class RawView2QImageConverter;
+namespace Carta {
+    namespace Core {
+        class RawView2QImageConverter3;
+    }
+}
 class ICoordinateFormatter;
 
 class DataSource : public CartaObject {
@@ -29,9 +33,9 @@ public:
 
     /**
      * Set a new color map to use.
-     * @param index a color map index.
+     * @param name a color map name.
      */
-    void setColorMap( int index );
+    void setColorMap( const QString& name );
 
     /**
      * Loads the data source as a QImage.
@@ -60,7 +64,7 @@ public:
      * @param forceClipRecompute true if the clip should be recomputed; false if
      *      a cached value can be used.
      */
-    Nullable<QImage> load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue );
+    QImage load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue );
 
     /**
      * Return the number of channels in the image.
@@ -108,6 +112,9 @@ private:
 
     //Path for loading data - todo-- do we need to store this?
     QString m_fileName;
+    bool m_cmapUseCaching;
+    bool m_cmapUseInterpolatedCaching;
+    int m_cmapCacheSize;
 
     static bool m_registered;
     static const QString DATA_PATH;
@@ -116,7 +123,8 @@ private:
     std::shared_ptr<Image::ImageInterface> m_image;
 
     /// pointer to the rendering algorithm
-    std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
+    //std::shared_ptr<RawView2QImageConverter3> m_rawView2QImageConverter;
+    std::unique_ptr<Carta::Core::RawView2QImageConverter3> m_rawView2QImageConverter;
 
     /// coordinate formatter
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;

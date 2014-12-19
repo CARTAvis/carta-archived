@@ -65,14 +65,14 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this.m_settingsComposite = new qx.ui.container.Composite();
             this.m_settingsComposite.setLayout( new qx.ui.layout.HBox(2));
             
-            this.m_scaleVisible = new qx.ui.form.CheckBox( "Show Maps");
+            this.m_scaleVisible = new qx.ui.form.CheckBox( "Map");
             this.m_scaleVisible.setValue( true );
             this.m_scaleVisible.addListener("execute", this._layoutControls, this);
-            this.m_modelVisible = new qx.ui.form.CheckBox( "Show Models");
+            this.m_modelVisible = new qx.ui.form.CheckBox( "Model");
             this.m_modelVisible.setValue( true );
             this.m_modelVisible.addListener("execute", this._layoutControls, this);
             
-            this.m_colorMixVisible = new qx.ui.form.CheckBox( "Show Color Mix");
+            this.m_colorMixVisible = new qx.ui.form.CheckBox( "Color Mix");
             this.m_colorMixVisible.setValue( true );
             this.m_colorMixVisible.addListener("execute", this._layoutControls, this);
 
@@ -100,7 +100,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 this.m_colorComposite = new qx.ui.container.Composite();
                 this.m_colorComposite.setAllowGrowX( true );
                 this.m_colorComposite.setAllowGrowY( true );
-                this.m_colorComposite.setLayout( new qx.ui.layout.VBox(0));
+                this.m_colorComposite.setLayout( new qx.ui.layout.VBox(0) );
                 this.m_mainComposite.add( this.m_colorComposite, {flex:1} );
                 this._layoutColorPanel();
             }
@@ -123,7 +123,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 
                 //colorGradient
                 if ( this.m_view !== null ){
-                    this.m_colorComposite.add( this.m_view );
+                    this.m_colorComposite.add( this.m_view, {flex: 1} );
                 }
                 
                 //color map settings
@@ -161,7 +161,6 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 if ( this.m_controlComposite.indexOf( this.m_modelSettings ) >= 0 ){
                     this.m_controlComposite.remove( this.m_modelSettings );
                 }
-                //this.m_modelSettings.removeMenuItems( this.m_settingsComposite );
             }
           
             //Red,blue,green sliders in color panel.
@@ -169,6 +168,9 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 if ( this.m_colorMixSettings === null ){
                     this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
                 }
+            }
+            if ( this.m_view !== null ){
+                this.m_view.setGradientOnly( !this.m_colorMixVisible.getValue());
             }
            
             this._layoutColorPanel();
@@ -185,7 +187,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                     try {
                         var cMap = JSON.parse( val );
                         if ( this.m_scaleSettings !== null ){
-                            this.m_scaleSettings.setMapIndex( cMap.colorMapIndex );
+                            this.m_scaleSettings.setMapName( cMap.colorMapName);
                             this.m_scaleSettings.setReverse( cMap.reverse );
                             this.m_scaleSettings.setInvert( cMap.invert );
                         }
@@ -197,7 +199,10 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                         }
                        
                         if ( this.m_view !== null ){
-                            this.m_view.setColorIndex( cMap.colorMapIndex );
+                            this.m_view.setColorName( cMap.colorMapName );
+                            this.m_view.setInvert( cMap.invert );
+                            this.m_view.setReverse( cMap.reverse );
+                            this.m_view.setScales( cMap.colorMix.redPercent, cMap.colorMix.greenPercent, cMap.colorMix.bluePercent );
                         }
                     }
                     catch( err ){

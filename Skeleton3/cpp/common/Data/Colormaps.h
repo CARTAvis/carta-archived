@@ -19,20 +19,24 @@ namespace Carta {
 class Colormaps : public CartaObject {
 
 public:
+
     /**
-     * Returns the index of the colormap.
-     * @param name a QString identifying a colormap.
-     * @return the index of the colormap in the list.
+     * Returns true if the name represents a valid color map; false, otherwise.
+     * @param name a QString identifying a color map.
+     * @return true if the name represents a valid color map; false, otherwise.
      */
-    int getIndex( const QString& name ) const;
+    bool isMap( const QString& name ) const;
+
     /**
      * Returns the colormap associated with the index.
      * @param index a integer representing a valid color map index.
      * @return the color map associated with the index.
      */
-    std::shared_ptr<Carta::Lib::IColormapScalar> getColorMap( int index ) const;
-    const static QString COLOR_LIST;
+    std::shared_ptr<Carta::Lib::IColormapScalar> getColorMap( const QString& name ) const;
+
     virtual ~Colormaps();
+
+    const static QString COLOR_LIST;
     const static QString CLASS_NAME;
 private:
     void _initializeDefaultState();
@@ -43,7 +47,7 @@ private:
 
     static bool m_registered;
     const static QString COLOR_MAPS;
-    const static QString COLOR_INDEX;
+    const static QString COLOR_NAME;
     const static QString COLOR_MAP_COUNT;
     Colormaps( const QString& path, const QString& id );
 

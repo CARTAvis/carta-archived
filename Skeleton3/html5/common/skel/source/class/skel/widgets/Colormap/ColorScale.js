@@ -130,18 +130,19 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         
         /**
          * Set the selected color map.
-         * @param mapIndex {Number} the index of the selected color map.
+         * @param mapName {String} the name of the selected color map.
          */
-        setMapIndex : function( mapIndex ){
+        setMapName : function( mapName ){
             var selectables = this.m_mapCombo.getChildrenContainer().getSelectables();
-            if ( 0 <= mapIndex && mapIndex < selectables.length ){
-               
-                var mapItem = selectables[mapIndex];
-                var currValue = this.m_mapCombo.getValue();
-                var newValue = mapItem.getLabel();
-                if ( currValue != newValue ){
-                    this.m_mapCombo.setValue( newValue );
-                    
+            var currValue = this.m_mapCombo.getValue();
+            for ( var i = 0; i < selectables.length; i++ ){
+                var mapItem = selectables[i];
+                var newValue = selectables[i].getLabel();
+                if ( newValue == mapName ){
+                    if ( currValue != newValue ){
+                        this.m_mapCombo.setValue( newValue );
+                    }
+                    break;
                 }
             }
         },

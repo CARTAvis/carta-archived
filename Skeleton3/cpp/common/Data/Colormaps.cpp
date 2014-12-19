@@ -15,7 +15,7 @@
 const QString Colormaps::COLOR_LIST = "ColorMaps";
 const QString Colormaps::CLASS_NAME = "Colormaps";
 const QString Colormaps::COLOR_MAPS = "maps";
-const QString Colormaps::COLOR_INDEX = "index";
+const QString Colormaps::COLOR_NAME = "name";
 const QString Colormaps::COLOR_MAP_COUNT = "colorMapCount";
 
 class Colormaps::Factory : public CartaObjectFactory {
@@ -45,35 +45,27 @@ Colormaps::Colormaps( const QString& path, const QString& id):
 
 QString Colormaps::_commandGetColorStops( const QString& params ){
     QString result;
-    std::set<QString> keys = {COLOR_INDEX};
+    std::set<QString> keys = {COLOR_NAME};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString indexStr = dataValues[*keys.begin()];
-    bool validInt = false;
-    int colorIndex = indexStr.toInt( &validInt);
-    if ( validInt ){
-        int colorCount = m_colormaps.size();
+    QString nameStr = dataValues[*keys.begin()];
+    std::shared_ptr<Carta::Lib::IColormapScalar> map = getColorMap( nameStr );
+    if ( map != nullptr ){
         QStringList buff;
-        if ( 0 <= colorIndex && colorIndex < colorCount ){
-            for ( int i = 0; i < 100; i++ ){
-                float val = i / 100.0f;
-
-                Carta::Lib::PixelPipeline::NormRgb normRgb;
-                m_colormaps[colorIndex]->convert( val, normRgb );
-                QColor mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2]);
-                QString hexStr = mapColor.name();
-                if ( i < 99 ){
-                    hexStr = hexStr + ",";
-                }
-                buff.append( hexStr );
+        for ( int i = 0; i < 100; i++ ){
+            float val = i / 100.0f;
+            Carta::Lib::PixelPipeline::NormRgb normRgb;
+            map->convert( val, normRgb );
+            QColor mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2]);
+            QString hexStr = mapColor.name();
+            if ( i < 99 ){
+                hexStr = hexStr + ",";
             }
-            result = buff.join( "");
+            buff.append( hexStr );
         }
-        else {
-            result = "Invalid color map index for stops: "+params;
-        }
+        result = buff.join( "");
     }
     else {
-        result = "Invalid color map stop parameters: "+ params;
+        result = "Invalid color map: "+ params;
         qWarning() << result;
     }
     return result;
@@ -104,13 +96,15 @@ void Colormaps::_initializeDefaultState(){
     m_state.flushState();
 }
 
-std::shared_ptr<Carta::Lib::IColormapScalar>  Colormaps::getColorMap( int index ) const {
+std::shared_ptr<Carta::Lib::IColormapScalar>  Colormaps::getColorMap( const QString& mapName ) const {
     int mapCount = m_colormaps.size();
-    if ( index < 0 || index  >= mapCount ) {
-        CARTA_ASSERT( "colormap index out of range!" );
-        return NULL;
+    std::shared_ptr<Carta::Lib::IColormapScalar> map = nullptr;
+    for ( int i = 0; i < mapCount; i++ ){
+        if ( m_colormaps[i]->name() == mapName ){
+            map = m_colormaps[i];
+        }
     }
-    return m_colormaps[index];
+    return map;
 }
 
 void Colormaps::_initializeCallbacks(){
@@ -121,18 +115,19 @@ void Colormaps::_initializeCallbacks(){
         });
 }
 
-
-int Colormaps::getIndex( const QString& name ) const {
-    int mapIndex = -1;
+bool Colormaps::isMap( const QString& name ) const {
     int colorMapCount = m_colormaps.size();
+    bool colorMap = false;
     for ( int i = 0; i < colorMapCount; i++ ){
         if ( name == m_colormaps[i]->name()){
-            mapIndex = i;
-            break;
+           colorMap = true;
+           break;
         }
     }
-    return mapIndex;
+    return colorMap;
 }
+
+
 
 Colormaps::~Colormaps(){
 

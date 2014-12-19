@@ -201,6 +201,11 @@ QString ViewManager::_makeAnimator(){
 QString ViewManager::_makeColorMap(){
    CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
    std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
+   //For right now the default is to hook it up to all the controllers.  Will
+   //need to change that later.
+   for ( int i = 0; i < m_controllers.size(); i++ ){
+       target->addViewObject( m_controllers[i]);
+   }
    m_colormaps.append(target);
    return target->getPath();
 }

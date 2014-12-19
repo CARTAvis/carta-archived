@@ -1,5 +1,6 @@
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
+#include "Data/IColoredView.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "ImageView.h"
@@ -10,7 +11,8 @@
 
 
 const QString Colormap::CLASS_NAME = "Colormap";
-const QString Colormap::COLOR_MAP_INDEX = "colorMapIndex";
+const QString Colormap::COLOR_MAP_NAME = "colorMapName";
+const QString Colormap::COLORED_OBJECT = "coloredObject";
 const QString Colormap::REVERSE = "reverse";
 const QString Colormap::INVERT = "invert";
 const QString Colormap::COLOR_MIX = "colorMix";
@@ -38,12 +40,9 @@ bool Colormap::m_registered =
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
-    m_view(nullptr),
     m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     _initializeDefaultState();
     _initializeCallbacks();
-    m_view.reset( new ImageView( path, QColor("cyan"), QImage(), &m_stateMouse));
-    registerView(m_view.get());
 
     //Load the available color maps.
     if ( m_colors == nullptr ){
@@ -52,14 +51,16 @@ Colormap::Colormap( const QString& path, const QString& id):
     }
 }
 
+
+
 void Colormap::_initializeDefaultState(){
-    m_state.insertValue<int>( COLOR_MAP_INDEX, 0 );
+    m_state.insertValue<QString>( COLOR_MAP_NAME, "Gray" );
     m_state.insertValue<bool>(REVERSE, false);
     m_state.insertValue<bool>(INVERT, false );
     m_state.insertObject( COLOR_MIX );
-    m_state.insertValue<double>( COLOR_MIX_RED, 0.5 );
-    m_state.insertValue<double>(COLOR_MIX_GREEN, 0.75 );
-    m_state.insertValue<double>(COLOR_MIX_BLUE, 0.75 );
+    m_state.insertValue<double>( COLOR_MIX_RED, 1 );
+    m_state.insertValue<double>(COLOR_MIX_GREEN, 1 );
+    m_state.insertValue<double>(COLOR_MIX_BLUE, 1 );
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -93,6 +94,44 @@ void Colormap::_initializeCallbacks(){
                 QString result = _commandSetColorMix( params );
                 return result;
             });
+
+    addCommandCallback( "addColoredObject", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                QString result = _commandAddColoredObject( params );
+                return result;
+            });
+}
+
+QString Colormap::_commandAddColoredObject( const QString& params ){
+    QString result;
+    std::set<QString> keys = {COLORED_OBJECT};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString objectId = dataValues[*keys.begin()];
+    ObjectManager* man = ObjectManager::objectManager();
+    CartaObject* coloredObj = man->getObject( objectId );
+    if ( coloredObj != nullptr ){
+        std::shared_ptr<IColoredView> target( dynamic_cast<IColoredView*>( coloredObj) );
+        bool added = addViewObject( target );
+        if ( !added ){
+            result = "Please check that the object supports a color map: "+params;
+            qWarning() << result;
+        }
+    }
+    else {
+        result = "Invalid colored object: "+ params;
+        qWarning() << result;
+    }
+    return result;
+}
+
+bool Colormap::addViewObject( std::shared_ptr<IColoredView> target ){
+    bool objAdded = false;
+    if ( target.get() ){
+        m_coloredViews.append( target );
+        target->colorMapChanged( m_state.getValue<QString>(COLOR_MAP_NAME));
+        objAdded = true;
+    }
+    return objAdded;
 }
 
 QString Colormap::_commandInvertColorMap( const QString& params ){
@@ -106,6 +145,13 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
         if ( invert != m_state.getValue<bool>(INVERT)){
             m_state.setValue<bool>(INVERT, invert );
             m_state.flushState();
+            QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+            /*std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapIndex );
+                       coloredMap->setInverted( invert
+                       */
+            for ( int i = 0; i < m_coloredViews.size(); i++ ){
+                m_coloredViews[i] -> colorMapChanged( mapName );
+            }
         }
     }
     else {
@@ -128,9 +174,17 @@ QString Colormap::_commandSetColorMix( const QString& params ){
 
     bool validGreen = false;
     bool greenChanged = _processColorStr( COLOR_MIX_GREEN, dataValues[GREEN_PERCENT], &validGreen);
-
     if ( redChanged || blueChanged || greenChanged ){
         m_state.flushState();
+        QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+        /*std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapIndex );
+        float redPercent = static_cast<float>(m_state.getValue<double>( RED_PERCENT ));
+        float greenPercent = static_cast<float>(m_state.getValue<double>( GREEN_PERCENT ));
+        float bluePercent = static_cast<float>(m_state.getValue<double>( BLUE_PERCENT ));
+        coloredMap->setColorScales( redPercent, greenPercent, bluePercent );*/
+        for ( int i = 0; i < m_coloredViews.size(); i++ ){
+            m_coloredViews[i]->colorMapChanged( mapName);
+        }
     }
     else if ( !validRed || !validGreen || !validBlue ){
         result = "Invalid Colormap color percent: "+ params;
@@ -143,10 +197,14 @@ bool Colormap::_processColorStr( const QString key, const QString colorStr, bool
     double colorPercent = colorStr.toDouble( valid );
     bool colorChanged = false;
     if ( *valid ){
-        if ( abs( colorPercent - m_state.getValue<double>( key) ) < 0.0001f ){
+        double oldColorPercent = m_state.getValue<double>( key );
+        if ( abs( colorPercent - oldColorPercent ) >= 0.001f ){
             m_state.setValue<double>(key, colorPercent );
             colorChanged = true;
         }
+    }
+    else {
+        qWarning() << "colorStr="<<colorStr<<" is not a valid color percent for key="<<key;
     }
     return colorChanged;
 }
@@ -164,6 +222,12 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
         if ( reverse != m_state.getValue<bool>(REVERSE)){
             m_state.setValue<bool>(REVERSE, reverse );
             m_state.flushState();
+            QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+            /*std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapIndex );
+            colorMap->setReversed( reverse );*/
+            for ( int i = 0; i < m_coloredViews.size(); i++ ){
+                m_coloredViews[i] -> colorMapChanged( mapName );
+            }
         }
     }
     else {
@@ -179,12 +243,13 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString colorMapStr = dataValues[*keys.begin()];
     if ( m_colors != nullptr ){
-       int index = m_colors->getIndex( colorMapStr );
-       if ( index >= 0 ){
-           if ( index != m_state.getValue<int>(COLOR_MAP_INDEX) ){
-              m_state.setValue<int>(COLOR_MAP_INDEX, index );
+       if( m_colors->isMap( colorMapStr ) ){
+           if ( colorMapStr != m_state.getValue<QString>(COLOR_MAP_NAME) ){
+              m_state.setValue<QString>(COLOR_MAP_NAME, colorMapStr );
               m_state.flushState();
-              emit colorMapChanged( index );
+              for ( int i = 0; i < m_coloredViews.size(); i++ ){
+                  m_coloredViews[i]->colorMapChanged( colorMapStr );
+              }
            }
         }
        else {

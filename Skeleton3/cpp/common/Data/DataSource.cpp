@@ -24,9 +24,14 @@ DataSource::DataSource(const QString& path, const QString& id) :
     CartaObject( CLASS_NAME, path, id),
     m_image( nullptr )
     {
-        m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
+        m_cmapUseCaching = true;
+        m_cmapUseInterpolatedCaching = true;
+        m_cmapCacheSize = 1000;
+        m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
+
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
+
         m_rawView2QImageConverter-> setColormap( rawCmap );
         _initializeState();
 }
@@ -62,11 +67,11 @@ bool DataSource::setFileName( const QString& fileName ){
     return successfulLoad;
 }
 
-void DataSource::setColorMap( int index ){
+void DataSource::setColorMap( const QString& name ){
     ObjectManager* objManager = ObjectManager::objectManager();
     CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
-    m_rawView2QImageConverter-> setColormap( maps->getColorMap( index ) );
+    m_rawView2QImageConverter-> setColormap( maps->getColorMap( name ) );
 }
 
 
@@ -83,23 +88,22 @@ QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameInde
     return list;
 }
 
-Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue){
-    Nullable<QImage> qimg;
+QImage DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoClip*/, float clipValue){
+    QImage qimg;
     if ( m_image ){
-
-
-        qDebug() << "Load frameIndex="<<frameIndex<<" clipRecompute="
-                <<forceClipRecompute<<" autoClip="<<autoClip<<" clipValue="<<clipValue;
         auto frameSlice = SliceND().next();
         for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
             frameSlice.next().index( i == 2 ? frameIndex : 0);
         }
+
         NdArray::RawViewInterface * frameView = m_image->getDataSlice( frameSlice);
-        //resetClipValue();
-        m_rawView2QImageConverter-> setAutoClip( clipValue);
-        m_rawView2QImageConverter-> setView( frameView);
-        bool clipRecompute = autoClip || forceClipRecompute;
-        qimg = m_rawView2QImageConverter-> go(frameIndex, clipRecompute);
+
+        m_rawView2QImageConverter-> setView( frameView );
+        m_rawView2QImageConverter-> computeClips( clipValue );
+        m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize);
+        m_rawView2QImageConverter-> setPixelPipelineInterpolation( m_cmapUseInterpolatedCaching);
+        m_rawView2QImageConverter-> setPixelPipelineCacheEnabled( m_cmapUseCaching);
+        m_rawView2QImageConverter-> convert( qimg );
         delete frameView;
     }
 

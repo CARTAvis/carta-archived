@@ -55,7 +55,6 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 
      _initializeCallbacks();
-     qDebug() << "Controller registering view";
      registerView(m_view.get());
 
      //Load the view.
@@ -109,9 +108,9 @@ void Controller::clear(){
     unregisterView();
 }
 
-void Controller::_colorMapChanged( int index ){
+void Controller::colorMapChanged( const QString& name ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setColorMap( index );
+        data->setColorMap( name );
     }
     _loadView( true );
 }
@@ -283,12 +282,12 @@ void Controller::_loadView( bool forceReload ) {
             //Load the image.
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
             double clipValue = m_state.getValue<double>(CLIP_VALUE);
-            Nullable<QImage> res = m_datas[imageIndex]->load(frameIndex, forceReload, autoClip, clipValue);
+            QImage res = m_datas[imageIndex]->load(frameIndex, forceReload, autoClip, clipValue);
             if (res.isNull()) {
                 qDebug() << "Could not find any plugin to load image";
             } else {
                 //Refresh the view.
-                m_view->resetImage(res.val());
+                m_view->resetImage(res);
                 refreshView( m_view.get());
             }
         }
@@ -340,6 +339,8 @@ void Controller::_saveRegions(){
 }
 
 
+
+
 void Controller::setFrameChannel(const QString& val) {
     if (m_selectChannel != nullptr) {
         m_selectChannel->setIndex(val);
@@ -373,50 +374,6 @@ void Controller::_updateCursor(){
     m_stateMouse.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
 
     m_stateMouse.flushState();
-
-
-    // ask one of the plugins to load the image
-     /*   if ( fname.length() > 0 ) {
-            qDebug() << "Trying to load astroImage...";
-            auto res2 =
-                Globals::instance()-> pluginManager()-> prepare < LoadAstroImage > ( fname ).first();
-            if ( ! res2.isNull() ) {
-                qDebug() << "Could not find any plugin to load astroImage";
-                m_image = res2.val();
-
-                CARTA_ASSERT( m_image );
-                m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
-
-                qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
-                testView2 = new TestView2(
-                    "view3", QColor( "pink" ), QImage( 10, 10, QImage::Format_ARGB32 ),
-                    m_image );
-                m_connector-> registerView( testView2 );
-
-                qDebug() << "xyz test";
-                CoordinateFormatterInterface::VD pixel;
-                pixel.resize( m_coordinateFormatter->nAxes(), 0 );
-                auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-                qDebug() << "0->" << fmt.join( "|" );
-                auto skycs = KnownSkyCS::Galactic;
-                m_coordinateFormatter-> setSkyCS( skycs );
-                qDebug() << "set skycs to" << int (skycs)
-                         << "now it is" << int ( m_coordinateFormatter-> skyCS() );
-                fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-                qDebug() << "0->" << fmt.join( "|" );
-
-                // convert the loaded image into QImage
-                m_currentFrame = 0;
-                reloadFrame( true );
-
-    //        delete frameView;
-            }
-
-
-        }*/
-
-
-
 }
 
 Controller::~Controller(){

@@ -36,6 +36,7 @@ HEADERS += \
     Data/Controller.h \
     Data/DataLoader.h \
     Data/Histogram.h \
+    Data/IColoredView.h \
     Data/Selection.h \
     Data/Layout.h \
     Data/Region.h \
