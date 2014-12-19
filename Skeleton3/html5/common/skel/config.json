@@ -45,7 +45,7 @@
   "let" :
   {
     "APPLICATION"  : "skel",
-    "QOOXDOO_PATH" : "../../../../ThirdParty/qooxdoo-3.5-sdk",
+    "QOOXDOO_PATH" : "../qooxdoo-3.5-sdk",
 //      "QOOXDOO_PATH" : "../qooxdoo-4.0.1-sdk",
     "QXTHEME"      : "skel.theme.Theme",
     "API_EXCLUDE"  : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
