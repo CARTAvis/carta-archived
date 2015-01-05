@@ -14,6 +14,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowGenericPlugin",
 
             /**
              * Constructor.
+             * @param row {Number} the row location of the window.
+             * @param col {Number} the column location of the window.
+             * @param pluginId {String} an identifier the plug-in to be displayed.
+             * @param index {Number} index of the plug-in for the case where 
+             *          multiple plug-ins of the same type are displayed.
+             * @param detached {boolean} true for a dialog type window; 
+             *          false for an in-line window.
              */
             construct : function(row, col, pluginId, index, detached ) {
                 this.base(arguments, pluginId, row, col, index, detached );

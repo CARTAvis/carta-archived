@@ -1,7 +1,16 @@
 #include "Util.h"
 #include "State/ObjectManager.h"
+#include "Data/ErrorManager.h"
 #include <QStringList>
 #include <QDebug>
+
+namespace Carta {
+
+namespace Data {
+
+QString Util::TRUE = "true";
+QString Util::FALSE = "false";
+
 
 Util::Util( ) {
 
@@ -48,12 +57,20 @@ Util::parseParamMap( const QString & paramsToParse, const std::set < QString > &
 bool Util::toBool( const QString str, bool* valid ){
     *valid = false;
     bool result = false;
-    if ( str == "true"){
+    if ( str == TRUE ){
         *valid = true;
         result = true;
     }
-    else if ( str == "false"){
+    else if ( str == FALSE ){
         *valid = true;
+    }
+    return result;
+}
+
+QString Util::toString( bool val ){
+    QString result = FALSE;
+    if ( val ){
+        result = TRUE;
     }
     return result;
 }
@@ -74,6 +91,19 @@ CartaObject* Util::findSingletonObject( const QString& objectName ){
     return obj;
 }
 
+QString Util::commandPostProcess( const QString& errorMsg, const QString& revertValue ){
+    QString result;
+    if ( errorMsg.trimmed().length() > 0 ){
+        CartaObject* obj = Util::findSingletonObject( ErrorManager::CLASS_NAME );
+        ErrorManager* errorMan = dynamic_cast<ErrorManager*>(obj);
+        errorMan->registerWarning( errorMsg );
+        result = revertValue;
+    }
+    return result;
+}
+
 Util::~Util(){
 
+}
+}
 }

@@ -50,6 +50,13 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
 
     members : {
         /**
+         * Clear any messages posted on the status bar.
+         */
+        clearMessages : function(){
+            this.m_statusText.setValue( "");
+        },
+        
+        /**
          * Add information to the status bar indicating the url of the shared
          * session.
          */
@@ -66,13 +73,11 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         },
 
         /**
-         * Display an error message on the status bar.
-         * 
-         * @param errorMessage
-         *                {String} an error message.
+         * Display error messages on the status bar.
+         * @param errorMessages {String} error messages.
          */
-        showError : function(errorMessage) {
-            this.m_statusText.setValue(errorMessage);
+        showErrors : function(errorMessages) {
+            this.m_statusMessage.setValue(errorMessages);
             if (!this.isVisible()) {
                 this.show(this, true);
             }

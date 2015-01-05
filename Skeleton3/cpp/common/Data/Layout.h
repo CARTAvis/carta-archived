@@ -10,6 +10,9 @@
 
 #include <QStringList>
 
+namespace Carta {
+
+namespace Data {
 
 class Layout : public CartaObject {
 
@@ -39,3 +42,5 @@ private:
     Layout( const Layout& other);
     Layout operator=( const Layout& other );
 };
+}
+}

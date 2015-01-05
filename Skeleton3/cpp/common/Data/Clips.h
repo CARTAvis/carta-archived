@@ -9,6 +9,9 @@
 #include "State/StateInterface.h"
 #include <vector>
 
+namespace Carta {
+
+namespace Data {
 
 class Clips : public CartaObject {
 
@@ -44,3 +47,5 @@ private:
 	Clips( const Clips& other);
 	Clips operator=( const Clips& other );
 };
+}
+}

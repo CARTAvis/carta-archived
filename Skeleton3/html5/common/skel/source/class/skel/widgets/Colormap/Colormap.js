@@ -75,10 +75,15 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this.m_colorMixVisible = new qx.ui.form.CheckBox( "Color Mix");
             this.m_colorMixVisible.setValue( true );
             this.m_colorMixVisible.addListener("execute", this._layoutControls, this);
+            
+            this.m_cacheVisible = new qx.ui.form.CheckBox( "Cache");
+            this.m_cacheVisible.setValue( true );
+            this.m_cacheVisible.addListener( "execute", this._layoutControls, this );
 
             this.m_settingsComposite.add( this.m_colorMixVisible );
             this.m_settingsComposite.add( this.m_scaleVisible );
             this.m_settingsComposite.add( this.m_modelVisible );
+            this.m_settingsComposite.add( this.m_cacheVisible );
             
             
             this.m_mainComposite._add( this.m_settingsComposite );
@@ -130,6 +135,11 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 if ( this.m_scaleVisible.getValue()){
                     this.m_colorComposite.add( this.m_scaleSettings);
                 }
+                
+                //cache settings
+                if ( this.m_cacheVisible.getValue() ){
+                    this.m_colorComposite.add( this.m_cacheSettings);
+                }
                
             }
         },
@@ -172,6 +182,13 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             if ( this.m_view !== null ){
                 this.m_view.setGradientOnly( !this.m_colorMixVisible.getValue());
             }
+            
+            //Caching for the map.
+            if ( this.m_cacheVisible.getValue()){
+                if ( this.m_cacheSettings === null ){
+                    this.m_cacheSettings = new skel.widgets.Colormap.ColorCache();
+                }
+            }
            
             this._layoutColorPanel();
         },
@@ -196,6 +213,11 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                         }
                         if ( this.m_colorMixSettings !== null ){
                             this.m_colorMixSettings.setMix( cMap.colorMix.redPercent, cMap.colorMix.greenPercent, cMap.colorMix.bluePercent );
+                        }
+                        if ( this.m_cacheSettings !== null ){
+                            this.m_cacheSettings.setCache( cMap.cacheMap );
+                            this.m_cacheSettings.setInterpolate( cMap.interpolatedCaching );
+                            this.m_cacheSettings.setCacheSize( cMap.cacheSize );
                         }
                        
                         if ( this.m_view !== null ){
@@ -234,6 +256,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                     this.m_colorMixSettings.setId( this.m_id );
                     this.m_modelSettings.setId( this.m_id );
                     this.m_scaleSettings.setId( this.m_id );
+                    this.m_cacheSettings.setId( this.m_id );
                     this._registerMapCB();
                 }
             }
@@ -250,6 +273,8 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         m_view : null,
         
         //Settings
+        m_cacheVisible : null,
+        m_cacheSettings: null,
         m_colorMixVisible : null,
         m_colorMixSettings : null,
         m_modelVisible : null,

@@ -9,9 +9,22 @@
 
 #include <QDebug>
 
+namespace Carta {
 
+namespace Data {
 
 const QString DataSource::CLASS_NAME = "DataSource";
+
+class DataSource::Factory : public CartaObjectFactory {
+
+    public:
+
+        CartaObject * create (const QString & path, const QString & id)
+        {
+            return new DataSource (path, id);
+        }
+};
+
 bool DataSource::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataSource::Factory());
@@ -152,4 +165,6 @@ int DataSource::getFrameCount() const {
 
 DataSource::~DataSource() {
 
+}
+}
 }

@@ -7,6 +7,9 @@
 
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
 
 const QString Histogram::CLASS_NAME = "Histogram";
 
@@ -178,14 +181,16 @@ QString Histogram::_setClipRange( const QString& params ){
     double clipMin = clipMinStr.toDouble( &validRangeMin );
     bool validRangeMax = false;
     double clipMax = clipMaxStr.toDouble( &validRangeMax );
+    double oldMin = m_state.getValue<double>(CLIP_MIN);
+    double oldMax = m_state.getValue<double>(CLIP_MAX);
     if ( validRangeMin && validRangeMax ){
         if ( clipMin <= clipMax ){
             bool changedState = false;
-            if ( clipMin != m_state.getValue<double>(CLIP_MIN)){
+            if ( clipMin != oldMin){
                 m_state.setValue<double>(CLIP_MIN, clipMin );
                 changedState = true;
             }
-            if ( clipMax != m_state.getValue<double>(CLIP_MAX)){
+            if ( clipMax != oldMax ){
                 m_state.setValue<double>(CLIP_MAX, clipMax );
                 changedState = true;
             }
@@ -195,13 +200,13 @@ QString Histogram::_setClipRange( const QString& params ){
         }
         else {
             result = "The histogram clip minimum must be less than the maximum: "+params;
-            qWarning() << result;
         }
     }
     else {
         result = "Invalid Histogram clip range parameters: "+ params;
-        qWarning() << result;
     }
+    QString origValues = QString::number(oldMin) +","+QString::number(oldMax);
+    result = Util::commandPostProcess( result, origValues );
     return result;
 }
 
@@ -212,16 +217,17 @@ QString Histogram::_setColored( const QString& params ){
     QString coloredStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool colored = Util::toBool( coloredStr, &validBool );
+    bool oldColored = m_state.getValue<bool>(GRAPH_COLORED);
     if ( validBool ){
-        if ( colored != m_state.getValue<bool>(GRAPH_COLORED)){
+        if ( colored != oldColored){
             m_state.setValue<bool>(GRAPH_COLORED, colored );
             m_state.flushState();
         }
     }
     else {
         result = "Invalid Histogram colored parameter; must be a bool: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, Util::toString( oldColored ));
     return result;
 }
 
@@ -232,17 +238,17 @@ QString Histogram::_setBinCount( const QString& params ){
     QString binCountStr = dataValues[*keys.begin()];
     bool validInt = false;
     int binCount = binCountStr.toInt( &validInt );
+    int oldBinCount = m_state.getValue<int>(BIN_COUNT );
     if ( validInt ){
-        int oldBinCount = m_state.getValue<int>(BIN_COUNT );
         if ( binCount != oldBinCount ){
-            m_state.setValue<int>(BIN_COUNT, binCount );
-            m_state.flushState();
+           m_state.setValue<int>(BIN_COUNT, binCount );
+           m_state.flushState();
         }
     }
     else {
         result = "Invalid Histogram bin count parameters: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, QString::number( oldBinCount) );
     return result;
 }
 
@@ -254,16 +260,17 @@ QString Histogram::_setLogCount( const QString& params ){
     QString logCountStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool logCount = Util::toBool( logCountStr, &validBool );
+    bool oldLogCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
     if ( validBool ){
-        if ( logCount != m_state.getValue<bool>(GRAPH_LOG_COUNT)){
-            m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
-            m_state.flushState();
+        if ( logCount != oldLogCount ){
+           m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
+           m_state.flushState();
         }
     }
     else {
         result = "Invalid Histogram log count must be a bool: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, Util::toString( oldLogCount ));
     return result;
 }
 
@@ -272,17 +279,18 @@ QString Histogram::_setPlaneMode( const QString& params ){
     std::set<QString> keys = {PLANE_MODE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString planeModeStr = dataValues[*keys.begin()];
+    QString oldPlaneMode = m_state.getValue<QString>(PLANE_MODE);
     if ( planeModeStr == PLANE_MODE_ALL || planeModeStr == PLANE_MODE_SINGLE ||
             planeModeStr == PLANE_MODE_RANGE ){
-        if ( planeModeStr != m_state.getValue<QString>(PLANE_MODE)){
-            m_state.setValue<QString>(PLANE_MODE, planeModeStr );
-            m_state.flushState();
+        if ( planeModeStr != oldPlaneMode ){
+           m_state.setValue<QString>(PLANE_MODE, planeModeStr );
+           m_state.flushState();
         }
     }
     else {
         result = "Unrecognized histogram cube mode params: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, oldPlaneMode );
     return result;
 }
 
@@ -293,16 +301,17 @@ QString Histogram::_setPlaneSingle( const QString& params ){
     QString planeStr = dataValues[*keys.begin()];
     bool validInt = false;
     int plane = planeStr.toInt( &validInt );
+    int oldPlane = m_state.getValue<int>(PLANE_SINGLE);
     if ( validInt ){
-        if ( plane != m_state.getValue<int>(PLANE_SINGLE)){
-            m_state.setValue<int>(PLANE_SINGLE, plane );
-            m_state.flushState();
+        if ( plane != oldPlane ){
+           m_state.setValue<int>(PLANE_SINGLE, plane );
+           m_state.flushState();
         }
     }
     else {
         result = "Invalid Histogram single plane: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, QString::number(oldPlane) );
     return result;
 }
 
@@ -311,17 +320,18 @@ QString Histogram::_set2DFootPrint( const QString& params ){
     std::set<QString> keys = {FOOT_PRINT};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString footPrintStr = dataValues[*keys.begin()];
+    QString oldFootPrint = m_state.getValue<QString>(FOOT_PRINT);
     if ( footPrintStr == FOOT_PRINT_IMAGE || footPrintStr == FOOT_PRINT_REGION ||
             footPrintStr == FOOT_PRINT_REGION_ALL ){
-        if ( footPrintStr != m_state.getValue<QString>(FOOT_PRINT)){
+        if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
         }
     }
     else {
         result = "Unsupported Histogram footprint: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, oldFootPrint );
     return result;
 }
 
@@ -335,15 +345,16 @@ QString Histogram::_setPlaneRange( const QString& params ){
     int planeMin = planeMinStr.toInt( &validRangeMin );
     bool validRangeMax = false;
     int planeMax = planeMaxStr.toInt( &validRangeMax );
+    int storedMin = m_state.getValue<int>(PLANE_MIN);
+    int storedMax = m_state.getValue<int>(PLANE_MAX);
     if ( validRangeMin && validRangeMax ){
         if ( planeMin <= planeMax ){
             bool changedState = false;
-            int storedMin = m_state.getValue<int>(PLANE_MIN);
             if ( planeMin != storedMin){
                 m_state.setValue<int>(PLANE_MIN, planeMin );
                 changedState = true;
             }
-            int storedMax = m_state.getValue<int>(PLANE_MAX);
+
             if ( planeMax != storedMax){
                 m_state.setValue<int>(PLANE_MAX, planeMax );
                 changedState = true;
@@ -354,13 +365,13 @@ QString Histogram::_setPlaneRange( const QString& params ){
         }
         else {
             result = "The histogram plane range minimum must be less than the maximum: "+params;
-            qWarning() << result;
         }
     }
     else {
         result = "Invalid Histogram plane range parameters: "+ params;
-        qWarning() << result;
     }
+    QString oldVals = QString::number(storedMin)+","+QString::number( storedMax);
+    result = Util::commandPostProcess( result, oldVals );
     return result;
 }
 
@@ -369,17 +380,18 @@ QString Histogram::_setGraphStyle( const QString& params ){
     std::set<QString> keys = {GRAPH_STYLE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString styleStr = dataValues[*keys.begin()];
+    QString oldStyle = m_state.getValue<QString>(GRAPH_STYLE);
     if ( styleStr == GRAPH_STYLE_LINE || styleStr == GRAPH_STYLE_OUTLINE ||
             styleStr == GRAPH_STYLE_FILL ){
-        if ( styleStr != m_state.getValue<QString>(GRAPH_STYLE)){
+        if ( styleStr != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, styleStr );
             m_state.flushState();
         }
     }
     else {
         result = "Unrecognized histogram graph style: "+ params;
-        qWarning() << result;
     }
+    result = Util::commandPostProcess( result, oldStyle );
     return result;
 }
 
@@ -388,19 +400,23 @@ QString Histogram::_setClipPercent( const QString& params ){
     std::set<QString> keys = {"clipPercent"};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString clipStr = dataValues[*keys.begin()];
+    int oldClipIndex = m_state.getValue<int>(CLIP_INDEX);
     if ( m_clips != nullptr ){
        int index = m_clips->getIndex( clipStr );
        if ( index >= 0 ){
-           if ( index != m_state.getValue<int>(CLIP_INDEX) ){
+           if ( index != oldClipIndex ){
               m_state.setValue<int>(CLIP_INDEX, index );
               m_state.flushState();
            }
         }
        else {
            result = "Invalid clip percent: " + clipStr;
-           qWarning() << result;
        }
     }
+    else {
+        result = "Invalid clip params: "+params;
+    }
+    result = Util::commandPostProcess( result, QString::number(oldClipIndex ));
     return result;
 }
 
@@ -411,19 +427,22 @@ QString Histogram::_setClipToImage( const QString& params ){
     QString clipApplyStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool clipApply = Util::toBool( clipApplyStr, &validBool );
+    bool oldClipApply = m_state.getValue<bool>(CLIP_APPLY);
     if ( validBool ){
-       if ( clipApply != m_state.getValue<bool>(CLIP_APPLY) ){
+       if ( clipApply != oldClipApply ){
           m_state.setValue<bool>(CLIP_APPLY, clipApply );
           m_state.flushState();
        }
-       else {
-          result = "Invalid apply clip to image; must be true/false: " + clipApplyStr;
-          qWarning() << result;
-       }
     }
+    else {
+       result = "Invalid apply clip to image; must be true/false: " + clipApplyStr;
+    }
+    result = Util::commandPostProcess( result, Util::toString( oldClipApply ));
     return result;
 }
 
 Histogram::~Histogram(){
 
+}
+}
 }

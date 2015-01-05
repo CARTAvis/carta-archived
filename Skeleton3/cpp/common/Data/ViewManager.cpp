@@ -4,6 +4,7 @@
 #include "Data/Colormaps.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
+#include "Data/ErrorManager.h"
 #include "Data/Histogram.h"
 #include "Data/Layout.h"
 #include "Data/ViewPlugins.h"
@@ -13,6 +14,10 @@
 
 #include <QDir>
 #include <QDebug>
+
+namespace Carta {
+
+namespace Data {
 
 class ViewManager::Factory : public CartaObjectFactory {
 
@@ -36,6 +41,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_dataLoader( nullptr ),
       m_pluginsLoaded( nullptr ){
     Util::findSingletonObject( Colormaps::CLASS_NAME );
+    Util::findSingletonObject( ErrorManager::CLASS_NAME );
     _initCallbacks();
 
     bool stateRead = this->_readState( "DefaultState" );
@@ -352,5 +358,7 @@ bool ViewManager::_saveState( const QString& saveName ){
     }
     bool stateSaved = writer.saveState();
     return stateSaved;
+}
+}
 }
 

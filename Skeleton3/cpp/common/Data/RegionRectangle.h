@@ -6,6 +6,10 @@
 
 #include "Region.h"
 
+namespace Carta {
+
+namespace Data {
+
 class RegionRectangle : public Region {
 
 public:
@@ -53,3 +57,5 @@ private:
     const QString BOTTOM_RIGHT_Y;
 
 };
+}
+}

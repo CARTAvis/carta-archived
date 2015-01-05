@@ -9,9 +9,13 @@
 #include "State/StateInterface.h"
 
 class ImageView;
+
+namespace Carta {
+
+namespace Data {
+
 class Colormaps;
 class IColoredView;
-
 
 class Colormap : public QObject, public CartaObject {
 
@@ -29,7 +33,9 @@ public:
 
 
 private:
-
+    QString _commandCacheColorMap( const QString& params );
+    QString _commandCacheSize( const QString& params );
+    QString _commandInterpolatedColorMap( const QString& params );
     QString _commandSetColorMap( const QString& params );
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
@@ -52,6 +58,9 @@ private:
     const static QString COLOR_MIX_RED;
     const static QString COLOR_MIX_GREEN;
     const static QString COLOR_MIX_BLUE;
+    const static QString CACHE_SIZE;
+    const static QString INTERPOLATED;
+    const static QString CACHE;
 
     Colormap( const QString& path, const QString& id );
 
@@ -71,3 +80,5 @@ private:
 	Colormap( const Colormap& other);
 	Colormap operator=( const Colormap& other );
 };
+}
+}

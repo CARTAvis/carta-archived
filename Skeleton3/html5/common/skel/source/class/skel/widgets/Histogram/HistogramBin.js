@@ -14,7 +14,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
     
     construct : function() {
         this.base(arguments);
-        this.m_connector = mImport("connector");
+        if ( typeof mImport !== "undefined"){
+            this.m_connector = mImport("connector");
+        }
         this._init();
     },
     
@@ -23,6 +25,20 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
     },
 
     members : {
+        
+        /**
+         * Callback for a server error when setting the bin count.
+         * @param anObject {skel.widgets.Histogram.HistogramBin}.
+         */
+        _errorBinCountCB : function( anObject ){
+            return function( binCount ){
+                if ( binCount ){
+                    var binCountInt = parseInt( binCount );
+                    anObject.setBinCount( binCountInt );
+                }
+            };
+        },
+        
 
 
         /**
@@ -35,13 +51,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             this.m_binCountText = new skel.widgets.CustomUI.NumericTextField(0,this.m_MAX_BINS);
             this.m_binCountText.addListener("textChanged",
                     function(ev) {
-                        var binCountStr = ev.getData().val;
-                        var binCount = parseInt( binCountStr );
+                        var binCount = this.m_binCountText.getValue();
                         if ( !isNaN( binCount ) ){
                             this.m_binCountSlider.setValue( binCount );
                         }
                 }, this);
-            skel.widgets.TestID.addTestId( this.m_binCountText, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_INPUT);
+            this.m_binCountText.setTextId( skel.widgets.TestID.HISTOGRAM_BIN_COUNT_INPUT );
             this._add( this.m_binCountText );
             
             this.m_binCountSlider = new qx.ui.form.Slider();
@@ -49,12 +64,14 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             this.m_binCountSlider.setMaximum( this.m_MAX_BINS );
             this.m_binCountSlider.setValue( 25 );
             this.m_binCountSlider.addListener( "changeValue", function(){
-                //Notify the server of the new value.
-                var value = this.m_binCountSlider.getValue();
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramBin.CMD_SET_BIN_COUNT;
-                var params = "binCount:"+value;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                if ( this.m_connector !== null ){
+                    //Notify the server of the new value.
+                    var value = this.m_binCountSlider.getValue();
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramBin.CMD_SET_BIN_COUNT;
+                    var params = "binCount:"+value;
+                    this.m_connector.sendCommand( cmd, params, this._errorBinCountCB(this));
+                }
             }, this);
             skel.widgets.TestID.addTestId( this.m_binCountSlider, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_SLIDER);
             this._add( this.m_binCountSlider );
@@ -68,6 +85,13 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             var oldBinCount = this.m_binCountText.getValue();
             if ( binCount != oldBinCount ){
                 this.m_binCountText.setValue( binCount );
+            }
+            //Someone may have moved the slider and got an error on the 
+            //server so we may have to reset the slider.
+            else {
+                if ( binCount != this.m_binCountSlider.getValue()){
+                    this.m_binCountSlider.setValue( binCount );
+                }
             }
         },
         

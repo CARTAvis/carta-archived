@@ -21,6 +21,10 @@ namespace Carta {
 }
 class ICoordinateFormatter;
 
+namespace Carta {
+
+namespace Data {
+
 class DataSource : public CartaObject {
 
 public:
@@ -93,15 +97,7 @@ private:
      */
     DataSource(const QString& path, const QString& id );
 
-    class Factory : public CartaObjectFactory {
-
-    public:
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new DataSource (path, id);
-        }
-    };
+    class Factory;
 
     void _initializeState();
 
@@ -130,3 +126,5 @@ private:
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 
 };
+}
+}

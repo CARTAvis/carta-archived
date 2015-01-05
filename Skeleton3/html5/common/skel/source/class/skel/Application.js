@@ -104,6 +104,8 @@ qx.Class.define( "skel.Application",
                     left  : "0%",
                     right : "0%"
                 } );
+                var errorHandler = skel.widgets.ErrorHandler.getInstance();
+                errorHandler.setStatusBar( this.m_statusBar );
 
                 this._initMenuBar();
                 this.m_desktop.addListener( "iconifyWindow", this._iconifyWindow, this );

@@ -10,6 +10,10 @@
 #include <State/ObjectManager.h>
 #include <QObject>
 
+namespace Carta {
+
+namespace Data {
+
 class Selection : public QObject, public CartaObject {
 
     Q_OBJECT
@@ -118,3 +122,5 @@ private:
     bool _setFrameBoundsCheck(/*StateKey key*/const QString& key , int bound);
 
 };
+}
+}

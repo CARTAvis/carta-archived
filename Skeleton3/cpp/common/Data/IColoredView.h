@@ -6,6 +6,10 @@
 #ifndef ICOLOREDVIEW_H_
 #define ICOLOREDVIEW_H_
 
+namespace Carta {
+
+namespace Data {
+
 class IColoredView {
 public:
     /**
@@ -15,7 +19,8 @@ public:
     virtual void colorMapChanged( const QString& colorMapName )=0;
 
 };
-
+}
+}
 
 
 #endif /* ICOLOREDVIEW_H_ */

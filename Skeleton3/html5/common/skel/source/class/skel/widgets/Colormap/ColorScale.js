@@ -35,6 +35,44 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
     members : {
 
         /**
+         * Callback for a server error when setting the invert flag.
+         * @param anObject {skel.widgets.ColorMap.ColorScale}.
+         */
+        _errorInvertCB : function( anObject ){
+            return function( invertMap ){
+                if ( invertMap ){
+                    var invertMapBool = skel.widgets.Util.toBool( invertMap );
+                    anObject.setInvert( invertMapBool );
+                }
+            };
+        },
+        
+        /**
+         * Callback for a server error when setting the reverse flag.
+         * @param anObject {skel.widgets.ColorMap.ColorScale}.
+         */
+        _errorReverseCB : function( anObject ){
+            return function( reverseMap ){
+                if ( reverseMap ){
+                    var reverseMapBool = skel.widgets.Util.toBool( reverseMap );
+                    anObject.setReverse( reverseMapBool );
+                }
+            };
+        },
+        
+        /**
+         * Callback for a server error when setting the map index.
+         * @param anObject {skel.widgets.ColorMap.ColorScale}.
+         */
+        _errorMapIndexCB :function( anObject ){
+            return function( mapName ){
+                if ( mapName ){
+                    anObject.setMapName( mapName );
+                }
+            };
+        },
+        
+        /**
          * Initializes the UI.
          */
         _init : function(  ) {
@@ -47,7 +85,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorScale.CMD_INVERT_MAP;
                 var params = "invert:"+checked;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorInvertCB( this ));
             }, this );
             this.m_reverseCheck = new qx.ui.form.CheckBox( "Reverse");
             this.m_reverseCheck.addListener( "changeValue", function(e){
@@ -55,7 +93,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorScale.CMD_REVERSE_MAP;
                 var params = "reverse:"+checked;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorReverseCB( this ));
             }, this );
             
             
@@ -69,7 +107,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorScale.CMD_SET_MAP;
                 var params = "name:"+mapName;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorMapIndexCB( this ));
             },this);
             mapComposite.add( new qx.ui.core.Spacer(50));
             mapComposite.add( mapLabel );
@@ -122,7 +160,8 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
          * @param invertMap {boolean} true if the map should be inverted; false otherwise.
          */
         setInvert : function( invertMap ){
-            if ( invertMap != this.m_invertCheck.getValue()){
+            var checkVal = this.m_invertCheck.getValue();
+            if ( invertMap != checkVal ){
                 this.m_invertCheck.setValue( invertMap );
             }
         },

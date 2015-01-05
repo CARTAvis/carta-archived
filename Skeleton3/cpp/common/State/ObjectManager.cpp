@@ -7,14 +7,13 @@
 
 #include "ObjectManager.h"
 #include "Globals.h"
-#include "Data/Layout.h"
 #include <QDebug>
 #include <cassert>
 
 using namespace std;
 
 QList<QString> CartaObjectFactory::globalIds = {"Clips", "Colormaps",
-        "DataLoader","Layout", "ViewManager"};
+        "DataLoader","ErrorManager","Layout", "ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;

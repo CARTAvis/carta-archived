@@ -8,8 +8,13 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 
-class Clips;
+
 class ImageView;
+namespace Carta {
+
+namespace Data {
+
+class Clips;
 
 class Histogram : public CartaObject {
 
@@ -74,3 +79,5 @@ private:
 	Histogram( const Histogram& other);
 	Histogram operator=( const Histogram& other );
 };
+}
+}

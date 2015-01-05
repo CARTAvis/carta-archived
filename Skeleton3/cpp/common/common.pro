@@ -35,6 +35,8 @@ HEADERS += \
     Data/Colormaps.h \
     Data/Controller.h \
     Data/DataLoader.h \
+    Data/ErrorReport.h \
+    Data/ErrorManager.h \
     Data/Histogram.h \
     Data/IColoredView.h \
     Data/Selection.h \
@@ -50,6 +52,7 @@ HEADERS += \
     Data/ViewPlugins.h \
     ColormapsOptimization.h \
     HackViewer.h
+    
 
 SOURCES += \
     Viewer.cpp \
@@ -73,6 +76,8 @@ SOURCES += \
     Data/Colormaps.cpp \
     Data/Controller.cpp \
     Data/DataLoader.cpp \
+    Data/ErrorReport.cpp \
+    Data/ErrorManager.cpp \
     Data/Histogram.cpp \
     Data/Selection.cpp \
     Data/DataSource.cpp \

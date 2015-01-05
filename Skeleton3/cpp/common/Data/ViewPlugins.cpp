@@ -8,6 +8,10 @@
 #include <QDir>
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 class ViewPlugins::Factory : public CartaObjectFactory {
 
 public:
@@ -75,4 +79,6 @@ void ViewPlugins::_initializeDefaultState(){
 
 ViewPlugins::~ViewPlugins(){
 
+}
+}
 }

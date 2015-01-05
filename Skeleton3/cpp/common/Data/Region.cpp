@@ -4,6 +4,10 @@
 
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 Region::Region(const QString& className, const QString& path, const QString& id )
     :CartaObject( className, path, id ){
     _initializeCallbacks();
@@ -35,4 +39,6 @@ void Region::_initializeCallbacks(){
 
 Region::~Region(){
 
+}
+}
 }

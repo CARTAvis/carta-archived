@@ -18,6 +18,10 @@
 
 using namespace std;
 
+namespace Carta {
+
+namespace Data {
+
 class Controller::Factory : public CartaObjectFactory {
 
 public:
@@ -380,5 +384,5 @@ Controller::~Controller(){
     clear();
 }
 
-
-
+}
+}

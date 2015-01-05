@@ -13,13 +13,17 @@
 #include <QObject>
 #include <memory>
 
+class ImageView;
+class CoordinateFormatterInterface;
+
+namespace Carta {
+
+namespace Data {
 
 class DataSource;
-class ImageView;
 class Region;
 class RegionRectangle;
 class Selection;
-class CoordinateFormatterInterface;
 
 class Controller: public QObject, public CartaObject, public IColoredView {
 
@@ -140,3 +144,6 @@ private:
     Controller operator=(const Controller& other);
 
 };
+
+}
+}

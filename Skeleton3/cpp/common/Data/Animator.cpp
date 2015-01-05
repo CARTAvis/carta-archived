@@ -5,6 +5,10 @@
 
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 class Animator::Factory : public CartaObjectFactory {
 
 public:
@@ -160,7 +164,9 @@ QString Animator::_initializeAnimator( const QString& type ){
         connect( m_animators[Selection::CHANNEL].get(), SIGNAL(indexChanged( const QString&)), this, SLOT(_channelIndexChanged( const QString&)));
     }
     else {
-        qDebug() << "Unrecognized animation type="<<type;
+        QString errorMsg = "Unrecognized animation initialization type=" +type;
+        qWarning() << errorMsg;
+        animatorTypeId = Util::commandPostProcess( errorMsg, "-1");
     }
     return animatorTypeId;
 }
@@ -173,14 +179,19 @@ void Animator::_initializeState(){
 }
 
 QString Animator::_removeAnimator( const QString& type ){
-    QString removeId;
+    QString result;
     if ( m_animators.contains( type )){
-        removeId = m_animators[type] ->getPath();
+        m_animators[type] ->getPath();
         disconnect( m_animators[type].get() );
         m_animators.remove( type );
         _adjustStateAnimatorTypes();
     }
-    return removeId;
+    else {
+        result= "Error removing animator; unrecognized type="+type;
+        qWarning() << result;
+        result = Util::commandPostProcess( result, "");
+    }
+    return result;
 }
 
 
@@ -200,5 +211,6 @@ void Animator::_resetAnimationParameters(){
        m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
    }
 }
-
+}
+}
 

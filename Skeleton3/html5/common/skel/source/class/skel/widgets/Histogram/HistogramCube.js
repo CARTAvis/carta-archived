@@ -27,6 +27,45 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
 
     members : {
 
+        /**
+         * Callback for a server error when setting the plane mode.
+         * @param anObject {skel.widgets.Histogram.HistogramCube}.
+         */
+        _errorPlaneModeCB :function( anObject ){
+            return function( planeMode ){
+                if ( planeMode ){
+                    anObject.setPlaneMode( planeMode );
+                }
+            };
+        },
+        
+        /**
+         * Callback for a server error when setting the plane range.
+         * @param anObject {skel.widgets.Histogram.HistogramCube}.
+         */
+        _errorPlaneRangeCB : function( anObject ){
+            return function( range ){
+                if ( range ){
+                    var rangeArray = range.split( ",");
+                    var min = parseInt(rangeArray[0]);
+                    var max = parseInt( rangeArray[1]);
+                    anObject.setPlaneBounds( min, max );
+                }
+            };
+        },
+        
+        /**
+         * Callback for a server error when setting a single plane.
+         * @param anObject {skel.widgets.Histogram.HistogramCube}.
+         */
+        _errorSinglePlaneCB : function( anObject ){
+            return function( plane ){
+                if ( plane ){
+                    var planeInt = parseInt( plane );
+                    anObject.setSelectedPlane( planeInt );
+                }
+            };
+        },
         
         /**
          * Initializes the UI.
@@ -122,7 +161,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_PLANE_MODE;
                 var params = "planeMode:"+mode;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorPlaneModeCB( this ));
             }
         },
         
@@ -135,7 +174,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_RANGE;
                 var params = "planeMin:"+this.m_rangeMinSpin.getValue()+",planeMax:"+this.m_rangeMaxSpin.getValue();
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorPlaneRangeCB(this));
             }
         },
         
@@ -147,7 +186,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_PLANE;
                 var params = "selectedPlane:"+this.m_singlePlaneText.getValue();
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorSinglePlaneCB(this));
             }
         },
         

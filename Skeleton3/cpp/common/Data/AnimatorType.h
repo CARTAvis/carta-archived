@@ -10,8 +10,11 @@
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 
-class Selection;
+namespace Carta {
 
+namespace Data {
+
+class Selection;
 
 class AnimatorType : public QObject, public CartaObject {
 
@@ -75,3 +78,5 @@ private:
     AnimatorType( const AnimatorType& other);
     AnimatorType operator=( const AnimatorType& other );
 };
+}
+}

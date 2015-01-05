@@ -176,6 +176,14 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             },
             
             /**
+             * Set an id for the text box.
+             * @param id {String} a testing identifier.
+             */
+            setTextId : function( id ){
+                skel.widgets.TestID.addTestId( this.m_text, id);
+            },
+            
+            /**
              * Set an upper (inclusive) bound for valid values.
              * @param bound {Number} an upper bound.
              */

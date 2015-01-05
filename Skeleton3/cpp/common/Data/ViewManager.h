@@ -8,6 +8,9 @@
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
 
+namespace Carta {
+
+namespace Data {
 
 class Animator;
 class Controller;
@@ -76,3 +79,6 @@ private:
     ViewManager( const ViewManager& other);
     ViewManager operator=( const ViewManager& other );
 };
+
+}
+}

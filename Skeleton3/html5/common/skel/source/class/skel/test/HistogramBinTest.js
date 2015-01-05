@@ -1,4 +1,4 @@
-qx.Class.define("skel.test.HistogramCubeTest", {
+qx.Class.define("skel.test.HistogramBinTest", {
     extend : qx.dev.unit.TestCase,
 
     members : {
@@ -24,8 +24,9 @@ qx.Class.define("skel.test.HistogramCubeTest", {
          */
         testTextToSlider : function() {
             this.m_binWidget.setBinCount( 35);
-            this.assertTrue( this.m_binWidget.m_binText.getValue(), 35);
-            this.assertTrue( this.m_binWidget.m_binSlider.getValue(), 35);
+            var textValue = this.m_binWidget.m_binCountText.getValue();
+            this.assertEquals( this.m_binWidget.m_binCountText.getValue(), 35);
+            this.assertEquals( this.m_binWidget.m_binCountSlider.getValue(), 35);
         },
         
 

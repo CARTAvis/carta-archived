@@ -11,6 +11,7 @@ qx.Class.define("skel.widgets.Path", {
         this.CLIPS = this.BASE_PATH + "Clips";
         this.COLORMAPS = this.BASE_PATH + "Colormaps";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
+        this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
@@ -30,6 +31,7 @@ qx.Class.define("skel.widgets.Path", {
         COLORMAPS : "",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
+        ERROR_HANDLER : "",
         HIDDEN : "Hidden",
         HISTOGRAM_PLUGIN : "Histogram",
         LAYOUT : "",

@@ -15,6 +15,9 @@ namespace Carta {
     }
 }
 
+namespace Carta {
+
+namespace Data {
 
 class Colormaps : public CartaObject {
 
@@ -57,3 +60,6 @@ private:
 	Colormaps( const Colormaps& other);
 	Colormaps operator=( const Colormaps& other );
 };
+
+}
+}

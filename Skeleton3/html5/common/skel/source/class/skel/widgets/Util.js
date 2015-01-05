@@ -103,6 +103,19 @@ qx.Class.define("skel.widgets.Util", {
                 x : left,
                 y : top
             };
+        },
+        
+        /**
+         * Converts a string containing 'true' or 'false' to a boolean.
+         * @param valStr {String} the string to translate.
+         * @return {boolean} true if the string contains 'true'; false otherwise.
+         */
+        toBool : function ( valStr ){
+            var val = false;
+            if ( valStr === "true"){
+                val = true;
+            }
+            return val;
         }
 
     }

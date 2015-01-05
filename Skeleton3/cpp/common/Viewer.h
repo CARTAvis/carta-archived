@@ -8,7 +8,12 @@
 #include <memory>
 
 class ScriptedCommandListener;
+namespace Carta {
+namespace Data {
 class ViewManager;
+}
+}
+
 
 ///
 /// \brief The Viewer class is the main class of the viewer. It sets up all other
@@ -43,6 +48,6 @@ protected:
     /// @todo make it unique ptr for auto-delete niceness
     ScriptedCommandListener * m_scl = nullptr;
 
-    std::shared_ptr<ViewManager> m_viewManager;
+    std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
 };
 

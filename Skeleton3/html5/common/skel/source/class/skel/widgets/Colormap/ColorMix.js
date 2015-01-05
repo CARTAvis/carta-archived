@@ -25,6 +25,22 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
 
     members : {
         /**
+         * Callback for a server error when setting the color mix.
+         * @param anObject {skel.widgets.ColorMap.ColorMix}.
+         */
+        _errorColorsCB : function( anObject ){
+            return function( percents ){
+                if ( percents ){
+                    var percentArray = percents.split( ",");
+                    var red = parseInt(percentArray[0]);
+                    var green = parseInt( percentArray[1]);
+                    var blue = parseInt( percentArray[2]);
+                    anObject.setMix( red, green, blue );
+                }
+            };
+        },
+        
+        /**
          * Return the percentage of a color in the map.
          * @param value {Number} the amount of color.
          * @return {Number} the color percentage.
@@ -129,7 +145,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorMix.CMD_SET_COLORMIX;
                 var params = "redPercent:"+redPercent+",greenPercent:"+greenPercent+",bluePercent:"+bluePercent;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                this.m_connector.sendCommand( cmd, params, this._errorColorsCB( this ));
             }
         },
         
@@ -151,9 +167,15 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             var red = this._percentToValue( redPercent );
             var green = this._percentToValue( greenPercent );
             var blue = this._percentToValue( bluePercent );
-            this.m_redSlider.setValue( red );
-            this.m_blueSlider.setValue( blue );
-            this.m_greenSlider.setValue( green );
+            if ( this.m_redSlider.getValue() != red ){
+                this.m_redSlider.setValue( red );
+            }
+            if ( this.m_blueSlider.getValue() != blue ){
+                this.m_blueSlider.setValue( blue );
+            }
+            if ( this.m_greenSlider.getValue() != green ){
+                this.m_greenSlider.setValue( green );
+            }
         },
         
         /**

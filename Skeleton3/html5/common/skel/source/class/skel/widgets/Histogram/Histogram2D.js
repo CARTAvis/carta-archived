@@ -22,6 +22,18 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
     members : {
         
         /**
+         * Callback for a server error when setting the 2D footprint.
+         * @param anObject {skel.widgets.Histogram.Histogram2D}.
+         */
+        _errorFootPrintCB :function( anObject ){
+            return function( footPrint ){
+                if ( footPrint ){
+                    anObject.setFootPrint( footPrint );
+                }
+            };
+        },
+        
+        /**
          * Initializes the UI.
          */
         _init : function(  ) {
@@ -69,7 +81,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.Histogram2D.CMD_SET_2D_FOOTPRINT;
             var params = "twoDFootPrint:"+footPrint;
-            this.m_connector.sendCommand( cmd, params, function(){});
+            this.m_connector.sendCommand( cmd, params, this._errorFootPrintCB(this));
         },
         
         /**

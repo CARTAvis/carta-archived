@@ -6,6 +6,10 @@
 
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 class AnimatorType::Factory : public CartaObjectFactory {
 
 public:
@@ -187,4 +191,5 @@ void AnimatorType::_initializeCommands(){
                                     return result;
                                 });
 }
-
+}
+}

@@ -9,6 +9,10 @@
 
 class CartaObject;
 
+namespace Carta {
+
+namespace Data {
+
 class Util {
 
 public:
@@ -32,6 +36,13 @@ public:
      static bool toBool( const QString str, bool* valid );
 
      /**
+      * Converts a bool to a string representation.
+      * @param val a bool to convert;
+      * @return a QString representation of the bool.
+      */
+     static QString toString( bool val );
+
+     /**
       * Creates an object of the given class.
       * @param objectName the class name of the object to create.
       * @return the object that was created.
@@ -45,8 +56,20 @@ public:
       *     such object.
       */
      static CartaObject* findSingletonObject( const QString& objectName );
+
+     /**
+      * Posts the error message, if one exists, and returns the last valid value, if one exists
+      * in the case of an error.
+      * @param errorMsg {QString} an error message if one occurred; otherwise an empty string.
+      * @param revertValue {QString} a string representation of the last valid value
+      */
+     static QString commandPostProcess( const QString& errorMsg, const QString& revertValue );
 private:
     Util();
     virtual ~Util();
+    static QString TRUE;
+    static QString FALSE;
 
 };
+}
+}

@@ -11,9 +11,15 @@
 #include <State/ObjectManager.h>
 #include "AnimatorType.h"
 
+
+class IConnector;
+
+namespace Carta {
+
+namespace Data {
+
 class Controller;
 class Selection;
-class IConnector;
 
 class Animator : public QObject, public CartaObject {
 
@@ -95,3 +101,5 @@ private:
     Animator( const Animator& other);
     Animator operator=( const Animator& other );
 };
+}
+}

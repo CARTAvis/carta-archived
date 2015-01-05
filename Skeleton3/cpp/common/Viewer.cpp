@@ -59,9 +59,9 @@ Viewer::start()
 	}
 
     ObjectManager* objManager = ObjectManager::objectManager();
-    QString vmId = objManager->createObject (ViewManager::CLASS_NAME);
+    QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
     CartaObject* vmObj = objManager->getObject( vmId );
-    m_viewManager.reset( dynamic_cast<ViewManager*>(vmObj));
+    m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
 
     if ( fname.length() > 0 ) {
         m_viewManager->loadFile( fname );

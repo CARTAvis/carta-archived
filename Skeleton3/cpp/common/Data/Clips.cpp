@@ -2,6 +2,9 @@
 #include "CartaLib/CartaLib.h"
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
 
 const QString Clips::CLIP_LIST = "clipList";
 const QString Clips::CLASS_NAME = "Clips";
@@ -90,4 +93,6 @@ int Clips::getIndex( const QString& clipValue ) const {
 
 Clips::~Clips(){
 
+}
+}
 }

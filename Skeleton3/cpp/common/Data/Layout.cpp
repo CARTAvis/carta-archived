@@ -9,6 +9,10 @@
 #include <QDir>
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 class Layout::Factory : public CartaObjectFactory {
 
 public:
@@ -137,4 +141,6 @@ bool Layout::_setLayoutSize( int rows, int cols ){
 
 Layout::~Layout(){
 
+}
+}
 }

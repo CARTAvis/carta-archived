@@ -53,6 +53,47 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                 }
             }
         },
+        
+        /**
+         * Callback for a server error when setting the histogram range.
+         * @param anObject {skel.widgets.Histogram.HistogramRange}.
+         */
+        _errorRangeCB : function( anObject ){
+            return function( range ){
+                if ( range ){
+                    var rangeArray = range.split( ",");
+                    var min = parseInt(rangeArray[0]);
+                    var max = parseInt( rangeArray[1]);
+                    anObject.setClipBounds( min, max );
+                }
+            };
+        },
+        
+        /**
+         * Callback for a server error when setting the apply clip to image flag.
+         * @param anObject {skel.widgets.Histogram.HistogramRange}.
+         */
+        _errorClipToImageCB : function( anObject ){
+            return function( clipToImage ){
+                if ( clipToImage ){
+                    var clipToImageBool = skel.widgets.Util.toBool( clipToImage );
+                    anObject.setApplyClipToImage( clipToImageBool );
+                }
+            };
+        },
+        
+        /**
+         * Callback for a server error when setting the clip percent.
+         * @param anObject {skel.widgets.Histogram.HistogramRange}.
+         */
+        _errorClipIndexCB :function( anObject ){
+            return function( clipPercent ){
+                if ( clipPercent ){
+                    var clipIndex = parseInt( clipPercent );
+                    anObject.setClipIndex( clipIndex );
+                }
+            };
+        },
 
         /**
          * Initializes the UI.
@@ -100,9 +141,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                     var clipValue = e.getData();
                     //Send a command to the server to let them know the clip percentage changed.
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_SET_PERCENT_CLIP;
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_PERCENT;
                     var params = "clipPercent:"+clipValue;
-                    this.m_connector.sendCommand( cmd, params, function(){});
+                    this.m_connector.sendCommand( cmd, params, this._errorClipIndexCB(this));
                 }
             },this);
             percentComposite.add( percentLabel );
@@ -115,7 +156,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_APPLY_CLIP_IMAGE;
                     var params = "applyClipToImage:"+this.m_applyImageClip.getValue();
-                    this.m_connector.sendCommand( cmd, params, function(){});
+                    this.m_connector.sendCommand( cmd, params, this._errorClipToImageCB(this));
                 }
             }, this );
             
@@ -137,7 +178,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                         var path = skel.widgets.Path.getInstance();
                         var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_RANGE;
                         var params = "clipMin:"+minClip+",clipMax:"+maxClip;
-                        this.m_connector.sendCommand( cmd, params, function(){});
+                        this.m_connector.sendCommand( cmd, params, this._errorRangeCB( this));
                     }
                 }
             }
@@ -162,17 +203,17 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         },
         
         /**
-         * Set the clip percent of the GUI based on the server settings.
-         * @param index {Number} the unique clip index.
+         * Set the clip index of the GUI based on the server settings.
+         * @param index {Number} the clip index.
          */
         setClipIndex : function( index ){
             var selectables = this.m_percentCombo.getChildrenContainer().getSelectables();
             if ( 0 <= index && index < selectables.length ){
                 var clipItem = selectables[index];
                 var currValue = this.m_percentCombo.getValue();
-                var newValue = clipItem.getLabel();
-                if ( currValue != newValue ){
-                    this.m_percentCombo.setValue( newValue );
+                var comboValue = clipItem.getLabel();
+                if ( currValue != comboValue ){
+                    this.m_percentCombo.setValue( comboValue );
                 }
             }
         },

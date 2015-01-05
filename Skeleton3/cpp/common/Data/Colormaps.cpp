@@ -12,6 +12,10 @@
 #include <QColor>
 #include <set>
 
+namespace Carta {
+
+namespace Data {
+
 const QString Colormaps::COLOR_LIST = "ColorMaps";
 const QString Colormaps::CLASS_NAME = "Colormaps";
 const QString Colormaps::COLOR_MAPS = "maps";
@@ -131,4 +135,6 @@ bool Colormaps::isMap( const QString& name ) const {
 
 Colormaps::~Colormaps(){
 
+}
+}
 }
