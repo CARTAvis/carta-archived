@@ -107,9 +107,10 @@ public:
 
     // ===-----------------------------------------------------------------------===
     // experimental APIs below, not yet finalized and definitely not yet implemented
+    // Probably we'll only implement one of these, not all of them.
     // ===-----------------------------------------------------------------------===
 
-    /// \brief High performance accessor to data, motivated by unix's read().
+    /// \brief High performance data accessor #1, motivated by unix's read().
     /// \param buffSize max number of bytes to read in
     /// \param buff result will be stored here
     /// \param traversal if sequential, c-order traversal is used, if optimal, the pixels
@@ -124,7 +125,7 @@ public:
     virtual void
     seek( int64_t ind = 0) = 0;
 
-    /// High performance accessor to data, motivated by unix's read(), except
+    /// Another High performance accessor to data, motivated by unix's read(), except
     /// it's stateless
     /// the view will have (width*height*pixel_size_in_bytes) bytes in them
     /// therefore there will be ceil(n_pix/buffSize) chunks
@@ -133,8 +134,10 @@ public:
           Traversal traversal = Traversal::Sequential ) = 0;
 
     /// yet another high performance accessor... similar to forEach above,
-    /// but this time the supplied function gets called with whatever number
-    /// elements that fit into the buffer
+    /// but the supplied function gets called with multiple pixel data
+    /// (however many fit into the buffer)
+    ///
+    /// I think I like this one the most.
     virtual void
     forEach( int64_t buffSize,
              std::function < void (const char *, int64_t count) > func,

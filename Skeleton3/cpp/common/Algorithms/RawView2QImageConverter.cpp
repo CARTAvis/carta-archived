@@ -204,14 +204,14 @@ RawView2QImageConverter3::convert( QImage & img )
 
     if ( m_cmapCachingEnabled ) {
         if ( m_cmapCachingInterpolated ) {
-            Lib::PixelPipeline::CachedPipeline < true > cached;
-            cached.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
-            ::rawView2QImage( m_typedView-> rawView(), cached, img );
+            Lib::PixelPipeline::CachedPipeline < true > cachedPixPipe;
+            cachedPixPipe.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
+            ::rawView2QImage( m_typedView-> rawView(), cachedPixPipe, img );
         }
         else {
-            Lib::PixelPipeline::CachedPipeline < false > cached;
-            cached.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
-            ::rawView2QImage( m_typedView-> rawView(), cached, img );
+            Lib::PixelPipeline::CachedPipeline < false > cachedPixPipe;
+            cachedPixPipe.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
+            ::rawView2QImage( m_typedView-> rawView(), cachedPixPipe, img );
         }
     }
     else {

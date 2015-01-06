@@ -66,27 +66,16 @@ qx.Class.define( "skel.Application",
 
             _afterConnect: function()
             {
-
-                var win = new qx.ui.window.Window( "Hack view" );
-                win.setWidth( 300 );
-                win.setHeight( 200 );
-                win.setShowMinimize( false );
-                win.setLayout( new qx.ui.layout.Grow() );
-                win.setContentPadding( 5, 5, 5, 5 );
-                win.add( new skel.boundWidgets.View( "hackView" ) );
-                win.setUseResizeFrame( false);
-                this.getRoot().add( win, {left: 20, top: 220} );
-                win.open();
-
-                // hacks for temporary functionality
-                this.m_cursorWindow = new skel.boundWidgets.CursorWindow();
-                this.m_colormapWindow = new skel.boundWidgets.ColormapWindow();
-
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED ) {
-                    console.log( "Connection not established yet..." );
+                    console.warn( "Connection not active!!!" );
                     return;
                 }
+
+                // activate experimental code
+                this.m_hacks = new skel.hacks.Hacks( this);
+                this.getRoot().add( this.m_hacks, {left: 20, top: 220} );
+                this.m_hacks.open();
 
                 this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas() );
                 this.m_mainContainer.setAppearance( "display-main" );

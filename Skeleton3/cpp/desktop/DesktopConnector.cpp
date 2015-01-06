@@ -193,6 +193,13 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
     // it's ok to call setState directly, because callbacks will be invoked
     // from there asynchronously
     setState( key, value );
+
+    if( CARTA_RUNTIME_CHECKS) {
+        auto iter = m_stateCallbackList.find( key);
+        if( iter == m_stateCallbackList.end()) {
+            qWarning() << "No server callback for JavaScript" << key << "=" << value;
+        }
+    }
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
@@ -207,6 +214,10 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
 
         // pass results back to javascript
         emit jsCommandResultsSignal( results.join("|"));
+
+        if( allCallbacks.size() == 0) {
+            qWarning() << "JS command has no server listener:" << cmd;
+        }
     });
 }
 

@@ -5,9 +5,11 @@
 #include "HackViewer.h"
 #include "Globals.h"
 #include "IConnector.h"
+#include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "common/GrayColormap.h"
+#include "LinearMap.h"
 #include <QPainter>
 #include <set>
 
@@ -191,6 +193,36 @@ HackViewer::HackViewer( QString prefix ) :
     m_wholeImage = QImage( 10, 10, QImage::Format_ARGB32_Premultiplied );
 }
 
+QPointF HackViewer::img2screen( QPointF p) {
+    double icx = m_centeredImagePoint.x();
+    double scx = m_testView2->size().width() / 2.0;
+    double icy = m_centeredImagePoint.y();
+    double scy = m_testView2->size().height() / 2.0;
+    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1);
+    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1);
+
+    QPointF res;
+    res.rx() = xmap.inv( p.x());
+    res.ry() = ymap.inv( p.y());
+    return res;
+}
+
+QPointF HackViewer::screen2img( QPointF p)
+{
+    double icx = m_centeredImagePoint.x();
+    double scx = m_testView2->size().width() / 2.0;
+    double icy = m_centeredImagePoint.y();
+    double scy = m_testView2->size().height() / 2.0;
+    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1);
+    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1);
+
+    QPointF res;
+    res.rx() = xmap.apply( p.x());
+    res.ry() = ymap.apply( p.y());
+    return res;
+};
+
+
 void
 HackViewer::start()
 {
@@ -289,6 +321,9 @@ HackViewer::start()
 
         // convert the loaded image into QImage
         m_currentFrame = 0;
+        m_pixelZoom = 1.0;
+        m_centeredImagePoint.rx() = m_astroImage-> dims()[0] / 2.0;
+        m_centeredImagePoint.ry() = m_astroImage-> dims()[1] / 2.0;
         scheduleFrameReload();
     }
     else {
@@ -337,6 +372,88 @@ HackViewer::start()
             scheduleFrameReload();
         }
         );
+
+    // add listener for pointer move (using state API for automatic throttling)
+    addStateCallback( "views/hackView/pointer-move", [=] (CSR, CSR val) {
+        qDebug() << "hackView mm" << val;
+    });
+
+    // string 2 list of doubles
+    auto s2vd = [] ( QString s, QString sep = " ") {
+        QStringList lst = s.split( sep);
+        std::vector<double> res;
+        for( auto v : lst) {
+            bool ok;
+            double val = v.toDouble( & ok);
+            if( ! ok) return res;
+            res.push_back( val);
+        }
+        return res;
+    };
+
+
+    // add listener for zoom
+    m_connector-> addCommandCallback(
+                m_statePrefix + "/views/hackView/zoom",
+                [=] (CSR, CSR params, CSR) -> QString {
+
+        try {
+            qDebug() << "zoom" << params;
+
+            double x, y, z;
+            bool ok;
+            QStringList list = params.split( " ");
+            if( list.size() < 3) {
+                throw "need 2 entries in list";
+            }
+            x = list[0].toDouble( & ok);
+            if( ! ok) throw "bad x";
+            y = list[1].toDouble( & ok);
+            if( ! ok) throw "bad y";
+            z = list[2].toDouble( & ok);
+            if( ! ok) throw "bad z";
+
+            if( z < 0) {
+                this-> m_pixelZoom /= 0.9;
+            } else {
+                this-> m_pixelZoom *= 0.9;
+            }
+            this->m_pixelZoom = clamp( this->m_pixelZoom, 0.1, 16.0);
+            this->scheduleFrameRepaint();
+
+        } catch( std::string what) {
+                qWarning() << "Error:" << what.c_str();
+                return "";
+        } catch( ...) {
+            qWarning() << "Other error";
+            return "";
+        }
+
+        return "";
+
+    });
+
+    // add listener for center
+    m_connector-> addCommandCallback(
+                m_statePrefix + "/views/hackView/center",
+                [=] (CSR, CSR params, CSR) -> QString {
+       qDebug() << "center" << params;
+
+       auto vals = s2vd( params);
+       if( vals.size() > 1) {
+           QPointF screenPt( vals[0], vals[1]);
+           auto newCenter = screen2img( screenPt);
+
+           qDebug() << "  " << m_centeredImagePoint << "->" << newCenter;
+
+           m_centeredImagePoint = newCenter;
+
+           this->scheduleFrameRepaint();
+       }
+       qDebug() << "  vals=" << vals;
+       return "";
+    });
+
 
     qDebug() << "HackViewer has been initialized.";
 } // start
@@ -440,16 +557,21 @@ HackViewer::_repaintFrameNow()
     double h = m_wholeImage.height();
     double scx = m_testView2->size().width() / 2.0;
     double scy = m_testView2->size().height() / 2.0;
-    QRectF rectf( scx - w / 2 * m_pixelZoom,
-                  scy - h / 2 * m_pixelZoom,
-                  w * m_pixelZoom,
-                  h * m_pixelZoom );
+//    QRectF rectf( scx - w / 2 * m_pixelZoom,
+//                  scy - h / 2 * m_pixelZoom,
+//                  w * m_pixelZoom,
+//                  h * m_pixelZoom );
+
+    // figure out rectf according to pixelzoom, centerx and centery
+    QPointF p1 = img2screen( QPointF(0,0));
+    QPointF p2 = img2screen( QPointF(w,h));
+    QRectF rectf( p1, p2);
+
+
+
     p.drawImage( rectf, m_wholeImage );
 
-    // do the conversion directly into the view's qimage buffer
-//    m_rawView2QImageConverter-> convert( testView2-> imageToRender() );
-
-    // schedule a redraw
+    // schedule a redraw for the client
     m_testView2-> scheduleRedraw();
 } // _repaintFrame
 

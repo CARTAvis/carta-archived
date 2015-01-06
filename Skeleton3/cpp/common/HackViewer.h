@@ -174,11 +174,17 @@ protected:
     void
     scheduleFrameRepaint();
 
+    /// how big (in screen pixels) is a single data pixel
     double m_pixelZoom = 1.0;
+    /// coordinates of data pixel that is centered on the screen
+    QPointF m_centeredImagePoint { 1, 1 };
+    /// current frame rendering (entire frame)
     QImage m_wholeImage;
 
     Hacks::TestView2 * m_testView2 = nullptr;
 
+    QPointF img2screen(QPointF p);
+    QPointF screen2img(QPointF p);
 protected slots:
 
     /// this does the actual frame reload
