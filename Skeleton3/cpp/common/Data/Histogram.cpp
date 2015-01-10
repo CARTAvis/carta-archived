@@ -3,6 +3,10 @@
 #include "Data/Util.h"
 #include "Globals.h"
 #include "ImageView.h"
+#include "PluginManager.h"
+#include "ErrorManager.h"
+#include "CartaLib/Hooks/Histogram.h"
+#include "Util.h"
 #include <set>
 
 #include <QDebug>
@@ -66,6 +70,8 @@ Histogram::Histogram( const QString& path, const QString& id):
         CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
         m_clips.reset(dynamic_cast<Clips*>(obj));
     }
+
+    _testHistPlugin();
 }
 
 void Histogram::_initializeDefaultState(){
@@ -439,6 +445,26 @@ QString Histogram::_setClipToImage( const QString& params ){
     }
     result = Util::commandPostProcess( result, Util::toString( oldClipApply ));
     return result;
+}
+
+void Histogram::_testHistPlugin(){
+    auto result = Globals::instance()-> pluginManager()
+                          -> prepare <Carta::Lib::Hooks::HistogramHook>("/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
+    auto lam = [=] ( const Carta::Lib::Hooks::HistogramHook::ResultType &data ) {
+            int dataCount = data.size();
+            qDebug() << "Histogram got data count="<<dataCount;
+            for ( int i = 0; i < dataCount; i++ ){
+                qDebug() << "i="<<i<<" x="<<data[i].first<<" y="<<data[i].second;
+            }
+        };
+    try {
+        result.forEach( lam );
+    }
+    catch( char*& error ){
+        QString errorStr( error );
+        ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
+        hr->registerError( errorStr );
+    }
 }
 
 Histogram::~Histogram(){

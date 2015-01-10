@@ -40,6 +40,10 @@ private:
 
     void _initializeDefaultState();
     void _initializeCallbacks();
+    /**
+     * Note: this will eventually be rewritten into a useful method.
+     */
+    void _testHistPlugin();
 
     static bool m_registered;
 
