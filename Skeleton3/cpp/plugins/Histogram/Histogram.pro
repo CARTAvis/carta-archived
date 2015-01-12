@@ -12,6 +12,7 @@ TEMPLATE = lib
 CONFIG += plugin
 
 SOURCES += \
+    IImageHistogram.cpp \
     ImageHistogram.cpp \
     Histogram1.cpp
 

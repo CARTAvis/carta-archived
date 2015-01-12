@@ -5,6 +5,8 @@
 #ifndef IIMAGEHISTOGRAM_H_
 #define IIMAGEHISTOGRAM_H_
 
+#include <vector>
+
 class IImageHistogram {
 public:
 
@@ -20,10 +22,8 @@ public:
     virtual std::vector< std::pair<double,double> > getData() const = 0;
 
 protected:
-    IImageHistogram();
     virtual ~IImageHistogram();
+    IImageHistogram();
 };
-
-
 
 #endif /* IIMAGEHISTOGRAM_H_ */
