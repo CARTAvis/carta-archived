@@ -25,6 +25,8 @@ public:
     virtual std::vector < HookId >
     getInitialHookList() override;
 
+    virtual ~Histogram1();
+
 private:
     /**
      * Returns histogram data in the form of (intensity,count) pairs.
@@ -34,9 +36,5 @@ private:
 
     //Histogram implementation.
     std::shared_ptr<IImageHistogram> m_histogram;
-    /**
-     * The histogram implementation class is templated.  The base is stored so
-     * the pointer to the image will not be deleted until the base is changed.
-     */
-    std::shared_ptr<casa::LatticeBase> base;
+
 };

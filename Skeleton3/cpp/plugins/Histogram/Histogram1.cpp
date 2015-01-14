@@ -48,7 +48,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         if( ! ptr1) {
             throw "not an image created by casaimageloader...";
         }
-        base = ptr1-> getCasaCoreLatticeBase();
+        std::shared_ptr<casa::LatticeBase> base = ptr1-> getCasaCoreLatticeBase();
         if ( base ){
             if (base->dataType() == casa::TpFloat ){
                 ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
@@ -81,4 +81,7 @@ std::vector < HookId > Histogram1::getInitialHookList(){
     };
 }
 
+Histogram1::~Histogram1(){
+
+}
 

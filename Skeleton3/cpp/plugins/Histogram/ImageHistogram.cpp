@@ -136,9 +136,12 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const std::tr1
 
 template <class T>
 void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
-	m_image.reset( val );
-	_reset();
+    if ( val != nullptr ){
+        m_image.reset(val->cloneII());
+	    _reset();
+	}
 }
+
 
 template <class T>
 void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){

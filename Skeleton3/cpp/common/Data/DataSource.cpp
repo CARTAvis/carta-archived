@@ -87,6 +87,14 @@ void DataSource::setColorMap( const QString& name ){
     m_rawView2QImageConverter-> setColormap( maps->getColorMap( name ) );
 }
 
+void DataSource::setColorInverted( bool /*inverted*/ ){
+    //m_rawView2QImageConverter->setInvert( inverted );
+}
+
+void DataSource::setColorReversed( bool /*reversed*/ ){
+    //m_rawView2QImageConverter->setReverse( reversed );
+}
+
 
 QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameIndex){
     int imageDims = getDimensions();
