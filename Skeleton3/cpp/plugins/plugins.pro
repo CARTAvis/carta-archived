@@ -11,6 +11,7 @@ SUBDIRS += noisepy
 SUBDIRS += blurpy
 SUBDIRS += CasaImageLoader
 SUBDIRS += Colormaps1
+SUBDIRS += Histogram
 
 
 

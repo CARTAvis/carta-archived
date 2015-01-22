@@ -1,0 +1,33 @@
+#include "HistogramGenerator.h"
+#include <qwt_plot.h>
+#include <qwt_plot_curve.h>
+#include <qwt_plot_renderer.h>
+#include <QImage>
+
+HistogramGenerator::HistogramGenerator(){
+
+    QwtPlot *plot;
+    plot->setTitle( "Histogram" );
+    plot->setCanvasBackground( Qt::white );
+}
+
+void HistogramGenerator::setData( QVector<double>& xValues, QVector<double>& yValues){
+    QwtPlotCurve *curve = new QwtPlotCurve();
+    curve->setTitle( "Histogram" );
+    curve->setPen( Qt::blue, 4 );
+    curve->setSamples(xValues, yValues);
+    curve->attach(plot);
+}
+
+QImage * HistogramGenerator::toImage(){
+	QwtPlotRenderer * renderer;
+	QString imageTitle = "/scratch/Images/test.jpg";
+	QSize size(100,100);
+	QSizeF sizef(size);
+	renderer->renderDocument(plot, imageTitle , sizef);
+	QImage * histogramImage = new QImage();
+    histogramImage->load( "/scratch/Images/test.jpg");
+    return histogramImage;
+
+
+}

@@ -97,6 +97,7 @@ qx.Class.define( "skel.boundWidgets.View", {
                 y: event.getDocumentTop() - box.top
             };
         },
+
         /*
          _mouseMoveCB: function( event )
          {

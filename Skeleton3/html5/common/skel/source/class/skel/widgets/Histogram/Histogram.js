@@ -46,6 +46,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_twoDSettings !== null ){
                         this.m_twoDSettings.setFootPrint( hist.twoDFootPrint );
                     }
+                    this.m_testData.setValue( hist.testData );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
@@ -78,8 +79,10 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_zoomSettings = new skel.widgets.Histogram.HistogramZoom();
             this.m_cubeSettings = new skel.widgets.Histogram.HistogramCube();
             this.m_twoDSettings = new skel.widgets.Histogram.Histogram2D();
+            this.m_testData = new qx.ui.basic.Label("Hi, I'm Amanda");
             this._layoutControls();
             this._add( this.m_controlComposite );
+            this._add( this.m_testData );
         },
         
         
@@ -131,7 +134,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             settingsComposite.add( this.m_twoDVisible );
             
             this.m_mainComposite._add( settingsComposite );
-            this._add(this.m_mainComposite, {flex:1});
+            
+            this._add(this.m_mainComposite);
         },
         
         /**
@@ -140,10 +144,13 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         _initView : function(){
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View(this.m_id);
-                this.m_view.setAllowGrowX( true );
-                this.m_view.setAllowGrowY( true );
+                this.m_view.setAllowGrowX( false );
+                this.m_view.setAllowGrowY( false );
+                this.m_view.setHeight(335);
+                this.m_view.setWidth(335);
                 if ( this.m_mainComposite.indexOf( this.m_view) < 0 ){
-                    this.m_mainComposite.add( this.m_view, {flex: 1} );
+                    this.m_mainComposite.add( this.m_view );
+
                 }
             }
         },
@@ -217,6 +224,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_rangeVisible : null,
         m_displayVisible : null,
         m_zoomVisible : null,
+        m_testData: null,
         
         m_id : null,
         m_connector : null,
