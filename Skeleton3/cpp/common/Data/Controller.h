@@ -42,11 +42,10 @@ public:
      */
     void addData(const QString& fileName);
 
-    /**
-     * Updates the view when the color map changes.
-     * @param colorMapName the name of the new colormap.
-     */
-    virtual void colorMapChanged( const QString& colorMapName );
+    //IColoredView interface.
+    virtual void colorMapChanged( const QString& colorMapName ) Q_DECL_OVERRIDE;
+    virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
+    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
 
     /**
      * Make a channel selection.

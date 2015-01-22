@@ -36,10 +36,24 @@ public:
     bool setFileName( const QString& fileName );
 
     /**
-     * Set a new color map to use.
-     * @param name a color map name.
+     * Sets a new color map.
+     * @param name the identifier for the color map.
      */
     void setColorMap( const QString& name );
+
+    /**
+     * Sets whether the colors in the map are inverted.
+     * @param inverted true if the colors in the map are inverted; false
+     *        otherwise.
+     */
+    void setColorInverted( bool inverted );
+
+    /**
+     * Sets whether the colors in the map are reversed.
+     * @param reversed true if the colors in the map are reversed; false
+     *        otherwise.
+     */
+    void setColorReversed( bool reversed );
 
     /**
      * Loads the data source as a QImage.

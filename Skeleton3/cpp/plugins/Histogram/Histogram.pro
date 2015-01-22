@@ -16,10 +16,12 @@ SOURCES += \
     ImageHistogram.cpp \
     Histogram1.cpp 
 
+
 HEADERS += \
     IImageHistogram.h \
     ImageHistogram.h \
     Histogram1.h 
+
 
 CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
 WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
@@ -33,9 +35,11 @@ casacoreLIBS += -lcasa_casa -llapack -lblas -lgfortran -ldl
 casacoreLIBS += -L$${WCSLIBDIR}/lib -lwcs
 
 INCLUDEPATH += $${CASACOREDIR}/include/casacore
+
 INCLUDEPATH += $${WCSLIBDIR}/include 
 
 LIBS += $${casacoreLIBS} 
+
 
 OTHER_FILES += \
     plugin.json

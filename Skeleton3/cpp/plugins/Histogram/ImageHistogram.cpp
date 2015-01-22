@@ -52,7 +52,9 @@ void ImageHistogram<T>::setIntensityRangeDefault(){
 }
 
 template <class T>
+
 void ImageHistogram<T>::setIntensityRange( double minimumIntensity, double maximumIntensity ){
+
 	m_intensityMin = minimumIntensity;
 	m_intensityMax = maximumIntensity;
 }
@@ -136,10 +138,20 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const std::tr1
 
 template <class T>
 void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
+<<<<<<< HEAD
 	m_image.reset( val );
 	_reset();
 }
 
+=======
+    if ( val != nullptr ){
+        m_image.reset(val->cloneII());
+	    _reset();
+	}
+}
+
+
+>>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 template <class T>
 void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){
 	this->m_region = region;

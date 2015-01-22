@@ -47,6 +47,7 @@ private:
      * Note: this will eventually be rewritten into a useful method.
      */
 
+
     static bool m_registered;
 
     const static QString CLIP_INDEX;

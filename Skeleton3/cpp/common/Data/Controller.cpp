@@ -119,6 +119,20 @@ void Controller::colorMapChanged( const QString& name ){
     _loadView( true );
 }
 
+void Controller::setColorInverted( bool inverted ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorInverted( inverted );
+    }
+    _loadView( true );
+}
+
+void Controller::setColorReversed( bool reversed ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorReversed( reversed );
+    }
+    _loadView( true );
+}
+
 
 int Controller::getState( const QString& type, const QString& key ){
 

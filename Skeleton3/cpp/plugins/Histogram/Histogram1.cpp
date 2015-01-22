@@ -6,6 +6,11 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent ),
     m_histogram( nullptr)
@@ -46,6 +51,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         if( ! ptr1) {
             throw "not an image created by casaimageloader...";
         }
+
         base = ptr1-> getCasaCoreLatticeBase();
         if ( base ){
             if (base->dataType() == casa::TpFloat ){
@@ -78,6 +84,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
                 auto maxIntensity = hook.paramsPtr->maxIntensity;
                 m_histogram->setIntensityRange(minIntensity, maxIntensity);
                 // hist->setIntensityRange(minIntensity, maxIntensity);
+
                 hook.result = _computeHistogram();
                 if ( hook.result.size() > 0 ){
                     histSuccess = true;
@@ -104,4 +111,10 @@ std::vector < HookId > Histogram1::getInitialHookList(){
     };
 }
 
+<<<<<<< HEAD
+=======
+Histogram1::~Histogram1(){
+
+}
+>>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 

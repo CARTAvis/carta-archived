@@ -30,6 +30,7 @@ public:
      * @brief Params
      */
      struct Params {
+
             Params( QString p_fileName, int p_binCount, int p_minChannel, int p_maxChannel,
                 int p_spectralIndex, double p_minIntensity, double p_maxIntensity)
             {
@@ -49,6 +50,7 @@ public:
             int spectralIndex;
             double minIntensity;
             double maxIntensity;
+
 
         };
 

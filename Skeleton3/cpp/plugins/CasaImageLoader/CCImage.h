@@ -27,6 +27,14 @@ public:
     {
         return true;
     }
+
+    /**
+     * Returns a shared pointer to the underlying casa::LatticeBase or null if there is no underlying
+     * casacore image.
+     * @return std::shared_ptr<casa::LatticeBase>.
+     */
+    virtual std::shared_ptr<casa::LatticeBase>  getCasaCoreLatticeBase() = 0;
+
 };
 
 /// implementation of the ImageInterface that the casacore image loader plugin
@@ -138,6 +146,10 @@ public:
         return img;
     } // create
 
+    virtual std::shared_ptr<casa::LatticeBase> getCasaCoreLatticeBase(){
+        return std::shared_ptr<casa::LatticeBase>(m_casaII);
+    }
+
     /// this should be protected... but I don't have time to fix the compiler errors
     /// basically we
 //    template < class X >
@@ -173,4 +185,6 @@ protected:
     /// we want CCRawView to access our internals...
     /// \todo maybe we just need a public accessor, no? I don't like friends :)
     friend class CCRawView < PType >;
+
+
 };
