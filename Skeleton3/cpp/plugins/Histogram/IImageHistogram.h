@@ -7,7 +7,6 @@
 
 #include <vector>
 
-<<<<<<< HEAD
 // namespace casa {
 //     template <class T> class ImageInterface;
 //     template <class T> class LatticeHistograms;
@@ -18,7 +17,6 @@
 /**
  * Generates and Manages the data corresponding to a histogram.
  */
-//template <class T>
 
 class IImageHistogram{
 public:
