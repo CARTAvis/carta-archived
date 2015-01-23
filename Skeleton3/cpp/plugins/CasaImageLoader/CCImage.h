@@ -29,11 +29,11 @@ public:
     }
 
     /**
-     * Returns a shared pointer to the underlying casa::LatticeBase or null if there is no underlying
+     * Returns a shared pointer to the underlying casa::LatticeBase* or null if there is no underlying
      * casacore image.
-     * @return std::shared_ptr<casa::LatticeBase>.
+     * @return casa::LatticeBase *
      */
-    virtual std::shared_ptr<casa::LatticeBase>  getCasaCoreLatticeBase() = 0;
+    virtual casa::LatticeBase * getCasaImage() = 0;
 
 };
 
@@ -146,8 +146,8 @@ public:
         return img;
     } // create
 
-    virtual std::shared_ptr<casa::LatticeBase> getCasaCoreLatticeBase(){
-        return std::shared_ptr<casa::LatticeBase>(m_casaII);
+    virtual casa::LatticeBase * getCasaImage(){
+        return m_casaII;
     }
 
     /// this should be protected... but I don't have time to fix the compiler errors

@@ -18,7 +18,7 @@ ImageHistogram<T>::ImageHistogram( ):
 	m_histogramMaker(NULL), m_region(NULL),
 	ALL_CHANNELS(-1),
 	ALL_INTENSITIES( -1),
-	m_image(),
+	m_image(nullptr),
 	m_channelMin( ALL_CHANNELS ),
 	m_channelMax( ALL_CHANNELS ),
 	m_intensityMin( ALL_INTENSITIES ),
@@ -101,7 +101,7 @@ bool ImageHistogram<T>::compute( ){
 }
 
 template <class T>
-casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const std::tr1::shared_ptr<const casa::ImageInterface<T> > image ){
+casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T> * image ){
 	casa::LatticeHistograms<T>* imageHistogram = NULL;
 	if ( m_channelMin != ALL_CHANNELS && m_channelMax != ALL_CHANNELS ){
 		//Create a slicer from the image
@@ -140,10 +140,10 @@ template <class T>
 void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
 
     if ( val != nullptr ){
-        if(!m_image){
-        m_image.reset(val->cloneII());
+
+        m_image = val;
 	    _reset();
-        }
+        
         
 	}
 }
@@ -156,7 +156,7 @@ void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){
 template <class T>
 bool ImageHistogram<T>::_reset(){
 	bool success = true;
-	if ( m_image.get() != NULL ){
+	if ( m_image != nullptr ){
 		if ( m_histogramMaker != NULL ){
 			//delete m_histogramMaker;
 			m_histogramMaker = NULL;
@@ -168,9 +168,9 @@ bool ImageHistogram<T>::_reset(){
 			}
 			else {
 				//Make the histogram based on the region
-				std::tr1::shared_ptr<casa::SubImage<T> > subImage(new casa::SubImage<T>( *m_image, *m_region ));
+				subImage.reset(new casa::SubImage<T>( *m_image, *m_region ));
 				if ( subImage.get() != NULL ){
-					m_histogramMaker = _filterByChannels( subImage );
+					m_histogramMaker = _filterByChannels( subImage.get() );
 				}
 				else {
 					success = false;

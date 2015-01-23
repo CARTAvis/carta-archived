@@ -44,4 +44,8 @@ private:
      */
     std::shared_ptr<casa::LatticeBase> base;
 
+    //Current histogram image.  Member variable so image pointer
+    //is not destroyed.
+    std::shared_ptr<Image::ImageInterface> m_cartaImage;
+
 };
