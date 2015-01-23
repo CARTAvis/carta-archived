@@ -18,7 +18,6 @@
 /**
  * Generates and Manages the data corresponding to a histogram.
  */
-//template <class T>
 
 class IImageHistogram{
 public:

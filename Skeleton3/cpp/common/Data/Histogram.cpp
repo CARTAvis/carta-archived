@@ -70,6 +70,7 @@ Histogram::Histogram( const QString& path, const QString& id):
         CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
         m_clips.reset(dynamic_cast<Clips*>(obj));
     }
+
 }
 
 void Histogram::_initializeDefaultState(){
