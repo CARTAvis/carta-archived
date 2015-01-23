@@ -37,4 +37,8 @@ private:
     //Histogram implementation.
     std::shared_ptr<IImageHistogram> m_histogram;
 
+    //Current histogram image.  Member variable so image pointer
+    //is not destroyed.
+    std::shared_ptr<Image::ImageInterface> m_cartaImage;
+
 };

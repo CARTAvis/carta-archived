@@ -41,35 +41,32 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         Carta::Lib::Hooks::HistogramHook & hook
                             = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
         auto fname = hook.paramsPtr->fileName;
-        std::shared_ptr<Image::ImageInterface> cartaImage = Globals::instance()-> pluginManager()
+        m_cartaImage = Globals::instance()-> pluginManager()
                                         -> prepare <Carta::Lib::Hooks::LoadAstroImage>( fname )
                                         .first().val();
-        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( cartaImage.get());
+        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
         if( ! ptr1) {
             throw "not an image created by casaimageloader...";
         }
-        std::shared_ptr<casa::LatticeBase> base = ptr1-> getCasaCoreLatticeBase();
-        if ( base ){
-            if (base->dataType() == casa::TpFloat ){
-                ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
-                m_histogram.reset( hist );
-                casa::ImageInterface<casa::Float>* casaPtr = dynamic_cast<casa::ImageInterface<casa::Float>* >(base.get());
-                hist->setImage( casaPtr );
-                hook.result = _computeHistogram();
-                if ( hook.result.size() > 0 ){
-                    histSuccess = true;
-                }
-            }
-            else {
-                throw "Unimplemented data type";
+
+        if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
+            casa::ImageInterface<casa::Float> * casaImage =
+                    dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+            if (! casaImage) throw "Not a CasaImage.";
+
+            ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
+            m_histogram.reset( hist );
+            hist->setImage( casaImage );
+            hook.result = _computeHistogram();
+            if ( hook.result.size() > 0 ){
+                histSuccess = true;
             }
         }
         else {
-            throw "not a casacore image";
+            throw "Unimplemented data type";
         }
         return histSuccess;
     }
-
     qWarning() << "Sorry, histogram doesn't know how to handle this hook";
     return false;
 }

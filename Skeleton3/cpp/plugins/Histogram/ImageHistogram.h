@@ -60,16 +60,16 @@ private:
 	ImageHistogram operator=( const ImageHistogram<T>& other );
 	//Completely reset the histogram if the image, region, or channels change
 	bool _reset();
-	casa::LatticeHistograms<T>* _filterByChannels( const std::tr1::shared_ptr<const casa::ImageInterface<T> >  image );
+	casa::LatticeHistograms<T>* _filterByChannels( const casa::ImageInterface<T>*  image );
 
 	vector<T> m_xValues;
 	vector<T> m_yValues;
 	casa::LatticeHistograms<T>* m_histogramMaker;
 	casa::ImageRegion* m_region;
-
+	std::tr1::shared_ptr<casa::SubImage<T> > subImage;
 	const int ALL_CHANNELS;
 	const int ALL_INTENSITIES;
-    std::tr1::shared_ptr<const casa::ImageInterface<T> >  m_image;
+    const casa::ImageInterface<T>*  m_image; //Use
 	int m_channelMin;
 	int m_channelMax;
 	int m_specIndex;
