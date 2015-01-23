@@ -6,8 +6,11 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
 
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent ),
     m_histogram( nullptr)
@@ -57,6 +60,29 @@ bool Histogram1::handleHook( BaseHook & hookData ){
             ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
             m_histogram.reset( hist );
             hist->setImage( casaImage );
+                
+                
+                // hist->setImage( casaPtr );
+
+                //casa::ImageRegion * region;
+                //hist->setRegion(region);
+
+                auto count = hook.paramsPtr->binCount;
+                m_histogram->setBinCount( count );
+                // hist->setBinCount( count );
+
+
+                auto minChannel = hook.paramsPtr->minChannel;
+                auto maxChannel = hook.paramsPtr->maxChannel;
+                auto spectralIndex = hook.paramsPtr->spectralIndex;
+                m_histogram->setChannelRange(minChannel, maxChannel, spectralIndex);
+                // hist->setChannelRange(minChannel, maxChannel, spectralIndex);
+
+                auto minIntensity = hook.paramsPtr->minIntensity;
+                auto maxIntensity = hook.paramsPtr->maxIntensity;
+                m_histogram->setIntensityRange(minIntensity, maxIntensity);
+                // hist->setIntensityRange(minIntensity, maxIntensity);
+
             hook.result = _computeHistogram();
             if ( hook.result.size() > 0 ){
                 histSuccess = true;
@@ -78,7 +104,10 @@ std::vector < HookId > Histogram1::getInitialHookList(){
     };
 }
 
+<<<<<<< HEAD
+=======
 Histogram1::~Histogram1(){
 
 }
+>>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 

@@ -48,7 +48,9 @@ public:
 	void setChannelRangeDefault();
 	void setIntensityRangeDefault();
 	void setChannelRange( int minChannel, int maxChannel, int spectralIndex=-1 );
-	void setIntensityRange( float minimumIntensity, float maximumIntensity );
+
+	void setIntensityRange( double minimumIntensity, double maximumIntensity );
+
 	void setImage(casa::ImageInterface<T> *  val);
 	static double computeYValue( double value, bool useLog );
 

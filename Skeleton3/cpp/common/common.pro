@@ -7,6 +7,9 @@ TEMPLATE = lib
 ###CONFIG += staticlib
 QT += widgets network
 QT += xml
+QT += widgets
+
+
 
 HEADERS += \
     IConnector.h \
@@ -51,7 +54,8 @@ HEADERS += \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     ColormapsOptimization.h \
-    HackViewer.h
+    HackViewer.h \
+    HistogramGenerator.h
     
 
 SOURCES += \
@@ -91,7 +95,8 @@ SOURCES += \
     GrayColormap.cpp \
     ColormapsOptimization.cpp \
     HackViewer.cpp \
-    Algorithms/RawView2QImageConverter.cpp
+    Algorithms/RawView2QImageConverter.cpp \
+    HistogramGenerator.cpp
 
 
 #message( "common            PWD=$$PWD")
@@ -103,6 +108,9 @@ SOURCES += \
 #PRECOMPILED_HEADER = stable.h
 #QMAKE_CXXFLAGS += -H
 
-INCLUDEPATH += ../../../ThirdParty/rapidjson/include
+INCLUDEPATH += ../../../ThirdParty/rapidjson/include 
+INCLUDEPATH += /usr/local/include/qwt-qt5
+
+LIBS += -L/usr/local/lib/qwt-qt5 -lqwt
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib

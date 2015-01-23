@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "common/HistogramGenerator.h"
 
 
 class ImageView;
@@ -38,12 +39,14 @@ private:
     QString _setPlaneRange( const QString& params );
     QString _set2DFootPrint( const QString& params );
 
+    void  _generateHistogram(QString filename, QString filepath);
+
     void _initializeDefaultState();
     void _initializeCallbacks();
     /**
      * Note: this will eventually be rewritten into a useful method.
      */
-    void _testHistPlugin();
+
 
     static bool m_registered;
 
@@ -69,6 +72,8 @@ private:
     const static QString FOOT_PRINT_IMAGE;
     const static QString FOOT_PRINT_REGION;
     const static QString FOOT_PRINT_REGION_ALL;
+    const static QString TEST_DATA;
+    const static QString DATA;
     Histogram( const QString& path, const QString& id );
     class Factory;
 
