@@ -1,6 +1,0 @@
-#include "IImageHistogram.h"
-
-IImageHistogram::~IImageHistogram() 
-{}
-
-
