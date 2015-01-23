@@ -75,13 +75,8 @@ Histogram::Histogram( const QString& path, const QString& id):
         CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
         m_clips.reset(dynamic_cast<Clips*>(obj));
     }
-<<<<<<< HEAD
     
    // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
-=======
-
-    _testHistPlugin();
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 }
 
 void Histogram::_initializeDefaultState(){
@@ -512,10 +507,6 @@ void Histogram::_generateHistogram(QString filename, QString filepath){
     }
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 Histogram::~Histogram(){
 
 }
