@@ -138,20 +138,16 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const std::tr1
 
 template <class T>
 void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
-<<<<<<< HEAD
-	m_image.reset( val );
-	_reset();
-}
 
-=======
     if ( val != nullptr ){
+        if(!m_image){
         m_image.reset(val->cloneII());
 	    _reset();
+        }
+        
 	}
 }
 
-
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 template <class T>
 void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){
 	this->m_region = region;
@@ -162,7 +158,7 @@ bool ImageHistogram<T>::_reset(){
 	bool success = true;
 	if ( m_image.get() != NULL ){
 		if ( m_histogramMaker != NULL ){
-			delete m_histogramMaker;
+			//delete m_histogramMaker;
 			m_histogramMaker = NULL;
 		}
 		try {

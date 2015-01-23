@@ -10,9 +10,6 @@
 #include <set>
 #include "HistogramGenerator.h"
 #include <QDebug>
-#include <qwt_samples.h>
-#include <qwt_plot_histogram.h>
-
 
 namespace Carta {
 
@@ -42,8 +39,6 @@ const QString Histogram::FOOT_PRINT = "twoDFootPrint";
 const QString Histogram::FOOT_PRINT_IMAGE = "Image";
 const QString Histogram::FOOT_PRINT_REGION = "Selected Region";
 const QString Histogram::FOOT_PRINT_REGION_ALL = "All Regions";
-const QString Histogram::TEST_DATA = "testData";
-const QString Histogram::DATA = "data";
 
 std::shared_ptr<Clips>  Histogram::m_clips = nullptr;
 
@@ -75,13 +70,6 @@ Histogram::Histogram( const QString& path, const QString& id):
         CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
         m_clips.reset(dynamic_cast<Clips*>(obj));
     }
-<<<<<<< HEAD
-    
-   // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
-=======
-
-    _testHistPlugin();
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 }
 
 void Histogram::_initializeDefaultState(){
@@ -90,7 +78,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<double>(CLIP_MAX, 1);
     m_state.insertValue<bool>(CLIP_APPLY, false );
     m_state.insertValue<int>(BIN_COUNT, 25 );
-    m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
+    m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_OUTLINE);
     m_state.insertValue<bool>(GRAPH_LOG_COUNT, false );
     m_state.insertValue<bool>(GRAPH_COLORED, true );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_SINGLE );
@@ -98,7 +86,6 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<int>(PLANE_MIN, 0 );
     m_state.insertValue<int>(PLANE_MAX, 1 );
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
-    m_state.insertValue<QString>(TEST_DATA, DATA);
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -212,6 +199,7 @@ QString Histogram::_setClipRange( const QString& params ){
             }
             if ( changedState ){
                 m_state.flushState();
+                _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
             }
         }
         else {
@@ -238,6 +226,7 @@ QString Histogram::_setColored( const QString& params ){
         if ( colored != oldColored){
             m_state.setValue<bool>(GRAPH_COLORED, colored );
             m_state.flushState();
+            // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
         }
     }
     else {
@@ -259,7 +248,7 @@ QString Histogram::_setBinCount( const QString& params ){
         if ( binCount != oldBinCount ){
            m_state.setValue<int>(BIN_COUNT, binCount );
            m_state.flushState();
-           qDebug()<<"ploting with binCount = "<<binCount;
+           //qDebug()<<"ploting with binCount = "<<binCount;
            _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
 
         }
@@ -326,6 +315,7 @@ QString Histogram::_setPlaneSingle( const QString& params ){
         if ( plane != oldPlane ){
            m_state.setValue<int>(PLANE_SINGLE, plane );
            m_state.flushState();
+           _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
         }
     }
     else {
@@ -381,6 +371,7 @@ QString Histogram::_setPlaneRange( const QString& params ){
             }
             if ( changedState ){
                 m_state.flushState();
+                _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
             }
         }
         else {
@@ -406,6 +397,7 @@ QString Histogram::_setGraphStyle( const QString& params ){
         if ( styleStr != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, styleStr );
             m_state.flushState();
+            _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
         }
     }
     else {
@@ -427,6 +419,7 @@ QString Histogram::_setClipPercent( const QString& params ){
            if ( index != oldClipIndex ){
               m_state.setValue<int>(CLIP_INDEX, index );
               m_state.flushState();
+              //_generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
            }
         }
        else {
@@ -471,36 +464,20 @@ void Histogram::_generateHistogram(QString filename, QString filepath){
     int spectralIndex = m_state.getValue<int>(PLANE_SINGLE);
     double minIntensity = m_state.getValue<double>(CLIP_MIN);
     double maxIntensity = m_state.getValue<double>(CLIP_MAX);
-
-    /*qDebug() << "binCount = "<<_binCount;
-    qDebug() << "minchannel = "<<_minChannel;
-    qDebug() << "maxchannel = "<<_maxChannel;
-    qDebug() << "spectralIndex = "<<_spectralIndex;
-    qDebug() << "minIntensity = "<<_minIntensity;
-    qDebug() << "maxIntensity = "<<_maxIntensity;*/
-
+    QString style = m_state.getValue<QString>(GRAPH_STYLE);
+    // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
+    
     auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(filepath, binCount,
                             minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
     auto lam = [=] ( const Carta::Lib::Hooks::HistogramHook::ResultType &data ) {
-            int dataCount = data.size();
-            QVector<QwtIntervalSample> samples(0);
-
-            for ( int i = 0; i < dataCount-1; i++ ){
-               // qDebug() << "x = "<<data[i].first<<"y = "<< data[i].second;
-                QwtIntervalSample sample(data[i].second, data[i].first, data[i+1].first);
-                samples.append(sample);
-            }
 
             HistogramGenerator * histogram = new HistogramGenerator(QString(filename));
-            histogram->setStyle();
-            histogram->setData(samples);
+            histogram->setStyle(style);
+            histogram->setData(data);
             QImage * histogramImage = histogram->toImage();
-            //histogramImage.save("/scratch/Images/test2.jpg");
             m_view->resetImage(*histogramImage);
             refreshView(m_view.get());
-           
-
         };
     try {
         result.forEach( lam );
@@ -512,10 +489,7 @@ void Histogram::_generateHistogram(QString filename, QString filepath){
     }
 }
 
-<<<<<<< HEAD
 
-=======
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 Histogram::~Histogram(){
 
 }

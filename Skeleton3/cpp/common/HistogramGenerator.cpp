@@ -19,7 +19,17 @@ HistogramGenerator::HistogramGenerator(QString title){
 
 }
 
-void HistogramGenerator::setData( QVector<QwtIntervalSample>& samples){
+void HistogramGenerator::setData(ResultType data){
+
+    QVector<QwtIntervalSample> samples(0);
+    int dataCount = data.size();
+
+    for ( int i = 0; i < dataCount-1; i++ ){
+        QwtIntervalSample sample(data[i].second, data[i].first, data[i+1].first);
+        samples.append(sample);
+    }
+
+    m_histogram->setPen(Qt::blue);
     m_histogram->setSamples(samples);
     m_plot->replot();
 
@@ -27,23 +37,26 @@ void HistogramGenerator::setData( QVector<QwtIntervalSample>& samples){
 
 QImage * HistogramGenerator::toImage(){
 	QwtPlotRenderer * renderer = new QwtPlotRenderer();
-	QString imageTitle = "/scratch/Images/test.jpg";
-	QSize size(100,100);
-	QSizeF sizef(size);
-	renderer->renderDocument(m_plot, imageTitle , sizef);
-    QImage * histogramImage =new QImage();
-    //renderer->renderTo(m_plot,histogramImage);
-     
-	
-    histogramImage->load( "/scratch/Images/test.jpg");
+	QSize size(335,335);
+    QImage * histogramImage =new QImage(size, QImage::Format_RGB32);
+    renderer->renderTo(m_plot,*histogramImage);
     return histogramImage;
 
 }
 
-void HistogramGenerator::setStyle( QwtPlotHistogram::HistogramStyle style,
- QPen color, QBrush fill){
-    m_histogram->setStyle(style);
-    m_histogram->setPen(color);
-    m_histogram->setBrush(fill);
-
+void HistogramGenerator::setStyle( QString style ){
+    if(style == "Outline")
+        m_histogram->setStyle(QwtPlotHistogram::Outline);
+    else if(style == "Line")
+        m_histogram->setStyle(QwtPlotHistogram::Lines);
+    else if(style == "Fill"){
+        m_histogram->setStyle(QwtPlotHistogram::Outline);
+        m_histogram->setBrush(QBrush(Qt::blue));
+    }
 }
+
+// void HistogramGenerator::setColored( bool colored ){
+//    if(colored) m_histogram->setPen(Qt::blue);
+//    else m_histogram->setPen(Qt::black);
+// }
+

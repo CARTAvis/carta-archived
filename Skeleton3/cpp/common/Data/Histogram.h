@@ -72,8 +72,6 @@ private:
     const static QString FOOT_PRINT_IMAGE;
     const static QString FOOT_PRINT_REGION;
     const static QString FOOT_PRINT_REGION_ALL;
-    const static QString TEST_DATA;
-    const static QString DATA;
     Histogram( const QString& path, const QString& id );
     class Factory;
 

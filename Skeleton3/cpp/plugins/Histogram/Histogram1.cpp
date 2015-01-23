@@ -6,11 +6,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
 
-<<<<<<< HEAD
-=======
 
-
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent ),
     m_histogram( nullptr)
@@ -111,10 +107,9 @@ std::vector < HookId > Histogram1::getInitialHookList(){
     };
 }
 
-<<<<<<< HEAD
-=======
+
 Histogram1::~Histogram1(){
 
 }
->>>>>>> e0f4a78237df21ef4b870ce2e44e6e39438e1695
+
 
