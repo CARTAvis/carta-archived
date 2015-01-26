@@ -27,10 +27,47 @@ public:
     virtual ~ViewManager(){}
 
     /**
-     * Convenience method for loading initial data with Viewer start-up.
-     * @param fileName a locater for the data to load.
+     * Return the unique server side id of the object with the given name and index in the
+     * layout.
+     * @param pluginName an identifier for the kind of object.
+     * @param index an index in the case where there is more than one object of the given kind
+     *      in the layout.
      */
-    void loadFile( QString fileName );
+    QString getObjectId( const QString& pluginName, int index );
+
+    /**
+     * Link the color map with the given id to the controller with the given id.
+     * @param colorId the unique server side id of the color map.
+     * @param controlId the unique server side id of the controller whose display will change
+     *      in response to color map changes.
+     * @return true if the link was successfully established; false otherwise.
+     */
+    bool linkColoredView( const QString& colorId, const QString& controlId );
+
+    /**
+     * Load the file into the controller with the given id.
+     * @param fileName a locater for the data to load.
+     * @param objectId the unique server side id of the controller which is responsible for displaying
+     *      the file.
+     */
+    void loadFile( const QString& objectId, const QString& fileName);
+
+    /**
+     * Reset the layout to a predefined analysis view.
+     */
+    void setAnalysisView();
+
+    /**
+     * Change the color map to the map with the given name.
+     * @param colormapId the unique server-side id of a Colormap object.
+     * @param colormapName a unique identifier for the color map to be displayed.
+     */
+    bool setColorMap( const QString& colormapId, const QString& colormapName );
+
+    /**
+     * Reset the layout to a predefined view displaying only a single image.
+     */
+    void setImageView();
 
     static const QString CLASS_NAME;
 
@@ -38,7 +75,10 @@ private:
     ViewManager( const QString& path, const QString& id);
     class Factory;
 
-    void _clearLayout();
+    void _clear();
+
+    int _findColorMap( const QString& id ) const;
+    int _findController( const QString& id ) const;
 
     void _initCallbacks();
 
@@ -47,6 +87,8 @@ private:
     //has not saved one.
     void _initializeDefaultState();
 
+    bool _linkColoredView( std::shared_ptr<Colormap> colorMap, std::shared_ptr<Controller> controller );
+
     QString _makeAnimator();
     QString _makeLayout();
     QString _makePluginList();
@@ -54,7 +96,7 @@ private:
     QString _makeHistogram();
     QString _makeColorMap();
     void _makeDataLoader();
-    QString _makeWindow( QVector<QString>& dataValues );
+
 
     bool _readState( const QString& fileName );
     bool _saveState( const QString& fileName );

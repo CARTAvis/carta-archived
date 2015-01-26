@@ -78,7 +78,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                 }
                 if ( this.m_showHistogram === null ){
                     this.m_showHistogram = new qx.ui.menu.CheckBox( "Show Histogram");
-                    
+                    this.m_showHistogram.setValue( false );
                     this.m_showHistogram.addListener( "execute", this._layoutHistogram, this );
                     this.m_contextMenu.add( this.m_showHistogram );
                 }

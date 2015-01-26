@@ -1,5 +1,6 @@
 #include "Data/Histogram.h"
 #include "Data/Clips.h"
+#include "Data/Controller.h"
 #include "Data/Util.h"
 #include "Globals.h"
 #include "ImageView.h"
@@ -77,6 +78,17 @@ Histogram::Histogram( const QString& path, const QString& id):
     }
     
    // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
+}
+
+void Histogram::addController( std::shared_ptr<Controller> controller){
+    if ( controller.get() != nullptr ){
+        m_coloredViews.append( controller );
+    }
+}
+
+void Histogram::clear(){
+    unregisterView();
+    m_coloredViews.clear();
 }
 
 void Histogram::_initializeDefaultState(){

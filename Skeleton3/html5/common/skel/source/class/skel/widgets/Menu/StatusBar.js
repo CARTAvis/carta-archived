@@ -140,10 +140,10 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
          * mouse event.
          */
         showHideStatus : function(ev) {
-            var widgetLoc = skel.widgets.Util.getTop(this);
+            /*var widgetLoc = skel.widgets.Util.getTop(this);
             var mouseLoc = ev.getDocumentTop();
             this.showHide(this, mouseLoc, widgetLoc);
-
+*/
         },
 
         animateSize : function(percent, show) {

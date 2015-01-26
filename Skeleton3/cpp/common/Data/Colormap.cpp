@@ -1,5 +1,6 @@
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
+#include "Data/Controller.h"
 #include "Data/IColoredView.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
@@ -134,7 +135,7 @@ void Colormap::_initializeCallbacks(){
 
 
 
-bool Colormap::addViewObject( std::shared_ptr<IColoredView> target ){
+bool Colormap::addController( std::shared_ptr<Controller> target ){
     bool objAdded = false;
     if ( target.get() ){
         m_coloredViews.append( target );
@@ -142,6 +143,10 @@ bool Colormap::addViewObject( std::shared_ptr<IColoredView> target ){
         objAdded = true;
     }
     return objAdded;
+}
+
+void Colormap::clear(){
+    m_coloredViews.clear();
 }
 
 QString Colormap::_commandAddColoredObject( const QString& params ){
@@ -152,8 +157,8 @@ QString Colormap::_commandAddColoredObject( const QString& params ){
     ObjectManager* man = ObjectManager::objectManager();
     CartaObject* coloredObj = man->getObject( objectId );
     if ( coloredObj != nullptr ){
-        std::shared_ptr<IColoredView> target( dynamic_cast<IColoredView*>( coloredObj) );
-        bool added = addViewObject( target );
+        std::shared_ptr<Controller> target( dynamic_cast<Controller*>( coloredObj) );
+        bool added = addController( target );
         if ( !added ){
             result = "Please check that the object supports a color map: "+params;
         }
@@ -321,11 +326,33 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
 }
 
 QString Colormap::_commandSetColorMap( const QString& params ){
-    QString result;
     std::set<QString> keys = {"name"};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString colorMapStr = dataValues[*keys.begin()];
+    QString result = setColorMap( colorMapStr );
+    return result;
+}
+
+
+bool Colormap::_processColorStr( const QString key, const QString colorStr, bool* valid ){
+    double colorPercent = colorStr.toDouble( valid );
+    bool colorChanged = false;
+    if ( *valid ){
+        double oldColorPercent = m_state.getValue<double>( key );
+        if ( abs( colorPercent - oldColorPercent ) >= 0.001f ){
+            m_state.setValue<double>(key, colorPercent );
+            colorChanged = true;
+        }
+    }
+    else {
+        qWarning() << "colorStr="<<colorStr<<" is not a valid color percent for key="<<key;
+    }
+    return colorChanged;
+}
+
+QString Colormap::setColorMap( const QString& colorMapStr ){
     QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+    QString result;
     if ( m_colors != nullptr ){
        if( m_colors->isMap( colorMapStr ) ){
            if ( colorMapStr != mapName ){
@@ -342,22 +369,6 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     }
     result = Util::commandPostProcess( result, mapName );
     return result;
-}
-
-bool Colormap::_processColorStr( const QString key, const QString colorStr, bool* valid ){
-    double colorPercent = colorStr.toDouble( valid );
-    bool colorChanged = false;
-    if ( *valid ){
-        double oldColorPercent = m_state.getValue<double>( key );
-        if ( abs( colorPercent - oldColorPercent ) >= 0.001f ){
-            m_state.setValue<double>(key, colorPercent );
-            colorChanged = true;
-        }
-    }
-    else {
-        qWarning() << "colorStr="<<colorStr<<" is not a valid color percent for key="<<key;
-    }
-    return colorChanged;
 }
 
 Colormap::~Colormap(){

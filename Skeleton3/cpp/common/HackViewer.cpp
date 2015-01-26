@@ -7,6 +7,7 @@
 #include "IConnector.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "ScriptTester.h"
 #include "common/GrayColormap.h"
 #include <QPainter>
 #include <set>
@@ -347,6 +348,9 @@ HackViewer::start()
         reloadFrame();
     });
     qDebug() << "HackViewer has been initialized.";
+
+    //ScriptTester tester;
+    //tester.runTest();
 } // start
 
 // prefixed setState

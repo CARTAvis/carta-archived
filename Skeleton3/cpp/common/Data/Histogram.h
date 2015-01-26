@@ -16,11 +16,22 @@ namespace Carta {
 namespace Data {
 
 class Clips;
+class Controller;
 
 class Histogram : public CartaObject {
 
 public:
 
+    /**
+     * Adds a data source to the Histogram.
+     * @param controller a Controller containing data sources.
+     */
+    void addController( std::shared_ptr<Controller> controller);
+
+    /**
+     * Clear the state of the histogram.
+     */
+    void clear();
     virtual ~Histogram();
     const static QString CLASS_NAME;
 
@@ -81,6 +92,10 @@ private:
     std::shared_ptr<ImageView> m_view;
 
     static std::shared_ptr<Clips> m_clips;
+
+    //Data to be histogrammed
+    QList<std::shared_ptr<Controller> > m_coloredViews;
+
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

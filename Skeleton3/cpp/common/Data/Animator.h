@@ -34,9 +34,9 @@ public:
     void addController( const std::shared_ptr<Controller>& controller );
 
     /**
-     * Remove all links to other view objects controlled by this animator.
+     * Clear current state..
      */
-    void clearLinks();
+    void clear();
 
     /**
      * Returns the number of controllees linked to this Animator.

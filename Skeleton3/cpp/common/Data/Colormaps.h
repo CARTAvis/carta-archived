@@ -37,6 +37,12 @@ public:
      */
     std::shared_ptr<Carta::Lib::IColormapScalar> getColorMap( const QString& name ) const;
 
+    /**
+     * Returns a list of available color maps.
+     * @return a QStringList containing the names of available color maps.
+     */
+    QStringList getColorMaps() const;
+
     virtual ~Colormaps();
 
     const static QString COLOR_LIST;

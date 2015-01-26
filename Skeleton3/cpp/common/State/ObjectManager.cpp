@@ -86,7 +86,8 @@ void CartaObject::refreshView( IView* view ){
 
 void CartaObject::unregisterView(){
     IConnector * connector = Globals::instance()->connector();
-    connector->unregisterView( m_id );
+    QString viewId = m_path +"/view";
+    connector->unregisterView( viewId );
 }
 
 QString CartaObject::getStateLocation( const QString& name ) const {

@@ -152,14 +152,19 @@ void DesktopConnector::registerView(IView * view)
 
     // connect the view's refresh timer to a lambda, which will in turn call
     // refreshViewNow()
-    connect( & viewInfo->refreshTimer, & QTimer::timeout, [=] () {
-        refreshViewNow( view);
+    connect( & viewInfo->refreshTimer, & QTimer::timeout,
+            [=] () {
+                     refreshViewNow( view);
     });
 }
 
 // unregister the view
 void DesktopConnector::unregisterView( const QString& viewName ){
-    m_views.erase( viewName );
+    ViewInfo* viewInfo = this->findViewInfo( viewName );
+    if ( viewInfo != nullptr ){
+        bool disconnected =(& viewInfo->refreshTimer)->disconnect();
+        m_views.erase( viewName );
+    }
 }
 
 //    static QTime st;
