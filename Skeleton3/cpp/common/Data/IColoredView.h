@@ -6,6 +6,10 @@
 #ifndef ICOLOREDVIEW_H_
 #define ICOLOREDVIEW_H_
 
+namespace Image {
+class ImageInterface;
+}
+
 namespace Carta {
 
 namespace Data {
@@ -29,6 +33,8 @@ public:
      * @param reversed true if the colors have been reversed; false otherwise.
      */
     virtual void setColorReversed( bool reversed ) = 0;
+
+    virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() = 0;
 
 };
 }

@@ -140,11 +140,13 @@ template <class T>
 void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
 
     if ( val != nullptr ){
+
         m_image = val;
 	    _reset();
+        
+        
 	}
 }
-
 
 template <class T>
 void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){
@@ -156,7 +158,7 @@ bool ImageHistogram<T>::_reset(){
 	bool success = true;
 	if ( m_image != nullptr ){
 		if ( m_histogramMaker != NULL ){
-			delete m_histogramMaker;
+			//delete m_histogramMaker;
 			m_histogramMaker = NULL;
 		}
 		try {

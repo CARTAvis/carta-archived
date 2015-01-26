@@ -7,8 +7,11 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include "common/HistogramGenerator.h"
+#include <QObject>
 
+namespace Image {
+class ImageInterface;
+}
 
 class ImageView;
 namespace Carta {
@@ -18,7 +21,9 @@ namespace Data {
 class Clips;
 class Controller;
 
-class Histogram : public CartaObject {
+class Histogram : public QObject, public CartaObject {
+
+    Q_OBJECT
 
 public:
 
@@ -35,6 +40,8 @@ public:
     virtual ~Histogram();
     const static QString CLASS_NAME;
 
+private slots:
+    void  _generateHistogram();
 
 private:
     //Set the state from commands.
@@ -49,15 +56,11 @@ private:
     QString _setPlaneSingle( const QString& params );
     QString _setPlaneRange( const QString& params );
     QString _set2DFootPrint( const QString& params );
-
-    void  _generateHistogram(QString filename, QString filepath);
+    std::vector<std::shared_ptr<Image::ImageInterface>> _generateData();
+    
 
     void _initializeDefaultState();
     void _initializeCallbacks();
-    /**
-     * Note: this will eventually be rewritten into a useful method.
-     */
-
 
     static bool m_registered;
 
@@ -83,8 +86,6 @@ private:
     const static QString FOOT_PRINT_IMAGE;
     const static QString FOOT_PRINT_REGION;
     const static QString FOOT_PRINT_REGION_ALL;
-    const static QString TEST_DATA;
-    const static QString DATA;
     Histogram( const QString& path, const QString& id );
     class Factory;
 

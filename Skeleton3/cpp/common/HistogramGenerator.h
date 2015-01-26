@@ -5,10 +5,11 @@
 
 class HistogramGenerator{	
 public:
-  HistogramGenerator(QString title);
-  void setData( QVector<QwtIntervalSample>& samples);
-  void setStyle( QwtPlotHistogram::HistogramStyle style = QwtPlotHistogram::Outline,
-   QPen color = QPen(Qt::blue), QBrush fill = Qt::NoBrush);
+  typedef std::vector<std::pair<double,double> > ResultType;
+  HistogramGenerator();
+  void setData( ResultType data);
+  void setStyle( QString style );
+  // void setColored( bool colored );
   QImage * toImage();
 private:
 	QwtPlot *m_plot;

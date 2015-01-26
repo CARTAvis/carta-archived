@@ -8,7 +8,9 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
 #include <vector>
-
+namespace Image {
+class ImageInterface;
+}
 namespace Carta
 {
 namespace Lib
@@ -31,10 +33,10 @@ public:
      */
      struct Params {
 
-            Params( QString p_fileName, int p_binCount, int p_minChannel, int p_maxChannel,
+            Params( std::vector<std::shared_ptr<Image::ImageInterface>> p_dataSource, int p_binCount, int p_minChannel, int p_maxChannel,
                 int p_spectralIndex, double p_minIntensity, double p_maxIntensity)
             {
-                fileName = p_fileName;
+                dataSource = p_dataSource;
                 binCount = p_binCount;
                 minChannel = p_minChannel;
                 maxChannel = p_maxChannel;
@@ -43,7 +45,7 @@ public:
                 maxIntensity = p_maxIntensity;
             }
 
-            QString fileName;
+            std::vector<std::shared_ptr<Image::ImageInterface>> dataSource;
             int binCount;
             int minChannel;
             int maxChannel;

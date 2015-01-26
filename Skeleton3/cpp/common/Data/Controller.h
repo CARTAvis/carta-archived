@@ -16,6 +16,7 @@
 class ImageView;
 class CoordinateFormatterInterface;
 
+
 namespace Carta {
 
 namespace Data {
@@ -30,6 +31,7 @@ class Controller: public QObject, public CartaObject, public IColoredView {
     Q_OBJECT
 
 public:
+    
     /**
      * Clear the view.
      */
@@ -46,6 +48,8 @@ public:
     virtual void colorMapChanged( const QString& colorMapName ) Q_DECL_OVERRIDE;
     virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
     virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
+
+    virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() Q_DECL_OVERRIDE;
 
     /**
      * Make a channel selection.

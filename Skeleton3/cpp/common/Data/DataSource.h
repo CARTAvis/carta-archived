@@ -96,6 +96,8 @@ public:
      */
     int getDimensions() const;
 
+    std::shared_ptr<Image::ImageInterface> getImage();
+
     QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
 
     virtual ~DataSource();

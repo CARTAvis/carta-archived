@@ -162,7 +162,7 @@ void DesktopConnector::registerView(IView * view)
 void DesktopConnector::unregisterView( const QString& viewName ){
     ViewInfo* viewInfo = this->findViewInfo( viewName );
     if ( viewInfo != nullptr ){
-        bool disconnected =(& viewInfo->refreshTimer)->disconnect();
+        (& viewInfo->refreshTimer)->disconnect();
         m_views.erase( viewName );
     }
 }
