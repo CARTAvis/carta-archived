@@ -133,6 +133,16 @@ void Controller::setColorReversed( bool reversed ){
     _loadView( true );
 }
 
+std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
+
+    std::vector<std::shared_ptr<Image::ImageInterface>> images(m_datas.count());
+
+    for( int i=0; i<m_datas.count(); ++i ){ 
+        images[i] = m_datas[i].get()->getImage();
+    }
+    return images;
+}
+
 
 int Controller::getState( const QString& type, const QString& key ){
 

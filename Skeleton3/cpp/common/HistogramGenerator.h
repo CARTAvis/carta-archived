@@ -6,7 +6,7 @@
 class HistogramGenerator{	
 public:
   typedef std::vector<std::pair<double,double> > ResultType;
-  HistogramGenerator(QString title);
+  HistogramGenerator();
   void setData( ResultType data);
   void setStyle( QString style );
   // void setColored( bool colored );

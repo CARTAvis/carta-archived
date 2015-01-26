@@ -233,6 +233,11 @@ void ViewManager::_makeDataLoader(){
 QString ViewManager::_makeHistogram(){
     CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
     std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
+
+    for ( int i = 0; i < m_controllers.size(); i++ ){
+       target->addViewObject( m_controllers[i]);
+    }
+
     m_histograms.append(target);
     return target->getPath();
 }

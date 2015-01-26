@@ -7,9 +7,9 @@
 #include <QPaintDevice>
 #include <QString>
 
-HistogramGenerator::HistogramGenerator(QString title){
+HistogramGenerator::HistogramGenerator(){
     m_plot = new QwtPlot();
-    m_plot->setTitle(title);
+    m_plot->setTitle("Histogram");
     m_plot->setCanvasBackground( Qt::white );
     m_plot->setAxisTitle(QwtPlot::yLeft, QString("count(pixels)"));
     m_plot->setAxisTitle(QwtPlot::xBottom, QString("intensity()"));

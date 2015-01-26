@@ -146,6 +146,10 @@ int DataSource::getDimensions() const {
     return imageSize;
 }
 
+std::shared_ptr<Image::ImageInterface> DataSource::getImage(){
+    return m_image;
+}
+
 void DataSource::_initializeState(){
     m_state.insertValue<QString>( DATA_PATH, "");
 }

@@ -46,7 +46,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_twoDSettings !== null ){
                         this.m_twoDSettings.setFootPrint( hist.twoDFootPrint );
                     }
-                    this.m_testData.setValue( hist.testData );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
@@ -79,10 +78,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_zoomSettings = new skel.widgets.Histogram.HistogramZoom();
             this.m_cubeSettings = new skel.widgets.Histogram.HistogramCube();
             this.m_twoDSettings = new skel.widgets.Histogram.Histogram2D();
-            this.m_testData = new qx.ui.basic.Label("Hi, I'm Amanda");
             this._layoutControls();
             this._add( this.m_controlComposite );
-            this._add( this.m_testData );
         },
         
         
@@ -224,7 +221,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_rangeVisible : null,
         m_displayVisible : null,
         m_zoomVisible : null,
-        m_testData: null,
         
         m_id : null,
         m_connector : null,

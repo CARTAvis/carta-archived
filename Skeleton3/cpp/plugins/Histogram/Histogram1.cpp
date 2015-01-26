@@ -39,23 +39,39 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         bool histSuccess = false;
         Carta::Lib::Hooks::HistogramHook & hook
                             = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
-        auto fname = hook.paramsPtr->fileName;
-        m_cartaImage = Globals::instance()-> pluginManager()
-                                        -> prepare <Carta::Lib::Hooks::LoadAstroImage>( fname )
-                                        .first().val();
-        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
-        if( ! ptr1) {
-            throw "not an image created by casaimageloader...";
-        }
+        // auto fname = hook.paramsPtr->fileName;
+        // m_cartaImage = Globals::instance()-> pluginManager()
+        //                                 -> prepare <Carta::Lib::Hooks::LoadAstroImage>( fname )
+        //                                 .first().val();
 
-        if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
-            casa::ImageInterface<casa::Float> * casaImage =
+
+        //CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
+        //if( ! ptr1) {
+        //    throw "not an image created by casaimageloader...";
+        //}
+
+        //if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
+            // casa::ImageInterface<casa::Float> * casaImage =
+            //         dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+            // if (! casaImage) throw "Not a CasaImage.";
+
+            std::vector<std::shared_ptr<Image::ImageInterface>> images = hook.paramsPtr->dataSource;
+            m_cartaImage = images.front();
+
+            CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
+            if( ! ptr1) {
+                throw "not an image created by casaimageloader...";
+            }
+
+            if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
+
+                casa::ImageInterface<casa::Float> * casaImage =
                     dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
-            if (! casaImage) throw "Not a CasaImage.";
 
-            ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
-            m_histogram.reset( hist );
-            hist->setImage( casaImage );
+
+                ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
+                m_histogram.reset( hist );
+                hist->setImage( casaImage );
                 
                 
                 // hist->setImage( casaPtr );
