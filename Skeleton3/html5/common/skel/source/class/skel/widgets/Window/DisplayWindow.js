@@ -4,6 +4,7 @@
 /*global mImport */
 /*******************************************************************************
  * @ignore( mImport)
+ * @asset(skel/icons/swheel12.png)
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Window.DisplayWindow", {
@@ -26,6 +27,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         var pathDict = skel.widgets.Path.getInstance();
         
         this._init();
+        this._initWindowBar();
         
         this._initContextMenu();
         
@@ -73,6 +75,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     },
 
     members : {
+        
+        /**
+         * Adds a button to the window's caption bar.
+         * @param label {String} the text to display.
+         * @param icon {String} path to the button's icon.
+         */
+        _addToolButton: function (label, icon) {
+            icon = icon || null;
+            var button = new qx.ui.form.Button( label, icon);
+            button.setAllowGrowY(false);
+            button.setFocusable(false);
+            this.m_toolHolder.add(button);
+            return button;
+        },
 
         /**
          * Returns true if the link from the source window to the destination
@@ -284,6 +300,38 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_identifier );
             this.m_sharedVar.addCB( this._sharedVarCB.bind( this ));
             this._sharedVarCB( this.m_sharedVar.get());
+        },
+        
+        /**
+         * Initialize what will be displayed in the window's caption bar.
+         */
+        _initWindowBar : function(){
+            var layout = new qx.ui.layout.HBox();
+            var hbox = new qx.ui.container.Composite(layout);
+           
+            var infoLayout = new qx.ui.layout.HBox(3);
+            infoLayout.setAlignY( "middle");
+            this.m_infoHolder = new qx.ui.container.Composite( infoLayout);
+            hbox.add( this.m_infoHolder, { flex:1});
+            
+            var toolLayout = new qx.ui.layout.HBox(3);
+            toolLayout.setReversed(true);
+            toolLayout.setAlignY("middle");
+            this.m_toolHolder = new qx.ui.container.Composite(toolLayout);
+            hbox.add(new qx.ui.core.Spacer(10, 1), { flex: 0});
+            hbox.add(this.m_toolHolder, { flex: 0});
+            
+            this.getChildControl("captionbar").add(hbox, {row: 0, column: 1});
+            
+            //Add the settings button.
+            this.m_settingsButton = this._addToolButton( null,  "skel/icons/swheel12.png" )
+            .set( {
+                show: "icon",
+                toolTipText: "Settings..."
+            } );
+            this.m_settingsButton.addListener( "click", function () {
+                this.toggleSettings();
+            }, this );
         },
 
 
@@ -511,7 +559,21 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param label {String} a title for the window.
          */
         setTitle : function(label) {
-            this.setCaption( label);
+            if ( this.m_infoLabel === null ){
+                this.m_infoLabel = new qx.ui.basic.Label( label );
+                this.m_infoHolder.add( this.m_infoLabel );
+            }
+            else {
+                this.m_infoLabel.setValue( label );
+            }
+        },
+        
+        /**
+         * Called when the window's setting's button has been toggled; subclasses
+         * should implement to show hide settings.
+         */
+        toggleSettings : function(){
+            console.log( "Toggling settings not implemented");
         },
         
         /**
@@ -538,6 +600,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         m_windowMenu : null,
         m_scrollArea : null,
         m_content : null,
+        
+        //Toolbar
+        m_toolHolder : null,
+        m_infoHolder : null,
+        m_settingsButton : null,
+        m_infoLabel : null,
+        
 
         m_links : null,
 
