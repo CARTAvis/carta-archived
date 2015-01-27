@@ -9,8 +9,7 @@
 //Event Path : TextField -> Slider -> Server -> TextField
 
 qx.Class.define("skel.widgets.Histogram.HistogramBin", {
-    extend : qx.ui.core.Widget,
-
+    extend : qx.ui.core.Widget, 
     
     construct : function() {
         this.base(arguments);
@@ -43,11 +42,15 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
 
         /**
          * Initializes the UI.
+             
          */
         _init : function() {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
-            
+
+            //var binContainer =  new qx.ui.groupbox.GroupBox("Code Assist", "");
+            //binContainer.setLayout(new qx.ui.layout.VBox(2));
+
             this.m_binCountText = new skel.widgets.CustomUI.NumericTextField(0,this.m_MAX_BINS);
             this.m_binCountText.addListener("textChanged",
                     function(ev) {
@@ -75,6 +78,11 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             }, this);
             skel.widgets.TestID.addTestId( this.m_binCountSlider, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_SLIDER);
             this._add( this.m_binCountSlider );
+            //binContainer._add(this.m_binCountText);
+            //binContainer._add(this.m_binCountSlider);
+
+            //this._add(binContainer);
+
         },
         
         /**
@@ -103,7 +111,6 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             this.m_id = id;
         },
 
-        
         m_binCountText : null,
         m_binCountSlider : null,
         m_id : null,

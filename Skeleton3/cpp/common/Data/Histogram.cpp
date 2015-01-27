@@ -478,14 +478,13 @@ bool Histogram::addViewObject( std::shared_ptr<IColoredView> target ){
 std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
     std::vector<std::shared_ptr<Image::ImageInterface>> images;
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
-    qDebug()<<"generating data";
     for( int i = 0; i < m_histogramViews.size(); i++ ){
         images = m_histogramViews[i].get()->getDataSources();
         for( int j = 0; j < images.size(); j++){
             result.push_back(images[j]);
         }
     }
-    qDebug()<<"generated data";
+    qDebug()<<"generated data: "<<result.size();
     return result;
 
 }
@@ -501,30 +500,34 @@ void Histogram::_generateHistogram(){
     double maxIntensity = m_state.getValue<double>(CLIP_MAX);
     QString style = m_state.getValue<QString>(GRAPH_STYLE);
     // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
-    qDebug()<<"generating histogram";
+
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSource = _generateData();
-    
-    auto result = Globals::instance()-> pluginManager()
+
+    if(dataSource.size()>=1){
+        auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSource, binCount,
                             minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
-    auto lam = [=] ( const Carta::Lib::Hooks::HistogramHook::ResultType &data ) {
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramHook::ResultType &data ) {
 
-            HistogramGenerator * histogram = new HistogramGenerator();
-            histogram->setStyle(style);
-            histogram->setData(data);
-            QImage * histogramImage = histogram->toImage();
-            qDebug()<<"generated histogram";
-            m_view->resetImage(*histogramImage);
-            refreshView(m_view.get());
-        };
-    try {
-        result.forEach( lam );
+                HistogramGenerator * histogram = new HistogramGenerator();
+                histogram->setStyle(style);
+                histogram->setData(data);
+                QImage * histogramImage = histogram->toImage();
+                m_view->resetImage(*histogramImage);
+                refreshView(m_view.get());
+            };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
+            hr->registerError( errorStr );
+        }
+
     }
-    catch( char*& error ){
-        QString errorStr( error );
-        ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
-        hr->registerError( errorStr );
-    }
+        
+    
 }
 
 
