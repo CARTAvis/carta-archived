@@ -59,6 +59,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             _initDisplaySpecific : function() {
                 if (this.m_histogram === null ) {
                     this.m_histogram = new skel.widgets.Histogram.Histogram();
+                    this.m_histogram.m_settingsVisible = false;
                     this.m_histogram.setHeight( 200 );
                     this.m_histogram.setWidth( 200 );
                     this.m_histogram.setId( this.m_identifier);
@@ -83,8 +84,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 return linkable;
             },
             
-          
-            
+            toggleSettings : function(){
+                if(this.m_histogram.m_settingsVisible){
+                    this.m_histogram.m_settingsVisible = false;
+                    this.m_histogram.layoutControls();
+                }
+                else{
+                    this.m_histogram.m_settingsVisible = true;
+                    this.m_histogram.layoutControls();
+                }
+            },
             
             /**
              * Implemented to initialize a context menu.
