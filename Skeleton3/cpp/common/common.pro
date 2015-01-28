@@ -55,7 +55,11 @@ HEADERS += \
     Data/ViewPlugins.h \
     ColormapsOptimization.h \
     HackViewer.h \
-    HistogramGenerator.h
+    HistogramGenerator.h \
+    ScriptTester.h \
+    ScriptFacade.h
+    
+    
     
 
 SOURCES += \
@@ -96,7 +100,11 @@ SOURCES += \
     ColormapsOptimization.cpp \
     HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
-    HistogramGenerator.cpp
+    HistogramGenerator.cpp \
+    ScriptFacade.cpp \
+    ScriptTester.cpp
+    
+    
 
 
 #message( "common            PWD=$$PWD")

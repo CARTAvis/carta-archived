@@ -27,10 +27,11 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
 
         this.addSpacer();
         
-        this.m_toolPart = new skel.widgets.Menu.MenuBarPart();
-        this.add( this.m_toolPart );
-        this._initPresetTools();
+        //this.m_toolPart = new skel.widgets.Menu.ToolBar();
+        //this.add( this.m_toolPart );
+        
         this._initSubscriptions();
+        this._initContextMenu();
 
         // Initially show the menu bar.
         this.setAlwaysVisible(this, true);
@@ -48,7 +49,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
     events : {
 
         "layoutImage" : "qx.event.type.Data",
-        "layoutImageAnalysisAnimator" : "qx.event.type.Data",
+        "layoutAnalysis" : "qx.event.type.Data",
         "layoutRowCount" : "qx.event.type.Data",
         "layoutColCount" : "qx.event.type.Data",
         "menuAlwaysVisible" : "qx.event.type.Data",
@@ -173,6 +174,20 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         },
         
         /**
+         * Initialize a context menu.
+         */
+        _initContextMenu : function() {
+            this.m_contextMenu = new qx.ui.menu.Menu();
+            var customizeButton = new qx.ui.menu.Button("Customize...");
+            customizeButton.addListener("execute", function() {
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "showCustomizeMenuDialog", this));
+            }, this);
+            this.m_contextMenu.add(customizeButton);
+            this.setContextMenu(this.m_contextMenu);
+        },
+        
+        /**
          * Initializes the main menu.
          */
         _initMenu : function() {
@@ -216,19 +231,18 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.m_layoutButton = new qx.ui.toolbar.MenuButton("Layout");
             this.m_menuPart.add(this.m_layoutButton);
             var layoutMenu = new qx.ui.menu.Menu();
-            var layoutImageButton = new qx.ui.menu.Button("Image");
+            var cmdImageLayout = skel.widgets.Command.CommandLayoutImage.getInstance();
+            var layoutImageButton = this._makeButton( cmdImageLayout, function(){});
+            /*var cmdAction = cmdImageLayout.getAction( this );
             layoutImageButton.addListener("execute",
                     function() {
-                        this.fireDataEvent("layoutImage", "");
-                    }, this);
+                        cmdImageLayout.doAction( "", this.m_activeWindowIds, null);
+                        //this.fireDataEvent("layoutImage", "");
+                    }, this);*/
             layoutMenu.add(layoutImageButton);
-            var layoutImageAnalysisControlsButton = new qx.ui.menu.Button(
-                    "Image + Analysis + Animator");
-            layoutImageAnalysisControlsButton.addListener(
-                    "execute", function() {
-                        this.fireDataEvent("layoutImageAnalysisAnimator","");
-                    }, this);
-            layoutMenu.add(layoutImageAnalysisControlsButton);
+            var cmdAnalysisLayout = skel.widgets.Command.CommandLayoutAnalysis.getInstance();
+            var layoutAnalysisButton = this._makeButton( cmdAnalysisLayout, function(){} );
+            layoutMenu.add(layoutAnalysisButton);
             var layoutCustomButton = new qx.ui.menu.Button(
                     "Custom...");
             layoutCustomButton.addListener("execute",
@@ -286,31 +300,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
 
         },
         
-        /**
-         * Initialize a tool bar containing 'quick' access buttons.
-         */
-        _initPresetTools : function() {
-            var pathDict = skel.widgets.Path.getInstance();
-            var toggle = new skel.boundWidgets.Toggle( "Recompute clips on new frame", "");
-            toggle.addListener( "toggleChanged", function(autoClip){
-                this._sendAutoClipCmd( autoClip.getData() );
-            }, this);
-            this.m_toolPart.add( toggle );
-            
-            // add clip buttons
-            this.m_presetsContainer = new qx.ui.container.Composite(
-                    new qx.ui.layout.HBox(5).set({alignX: "center"})
-                );
-            this.m_toolPart.add(this.m_presetsContainer);
-            var connector = mImport("connector");
-            this.m_sharedVarClips = connector.getSharedVar( pathDict.CLIPS );
-            this.m_sharedVarClips.addCB( this._clipsChangedCB.bind( this ));
-            this._clipsChangedCB( this.m_sharedVarClips.get());
-        },
-        
-
-        
-        
         _initSubscriptions : function(){
             this.m_activeWindowIds = [];
             qx.event.message.Bus.subscribe(
@@ -346,6 +335,20 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 topPosition = false;
             }
             return topPosition;
+        },
+        
+        /**
+         * Construct a button for the given command and callback.
+         * @param cmd {skel.widgets.Command.Command}
+         * @param cb {Function} a callback for the command.
+         */
+        _makeButton : function( cmd, cb ){
+            var label = cmd.getLabel();
+            var button = new qx.ui.menu.Button( label );
+            button.addListener( "execute", function(){
+                cmd.doAction( "", this.m_activeWindowIds, cb );
+            }, this);
+            return button;
         },
         
         /**
@@ -416,24 +419,24 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 this.setWidth(null);
                 this.setMinWidth(null);
                 this.setMaxWidth(null);
-                this.setLayoutProperties({
+                /*this.setLayoutProperties({
                     left : "0%",
                     right : "0%",
                     top : "0%",
                     bottom : "100%"
-                });
+                });*/
             } else {
                 var menuWidth = 120;
                 this.setWidth(menuWidth);
                 this.setMinWidth(menuWidth);
                 this.setMaxWidth(menuWidth);
                 this.setHeight(null);
-                this.setLayoutProperties({
+                /*this.setLayoutProperties({
                     left : "0%",
                     bottom : "0%",
                     top : "0%",
                     right : "90%"
-                });
+                });*/
             }
         },
 
@@ -539,6 +542,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
 
         m_SAVE_STATE: "statename:firstSave",
         m_clipButtons : null,
+        m_contextMenu : null,
         m_gridRows : 1,
         m_gridCols : 1,
         m_menuPart : null,

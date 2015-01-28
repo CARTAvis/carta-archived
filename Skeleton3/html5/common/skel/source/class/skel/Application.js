@@ -82,7 +82,7 @@ qx.Class.define( "skel.Application",
                     return;
                 }
 
-                this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.Canvas() );
+                this.m_mainContainer = new qx.ui.container.Composite( /*new qx.ui.layout.Canvas()*/new qx.ui.layout.VBox(0) );
                 this.m_mainContainer.setAppearance( "display-main" );
                 this.getRoot().add( this.m_mainContainer, {
                     left  : "0%",
@@ -92,26 +92,23 @@ qx.Class.define( "skel.Application",
                 } );
 
                 this.m_desktop = new skel.widgets.DisplayMain();
-                this.m_mainContainer.add( this.m_desktop, {
-                    top   : "0%",
-                    bottom: "0%",
-                    left  : "0%",
-                    right : "0%"
-                } );
                 this.m_statusBar = new skel.widgets.Menu.StatusBar();
-                this.m_mainContainer.add( this.m_statusBar, {
-                    bottom: "0%",
-                    left  : "0%",
-                    right : "0%"
-                } );
+                this._initMenuBar();
+                this.m_toolBar = new skel.widgets.Menu.ToolBar();
+                this.m_mainContainer.add( this.m_toolBar/*, { top : "10%", bottom: "10%", left: "0%", right:"0%"}*/ );
+                
+                this.m_mainContainer.add( this.m_desktop, {
+                    flex : 1
+                });
+                
+                this.m_mainContainer.add( this.m_statusBar);
                 var errorHandler = skel.widgets.ErrorHandler.getInstance();
                 errorHandler.setStatusBar( this.m_statusBar );
-
-                this._initMenuBar();
+                
                 this.m_desktop.addListener( "iconifyWindow", this._iconifyWindow, this );
                 this.m_menuBar.addListener( "appear", function( ev )
                 {
-                    this._repositionDesktop( true );
+                    //this._repositionDesktop( true );
                 }, this );
                 this.m_desktop.addListener( "addWindowMenu", function( ev )
                 {
@@ -138,17 +135,32 @@ qx.Class.define( "skel.Application",
                     }
                     this.m_fileBrowser.setTarget( message.getData() );
                     if( this.m_mainContainer.indexOf( this.m_fileBrowser ) < 0 ) {
-                        this.m_mainContainer.add( this.m_fileBrowser, {top: "15%", left: "15%"} );
+                        this.getRoot().add( this.m_fileBrowser, {
+                            left  : "0%",
+                            right : "50%",
+                            top   : "0%",
+                            bottom: "50%"
+                        } );
                     }
                 }, this );
 
                 qx.event.message.Bus.subscribe( "closeFileBrowser", function( message )
                 {
-                    if( this.m_fileBrowser !== null && this.m_mainContainer.indexOf( this.m_fileBrowser ) >= 0 ) {
-                        this.m_mainContainer.remove( this.m_fileBrowser );
+                    var root = this.getRoot();
+                    if( this.m_fileBrowser !== null && root.indexOf( this.m_fileBrowser ) >= 0 ) {
+                        root.remove( this.m_fileBrowser );
                     }
                 }, this );
+                
+                qx.event.message.Bus.subscribe( "showCustomizeMenuDialog", function( message ){
+                    if( this.m_customizeMenuDialog === null ) {
+                            this.m_customizeMenuDialog = new skel.widgets.Command.CustomizeDialog();
+                        }
+                        this._setPopupWinProperties( this.m_customizeMenuDialog );
+                    }, this );
         },
+        
+        
 
         /**
          * Initialize the menu bar.
@@ -162,10 +174,10 @@ qx.Class.define( "skel.Application",
                     this.m_desktop.layoutImage();
                 }, this );
 
-                this.m_menuBar.addListener( "layoutImageAnalysisAnimator", function()
+                this.m_menuBar.addListener( "layoutAnalysis", function()
                 {
                     this._hideWindows();
-                    this.m_desktop.layoutImageAnalysisAnimator();
+                    this.m_desktop.layoutAnalysis();
                 }, this );
 
                 this.m_menuBar.addListener( "layoutRowCount", function( ev )
@@ -208,7 +220,6 @@ qx.Class.define( "skel.Application",
                 {
                     this.m_statusBar.updateSessionSharing( ev.getData() );
                 }, this );
-
                 this.m_mainContainer.add( this.m_menuBar );
                 this.m_menuBar.reposition();
         },
@@ -262,7 +273,7 @@ qx.Class.define( "skel.Application",
          * the menubar and status bar.
          */
             _repositionDesktop: function()
-            {
+            {   
                 var permanentMenu = this.m_menuBar.isAlwaysVisible();
                 var permanentStatus = this.m_statusBar.isAlwaysVisible();
                 var topMenu = this.m_menuBar.isTop();
@@ -286,6 +297,7 @@ qx.Class.define( "skel.Application",
                     var height = this.m_statusBar.getAnimationHeight();
                     bottomValue = Math.round( height / topWin * 100 ) + "%";
                 }
+                topValue = 500;
                 var desktopMap = {top: topValue, bottom: bottomValue, left: leftValue, right: "0%"};
                 this.m_desktop.setLayoutProperties( desktopMap );
                 return desktopMap;
@@ -332,8 +344,10 @@ qx.Class.define( "skel.Application",
                 }, this );
                 }
                 this.m_windowLink.setDrawInfo( linkInfo );
-                var desktopMap = this._repositionDesktop();
-                this.m_mainContainer.add( this.m_windowLink, desktopMap );
+               // var desktopMap = this._repositionDesktop();
+                //this.m_mainContainer.add( this.m_windowLink/*, desktopMap*/ );
+                //Todo:: need to fix this.
+                this.getRoot().add( this.m_windowLink, {left:0, top:0, bottom:20, right:0});
             },
             
             /**
@@ -343,6 +357,10 @@ qx.Class.define( "skel.Application",
             _showPopup : function( message ){
                 var data = message.getData();
                 var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
+                this._setPopupWinProperties( win );
+            },
+            
+            _setPopupWinProperties : function( win ){
                 win.setWidth( 300 );
                 win.setHeight( 200 );
                 win.setLayout( new qx.ui.layout.Grow() );
@@ -394,16 +412,19 @@ qx.Class.define( "skel.Application",
                     this.m_windowLocator.add( windowButton, {left: loc[0], top: loc[1]} );
                     windowButton.addListener( "appear", buttonAppearanceFunction, windowButton );
                 }
-                this.m_mainContainer.add( this.m_windowLocator, desktopMap );
+                console.log( "Need to fix windowlocator");
+                //this.m_mainContainer.add( this.m_windowLocator, desktopMap );
             },
 
             m_desktop       : null,
             m_menuBar       : null,
+            m_toolBar : null,
             m_statusBar     : null,
             m_mainContainer : null,
             m_windowLocator : null,
             m_windowLink    : null,
-            m_fileBrowser   : null
+            m_fileBrowser   : null,
+            m_customizeMenuDialog : null
         }
     } );
 

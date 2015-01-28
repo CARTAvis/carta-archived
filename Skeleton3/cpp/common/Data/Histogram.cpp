@@ -1,5 +1,6 @@
 #include "Data/Histogram.h"
 #include "Data/Clips.h"
+#include "Data/Controller.h"
 #include "Data/Util.h"
 #include "Globals.h"
 #include "ImageView.h"
@@ -71,6 +72,18 @@ Histogram::Histogram( const QString& path, const QString& id):
         m_clips.reset(dynamic_cast<Clips*>(obj));
     }
 
+}
+
+void Histogram::addController( std::shared_ptr<Controller> controller){
+    if ( controller.get() != nullptr ){
+        m_coloredViews.append( controller );
+        connect(controller.get(), SIGNAL(dataChanged()), this , SLOT(_generateHistogram()));
+    }
+}
+
+void Histogram::clear(){
+    unregisterView();
+    m_coloredViews.clear();
 }
 
 void Histogram::_initializeDefaultState(){
@@ -462,25 +475,15 @@ QString Histogram::_setClipToImage( const QString& params ){
     return result;
 }
 
-bool Histogram::addViewObject( std::shared_ptr<IColoredView> target ){
-    bool objAdded = false;
-    if ( target.get() ){
-        m_histogramViews.append( target );
-        //target->colorMapChanged( m_state.getValue<QString>(COLOR_MAP_NAME));
-        qDebug()<<"Adding View Object";
-        Controller * controllerTarget = dynamic_cast<Controller*>(target.get());
-        connect(controllerTarget, SIGNAL(dataChanged()), this , SLOT(_generateHistogram()));
-        objAdded = true;
-    }
-    return objAdded;
-}
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
     std::vector<std::shared_ptr<Image::ImageInterface>> images;
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
-    for( int i = 0; i < m_histogramViews.size(); i++ ){
-        images = m_histogramViews[i].get()->getDataSources();
+
+    for( int i = 0; i < m_coloredViews.size(); i++ ){
+        images = m_coloredViews[i].get()->getDataSources();
         for( int j = 0; j < images.size(); j++){
+
             result.push_back(images[j]);
         }
     }

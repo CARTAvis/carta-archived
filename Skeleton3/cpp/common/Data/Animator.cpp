@@ -76,7 +76,8 @@ void Animator::_channelIndexChanged( const QString& params ){
     }
 }
 
-void Animator::clearLinks(){
+void Animator::clear(){
+    m_controllers.clear();
     m_state.resizeArray( LINK, 0 );
 }
 

@@ -2,6 +2,7 @@
 #include "Data/Colormap.h"
 #include "Data/Animator.h"
 #include "Data/Colormap.h"
+#include "Data/Controller.h"
 #include "Data/Histogram.h"
 #include "Data/ViewPlugins.h"
 #include "Util.h"
@@ -40,6 +41,17 @@ Layout::Layout( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
     _initializeDefaultState();
     _initializeCommands();
+}
+
+void Layout::clear(){
+    int oldRows = m_state.getValue<int>( LAYOUT_ROWS );
+    int oldCols = m_state.getValue<int>( LAYOUT_COLS );
+    if ( oldRows != 0 || oldCols != 0 ){
+        m_state.setValue<int>( LAYOUT_ROWS, 0 );
+        m_state.setValue<int>( LAYOUT_COLS, 0 );
+        m_state.resizeArray( LAYOUT_PLUGINS, 0 );
+        m_state.flushState();
+    }
 }
 
 void Layout::_initializeCommands(){
@@ -81,25 +93,25 @@ void Layout::_initializeCommands(){
 }
 
 void Layout::_initializeDefaultState(){
-    m_state.insertArray( LAYOUT_PLUGINS, 6 );
-    m_state.insertValue<int>( LAYOUT_ROWS, 3 );
-    m_state.insertValue<int>( LAYOUT_COLS, 2 );
-    QStringList pluginNames = {"CasaImageLoader", Animator::CLASS_NAME,
-            HIDDEN, Colormap::CLASS_NAME,
-            HIDDEN, Histogram::CLASS_NAME};
-    _setPlugin( pluginNames );
+    m_state.insertArray( LAYOUT_PLUGINS, 0 );
+    m_state.insertValue<int>( LAYOUT_ROWS, 0 );
+    m_state.insertValue<int>( LAYOUT_COLS, 0 );
 }
 
-void Layout::clear(){
-    int oldRows = m_state.getValue<int>( LAYOUT_ROWS );
-    int oldCols = m_state.getValue<int>( LAYOUT_COLS );
-    if ( oldRows != 0 || oldCols != 0 ){
-        m_state.setValue<int>( LAYOUT_ROWS, 0 );
-        m_state.setValue<int>( LAYOUT_COLS, 0 );
-        m_state.resizeArray( LAYOUT_PLUGINS, 0 );
-        m_state.flushState();
-    }
+void Layout::setLayoutAnalysis(){
+    _setLayoutSize( 3, 2 );
+    QStringList names = {Controller::PLUGIN_NAME, Animator::CLASS_NAME,
+            HIDDEN, Colormap::CLASS_NAME,
+            HIDDEN, Histogram::CLASS_NAME};
+    _setPlugin( names );
 }
+
+void Layout::setLayoutImage(){
+    _setLayoutSize( 2,1);
+    QStringList name = {Controller::PLUGIN_NAME, HIDDEN};
+    _setPlugin( name );
+}
+
 
 bool Layout::_setPlugin( const QStringList& names ){
     int rows = m_state.getValue<int>( LAYOUT_ROWS );

@@ -51,13 +51,27 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     _makeDataLoader();
 }
 
-void ViewManager::_clearLayout(){
+void ViewManager::_clear(){
     int controlCount = m_controllers.size();
     for ( int i = 0; i < controlCount; i++ ){
         m_controllers[i]->clear();
     }
     m_controllers.clear();
+    int animCount = m_animators.size();
+    for ( int i = 0; i < animCount; i++ ){
+        m_animators[i]->clear();
+    }
     m_animators.clear();
+    int colorCount = m_colormaps.size();
+    for ( int i = 0; i < colorCount; i++ ){
+        m_colormaps[i]->clear();
+    }
+    m_colormaps.clear();
+    int histCount = m_histograms.size();
+    for ( int i = 0; i < histCount; i++ ){
+        m_histograms[i]->clear();
+    }
+    m_histograms.clear();
     if ( m_layout != nullptr ){
         m_layout->clear();
     }
@@ -66,26 +80,30 @@ void ViewManager::_clearLayout(){
 void ViewManager::_initCallbacks(){
     addCommandCallback( "clearLayout", [=] (const QString & /*cmd*/,
                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        _clearLayout();
+        _clear();
         return "";
     });
 
+    addCommandCallback( "setAnalysisLayout", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            setAnalysisView();
+            return "";
+        });
+
+    addCommandCallback( "setImageLayout", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                setImageView();
+                return "";
+            });
+
     //Callback for adding a data source to a Controller.
     addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & sessionId) -> QString {
+            const QString & params, const QString & /*sessionId*/) -> QString {
         const QString ID( "id");
         const QString DATA( "data");
         std::set<QString> keys = {ID,DATA};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        for ( int i = 0; i < m_controllers.size(); i++ ){
-            if ( dataValues[ID]  == m_controllers[i]->getPath() ){
-                //Add the data to it.
-                QString path = dataValues[DATA];
-                path = m_dataLoader->getFile( path, sessionId );
-                m_controllers[i]->addData( path );
-                break;
-            }
-        }
+        loadFile( dataValues[ID], dataValues[DATA]);
         return "";
     });
 
@@ -96,10 +114,15 @@ void ViewManager::_initCallbacks(){
         const QString INDEX( "index");
         std::set<QString> keys = {PLUGIN_ID, INDEX};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QVector<QString> dataVector( keys.size() );
-        dataVector[0] = dataValues[PLUGIN_ID];
-        dataVector[1] = dataValues[INDEX];
-        QString viewId = _makeWindow( dataVector );
+        bool validIndex = false;
+        int index = dataValues[INDEX].toInt(&validIndex);
+        QString viewId( "");
+        if ( validIndex ){
+            viewId = getObjectId( dataValues[PLUGIN_ID], index );
+        }
+        else {
+            qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
+        }
         return viewId;
     });
 
@@ -163,13 +186,74 @@ void ViewManager::_initCallbacks(){
 
 
 void ViewManager::_initializeDefaultState(){
+    setAnalysisView();
+}
 
-    _makeAnimator();
-    _makeController();
-    m_animators[0]->addController( m_controllers[0]);
-    _makeLayout();
-    _makePluginList();
+int ViewManager::_findColorMap( const QString& id ) const {
+    int colorCount = m_colormaps.size();
+    int colorIndex = -1;
+    for ( int i = 0; i < colorCount; i++ ){
+        if ( m_colormaps[i]->getPath() == id ){
+            colorIndex = i;
+            break;
+        }
+    }
+    return colorIndex;
+}
 
+int ViewManager::_findController( const QString& id ) const {
+    int controlCount = m_controllers.size();
+    int controlIndex = -1;
+    for ( int i = 0; i < controlCount; i++ ){
+        if ( m_controllers[i]->getPath() == id ){
+            controlIndex = i;
+            break;
+        }
+    }
+    return controlIndex;
+}
+
+QString ViewManager::getObjectId( const QString& plugin, int index ){
+    QString viewId("");
+    if ( plugin == Controller::PLUGIN_NAME ){
+        if ( 0 <= index && index < m_controllers.size()){
+            viewId = m_controllers[index]->getPath();
+        }
+        else {
+            viewId = _makeController();
+        }
+    }
+    else if ( plugin == Animator::CLASS_NAME ){
+        if ( 0 <= index && index < m_animators.size()){
+            viewId = m_animators[index]->getPath();
+        }
+        else {
+            viewId = _makeAnimator();
+        }
+    }
+    else if ( plugin == Colormap::CLASS_NAME ){
+        if ( 0 <= index && index < m_colormaps.size()){
+            viewId = m_colormaps[index]->getPath();
+        }
+        else {
+            viewId = _makeColorMap();
+        }
+    }
+    else if ( plugin == Histogram::CLASS_NAME ){
+        if ( 0 <= index && index < m_histograms.size()){
+            viewId = m_histograms[index]->getPath();
+        }
+        else {
+            viewId = _makeHistogram();
+        }
+    }
+    else if ( plugin == ViewPlugins::CLASS_NAME ){
+        viewId = _makePluginList();
+    }
+    else {
+        qDebug() << "Unrecognized top level window type: "<<plugin;
+    }
+    return viewId;
 }
 
 void ViewManager::_initializeExistingAnimationLinks( int index ){
@@ -188,12 +272,40 @@ void ViewManager::_initializeExistingAnimationLinks( int index ){
     }
 }
 
-void ViewManager::loadFile( QString fileName ){
-    if ( m_controllers.size() == 0 ){
-        _makeController();
+bool ViewManager::linkColoredView( const QString& colorId, const QString& controlId ){
+    int controlIndex = _findController( controlId );
+    if ( controlIndex == -1 ){
+        qWarning() << "Linker invalid controlId="<<controlId;
+        return false;
     }
-    m_controllers[0]->addData( fileName );
+    int colorIndex = _findColorMap( colorId );
+    if ( colorIndex == -1 ){
+        qWarning() << "Linker invalid colorId="<<colorId;
+        return false;
+    }
+    bool linked = _linkColoredView(m_colormaps[colorIndex], m_controllers[controlIndex]);
+    return linked;
 }
+
+bool ViewManager::_linkColoredView( std::shared_ptr<Colormap> colorMap, std::shared_ptr<Controller> controller ){
+    return colorMap->addController( controller );
+}
+
+void ViewManager::loadFile( const QString& controlId, const QString& fileName){
+    int controlCount = m_controllers.size();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           //Add the data to it
+            _makeDataLoader();
+           QString path = m_dataLoader->getFile( fileName, "" );
+           m_controllers[i]->addData( path );
+           break;
+        }
+    }
+}
+
+
 
 QString ViewManager::_makeAnimator(){
     CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
@@ -207,11 +319,6 @@ QString ViewManager::_makeAnimator(){
 QString ViewManager::_makeColorMap(){
    CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
    std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
-   //For right now the default is to hook it up to all the controllers.  Will
-   //need to change that later.
-   for ( int i = 0; i < m_controllers.size(); i++ ){
-       target->addViewObject( m_controllers[i]);
-   }
    m_colormaps.append(target);
    return target->getPath();
 }
@@ -233,11 +340,6 @@ void ViewManager::_makeDataLoader(){
 QString ViewManager::_makeHistogram(){
     CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
     std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
-
-    for ( int i = 0; i < m_controllers.size(); i++ ){
-       target->addViewObject( m_controllers[i]);
-    }
-
     m_histograms.append(target);
     return target->getPath();
 }
@@ -261,59 +363,10 @@ QString ViewManager::_makePluginList(){
     return pluginsPath;
 }
 
-QString ViewManager::_makeWindow( QVector<QString>& dataValues ){
-    QString viewId("");
-    if ( dataValues[0] == "CasaImageLoader"){
-        bool validIndex = false;
-        int dataIndex = dataValues[1].toInt( &validIndex );
-        if ( validIndex  && 0 <= dataIndex && dataIndex < m_controllers.size()){
-            viewId = m_controllers[dataIndex]->getPath();
-        }
-        else {
-            viewId = _makeController();
-        }
-    }
-    else if ( dataValues[0] == Animator::CLASS_NAME ){
-        bool validIndex = false;
-        int animIndex = dataValues[1].toInt( &validIndex );
-        if ( validIndex && 0 <= animIndex && animIndex < m_animators.size()){
-            viewId = m_animators[animIndex]->getPath();
-        }
-        else {
-            viewId = _makeAnimator();
-        }
-    }
-    else if ( dataValues[0] == Colormap::CLASS_NAME ){
-        bool validIndex = false;
-        int colorIndex = dataValues[1].toInt( &validIndex );
-        if ( validIndex && 0 <= colorIndex && colorIndex < m_colormaps.size()){
-            viewId = m_colormaps[colorIndex]->getPath();
-        }
-        else {
-            viewId = _makeColorMap();
-        }
-    }
-    else if ( dataValues[0] == Histogram::CLASS_NAME ){
-        bool validIndex = false;
-        int histIndex = dataValues[1].toInt( &validIndex );
-        if ( validIndex && 0 <= histIndex && histIndex < m_histograms.size()){
-            viewId = m_histograms[histIndex]->getPath();
-        }
-        else {
-            viewId = _makeHistogram();
-        }
-    }
-    else if ( dataValues[0] == ViewPlugins::CLASS_NAME ){
-        viewId = _makePluginList();
-    }
-    else {
-        qDebug() << "Unrecognized top level window type: "<<dataValues[0];
-    }
-    return viewId;
-}
+
 
 bool ViewManager::_readState( const QString& saveName ){
-    _clearLayout();
+    _clear();
     QString fullLocation = getStateLocation( saveName );
     StateReader reader( fullLocation );
     bool successfulRead = reader.restoreState();
@@ -335,7 +388,7 @@ bool ViewManager::_readState( const QString& saveName ){
 
             //Now see if this animator needs to be linked to any of the controllers
             QList<QString> oldLinks = m_animators[ animIndex ]-> getLinks();
-            m_animators[animIndex ]->clearLinks();
+            m_animators[animIndex ]->clear();
             for ( int i = 0;  i < controllerStates.size(); i++ ){
                 if ( oldLinks.contains( StateInterface::DELIMITER + controllerStates[i].first ) ){
                     m_animators[animIndex]->addController( m_controllers[i]);
@@ -350,6 +403,45 @@ bool ViewManager::_readState( const QString& saveName ){
     }
     return successfulRead;
 }
+
+void ViewManager::setAnalysisView(){
+    _clear();
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setLayoutAnalysis();
+
+    //Create the view objects
+    _makeAnimator();
+    _makeController();
+    _makeHistogram();
+    _makeColorMap();
+
+    //Add the links to establish reasonable defaults.
+    m_animators[0]->addController( m_controllers[0]);
+    m_histograms[0]->addController( m_controllers[0]);
+    linkColoredView( m_colormaps[0]->getPath(), m_controllers[0]->getPath());
+}
+
+bool ViewManager::setColorMap( const QString& colormapId, const QString& colormapName ){
+    int colormapIndex = _findColorMap( colormapId );
+    bool colorMapFound = false;
+    if ( colormapIndex >= 0 ){
+        m_colormaps[colormapIndex]->setColorMap( colormapName );
+        colorMapFound = true;
+    }
+    return colorMapFound;
+}
+
+void ViewManager::setImageView(){
+    _clear();
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setLayoutImage();
+    _makeController();
+}
+
 
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );

@@ -38,6 +38,7 @@ const QString Controller::DATA_COUNT = "dataCount";
 const QString Controller::DATA_PATH = "dataPath";
 const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::REGIONS = "regions";
+const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 
 const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =

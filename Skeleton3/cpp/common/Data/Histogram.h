@@ -7,8 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include "common/HistogramGenerator.h"
-#include "Controller.h"
+#include <QObject>
 
 namespace Image {
 class ImageInterface;
@@ -20,7 +19,6 @@ namespace Carta {
 namespace Data {
 
 class Clips;
-class IColoredView;
 class Controller;
 
 class Histogram : public QObject, public CartaObject {
@@ -29,9 +27,18 @@ class Histogram : public QObject, public CartaObject {
 
 public:
 
+    /**
+     * Adds a data source to the Histogram.
+     * @param controller a Controller containing data sources.
+     */
+    void addController( std::shared_ptr<Controller> controller);
+
+    /**
+     * Clear the state of the histogram.
+     */
+    void clear();
     virtual ~Histogram();
     const static QString CLASS_NAME;
-    bool addViewObject( std::shared_ptr<IColoredView> target );
 
 private slots:
     void  _generateHistogram();
@@ -54,10 +61,6 @@ private:
 
     void _initializeDefaultState();
     void _initializeCallbacks();
-    /**
-     * Note: this will eventually be rewritten into a useful method.
-     */
-
 
     static bool m_registered;
 
@@ -86,12 +89,14 @@ private:
     Histogram( const QString& path, const QString& id );
     class Factory;
 
-    QList<std::shared_ptr<IColoredView> > m_histogramViews;
-
     //Data View
     std::shared_ptr<ImageView> m_view;
 
     static std::shared_ptr<Clips> m_clips;
+
+    //Data to be histogrammed
+    QList<std::shared_ptr<Controller> > m_coloredViews;
+
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

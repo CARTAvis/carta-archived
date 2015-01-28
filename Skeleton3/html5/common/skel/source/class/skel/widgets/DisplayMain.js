@@ -199,7 +199,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          * large image area, two (analysis) plugin windows, and
          * an animation area.
          */
-        layoutImageAnalysisAnimator : function() {
+        layoutAnalysis : function() {
             
  
             this._clearLayout();

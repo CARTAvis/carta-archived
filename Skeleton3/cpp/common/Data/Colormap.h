@@ -16,6 +16,7 @@ namespace Data {
 
 class Colormaps;
 class IColoredView;
+class Controller;
 
 class Colormap : public QObject, public CartaObject {
 
@@ -23,11 +24,23 @@ class Colormap : public QObject, public CartaObject {
 
 public:
     /*
-     * Add an object to the list of those responding to this colormap.
-     * @param obj IColoredView the object that wants to listen for colormap changes.
-     * @return true if the will be notified of colormap changes; false otherwise.
+     * Add a a Controller that will respond to changes in this Colormap.
+     * @param obj Controller the object that will change color..
+     * @return true if the Controller was successfully added; false otherwise.
      */
-    bool addViewObject( std::shared_ptr<IColoredView> obj );
+    bool addController( std::shared_ptr<Controller> obj );
+
+    /**
+     * Clear existing state.
+     */
+    void clear();
+
+    /**
+     * Set the name of the current color map.
+     * @param colorMapName a unique identifier for the color map.
+     * @return error information if the color map was not successfully set.
+     */
+    QString setColorMap( const QString& colorMapName );
     virtual ~Colormap();
     const static QString CLASS_NAME;
 
@@ -67,7 +80,7 @@ private:
     class Factory;
 
     //Views controlled by this colormap
-    QList<std::shared_ptr<IColoredView> > m_coloredViews;
+    QList<std::shared_ptr<Controller> > m_coloredViews;
 
     //Supported color maps
     static std::shared_ptr<Colormaps> m_colors;

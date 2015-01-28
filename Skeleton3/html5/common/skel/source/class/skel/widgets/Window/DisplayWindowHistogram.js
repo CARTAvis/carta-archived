@@ -18,7 +18,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
          * @param index {Number} an index in case of multiple windows displaying color maps.
          * @param detached {boolean} true for a pop-up; false for an in-line display.
          */
-        construct : function(row, col, pluginId, index, detached ) {
+        construct : function(row, col, index, detached ) {
             this.base(arguments, skel.widgets.Path.getInstance().HISTOGRAM_PLUGIN, row, col, index, detached );
             this.m_links = [];
         },
@@ -59,10 +59,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             _initDisplaySpecific : function() {
                 if (this.m_histogram === null ) {
                     this.m_histogram = new skel.widgets.Histogram.Histogram();
-                    this.m_histogram.setId ( this.m_identifier );
                     this.m_histogram.setHeight( 200 );
                     this.m_histogram.setWidth( 200 );
-                    
+                    this.m_histogram.setId( this.m_identifier);
                     this.m_content.add( this.m_histogram);
                 }
             },
@@ -83,6 +82,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 } 
                 return linkable;
             },
+            
+          
             
             
             /**

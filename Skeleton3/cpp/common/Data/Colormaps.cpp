@@ -75,6 +75,15 @@ QString Colormaps::_commandGetColorStops( const QString& params ){
     return result;
 }
 
+QStringList Colormaps::getColorMaps() const {
+    QStringList buff;
+    int colormapCount = m_colormaps.size();
+    for ( int i = 0; i < colormapCount; i++ ){
+        buff << m_colormaps[i]->name();
+    }
+    return buff;
+}
+
 void Colormaps::_initializeDefaultState(){
 
     // get all colormaps provided by core

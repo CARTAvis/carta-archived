@@ -84,6 +84,7 @@ public:
 
     static const QString CLASS_NAME;
     static const QString CURSOR;
+    static const QString PLUGIN_NAME;
 
 signals:
     /**
@@ -122,6 +123,7 @@ private:
     static const QString DATA_COUNT;
     static const QString DATA_PATH;
     static const QString REGIONS;
+
 
     //Data Selections
     std::shared_ptr<Selection> m_selectChannel;
