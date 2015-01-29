@@ -37,7 +37,6 @@ Viewer::Viewer() :
     }
     else {
         m_scl = new ScriptedCommandListener( port, this );
-        //m_scriptFacade = ScriptFacade::getInstance();
         qDebug() << "Listening to scripted commands on port " << port;
         connect( m_scl, & ScriptedCommandListener::command,
                  this, & Viewer::scriptedCommandCB );
@@ -70,6 +69,9 @@ Viewer::start()
         QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
         m_viewManager->loadFile( controlId, fname );
     }
+
+    m_scriptFacade = ScriptFacade::getInstance();
+
     qDebug() << "Viewer has been initialized.";
 }
 
@@ -82,24 +84,42 @@ Viewer::scriptedCommandCB( QString command )
     QStringList args = command.split( ' ', QString::SkipEmptyParts );
     qDebug() << "args=" << args;
     qDebug() << "args.size=" << args.size();
-    if ( args.size() == 2 && args[0].toLower() == "load" ) {
+
+    if ( args.size() == 2 && args[0].toLower() == "loadfile" ) {
         qDebug() << "Trying to load" << args[1];
-        auto loadImageHookHelper = Globals::instance()->pluginManager()->
-                    prepare < LoadImage >(args[1], 0);
-        Nullable <QImage> res = loadImageHookHelper.first();
-        if ( res.isNull() ){
-            qDebug() << "Could not find any plugin to load image";
-        }
-        else {
-            qDebug() << "Image loaded: " << res.val().size();
-//            testView2->setImage( res.val() );
-        }
+        QString controlId = m_scriptFacade->getImageViewId( 0 );
+        m_scriptFacade->loadFile( controlId, "/RootDirectory/" + args[1] );
     }
+
+    else if (args.size() == 2 && args[0].toLower() == "setcolormap") {
+        QString colormapId = m_scriptFacade->getColorMapId( 0 );
+        qDebug() << "Scripted client setting map to "<< args[1];
+        m_scriptFacade->setColorMap( colormapId, args[1]);
+    }
+
+    else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {
+        m_scriptFacade->setAnalysisLayout();
+    }
+
+    else if (args.size() == 1 && args[0].toLower() == "setcustomlayout") {
+        m_scriptFacade->setCustomLayout();
+    }
+
+    else if (args.size() == 1 && args[0].toLower() == "setimagelayout") {
+        m_scriptFacade->setImageLayout();
+    }
+
+    else if (args.size() == 1 && args[0].toLower() == "getcolormaps") {
+        QStringList colormaps = m_scriptFacade->getColorMaps();
+        qDebug() << "(JT) Colormaps: " << colormaps;
+    }
+
     else if ( args.size() == 1 && args[0].toLower() == "quit" ) {
         qDebug() << "Quitting...";
         MyQApp::exit();
         return;
     }
+
     else {
         qWarning() << "Sorry, unknown command";
     }

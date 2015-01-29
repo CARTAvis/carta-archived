@@ -1,5 +1,4 @@
 #include "ScriptedCommandListener.h"
-#include "ScriptFacade.h"
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QDebug>
@@ -28,9 +27,6 @@ void ScriptedCommandListener::newConnectionCB()
         return;
     }
     m_connection = m_tcpServer->nextPendingConnection();
-    // (JT) This seems to be an okay place for m_scriptFacade - it doesn't crash
-    // when it's here.
-    m_scriptFacade = ScriptFacade::getInstance();
     connect( m_connection, & QTcpSocket::readyRead,
              this, & ScriptedCommandListener::socketDataCB);
 
@@ -50,8 +46,6 @@ void ScriptedCommandListener::socketDataCB()
         qDebug() << "scripted command listener: not a full line yet...";
         return;
     }
-
-    m_scriptFacade->setCustomLayout();
 
     QString str( buff);
     str = str.trimmed();

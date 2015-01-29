@@ -58,7 +58,6 @@ void ScriptTester::_runCustomImage() {
     qDebug() << "Save image not implemented";
 }
 
-
 void ScriptTester::_runSingleImage(){
     qDebug() << "(JT) ScriptTester::runSingleImage()";
     //Set the layout
