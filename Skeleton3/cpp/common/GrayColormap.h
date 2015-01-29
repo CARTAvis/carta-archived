@@ -2,7 +2,7 @@
  * Implementation of gray colormap. This is the only built-in colormap in carta core.
  **/
 
-#include "CartaLib/IColormapScalar.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 
 #pragma once
 
@@ -11,7 +11,7 @@ namespace Carta
 namespace Core
 {
 /// Gray colormap (default if no other colormaps are present)
-class GrayColormap : public Lib::IColormapScalar
+class GrayColormap : public Lib::PixelPipeline::IColormapNamed
 {
     CLASS_BOILERPLATE( GrayColormap );
 

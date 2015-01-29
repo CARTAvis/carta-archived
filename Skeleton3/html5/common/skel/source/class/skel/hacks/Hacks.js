@@ -46,36 +46,38 @@ qx.Class.define("skel.hacks.Hacks", {
         win.setUseResizeFrame( false);
         win.setContentPadding( 5, 5, 5, 5 );
         win.setLayout( new qx.ui.layout.Grow() );
-
-        //this.m_viewWithInput = new skel.boundWidgets.ViewWithInputDiv( "hackView" );
-        //win.add( this.m_viewWithInput);
         win.add( new skel.hacks.HackView( "hackView"));
-
-        //win.add( new skel.boundWidgets.View( "hackView" ) );
-        //this.m_inputOverlay = new qx.ui.core.Widget();
-        //win.add( this.m_inputOverlay);
-
-
         this.m_app.getRoot().add( win, {left: 200, top: 220} );
         win.open();
 
+        // newer hack view
+        var win2 = new qx.ui.window.Window( "Hack view new" );
+        win2.setWidth( 300 );
+        win2.setHeight( 200 );
+        win2.setShowMinimize( false );
+        win2.setUseResizeFrame( false);
+        win2.setContentPadding( 5, 5, 5, 5 );
+        win2.setLayout( new qx.ui.layout.Grow() );
+        win2.add( new skel.hacks.HackView( "IVC7"));
+        this.m_app.getRoot().add( win2, {left: 220, top: 420} );
+        win2.open();
 
-/*
-        var mmcb = function(ev) {
-            //console.log("mm", ev.getDocumentLeft());
+        /*
+                var mmcb = function(ev) {
+                    //console.log("mm", ev.getDocumentLeft());
 
-            var box = this.m_viewWithInput.overlayWidget().getContentLocation( "box" );
-            var pt = {
-                x: ev.getDocumentLeft() - box.left,
-                y: ev.getDocumentTop() - box.top
-            };
-            console.log( "mm", pt.x, pt.y);
+                    var box = this.m_viewWithInput.overlayWidget().getContentLocation( "box" );
+                    var pt = {
+                        x: ev.getDocumentLeft() - box.left,
+                        y: ev.getDocumentTop() - box.top
+                    };
+                    console.log( "mm", pt.x, pt.y);
 
-        };
-        mmcb = mmcb.bind(this);
+                };
+                mmcb = mmcb.bind(this);
 
-        this.m_viewWithInput.overlayWidget().addListener( "mousemove", mmcb);
-*/
+                this.m_viewWithInput.overlayWidget().addListener( "mousemove", mmcb);
+        */
 
         // hacks for temporary functionality
         this.m_cursorWindow = new skel.boundWidgets.CursorWindow();

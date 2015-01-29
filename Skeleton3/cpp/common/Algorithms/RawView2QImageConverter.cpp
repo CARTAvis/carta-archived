@@ -3,7 +3,7 @@
 /// pure template implementation to regain some speed via vectorization, at least for
 /// the cached pixel transfer function case.
 
-#include "CartaLib/PixelPipeline/Id2d.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
 
 #include "CartaLib/CartaLib.h"
@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <array>
+#include <QColor>
 
 struct RawView2QImageConverter::CachedImage {
     QImage img;
@@ -75,7 +76,7 @@ RawView2QImageConverter::setAutoClip( double val )
 }
 
 RawView2QImageConverter::Me &
-RawView2QImageConverter::setColormap( Carta::Lib::IColormapScalar::SharedPtr cmap )
+RawView2QImageConverter::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap )
 {
     m_cmap = cmap;
     m_cache.clear();
@@ -178,18 +179,35 @@ namespace Core
 {
 RawView2QImageConverter3::RawView2QImageConverter3()
 {
-    m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePipeline );
+    m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePixelPipeline );
 }
 
-QString RawView2QImageConverter3::getCmapPreview(int n) {
+RawView2QImageConverter3 & RawView2QImageConverter3::setInvert(bool flag)
+{
+    CARTA_ASSERT( m_customPipeline );
+    m_customPipeline->setInvert( flag );
+    return * this;
+}
+
+RawView2QImageConverter3 & RawView2QImageConverter3::setReverse(bool flag)
+{
+    CARTA_ASSERT( m_customPipeline );
+    m_customPipeline->setReverse( flag );
+    return * this;
+}
+
+
+QString
+RawView2QImageConverter3::getCmapPreview( int n )
+{
     QStringList list;
-    for( int i = 0 ; i <= n ; i ++ ) {
-        double x = (m_clipMax - m_clipMin) / n * i + m_clipMin;
+    for ( int i = 0 ; i <= n ; i++ ) {
+        double x = ( m_clipMax - m_clipMin ) / n * i + m_clipMin;
         QRgb col;
-        m_customPipeline-> convertq( x, col);
-        list << QColor(col).name().mid(1);
+        m_customPipeline-> convertq( x, col );
+        list << QColor( col ).name().mid( 1 );
     }
-    return list.join(",");
+    return list.join( "," );
 }
 
 /// @todo some optimization would be useful here, i.e. no need to recompute the cached

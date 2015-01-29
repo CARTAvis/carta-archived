@@ -3,15 +3,5 @@
  **/
 
 
-#include "CartaPixelPipeline.h"
-
-CartaPixelPipeline::CartaPixelPipeline()
-{
-
-}
-
-CartaPixelPipeline::~CartaPixelPipeline()
-{
-
-}
+#include "CustomizablePixelPipeline.h"
 

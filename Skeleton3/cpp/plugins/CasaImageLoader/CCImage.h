@@ -130,7 +130,6 @@ public:
         // make our own copy of the coordinate system using 'clone'
         std::shared_ptr<casa::CoordinateSystem> casaCS(
                     static_cast<casa::CoordinateSystem *> (casaImage->coordinates().clone()));
-//                = std::make_shared<casa::CoordinateSystem>(casaImage-> coordinates());
 
         // construct a meta data instance
         img-> m_meta = std::make_shared < CCMetaDataInterface > ( htmlTitle, casaCS );

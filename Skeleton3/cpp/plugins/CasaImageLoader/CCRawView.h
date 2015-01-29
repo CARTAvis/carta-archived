@@ -24,11 +24,22 @@ class CCRawView
     : public NdArray::RawViewInterface
 {
 public:
+
+    /// \param ccimage pointer to CCImage which we keep on using, but we don't assume ownership.
+    /// It has to remain valid for the duration of existance of this instance.
     CCRawView( CCImage < PType > * ccimage, const SliceND & sliceInfo );
+
+//    ~CCRawView() {
+//        qDebug() << "deallocating ccrawview" << this;
+////        if( m_ccimage) {
+////            delete m_ccimage;
+////        }
+//    }
 
     virtual PixelType
     pixelType() override
     {
+        qDebug() << "m_ccimage=" << m_ccimage << sizeof(PType);
         return m_ccimage->pixelType();
     }
 
@@ -96,7 +107,7 @@ public:
     }
 
 protected:
-    CCImage < PType > * m_ccimage = nullptr;
+    CCImage < PType > * m_ccimage = nullptr; // we don't own this!
     VI m_currPosImage, m_currPosView;
     SliceND::ApplyResult m_appliedSlice;
     VI m_viewDims;
@@ -108,7 +119,7 @@ protected:
 template < typename PType >
 CCRawView < PType >::CCRawView( CCImage < PType > * ccimage, const SliceND & sliceInfo )
 {
-    m_ccimage      = ccimage;
+    m_ccimage = ccimage;
     m_appliedSlice = sliceInfo.apply( m_ccimage-> dims() );
     qDebug() << sliceInfo.toStr() << "applied to" << m_ccimage->dims() << "="
              << m_appliedSlice.toStr();

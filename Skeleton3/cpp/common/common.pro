@@ -42,8 +42,10 @@ HEADERS += \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     GrayColormap.h \
-    ColormapsOptimization.h \
-    HackViewer.h
+    HackViewer.h \
+    ImageRenderService.h \
+    Hacks/ImageViewController.h \
+    Hacks/MainModel.h
 
 SOURCES += \
     Viewer.cpp \
@@ -74,9 +76,11 @@ SOURCES += \
     Data/ViewPlugins.cpp \
     ScriptedCommandListener.cpp \
     GrayColormap.cpp \
-    ColormapsOptimization.cpp \
     HackViewer.cpp \
-    Algorithms/RawView2QImageConverter.cpp
+    Algorithms/RawView2QImageConverter.cpp \
+    ImageRenderService.cpp \
+    Hacks/ImageViewController.cpp \
+    Hacks/MainModel.cpp
 
 
 #message( "common            PWD=$$PWD")

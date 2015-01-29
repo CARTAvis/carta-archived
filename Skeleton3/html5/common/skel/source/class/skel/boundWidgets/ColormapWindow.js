@@ -27,6 +27,10 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
         this.m_ui.pane3 = new qx.ui.container.Composite(
             new qx.ui.layout.Grow() );
         this.add( this.m_ui.pane3 );
+        this.m_ui.pane4 = new qx.ui.container.Composite(
+            new qx.ui.layout.HBox());
+        this.add( this.m_ui.pane4 );
+
         this.m_ui.cacheColormapToggle = new skel.boundWidgets.Toggle(
             "Cache", "/hacks/pixelCacheOn" );
         this.m_ui.pane2.add( this.m_ui.cacheColormapToggle );
@@ -59,6 +63,9 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
 
         this.m_cmapPreview = this.m_connector.getSharedVar( "/hacks/cm-preview" );
         this.m_cmapPreview.addCB( this._cmapPreviewCB.bind( this ) );
+
+        this.m_ui.pane4.add( new skel.boundWidgets.Toggle( "Reverse", "/hacks/cm-reverse"));
+        this.m_ui.pane4.add( new skel.boundWidgets.Toggle( "Invert", "/hacks/cm-invert"));
 
         // manually invoke callbacks in case the values have been already set
         this._visibleCB( this.m_windowVisible.get() );

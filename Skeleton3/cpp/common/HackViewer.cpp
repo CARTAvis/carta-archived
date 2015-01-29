@@ -8,6 +8,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "common/Hacks/MainModel.h"
 #include "common/GrayColormap.h"
 #include "LinearMap.h"
 #include <QPainter>
@@ -184,44 +185,45 @@ HackViewer::HackViewer( QString prefix ) :
 {
     m_statePrefix = prefix;
 
-    m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
-
     // assign a default colormap to the view
     auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
+    m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
     m_rawView2QImageConverter-> setColormap( rawCmap );
 
     m_wholeImage = QImage( 10, 10, QImage::Format_ARGB32_Premultiplied );
 }
 
-QPointF HackViewer::img2screen( QPointF p) {
-    double icx = m_centeredImagePoint.x();
-    double scx = m_testView2->size().width() / 2.0;
-    double icy = m_centeredImagePoint.y();
-    double scy = m_testView2->size().height() / 2.0;
-    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1);
-    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1);
-
-    QPointF res;
-    res.rx() = xmap.inv( p.x());
-    res.ry() = ymap.inv( p.y());
-    return res;
-}
-
-QPointF HackViewer::screen2img( QPointF p)
+QPointF
+HackViewer::img2screen( QPointF p )
 {
     double icx = m_centeredImagePoint.x();
     double scx = m_testView2->size().width() / 2.0;
     double icy = m_centeredImagePoint.y();
     double scy = m_testView2->size().height() / 2.0;
-    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1);
-    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1);
+    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1 );
+    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1 );
 
     QPointF res;
-    res.rx() = xmap.apply( p.x());
-    res.ry() = ymap.apply( p.y());
+    res.rx() = xmap.inv( p.x() );
+    res.ry() = ymap.inv( p.y() );
+    return res;
+}
+
+QPointF
+HackViewer::screen2img( QPointF p )
+{
+    double icx = m_centeredImagePoint.x();
+    double scx = m_testView2->size().width() / 2.0;
+    double icy = m_centeredImagePoint.y();
+    double scy = m_testView2->size().height() / 2.0;
+    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1 );
+    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1 );
+
+    QPointF res;
+    res.rx() = xmap.apply( p.x() );
+    res.ry() = ymap.apply( p.y() );
     return res;
 };
-
 
 void
 HackViewer::start()
@@ -235,30 +237,31 @@ HackViewer::start()
 
     auto pm = globals.pluginManager();
 
-    // setup some colormap hacks
+    // get all colormaps provided by core
     {
-        // get all colormaps provided by core
-        static std::vector < Carta::Lib::IColormapScalar::SharedPtr > allColormaps;
-        allColormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
-
-        // ask plugins for colormaps
+        m_allColormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
         auto hh =
             pm-> prepare < Carta::Lib::Hooks::ColormapsScalarHook > ();
 
-        auto lam = [] ( const Carta::Lib::Hooks::ColormapsScalarHook::ResultType & cmaps ) {
-            allColormaps.insert( allColormaps.end(), cmaps.begin(), cmaps.end() );
+        auto lam = [this] ( const Carta::Lib::Hooks::ColormapsScalarHook::ResultType & cmaps ) {
+            m_allColormaps.insert( m_allColormaps.end(), cmaps.begin(), cmaps.end() );
         };
         hh.forEach( lam );
 
-        qDebug() << "We have" << allColormaps.size() << "colormaps:";
-        for ( auto & cmap : allColormaps ) {
+        qDebug() << "We have" << m_allColormaps.size() << "colormaps:";
+        for ( auto & cmap : m_allColormaps ) {
             qDebug() << "    " << cmap-> name();
         }
-        for ( size_t i = 0 ; i < allColormaps.size() ; i++ ) {
-            setState( QString( "cm-names-%1" ).arg( i ), allColormaps[i]-> name() );
-        }
-        setState( "cm-count", QString::number( allColormaps.size() ) );
-        setState( "cm-current", "0" );
+    }
+
+    // tell clients about available colormaps
+    for ( size_t i = 0 ; i < m_allColormaps.size() ; i++ ) {
+        setState( QString( "cm-names-%1" ).arg( i ), m_allColormaps[i]-> name() );
+    }
+    setState( "cm-count", QString::number( m_allColormaps.size() ) );
+    setState( "cm-current", "0" );
+
+    {
         auto colormapCB = [this] ( const QString & /*path*/, const QString & value ) {
             qDebug() << "Cmap changed to" << value;
             bool ok;
@@ -267,15 +270,29 @@ HackViewer::start()
                 return;
             }
             using namespace Carta::Core;
-            if ( ind < 0 || size_t( ind ) >= allColormaps.size() ) {
+            if ( ind < 0 || size_t( ind ) >= m_allColormaps.size() ) {
                 CARTA_ASSERT( "colormap index out of range!" );
                 return;
             }
-            m_rawView2QImageConverter-> setColormap( allColormaps[ind] );
+            m_rawView2QImageConverter-> setColormap( m_allColormaps[ind] );
             scheduleFrameReload();
         };
 
         addStateCallback( "cm-current", colormapCB );
+
+        addStateCallback(
+            "cm-invert",
+            [this] ( QString, QString ) {
+                scheduleFrameReload();
+            }
+            );
+
+        addStateCallback(
+            "cm-reverse",
+            [this] ( QString, QString ) {
+                scheduleFrameReload();
+            }
+            );
     }
 
     // ask plugins to load the image
@@ -374,86 +391,140 @@ HackViewer::start()
         );
 
     // add listener for pointer move (using state API for automatic throttling)
-    addStateCallback( "views/hackView/pointer-move", [=] (CSR, CSR val) {
-        qDebug() << "hackView mm" << val;
-    });
+    addStateCallback( "views/hackView/pointer-move", [ = ] ( CSR, CSR val ) {
+                          qDebug() << "hackView mm" << val;
+                      }
+                      );
 
     // string 2 list of doubles
-    auto s2vd = [] ( QString s, QString sep = " ") {
-        QStringList lst = s.split( sep);
-        std::vector<double> res;
-        for( auto v : lst) {
+    auto s2vd = [] ( QString s, QString sep = " " ) {
+        QStringList lst = s.split( sep );
+        std::vector < double > res;
+        for ( auto v : lst ) {
             bool ok;
-            double val = v.toDouble( & ok);
-            if( ! ok) return res;
-            res.push_back( val);
+            double val = v.toDouble( & ok );
+            if ( ! ok ) {
+                return res;
+            }
+            res.push_back( val );
         }
         return res;
     };
 
-
     // add listener for zoom
     m_connector-> addCommandCallback(
-                m_statePrefix + "/views/hackView/zoom",
-                [=] (CSR, CSR params, CSR) -> QString {
+        m_statePrefix + "/views/hackView/zoom",
+        [ = ] ( CSR, CSR params, CSR ) -> QString {
+            try {
+                qDebug() << "zoom" << params;
 
-        try {
-            qDebug() << "zoom" << params;
+                double x, y, z;
+                bool ok;
+                QStringList list = params.split( " " );
+                if ( list.size() < 3 ) {
+                    throw "need 2 entries in list";
+                }
+                x = list[0].toDouble( & ok );
+                if ( ! ok ) {
+                    throw "bad x";
+                }
+                y = list[1].toDouble( & ok );
+                if ( ! ok ) {
+                    throw "bad y";
+                }
+                z = list[2].toDouble( & ok );
+                if ( ! ok ) {
+                    throw "bad z";
+                }
+                if ( z < 0 ) {
+                    this-> m_pixelZoom /= 0.9;
+                }
+                else {
+                    this-> m_pixelZoom *= 0.9;
+                }
+                this->m_pixelZoom = clamp( this->m_pixelZoom, 0.1, 16.0 );
+                this->scheduleFrameRepaint();
 
-            double x, y, z;
-            bool ok;
-            QStringList list = params.split( " ");
-            if( list.size() < 3) {
-                throw "need 2 entries in list";
+                Q_UNUSED( x );
+                Q_UNUSED( y );
             }
-            x = list[0].toDouble( & ok);
-            if( ! ok) throw "bad x";
-            y = list[1].toDouble( & ok);
-            if( ! ok) throw "bad y";
-            z = list[2].toDouble( & ok);
-            if( ! ok) throw "bad z";
-
-            if( z < 0) {
-                this-> m_pixelZoom /= 0.9;
-            } else {
-                this-> m_pixelZoom *= 0.9;
-            }
-            this->m_pixelZoom = clamp( this->m_pixelZoom, 0.1, 16.0);
-            this->scheduleFrameRepaint();
-
-        } catch( std::string what) {
+            catch ( std::string what ) {
                 qWarning() << "Error:" << what.c_str();
                 return "";
-        } catch( ...) {
-            qWarning() << "Other error";
+            }
+            catch ( ... ) {
+                qWarning() << "Other error";
+                return "";
+            }
+
             return "";
         }
-
-        return "";
-
-    });
+        );
 
     // add listener for center
     m_connector-> addCommandCallback(
-                m_statePrefix + "/views/hackView/center",
-                [=] (CSR, CSR params, CSR) -> QString {
-       qDebug() << "center" << params;
+        m_statePrefix + "/views/hackView/center",
+        [ = ] ( CSR, CSR params, CSR ) -> QString {
+            qDebug() << "center" << params;
 
-       auto vals = s2vd( params);
-       if( vals.size() > 1) {
-           QPointF screenPt( vals[0], vals[1]);
-           auto newCenter = screen2img( screenPt);
+            auto vals = s2vd( params );
+            if ( vals.size() > 1 ) {
+                QPointF screenPt( vals[0], vals[1] );
+                auto newCenter = screen2img( screenPt );
 
-           qDebug() << "  " << m_centeredImagePoint << "->" << newCenter;
+                qDebug() << "  " << m_centeredImagePoint << "->" << newCenter;
 
-           m_centeredImagePoint = newCenter;
+                m_centeredImagePoint = newCenter;
 
-           this->scheduleFrameRepaint();
-       }
-       qDebug() << "  vals=" << vals;
-       return "";
-    });
+                this->scheduleFrameRepaint();
+            }
+            qDebug() << "  vals=" << vals;
+            return "";
+        }
+        );
 
+    // newest hacks:
+    // =================================================================================
+
+    // initialize hack model
+    Hacks::GlobalsH::instance();
+
+    // new experiment with asynchronous renderer
+    m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/newViews/7", "7" ) );
+    m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
+
+    // invert toggle
+    addStateCallback(
+        "cm-invert",
+        [this] ( CSR, CSR val ) {
+            m_imageViewController-> setCmapInvert( val == "1" );
+        }
+        );
+
+    // reverse toggle
+    addStateCallback(
+        "cm-reverse",
+        [this] ( CSR, CSR val ) {
+            m_imageViewController-> setCmapReverse( val == "1" );
+        }
+        );
+
+    auto colormapCB2 = [this] ( const QString & /*path*/, const QString & value ) {
+        qDebug() << "Cmap2 changed to" << value;
+        bool ok;
+        int ind = value.toInt( & ok );
+        if ( ! ok ) {
+            return;
+        }
+        using namespace Carta::Core;
+        if ( ind < 0 || size_t( ind ) >= m_allColormaps.size() ) {
+            CARTA_ASSERT( "colormap index out of range!" );
+            return;
+        }
+        m_imageViewController-> setColormap( m_allColormaps[ind] );
+    };
+
+    addStateCallback( "cm-current", colormapCB2 );
 
     qDebug() << "HackViewer has been initialized.";
 } // start
@@ -520,11 +591,13 @@ HackViewer::_reloadFrameNow()
     m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize );
     m_rawView2QImageConverter-> setPixelPipelineInterpolation( m_cmapUseInterpolatedCaching );
     m_rawView2QImageConverter-> setPixelPipelineCacheEnabled( m_cmapUseCaching );
+    m_rawView2QImageConverter-> setInvert( getState( "cm-invert" ) == "1" );
+    m_rawView2QImageConverter-> setReverse( getState( "cm-reverse" ) == "1" );
 
     // convert the data to image
     m_rawView2QImageConverter-> convert( m_wholeImage );
 
-    setState( "cm-preview", m_rawView2QImageConverter-> getCmapPreview(300));
+    setState( "cm-preview", m_rawView2QImageConverter-> getCmapPreview( 300 ) );
 
     _repaintFrameNow();
 } // scheduleFrameReload
@@ -555,19 +628,18 @@ HackViewer::_repaintFrameNow()
     QPainter p( & m_testView2->getBufferRW() );
     double w = m_wholeImage.width();
     double h = m_wholeImage.height();
-    double scx = m_testView2->size().width() / 2.0;
-    double scy = m_testView2->size().height() / 2.0;
+
+//    double scx = m_testView2->size().width() / 2.0;
+//    double scy = m_testView2->size().height() / 2.0;
 //    QRectF rectf( scx - w / 2 * m_pixelZoom,
 //                  scy - h / 2 * m_pixelZoom,
 //                  w * m_pixelZoom,
 //                  h * m_pixelZoom );
 
     // figure out rectf according to pixelzoom, centerx and centery
-    QPointF p1 = img2screen( QPointF(0,0));
-    QPointF p2 = img2screen( QPointF(w,h));
-    QRectF rectf( p1, p2);
-
-
+    QPointF p1 = img2screen( QPointF( 0, 0 ) );
+    QPointF p2 = img2screen( QPointF( w, h ) );
+    QRectF rectf( p1, p2 );
 
     p.drawImage( rectf, m_wholeImage );
 

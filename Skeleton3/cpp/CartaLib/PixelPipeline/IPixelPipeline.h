@@ -84,7 +84,7 @@ public:
     setMinMax( double & min, double & max ) = 0;
 };
 
-/// interface for implementing stage 3 (normalized double -> DRgb)
+/// interface for implementing stage 3 (normalized double -> normalized RGB)
 /// this is the most generic colormap
 class IColormap
 {
@@ -100,6 +100,24 @@ public:
     ~IColormap() { }
 };
 
+/// IColormap with a name api
+///
+/// This is the interface that plugins have to implement to add a new colormap for
+/// scalcar-type pixels.
+class IColormapNamed : public PixelPipeline::IColormap
+{
+    CLASS_BOILERPLATE( IColormapNamed );
+
+public:
+
+    using norm_double = PixelPipeline::norm_double;
+    using NormRgb = PixelPipeline::NormRgb;
+
+    virtual QString
+    name() = 0;
+};
+
+
 /// primitive gray scale colormap
 class GrayCMap : public IColormap
 {
@@ -107,6 +125,7 @@ class GrayCMap : public IColormap
 
 public:
 
+    /// conversion where calaler supplies storage for result
     virtual void
     convert( norm_double val, NormRgb & result ) override
     {
@@ -114,13 +133,14 @@ public:
     }
 };
 
-/// interface for implementing stage 4 (Drgb -> Drgb)
+/// interface for implementing stage 4 (norm rgb -> norm rgb)
 class INormRgb2NormRgb
 {
     CLASS_BOILERPLATE( INormRgb2NormRgb );
 
 public:
 
+    /// in-place conversion
     virtual void
     convert( NormRgb & drgb ) = 0;
 
@@ -128,35 +148,46 @@ public:
     ~INormRgb2NormRgb() { }
 };
 
-/// the minimal interface representing an implemented pipeline
-/// - if we ever wanted to replace the whole pipeline
-class Id2NormQRgb
+/// minimal interface representing an implemented pipeline
+class IPixelPipeline
 {
-    CLASS_BOILERPLATE( Id2NormQRgb );
+    CLASS_BOILERPLATE( IPixelPipeline );
 
 public:
 
-//    virtual void
-//    setMinMax( double min, double max ) = 0;
-
-    /// do the conversion up to stage 4
+    /// do the conversion double -> normalized (0..1) RGB, i.e. up to stage 4
     virtual void
     convert( double val, NormRgb & result ) = 0;
 
-    /// do the conversion including stage 5
+    /// do the conversion double -> 8 bit RGB, i.e. up to stage 5
     virtual void
     convertq( double val, QRgb & result ) = 0;
 
+    /// returns the input clip range
+    /// \note this is not strictly necessary for minimalist interface, but we do use
+    /// this just about everywhere where we need IPixelPipeline for caching, so I stuck
+    /// it in here. We could break it apart into IPixelPipeline and IClippedPixelPipeline
+    /// in the future...
+
     virtual
-    ~Id2NormQRgb() { }
+    ~IPixelPipeline() { }
+};
+
+class IClippedPixelPipeline : public IPixelPipeline
+{
+    CLASS_BOILERPLATE( IClippedPixelPipeline);
+
+public:
+
+    virtual void getClips( double & min, double & max) = 0;
 };
 
 /// composite function for converting pixels to rgb
 /// can have multiple stage 1 (double->double) functions, and one stage 2 (double->rgb),
 /// followed by multiple rgb2rgb
-class CompositeD2QRgb : public Id2NormQRgb
+class Composite : public IPixelPipeline
 {
-    CLASS_BOILERPLATE( CompositeD2QRgb );
+    CLASS_BOILERPLATE( Composite );
 
 public:
 
@@ -267,6 +298,7 @@ protected:
     std::function < double (double) > m_func;
 };
 
+/// convenience function to convert normalized RGB to 8-bit RGB
 inline void
 normRgb2QRgb( const NormRgb & drgb, QRgb & result )
 {
@@ -274,6 +306,7 @@ normRgb2QRgb( const NormRgb & drgb, QRgb & result )
 }
 
 /// algorithm for caching a double->rgb function
+/// it's templated over 'interpolated' flag
 template < bool interpolated>
 class CachedPipeline /*: public Id2NormQRgb*/
 {
@@ -281,7 +314,7 @@ class CachedPipeline /*: public Id2NormQRgb*/
 
 public:
 
-    typedef Id2NormQRgb Func;
+    typedef IPixelPipeline Func;
 
     /// creates a default cache
     CachedPipeline() { }
@@ -371,131 +404,6 @@ inline void CachedPipeline<true>::convert(double x, NormRgb & result) /*override
     result[1] = m_cache[ind][1] * (1-frac) + m_cache[ind+1][1] * frac;
     result[2] = m_cache[ind][2] * (1-frac) + m_cache[ind+1][2] * frac;
 }
-
-/// reversable implementing stage1
-class ReversableStage1 : public IStage1
-{
-    CLASS_BOILERPLATE( ReversableStage1 );
-
-public:
-
-    void
-    setReversed( bool flag )
-    {
-        m_reversed = flag;
-    }
-
-    virtual void
-    convert( double & val ) override
-    {
-        if ( ! m_reversed ) { return; }
-
-        // val = m_max - val + m_min;
-        val = m_minMaxSum - val;
-    }
-
-    virtual void
-    setMinMax( double & min, double & max ) override
-    {
-        m_minMaxSum = min + max;
-    }
-
-private:
-
-    double m_minMaxSum = 1.0;
-    bool m_reversed = false;
-};
-
-/// invertible stage3
-class InvertibleStage4 : public INormRgb2NormRgb
-{
-    CLASS_BOILERPLATE( InvertibleStage4 );
-
-public:
-
-    void
-    setInverted( bool flag )
-    {
-        m_inverted = flag;
-    }
-
-    virtual void
-    convert( NormRgb & drgb ) override
-    {
-        if ( ! m_inverted ) {
-            return;
-        }
-        drgb[0] = 1.0 - drgb[0];
-        drgb[1] = 1.0 - drgb[1];
-        drgb[2] = 1.0 - drgb[2];
-    }
-
-private:
-
-    bool m_inverted;
-};
-
-/// customizable pipeline:
-/// - invert, reverse, colormap, log/gamma/cycles, manual clip
-class CustomizablePipeline : public Id2NormQRgb
-{
-    CLASS_BOILERPLATE( CustomizablePipeline );
-
-public:
-
-    CustomizablePipeline()
-    {
-        m_pipe.reset( new CompositeD2QRgb() );
-        m_reversible = std::make_shared < ReversableStage1 > ();
-        m_pipe-> addStage1( m_reversible );
-        m_invertible = std::make_shared < InvertibleStage4 > ();
-        m_pipe-> addStage4( m_invertible );
-    }
-
-    void
-    setInvert( bool flag )
-    {
-        m_invertible-> setInverted( flag );
-    }
-
-    void
-    setReverse( bool flag )
-    {
-        m_reversible-> setReversed( flag );
-    }
-
-    void
-    setColormap( IColormap::SharedPtr colormap ) {
-        m_pipe-> setStage3( colormap);
-    }
-
-//    void
-//    setScalingFunc( IStage1::SharedPtr scaleFunc ) { }
-
-    virtual void
-    setMinMax( double min, double max )
-    {
-        m_pipe-> setMinMax( min, max);
-    }
-
-    virtual void
-    convert( double val, Carta::Lib::PixelPipeline::NormRgb & result )
-    {
-        m_pipe-> convert( val, result);
-    }
-
-    virtual void
-    convertq( double val, QRgb & result )
-    {
-        m_pipe-> convertq( val, result);
-    }
-
-private:
-
-    CompositeD2QRgb::UniquePtr m_pipe;
-    ReversableStage1::SharedPtr m_reversible;
-    InvertibleStage4::SharedPtr m_invertible;
-};
 
 
 } // namespace PixelPipeline

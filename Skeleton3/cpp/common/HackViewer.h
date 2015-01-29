@@ -9,6 +9,7 @@
 #include "IConnector.h"
 #include "PluginManager.h"
 #include "IPlatform.h"
+#include "Hacks/ImageViewController.h"
 
 #include <QPixmap>
 #include <QObject>
@@ -16,23 +17,22 @@
 namespace Hacks
 {
 
+//class CustomRenderer : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    CustomRenderer() : QObject() {}
+//    virtual ~CustomRenderer() {}
 
-class CustomRenderer : public QObject
-{
-    Q_OBJECT
-public:
-    CustomRenderer() : QObject() {}
-    virtual ~CustomRenderer() {}
+//    void setResolution( QSize);
 
-    void setResolution( QSize);
+//signals:
 
-signals:
+//    void progress( QImage);
+//    void done( QImage);
+//    void error( QString);
 
-    void progress( QImage);
-    void done( QImage);
-    void error( QString);
-
-};
+//};
 
 class TestView2 : public QObject, public IView
 {
@@ -119,9 +119,14 @@ public:
     void
     start();
 
-signals:
+protected slots:
 
-public slots:
+    /// this does the actual frame reload
+    void
+    _reloadFrameNow();
+
+    void
+    _repaintFrameNow();
 
 protected:
 
@@ -185,12 +190,9 @@ protected:
 
     QPointF img2screen(QPointF p);
     QPointF screen2img(QPointF p);
-protected slots:
 
-    /// this does the actual frame reload
-    void
-    _reloadFrameNow();
+    // view controller with the new render service
+    Hacks::ImageViewController::UniquePtr m_imageViewController;
+    std::vector < Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr > m_allColormaps;
 
-    void
-    _repaintFrameNow();
 };

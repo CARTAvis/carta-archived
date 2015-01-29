@@ -3,5 +3,5 @@
  **/
 
 
-#include "IColormapScalar.h"
+#include "PWLinear.h"
 

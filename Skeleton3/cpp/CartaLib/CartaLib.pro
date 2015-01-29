@@ -12,7 +12,6 @@ DEFINES += CARTALIB_LIBRARY
 SOURCES += \
     CartaLib.cpp \
     HtmlString.cpp \
-    IColormapScalar.cpp \
     Hooks/ColormapsScalar.cpp \
     IImage.cpp \
     PixelType.cpp \
@@ -21,13 +20,14 @@ SOURCES += \
     ICoordinateFormatter.cpp \
     ICoordinateGridPlotter.cpp \
     IPlotLabelGenerator.cpp \
-    Hooks/LoadAstroImage.cpp
+    Hooks/LoadAstroImage.cpp \
+    PixelPipeline/CustomizablePixelPipeline.cpp \
+    PWLinear.cpp
 
 HEADERS += \
     CartaLib.h\
     cartalib_global.h \
     HtmlString.h \
-    IColormapScalar.h \
     Hooks/ColormapsScalar.h \
     Hooks/HookIDs.h \
     IPlugin.h \
@@ -40,8 +40,10 @@ HEADERS += \
     ICoordinateGridPlotter.h \
     IPlotLabelGenerator.h \
     Hooks/LoadAstroImage.h \
-    PixelPipeline/Id2d.h \
-    TPixelPipeline/IScalar2Scalar.h
+    TPixelPipeline/IScalar2Scalar.h \
+    PixelPipeline/IPixelPipeline.h \
+    PixelPipeline/CustomizablePixelPipeline.h \
+    PWLinear.h
 
 unix {
     target.path = /usr/lib

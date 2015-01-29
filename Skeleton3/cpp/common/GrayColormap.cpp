@@ -16,10 +16,11 @@ GrayColormap::name()
     return "Gray";
 }
 
-void GrayColormap::convert(Lib::IColormapScalar::norm_double val, Lib::IColormapScalar::NormRgb & result)
+void
+GrayColormap::convert( Lib::PixelPipeline::IColormapNamed::norm_double val,
+                       Lib::PixelPipeline::IColormapNamed::NormRgb & result )
 {
-    result.fill( val);
+    result.fill( val );
 }
-
 }
 }

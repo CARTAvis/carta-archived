@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QImage>
 #include <QCache>
 
@@ -63,9 +63,11 @@ computeClips(
 /// algorithm for converting an instance of image interface to qimage
 class RawView2QImageConverter
 {
+    CLASS_BOILERPLATE( RawView2QImageConverter);
+
 public:
 
-    typedef RawView2QImageConverter & Me;
+//    typedef RawView2QImageConverter & Me;
     typedef double Scalar;
 
     RawView2QImageConverter();
@@ -84,7 +86,7 @@ public:
     setAutoClip( double val );
 
     Me &
-    setColormap( Carta::Lib::IColormapScalar::SharedPtr cmap );
+    setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap );
 
     const QImage &
     go( int frame, bool recomputeClip = true );
@@ -93,7 +95,7 @@ protected:
 
     struct CachedImage;
     QImage m_qImage;
-    Carta::Lib::IColormapScalar::SharedPtr m_cmap;
+    Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr m_cmap;
     NdArray::RawViewInterface * m_rawView = nullptr;
     double m_autoClip = 0.95;
 
@@ -121,7 +123,7 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
         qImage = QImage( size, QImage::Format_ARGB32 );
     }
 
-    // construct image using clips (clipd, clipinv)
+    // construct image
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
 
@@ -156,7 +158,6 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
     typedView.forEach( lambda );
 } // rawView2QImage
 
-#include "CartaLib/PixelPipeline/Id2d.h"
 
 /// controlling raw data to image conversion:
 /// - invert on/off
@@ -252,7 +253,7 @@ private:
     /// cache for images
     QCache < QString, QImage > m_imageCache;
     /// unoptimized pipeline
-    Lib::PixelPipeline::CustomizablePipeline::UniquePtr m_customPipeline;
+    Lib::PixelPipeline::CustomizablePixelPipeline::UniquePtr m_customPipeline;
     /// optimized pipeline
 //    Lib::PixelPipeline::CachedPipeline::UniquePtr m_cachedPipeline;
 
