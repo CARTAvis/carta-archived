@@ -6,6 +6,7 @@
 #include <QImage>
 #include <QPaintDevice>
 #include <QString>
+#include <qwt_scale_engine.h>
 
 HistogramGenerator::HistogramGenerator(){
     m_plot = new QwtPlot();
@@ -53,6 +54,22 @@ void HistogramGenerator::setStyle( QString style ){
         m_histogram->setStyle(QwtPlotHistogram::Outline);
         m_histogram->setBrush(QBrush(Qt::blue));
     }
+}
+
+void HistogramGenerator::setLogScale(bool display){
+
+    if(display){
+        m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
+        m_histogram->setBaseline(1.0);
+
+    }
+
+    else{
+        m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
+        m_histogram->setBaseline(0.0);
+    }
+    
+
 }
 
 // void HistogramGenerator::setColored( bool colored ){

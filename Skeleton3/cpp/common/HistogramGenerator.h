@@ -9,6 +9,7 @@ public:
   HistogramGenerator();
   void setData( ResultType data);
   void setStyle( QString style );
+  void setLogScale(bool display);
   // void setColored( bool colored );
   QImage * toImage();
 private:

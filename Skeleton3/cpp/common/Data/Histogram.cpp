@@ -93,7 +93,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<bool>(CLIP_APPLY, false );
     m_state.insertValue<int>(BIN_COUNT, 25 );
     m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
-    m_state.insertValue<bool>(GRAPH_LOG_COUNT, false );
+    m_state.insertValue<bool>(GRAPH_LOG_COUNT, true );
     m_state.insertValue<bool>(GRAPH_COLORED, true );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_SINGLE );
     m_state.insertValue<int>(PLANE_SINGLE, 0 );
@@ -213,8 +213,8 @@ QString Histogram::_setClipRange( const QString& params ){
             }
             if ( changedState ){
                 m_state.flushState();
-                _generateHistogram();
-                // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
+                if(clipMin<clipMax)
+                    _generateHistogram();
             }
         }
         else {
@@ -242,7 +242,6 @@ QString Histogram::_setColored( const QString& params ){
             m_state.setValue<bool>(GRAPH_COLORED, colored );
             m_state.flushState();
             _generateHistogram();
-            // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
         }
     }
     else {
@@ -265,8 +264,6 @@ QString Histogram::_setBinCount( const QString& params ){
            m_state.setValue<int>(BIN_COUNT, binCount );
            m_state.flushState();
            _generateHistogram();
-           //qDebug()<<"ploting with binCount = "<<binCount;
-           // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
 
         }
 
@@ -291,6 +288,7 @@ QString Histogram::_setLogCount( const QString& params ){
         if ( logCount != oldLogCount ){
            m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
            m_state.flushState();
+           _generateHistogram();
         }
     }
     else {
@@ -311,6 +309,7 @@ QString Histogram::_setPlaneMode( const QString& params ){
         if ( planeModeStr != oldPlaneMode ){
            m_state.setValue<QString>(PLANE_MODE, planeModeStr );
            m_state.flushState();
+           _generateHistogram();
         }
     }
     else {
@@ -333,7 +332,6 @@ QString Histogram::_setPlaneSingle( const QString& params ){
            m_state.setValue<int>(PLANE_SINGLE, plane );
            m_state.flushState();
            _generateHistogram();
-           //_generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
         }
     }
     else {
@@ -354,6 +352,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
         if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
+            _generateHistogram();
         }
     }
     else {
@@ -466,6 +465,7 @@ QString Histogram::_setClipToImage( const QString& params ){
        if ( clipApply != oldClipApply ){
           m_state.setValue<bool>(CLIP_APPLY, clipApply );
           m_state.flushState();
+          _generateHistogram();
        }
     }
     else {
@@ -502,6 +502,7 @@ void Histogram::_generateHistogram(){
     double minIntensity = m_state.getValue<double>(CLIP_MIN);
     double maxIntensity = m_state.getValue<double>(CLIP_MAX);
     QString style = m_state.getValue<QString>(GRAPH_STYLE);
+    bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
     // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
 
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSource = _generateData();
@@ -514,6 +515,7 @@ void Histogram::_generateHistogram(){
 
                 HistogramGenerator * histogram = new HistogramGenerator();
                 histogram->setStyle(style);
+                histogram->setLogScale(logCount); 
                 histogram->setData(data);
                 QImage * histogramImage = histogram->toImage();
                 m_view->resetImage(*histogramImage);
