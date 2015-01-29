@@ -65,6 +65,11 @@ public:
     void setAnalysisLayout();
 
     /**
+     * Set the layout to a predefined custom layout.
+     */
+    void setCustomLayout();
+
+    /**
      * Set the layout to a predefined layout displaying a single image.
      */
     void setImageLayout();

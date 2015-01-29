@@ -12,6 +12,7 @@
 #include "MyQApp.h"
 #include "CmdLine.h"
 #include "ScriptedCommandListener.h"
+#include "ScriptFacade.h"
 
 #include <QImage>
 #include <QColor>
@@ -36,6 +37,7 @@ Viewer::Viewer() :
     }
     else {
         m_scl = new ScriptedCommandListener( port, this );
+        //m_scriptFacade = ScriptFacade::getInstance();
         qDebug() << "Listening to scripted commands on port " << port;
         connect( m_scl, & ScriptedCommandListener::command,
                  this, & Viewer::scriptedCommandCB );

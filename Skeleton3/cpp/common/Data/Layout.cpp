@@ -112,6 +112,11 @@ void Layout::setLayoutImage(){
     _setPlugin( name );
 }
 
+void Layout::setLayoutCustom(){
+    _setLayoutSize( 2,1);
+    QStringList name = {Controller::PLUGIN_NAME, Animator::CLASS_NAME};
+    _setPlugin( name );
+}
 
 bool Layout::_setPlugin( const QStringList& names ){
     int rows = m_state.getValue<int>( LAYOUT_ROWS );

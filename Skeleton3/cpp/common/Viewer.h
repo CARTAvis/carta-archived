@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <memory>
+#include "ScriptFacade.h"
 
 class ScriptedCommandListener;
 namespace Carta {
@@ -48,6 +49,9 @@ protected:
     /// @todo make it unique ptr for auto-delete niceness
     ScriptedCommandListener * m_scl = nullptr;
 
+    ScriptFacade* m_scriptFacade;
+
     std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
+
 };
 

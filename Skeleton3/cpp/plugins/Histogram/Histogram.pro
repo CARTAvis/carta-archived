@@ -23,10 +23,10 @@ HEADERS += \
     Histogram1.h 
 
 
-CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
-CASACOREDIR=$$absolute_path($${CASACOREDIR})
-WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
+CASACOREDIR=/usr/local
+WCSLIBDIR=/usr/include/wcslib
+CASACOREDIR=/usr/local
+WCSLIBDIR=/usr/include/wcslib
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_images -lcasa_components -lcasa_coordinates -lcasa_fits -lcasa_measures

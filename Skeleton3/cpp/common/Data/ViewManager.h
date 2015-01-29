@@ -58,6 +58,11 @@ public:
     void setAnalysisView();
 
     /**
+     * Reset the layout to a custom view.
+     */
+    void setCustomView();
+
+    /**
      * Change the color map to the map with the given name.
      * @param colormapId the unique server-side id of a Colormap object.
      * @param colormapName a unique identifier for the color map to be displayed.

@@ -51,6 +51,9 @@ DataSource::DataSource(const QString& path, const QString& id) :
 
 bool DataSource::setFileName( const QString& fileName ){
     m_fileName = fileName.trimmed();
+    qDebug() << "(JT) DataSource::setFileName";
+    qDebug() << "fileName: " << fileName;
+    qDebug() << "m_fileName: " << m_fileName;
     bool successfulLoad = true;
     if (m_fileName.length() > 0) {
         try {

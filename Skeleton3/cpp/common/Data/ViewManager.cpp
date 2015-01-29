@@ -292,6 +292,7 @@ bool ViewManager::_linkColoredView( std::shared_ptr<Colormap> colorMap, std::sha
 }
 
 void ViewManager::loadFile( const QString& controlId, const QString& fileName){
+    qDebug() << "(JT) ViewManager::loadFile(" << controlId << ", " << fileName << ")";
     int controlCount = m_controllers.size();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
@@ -431,6 +432,21 @@ bool ViewManager::setColorMap( const QString& colormapId, const QString& colorma
         colorMapFound = true;
     }
     return colorMapFound;
+}
+
+void ViewManager::setCustomView(){
+    _clear();
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setLayoutCustom();
+
+    //Create the view objects
+    _makeAnimator();
+    _makeController();
+
+    //Add the links to establish reasonable defaults.
+    m_animators[0]->addController( m_controllers[0]);
 }
 
 void ViewManager::setImageView(){

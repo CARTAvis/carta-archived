@@ -39,6 +39,7 @@ bool ScriptFacade::linkColorView( const QString& colorId, const QString& control
 }
 
 void ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
+    qDebug() << "(JT) ScriptFacade::loadFile(" << objectId << ", " << fileName << ")";
     m_viewManager->loadFile( objectId, fileName);
 }
 
@@ -46,7 +47,12 @@ void ScriptFacade::setAnalysisLayout(){
     m_viewManager->setAnalysisView();
 }
 
+void ScriptFacade::setCustomLayout(){
+    m_viewManager->setCustomView();
+}
+
 void ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
+    qDebug() << "(JT) ScriptFacade::setColorMap(" << colormapId << ", " << colormapName << ")";
     m_viewManager->setColorMap( colormapId, colormapName );
 }
 

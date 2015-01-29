@@ -5,6 +5,8 @@
 #pragma once
 
 #include <QObject>
+#include "ScriptFacade.h"
+
 class QTcpServer;
 class QTcpSocket;
 
@@ -29,6 +31,6 @@ protected:
 
     QTcpServer * m_tcpServer = nullptr;
     QTcpSocket * m_connection = nullptr;
-
+    ScriptFacade* m_scriptFacade;
 };
 

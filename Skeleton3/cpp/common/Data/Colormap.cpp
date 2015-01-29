@@ -351,6 +351,7 @@ bool Colormap::_processColorStr( const QString key, const QString colorStr, bool
 }
 
 QString Colormap::setColorMap( const QString& colorMapStr ){
+    qDebug() << "(JT) Colormap::setColorMap(" << colorMapStr << ")";
     QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
     QString result;
     if ( m_colors != nullptr ){

@@ -28,6 +28,11 @@ public:
     void setLayoutAnalysis();
 
     /**
+     * Set a custom layout - image an animator for now
+     */
+    void setLayoutCustom();
+
+    /**
      * Set a predefined layout displaying only a single image.
      */
     void setLayoutImage();
