@@ -65,7 +65,7 @@ public:
     /**
      * Reset the layout to a custom view.
      */
-    void setCustomView();
+    void setCustomView( int rows, int cols );
 
     /**
      * Change the color map to the map with the given name.

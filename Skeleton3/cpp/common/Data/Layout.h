@@ -30,7 +30,7 @@ public:
     /**
      * Set a custom layout - image an animator for now
      */
-    void setLayoutCustom();
+    void setLayoutCustom( int rows, int cols );
 
     /**
      * Set a predefined layout displaying only a single image.

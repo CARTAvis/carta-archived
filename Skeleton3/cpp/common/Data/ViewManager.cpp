@@ -437,12 +437,12 @@ bool ViewManager::setColorMap( const QString& colormapId, const QString& colorma
     return colorMapFound;
 }
 
-void ViewManager::setCustomView(){
+void ViewManager::setCustomView( int rows, int cols ){
     _clear();
     if ( m_layout == nullptr ){
         _makeLayout();
     }
-    m_layout->setLayoutCustom();
+    m_layout->setLayoutCustom( rows, cols );
 
     //Create the view objects
     _makeAnimator();

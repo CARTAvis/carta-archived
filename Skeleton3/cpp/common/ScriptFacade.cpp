@@ -53,8 +53,8 @@ void ScriptFacade::setAnalysisLayout(){
     m_viewManager->setAnalysisView();
 }
 
-void ScriptFacade::setCustomLayout(){
-    m_viewManager->setCustomView();
+void ScriptFacade::setCustomLayout( int rows, int cols ){
+    m_viewManager->setCustomView( rows, cols );
 }
 
 void ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){

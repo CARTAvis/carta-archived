@@ -106,8 +106,10 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setAnalysisLayout();
     }
 
-    else if (args.size() == 1 && args[0].toLower() == "setcustomlayout") {
-        m_scriptFacade->setCustomLayout();
+    else if (args.size() == 3 && args[0].toLower() == "setcustomlayout") {
+        int rows = args[1].toInt();
+        int cols = args[2].toInt();
+        m_scriptFacade->setCustomLayout( rows, cols );
     }
 
     else if (args.size() == 1 && args[0].toLower() == "setimagelayout") {

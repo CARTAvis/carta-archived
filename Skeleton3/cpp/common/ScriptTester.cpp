@@ -49,7 +49,7 @@ void ScriptTester::_runAnalysisImage() {
 void ScriptTester::_runCustomImage() {
     qDebug() << "(JT) ScriptTester::runCustomImage()";
     //Set the layout
-    m_scriptFacade->setCustomLayout();
+    m_scriptFacade->setCustomLayout( 2, 2 );
 
     QString controlId = m_scriptFacade->getImageViewId( 0 );
     m_scriptFacade->loadFile( controlId, "/RootDirectory/m31_cropped.fits" );

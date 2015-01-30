@@ -112,8 +112,8 @@ void Layout::setLayoutImage(){
     _setPlugin( name );
 }
 
-void Layout::setLayoutCustom(){
-    _setLayoutSize( 2,1);
+void Layout::setLayoutCustom( int rows, int cols ){
+    _setLayoutSize( rows, cols );
     QStringList name = {Controller::PLUGIN_NAME, Animator::CLASS_NAME};
     _setPlugin( name );
 }

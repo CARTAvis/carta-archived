@@ -73,7 +73,7 @@ public:
     /**
      * Set the layout to a predefined custom layout.
      */
-    void setCustomLayout();
+    void setCustomLayout( int rows, int cols );
 
     /**
      * Set the layout to a predefined layout displaying a single image.
