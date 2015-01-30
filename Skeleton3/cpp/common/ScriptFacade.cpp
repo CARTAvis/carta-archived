@@ -30,6 +30,12 @@ QStringList ScriptFacade::getColorMaps() const {
     return maps->getColorMaps();
 }
 
+QString ScriptFacade::getFileList() const {
+    qDebug() << "(JT) ScriptFacade::getFileList()";
+    QString fileList = m_viewManager->getFileList();
+    return fileList;
+}
+
 QString ScriptFacade::getImageViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, index );
 }

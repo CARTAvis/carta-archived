@@ -45,6 +45,11 @@ public:
     bool linkColoredView( const QString& colorId, const QString& controlId );
 
     /**
+     * Return a list of filenames that can be loaded into the image viewer.
+     */
+    QString getFileList();
+
+    /**
      * Load the file into the controller with the given id.
      * @param fileName a locater for the data to load.
      * @param objectId the unique server side id of the controller which is responsible for displaying

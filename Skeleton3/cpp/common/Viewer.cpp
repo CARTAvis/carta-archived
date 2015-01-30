@@ -97,6 +97,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setColorMap( colormapId, args[1]);
     }
 
+    else if (args.size() == 1 && args[0].toLower() == "getfilelist") {
+        QString fileList = m_scriptFacade->getFileList();
+        qDebug() << "(JT) Files: " << fileList;
+    }
+
     else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {
         m_scriptFacade->setAnalysisLayout();
     }

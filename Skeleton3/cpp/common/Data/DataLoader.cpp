@@ -41,9 +41,7 @@ DataLoader::DataLoader( const QString& path, const QString& id ):
 
 QString DataLoader::getFile( const QString& bogusPath, const QString& sessionId ) const {
     QString path( bogusPath );
-    qDebug() << "(JT) bogusPath: " << bogusPath;
     QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
-    qDebug() << "(JT) Path should start with " << fakePath;
     if( ! path.startsWith( fakePath )){
         /// security issue...
         qDebug() << "Security issue, filePath="<<path;
@@ -52,9 +50,6 @@ QString DataLoader::getFile( const QString& bogusPath, const QString& sessionId 
     QString rootDir = getRootDir( sessionId );
     QString baseRemoved = path.remove( 0, fakePath.length() );
     path = QString( "%1%2").arg( rootDir).arg( baseRemoved);
-    qDebug() << "(JT) rootDir: " << rootDir;
-    qDebug() << "(JT) baseRemoved: " << baseRemoved;
-    qDebug() << "(JT) path: " << path;
     return path;
 }
 

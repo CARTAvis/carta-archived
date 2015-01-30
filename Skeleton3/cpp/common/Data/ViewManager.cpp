@@ -306,7 +306,10 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
     }
 }
 
-
+QString ViewManager::getFileList() {
+    QString fileList = m_dataLoader->getData("", "");
+    return fileList;
+}
 
 QString ViewManager::_makeAnimator(){
     CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );

@@ -44,6 +44,12 @@ public:
     QStringList getColorMaps() const;
 
     /**
+     * Return a list of filenames that can be loaded.
+     * @return a QStringList containing the names of available files.
+     */
+    QString getFileList() const;
+
+    /**
      * Establish a link between a color map and the object that will be using the color map
      * to update its view.
      * @param colorId the unique server side id of a color map.
