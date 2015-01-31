@@ -10,7 +10,7 @@ ScriptTester::ScriptTester(){
 void ScriptTester::runTest(){
     //Please comment out these calls as appropriate.
     _runSingleImage();
-    _runAnalysisImage();
+    //_runAnalysisImage();
 }
 
 void ScriptTester::_runAnalysisImage() {
@@ -62,8 +62,7 @@ void ScriptTester::_runSingleImage(){
     QString colormapId = m_scriptFacade->getColorMapId();
 
     //We also have to do more work here to link the color map to the object displaying the image.
-    bool linked = m_scriptFacade->linkColorView( colormapId, controlId );
-    qDebug() << "Linked: "<<linked;
+    m_scriptFacade->linkAdd( colormapId, controlId );
 
     //Get a list of the color maps available on the server and set one.
     QStringList colormaps = m_scriptFacade->getColorMaps();

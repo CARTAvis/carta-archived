@@ -16,7 +16,10 @@ qx.Class.define("skel.widgets.Path", {
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
+        this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.REGION = this.BASE_PATH + "region" + this.SEP;
+        this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
+        this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
         this.ZOOM = this.BASE_PATH + "zoom" + this.SEP;
     },
     members : {
@@ -41,9 +44,12 @@ qx.Class.define("skel.widgets.Path", {
         MOUSE_X : "",
         MOUSE_Y : "",
         PLUGINS : "ViewPlugins",
+        PREFERENCES : "",
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",
+        TRANSFORMS_DATA : "",
+        TRANSFORMS_IMAGE : "",
         ZOOM : "",
         VIEW : "view",
         VIEW_MANAGER : "ViewManager",

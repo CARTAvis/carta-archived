@@ -134,6 +134,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
         _init : function(  ) {
             this.setAllowGrowX( true );
             this.setAllowGrowY( true );
+            this.setMinWidth( 200 );
             this.m_connector = mImport("connector");
         },
         

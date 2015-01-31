@@ -90,21 +90,30 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             return button;
         },
 
+        
         /**
-         * Returns true if the link from the source window to the destination
-         * window was successfully added or removed; false otherwise.
-         * 
-         * @param sourceWinId
-         *                {String} an identifier for the link source.
-         * @param destWinId
-         *                {String} an identifier for the link destination.
-         * @param addLink
-         *                {boolean} true if the link should be added; false if
-         *                the link should be removed.
+         * Returns true if the link from the source window to the destination window was successfully added or removed; false otherwise.
+         * @param sourceWinId {String} an identifier for the link source.
+         * @param destWinId {String} an identifier for the link destination.
+         * @param addLink {boolean} true if the link should be added; false if the link should be removed.
          */
         changeLink : function(sourceWinId, destWinId, addLink) {
-            return false;
+            var linkChanged = false;
+            if (destWinId == this.m_identifier) {
+                var linkIndex = this.m_links.indexOf(sourceWinId);
+                if (addLink && linkIndex < 0) {
+                    linkChanged = true;
+                    this.m_links.push(sourceWinId);
+                    this._sendLinkCommand(sourceWinId, addLink);
+                } else if (!addLink && linkIndex >= 0) {
+                    this.m_links.splice(linkIndex, 1);
+                    linkChanged = true;
+                    this._sendLinkCommand(sourceWinId, addLink);
+                }
+            }
+            return linkChanged;
         },
+
 
         /**
          * Closes the window
@@ -495,6 +504,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_closed = false;
             this.fireDataEvent("restoreWindow", this);
             this.restore();
+        },
+        
+        /**
+         * Tells the server that this window would like to add or remove a link
+         * from the window identified by the sourceWinId to this window.
+         * @param sourceWinId {String} an identifier for the window that is the source of the link.
+         * @param addLink {boolean} true if the link should be added; false if it should be removed.
+         */
+        _sendLinkCommand : function(sourceWinId, addLink) {
+            //Send a command to link the source window (right now an animator) to us.
+            var linkCmd;
+            if ( addLink ){
+                linkCmd = skel.widgets.Command.CommandLinkAdd.getInstance();
+            }
+            else {
+                linkCmd = skel.widgets.Command.CommandLinkRemove.getInstance();
+            }
+            linkCmd.link( sourceWinId, this.m_identifier );
         },
         
         /**

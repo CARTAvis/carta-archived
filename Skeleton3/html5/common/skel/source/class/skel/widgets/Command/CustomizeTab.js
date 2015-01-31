@@ -17,10 +17,7 @@ qx.Class.define("skel.widgets.Command.CustomizeTab", {
         this.base( arguments, title, "");
         this._init();
     },
-    
-    /*events : {
-        cmdVisibilityChanged : 'qx.event.type.Data'
-    },*/
+
 
     members : {
 
@@ -43,18 +40,19 @@ qx.Class.define("skel.widgets.Command.CustomizeTab", {
          * @param cmds {Object} the current command.
          */
         _buildTreeData : function( tree, cmds ){
+            var i = 0;
             if ( typeof cmds === 'object'){
                 var label;
                 if( Object.prototype.toString.call( cmds.value ) === '[object Array]' ) {
-                        tree.name = "";
-                        if ( cmds.name ){
-                            tree.name = cmds.name;
-                        }
-                        tree.checked = false;
+                    tree.name = "";
+                    if ( cmds.name ){
+                        tree.name = cmds.name;
+                    }
+                    tree.checked = false;
                     tree.value = [];
                     label = tree.name;
                     
-                    for ( var i = 0; i < cmds.value.length; i++ ){
+                    for ( i = 0; i < cmds.value.length; i++ ){
                         tree.value[i] = {};
                         this._buildTreeData( tree.value[i], cmds.value[i]);
                     }
@@ -64,6 +62,15 @@ qx.Class.define("skel.widgets.Command.CustomizeTab", {
                     tree.name = label;
                     var visible = cmds.isVisible(this.getLabel());
                     tree.checked = visible;
+                    if ( cmds.getType() == skel.widgets.Command.Command.TYPE_COMPOSITE ||
+                            cmds.getType() == skel.widgets.Command.Command.TYPE_GROUP ){
+                        var valArray = cmds.getValue();
+                        tree.value = [];
+                        for ( i = 0; i < valArray.length; i++ ){
+                            tree.value[i] = {};
+                            this._buildTreeData( tree.value[i], valArray[i]);
+                        }
+                    }
                 }
             }
             else {
@@ -83,7 +90,6 @@ qx.Class.define("skel.widgets.Command.CustomizeTab", {
         updateTree : function(cmds) {
             var node = {};
             var treeData = this._buildTreeData( node, cmds );
-            console.log( treeData);
             var jsonModel = qx.data.marshal.Json.createModel(treeData);
             var treeController = new qx.data.controller.Tree(null,
                     this.m_tree, "value", "name");

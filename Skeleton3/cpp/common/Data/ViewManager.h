@@ -36,13 +36,20 @@ public:
     QString getObjectId( const QString& pluginName, int index );
 
     /**
-     * Link the color map with the given id to the controller with the given id.
-     * @param colorId the unique server side id of the color map.
-     * @param controlId the unique server side id of the controller whose display will change
-     *      in response to color map changes.
-     * @return true if the link was successfully established; false otherwise.
+     * Link a source plugin to a destination plugin.
+     * @param sourceId the unique server-side id for the plugin that is the source of the link.
+     * @param destId the unique server side id for the plugin that is the destination of the link.
+     * @return an error message if the link does not succeed.
      */
-    bool linkColoredView( const QString& colorId, const QString& controlId );
+    QString linkAdd( const QString& sourceId, const QString& destId );
+
+    /**
+     * Remove a link from a source to a destination.
+     * @param sourceId the unique server-side id for the plugin that is the source of the link.
+     * @param destId the unique server side id for the plugin that is the destination of the link.
+     * @return an error message if the link does not succeed.
+     */
+    QString linkRemove( const QString& sourceId, const QString& destId );
 
     /**
      * Load the file into the controller with the given id.
@@ -77,17 +84,17 @@ private:
 
     void _clear();
 
+    int _findAnimator( const QString& id ) const;
     int _findColorMap( const QString& id ) const;
     int _findController( const QString& id ) const;
 
+
     void _initCallbacks();
 
-    void _initializeExistingAnimationLinks( int index );
+    //void _initializeExistingAnimationLinks( int index );
     //Sets up a default set of states for constructing the UI if the user
     //has not saved one.
     void _initializeDefaultState();
-
-    bool _linkColoredView( std::shared_ptr<Colormap> colorMap, std::shared_ptr<Controller> controller );
 
     QString _makeAnimator();
     QString _makeLayout();
@@ -117,6 +124,9 @@ private:
     std::shared_ptr<Layout> m_layout;
     std::shared_ptr<DataLoader> m_dataLoader;
     std::shared_ptr<ViewPlugins> m_pluginsLoaded;
+
+    const static QString SOURCE_ID;
+    const static QString DEST_ID;
 
     ViewManager( const ViewManager& other);
     ViewManager operator=( const ViewManager& other );

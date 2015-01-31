@@ -29,29 +29,17 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
 
             this.m_currentValue = { x: 0, y: 0};
 
-            // subscribe to parsed state
-            /*this.m_hub.subscribe("toui.parsedState", function (val) {
-                fv.console.log("parsedState");
-                this.m_parsedStateRef = val;
-                this.updateFromState();
-            }, this);*/
-
-            // let the controller know we can receive parsed state updates
-            //this.emit("ui.parsedStateRequest");
-
             // add mouse listeners
             this.addListener("mousemove", this._mouseMoveCB);
             this.addListener("mousedown", this._mouseDownCB);
             this.addListener("mouseup", this._mouseUpCB);
             this.addListener("keyup", this._keyDownCB);
             this.addListener("mouseover", function(){
-                console.log( "mouse in");
                 this.m_mouseIn = true;
                 this.activate();
                 this.update();
             }, this);
             this.addListener("mouseout", function(){
-                console.log( "mouse out");
                 this.deactivate();
                 this.m_mouseIn = false;
                 this.update();
@@ -74,16 +62,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                 return this.m_currentValue;
             },
 
-            //m_hub: null,
             m_parsedStateRef: null,
-
-            /*emit: function (path, data) {
-                this.m_hub.emit(path, data);
-            },*/
-
-            updateFromState: function () {
-                fv.assert(this.m_parsedStateRef !== null, "parsed state not set!");
-            },
 
             /**
              * Template method, which can be used by derived classes to redraw the
@@ -199,10 +178,11 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                     if( this.m_currentValue.x > 1) this.m_currentValue.x = 1;
                     if( this.m_currentValue.y < -1) this.m_currentValue.y = -1;
                     if( this.m_currentValue.y > 1) this.m_currentValue.y = 1;
-
-                    this.fireEvent( "changeValue",
-                        qx.event.type.Data,
-                        {x: this.m_currentValue.x, y: this.m_currentValue.y });
+                    var data = {
+                            x : this.m_currentValue.x,
+                            y : this.m_currentValue.y
+                    };
+                    this.fireDataEvent( "changeValue", data);
                 }
 
                 this.update();
@@ -229,11 +209,11 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                     if( this.m_currentValue.y < -1) this.m_currentValue.y = -1;
                     if( this.m_currentValue.y > 1) this.m_currentValue.y = 1;
                 }
-
-                this.fireEvent( "changeValue",
-                    qx.event.type.Data,
-                    {x: this.m_currentValue.x, y: this.m_currentValue.y });
-
+                var data = {
+                        x : this.m_currentValue.x,
+                        y : this.m_currentValue.y
+                };
+                this.fireDataEvent( "changeValue", data);
                 this.update();
             },
 
@@ -256,9 +236,11 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
             _setValue: function ( x, y) {
                 this.m_currentValue.x = x;
                 this.m_currentValue.y = y;
-                this.fireEvent( "changeValue",
-                    qx.event.type.Data,
-                    {x: this.m_currentValue.x, y: this.m_currentValue.y });
+                var data = {
+                        x : this.m_currentValue.x,
+                        y : this.m_currentValue.y
+                };
+                this.fireDataEvent( "changeValue", data);
                 this.update();
             },
 

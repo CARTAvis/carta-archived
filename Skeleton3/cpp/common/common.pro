@@ -42,12 +42,17 @@ HEADERS += \
     Data/ErrorManager.h \
     Data/Histogram.h \
     Data/IColoredView.h \
+    Data/ILinkable.h \
     Data/Selection.h \
     Data/Layout.h \
+    Data/LinkableImpl.h \
+    Data/Preferences.h \
     Data/Region.h \
     Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
+    Data/TransformsData.h \
+    Data/TransformsImage.h \
     Data/Util.h \
     GrayColormap.h \
     ColormapsOptimization.h \
@@ -87,11 +92,15 @@ SOURCES += \
     Data/ErrorReport.cpp \
     Data/ErrorManager.cpp \
     Data/Histogram.cpp \
+    Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/DataSource.cpp \
     Data/Layout.cpp \
+    Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
+    Data/TransformsData.cpp \
+    Data/TransformsImage.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

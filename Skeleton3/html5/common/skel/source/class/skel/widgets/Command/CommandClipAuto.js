@@ -9,7 +9,7 @@ qx.Class.define("skel.widgets.Command.CommandClipAuto", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + path.AUTO_CLIP;
-        this.base( arguments, "Recompute Clips on New Frame", cmd );
+        this.base( arguments, "Recompute Clips on New Frame", cmd);
     },
     
     members : {
@@ -25,8 +25,6 @@ qx.Class.define("skel.widgets.Command.CommandClipAuto", {
                this.sendCommand( objectIDs[i], params, undoCB );
             }
         },
-        
-      
         
         m_params : "autoClip:"
     }

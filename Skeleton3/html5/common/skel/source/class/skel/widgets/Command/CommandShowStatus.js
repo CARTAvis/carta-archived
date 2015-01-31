@@ -1,27 +1,27 @@
 /**
- * Command to change the layout to a preset analysis layout.
+ * Command to show/hide the status bar.
  */
 
-qx.Class.define("skel.widgets.Command.CommandLayoutAnalysis", {
+qx.Class.define("skel.widgets.Command.CommandShowStatus", {
     extend : skel.widgets.Command.Command,
     type : "singleton",
 
     construct : function() {
         var path = skel.widgets.Path.getInstance();
-        var cmd = path.SEP_COMMAND + "setAnalysisLayout";
-        this.base( arguments, "Analysis Layout", cmd);
+        var cmd = path.SEP_COMMAND + "setStatusVisible";
+        this.base( arguments, "Show Status", cmd );
     },
     
     members : {
         
         doAction : function( vals, objectIDs, undoCB ){
             var path = skel.widgets.Path.getInstance();
-            this.sendCommand( path.BASE_PATH + path.VIEW_MANAGER, "", undoCB );
+            var params = "statusVisible:"+vals;
+            this.sendCommand( path.PREFERENCES, params, undoCB );
         },
         
         getType : function(){
             return skel.widgets.Command.Command.TYPE_BOOL;
         }
-        
     }
 });

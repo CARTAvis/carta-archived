@@ -25,33 +25,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
 
         members : {
 
-            /**
-             * Returns true if the link from the source window to the
-             * destination window was successfully added or removed; false
-             * otherwise.
-             * 
-             * @param sourceWinId {String} an identifier for the link source.
-             * @param destWinId {String} an identifier for the link
-             *                destination.
-             * @param addLink {boolean} true if the link should be added;
-             *                false if the link should be removed.
-             * @return {boolean} true if the link changed status; false otherwise.
-             */
-            changeLink : function(sourceWinId, destWinId, addLink) {
-                var linkChanged = false;
-                if (destWinId == this.m_identifier) {
-                    linkChanged = true;
-                    var linkIndex = this.m_links.indexOf(sourceWinId);
-                    if (addLink && linkIndex < 0) {
-                        this.m_links.push(sourceWinId);
-
-                    } else if (!addLink && linkIndex >= 0) {
-                        this.m_links.splice(linkIndex, 1);
-                        this.m_content.removeAll();
-                    }
-                }
-                return linkChanged;
-            },
             
             /**
              * Display specific UI initialization.
@@ -76,10 +49,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              */
             isLinkable : function(pluginId) {
                 var linkable = false;
-                var path = skel.widgets.Path.getInstance();
-                if (pluginId == path.CASA_LOADER ) {
-                    linkable = true;
-                } 
                 return linkable;
             },
             

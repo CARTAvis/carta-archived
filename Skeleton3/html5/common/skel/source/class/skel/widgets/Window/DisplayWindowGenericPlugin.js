@@ -102,10 +102,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowGenericPlugin",
                 changeLink : function(sourceWinId, destWinId, addLink) {
                     var linkChanged = false;
                     if (destWinId == this.m_identifier) {
-                        linkChanged = true;
+                        linkChanged = arguments.callee.base.apply(this, arguments, sourceWinId, destWinId, addLink);
                         var linkIndex = this.m_links.indexOf(sourceWinId);
                         if (addLink && linkIndex < 0) {
-                            this.m_links.push(sourceWinId);
 
                             // Right now only generic support is statistics.
                             // Need to generalize.
@@ -122,7 +121,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowGenericPlugin",
                                 this.m_content.add(labely);
                             }
                         } else if (!addLink && linkIndex >= 0) {
-                            this.m_links.splice(linkIndex, 1);
                             this.m_content.removeAll();
                         }
                     }

@@ -7,6 +7,8 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "Data/ILinkable.h"
+#include "Data/LinkableImpl.h"
 
 class ImageView;
 
@@ -16,19 +18,19 @@ namespace Data {
 
 class Colormaps;
 class IColoredView;
+class LinkableImpl;
 class Controller;
+class TransformsData;
 
-class Colormap : public QObject, public CartaObject {
+class Colormap : public QObject, public CartaObject, public ILinkable {
 
     Q_OBJECT
 
 public:
-    /*
-     * Add a a Controller that will respond to changes in this Colormap.
-     * @param obj Controller the object that will change color..
-     * @return true if the Controller was successfully added; false otherwise.
-     */
-    bool addController( std::shared_ptr<Controller> obj );
+
+    //ILinkable
+    virtual bool addLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;
+    virtual bool removeLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -41,6 +43,22 @@ public:
      * @return error information if the color map was not successfully set.
      */
     QString setColorMap( const QString& colorMapName );
+
+
+    /**
+     * Set the name of the data transform.
+     * @param transformString a unique identifier for a data transform.
+     * @return error information if the data transfrom was not set.
+     */
+    QString setDataTransform( const QString& transformString );
+
+    /**
+     * Set the gamma color scales.
+     * @param scale1 the first scale.
+     * @param scale2 the second scale.
+     * @return error information if one or more of the scales could not be set.
+     */
+    QString setScales( double scale1, double scale2 );
     virtual ~Colormap();
     const static QString CLASS_NAME;
 
@@ -53,11 +71,12 @@ private:
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
-    QString _commandAddColoredObject( const QString& params );
+
     bool _processColorStr( const QString key, const QString colorStr, bool* valid );
 
     void _initializeDefaultState();
     void _initializeCallbacks();
+    void _initializeStatics();
 
     static bool m_registered;
     const static QString COLOR_MAP_NAME;
@@ -74,16 +93,24 @@ private:
     const static QString CACHE_SIZE;
     const static QString INTERPOLATED;
     const static QString CACHE;
+    const static QString SCALE_1;
+    const static QString SCALE_2;
+    const static QString GAMMA;
+    const static QString TRANSFORM_IMAGE;
+    const static QString TRANSFORM_DATA;
 
     Colormap( const QString& path, const QString& id );
 
     class Factory;
 
-    //Views controlled by this colormap
-    QList<std::shared_ptr<Controller> > m_coloredViews;
+    //Link management
+    std::unique_ptr<LinkableImpl> m_linkImpl;
 
     //Supported color maps
     static std::shared_ptr<Colormaps> m_colors;
+
+    //Supported data transforms
+    static std::shared_ptr<TransformsData> m_dataTransforms;
 
 
     //Separate state for mouse events since they get updated rapidly and not

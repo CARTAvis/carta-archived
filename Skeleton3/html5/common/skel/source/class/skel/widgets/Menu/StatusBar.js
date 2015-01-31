@@ -10,8 +10,6 @@
 
 qx.Class.define("skel.widgets.Menu.StatusBar", {
     extend : qx.ui.core.Widget,
-    implement : skel.widgets.Menu.IHidable,
-    include : skel.widgets.Menu.MShowHideMixin,
 
     construct : function() {
         this.base(arguments);
@@ -40,12 +38,6 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         this.m_iconifiedWindows = new qx.ui.toolbar.ToolBar();
         this.m_iconifiedWindows.setAllowGrowX(true);
         this._add(this.m_iconifiedWindows);
-
-        this.setZIndex(1000);
-
-        // Initially hide the status bar.
-        this.show(this, false);
-
     },
 
     members : {
@@ -120,7 +112,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
             }, this);
 
         },
-
+        
         /**
          * Set whether or not the status bar should always be visible or whether
          * it should be shown/hidden based on mouse location and/or status
@@ -131,7 +123,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
          *                visible; false otherwise.
          */
         setStatusAlwaysVisible : function(alwaysVisible) {
-            this.setAlwaysVisible(this, alwaysVisible);
+            //this.setAlwaysVisible(this, alwaysVisible);
         },
 
         /*
@@ -226,7 +218,6 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         m_statusMessage : null,
         m_sharedContainer : null,
         m_sharedUrl : null
-
     },
 
     properties : {

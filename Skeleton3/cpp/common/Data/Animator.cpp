@@ -19,8 +19,7 @@ public:
     }
 };
 
-const QString Animator::LINK = "links";
-//const QString Animator::ANIMATION_TYPE = "animators";
+
 
 const QString Animator::CLASS_NAME = "Animator";
 bool Animator::m_registered =
@@ -28,22 +27,27 @@ bool Animator::m_registered =
                                                    new Animator::Factory());
 
 Animator::Animator(const QString& path, const QString& id):
-    CartaObject( CLASS_NAME, path, id)
+    CartaObject( CLASS_NAME, path, id),
+    m_linkImpl( new LinkableImpl( &m_state ))
     {
     _initializeState();
     _initializeCallbacks();
 }
 
-void Animator::addController( const std::shared_ptr<Controller>& controller ){
-    if ( controller ){
-        int index = _getIndex( controller );
-        if ( index == -1  ){
-            m_controllers.push_back( controller );
-            connect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStateController()) );
-            _adjustStateController();
-            _resetAnimationParameters();
-        }
+
+
+bool Animator::addLink( const std::shared_ptr<Controller>& controller ){
+    bool linkAdded = m_linkImpl->addLink( controller );
+    if ( linkAdded ){
+        connect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStateController()) );
+        _resetAnimationParameters();
     }
+    return linkAdded;
+}
+
+void Animator::_adjustStateController(){
+    _resetAnimationParameters();
+    m_linkImpl->_adjustStateController();
 }
 
 void Animator::_adjustStateAnimatorTypes(){
@@ -59,64 +63,34 @@ void Animator::_adjustStateAnimatorTypes(){
     m_state.flushState();
 }
 
-void Animator::_adjustStateController(){
-    _resetAnimationParameters();
-    int controllerCount = m_controllers.size();
-    m_state.resizeArray( LINK, controllerCount );
-    for ( int i = 0; i < controllerCount; i++ ){
-        QString idStr( LINK + StateInterface::DELIMITER + QString::number(i));
-        m_state.setValue<QString>(idStr, m_controllers[i]->getPath());
-    }
-    m_state.flushState();
-}
+
 
 void Animator::_channelIndexChanged( const QString& params ){
-    for( std::shared_ptr<Controller> controller : m_controllers ){
+    for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
         controller->setFrameChannel( params );
     }
 }
 
 void Animator::clear(){
-    m_controllers.clear();
-    m_state.resizeArray( LINK, 0 );
+    m_linkImpl->clear();
 }
 
-int Animator::_getIndex( const std::shared_ptr<Controller>& controller ){
-    int index = -1;
-    int controllerCount = m_controllers.size();
-    QString targetPath = controller->getPath();
-    for ( int i = 0; i < controllerCount; i++ ){
-        if ( targetPath == m_controllers[i]->getPath()){
-           index = i;
-           break;
-        }
-     }
-     return index;
-}
 
 int Animator::getLinkCount() const {
-    int linkCount = m_state.getArraySize( LINK );
-    return linkCount;
+    return m_linkImpl->getLinkCount();
 }
 
 QList<QString> Animator::getLinks() const {
-    int linkCount = getLinkCount();
-    QList<QString> linkList;
-    for ( int i = 0; i < linkCount; i++ ){
-        linkList.append(getLinkId( i ));
-    }
-    return linkList;
+    return m_linkImpl->getLinks();
 }
 
 
 QString Animator::getLinkId( int linkIndex ) const {
-    QString idStr( LINK + StateInterface::DELIMITER + QString::number(linkIndex));
-    QString linkId = m_state.getValue<QString>( idStr );
-    return linkId;
+    return m_linkImpl->getLinkId( linkIndex );
 }
 
 void Animator::_imageIndexChanged( const QString& params ){
-    for( std::shared_ptr<Controller> controller : m_controllers ){
+    for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
         controller->setFrameImage( params );
     }
 }
@@ -173,7 +147,6 @@ QString Animator::_initializeAnimator( const QString& type ){
 }
 
 void Animator::_initializeState(){
-    m_state.insertArray(LINK, 0 );
     m_state.insertObject( AnimatorType::ANIMATIONS);
     m_state.flushState();
     _initializeAnimator( Selection::CHANNEL );
@@ -195,16 +168,23 @@ QString Animator::_removeAnimator( const QString& type ){
     return result;
 }
 
-
+bool Animator::removeLink( const std::shared_ptr<Controller>& controller ){
+    bool linkRemoved = m_linkImpl->removeLink( controller );
+    if ( linkRemoved  ){
+        disconnect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStateController()) );
+        _resetAnimationParameters();
+    }
+    return linkRemoved;
+}
 
 void Animator::_resetAnimationParameters(){
     if ( m_animators.contains( Selection::IMAGE) ){
-        m_animators[Selection::IMAGE]->setUpperBound(m_controllers.size());
+        m_animators[Selection::IMAGE]->setUpperBound(m_linkImpl->getLinkCount());
     }
     if ( m_animators.contains( Selection::CHANNEL)){
        int maxChannel = 0;
-       for ( int i = 0; i < m_controllers.size(); i++ ){
-           int highKey = m_controllers[i]->getState( Selection::CHANNEL, Selection::HIGH_KEY );
+       for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+           int highKey = controller->getState( Selection::CHANNEL, Selection::HIGH_KEY );
            if ( highKey > maxChannel ){
               maxChannel = highKey;
            }

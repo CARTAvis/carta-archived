@@ -12,7 +12,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValue", {
     construct : function( label ) {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + path.CLIP_VALUE;
-        this.base( arguments, label, cmd );
+        this.base( arguments, label, cmd);
     },
     
     members : {
