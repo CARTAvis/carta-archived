@@ -60,12 +60,29 @@ class Application:
     def kill(self):
         self.popen.kill()
 
-    def openFile(self,fileName):
-        if (os.path.isfile(fileName)):
-            self.socket.sendall("loadImageFile " + fileName + "\n")
-            #self.socket.send("load " + fileName + "\n")
-        else:
-            print "Invalid filename: " + fileName
+    def getColorMaps(self):
+        self.socket.sendall("getColorMaps" + "\n")
+
+    def getFileList(self):
+        self.socket.sendall("getFileList" + "\n")
+
+    def loadFile(self, fileName):
+        self.socket.sendall("loadFile " + fileName + "\n")
+
+    def setAnalysisLayout(self):
+        self.socket.sendall("setAnalysisLayout" + "\n")
+
+    def setCustomLayout(self, rows, cols):
+        self.socket.sendall("setCustomLayout " + str(rows) + " "
+                            + str(cols) + "\n")
+
+    def setImageLayout(self):
+        self.socket.sendall("setImageLayout" + "\n")
+
+    def setColorMap(self, colormap):
+        self.socket.sendall("setColorMap " + colormap)
+
+# Commands below this point are possibly broken or just not implemented yet.
 
     def setResolution(self, xres, yres):
         print "Setting resolution to (" + str(xres) + ", " + str(yres) + ")"
@@ -74,27 +91,24 @@ class Application:
         print "Applying autoclip of " + str(percentage) + "%"
         self.socket.sendall("applyAutoClip " + str(percentage) + "\n")
 
-    def applyColormap(self, colormap):
-        print "Applying " + colormap + " colormap"
-
     def setCoordinates(self, coordinateSystem):
         print "Setting coordinates to " + coordinateSystem + " system"
         self.socket.sendall("setCoordinates " + coordinateSystem + "\n")
 
     def showCoordinates(self):
-        self.socket.send("showcoordinates" + "\n")
+        self.socket.sendall("showcoordinates" + "\n")
 
     def hideCoordinates(self):
-        self.socket.send("hidecoordinates" + "\n")
+        self.socket.sendall("hidecoordinates" + "\n")
 
     def toggleCoordinates(self):
-        self.socket.send("togglecoordinates" + "\n")
+        self.socket.sendall("togglecoordinates" + "\n")
 
     def saveScreenshot(self, fileName):
         print "Saving screenshot as " + fileName
 
 def start(
-        executable = "/home/jeff/scratch/build/2015-01-27/cpp/desktop/desktop", 
+        executable = "/home/jeff/scratch/build/2015-01-29/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
         port = 9999, 
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
