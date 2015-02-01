@@ -60,6 +60,7 @@ bool Histogram::m_registered =
 Histogram::Histogram( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_view(nullptr),
+    m_linkImpl( new LinkableImpl( &m_state)),
     m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     _initializeDefaultState();
     _initializeCallbacks();
@@ -74,17 +75,22 @@ Histogram::Histogram( const QString& path, const QString& id):
 
 }
 
-void Histogram::addController( std::shared_ptr<Controller> controller){
-    if ( controller.get() != nullptr ){
-        m_coloredViews.append( controller );
+bool Histogram::addLink( const std::shared_ptr<Controller> & controller){
+    bool linkAdded = m_linkImpl->addLink( controller );
+    if ( linkAdded ){
         connect(controller.get(), SIGNAL(dataChanged()), this , SLOT(_generateHistogram()));
     }
+    return linkAdded;
 }
+
+
 
 void Histogram::clear(){
     unregisterView();
-    m_coloredViews.clear();
+    m_linkImpl->clear();
 }
+
+
 
 void Histogram::_initializeDefaultState(){
     m_state.insertValue<int>(CLIP_INDEX, 0 );
@@ -214,7 +220,6 @@ QString Histogram::_setClipRange( const QString& params ){
             if ( changedState ){
                 m_state.flushState();
                 _generateHistogram();
-                // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
             }
         }
         else {
@@ -266,10 +271,7 @@ QString Histogram::_setBinCount( const QString& params ){
            m_state.flushState();
            _generateHistogram();
            //qDebug()<<"ploting with binCount = "<<binCount;
-           // _generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
-
         }
-
     }
     else {
         result = "Invalid Histogram bin count parameters: "+ params;
@@ -479,15 +481,14 @@ QString Histogram::_setClipToImage( const QString& params ){
 std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
     std::vector<std::shared_ptr<Image::ImageInterface>> images;
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
-
-    for( int i = 0; i < m_coloredViews.size(); i++ ){
-        images = m_coloredViews[i].get()->getDataSources();
-        for( int j = 0; j < images.size(); j++){
+    for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+        images = controller.get()->getDataSources();
+	int imageCount = images.size();
+        for( int j = 0; j < imageCount; j++){
 
             result.push_back(images[j]);
         }
     }
-    qDebug()<<"generated data: "<<result.size();
     return result;
 
 }
@@ -533,6 +534,13 @@ void Histogram::_generateHistogram(){
     
 }
 
+bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
+    bool removed = m_linkImpl->removeLink( controller );
+    if ( removed ){
+        disconnect(controller.get(), SIGNAL(dataChanged()), this , SLOT(_generateHistogram()));
+    }
+    return removed;
+}
 
 Histogram::~Histogram(){
 

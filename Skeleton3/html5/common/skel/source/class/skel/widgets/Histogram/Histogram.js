@@ -80,57 +80,55 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             layout.setSpacingX(10);
             layout.setSpacingY(10);
 
-            m_settingsContainer = new qx.ui.container.Composite(layout);
-            m_settingsContainer.setPadding(10);
+            this.m_settingsContainer = new qx.ui.container.Composite(layout);
+            this.m_settingsContainer.setPadding(10);
 
-            m_rangeContainer = new qx.ui.groupbox.GroupBox("Range Settings", "");
-            m_rangeContainer.setLayout( new qx.ui.layout.HBox(10));
+            this.m_rangeContainer = new qx.ui.groupbox.GroupBox("Range Settings", "");
+            this.m_rangeContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_rangeSettings = new skel.widgets.Histogram.HistogramRange();
-            m_rangeContainer.add( this.m_rangeSettings );
+            this.m_rangeContainer.add( this.m_rangeSettings );
             //this.m_controlComposite.add(m_rangeContainer);
             //this._add(m_rangeContainer);
             // m_settingsContainer.add(m_rangeContainer);
 
-            m_binContainer = new qx.ui.groupbox.GroupBox("Bin Count Settings", "");
-            m_binContainer.setLayout( new qx.ui.layout.HBox(5));
+            this.m_binContainer = new qx.ui.groupbox.GroupBox("Bin Count Settings", "");
+            this.m_binContainer.setLayout( new qx.ui.layout.HBox(5));
             this.m_binSettings = new skel.widgets.Histogram.HistogramBin();
-            m_binContainer.add( this.m_binSettings );
+            this.m_binContainer.add( this.m_binSettings );
             //this._add(m_binContainer);
             // m_settingsContainer.add(m_binContainer);
-
             
-            m_displayContainer = new qx.ui.groupbox.GroupBox("Display Settings", "");
-            m_displayContainer.setLayout( new qx.ui.layout.HBox(10));
+            this.m_displayContainer = new qx.ui.groupbox.GroupBox("Display Settings", "");
+            this.m_displayContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_displaySettings = new skel.widgets.Histogram.HistogramDisplay();
-            m_displayContainer.add( this.m_displaySettings );
+            this.m_displayContainer.add( this.m_displaySettings );
             //this._add(m_displayContainer);
             // m_settingsContainer.add(m_displayContainer);
             
-            m_zoomContainer = new qx.ui.groupbox.GroupBox("Zoom Settings", "");
-            m_zoomContainer.setLayout( new qx.ui.layout.HBox(10));
+            this.m_zoomContainer = new qx.ui.groupbox.GroupBox("Zoom Settings", "");
+            this.m_zoomContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_zoomSettings = new skel.widgets.Histogram.HistogramZoom();
-            m_zoomContainer.add( this.m_zoomSettings );
+            this.m_zoomContainer.add( this.m_zoomSettings );
             // this._add(m_zoomContainer);
             // m_settingsContainer.add(m_zoomContainer);
 
-            m_cubeContainer = new qx.ui.groupbox.GroupBox("Cube Settings", "");
-            m_cubeContainer.setLayout( new qx.ui.layout.HBox(10));
+            this.m_cubeContainer = new qx.ui.groupbox.GroupBox("Cube Settings", "");
+            this.m_cubeContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_cubeSettings = new skel.widgets.Histogram.HistogramCube();
-            m_cubeContainer.add( this.m_cubeSettings );
+            this.m_cubeContainer.add( this.m_cubeSettings );
             // this._add(m_cubeContainer);
             // m_settingsContainer.add(m_cubeContainer);
 
-            m_twoDContainer = new qx.ui.groupbox.GroupBox("2D Settings", "");
-            m_twoDContainer.setLayout( new qx.ui.layout.HBox(10));
+            this.m_twoDContainer = new qx.ui.groupbox.GroupBox("2D Settings", "");
+            this.m_twoDContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_twoDSettings = new skel.widgets.Histogram.Histogram2D();
-            m_twoDContainer.add( this.m_twoDSettings );
+            this.m_twoDContainer.add( this.m_twoDSettings );
             // this._add(m_twoDContainer);
             // m_settingsContainer.add(m_twoDContainer);
 
-            this._add(m_settingsContainer);
+            this._add(this.m_settingsContainer);
             //this._layoutControls();
             //this._add( this.m_controlComposite );
-            
             
         },
         
@@ -149,40 +147,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                 allowGrowY: true
             });
             
-            // var settingsComposite = new qx.ui.container.Composite();
-            // var settingsLayout = new qx.ui.layout.HBox( 2 );
-            // settingsComposite.setLayout( new qx.ui.layout.HBox(2));
-            
-            // this.m_rangeVisible = new qx.ui.form.CheckBox( "Clip...");
-            // this.m_rangeVisible.setValue( false );
-            // this.m_rangeVisible.addListener("execute", this._layoutControls, this);
-            
-            // this.m_displayVisible = new qx.ui.form.CheckBox( "Display...");
-            // this.m_displayVisible.setValue( false );
-            // this.m_displayVisible.addListener("execute", this._layoutControls, this);
-            // this.m_binVisible = new qx.ui.form.CheckBox( "Bin...");
-            // this.m_binVisible.setValue( false );
-            // this.m_binVisible.addListener("execute", this._layoutControls, this);
-            // skel.widgets.TestID.addTestId( this.m_binVisible, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_CHECK);
-
-            // this.m_zoomVisible = new qx.ui.form.CheckBox( "Zoom...");
-            // this.m_zoomVisible.setValue( false );
-            // this.m_zoomVisible.addListener( "execute", this._layoutControls, this );
-            // this.m_cubeVisible = new qx.ui.form.CheckBox( "Cube...");
-            // this.m_cubeVisible.setValue( false );
-            // this.m_cubeVisible.addListener( "execute", this._layoutControls, this );
-            // this.m_twoDVisible = new qx.ui.form.CheckBox( "2D...");
-            // this.m_twoDVisible.setValue( false );
-            // this.m_twoDVisible.addListener( "execute", this._layoutControls, this );
-            
-            // settingsComposite.add( this.m_rangeVisible);
-            // settingsComposite.add( this.m_displayVisible );
-            // settingsComposite.add( this.m_binVisible );
-            // settingsComposite.add( this.m_zoomVisible );
-            // settingsComposite.add( this.m_cubeVisible );
-            // settingsComposite.add( this.m_twoDVisible );
-            
-            // this.m_mainComposite._add( settingsComposite );
+           
             
             this._add(this.m_mainComposite);
         },
@@ -206,43 +171,19 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         
         layoutControls : function(){
             if(this.m_settingsVisible){
-                m_settingsContainer.add(m_rangeContainer);
-                m_settingsContainer.add(m_binContainer);
-                m_settingsContainer.add(m_displayContainer);
-                m_settingsContainer.add(m_twoDContainer);
-                m_settingsContainer.add(m_cubeContainer);
-                m_settingsContainer.add(m_zoomContainer);
+                this.m_settingsContainer.add(this.m_rangeContainer);
+                this.m_settingsContainer.add(this.m_binContainer);
+                this.m_settingsContainer.add(this.m_displayContainer);
+                this.m_settingsContainer.add(this.m_twoDContainer);
+                this.m_settingsContainer.add(this.m_cubeContainer);
+                this.m_settingsContainer.add(this.m_zoomContainer);
             }
             else{
-                m_settingsContainer.removeAll();
+                this.m_settingsContainer.removeAll();
             }
         },
         
-        /**
-         * Adds/removes histogram settings based on user preference.
-         */
-        // _layoutControls : function(){
-        //     this.m_controlComposite.removeAll();
-        //     if ( this.m_rangeVisible.getValue()){
-        //         this.m_controlComposite.add( this.m_rangeSettings );
-        //     }
-        //     if ( this.m_displayVisible.getValue() ){
-        //         this.m_controlComposite.add( this.m_displaySettings );
-        //     }
-        //     if ( this.m_binVisible.getValue() ){
-        //         this.m_controlComposite.add( this.m_binSettings );
-        //     }
-        //     if ( this.m_zoomVisible.getValue() ){
-        //         this.m_controlComposite.add( this.m_zoomSettings );
-        //     }
-        //     if ( this.m_cubeVisible.getValue() ){
-        //         this.m_controlComposite.add( this.m_cubeSettings );
-        //     }
-        //     if ( this.m_twoDVisible.getValue() ){
-        //         this.m_controlComposite.add( this.m_twoDSettings );
-        //     }
-            
-        // },
+        
         
         /**
          * Register to get updates on histogram settings from the server.
@@ -272,23 +213,26 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this._registerHistogram();
         },
         
-        // m_controlComposite : null,
+        /**
+         * Set whether or not the user settings should be visible.
+         * @param visible {boolean} true if the settings should be visible; false otherwise.
+         */
+        toggleSettings : function( ){
+            this.m_settingsVisible = !this.m_settingsVisible;
+            this.layoutControls();
+        },
+        
         m_mainComposite : null,
         m_settingsContainer : null,
         m_settingsVisible : null,
         
-        // m_binVisible : null,
         m_binSettings : null,
         m_cubeSettings : null,
-        // m_cubeVisible : null,
-        // m_twoDVisible : null,
         m_twoDSettings : null,
         m_rangeSettings : null,
         m_displaySettings : null,
         m_zoomSettings : null,
-        // m_rangeVisible : null,
-        // m_displayVisible : null,
-        // m_zoomVisible : null,
+      
 
         m_rangeContainer : null,
         m_binContainer : null,

@@ -10,8 +10,6 @@
 
 qx.Class.define("skel.widgets.Menu.MenuBar", {
     extend : qx.ui.toolbar.ToolBar,
-    implement : skel.widgets.Menu.IHidable,
-    include : skel.widgets.Menu.MShowHideMixin,
 
     /**
      * Constructor.
@@ -23,19 +21,11 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         this.m_menuPart = new skel.widgets.Menu.MenuBarPart();
         this.add(this.m_menuPart);
         this._initMenu();
-        this.addListener("appear", this._setAnimationSize, this);
 
         this.addSpacer();
         
-        //this.m_toolPart = new skel.widgets.Menu.ToolBar();
-        //this.add( this.m_toolPart );
-        
         this._initSubscriptions();
         this._initContextMenu();
-
-        // Initially show the menu bar.
-        this.setAlwaysVisible(this, true);
-        this.setZIndex(1000);
         
         qx.event.message.Bus.subscribe("layoutGrid", function(
                 message) {
@@ -73,7 +63,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
          *                be shown; false otherwise.
          */
         animateEnd : function(show) {
-            if (show) {
+           /* if (show) {
                 if (this.isTop()) {
                     var heightPercent = this.m_animationSize + "%";
                     this.setLayoutProperties({
@@ -95,7 +85,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                     this.setMinWidth(0);
                     this.setMaxWidth(0);
                 }
-            }
+            }*/
         },
 
         /**
@@ -108,7 +98,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
          * @param show {Boolean} whether or not the menu bar is in the process of being shown.
          */
         animateSize : function(percent, show) {
-            var calc = 0;
+            /*var calc = 0;
             var calcStr = "";
             var newSize = 0;
             if (show) {
@@ -142,7 +132,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                     this.setMinWidth(newSize);
                     this.setMaxWidth(newSize);
                 }
-            }
+            }*/
         },
         
         /**
@@ -261,36 +251,21 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.m_prefButton = new qx.ui.toolbar.MenuButton("Preferences");
             this.m_menuPart.add(this.m_prefButton);
             var prefMenu = new qx.ui.menu.Menu();
-            var menuButton = new qx.ui.menu.Button("Menu Bar");
-            prefMenu.add(menuButton);
+            var cmdFactory = skel.widgets.Command.CommandFactory.getInstance();
+            var showCmd = cmdFactory.getCommand( "Show");
+            var showButton = new qx.ui.menu.Button( showCmd.getLabel());
+            prefMenu.add(showButton);
             var menuBarMenu = new qx.ui.menu.Menu();
-            menuButton.setMenu(menuBarMenu);
-            var menuShownButton = new qx.ui.menu.CheckBox("Always Visible");
-            menuShownButton.setValue(true);
-            menuShownButton.addListener("execute", function() {
-                this.setAlwaysVisible(this, menuShownButton
-                        .getValue());
-                this.fireDataEvent("menuAlwaysVisible",
-                        menuShownButton.getValue());
-            }, this);
-            menuBarMenu.add(menuShownButton);
-            this.m_menuPositionButton = new qx.ui.menu.Button("Side");
-            this.m_menuPositionButton.addListener("execute",
-                    function() {
-                        this._reposition();
-                    }, this);
-            menuBarMenu.add(this.m_menuPositionButton);
-            this.m_prefButton.setMenu(prefMenu);
-
-            var statusShownButton = new qx.ui.menu.CheckBox("Status Bar Always Visible");
-            statusShownButton.addListener("execute",
-                    function() {
-                        this.fireDataEvent(
-                                "statusAlwaysVisible",
-                                statusShownButton.getValue());
-                    }, this);
-            prefMenu.add(statusShownButton);
-
+            showButton.setMenu(menuBarMenu);
+            var showCmds = showCmd.getValue();
+            for ( var i = 0; i < showCmds.length; i++ ){
+                var showSpecButton = this._makeCmdCheck( showCmds[i], null);
+                menuBarMenu.add( showSpecButton );
+            }
+            this.m_prefButton.setMenu( prefMenu );
+            
+           
+            
             // Create the "Help" menu
             this.m_helpButton = new qx.ui.toolbar.MenuButton("Help");
             this.m_menuPart.add(this.m_helpButton);
@@ -327,7 +302,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
          * Returns whether or not the menu bar is currently
          * positioned at the top of the display area.
          */
-        isTop : function() {
+        /*isTop : function() {
             var topPosition = true;
             // User has the option of changing it to top, which
             // means it is not currently top.
@@ -335,7 +310,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 topPosition = false;
             }
             return topPosition;
-        },
+        },*/
         
         /**
          * Construct a button for the given command and callback.
@@ -349,6 +324,29 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 cmd.doAction( "", this.m_activeWindowIds, cb );
             }, this);
             return button;
+        },
+        
+        /**
+         * Make a checkable menu item for the cmd.
+         * @param cmd {skel.widgets.Command.Command}
+         * @param cb {Function} a callback for the command.
+         */
+        _makeCmdCheck : function( cmd, cb ){
+            var label = cmd.getLabel();
+            var checkBox = new qx.ui.menu.CheckBox( label );
+            checkBox.setValue( cmd.getValue());
+            //Updates from the GUI to server
+            checkBox.addListener("execute", function() {
+                cmd.doAction( this.getValue(), null, cb);
+            }, checkBox);
+            //Updates from the server to GUI
+            cmd.addListener( "cmdValueChanged", function(evt){
+                var data = evt.getData();
+                if ( data.value !== this.getValue()){
+                    this.setValue( data.value );
+                }
+            }, checkBox);
+            return checkBox;
         },
         
         /**
@@ -413,7 +411,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         /**
          * Change from a top menu to a left menu or vice versa.
          */
-        reposition : function() {
+        /*reposition : function() {
             if (this.isTop()) {
                 this.setHeight(30);
                 this.setWidth(null);
@@ -424,26 +422,26 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                     right : "0%",
                     top : "0%",
                     bottom : "100%"
-                });*/
+                });
             } else {
                 var menuWidth = 120;
                 this.setWidth(menuWidth);
                 this.setMinWidth(menuWidth);
                 this.setMaxWidth(menuWidth);
                 this.setHeight(null);
-                /*this.setLayoutProperties({
+                this.setLayoutProperties({
                     left : "0%",
                     bottom : "0%",
                     top : "0%",
                     right : "90%"
-                });*/
+                });
             }
-        },
+        },*/
 
         /**
          * Sets the initial size information of the menu bar.
          */
-        _setAnimationSize : function() {
+        /*_setAnimationSize : function() {
             this.removeListener("appear",
                     this._setAnimationSize, this);
             if (this.isTop()) {
@@ -458,7 +456,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 this.m_animationSize = this.getWidth();
                 this.m_mouseMargin = 100;
             }
-        },
+        },*/
 
         /**
          * Removes widgets from the menu bar in preparation for hiding.
@@ -477,22 +475,24 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 this.add(this.m_menuPart);
             }
         },
-
+ 
         /*
          * Hides or shows the status bar based on the location of the mouse.
          * Mouse close to screen top = show; Otherwise, hide.
          */
         showHideMenu : function(ev) {
-            var widgetLoc = skel.widgets.Util.getTop(this);
+            /*var widgetLoc = skel.widgets.Util.getTop(this);
             var mouseLoc = ev.getDocumentTop();
             if (!this.isTop()) {
                 widgetLoc = skel.widgets.Util.getLeft(this);
                 mouseLoc = ev.getDocumentLeft();
             }
-            this.showHide(this, mouseLoc, widgetLoc);
+            this.showHide(this, mouseLoc, widgetLoc);*/
         },
+        
 
-        _reposition : function() {
+
+        /*_reposition : function() {
             var sideMenu = false;
             if (this.m_menuPositionButton.getLabel() == "Side") {
                 this.m_menuPositionButton.setLabel("Top");
@@ -511,7 +511,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.reposition();
             this.fireDataEvent("menuMoved");
             this._setAnimationSize();
-        },
+        },*/
 
         /**
          * Shows a dialog allowing the user to choose the number of rows and columns

@@ -78,8 +78,7 @@ void ScriptTester::_runSingleImage(){
     qDebug() << "(JT) colormapId: " << colormapId;
 
     //We also have to do more work here to link the color map to the object displaying the image.
-    bool linked = m_scriptFacade->linkColorView( colormapId, controlId );
-    qDebug() << "(JT) linked: " << linked;
+    m_scriptFacade->linkAdd( colormapId, controlId );
 
     //Get a list of the color maps available on the server and set one.
     QStringList colormaps = m_scriptFacade->getColorMaps();

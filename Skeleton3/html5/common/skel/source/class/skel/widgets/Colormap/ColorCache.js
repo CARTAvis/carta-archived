@@ -93,6 +93,7 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
                 this.m_interpolateCheck.setEnabled( checked );
                 this.m_cacheSizeText.setEnabled( checked );
             }, this );
+            
             this.m_interpolateCheck = new qx.ui.form.CheckBox( "Interpolation");
             this.m_interpolateCheck.addListener( "changeValue", function(e){
                 if ( this.m_connector !== null ){
@@ -104,9 +105,6 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
                 }
             }, this );
             
-            
-            var mapComposite = new qx.ui.container.Composite();
-            mapComposite.setLayout(new qx.ui.layout.HBox(2));
             var mapLabel = new qx.ui.basic.Label( "Size:");
             this.m_cacheSizeText = new skel.widgets.CustomUI.NumericTextField( 0, null );
             this.m_cacheSizeText.setIntegerOnly( true );
@@ -121,18 +119,20 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
                 }
             },this);
             
+            var sizeComposite = new qx.ui.container.Composite();
+            sizeComposite.setLayout( new qx.ui.layout.HBox(2));
+            sizeComposite.add( mapLabel );
+            sizeComposite.add( this.m_cacheSizeText );
+            
             this.m_interpolateCheck.setEnabled( this.m_cacheCheck.getValue() );
             this.m_cacheSizeText.setEnabled( this.m_cacheCheck.getValue() );
             
-            mapComposite.add( new qx.ui.core.Spacer(25));
+            var mapComposite = new qx.ui.groupbox.GroupBox( "Caching");
+            mapComposite.setLayout(new qx.ui.layout.VBox(2));
             mapComposite.add( this.m_cacheCheck );
             mapComposite.add( this.m_interpolateCheck );
-            mapComposite.add( new qx.ui.core.Spacer(25));
-            mapComposite.add( mapLabel );
-            mapComposite.add( this.m_cacheSizeText );
-            mapComposite.add( new qx.ui.core.Spacer(25));
+            mapComposite.add( sizeComposite );
             this._add( mapComposite );
-           
         },
         
         
@@ -185,5 +185,11 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
         m_sharedVarMaps : null
        
 
+    },
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

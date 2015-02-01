@@ -21,28 +21,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
     members : {
 
-        /**
-         * Returns true if the link from the source window to the destination window was successfully added or removed; false otherwise.
-         * @param sourceWinId {String} an identifier for the link source.
-         * @param destWinId {String} an identifier for the link destination.
-         * @param addLink {boolean} true if the link should be added; false if the link should be removed.
-         */
-        changeLink : function(sourceWinId, destWinId, addLink) {
-            var linkChanged = false;
-            if (destWinId == this.m_identifier) {
-                var linkIndex = this.m_links.indexOf(sourceWinId);
-                if (addLink && linkIndex < 0) {
-                    linkChanged = true;
-                    this.m_links.push(sourceWinId);
-                    this._sendLinkCommand(sourceWinId, addLink);
-                } else if (!addLink && linkIndex >= 0) {
-                    this.m_links.splice(linkIndex, 1);
-                    linkChanged = true;
-                    this._sendLinkCommand(sourceWinId, addLink);
-                }
-            }
-            return linkChanged;
-        },
 
         /**
          * Call back that initializes the View when data is loaded.
@@ -222,7 +200,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         isLinkable : function(pluginId) {
             var linkable = false;
             var path = skel.widgets.Path.getInstance();
-            if (pluginId == path.ANIMATOR || pluginId == this.m_pluginId) {
+            if (pluginId == path.ANIMATOR || pluginId == this.m_pluginId ||
+                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN) {
                 linkable = true;
             }
             return linkable;
@@ -241,23 +220,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             return biLink;
         },
 
-        /**
-         * Tells the server that this window would like to add or remove a link
-         * from the window identified by the sourceWinId to this window.
-         * @param sourceWinId {String} an identifier for the window that is the source of the link.
-         * @param addLink {boolean} true if the link should be added; false if it should be removed.
-         */
-        _sendLinkCommand : function(sourceWinId, addLink) {
-            //Send a command to link the source window (right now an animator) to us.
-            var animId = sourceWinId;
-            if (!addLink) {
-                animId = "";
-            }
-            var paramMap = "winId:" + this.m_identifier + ",animId:" + animId;
-            var pathDict = skel.widgets.Path.getInstance();
-            var linkPath = pathDict.getCommandLinkAnimator();
-            this.m_connector.sendCommand(linkPath, paramMap, function(val) {});
-        },
+
         
 
 

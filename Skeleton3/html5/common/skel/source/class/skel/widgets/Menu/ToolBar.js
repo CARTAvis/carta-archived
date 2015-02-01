@@ -86,10 +86,20 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
         
         _makeToggle : function( cmd ){
             var label = cmd.getLabel();
+            
+            //Send values to the server
             var toggle = new skel.boundWidgets.Toggle( label, "");
             toggle.addListener( "toggleChanged", function( val ){
-                this._invokeCommand( label, val.getData(), null );
+                this._invokeCmd( label, val.getData(), null );
             }, this);
+            
+            //Updates from the server
+            cmd.addListener( "cmdValueChanged", function( evt ){
+                var data = evt.getData();
+                if ( this.getValue() != data.value ){
+                    this.setValue( data.value );
+                }
+            }, toggle);
             this.add( toggle );
         },
         
@@ -122,6 +132,8 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             var cmds = cmdFactory.getCommandTree();
             this._resetButtons( cmds );
         },
+        
+
         
         /**
          * Adds menu buttons to the application menu based on
@@ -168,8 +180,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
                         }
                     }, this);
         },
-
-
+        
         m_activeWindowIds : null
     }
 

@@ -26,6 +26,44 @@ qx.Class.define("skel.widgets.Command.CommandComposite", {
             return skel.widgets.Command.Command.TYPE_COMPOSITE;
         },
         
+        isVisibleMenu : function(){
+            var menuVisible = true;
+            if ( this.m_cmds !== null ){
+                for ( var i = 0; i < this.m_cmds.length; i++ ){
+                    menuVisible = this.m_cmds[i].isVisibleMenu();
+                    if ( !menuVisible ){
+                        break;
+                    }
+                }
+            }
+            return menuVisible;
+        },
+        
+        isVisibleToolbar : function(){
+            var toolVisible = true;
+            if ( this.m_cmds !== null ){
+                for ( var i = 0; i < this.m_cmds.length; i++ ){
+                    toolVisible = this.m_cmds[i].isVisibleToolbar();
+                    if ( !toolVisible ){
+                        break;
+                    }
+                }
+            }
+            return toolVisible;
+        },
+       
+        setVisibleMenu : function( visible){
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                this.m_cmds[i].setVisibleMenu( visible );
+            }
+        },
+        
+        setVisibleToolbar : function( visible){
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                this.m_cmds[i].setVisibleToolbar( visible );
+            }
+        },
+        
         /**
          * Returns the command corresponding to the name if it matches the name of this
          * command or one of the children of this command; otherwise, returns null.
@@ -34,9 +72,14 @@ qx.Class.define("skel.widgets.Command.CommandComposite", {
          *       children of this object.
          */
         getCommand : function( cmdName ){
-            var cmd = null;
-            if ( this.isMatch( cmdName )){
-                cmd = this;
+            var cmd = arguments.callee.base.apply(this, arguments, cmdName );
+            if ( cmd === null && this.m_cmds !== null ){
+                for ( var i = 0; i < this.m_cmds.length; i++ ){
+                    cmd = this.m_cmds[i].getCommand( cmdName );
+                    if ( cmd !== null ){
+                        break;
+                    }
+                }
             }
             return cmd;
         },
@@ -46,9 +89,10 @@ qx.Class.define("skel.widgets.Command.CommandComposite", {
          * @return {Array} an array containing the immediate children of this command.
          */
         getValue : function(){
-            var allCmds = [];
-            return allCmds;
-        }
+            return this.m_cmds;
+        },
+        
+        m_cmds : null
         
     }
 });

@@ -133,6 +133,7 @@ public:
     static ObjectManager * objectManager (); // singleton accessor
     QString getRootPath() const;
     QString getRoot() const;
+    QString parseId( const QString& path ) const;
 
     class OnCreateObject{
     public:

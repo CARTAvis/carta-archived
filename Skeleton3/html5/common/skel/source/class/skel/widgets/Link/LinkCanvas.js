@@ -361,7 +361,7 @@ qx.Class
                                                         function() {
                                                             var sourceId = this.m_sourceLink.winId;
                                                             var destId = lineMatch.winId;
-                                                            var link = new skel.widgets.Link( sourceId, destId );
+                                                            var link = new skel.widgets.Link.Link( sourceId, destId );
                                                             lineMatch.linked = false;
                                                             this.update();
                                                             this.fireDataEvent("linkRemove",link);
@@ -427,7 +427,7 @@ qx.Class
                                         var sourceId = this.m_sourceLink.winId;
                                         var destId = matchingLink.winId;
                                         var twoWay = matchingLink.twoWay;
-                                        var link = new skel.widgets.Link( sourceId, destId );
+                                        var link = new skel.widgets.Link.Link( sourceId, destId );
                                         matchingLink.linked = true;
                                         this.fireDataEvent("link", link);
                                     }

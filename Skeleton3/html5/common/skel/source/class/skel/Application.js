@@ -95,78 +95,35 @@ qx.Class.define( "skel.Application",
                 this.m_statusBar = new skel.widgets.Menu.StatusBar();
                 this._initMenuBar();
                 this.m_toolBar = new skel.widgets.Menu.ToolBar();
-                this.m_mainContainer.add( this.m_toolBar/*, { top : "10%", bottom: "10%", left: "0%", right:"0%"}*/ );
                 
-                this.m_mainContainer.add( this.m_desktop, {
-                    flex : 1
-                });
-                
-                this.m_mainContainer.add( this.m_statusBar);
                 var errorHandler = skel.widgets.ErrorHandler.getInstance();
                 errorHandler.setStatusBar( this.m_statusBar );
                 
-                this.m_desktop.addListener( "iconifyWindow", this._iconifyWindow, this );
-                this.m_menuBar.addListener( "appear", function( ev )
-                {
-                    //this._repositionDesktop( true );
-                }, this );
-                this.m_desktop.addListener( "addWindowMenu", function( ev )
-                {
-                    this.m_menuBar.addWindowMenu( ev );
-                }, this );
+                this._initDesktop();
 
-                qx.event.message.Bus.subscribe( "showLinks", function( message )
-                {
-                    this._showLinks( message );
-                }, this );
-                qx.event.message.Bus.subscribe( "showPopupWindow", function( message ){
-                            this._showPopup( message );
-                        }, this );
-                this.m_mainContainer.addListener( "mousemove", function( ev )
-                {
-                    this.m_statusBar.showHideStatus( ev );
-                    this.m_menuBar.showHideMenu( ev );
-                }, this );
-
-                qx.event.message.Bus.subscribe( "showFileBrowser", function( message )
-                {
-                    if( this.m_fileBrowser === null ) {
-                        this.m_fileBrowser = new skel.widgets.FileBrowser();
-                    }
-                    this.m_fileBrowser.setTarget( message.getData() );
-                    if( this.m_mainContainer.indexOf( this.m_fileBrowser ) < 0 ) {
-                        this.getRoot().add( this.m_fileBrowser, {
-                            left  : "0%",
-                            right : "50%",
-                            top   : "0%",
-                            bottom: "50%"
-                        } );
-                    }
-                }, this );
-
-                qx.event.message.Bus.subscribe( "closeFileBrowser", function( message )
-                {
-                    var root = this.getRoot();
-                    if( this.m_fileBrowser !== null && root.indexOf( this.m_fileBrowser ) >= 0 ) {
-                        root.remove( this.m_fileBrowser );
-                    }
-                }, this );
+                this._initSubscriptions();
                 
-                qx.event.message.Bus.subscribe( "showCustomizeMenuDialog", function( message ){
-                    if( this.m_customizeMenuDialog === null ) {
-                            this.m_customizeMenuDialog = new skel.widgets.Command.CustomizeDialog();
-                        }
-                        this._setPopupWinProperties( this.m_customizeMenuDialog );
-                    }, this );
+                var path = skel.widgets.Path.getInstance();
+                this.m_sharedVarPreferences = connector.getSharedVar( path.PREFERENCES );
+                this.m_sharedVarPreferences.addCB(this._preferencesCB.bind(this));
+                this._preferencesCB();
         },
         
-        
+        /**
+         * Initialize desktop callbacks.
+         */
+        _initDesktop: function(){
+            this.m_desktop.addListener( "iconifyWindow", this._iconifyWindow, this );
+            this.m_desktop.addListener( "addWindowMenu", function( ev )
+            {
+                this.m_menuBar.addWindowMenu( ev );
+            }, this );
+        },
 
         /**
          * Initialize the menu bar.
          */
-            _initMenuBar: function()
-            {
+            _initMenuBar: function(){
                 this.m_menuBar = new skel.widgets.Menu.MenuBar();
                 this.m_menuBar.addListener( "layoutImage", function()
                 {
@@ -192,25 +149,6 @@ qx.Class.define( "skel.Application",
                     this.m_desktop.setColCount( ev.getData() );
                 }, this );
 
-                this.m_menuBar.addListener( "statusAlwaysVisible", function( ev )
-                {
-                    this.m_statusBar.setStatusAlwaysVisible( ev.getData() );
-                    this._hideWindows();
-                    this._repositionDesktop( ev.getData() );
-                }, this );
-
-                this.m_menuBar.addListener( "menuAlwaysVisible", function( ev )
-                {
-                    this._hideWindows();
-                    this._repositionDesktop( ev.getData() );
-                }, this );
-
-                this.m_menuBar.addListener( "menuMoved", function( ev )
-                {
-                    this._hideWindows();
-                    this._repositionDesktop();
-                }, this );
-
                 this.m_menuBar.addListener( "newWindow", function( ev )
                 {
                     this._showWindowLocator();
@@ -220,8 +158,97 @@ qx.Class.define( "skel.Application",
                 {
                     this.m_statusBar.updateSessionSharing( ev.getData() );
                 }, this );
+               
+        },
+        
+        /**
+         * Initialize message callbacks.
+         */
+        _initSubscriptions : function(){
+            qx.event.message.Bus.subscribe( "showLinks", function( message )
+                    {
+                        this._showLinks( message );
+                    }, this );
+            
+            qx.event.message.Bus.subscribe( "showPopupWindow", function( message ){
+                        this._showPopup( message );
+                    }, this );
+
+
+            qx.event.message.Bus.subscribe( "showFileBrowser", function( message )
+            {
+                if( this.m_fileBrowser === null ) {
+                    this.m_fileBrowser = new skel.widgets.FileBrowser();
+                }
+                this.m_fileBrowser.setTarget( message.getData() );
+                if( this.m_mainContainer.indexOf( this.m_fileBrowser ) < 0 ) {
+                    this.getRoot().add( this.m_fileBrowser, {
+                        left  : "0%",
+                        right : "50%",
+                        top   : "0%",
+                        bottom: "50%"
+                    } );
+                }
+            }, this );
+
+            qx.event.message.Bus.subscribe( "closeFileBrowser", function( message )
+            {
+                var root = this.getRoot();
+                if( this.m_fileBrowser !== null && root.indexOf( this.m_fileBrowser ) >= 0 ) {
+                    root.remove( this.m_fileBrowser );
+                }
+            }, this );
+            
+            qx.event.message.Bus.subscribe( "showCustomizeMenuDialog", function( message ){
+                if( this.m_customizeMenuDialog === null ) {
+                        this.m_customizeMenuDialog = new skel.widgets.Command.CustomizeDialog();
+                    }
+                    this._setPopupWinProperties( this.m_customizeMenuDialog );
+                }, this );
+        },
+        
+        /**
+         * Update the layout of the main display area containing possible menu bars,
+         * tool bars, status bars, etc.
+         */
+        _layout : function(){
+            this._hideWindows();
+            this.m_mainContainer.removeAll();
+            var showMenuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+            if ( showMenuCmd.getValue() ){
                 this.m_mainContainer.add( this.m_menuBar );
-                this.m_menuBar.reposition();
+            }
+            var showToolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
+            if ( showToolCmd.getValue( )){
+                this.m_mainContainer.add( this.m_toolBar );
+            }
+            this.m_mainContainer.add( this.m_desktop, {flex : 1});
+            var showStatusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
+            if ( showStatusCmd.getValue()){
+                this.m_mainContainer.add( this.m_statusBar);
+            }
+        },
+        
+        /**
+         * Callback for when user preferences change.
+         */
+        _preferencesCB : function(){
+            var prefVal = this.m_sharedVarPreferences.get();
+            if ( prefVal ){
+                try {
+                    var prefObj = JSON.parse( prefVal );
+                    var showMenuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+                    showMenuCmd.setValue( prefObj.menuVisible );
+                    var showToolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
+                    showToolCmd.setValue( prefObj.toolBarVisible );
+                    var showStatusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
+                    showStatusCmd.setValue( prefObj.statusVisible );
+                    this._layout();
+                }
+                catch( err ){
+                    console.log( "Could not parse preferences: "+prefVal );
+                }
+            }
         },
 
         /**
@@ -230,8 +257,8 @@ qx.Class.define( "skel.Application",
             _hideWindow: function( window )
             {
                 if( window !== null ) {
-                    if( this.m_mainContainer.indexOf( window ) >= 0 ) {
-                        this.m_mainContainer.remove( window );
+                    if( this.getRoot().indexOf( window ) >= 0 ) {
+                        this.getRoot().remove( window );
                     }
                 }
         },
@@ -268,40 +295,7 @@ qx.Class.define( "skel.Application",
                 this.m_desktop.link( linkSource, linkDest, addLink );
         },
 
-        /**
-         * Adjust the size of the desktop based on a the visibility and location of
-         * the menubar and status bar.
-         */
-            _repositionDesktop: function()
-            {   
-                var permanentMenu = this.m_menuBar.isAlwaysVisible();
-                var permanentStatus = this.m_statusBar.isAlwaysVisible();
-                var topMenu = this.m_menuBar.isTop();
-                var topValue = "0%";
-                var leftValue = "0%";
-                if( permanentMenu ) {
-                    if( topMenu ) {
-                        var bottomMenu = this.m_menuBar.getHeight();
-                        topValue = bottomMenu;
-                    }
-                    //Left menu bar.
-                    else {
-                        var menuWidth = this.m_menuBar.getWidth();
-                        leftValue = menuWidth;
-                    }
-                }
-                var bottomValue = "0%";
-                if( permanentStatus ) {
-                    var topStatus = skel.widgets.Util.getTop( this.m_statusBar );
-                    var topWin = skel.widgets.Util.getBottom( this.m_mainContainer );
-                    var height = this.m_statusBar.getAnimationHeight();
-                    bottomValue = Math.round( height / topWin * 100 ) + "%";
-                }
-                topValue = 500;
-                var desktopMap = {top: topValue, bottom: bottomValue, left: leftValue, right: "0%"};
-                this.m_desktop.setLayoutProperties( desktopMap );
-                return desktopMap;
-        },
+
 
         /**
          * Restore the window at the given layout row and column to its original position.
@@ -323,14 +317,14 @@ qx.Class.define( "skel.Application",
             var linkInfo = this.m_desktop.getLinkInfo( pluginId, winId );
             if ( this.m_windowLink === null ){
                 this.m_windowLink = new skel.widgets.Link.LinkCanvas();
-                var resizeLinkWindow = function( desktop, linkWindow ){
-                    var left = skel.widgets.Util.getLeft( desktop );
-                    var top = skel.widgets.Util.getTop( desktop );
+                var resizeLinkWindow = function( anObject, linkWindow ){
+                    var left = 0;
+                    var top = anObject._getLinkTopOffset();
                     linkWindow.setLinkOffsets( left, top );
                 };
-                resizeLinkWindow( this.m_desktop, this.m_windowLink );
+                resizeLinkWindow( this, this.m_windowLink );
                 this.m_desktop.addListener( "resize", function(){
-                    resizeLinkWindow( this.m_desktop, this.m_windowLink );
+                    resizeLinkWindow( this, this.m_windowLink );
                 }, this );
 
                 this.m_windowLink.addListener( "link", function( ev ){
@@ -344,10 +338,50 @@ qx.Class.define( "skel.Application",
                 }, this );
                 }
                 this.m_windowLink.setDrawInfo( linkInfo );
-               // var desktopMap = this._repositionDesktop();
-                //this.m_mainContainer.add( this.m_windowLink/*, desktopMap*/ );
-                //Todo:: need to fix this.
-                this.getRoot().add( this.m_windowLink, {left:0, top:0, bottom:20, right:0});
+               
+                var topPos = this._getLinkTopOffset();
+                var bottomPos = this._getLinkBottomOffset();
+                this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
+            },
+            
+            /**
+             * Return the total height in pixels of display elements like a possible menu or toolbar
+             * bar at the top of the main window.
+             * @return {Number} an offset from the top of the window where the main
+             *          display begins.
+             */
+            _getLinkTopOffset : function(){
+                var topPos = 0;
+                var menuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+                if ( menuCmd.getValue() ){
+                    var menuBounds = this.m_menuBar.getBounds();
+                    var height = menuBounds.height;
+                    topPos = topPos + height;
+                }
+                var toolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
+                if ( toolCmd.getValue()){
+                    var toolBounds = this.m_toolBar.getBounds();
+                    var toolHeight = toolBounds.height;
+                    topPos = topPos + toolHeight;
+                }
+                return topPos;
+            },
+            
+            /**
+             * Return the total height in pixels of display elements like a possible status
+             * bar at the bottom of the main window.
+             * @return {Number} an offset from the bottom of the window where the main
+             *          display begins.
+             */
+            _getLinkBottomOffset : function(){
+                var bottomPos = 0;
+                var statusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
+                if ( statusCmd.getValue()){
+                    var statusBounds = this.m_statusBar.getBounds();
+                    var height = statusBounds.height;
+                    bottomPos = bottomPos + height;
+                }
+                return bottomPos;
             },
             
             /**
@@ -360,6 +394,10 @@ qx.Class.define( "skel.Application",
                 this._setPopupWinProperties( win );
             },
             
+            /**
+             * Set uniform look and feel for a popup window.
+             * @param win {skel.widgets.Window.MoveResizeWindow}.
+             */
             _setPopupWinProperties : function( win ){
                 win.setWidth( 300 );
                 win.setHeight( 200 );
@@ -385,7 +423,7 @@ qx.Class.define( "skel.Application",
              * Add an overlay showing where new windows can be added.
              */
             _showWindowLocator: function(){
-                var desktopMap = this._repositionDesktop();
+                //var desktopMap = this._repositionDesktop();
                 if( this.m_windowLocator === null ) {
                     this.m_windowLocator = new qx.ui.container.Composite();
                     this.m_windowLocator.setLayout( new qx.ui.layout.Basic() );
@@ -424,7 +462,8 @@ qx.Class.define( "skel.Application",
             m_windowLocator : null,
             m_windowLink    : null,
             m_fileBrowser   : null,
-            m_customizeMenuDialog : null
+            m_customizeMenuDialog : null,
+            m_sharedVarPreferences : null
         }
     } );
 
