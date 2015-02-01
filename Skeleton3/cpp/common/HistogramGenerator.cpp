@@ -46,9 +46,9 @@ QImage * HistogramGenerator::toImage(){
 
 void HistogramGenerator::setStyle( QString style ){
     if(style == "Outline")
-        m_histogram->setStyle(QwtPlotHistogram::Outline);
+        m_histogram->setStyle(QwtPlotHistogram::Columns);
     else if(style == "Line")
-        m_histogram->setStyle(QwtPlotHistogram::Lines);
+        m_histogram->setStyle(QwtPlotHistogram::Outline);
     else if(style == "Fill"){
         m_histogram->setStyle(QwtPlotHistogram::Outline);
         m_histogram->setBrush(QBrush(Qt::blue));

@@ -52,8 +52,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 return linkable;
             },
             
-          
-            
+            /**
+             * Toggle the visibility of histogram control settings.
+             */
+            toggleSettings : function(){
+                this.m_histogram.toggleSettings();
+            },
             
             /**
              * Implemented to initialize a context menu.

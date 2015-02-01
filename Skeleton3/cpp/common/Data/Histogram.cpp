@@ -98,7 +98,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<double>(CLIP_MAX, 1);
     m_state.insertValue<bool>(CLIP_APPLY, false );
     m_state.insertValue<int>(BIN_COUNT, 25 );
-    m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_OUTLINE);
+    m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
     m_state.insertValue<bool>(GRAPH_LOG_COUNT, false );
     m_state.insertValue<bool>(GRAPH_COLORED, true );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_SINGLE );
@@ -483,8 +483,9 @@ std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
     for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
         images = controller.get()->getDataSources();
-        int imageCount = images.size();
+	int imageCount = images.size();
         for( int j = 0; j < imageCount; j++){
+
             result.push_back(images[j]);
         }
     }
@@ -505,27 +506,32 @@ void Histogram::_generateHistogram(){
     // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
 
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSource = _generateData();
-    
-    auto result = Globals::instance()-> pluginManager()
+
+    if(dataSource.size()>=1){
+        auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSource, binCount,
                             minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
-    auto lam = [=] ( const Carta::Lib::Hooks::HistogramHook::ResultType &data ) {
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramHook::ResultType &data ) {
 
-            HistogramGenerator * histogram = new HistogramGenerator();
-            histogram->setStyle(style);
-            histogram->setData(data);
-            QImage * histogramImage = histogram->toImage();
-            m_view->resetImage(*histogramImage);
-            refreshView(m_view.get());
-        };
-    try {
-        result.forEach( lam );
+                HistogramGenerator * histogram = new HistogramGenerator();
+                histogram->setStyle(style);
+                histogram->setData(data);
+                QImage * histogramImage = histogram->toImage();
+                m_view->resetImage(*histogramImage);
+                refreshView(m_view.get());
+            };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
+            hr->registerError( errorStr );
+        }
+
     }
-    catch( char*& error ){
-        QString errorStr( error );
-        ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
-        hr->registerError( errorStr );
-    }
+        
+    
 }
 
 bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
