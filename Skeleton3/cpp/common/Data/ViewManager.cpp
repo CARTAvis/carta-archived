@@ -481,7 +481,7 @@ void ViewManager::setCustomView( int rows, int cols ){
     _makeController();
 
     //Add the links to establish reasonable defaults.
-    m_animators[0]->addController( m_controllers[0]);
+    m_animators[0]->addLink( m_controllers[0]);
 }
 
 void ViewManager::setImageView(){
