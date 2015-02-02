@@ -108,7 +108,7 @@ class Application:
         print "Saving screenshot as " + fileName
 
 def start(
-        executable = "/home/jeff/scratch/build/2015-01-29/cpp/desktop/desktop", 
+        executable = "/home/jeff/scratch/build/2015-02-01/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
         port = 9999, 
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 

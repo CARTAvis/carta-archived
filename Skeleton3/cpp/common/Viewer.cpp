@@ -25,6 +25,9 @@
 #include <iostream>
 #include <limits>
 
+#include <rapidjson/document.h>
+
+using namespace rapidjson;
 
 Viewer::Viewer() :
     QObject( nullptr ),
@@ -99,7 +102,14 @@ Viewer::scriptedCommandCB( QString command )
 
     else if (args.size() == 1 && args[0].toLower() == "getfilelist") {
         QString fileList = m_scriptFacade->getFileList();
-        qDebug() << "(JT) Files: " << fileList;
+        Document fileListJson;
+        fileListJson.Parse(fileList.toStdString().c_str());
+        const Value& dir = fileListJson["dir"];
+        for (rapidjson::SizeType i = 0; i < dir.Size(); i++)
+        {
+            const Value& name = dir[i];
+            printf("%s \n", name["name"].GetString());
+        }        
     }
 
     else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {
