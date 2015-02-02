@@ -60,8 +60,11 @@ class Application:
     def kill(self):
         self.popen.kill()
 
-    def getColorMaps(self):
-        self.socket.sendall("getColorMaps" + "\n")
+    def quit(self):
+        self.kill()
+
+    def getColorMaps(self, substring=""):
+        self.socket.sendall("getColorMaps " + substring + "\n")
 
     def getFileList(self):
         self.socket.sendall("getFileList" + "\n")

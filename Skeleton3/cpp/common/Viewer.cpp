@@ -126,14 +126,20 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setImageLayout();
     }
 
-    else if (args.size() == 1 && args[0].toLower() == "getcolormaps") {
+    else if (args[0].toLower() == "getcolormaps") {
+        QString substring = "";
+        if (args.size() > 1) {
+            substring = args[1];
+        }
         QStringList colormaps = m_scriptFacade->getColorMaps();
+        if (substring != "") {
+            colormaps = colormaps.filter(substring, Qt::CaseInsensitive);
+        }
         for (int i = 0; i < colormaps.size(); ++i) {
             cout << colormaps.at(i).toLocal8Bit().constData() << endl;
         }
-        //qDebug() << "(JT) Colormaps: " << colormaps;
     }
-
+    
     else if ( args.size() == 1 && args[0].toLower() == "quit" ) {
         qDebug() << "Quitting...";
         MyQApp::exit();
