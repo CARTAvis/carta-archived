@@ -60,6 +60,21 @@ computeClips(
     return std::make_tuple( clip1, clip2 );
 } // computeClips
 
+/// algorithm for finding quantile from pixel value
+template < typename Scalar >
+static
+double pixel2quantile ( NdArray::TypedView < Scalar > & view, Scalar pixel)
+{
+    u_int64_t totalCount = 0;
+    u_int64_t countBelow = 0;
+    view.forEach([&](const Scalar & val) {
+        if( Q_UNLIKELY( std::isnan(val))) return;
+        totalCount ++;
+        if( val <= pixel) countBelow++;
+    });
+    return double(countBelow) / totalCount;
+}
+
 /// algorithm for converting an instance of image interface to qimage
 class RawView2QImageConverter
 {

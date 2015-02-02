@@ -197,7 +197,7 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
     if( CARTA_RUNTIME_CHECKS) {
         auto iter = m_stateCallbackList.find( key);
         if( iter == m_stateCallbackList.end()) {
-            qWarning() << "No server callback for JavaScript" << key << "=" << value;
+            qWarning() << "JS setState has no listener" << key << "=" << value;
         }
     }
 }

@@ -96,7 +96,7 @@ struct Input
 /// Implementation of the rendering service
 /// \warning this object could potentially live it a separate thread, so make all connections
 /// to it as explicitly queued
-///
+/// \todo start refactoring the pure API of this to ready this for plugins...
 class Service : public QObject
 {
     CLASS_BOILERPLATE( Service );
@@ -136,8 +136,10 @@ public:
     void
     setPan( QPointF pt )
     {
-        Q_UNUSED( pt );
-        Q_UNIMPLEMENTED();
+        if( pt != m_pan) {
+            m_pan = pt;
+            // invalidate caches
+        }
     }
 
     /// specify zoom
@@ -145,11 +147,19 @@ public:
     void
     setZoom( double zoom )
     {
-        Q_UNUSED( zoom );
-        Q_UNIMPLEMENTED();
+        double newZoom = clamp( zoom, 0.1, 16.0 );
+        if( newZoom != m_zoom) {
+            m_zoom = newZoom;
+            // \todo invalide individual caches
+        }
     }
 
-    Nullable < double > pixelZoom;
+    /// return current zoom
+    double
+    zoom()
+    {
+        return m_zoom;
+    }
 
     ///
     /// \brief sets the pixel pipeline (non-cached) to be used to render the image
@@ -200,6 +210,18 @@ public:
 //    void
 //    scheduleJob( Input jobParams );
 
+    /// convert image coordinates to screen coordinates
+    /// \param p point to convert
+    /// \return translated point
+    ///
+    QPointF img2screen(const QPointF & p);
+
+    /// the inverse of img2screen()
+    /// \param p point to convert
+    /// \return translated point
+    ///
+    QPointF screen2img(const QPointF & p);
+
 protected slots:
 
     /// internal helper, this will execute in our own thread
@@ -223,13 +245,19 @@ signals:
 
 private:
 
+    // the following are rendering parameters
     NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
     QString m_inputViewCacheId;
     QSize m_outputSize;
-
-    /// here we store the whole frame rendered
-    QImage m_frameImage;
     IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw;
+    double m_zoom = 1.0;
+    QPointF m_pan = QPointF( 0, 0 );
+
+    /// here we store the whole frame rendered, it is essentially a cache to make
+    /// pan/zoom to work faster
+    QImage m_frameImage;
+
+    /// cache for individual frames (to make movie playing little bit faster)
 };
 }
 }

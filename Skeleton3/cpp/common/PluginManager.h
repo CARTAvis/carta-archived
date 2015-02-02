@@ -103,6 +103,9 @@ protected:
 
 class PluginManager
 {
+    CLASS_BOILERPLATE( PluginManager);
+    Q_DISABLE_COPY(PluginManager)
+
 public:
 
     /// this is what the plugin manager keeps about each plugin

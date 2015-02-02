@@ -6,55 +6,124 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
+#include "CartaLib/Hooks/ColormapsScalar.h"
+#include "PluginManager.h"
+#include "GrayColormap.h"
 #include <QObject>
+
+/// helper mixin for plugin manager setter/getter
+#define PM_MIXIN \
+public: \
+    inline void setPluginManager( PluginManager::SharedPtr pm ) { \
+        CARTA_ASSERT( ! m_pluginManager ); \
+        m_pluginManager = pm; \
+    } \
+    inline PluginManager::SharedPtr pluginManager() { \
+        CARTA_ASSERT( m_pluginManager ); \
+        return m_pluginManager; \
+    } \
+private: \
+    PluginManager::SharedPtr m_pluginManager = nullptr
 
 namespace Hacks
 {
 namespace Model
 {
+/// helper mixin for plugin manager setter/getter
+/// crtp experiment
+///
+template < class T >
+struct PMMix : public T {
+    void
+    setPluginManager( PluginManager::SharedPtr pm )
+    {
+        CARTA_ASSERT( ! m_pluginManager );
+        m_pluginManager = pm;
+    }
+
+    PluginManager::SharedPtr
+    pluginManager()
+    {
+        CARTA_ASSERT( m_pluginManager );
+        return m_pluginManager;
+    }
+
+protected:
+
+    PluginManager::SharedPtr m_pluginManager = nullptr;
+};
+
 /// container for all colormaps
 class KnownColormaps : public QObject
 {
-    Q_OBJECT
+    using IColormapNamed = Carta::Lib::PixelPipeline::IColormapNamed;
 
-    CLASS_BOILERPLATE( KnownColormaps);
+    Q_OBJECT
+    CLASS_BOILERPLATE( KnownColormaps );
+    Q_DISABLE_COPY( KnownColormaps )
 
 public:
 
-    KnownColormaps() { }
+    KnownColormaps( PluginManager::SharedPtr pm )
+    {
+        m_cmaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
+        auto hh =
+            pm-> prepare < Carta::Lib::Hooks::ColormapsScalarHook > ();
+
+        auto lam = [&] ( const Carta::Lib::Hooks::ColormapsScalarHook::ResultType & cmaps ) {
+            m_cmaps.insert( m_cmaps.end(), cmaps.begin(), cmaps.end() );
+        };
+        hh.forEach( lam );
+
+        qDebug() << "We have" << m_cmaps.size() << "colormaps:";
+        for ( auto & cmap : m_cmaps ) {
+            qDebug() << "    " << cmap-> name();
+        }
+    }
 
     virtual
     ~KnownColormaps() { }
 
-    // add a colormap
+ // add a colormap
     void
-    add( Carta::Lib::PixelPipeline::IColormap::SharedPtr cmap, QString name );
+    add( IColormapNamed::SharedPtr cmap )
+    {
+        m_cmaps.push_back( cmap );
+    }
 
-    int
-    count();
+    size_t
+    count()
+    {
+        return m_cmaps.size();
+    }
 
-    Carta::Lib::PixelPipeline::IColormap::SharedPtr
-    cmap( int ind );
-
-    QString
-    name( int ind );
+    IColormapNamed::ConstSharedPtr
+    cmap( int ind )
+    {
+        // \todo should we use const_pointer_cast<> ???
+        return m_cmaps[ind];
+    }
 
 signals:
 
     void
     updated();
+
+private:
+
+    std::vector < IColormapNamed::SharedPtr > m_cmaps;
 };
 
-class MainModel : public QObject
+class MainModel : public QObject // , public Model::PMMix < MainModel >
 {
     Q_OBJECT
-
     CLASS_BOILERPLATE( MainModel );
+    PM_MIXIN;
 
 public:
 
     explicit
-    MainModel( QObject * parent = 0 );
+    MainModel( PluginManager::SharedPtr pm, QObject * parent = 0 );
 
     ~MainModel();
 
@@ -72,22 +141,33 @@ private:
 };
 }
 
-class GlobalsH {
+// singleton - container of globals for hacks
+class GlobalsH // : public Model::PMMix < GlobalsH >
+{
+    Q_DISABLE_COPY( GlobalsH )
+    CLASS_BOILERPLATE( GlobalsH );
+    PM_MIXIN;
 
-    CLASS_BOILERPLATE( GlobalsH);
 public:
+
     /// singleton pattern
-    static GlobalsH * instance();
+    static GlobalsH &
+    instance();
 
     /// get the main model
-    Model::MainModel * mainModel();
+    Model::MainModel &
+    mainModel();
 
 private:
+
     static GlobalsH * m_instance;
-    std::unique_ptr<Model::MainModel> m_mainModel = nullptr;
+    Model::MainModel::SharedPtr m_mainModel = nullptr;
+
+    // private constructor
     GlobalsH();
 };
-
 }
+
+#undef PM_MIXIN
 
 Q_DECLARE_SMART_POINTER_METATYPE( std::shared_ptr )

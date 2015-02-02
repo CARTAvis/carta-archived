@@ -223,7 +223,7 @@ HackViewer::screen2img( QPointF p )
     res.rx() = xmap.apply( p.x() );
     res.ry() = ymap.apply( p.y() );
     return res;
-};
+}
 
 void
 HackViewer::start()
@@ -237,9 +237,12 @@ HackViewer::start()
 
     auto pm = globals.pluginManager();
 
-    // get all colormaps provided by core
+    // prepare a list of known colormaps
     {
+        // built-in colormaps first (we only have one)
         m_allColormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
+
+        // now ask plugins for colormaps
         auto hh =
             pm-> prepare < Carta::Lib::Hooks::ColormapsScalarHook > ();
 
@@ -487,10 +490,10 @@ HackViewer::start()
     // =================================================================================
 
     // initialize hack model
-    Hacks::GlobalsH::instance();
+    Hacks::GlobalsH::instance().setPluginManager( pm);
 
     // new experiment with asynchronous renderer
-    m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/newViews/7", "7" ) );
+    m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
     m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
 
     // invert toggle
@@ -556,7 +559,6 @@ HackViewer::scheduleFrameReload()
 
     // if reload is already pending, do nothing
     if ( m_reloadFrameQueued ) {
-        qDebug() << "XXX saved reload";
         return;
     }
     m_reloadFrameQueued = true;
@@ -609,11 +611,10 @@ HackViewer::scheduleFrameRepaint()
 
     // if reload is already pending, do nothing
     if ( m_repaintFrameQueued ) {
-        qDebug() << "XXX saved repaint";
         return;
     }
     else {
-        qDebug() << "Scheduling repaint";
+//        qDebug() << "Scheduling repaint";
     }
     m_repaintFrameQueued = true;
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
@@ -628,13 +629,6 @@ HackViewer::_repaintFrameNow()
     QPainter p( & m_testView2->getBufferRW() );
     double w = m_wholeImage.width();
     double h = m_wholeImage.height();
-
-//    double scx = m_testView2->size().width() / 2.0;
-//    double scy = m_testView2->size().height() / 2.0;
-//    QRectF rectf( scx - w / 2 * m_pixelZoom,
-//                  scy - h / 2 * m_pixelZoom,
-//                  w * m_pixelZoom,
-//                  h * m_pixelZoom );
 
     // figure out rectf according to pixelzoom, centerx and centery
     QPointF p1 = img2screen( QPointF( 0, 0 ) );

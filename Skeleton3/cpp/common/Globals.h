@@ -12,9 +12,10 @@
 
 #pragma once
 
+#include "PluginManager.h"
+
 class IConnector;
 class IPlatform;
-class PluginManager;
 namespace CmdLine { class ParsedInfo; }
 namespace MainConfig { class ParsedInfo; }
 
@@ -43,10 +44,10 @@ public:
     void setPlatform(IPlatform * platform);
 
     /// get the plugin manager
-    PluginManager * pluginManager();
+    PluginManager::SharedPtr pluginManager();
 
     /// set the plugin manager
-    void setPluginManager(PluginManager * pluginManager);
+    void setPluginManager(PluginManager::SharedPtr pluginManager);
 
     const CmdLine::ParsedInfo * cmdLineInfo() const;
     void setCmdLineInfo(const CmdLine::ParsedInfo * cmdLineInfo);
@@ -56,7 +57,8 @@ public:
 
 protected:
 
-    PluginManager * m_pluginManager = nullptr;
+//    PluginManager * m_pluginManager = nullptr;
+    PluginManager::SharedPtr m_pluginManager = nullptr;
     IPlatform * m_platform = nullptr;
     IConnector * m_connector = nullptr;
     const CmdLine::ParsedInfo * m_cmdLineInfo = nullptr;

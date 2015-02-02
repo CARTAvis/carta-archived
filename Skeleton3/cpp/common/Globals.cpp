@@ -11,32 +11,24 @@ Globals * Globals::m_instance = nullptr;
 
 IPlatform *Globals::platform()
 {
-//    Q_ASSERT( instance()-> m_platform != nullptr);
-//    return instance()-> m_platform;
     Q_ASSERT( m_platform );
     return m_platform;
 }
 
 void Globals::setPlatform(IPlatform *platform)
 {
-//    Q_ASSERT_X( instance()-> m_platform == nullptr, "Globals", "redefining platform");
-//    instance()-> m_platform = platform;
     Q_ASSERT_X( ! m_platform, "Globals", "redefining platform");
     m_platform = platform;
 }
 
-PluginManager *Globals::pluginManager()
+PluginManager::SharedPtr Globals::pluginManager()
 {
-//    Q_ASSERT( instance()-> m_pluginManager != nullptr);
-//    return instance()-> m_pluginManager;
     Q_ASSERT( m_pluginManager);
     return m_pluginManager;
 }
 
-void Globals::setPluginManager(PluginManager * pluginManager)
+void Globals::setPluginManager(PluginManager::SharedPtr pluginManager)
 {
-//    Q_ASSERT_X( instance()-> m_pluginManager == nullptr, "Globals", "redefining platform manager");
-//    instance()-> m_pluginManager = pluginManager;
     Q_ASSERT_X( ! m_pluginManager, "Globals", "redefining platform manager");
     m_pluginManager = pluginManager;
 }

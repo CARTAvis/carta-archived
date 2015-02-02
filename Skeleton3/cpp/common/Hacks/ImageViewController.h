@@ -62,6 +62,11 @@ private slots:
     void irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId);
 
 private:
+    /// when client changes zoom, this gets called
+    QString zoomCB(const QString &, const QString & params, const QString &);
+
+    /// when client changes pan, this gets called
+    QString panCB(const QString &, const QString & params, const QString &);
 
     /// this is the part of the state we use
     QString m_statePrefix;
@@ -86,7 +91,6 @@ private:
 
     /// the loaded astro image
     Image::ImageInterface::SharedPtr m_astroImage = nullptr;
-
 
 };
 }

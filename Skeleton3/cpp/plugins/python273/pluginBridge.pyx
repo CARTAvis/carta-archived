@@ -52,7 +52,6 @@ class Modd(object):
         except:
             print("Failed to load mod")
 
-        print("herexxx")
         return
 
     def getId(self):

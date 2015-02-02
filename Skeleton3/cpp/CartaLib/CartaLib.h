@@ -47,7 +47,8 @@ namespace Scripted
 public: \
     typedef className Me; \
     typedef std::unique_ptr < Me > UniquePtr; \
-    typedef std::shared_ptr < Me > SharedPtr
+    typedef std::shared_ptr < Me > SharedPtr; \
+    typedef std::shared_ptr < const Me > ConstSharedPtr
 
 namespace Carta
 {

@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
 
     // initialize plugin manager
     // =========================
-    globals.setPluginManager( new PluginManager );
+    globals.setPluginManager( std::make_shared<PluginManager>() );
     auto pm = globals.pluginManager();
     // tell plugin manager where to find plugins
     pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories() );
