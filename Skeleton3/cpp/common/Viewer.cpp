@@ -128,7 +128,10 @@ Viewer::scriptedCommandCB( QString command )
 
     else if (args.size() == 1 && args[0].toLower() == "getcolormaps") {
         QStringList colormaps = m_scriptFacade->getColorMaps();
-        qDebug() << "(JT) Colormaps: " << colormaps;
+        for (int i = 0; i < colormaps.size(); ++i) {
+            cout << colormaps.at(i).toLocal8Bit().constData() << endl;
+        }
+        //qDebug() << "(JT) Colormaps: " << colormaps;
     }
 
     else if ( args.size() == 1 && args[0].toLower() == "quit" ) {
