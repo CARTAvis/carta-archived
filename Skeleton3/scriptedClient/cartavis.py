@@ -66,8 +66,8 @@ class Application:
     def getColorMaps(self, substring=""):
         self.socket.sendall("getColorMaps " + substring + "\n")
 
-    def getFileList(self):
-        self.socket.sendall("getFileList" + "\n")
+    def getFileList(self, substring=""):
+        self.socket.sendall("getFileList " + substring + "\n")
 
     def loadFile(self, fileName):
         self.socket.sendall("loadFile " + fileName + "\n")

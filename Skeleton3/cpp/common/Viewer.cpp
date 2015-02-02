@@ -100,15 +100,23 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setColorMap( colormapId, args[1]);
     }
 
-    else if (args.size() == 1 && args[0].toLower() == "getfilelist") {
+    else if (args[0].toLower() == "getfilelist") {
         QString fileList = m_scriptFacade->getFileList();
+        QString substring = "";
+        if (args.size() > 1) {
+            substring = args[1];
+            qDebug() << "substring: " << substring;
+        }
         Document fileListJson;
         fileListJson.Parse(fileList.toStdString().c_str());
         const Value& dir = fileListJson["dir"];
         for (rapidjson::SizeType i = 0; i < dir.Size(); i++)
         {
             const Value& name = dir[i];
-            printf("%s \n", name["name"].GetString());
+            QString filename = QString::fromStdString(name["name"].GetString());
+            if (filename.contains(substring, Qt::CaseInsensitive)) {
+                printf("%s \n", name["name"].GetString());
+            }
         }        
     }
 
