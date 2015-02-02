@@ -9,6 +9,7 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "Data/LinkableImpl.h"
+
 #include <QObject>
 
 namespace Image {
@@ -37,6 +38,8 @@ public:
      * Clear the state of the histogram.
      */
     void clear();
+
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
 
@@ -44,6 +47,10 @@ private slots:
     void  _generateHistogram();
 
 private:
+    NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
+    double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
+    bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
+
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
