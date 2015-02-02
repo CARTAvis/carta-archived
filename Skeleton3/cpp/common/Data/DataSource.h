@@ -11,8 +11,12 @@
 #include <QImage>
 #include <memory>
 
+namespace NdArray {
+    class RawViewInterface;
+}
+
 namespace Image {
-class ImageInterface;
+    class ImageInterface;
 }
 namespace Carta {
     namespace Core {
@@ -96,7 +100,18 @@ public:
      */
     int getDimensions() const;
 
+    /**
+     * Returns the underlying image.
+     */
     std::shared_ptr<Image::ImageInterface> getImage();
+
+    /**
+     * Returns the raw data as an array.
+     * @param channel the index of the channel needed.
+     * @return the raw data or nullptr if there is none.
+     */
+    NdArray::RawViewInterface *  getRawData( int channel ) const;
+
 
     QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
 

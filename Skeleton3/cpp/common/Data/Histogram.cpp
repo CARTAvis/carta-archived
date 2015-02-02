@@ -90,7 +90,66 @@ void Histogram::clear(){
     m_linkImpl->clear();
 }
 
+NdArray::RawViewInterface* Histogram::_findRawData( const QString& fileName, int frameIndex ) const {
+    NdArray::RawViewInterface * rawData = nullptr;
+    for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+        rawData = controller->getRawData( fileName, frameIndex);
+        if ( rawData != nullptr ){
+            break;
+        }
+    }
+    return rawData;
+}
 
+double Histogram::_getPercentile( const QString& fileName, int frameIndex, double intensity ) const {
+    double percentile = -1;
+    NdArray::RawViewInterface* rawData = _findRawData( fileName, frameIndex );
+    if ( rawData != nullptr ){
+        u_int64_t totalCount = 0;
+        u_int64_t countBelow = 0;
+        NdArray::TypedView<double> view( rawData, false );
+        view.forEach([&](const double& val) {
+            if( Q_UNLIKELY( std::isnan(val))){
+                return;
+            }
+            totalCount ++;
+            if( val <= intensity){
+                countBelow++;
+            }
+            return;
+        });
+
+        percentile = double(countBelow) / totalCount;
+    }
+    return percentile;
+}
+
+bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const {
+    bool intensityFound = false;
+    NdArray::RawViewInterface* rawData = _findRawData( fileName, frameIndex );
+    if ( rawData != nullptr ){
+        NdArray::TypedView<double> view( rawData, false );
+        // read in all values from the view into an array
+        // we need our own copy because we'll do quickselect on it...
+        std::vector < double > allValues;
+        view.forEach(
+            [& allValues] ( const double  val ) {
+                if ( std::isfinite( val ) ) {
+                    allValues.push_back( val );
+                }
+            }
+        );
+
+        // indicate bad clip if no finite numbers were found
+        if ( allValues.size() > 0 ) {
+            int locationIndex = allValues.size() * percentile - 1;
+            std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
+            *intensity = allValues[locationIndex];
+            intensityFound = true;
+        }
+    }
+    return intensityFound;
+}
 
 void Histogram::_initializeDefaultState(){
     m_state.insertValue<int>(CLIP_INDEX, 0 );
@@ -479,18 +538,15 @@ QString Histogram::_setClipToImage( const QString& params ){
 
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
-    std::vector<std::shared_ptr<Image::ImageInterface>> images;
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
     for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-        images = controller.get()->getDataSources();
-	int imageCount = images.size();
+        std::vector<std::shared_ptr<Image::ImageInterface>> images = controller->getDataSources();
+        int imageCount = images.size();
         for( int j = 0; j < imageCount; j++){
-
             result.push_back(images[j]);
         }
     }
     return result;
-
 }
 
 
@@ -530,8 +586,30 @@ void Histogram::_generateHistogram(){
         }
 
     }
-        
+
+    //Test code for percentage<->intensity conversions
+    /*double per1 = _getPercentile( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, 0 );
+    qDebug() << "per 0 = "<<per1;
+    double per2 = _getPercentile( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, .2 );
+    qDebug() << "per .2 = "<<per2;
+    double per3 = _getPercentile( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, .4 );
+    qDebug() << "per .4 = "<<per3;
+    double per4 = _getPercentile( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, .6 );
+    qDebug() << "per .6 = "<<per4;
     
+    double intensity = 0;
+    bool intensityFound = _getIntensity( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, .5, &intensity );
+    if ( intensityFound ){
+        qDebug() << "Intensity at 50%="<<intensity;
+    }
+    intensityFound = _getIntensity( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, .75, &intensity );
+    if ( intensityFound ){
+        qDebug() << "Intensity at 75%="<<intensity;
+    }
+    intensityFound = _getIntensity( "/scratch/Images/Orion.methanol.cbc.contsub.image.fits", 0, .9, &intensity );
+    if ( intensityFound ){
+        qDebug() << "Intensity at 90%="<<intensity;
+    }*/
 }
 
 bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
