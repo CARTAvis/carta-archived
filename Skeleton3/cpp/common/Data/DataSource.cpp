@@ -109,16 +109,23 @@ QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameInde
     return list;
 }
 
-QImage DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoClip*/, float clipValue){
-    QImage qimg;
+NdArray::RawViewInterface * DataSource::getRawData( int channel ) const {
+    NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         auto frameSlice = SliceND().next();
         for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
-            frameSlice.next().index( i == 2 ? frameIndex : 0);
+            frameSlice.next().index( i == 2 ? channel : 0);
         }
 
-        NdArray::RawViewInterface * frameView = m_image->getDataSlice( frameSlice);
+        rawData = m_image->getDataSlice( frameSlice);
+    }
+    return rawData;
+}
 
+QImage DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoClip*/, float clipValue){
+    QImage qimg;
+    NdArray::RawViewInterface * frameView = getRawData( frameIndex );
+    if ( frameView != nullptr ){
         m_rawView2QImageConverter-> setView( frameView );
         m_rawView2QImageConverter-> computeClips( clipValue );
         m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize);

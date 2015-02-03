@@ -44,13 +44,11 @@ public:
     QStringList getColorMaps() const;
 
     /**
-     * Establish a link between a color map and the object that will be using the color map
-     * to update its view.
-     * @param colorId the unique server side id of a color map.
-     * @param controlId the unique server side id of an object responsible for an image view.
-     * @return true if the link could be established; false otherwise.
+     * Establish a link between a source and destination.
+     * @param sourceId the unique server side id of the link source.
+     * @param destId the unique server side id of an object responsible for an image view.
      */
-    bool linkColorView( const QString& colorId, const QString& controlId );
+    void linkAdd( const QString& sourceId, const QString& destId );
 
     /**
      * Load a file into an image view.

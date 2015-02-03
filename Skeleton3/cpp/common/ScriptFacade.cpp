@@ -34,8 +34,8 @@ QString ScriptFacade::getImageViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, index );
 }
 
-bool ScriptFacade::linkColorView( const QString& colorId, const QString& controlId ){
-    return m_viewManager->linkColoredView( colorId, controlId );
+void ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
+    m_viewManager->linkAdd( sourceId, destId );
 }
 
 void ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){

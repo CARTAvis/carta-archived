@@ -16,6 +16,9 @@
 class ImageView;
 class CoordinateFormatterInterface;
 
+namespace NdArray {
+    class RawViewInterface;
+}
 
 namespace Carta {
 
@@ -43,6 +46,14 @@ public:
      *        this could represent a url or an absolute path on a local filesystem.
      */
     void addData(const QString& fileName);
+
+    /**
+     * Returns the raw data.
+     * @param fileName a full path to the data.
+     * @param channel a channel frame specifying a subset of the data.
+     * @return the raw data if it exists; otherwise, a nullptr.
+     */
+    NdArray::RawViewInterface *  getRawData( const QString& fileName, int channel ) const;
 
     //IColoredView interface.
     virtual void colorMapChanged( const QString& colorMapName ) Q_DECL_OVERRIDE;

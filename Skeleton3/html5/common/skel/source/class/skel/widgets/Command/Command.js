@@ -24,6 +24,11 @@ qx.Class.define("skel.widgets.Command.Command", {
         this.m_menuVisible = true;
         this.m_toolBarVisible = false;
         this.m_connector = mImport("connector");
+       
+    },
+    
+    events : {
+      "cmdValueChanged" : "qx.event.type.Data"
     },
     
     statics : {
@@ -45,6 +50,19 @@ qx.Class.define("skel.widgets.Command.Command", {
          */
         doAction : function( valMap, objectIDs, undoCB ){
             console.log( "doAction not implemented for "+this.m_title);
+        },
+        
+        /**
+         * Returns this command if cmdName matches the name of this command or null
+         * if there is no match.
+         * @param cmdName {String} an identifier for a command.
+         */
+        getCommand : function( cmdName ){
+            var cmd = null;
+            if ( this.isMatch( cmdName )){
+                cmd = this;
+            }
+            return cmd;
         },
         
         /**
@@ -71,6 +89,16 @@ qx.Class.define("skel.widgets.Command.Command", {
         getType : function(){
             return "undefined";
         },
+        
+        /**
+         * Returns the current value of this command.
+         * @return {Object} the current command value.
+         */
+        getValue : function(){
+            return this.m_value;
+        },
+        
+       
         
         /**
          * Returns true if this command has the given name.
@@ -132,7 +160,23 @@ qx.Class.define("skel.widgets.Command.Command", {
         sendCommand : function(  objectId, params, cbFunction ){
             if ( this.m_cmd !== null ){
                 var fullCmd = objectId + this.m_cmd;
+                if ( cbFunction === null ){
+                    cbFunction = function(){};
+                }
                 this.m_connector.sendCommand( fullCmd, params, cbFunction);
+            }
+        },
+        
+        /**
+         * Sets the current command value and notifies listeners that the value
+         * has changed.
+         * @param value {Object} the new command value.
+         */
+        setValue : function( value ){
+            if ( this.m_value != value ){
+                this.m_value = value;
+                var data = {value: this.m_value};
+                this.fireDataEvent( "cmdValueChanged", data );
             }
         },
         
@@ -175,7 +219,10 @@ qx.Class.define("skel.widgets.Command.Command", {
             }
         },
         
+       
+        
         m_connector : null,
+        m_value : null,
         m_cmd : null,
         m_title : null,
         m_menuVisible : null,

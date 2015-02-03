@@ -7,6 +7,9 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "Data/ILinkable.h"
+#include "Data/LinkableImpl.h"
+
 #include <QObject>
 
 namespace Image {
@@ -21,22 +24,22 @@ namespace Data {
 class Clips;
 class Controller;
 
-class Histogram : public QObject, public CartaObject {
+class Histogram : public QObject, public CartaObject, public ILinkable {
 
     Q_OBJECT
 
 public:
 
-    /**
-     * Adds a data source to the Histogram.
-     * @param controller a Controller containing data sources.
-     */
-    void addController( std::shared_ptr<Controller> controller);
+    //ILinkable
+    bool addLink( const std::shared_ptr<Controller> & controller) Q_DECL_OVERRIDE;
+    bool removeLink( const std::shared_ptr<Controller>& controller) Q_DECL_OVERRIDE;
 
     /**
      * Clear the state of the histogram.
      */
     void clear();
+
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
 
@@ -44,6 +47,10 @@ private slots:
     void  _generateHistogram();
 
 private:
+    NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
+    double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
+    bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
+
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
@@ -58,7 +65,6 @@ private:
     QString _set2DFootPrint( const QString& params );
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData();
     
-
     void _initializeDefaultState();
     void _initializeCallbacks();
 
@@ -97,9 +103,8 @@ private:
 
     static std::shared_ptr<Clips> m_clips;
 
-    //Data to be histogrammed
-    QList<std::shared_ptr<Controller> > m_coloredViews;
-
+    //Link management
+    std::unique_ptr<LinkableImpl> m_linkImpl;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

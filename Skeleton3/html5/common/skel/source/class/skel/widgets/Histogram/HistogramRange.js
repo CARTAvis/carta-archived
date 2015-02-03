@@ -303,7 +303,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         m_minClipText : null,
         m_percentMinClipText : null,
         m_percentMaxClipText : null,
-        m_applyImageClip : null,
+        m_applyImageClip : null
         // m_percentCombo : null
     }
 });

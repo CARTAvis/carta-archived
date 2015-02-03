@@ -27,33 +27,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
 
         members : {
             
-            /**
-             * Returns true if the link from the source window to the
-             * destination window was successfully added or removed; false
-             * otherwise.
-             * 
-             * @param sourceWinId {String} an identifier for the link source.
-             * @param destWinId {String} an identifier for the link
-             *                destination.
-             * @param addLink {boolean} true if the link should be added;
-             *                false if the link should be removed.
-             * @return {boolean} true if the link changed status; false, otherwise.
-             */
-            changeLink : function(sourceWinId, destWinId, addLink) {
-                var linkChanged = false;
-                if (destWinId == this.m_identifier) {
-                    linkChanged = true;
-                    var linkIndex = this.m_links.indexOf(sourceWinId);
-                    if (addLink && linkIndex < 0) {
-                        this.m_links.push(sourceWinId);
 
-                    } else if (!addLink && linkIndex >= 0) {
-                        this.m_links.splice(linkIndex, 1);
-                        this.m_content.removeAll();
-                    }
-                }
-                return linkChanged;
-            },
             
             /**
              * Returns plug-in context menu items that should be displayed
@@ -74,7 +48,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                 if (this.m_colormap === null ) {
                     this.m_colormap = new skel.widgets.Colormap.Colormap();
                     this.m_colormap.setId( this.m_identifier );
-                    this.m_content.add( this.m_colormap);
+                    this.m_content.add( this.m_colormap, {flex:1});
                 }
                 if ( this.m_showHistogram === null ){
                     this.m_showHistogram = new qx.ui.menu.CheckBox( "Show Histogram");
@@ -132,7 +106,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             isLinkable : function(pluginId) {
                 var linkable = false;
                 var path = skel.widgets.Path.getInstance();
-                if (pluginId == path.CASA_LOADER ) {
+                if (pluginId == path.HISTOGRAM_PLUGIN ) {
                     linkable = true;
                 } 
                 return linkable;
@@ -148,6 +122,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                         anObject.m_histogram.setId( id );
                     }
                 };
+            },
+            
+            /**
+             * Called when the window's setting's button has been toggled; subclasses
+             * should implement to show hide settings.
+             */
+            toggleSettings : function(){
+                this.m_colormap.layout();
             },
 
             

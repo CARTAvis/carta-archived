@@ -14,6 +14,7 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
      */
     construct : function(  ) {
         this.base(arguments);
+        this.m_connector = mImport("connector");
         this._init( );
     },
 
@@ -29,20 +30,37 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
             
-            var radioComposite = new qx.ui.container.Composite();
-            radioComposite.setLayout( new qx.ui.layout.HBox(2));
-            this.m_gammaRadio = new qx.ui.form.RadioButton( "Gamma");
-            this.m_logRadio = new qx.ui.form.RadioButton( "Logarithm");
-            
-            var modelRadio = new qx.ui.form.RadioGroup();
-            modelRadio.add( this.m_gammaRadio, this.m_logRadio );
-            
-            radioComposite._add( this.m_gammaRadio );
-            radioComposite._add( this.m_logRadio );
-            this._add(radioComposite);
+            this.m_gammaContainer = new qx.ui.groupbox.GroupBox("Gamma");
+            this.m_gammaContainer.setContentPadding( 0, 0, 0, 0 );
+            this.m_gammaContainer.setLayout( new qx.ui.layout.VBox(2));
             
             this.m_gammaGrid = new skel.widgets.Colormap.TwoDSlider();
-            this._add( this.m_gammaGrid, {flex:1} );
+            this.m_gammaGrid.addListener( "changeValue", function(evt){
+                var data = evt.getData();
+               this._sendScaledChangedCmd( data.x, data.y );
+            }, this );
+            this.m_gammaContainer.add( this.m_gammaGrid, {flex:1});
+            this._add( this.m_gammaContainer, {flex:1} );
+        },
+        
+        /**
+         * Notify the server that the scales have changed.
+         * @param scale1 {Number} the first gamma scale.
+         * @param scale2 {Number} the second gamma scale.
+         */
+        _sendScaledChangedCmd : function( scale1, scale2 ){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setScales";
+            var params = "scale1:"+scale1+",scale2:"+scale2;
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
+        
+        /**
+         * Set the gamma value from the server.
+         * @param value {Number} the gamma value.
+         */
+        setGamma : function( value ){
+            this.m_gammaContainer.setLegend( "Gamma: "+value );
         },
         
         /**
@@ -53,11 +71,16 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
             this.m_id = id;
         },
         
-
-        
         m_id : null,
-        m_gammaRadio : null,
+        m_connector : null,
         m_gammaGrid : null,
-        m_logRadio : null
+        m_gammaContainer : null
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

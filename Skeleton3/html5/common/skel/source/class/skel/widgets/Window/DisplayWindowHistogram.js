@@ -25,33 +25,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
 
         members : {
 
-            /**
-             * Returns true if the link from the source window to the
-             * destination window was successfully added or removed; false
-             * otherwise.
-             * 
-             * @param sourceWinId {String} an identifier for the link source.
-             * @param destWinId {String} an identifier for the link
-             *                destination.
-             * @param addLink {boolean} true if the link should be added;
-             *                false if the link should be removed.
-             * @return {boolean} true if the link changed status; false otherwise.
-             */
-            changeLink : function(sourceWinId, destWinId, addLink) {
-                var linkChanged = false;
-                if (destWinId == this.m_identifier) {
-                    linkChanged = true;
-                    var linkIndex = this.m_links.indexOf(sourceWinId);
-                    if (addLink && linkIndex < 0) {
-                        this.m_links.push(sourceWinId);
-
-                    } else if (!addLink && linkIndex >= 0) {
-                        this.m_links.splice(linkIndex, 1);
-                        this.m_content.removeAll();
-                    }
-                }
-                return linkChanged;
-            },
             
             /**
              * Display specific UI initialization.
@@ -59,7 +32,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             _initDisplaySpecific : function() {
                 if (this.m_histogram === null ) {
                     this.m_histogram = new skel.widgets.Histogram.Histogram();
-                    this.m_histogram.m_settingsVisible = false;
                     this.m_histogram.setHeight( 200 );
                     this.m_histogram.setWidth( 200 );
                     this.m_histogram.setId( this.m_identifier);
@@ -77,22 +49,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              */
             isLinkable : function(pluginId) {
                 var linkable = false;
-                var path = skel.widgets.Path.getInstance();
-                if (pluginId == path.CASA_LOADER ) {
-                    linkable = true;
-                } 
                 return linkable;
             },
             
+            /**
+             * Toggle the visibility of histogram control settings.
+             */
             toggleSettings : function(){
-                if(this.m_histogram.m_settingsVisible){
-                    this.m_histogram.m_settingsVisible = false;
-                    this.m_histogram.layoutControls();
-                }
-                else{
-                    this.m_histogram.m_settingsVisible = true;
-                    this.m_histogram.layoutControls();
-                }
+                this.m_histogram.toggleSettings();
             },
             
             /**

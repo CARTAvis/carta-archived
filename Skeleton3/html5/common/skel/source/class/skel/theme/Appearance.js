@@ -116,8 +116,8 @@ qx.Theme.define( "skel.theme.Appearance", {
 
                     padding        : 2,
                     margin         : [ 2, 2, 2, 2 ],
-                    backgroundColor: "dialogBackground",
-                    decorator      : "line-border"
+                    backgroundColor: "dialogBackground"/*,
+                    decorator      : "line-border"*/
 
                 };
             }

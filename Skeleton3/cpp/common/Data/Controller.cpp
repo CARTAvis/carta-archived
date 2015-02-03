@@ -10,6 +10,7 @@
 #include "Data/Animator.h"
 #include "Data/Util.h"
 #include "ImageView.h"
+#include "CartaLib/IImage.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QList>
@@ -118,6 +119,17 @@ void Controller::colorMapChanged( const QString& name ){
         data->setColorMap( name );
     }
     _loadView( true );
+}
+
+NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
+    NdArray::RawViewInterface * rawData = nullptr;
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        if ( data->contains( fileName )){
+            rawData = data->getRawData( channel );
+            break;
+        }
+    }
+    return rawData;
 }
 
 void Controller::setColorInverted( bool inverted ){

@@ -76,7 +76,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.Grow();
+            var widgetLayout = new qx.ui.layout.VBox();
             this._setLayout(widgetLayout);
             
             this.m_invertCheck = new qx.ui.form.CheckBox( "Invert");
@@ -96,10 +96,8 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 this.m_connector.sendCommand( cmd, params, this._errorReverseCB( this ));
             }, this );
             
-            
-            var mapComposite = new qx.ui.container.Composite();
-            mapComposite.setLayout(new qx.ui.layout.HBox(2));
-            var mapLabel = new qx.ui.basic.Label( "Map:");
+            var mapComposite = new qx.ui.groupbox.GroupBox( "Map");
+            mapComposite.setLayout(new qx.ui.layout.VBox(2));
             this.m_mapCombo = new qx.ui.form.ComboBox();
             this.m_mapCombo.addListener( "changeValue", function(e){
                 var mapName = e.getData();
@@ -109,14 +107,26 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 var params = "name:"+mapName;
                 this.m_connector.sendCommand( cmd, params, this._errorMapIndexCB( this ));
             },this);
-            mapComposite.add( new qx.ui.core.Spacer(50));
-            mapComposite.add( mapLabel );
-            mapComposite.add( this.m_mapCombo );
-            mapComposite.add( this.m_reverseCheck );
-            mapComposite.add( this.m_invertCheck );
-            mapComposite.add( new qx.ui.core.Spacer(50));
+            var mapLayout = new qx.ui.layout.HBox(2);
+            var comboComp = new qx.ui.container.Composite();
+            comboComp.setLayout( mapLayout );
+            comboComp.add( this.m_mapCombo );
+            
+            
+            var revComp = new qx.ui.container.Composite();
+            revComp.setLayout( new qx.ui.layout.HBox());
+            revComp.add( this.m_reverseCheck );
+            revComp.add( new qx.ui.core.Spacer(1), {flex:1});
+            mapComposite.add( revComp );
+            
+            var invertComp = new qx.ui.container.Composite();
+            invertComp.setLayout( new qx.ui.layout.HBox());
+            invertComp.add( this.m_invertCheck );
+            invertComp.add( new qx.ui.core.Spacer(1), {flex:1});
+            mapComposite.add( invertComp );
+            
+            mapComposite.add( comboComp );
             this._add( mapComposite );
-           
         },
         
         /**
@@ -214,5 +224,12 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         m_sharedVarMaps : null
        
 
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });
