@@ -86,6 +86,9 @@ private:
     const static QString FOOT_PRINT_IMAGE;
     const static QString FOOT_PRINT_REGION;
     const static QString FOOT_PRINT_REGION_ALL;
+    const static QString CLIP_MIN_PERCENT;
+    const static QString CLIP_MAX_PERCENT;
+    
     Histogram( const QString& path, const QString& id );
     class Factory;
 

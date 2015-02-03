@@ -40,6 +40,8 @@ const QString Histogram::FOOT_PRINT = "twoDFootPrint";
 const QString Histogram::FOOT_PRINT_IMAGE = "Image";
 const QString Histogram::FOOT_PRINT_REGION = "Selected Region";
 const QString Histogram::FOOT_PRINT_REGION_ALL = "All Regions";
+const QString Histogram::CLIP_MIN_PERCENT = "clipMinPercent";
+const QString Histogram::CLIP_MAX_PERCENT = "clipMaxPercent";
 
 std::shared_ptr<Clips>  Histogram::m_clips = nullptr;
 
@@ -100,6 +102,9 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<int>(PLANE_MIN, 0 );
     m_state.insertValue<int>(PLANE_MAX, 1 );
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
+    m_state.insertValue<double>(CLIP_MIN_PERCENT, 0);
+    m_state.insertValue<double>(CLIP_MAX_PERCENT, 0);
+    
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -125,7 +130,7 @@ void Histogram::_initializeCallbacks(){
                         const QString & params, const QString & /*sessionId*/) -> QString {
                 QString result = _setClipRange( params );
                 return result;
-            });
+        });
 
     addCommandCallback( "setClipToImage", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -201,7 +206,7 @@ QString Histogram::_setClipRange( const QString& params ){
     double oldMin = m_state.getValue<double>(CLIP_MIN);
     double oldMax = m_state.getValue<double>(CLIP_MAX);
     if ( validRangeMin && validRangeMax ){
-        if ( clipMin <= clipMax ){
+        if ( clipMin < clipMax ){
             bool changedState = false;
             if ( clipMin != oldMin){
                 m_state.setValue<double>(CLIP_MIN, clipMin );
@@ -228,6 +233,39 @@ QString Histogram::_setClipRange( const QString& params ){
     result = Util::commandPostProcess( result, origValues );
     return result;
 }
+
+QString Histogram::_setClipPercent( const QString& params ){
+    QString result;
+    std::set<QString> keys = {CLIP_MIN_PERCENT, CLIP_MAX_PERCENT};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString clipMinPercentStr = dataValues[CLIP_MIN_PERCENT];
+    QString clipMaxPercentStr = dataValues[CLIP_MAX_PERCENT];
+    bool validRangePercentMin = false;
+    double clipMinPercent = clipMinPercentStr.toDouble( &validRangePercentMin );
+    bool validRangePercentMax = false;
+    double clipMaxPercent = clipMaxPercentStr.toDouble( &validRangePercentMax );
+    double oldClipMinPercent = m_state.getValue<double>(CLIP_MIN_PERCENT);
+    double oldClipMaxPercent = m_state.getValue<double>(CLIP_MAX_PERCENT);
+    
+    if (validRangePercentMin && validRangePercentMax && clipMinPercent < clipMaxPercent){
+         if(oldClipMinPercent != clipMinPercent || oldClipMaxPercent != clipMaxPercent){
+            if(clipMinPercent > 0 && clipMinPercent < 100
+                && clipMaxPercent >0 && clipMaxPercent< 100){
+                m_state.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent );
+                m_state.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent );
+                m_state.flushState();
+                _generateHistogram();
+            }
+        }
+    }
+    else {
+        result = "Invalid clip params: "+params;
+    }
+    QString origValues = QString::number(oldClipMinPercent)+","+QString::number(oldClipMaxPercent);
+    result = Util::commandPostProcess( result, origValues);
+    return result;
+}
+
 
 QString Histogram::_setColored( const QString& params ){
     QString result;
@@ -389,7 +427,6 @@ QString Histogram::_setPlaneRange( const QString& params ){
             if ( changedState ){
                 m_state.flushState();
                 _generateHistogram();
-                //_generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
             }
         }
         else {
@@ -416,7 +453,6 @@ QString Histogram::_setGraphStyle( const QString& params ){
             m_state.setValue<QString>(GRAPH_STYLE, styleStr );
             m_state.flushState();
             _generateHistogram();
-            //_generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
         }
     }
     else {
@@ -426,32 +462,6 @@ QString Histogram::_setGraphStyle( const QString& params ){
     return result;
 }
 
-QString Histogram::_setClipPercent( const QString& params ){
-    QString result;
-    std::set<QString> keys = {"clipPercent"};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString clipStr = dataValues[*keys.begin()];
-    int oldClipIndex = m_state.getValue<int>(CLIP_INDEX);
-    if ( m_clips != nullptr ){
-       int index = m_clips->getIndex( clipStr );
-       if ( index >= 0 ){
-           if ( index != oldClipIndex ){
-              m_state.setValue<int>(CLIP_INDEX, index );
-              m_state.flushState();
-              //_generateHistogram("Orion.methanol","/scratch/Images/Orion.methanol.cbc.contsub.image.fits");
-                _generateHistogram();
-           }
-        }
-       else {
-           result = "Invalid clip percent: " + clipStr;
-       }
-    }
-    else {
-        result = "Invalid clip params: "+params;
-    }
-    result = Util::commandPostProcess( result, QString::number(oldClipIndex ));
-    return result;
-}
 
 QString Histogram::_setClipToImage( const QString& params ){
     QString result;
@@ -491,7 +501,6 @@ std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
     return result;
 
 }
-
 
 void Histogram::_generateHistogram(){
 

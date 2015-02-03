@@ -39,22 +39,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         bool histSuccess = false;
         Carta::Lib::Hooks::HistogramHook & hook
                             = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
-        // auto fname = hook.paramsPtr->fileName;
-        // m_cartaImage = Globals::instance()-> pluginManager()
-        //                                 -> prepare <Carta::Lib::Hooks::LoadAstroImage>( fname )
-        //                                 .first().val();
-
-
-        //CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
-        //if( ! ptr1) {
-        //    throw "not an image created by casaimageloader...";
-        //}
-
-        //if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
-            // casa::ImageInterface<casa::Float> * casaImage =
-            //         dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
-            // if (! casaImage) throw "Not a CasaImage.";
-
+        
             std::vector<std::shared_ptr<Image::ImageInterface>> images = hook.paramsPtr->dataSource;
             m_cartaImage = images.front();
 
@@ -73,27 +58,17 @@ bool Histogram1::handleHook( BaseHook & hookData ){
                 m_histogram.reset( hist );
                 hist->setImage( casaImage );
                 
-                
-                // hist->setImage( casaPtr );
-
-                //casa::ImageRegion * region;
-                //hist->setRegion(region);
-
                 auto count = hook.paramsPtr->binCount;
                 m_histogram->setBinCount( count );
-                // hist->setBinCount( count );
-
 
                 auto minChannel = hook.paramsPtr->minChannel;
                 auto maxChannel = hook.paramsPtr->maxChannel;
                 auto spectralIndex = hook.paramsPtr->spectralIndex;
                 m_histogram->setChannelRange(minChannel, maxChannel, spectralIndex);
-                // hist->setChannelRange(minChannel, maxChannel, spectralIndex);
 
                 auto minIntensity = hook.paramsPtr->minIntensity;
                 auto maxIntensity = hook.paramsPtr->maxIntensity;
                 m_histogram->setIntensityRange(minIntensity, maxIntensity);
-                // hist->setIntensityRange(minIntensity, maxIntensity);
 
             hook.result = _computeHistogram();
             if ( hook.result.size() > 0 ){
