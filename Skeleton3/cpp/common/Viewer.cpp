@@ -91,16 +91,18 @@ Viewer::scriptedCommandCB( QString command )
     if ( args.size() == 2 && args[0].toLower() == "loadfile" ) {
         qDebug() << "Trying to load" << args[1];
         QString controlId = m_scriptFacade->getImageViewId( 0 );
+        qDebug() << "controlId" << controlId;
         m_scriptFacade->loadFile( controlId, "/RootDirectory/" + args[1] );
     }
 
     else if (args.size() == 2 && args[0].toLower() == "setcolormap") {
         QString colormapId = m_scriptFacade->getColorMapId( 0 );
+        qDebug() << "colormapId" << colormapId;
         qDebug() << "Scripted client setting map to "<< args[1];
         m_scriptFacade->setColorMap( colormapId, args[1]);
     }
 
-    else if (args[0].toLower() == "getfilelist") {
+    else if (args.size() > 0 && args[0].toLower() == "getfilelist") {
         QString fileList = m_scriptFacade->getFileList();
         QString substring = "";
         if (args.size() > 1) {
@@ -134,7 +136,7 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setImageLayout();
     }
 
-    else if (args[0].toLower() == "getcolormaps") {
+    else if (args.size() > 0 && args[0].toLower() == "getcolormaps") {
         QString substring = "";
         if (args.size() > 1) {
             substring = args[1];
@@ -146,6 +148,15 @@ Viewer::scriptedCommandCB( QString command )
         for (int i = 0; i < colormaps.size(); ++i) {
             cout << colormaps.at(i).toLocal8Bit().constData() << endl;
         }
+    }
+
+    else if (args.size() > 0 && args[0].toLower() == "setplugins") {
+        QStringList names;
+        for (int i = 1; i < args.size(); i++) {
+            names << args[i];
+        }
+        qDebug() << "(JT) setplugins: names = " << names;
+        m_scriptFacade->setPlugins(names);
     }
     
     else if ( args.size() == 1 && args[0].toLower() == "quit" ) {

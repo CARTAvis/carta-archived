@@ -28,9 +28,11 @@ public:
     void setLayoutAnalysis();
 
     /**
-     * Set a custom layout - image an animator for now
+     * Set a custom layout.
      */
     void setLayoutCustom( int rows, int cols );
+
+    void setPlugins( const QStringList& names);
 
     /**
      * Set a predefined layout displaying only a single image.

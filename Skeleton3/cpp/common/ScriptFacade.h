@@ -69,7 +69,7 @@ public:
     void setAnalysisLayout();
 
     /**
-     * Set the layout to a predefined custom layout.
+     * Set the layout to a custom layout.
      */
     void setCustomLayout( int rows, int cols );
 
@@ -84,6 +84,8 @@ public:
      * @param colormapName the name of the color map.
      */
     void setColorMap( const QString& colormapId, const QString& colormapName );
+
+    void setPlugins( const QStringList& names );
 
     /*
      * Singleton accessor.

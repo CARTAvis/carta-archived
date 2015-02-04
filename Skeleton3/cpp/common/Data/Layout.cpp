@@ -113,9 +113,16 @@ void Layout::setLayoutImage(){
 }
 
 void Layout::setLayoutCustom( int rows, int cols ){
-    _setLayoutSize( rows, cols );
-    QStringList name = {Controller::PLUGIN_NAME, Animator::CLASS_NAME};
-    _setPlugin( name );
+    bool valid = false;
+    valid = _setLayoutSize( rows, cols );
+    int newRows = m_state.getValue<int>( LAYOUT_ROWS );
+    int newCols = m_state.getValue<int>( LAYOUT_COLS );
+}
+
+void Layout::setPlugins( const QStringList& names) {
+    int rows = m_state.getValue<int>( LAYOUT_ROWS );
+    int cols = m_state.getValue<int>( LAYOUT_COLS );
+    _setPlugin( names );
 }
 
 bool Layout::_setPlugin( const QStringList& names ){

@@ -65,3 +65,7 @@ void ScriptFacade::setColorMap( const QString& colormapId, const QString& colorm
 void ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
 }
+
+void ScriptFacade::setPlugins( const QStringList& names ) {
+    m_viewManager->setPlugins( names );
+}

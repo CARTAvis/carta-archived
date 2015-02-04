@@ -234,6 +234,9 @@ int ViewManager::_findAnimator( const QString& id ) const {
 
 
 QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
+    qDebug() << "(JT) ViewManager::linkAdd";
+    qDebug() << "sourceId = " << sourceId;
+    qDebug() << "destId = " << destId;
 
     int controlIndex = _findController( destId );
     QString result;
@@ -326,7 +329,6 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
 }
 
 void ViewManager::loadFile( const QString& controlId, const QString& fileName){
-    qDebug() << "(JT) ViewManager::loadFile(" << controlId << ", " << fileName << ")";
     int controlCount = m_controllers.size();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
@@ -477,11 +479,11 @@ void ViewManager::setCustomView( int rows, int cols ){
     m_layout->setLayoutCustom( rows, cols );
 
     //Create the view objects
-    _makeAnimator();
-    _makeController();
+//    _makeAnimator();
+//    _makeController();
 
     //Add the links to establish reasonable defaults.
-    m_animators[0]->addLink( m_controllers[0]);
+//    m_animators[0]->addLink( m_controllers[0]);
 }
 
 void ViewManager::setImageView(){
@@ -490,6 +492,14 @@ void ViewManager::setImageView(){
         _makeLayout();
     }
     m_layout->setLayoutImage();
+    _makeController();
+}
+
+void ViewManager::setPlugins( const QStringList& names ){
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setPlugins( names );
     _makeController();
 }
 

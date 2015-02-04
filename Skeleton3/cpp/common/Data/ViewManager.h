@@ -86,6 +86,8 @@ public:
      */
     void setImageView();
 
+    void setPlugins( const QStringList& names );
+
     static const QString CLASS_NAME;
 
 private:
