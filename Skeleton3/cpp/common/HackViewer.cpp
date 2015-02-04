@@ -494,8 +494,8 @@ HackViewer::start()
 
     // new experiment with asynchronous renderer
     m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
-//    m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
-    m_imageViewController-> loadImage( "/scratch/smallcube.fits" );
+    m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
+//    m_imageViewController-> loadImage( "/scratch/smallcube.fits" );
 
     // invert toggle
     addStateCallback(

@@ -190,8 +190,9 @@ Service::screen2img( const QPointF & p )
 void
 Service::internalRenderSlot( JobId jobId )
 {
-    /// \todo MAKE THIS BINARY (at least for floating points, to avoid precision issues
-    /// with printing...) !!!!!!!!!!!!!!!!!!!!!!!
+    auto d2hex = [] (double x) -> QString {
+        return QByteArray( (char *)(& x), sizeof(x)).toBase64();
+    };
 
     // cache id will be concatenation of:
     // view id
@@ -200,14 +201,16 @@ Service::internalRenderSlot( JobId jobId )
     // pan
     // zoom
     // pixel pipeline cache settings
+    // Floats are binary-encoded (base64)
+
     QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7" )
                           .arg( m_inputViewCacheId )
                           .arg( m_pixelPipelineCacheId )
                           .arg( m_outputSize.width() )
                           .arg( m_outputSize.height() )
-                          .arg( m_pan.x() )
-                          .arg( m_pan.y() )
-                          .arg( m_zoom );
+                          .arg( d2hex(m_pan.x()))
+                          .arg( d2hex(m_pan.y()))
+                          .arg( d2hex(m_zoom));
 
     if ( m_pixelPipelineCacheSettings.enabled ) {
         cacheId += QString( "/1/%1/%2" )
@@ -217,13 +220,15 @@ Service::internalRenderSlot( JobId jobId )
     else {
         cacheId += "/0";
     }
+
     qDebug() << "internalRenderSlot... cache size: "
              << m_frameCache.totalCost() * 100.0 / m_frameCache.maxCost() << "% "
              << m_frameCache.size() << "entries";
     qDebug() << "id:" << cacheId;
     struct Scope {
         ~Scope() { qDebug() << "internalRenderSlot done"; } }
-    scopeGuard;
+    debugScopeGuard;
+
 
     auto cachedImage = m_frameCache.object( cacheId );
     if ( cachedImage ) {

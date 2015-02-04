@@ -150,12 +150,16 @@ public:
     }
 
     QString cacheId() {
+        auto d2hex = [] (double x) -> QString {
+            return QByteArray( (char *)(& x), sizeof(x)).toBase64();
+        };
+
         return QString( "%1/%2/%3/%4/%5")
                 .arg( m_cmapName )
                 .arg( m_invertFlag)
                 .arg( m_reverseFlag)
-                .arg( m_clipMin)
-                .arg( m_clipMax);
+                .arg( d2hex(m_clipMin))
+                .arg( d2hex(m_clipMax));
     }
 
 private:
