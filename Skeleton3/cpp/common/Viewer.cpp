@@ -95,10 +95,26 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->loadFile( controlId, "/RootDirectory/" + args[1] );
     }
 
+    else if (args.size() > 0 && args[0].toLower() == "getcolormapid") {
+        int index = -1;
+        if (args.size() > 1) {
+            index = args[1].toInt();
+        }
+        QString colormapId = m_scriptFacade->getColorMapId( index );
+        cout << qPrintable(colormapId) << endl;
+    }
+
+    else if (args.size() > 0 && args[0].toLower() == "getimageviewid") {
+        int index = -1;
+        if (args.size() > 1) {
+            index = args[1].toInt();
+        }
+        QString imageViewId = m_scriptFacade->getImageViewId( index );
+        cout << qPrintable(imageViewId) << endl;
+    }
+
     else if (args.size() == 2 && args[0].toLower() == "setcolormap") {
         QString colormapId = m_scriptFacade->getColorMapId( 0 );
-        qDebug() << "colormapId" << colormapId;
-        qDebug() << "Scripted client setting map to "<< args[1];
         m_scriptFacade->setColorMap( colormapId, args[1]);
     }
 

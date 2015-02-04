@@ -72,6 +72,12 @@ class Application:
     def loadFile(self, fileName):
         self.socket.sendall("loadFile " + fileName + "\n")
 
+    def getColorMapId(self, index=-1):
+        self.socket.sendall("getColorMapId " + str(index) + "\n")
+
+    def getImageViewId(self, index=-1):
+        self.socket.sendall("getImageViewId " + str(index) + "\n")
+
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
 
