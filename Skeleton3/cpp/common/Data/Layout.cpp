@@ -115,8 +115,6 @@ void Layout::setLayoutImage(){
 void Layout::setLayoutCustom( int rows, int cols ){
     bool valid = false;
     valid = _setLayoutSize( rows, cols );
-    int newRows = m_state.getValue<int>( LAYOUT_ROWS );
-    int newCols = m_state.getValue<int>( LAYOUT_COLS );
 }
 
 void Layout::setPlugins( const QStringList& names) {

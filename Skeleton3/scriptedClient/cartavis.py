@@ -83,7 +83,11 @@ class Application:
         self.socket.sendall("setImageLayout" + "\n")
 
     def setColorMap(self, colormap):
-        self.socket.sendall("setColorMap " + colormap)
+        self.socket.sendall("setColorMap " + colormap + "\n")
+
+    def setPlugins(self, pluginList):
+        pluginString = ' '.join(pluginList)
+        self.socket.sendall("setPlugins " + pluginString + "\n")
 
 # Commands below this point are possibly broken or just not implemented yet.
 
