@@ -15,7 +15,7 @@
 /// \param pipe
 /// \param m_qImage
 template < class Pipeline >
-void
+static void
 rawView2QImage2( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
     qDebug() << "rv2qi2" << rawView-> dims();
@@ -66,6 +66,83 @@ namespace Core
 {
 namespace ImageRenderService
 {
+void
+Service::setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId )
+{
+    m_inputView = view;
+    m_inputViewCacheId = cacheId;
+    m_frameImage = QImage(); // indicate a need to recompute
+}
+
+void
+Service::setOutputSize( QSize size )
+{
+    m_outputSize = size;
+}
+
+void
+Service::setPan( QPointF pt )
+{
+    if ( pt != m_pan ) {
+        m_pan = pt;
+    }
+}
+
+void
+Service::setZoom( double zoom )
+{
+    double newZoom = clamp( zoom, 0.1, 64.0 );
+    if ( newZoom != m_zoom ) {
+        m_zoom = newZoom;
+    }
+}
+
+double
+Service::zoom()
+{
+    return m_zoom;
+}
+
+void
+Service::setPixelPipeline( IClippedPixelPipeline::SharedPtr pixelPipeline,
+                           QString cacheId = QString() )
+{
+    m_pixelPipelineRaw = pixelPipeline;
+    m_pixelPipelineCacheId = cacheId;
+
+    // invalidate frame cache
+    m_frameImage = QImage();
+
+    // invalidate pixel pipeline cache
+    m_cachedPP = nullptr;
+    m_cachedPPinterp = nullptr;
+}
+
+void
+Service::setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & params )
+{
+    m_pixelPipelineCacheSettings = params;
+
+    // invalidate frame cache
+    m_frameImage = QImage();
+
+    // invalidate pixel pipeline cache
+    m_cachedPP = nullptr;
+    m_cachedPPinterp = nullptr;
+}
+
+const PixelPipelineCacheSettings &
+Service::pixelPipelineCacheSettings() const
+{
+    return m_pixelPipelineCacheSettings;
+}
+
+void
+Service::render( JobId jobId )
+{
+    emit internalRenderSignal( jobId );
+}
+
 Service::Service( QObject * parent ) : QObject( parent )
 {
     // hook up the internal schedule helper signal to the scheduleJob slot, using
@@ -73,7 +150,8 @@ Service::Service( QObject * parent ) : QObject( parent )
     auto conn = connect( this, & Service::internalRenderSignal,
                          this, & Service::internalRenderSlot,
                          Qt::QueuedConnection );
-    qDebug() << "ivc connect" << conn;
+
+    m_frameCache.setMaxCost( 1 * 1024 * 1024 * 1024); // 1 gig
 }
 
 Service::~Service()
@@ -112,44 +190,120 @@ Service::screen2img( const QPointF & p )
 void
 Service::internalRenderSlot( JobId jobId )
 {
+    /// \todo MAKE THIS BINARY (at least for floating points, to avoid precision issues
+    /// with printing...) !!!!!!!!!!!!!!!!!!!!!!!
+
+    // cache id will be concatenation of:
+    // view id
+    // pipeline id
+    // output size
+    // pan
+    // zoom
+    // pixel pipeline cache settings
+    QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7" )
+                          .arg( m_inputViewCacheId )
+                          .arg( m_pixelPipelineCacheId )
+                          .arg( m_outputSize.width() )
+                          .arg( m_outputSize.height() )
+                          .arg( m_pan.x() )
+                          .arg( m_pan.y() )
+                          .arg( m_zoom );
+
+    if ( m_pixelPipelineCacheSettings.enabled ) {
+        cacheId += QString( "/1/%1/%2" )
+                   .arg( int(m_pixelPipelineCacheSettings.interpolated))
+                   .arg( m_pixelPipelineCacheSettings.size);
+    }
+    else {
+        cacheId += "/0";
+    }
+    qDebug() << "internalRenderSlot... cache size: "
+             << m_frameCache.totalCost() * 100.0 / m_frameCache.maxCost() << "% "
+             << m_frameCache.size() << "entries";
+    qDebug() << "id:" << cacheId;
+    struct Scope {
+        ~Scope() { qDebug() << "internalRenderSlot done"; } }
+    scopeGuard;
+
+    auto cachedImage = m_frameCache.object( cacheId );
+    if ( cachedImage ) {
+        qDebug() << "frame cache hit";
+        emit done( * cachedImage, jobId );
+        return;
+    }
+    qDebug() << "frame cache miss";
+
     if ( ! m_inputView ) {
         qCritical() << "input view not set";
         return;
     }
 
-    static int counter = 0;
-    counter++;
+    if ( ! m_pixelPipelineRaw ) {
+        qCritical() << "pixel pipeline not set";
+        return;
+    }
+
+    double clipMin, clipMax;
+    m_pixelPipelineRaw-> getClips( clipMin, clipMax );
 
     // render the frame if needed
     if ( m_frameImage.isNull() ) {
-        if ( m_pixelPipelineRaw ) {
-            Lib::PixelPipeline::CachedPipeline < true > cachedPixPipe;
-            double clipMin, clipMax;
-            m_pixelPipelineRaw-> getClips( clipMin, clipMax );
-            cachedPixPipe.cache( * m_pixelPipelineRaw, 1000, clipMin, clipMax );
-
-            ::rawView2QImage2( m_inputView.get(), cachedPixPipe, m_frameImage );
+        if ( pixelPipelineCacheSettings().enabled ) {
+            if ( pixelPipelineCacheSettings().interpolated ) {
+                if ( ! m_cachedPPinterp ) {
+                    m_cachedPPinterp.reset( new Lib::PixelPipeline::CachedPipeline < true > () );
+                    m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
+                                              pixelPipelineCacheSettings().size, clipMin, clipMax );
+                }
+                ::rawView2QImage2( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
+            }
+            else {
+                if ( ! m_cachedPP ) {
+                    m_cachedPP.reset( new Lib::PixelPipeline::CachedPipeline < false > () );
+                    m_cachedPP-> cache( * m_pixelPipelineRaw,
+                                        pixelPipelineCacheSettings().size, clipMin, clipMax );
+                }
+                ::rawView2QImage2( m_inputView.get(), * m_cachedPP, m_frameImage );
+            }
+        }
+        else {
+            ::rawView2QImage2( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
         }
     }
-    if ( m_outputSize.isEmpty() ) {
-        qWarning() << "output size empty";
-        m_outputSize = QSize( 10, 10 );
-    }
 
-    // figure out destination rectangle for drawing the frame from zoom and pan
+    // prepare output
+    QImage img( m_outputSize, QImage::Format_ARGB32 );
+    img.fill( QColor( "blue" ) );
+    QPainter p( & img );
+
+    // draw the frame image to satisfy zoom/pan
     QPointF p1 = img2screen( QPointF( 0, 0 ) );
     QPointF p2 = img2screen( QPointF( m_frameImage.width(), m_frameImage.height() ) );
     QRectF rectf( p1, p2 );
-
-    QImage img( m_outputSize, QImage::Format_ARGB32 );
-    img.fill( QColor( "red" ) );
-    QPainter p( & img );
-
-//    p.drawImage( 0, 0, m_frameImage);
     p.drawImage( rectf, m_frameImage );
-    p.setPen( QColor( "yellow" ) );
-    p.drawText( img.rect(), Qt::AlignCenter, QString::number( counter ) );
-    emit done( img, jobId );
+
+    // debug code: redraw counter
+//    if ( CARTA_RUNTIME_CHECKS ) {
+//        static int counter = 0;
+//        counter++;
+//        p.setPen( QColor( "yellow" ) );
+//        p.drawText( img.rect(), Qt::AlignCenter, QString::number( counter ) );
+//    }
+
+    // report result
+    emit done( QImage(img), jobId );
+
+//    stamp the image about to be inserted with
+    if ( CARTA_RUNTIME_CHECKS ) {
+        static int counter = 0;
+        counter++;
+        p.setPen( QColor( "yellow" ) );
+        p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
+    }
+
+    // insert this image into frame cache
+    qDebug() << "byteCount=" << img.byteCount();
+    m_frameCache.insert( cacheId, new QImage( img ), img.byteCount());
 } // internalRenderSlot
 }
 }

@@ -228,7 +228,7 @@ typedef TypedView < uint8_t > Byte;
 typedef TypedView < int16_t > Int16;
 typedef TypedView < int32_t > Int32;
 typedef TypedView < int64_t > Int64;
-} // namespace NDArrayView
+} // namespace NDArray
 
 namespace Image
 {
@@ -244,6 +244,7 @@ class MetaDataInterface
     CLASS_BOILERPLATE( MetaDataInterface );
 
 public:
+
     /// \todo we can remove this once we put this class into carta namespace
     typedef Carta::Lib::TextFormat TextFormat;
 
@@ -285,6 +286,7 @@ class ImageInterface
     CLASS_BOILERPLATE(ImageInterface);
 
 public:
+
     /// similar to BITPIX
     typedef Image::PixelType    PixelType;
     typedef std::vector < int > VI;
@@ -410,15 +412,13 @@ test_apis()
 
     // iterate over all pixels
     double sum = 0.0;
-    doubleReader.forEach([& sum] ( const double & x ) { sum += x;
-                         }
-                         );
+    doubleReader.forEach([& sum] ( const double & x ) { sum += x; });
 
     // META DATA API tests:
     // ===========================
 
     // get info about axis 3
-    auto meta      = ii-> metaData();
+    auto meta = ii-> metaData();
     Carta::Lib::AxisInfo axis3 = meta-> coordinateFormatter()-> axisInfo( 3 );
     Q_UNUSED( axis3 );
 } // test_apis

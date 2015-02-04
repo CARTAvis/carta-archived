@@ -51,16 +51,38 @@ qx.Class.define("skel.hacks.Hacks", {
         win.open();
 
         // newer hack view
+        var newViewName = "IVC7";
         var win2 = new qx.ui.window.Window( "Hack view new" );
         win2.setWidth( 300 );
         win2.setHeight( 200 );
         win2.setShowMinimize( false );
         win2.setUseResizeFrame( false);
         win2.setContentPadding( 5, 5, 5, 5 );
-        win2.setLayout( new qx.ui.layout.Grow() );
-        win2.add( new skel.hacks.HackView( "IVC7"));
+        win2.setLayout( new qx.ui.layout.VBox(5) );
+        win2.add( new skel.hacks.HackView( newViewName), { flex: 1 });
         this.m_app.getRoot().add( win2, {left: 220, top: 420} );
         win2.open();
+
+        // mini movie player
+        var mp = {};
+        mp.prefix = "/hacks/views/" + newViewName;
+        mp.slider = new qx.ui.form.Slider();
+        mp.slider.set({minimum: 0, maximum: 10000, pageStep: 1000 });
+        win2.add( mp.slider);
+        mp.container = new qx.ui.container.Composite( new qx.ui.layout.HBox(5 ));
+        mp.container.getLayout().setAlignY( "middle");
+        mp.playButton = new skel.boundWidgets.Toggle( "Play", mp.prefix + "/playToggle");;
+        mp.container.add( mp.playButton);
+        mp.container.add( new qx.ui.basic.Label( "Delay:"));
+        mp.delayTF = new skel.boundWidgets.TextField( mp.prefix + "/delay");
+        mp.container.add( mp.delayTF);
+        mp.container.add( new skel.boundWidgets.Label( "Frame:", "", mp.prefix + "/frame"));
+        win2.add( mp.container);
+        mp.slider.addListener( "changeValue", function(mp, ev) {
+            var v = ev.getData() / mp.slider.getMaximum();
+            console.log( "slider->", mp.prefix, ev.getData(), v);
+            this.m_connector.sendCommand( mp.prefix + "/setFrame", v);
+        }.bind( this, mp));
 
         /*
                 var mmcb = function(ev) {

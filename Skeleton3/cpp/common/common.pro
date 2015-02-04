@@ -45,7 +45,8 @@ HEADERS += \
     HackViewer.h \
     ImageRenderService.h \
     Hacks/ImageViewController.h \
-    Hacks/MainModel.h
+    Hacks/MainModel.h \
+    Algorithms/quantileAlgorithms.h
 
 SOURCES += \
     Viewer.cpp \
@@ -80,7 +81,8 @@ SOURCES += \
     Algorithms/RawView2QImageConverter.cpp \
     ImageRenderService.cpp \
     Hacks/ImageViewController.cpp \
-    Hacks/MainModel.cpp
+    Hacks/MainModel.cpp \
+    Algorithms/quantileAlgorithms.cpp
 
 
 #message( "common            PWD=$$PWD")

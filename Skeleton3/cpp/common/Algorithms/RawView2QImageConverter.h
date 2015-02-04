@@ -7,10 +7,10 @@
 
 #include "CartaLib/IImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include "quantileAlgorithms.h"
 #include <QImage>
 #include <QCache>
 
-/// compute clip values from the values in a view
 template < typename Scalar >
 static
 typename std::tuple < Scalar, Scalar >
@@ -19,60 +19,11 @@ computeClips(
     double perc
     )
 {
-    qDebug() << "computeClips" << view.dims();
-    // read in all values from the view into an array
-    // we need our own copy because we'll do quickselect on it...
-    std::vector < Scalar > allValues;
-    view.forEach(
-        [& allValues] ( const Scalar & val ) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
-            }
-        }
-        );
-
-    // indicate bad clip if no finite numbers were found
-    if ( allValues.size() == 0 ) {
-        return std::make_tuple(
-                   std::numeric_limits < Scalar >::quiet_NaN(),
-                   std::numeric_limits < Scalar >::quiet_NaN() );
-    }
-    Scalar clip1, clip2;
-    Scalar hist = ( 1.0 - perc ) / 2.0;
-    int x1 = allValues.size() * hist;
-    std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-    clip1 = allValues[x1];
-    x1 = allValues.size() - 1 - x1;
-    std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-    clip2 = allValues[x1];
-
-    if ( 0 ) {
-        // debug
-        int64_t count = 0;
-        for ( auto & x : allValues ) {
-            if ( x >= clip1 && x <= clip2 ) {
-                count++;
-            }
-        }
-        qDebug() << "autoClip(" << perc << ")=" << count * 100.0 / allValues.size();
-    }
-
-    return std::make_tuple( clip1, clip2 );
-} // computeClips
-
-/// algorithm for finding quantile from pixel value
-template < typename Scalar >
-static
-double pixel2quantile ( NdArray::TypedView < Scalar > & view, Scalar pixel)
-{
-    u_int64_t totalCount = 0;
-    u_int64_t countBelow = 0;
-    view.forEach([&](const Scalar & val) {
-        if( Q_UNLIKELY( std::isnan(val))) return;
-        totalCount ++;
-        if( val <= pixel) countBelow++;
-    });
-    return double(countBelow) / totalCount;
+    qDebug() << "perc=" << perc;
+    perc = (1 - perc) / 2;
+    std::vector<Scalar> res = Carta::Core::Algorithms::quantiles2pixels(
+                                  view, { perc, 1 - perc});
+    return std::make_tuple( res[0], res[1]);
 }
 
 /// algorithm for converting an instance of image interface to qimage
@@ -253,7 +204,7 @@ public:
     ;
 
     Me &
-    setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
+    setColormap( Lib::PixelPipeline::IColormapNamed::SharedPtr colormap )
     ;
 
     QString getCmapPreview( int n = 10);

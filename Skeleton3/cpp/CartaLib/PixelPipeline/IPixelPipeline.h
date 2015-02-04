@@ -341,9 +341,9 @@ public:
         }
 
         // pre-cache some stuff
-        m_d = ( m_max - m_min ) / ( m_cache.size() - 1 );
-        m_dInvN1 = 1 / m_d;
         m_n1 = m_cache.size() - 1;
+        m_d = ( m_max - m_min ) / m_n1;
+        m_dInvN1 = 1 / m_d;
     }
 
     void
@@ -387,14 +387,21 @@ inline void CachedPipeline<true>::convert(double x, NormRgb & result) /*override
 {
     double dind = ( x - m_min ) * m_dInvN1;
 
+    if ( Q_UNLIKELY( dind < 0 ) ) {
+        result = m_cache[0];
+        return;
+    }
+
     double intpart;
     double frac = std::modf (dind , & intpart);
     int64_t ind = intpart;
 
-    if ( Q_UNLIKELY( ind < 0 ) ) {
-        result = m_cache[0];
-        return;
-    }
+//    qDebug() << "intpart = " << intpart << "frac=" << frac << "ind=" << ind;
+
+//    if ( Q_UNLIKELY( ind < 0 ) ) {
+//        result = m_cache[0];
+//        return;
+//    }
     if ( Q_UNLIKELY( ind >= m_n1 ) ) {
         result = m_cache.back();
         return;

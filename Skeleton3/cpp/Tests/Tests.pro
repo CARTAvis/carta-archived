@@ -9,7 +9,8 @@ SOURCES += \
     TopoSortTest.cpp \
     mainTester.cpp \
     SliceTester.cpp \
-    StateTester.cpp
+    StateTester.cpp \
+    pixelPipelineTest.cpp
 
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = catch.h

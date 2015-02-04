@@ -35,6 +35,7 @@
 #include <QImage>
 #include <QObject>
 #include <QStringList>
+#include <QCache>
 
 namespace Carta
 {
@@ -93,6 +94,16 @@ struct Input
 
 */
 
+/// pixel pipeline cache settings
+struct PixelPipelineCacheSettings {
+    /// size of the cache (in entries, must be >= 2
+    int size = 1000;
+    /// whether caching is enabled or not
+    bool enabled = true;
+    /// whether interpolation is enabled or not
+    bool interpolated = true;
+};
+
 /// Implementation of the rendering service
 /// \warning this object could potentially live it a separate thread, so make all connections
 /// to it as explicitly queued
@@ -113,76 +124,49 @@ public:
     /// caching will not be used)
     ///
     void
-    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString() )
-    {
-        m_inputView = view;
-        m_inputViewCacheId = cacheId;
-        m_frameImage = QImage(); // indicate a need to recompute
-    }
+    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString() );
 
     ///
     /// \brief set the desired output size of the image
     /// \param size the size to output
     ///
     void
-    setOutputSize( QSize size )
-    {
-        m_outputSize = size;
-    }
+    setOutputSize( QSize size );
 
     /// specifies coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
     /// (0,0), while (1,1) is it's right-top corner
     void
-    setPan( QPointF pt )
-    {
-        if( pt != m_pan) {
-            m_pan = pt;
-            // invalidate caches
-        }
-    }
+    setPan( QPointF pt );
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
     void
-    setZoom( double zoom )
-    {
-        double newZoom = clamp( zoom, 0.1, 16.0 );
-        if( newZoom != m_zoom) {
-            m_zoom = newZoom;
-            // \todo invalide individual caches
-        }
-    }
+    setZoom( double zoom );
 
     /// return current zoom
     double
-    zoom()
-    {
-        return m_zoom;
-    }
+    zoom();
 
-    ///
     /// \brief sets the pixel pipeline (non-cached) to be used to render the image
     /// \param pixelPipeline
     ///
     /// if pixel pipeline caching is enabled, the cache will be updated
-    ///
     void
-    setPixelPipeline( IClippedPixelPipeline::SharedPtr pixelPipeline )
-    {
-        m_pixelPipelineRaw = pixelPipeline;
-        m_frameImage = QImage(); // indicate a need to recompute
-    }
+    setPixelPipeline(IClippedPixelPipeline::SharedPtr pixelPipeline , QString cacheId);
+
+    /// set settings that control pixel pipeline cache
+    void setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & params);
+
+    /// get the current settings for pixel pipeline cache
+    const PixelPipelineCacheSettings & pixelPipelineCacheSettings() const;
 
     /// ask the service to render using the current settings and use the given
     /// jobId when notifying us of the results
     /// any previous rendering will most likely be canceled, unless the results
     /// have already been queued up for delivery
     void
-    render( JobId jobId )
-    {
-        emit internalRenderSignal( jobId );
-    }
+    render( JobId jobId );
 
     /// get the last used render parameters
 //    Input
@@ -204,11 +188,6 @@ public:
 
     /// destructor
     ~Service();
-
-    /// schedule a job on this service, multithreading safe
-    /// if previous job is not finished, it may be aborted
-//    void
-//    scheduleJob( Input jobParams );
 
     /// convert image coordinates to screen coordinates
     /// \param p point to convert
@@ -248,16 +227,26 @@ private:
     // the following are rendering parameters
     NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
     QString m_inputViewCacheId;
-    QSize m_outputSize;
+    QString m_pixelPipelineCacheId;
+    QSize m_outputSize = QSize(10,10);
+    /// instance of the pixel pipeline (very likely slow)
     IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw;
+    /// current zoom
     double m_zoom = 1.0;
+    /// current pan (coordinates of the image pixel that is to be centered on the screen)
     QPointF m_pan = QPointF( 0, 0 );
+
+    // cached pipelines
+    Lib::PixelPipeline::CachedPipeline<true>::UniquePtr m_cachedPPinterp = nullptr;
+    Lib::PixelPipeline::CachedPipeline<false>::UniquePtr m_cachedPP = nullptr;
+    PixelPipelineCacheSettings m_pixelPipelineCacheSettings;
 
     /// here we store the whole frame rendered, it is essentially a cache to make
     /// pan/zoom to work faster
     QImage m_frameImage;
 
     /// cache for individual frames (to make movie playing little bit faster)
+    QCache<QString,QImage> m_frameCache;
 };
 }
 }

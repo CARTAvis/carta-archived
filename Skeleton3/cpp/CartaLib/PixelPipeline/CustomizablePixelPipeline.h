@@ -104,18 +104,21 @@ public:
     void
     setInvert( bool flag )
     {
+        m_invertFlag = flag;
         m_invertible-> setInverted( flag );
     }
 
     void
     setReverse( bool flag )
     {
+        m_reverseFlag = flag;
         m_reversible-> setReversed( flag );
     }
 
     void
-    setColormap( IColormap::SharedPtr colormap )
+    setColormap( IColormapNamed::SharedPtr colormap )
     {
+        m_cmapName = colormap-> name();
         m_pipe-> setStage3( colormap );
     }
 
@@ -128,13 +131,13 @@ public:
     }
 
     virtual void
-    convert( double val, Carta::Lib::PixelPipeline::NormRgb & result )
+    convert( double val, Carta::Lib::PixelPipeline::NormRgb & result ) override
     {
         m_pipe-> convert( val, result );
     }
 
     virtual void
-    convertq( double val, QRgb & result )
+    convertq( double val, QRgb & result ) override
     {
         m_pipe-> convertq( val, result );
     }
@@ -146,12 +149,24 @@ public:
         max = m_clipMax;
     }
 
+    QString cacheId() {
+        return QString( "%1/%2/%3/%4/%5")
+                .arg( m_cmapName )
+                .arg( m_invertFlag)
+                .arg( m_reverseFlag)
+                .arg( m_clipMin)
+                .arg( m_clipMax);
+    }
+
 private:
 
     Composite::UniquePtr m_pipe;
     ReversableStage1::SharedPtr m_reversible;
     InvertibleStage4::SharedPtr m_invertible;
     double m_clipMin = 0, m_clipMax = 1;
+
+    QString m_cmapName;
+    bool m_invertFlag = false, m_reverseFlag = false;
 };
 }
 }

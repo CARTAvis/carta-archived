@@ -494,7 +494,8 @@ HackViewer::start()
 
     // new experiment with asynchronous renderer
     m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
-    m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
+//    m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
+    m_imageViewController-> loadImage( "/scratch/smallcube.fits" );
 
     // invert toggle
     addStateCallback(
@@ -526,6 +527,28 @@ HackViewer::start()
         }
         m_imageViewController-> setColormap( m_allColormaps[ind] );
     };
+
+    addStateCallback( pixelCachingOn, [this] ( CSR, CSR val ) {
+        auto set = m_imageViewController-> getPPCsettings();
+        set.enabled = val == "1";
+        m_imageViewController-> setPPCsettings( set);
+    });
+    addStateCallback( pixelCacheInterpolationOn, [this] ( CSR, CSR val ) {
+        auto set = m_imageViewController-> getPPCsettings();
+        set.interpolated = val == "1";
+        m_imageViewController-> setPPCsettings( set);
+    });
+    addStateCallback( pixelCacheSize, [ = ] ( CSR, CSR val ) {
+        auto set = m_imageViewController-> getPPCsettings();
+        bool ok;
+        int size = val.toInt( & ok );
+        if ( ! ok || size < 2 ) {
+            size = 2;
+        }
+        set.size = size;
+        m_imageViewController-> setPPCsettings( set);
+    });
+
 
     addStateCallback( "cm-current", colormapCB2 );
 

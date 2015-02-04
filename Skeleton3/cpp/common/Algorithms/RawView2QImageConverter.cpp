@@ -238,7 +238,7 @@ RawView2QImageConverter3::convert( QImage & img )
 } // convert
 
 RawView2QImageConverter3 &
-RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
+RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormapNamed::SharedPtr colormap )
 {
     CARTA_ASSERT( m_customPipeline );
     CARTA_ASSERT( colormap );
