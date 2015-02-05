@@ -40,8 +40,30 @@ QString ScriptFacade::getImageViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, index );
 }
 
-void ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
-    m_viewManager->linkAdd( sourceId, destId );
+QStringList ScriptFacade::getImageViews() {
+    qDebug() << "(JT) ScriptFacade::getImageViews()";
+    QStringList imageViewList;
+    int numControllers = m_viewManager->getControllerCount();
+    for (int i = 0; i < numControllers; i++) {
+        QString imageView = getImageViewId( i );
+        imageViewList << imageView;
+        qDebug() << "(JT) imageView =  " << imageView;
+    }
+//    int i = 0;
+//    QString imageView = getImageViewId( i );
+//    qDebug() << "(JT) imageView =  " << imageView;
+//    while (imageView != "") {
+//        imageViewList << imageView;
+//        i++;
+//        imageView = getImageViewId( i );
+//        qDebug() << "(JT) imageView =  " << imageView;
+//    }
+    return imageViewList;
+}
+
+QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
+    QString result = m_viewManager->linkAdd( sourceId, destId );
+    return result;
 }
 
 void ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){

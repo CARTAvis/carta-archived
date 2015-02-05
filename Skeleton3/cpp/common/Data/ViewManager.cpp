@@ -62,7 +62,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 }
 
 void ViewManager::_clear(){
-    int controlCount = m_controllers.size();
+    int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         m_controllers[i]->clear();
     }
@@ -208,7 +208,7 @@ int ViewManager::_findColorMap( const QString& id ) const {
 }
 
 int ViewManager::_findController( const QString& id ) const {
-    int controlCount = m_controllers.size();
+    int controlCount = getControllerCount();
     int controlIndex = -1;
     for ( int i = 0; i < controlCount; i++ ){
         if ( m_controllers[i]->getPath() == id ){
@@ -258,6 +258,7 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
             result = "Unrecognized link source: "+sourceId;
         }
     }
+    qDebug() << "(JT) ViewManager::linkAdd result: " << result;
     return result;
 }
 
@@ -288,7 +289,7 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
 QString ViewManager::getObjectId( const QString& plugin, int index ){
     QString viewId("");
     if ( plugin == Controller::PLUGIN_NAME ){
-        if ( 0 <= index && index < m_controllers.size()){
+        if ( 0 <= index && index < getControllerCount()){
             viewId = m_controllers[index]->getPath();
         }
         else {
@@ -329,7 +330,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
 }
 
 void ViewManager::loadFile( const QString& controlId, const QString& fileName){
-    int controlCount = m_controllers.size();
+    int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
@@ -345,6 +346,11 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
 QString ViewManager::getFileList() {
     QString fileList = m_dataLoader->getData("", "");
     return fileList;
+}
+
+int ViewManager::getControllerCount() const {
+    int controllerCount = m_controllers.size();
+    return controllerCount;
 }
 
 QString ViewManager::_makeAnimator(){
@@ -414,7 +420,7 @@ bool ViewManager::_readState( const QString& saveName ){
         QList<std::pair<QString,QString> > controllerStates = reader.getViews(Controller::CLASS_NAME);
         for ( std::pair<QString,QString> state : controllerStates ){
             _makeController();
-            m_controllers[m_controllers.size() - 1]->resetState( state.second );
+            m_controllers[getControllerCount() - 1]->resetState( state.second );
         }
 
         //Make the animators specified in the state.
@@ -508,7 +514,7 @@ bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );
     writer.addPathData( m_layout->getPath(), m_layout->getStateString());
-    for ( int i = 0; i < m_controllers.size(); i++ ){
+    for ( int i = 0; i < getControllerCount(); i++ ){
         writer.addPathData( m_controllers[i]->getPath(), m_controllers[i]->getStateString() );
     }
     for ( int i = 0; i < m_animators.size(); i++ ){

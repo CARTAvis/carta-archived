@@ -95,6 +95,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->loadFile( controlId, "/RootDirectory/" + args[1] );
     }
 
+    else if (args.size() == 3 && args[0].toLower() == "linkadd") {
+        QString result = m_scriptFacade->linkAdd( args[1], args[2] );
+        qDebug() << "linkAdd result: " << result;
+    }
+
     else if (args.size() > 0 && args[0].toLower() == "getcolormapid") {
         int index = -1;
         if (args.size() > 1) {
@@ -111,6 +116,11 @@ Viewer::scriptedCommandCB( QString command )
         }
         QString imageViewId = m_scriptFacade->getImageViewId( index );
         cout << qPrintable(imageViewId) << endl;
+    }
+
+    else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
+        QStringList imageViews = m_scriptFacade->getImageViews();
+        qDebug() << "(JT) imageViews: " << imageViews;
     }
 
     else if (args.size() == 2 && args[0].toLower() == "setcolormap") {

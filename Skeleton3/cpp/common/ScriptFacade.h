@@ -29,6 +29,12 @@ public:
     QString getImageViewId( int index = -1 ) const;
 
     /**
+     * Return a list of the image views defined by the layout.
+     * @return a QStringList containing the id values of image views.
+     */
+    QStringList getImageViews();
+
+    /**
      * Return the unique server side id of the object responsible for managing a color map.
      * @param index an index identifying the color map in the case that more than one
      *      color map is being displayed; an index of -1 indicates a new color map should
@@ -54,7 +60,7 @@ public:
      * @param sourceId the unique server side id of the link source.
      * @param destId the unique server side id of an object responsible for an image view.
      */
-    void linkAdd( const QString& sourceId, const QString& destId );
+    QString linkAdd( const QString& sourceId, const QString& destId );
 
     /**
      * Load a file into an image view.

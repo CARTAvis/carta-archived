@@ -57,6 +57,11 @@ public:
     QString getFileList();
 
     /**
+     * Return the number of controllers (image views).
+     */
+    int getControllerCount() const;
+
+    /**
      * Load the file into the controller with the given id.
      * @param fileName a locater for the data to load.
      * @param objectId the unique server side id of the controller which is responsible for displaying
