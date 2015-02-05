@@ -67,7 +67,7 @@ void ViewManager::_clear(){
         m_controllers[i]->clear();
     }
     m_controllers.clear();
-    int animCount = m_animators.size();
+    int animCount = getAnimatorCount();
     for ( int i = 0; i < animCount; i++ ){
         m_animators[i]->clear();
     }
@@ -77,7 +77,7 @@ void ViewManager::_clear(){
         m_colormaps[i]->clear();
     }
     m_colormaps.clear();
-    int histCount = m_histograms.size();
+    int histCount = getHistogramCount();
     for ( int i = 0; i < histCount; i++ ){
         m_histograms[i]->clear();
     }
@@ -220,7 +220,7 @@ int ViewManager::_findController( const QString& id ) const {
 }
 
 int ViewManager::_findAnimator( const QString& id ) const {
-    int animCount = m_animators.size();
+    int animCount = getAnimatorCount();
     int animIndex = -1;
     for ( int i = 0; i < animCount; i++ ){
         if ( m_animators[i]->getPath() == id ){
@@ -297,7 +297,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
         }
     }
     else if ( plugin == Animator::CLASS_NAME ){
-        if ( 0 <= index && index < m_animators.size()){
+        if ( 0 <= index && index < getAnimatorCount()){
             viewId = m_animators[index]->getPath();
         }
         else {
@@ -313,7 +313,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
         }
     }
     else if ( plugin == Histogram::CLASS_NAME ){
-        if ( 0 <= index && index < m_histograms.size()){
+        if ( 0 <= index && index < getHistogramCount()){
             viewId = m_histograms[index]->getPath();
         }
         else {
@@ -356,6 +356,16 @@ int ViewManager::getControllerCount() const {
 int ViewManager::getColorMapCount() const {
     int colorMapCount = m_colormaps.size();
     return colorMapCount;
+}
+
+int ViewManager::getAnimatorCount() const {
+    int animatorCount = m_animators.size();
+    return animatorCount;
+}
+
+int ViewManager::getHistogramCount() const {
+    int histogramCount = m_histograms.size();
+    return histogramCount;
 }
 
 QString ViewManager::_makeAnimator(){
@@ -432,7 +442,7 @@ bool ViewManager::_readState( const QString& saveName ){
         QList< std::pair<QString,QString> > animatorStates = reader.getViews(Animator::CLASS_NAME);
         for ( std::pair<QString,QString> state : animatorStates ){
             _makeAnimator();
-            int animIndex = m_animators.size() - 1;
+            int animIndex = getAnimatorCount() - 1;
             m_animators[ animIndex ]->resetState( state.second );
 
             //Now see if this animator needs to be linked to any of the controllers
@@ -522,7 +532,7 @@ bool ViewManager::_saveState( const QString& saveName ){
     for ( int i = 0; i < getControllerCount(); i++ ){
         writer.addPathData( m_controllers[i]->getPath(), m_controllers[i]->getStateString() );
     }
-    for ( int i = 0; i < m_animators.size(); i++ ){
+    for ( int i = 0; i < getAnimatorCount(); i++ ){
         writer.addPathData( m_animators[i]->getPath(), m_animators[i]->getStateString() );
     }
     bool stateSaved = writer.saveState();

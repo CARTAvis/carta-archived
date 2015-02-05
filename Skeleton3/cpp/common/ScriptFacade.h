@@ -41,6 +41,18 @@ public:
     QStringList getColorMapViews();
 
     /**
+     * Return a list of the animator views defined by the layout.
+     * @return a QStringList containing the id values of animator views.
+     */
+    QStringList getAnimatorViews();
+
+    /**
+     * Return a list of the histogram views defined by the layout.
+     * @return a QStringList containing the id values of histogram views.
+     */
+    QStringList getHistogramViews();
+
+    /**
      * Return the unique server side id of the object responsible for managing a color map.
      * @param index an index identifying the color map in the case that more than one
      *      color map is being displayed; an index of -1 indicates a new color map should
@@ -48,6 +60,24 @@ public:
      * @return the unique server side id of the object managing the color map.
      */
     QString getColorMapId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing an animator.
+     * @param index an index identifying the animator in the case that more than one
+     *      animator is being displayed; an index of -1 indicates a new animator should
+     *      be created whereas nonnegative indices refer to existing animators.
+     * @return the unique server side id of the object managing the animator.
+     */
+    QString getAnimatorViewId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing a histogram.
+     * @param index an index identifying the histogram in the case that more than one
+     *      histogram is being displayed; an index of -1 indicates a new histogram should
+     *      be created whereas nonnegative indices refer to existing histograms.
+     * @return the unique server side id of the object managing the histogram.
+     */
+    QString getHistogramViewId( int index = -1 ) const;
 
     /**
      * Return a list of the names of colormaps available on the server.

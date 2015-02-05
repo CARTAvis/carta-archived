@@ -128,6 +128,16 @@ Viewer::scriptedCommandCB( QString command )
         qDebug() << "(JT) colorMapViews: " << colorMapViews;
     }
 
+    else if (args.size() == 1 && args[0].toLower() == "getanimatorviews") {
+        QStringList animatorViews = m_scriptFacade->getAnimatorViews();
+        qDebug() << "(JT) animatorViews: " << animatorViews;
+    }
+
+    else if (args.size() == 1 && args[0].toLower() == "gethistogramviews") {
+        QStringList histogramViews = m_scriptFacade->getHistogramViews();
+        qDebug() << "(JT) histogramViews: " << histogramViews;
+    }
+
     else if (args.size() == 2 && args[0].toLower() == "setcolormap") {
         QString colormapId = m_scriptFacade->getColorMapId( 0 );
         m_scriptFacade->setColorMap( colormapId, args[1]);

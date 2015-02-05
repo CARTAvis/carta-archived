@@ -4,6 +4,8 @@
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
 #include "Data/Util.h"
+#include "Data/Animator.h"
+#include "Data/Histogram.h"
 
 #include <QDebug>
 
@@ -40,6 +42,14 @@ QString ScriptFacade::getImageViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, index );
 }
 
+QString ScriptFacade::getAnimatorViewId( int index ) const {
+    return m_viewManager->getObjectId( Carta::Data::Animator::CLASS_NAME, index );
+}
+
+QString ScriptFacade::getHistogramViewId( int index ) const {
+    return m_viewManager->getObjectId( Carta::Data::Histogram::CLASS_NAME, index );
+}
+
 QStringList ScriptFacade::getImageViews() {
     qDebug() << "(JT) ScriptFacade::getImageViews()";
     QStringList imageViewList;
@@ -62,6 +72,30 @@ QStringList ScriptFacade::getColorMapViews() {
         qDebug() << "(JT) colorMapView =  " << colorMapView;
     }
     return colorMapViewList;
+}
+
+QStringList ScriptFacade::getAnimatorViews() {
+    qDebug() << "(JT) ScriptFacade::getAnimatorViews()";
+    QStringList animatorViewList;
+    int numAnimators = m_viewManager->getAnimatorCount();
+    for (int i = 0; i < numAnimators; i++) {
+        QString animatorView = getAnimatorViewId( i );
+        animatorViewList << animatorView;
+        qDebug() << "(JT) animatorView =  " << animatorView;
+    }
+    return animatorViewList;
+}
+
+QStringList ScriptFacade::getHistogramViews() {
+    qDebug() << "(JT) ScriptFacade::getHistogramViews()";
+    QStringList histogramViewList;
+    int numHistograms = m_viewManager->getHistogramCount();
+    for (int i = 0; i < numHistograms; i++) {
+        QString histogramView = getHistogramViewId( i );
+        histogramViewList << histogramView;
+        qDebug() << "(JT) histogramView =  " << histogramView;
+    }
+    return histogramViewList;
 }
 
 QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
