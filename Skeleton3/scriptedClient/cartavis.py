@@ -78,6 +78,18 @@ class Application:
     def getImageViewId(self, index=-1):
         self.socket.sendall("getImageViewId " + str(index) + "\n")
 
+    def getImageViews(self):
+        self.socket.sendall("getImageViews" + "\n")
+
+    def getColorMapViews(self):
+        self.socket.sendall("getColorMapViews" + "\n")
+
+    def getAnimatorViews(self):
+        self.socket.sendall("getAnimatorViews" + "\n")
+
+    def getHistogramViews(self):
+        self.socket.sendall("getHistogramViews" + "\n")
+
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
 
@@ -94,6 +106,9 @@ class Application:
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")
+
+    def linkAdd(self, sourceId, destId):
+        self.socket.sendall("linkAdd " + sourceId + " " + destId + "\n")
 
 # Commands below this point are possibly broken or just not implemented yet.
 
