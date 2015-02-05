@@ -49,16 +49,19 @@ QStringList ScriptFacade::getImageViews() {
         imageViewList << imageView;
         qDebug() << "(JT) imageView =  " << imageView;
     }
-//    int i = 0;
-//    QString imageView = getImageViewId( i );
-//    qDebug() << "(JT) imageView =  " << imageView;
-//    while (imageView != "") {
-//        imageViewList << imageView;
-//        i++;
-//        imageView = getImageViewId( i );
-//        qDebug() << "(JT) imageView =  " << imageView;
-//    }
     return imageViewList;
+}
+
+QStringList ScriptFacade::getColorMapViews() {
+    qDebug() << "(JT) ScriptFacade::getColorMapViews()";
+    QStringList colorMapViewList;
+    int numColorMaps = m_viewManager->getColorMapCount();
+    for (int i = 0; i < numColorMaps; i++) {
+        QString colorMapView = getColorMapId( i );
+        colorMapViewList << colorMapView;
+        qDebug() << "(JT) colorMapView =  " << colorMapView;
+    }
+    return colorMapViewList;
 }
 
 QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){

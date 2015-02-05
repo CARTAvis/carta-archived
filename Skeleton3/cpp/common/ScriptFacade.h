@@ -35,6 +35,12 @@ public:
     QStringList getImageViews();
 
     /**
+     * Return a list of the colormap views defined by the layout.
+     * @return a QStringList containing the id values of colormap views.
+     */
+    QStringList getColorMapViews();
+
+    /**
      * Return the unique server side id of the object responsible for managing a color map.
      * @param index an index identifying the color map in the case that more than one
      *      color map is being displayed; an index of -1 indicates a new color map should

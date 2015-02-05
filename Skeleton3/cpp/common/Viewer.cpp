@@ -123,6 +123,11 @@ Viewer::scriptedCommandCB( QString command )
         qDebug() << "(JT) imageViews: " << imageViews;
     }
 
+    else if (args.size() == 1 && args[0].toLower() == "getcolormapviews") {
+        QStringList colorMapViews = m_scriptFacade->getColorMapViews();
+        qDebug() << "(JT) colorMapViews: " << colorMapViews;
+    }
+
     else if (args.size() == 2 && args[0].toLower() == "setcolormap") {
         QString colormapId = m_scriptFacade->getColorMapId( 0 );
         m_scriptFacade->setColorMap( colormapId, args[1]);

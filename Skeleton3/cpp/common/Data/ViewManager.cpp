@@ -72,7 +72,7 @@ void ViewManager::_clear(){
         m_animators[i]->clear();
     }
     m_animators.clear();
-    int colorCount = m_colormaps.size();
+    int colorCount = getColorMapCount();
     for ( int i = 0; i < colorCount; i++ ){
         m_colormaps[i]->clear();
     }
@@ -196,7 +196,7 @@ void ViewManager::_initializeDefaultState(){
 }
 
 int ViewManager::_findColorMap( const QString& id ) const {
-    int colorCount = m_colormaps.size();
+    int colorCount = getColorMapCount();
     int colorIndex = -1;
     for ( int i = 0; i < colorCount; i++ ){
         if ( m_colormaps[i]->getPath() == id ){
@@ -305,7 +305,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
         }
     }
     else if ( plugin == Colormap::CLASS_NAME ){
-        if ( 0 <= index && index < m_colormaps.size()){
+        if ( 0 <= index && index < getColorMapCount()){
             viewId = m_colormaps[index]->getPath();
         }
         else {
@@ -351,6 +351,11 @@ QString ViewManager::getFileList() {
 int ViewManager::getControllerCount() const {
     int controllerCount = m_controllers.size();
     return controllerCount;
+}
+
+int ViewManager::getColorMapCount() const {
+    int colorMapCount = m_colormaps.size();
+    return colorMapCount;
 }
 
 QString ViewManager::_makeAnimator(){
