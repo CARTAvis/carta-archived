@@ -4,6 +4,7 @@
 
 #include "HackViewer.h"
 #include "Globals.h"
+#include "CmdLine.h"
 #include "IConnector.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
@@ -494,8 +495,14 @@ HackViewer::start()
 
     // new experiment with asynchronous renderer
     m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
-    m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
-//    m_imageViewController-> loadImage( "/scratch/smallcube.fits" );
+
+    auto cmdLineInfo = Globals::instance()-> cmdLineInfo();
+    if( cmdLineInfo && cmdLineInfo-> fileList().size() > 0) {
+        m_imageViewController-> loadImage( cmdLineInfo-> fileList()[0]);
+    }
+    else {
+        m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
+    }
 
     // invert toggle
     addStateCallback(
