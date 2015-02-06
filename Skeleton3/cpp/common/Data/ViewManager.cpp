@@ -1,8 +1,16 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
+#include "Data/Colormap.h"
+#include "Data/Colormaps.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
+#include "Data/TransformsData.h"
+#include "Data/TransformsImage.h"
+#include "Data/ErrorManager.h"
+#include "Data/Histogram.h"
+#include "Data/ILinkable.h"
 #include "Data/Layout.h"
+#include "Data/Preferences.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
 #include "State/StateReader.h"
@@ -10,6 +18,10 @@
 
 #include <QDir>
 #include <QDebug>
+
+namespace Carta {
+
+namespace Data {
 
 class ViewManager::Factory : public CartaObjectFactory {
 
@@ -23,6 +35,9 @@ public:
 };
 
 const QString ViewManager::CLASS_NAME = "ViewManager";
+const QString ViewManager::SOURCE_ID = "sourceId";
+const QString ViewManager::DEST_ID = "destId";
+
 bool ViewManager::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ViewManager::Factory());
@@ -32,22 +47,41 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_layout( nullptr ),
       m_dataLoader( nullptr ),
       m_pluginsLoaded( nullptr ){
+    Util::findSingletonObject( Colormaps::CLASS_NAME );
+    Util::findSingletonObject( TransformsData::CLASS_NAME);
+    Util::findSingletonObject( TransformsImage::CLASS_NAME);
+    Util::findSingletonObject( ErrorManager::CLASS_NAME );
+    Util::findSingletonObject( Preferences::CLASS_NAME );
     _initCallbacks();
-    _initializeDataLoader();
 
     bool stateRead = this->_readState( "DefaultState" );
     if ( !stateRead ){
         _initializeDefaultState();
     }
+    _makeDataLoader();
 }
 
-void ViewManager::_clearLayout(){
+void ViewManager::_clear(){
     int controlCount = m_controllers.size();
     for ( int i = 0; i < controlCount; i++ ){
         m_controllers[i]->clear();
     }
     m_controllers.clear();
+    int animCount = m_animators.size();
+    for ( int i = 0; i < animCount; i++ ){
+        m_animators[i]->clear();
+    }
     m_animators.clear();
+    int colorCount = m_colormaps.size();
+    for ( int i = 0; i < colorCount; i++ ){
+        m_colormaps[i]->clear();
+    }
+    m_colormaps.clear();
+    int histCount = m_histograms.size();
+    for ( int i = 0; i < histCount; i++ ){
+        m_histograms[i]->clear();
+    }
+    m_histograms.clear();
     if ( m_layout != nullptr ){
         m_layout->clear();
     }
@@ -56,87 +90,71 @@ void ViewManager::_clearLayout(){
 void ViewManager::_initCallbacks(){
     addCommandCallback( "clearLayout", [=] (const QString & /*cmd*/,
                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        _clearLayout();
+        _clear();
         return "";
     });
 
+    addCommandCallback( "setAnalysisLayout", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            setAnalysisView();
+            return "";
+        });
+
+    addCommandCallback( "setImageLayout", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                setImageView();
+                return "";
+            });
+
     //Callback for adding a data source to a Controller.
     addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & sessionId) -> QString {
-        QList<QString> keys = {"id", "data"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            for ( int i = 0; i < m_controllers.size(); i++ ){
-                if ( dataValues[0]  == m_controllers[i]->getPath() ){
-                    //Add the data to it.
-                    QString path = dataValues[1];
-                    _initializeDataLoader();
-                    path = m_dataLoader->getFile( path, sessionId );
-                    m_controllers[i]->addData( path );
-                    break;
-                }
-            }
-        }
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        const QString ID( "id");
+        const QString DATA( "data");
+        std::set<QString> keys = {ID,DATA};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        loadFile( dataValues[ID], dataValues[DATA]);
         return "";
     });
 
     //Callback for registering a view.
     addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"pluginId", "index"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        QString viewId( "" );
-        if ( dataValues.size() == keys.size()){
-            if ( dataValues[0] == "CasaImageLoader"){
-                bool validIndex = false;
-                int dataIndex = dataValues[1].toInt( &validIndex );
-                if ( validIndex  && 0 <= dataIndex && dataIndex < m_controllers.size()){
-                    viewId = m_controllers[dataIndex]->getPath();
-                }
-                else {
-                    viewId = _makeController();
-                }
-            }
-            else if ( dataValues[0] == "animator"){
-                bool validIndex = false;
-                int animIndex = dataValues[1].toInt( &validIndex );
-                if ( validIndex && 0 <= animIndex && animIndex < m_animators.size()){
-                    viewId = m_animators[animIndex]->getPath();
-                }
-                else {
-                    viewId = _makeAnimator();
-                }
-            }
-            else if ( dataValues[0] == "plugins"){
-                viewId = _makePluginList();
-            }
+        const QString PLUGIN_ID( "pluginId");
+        const QString INDEX( "index");
+        std::set<QString> keys = {PLUGIN_ID, INDEX};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        bool validIndex = false;
+        int index = dataValues[INDEX].toInt(&validIndex);
+        QString viewId( "");
+        if ( validIndex ){
+            viewId = getObjectId( dataValues[PLUGIN_ID], index );
+        }
+        else {
+            qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
         }
         return viewId;
     });
 
     //Callback for linking an animator with whatever it is going to animate.
-    addCommandCallback( "linkAnimator", [=] (const QString & /*cmd*/,
+    addCommandCallback( "linkAdd", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"animId", "winId"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            //Go through our data animators and find the one that is supposed to
-            //be hooked up to.
-            for (int i = 0; i < m_animators.size(); i++ ){
-                if ( m_animators[i]->getPath()  == dataValues[0] ){
-                    //Hook up the corresponding controller
-                    for ( int j = 0; j < m_controllers.size(); j++ ){
-                        if ( m_controllers[j]->getPath() == dataValues[1] ){
-                            m_animators[i]->addController( m_controllers[j]);
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-        return "";
+        std::set<QString> keys = {SOURCE_ID, DEST_ID};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString result = linkAdd( dataValues[SOURCE_ID], dataValues[DEST_ID]);
+        result = Util::commandPostProcess( result, "");
+        return result;
     });
+
+    //Callback for linking an animator with whatever it is going to animate.
+        addCommandCallback( "linkRemove", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {SOURCE_ID, DEST_ID};
+            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            QString result = linkRemove( dataValues[SOURCE_ID], dataValues[DEST_ID]);
+            result = Util::commandPostProcess( result, "");
+            return result;
+        });
 
 
     //Callback for saving state.
@@ -170,77 +188,195 @@ void ViewManager::_initCallbacks(){
         }
         return returnVal;
     });
-
 }
 
-
-void ViewManager::_initializeDataLoader(){
-    if ( !m_dataLoader ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString dataLoaderId = objManager->createObject( DataLoader::CLASS_NAME );
-        CartaObject* dataLoaderObj = objManager->getObject( dataLoaderId );
-        m_dataLoader.reset( dynamic_cast<DataLoader*>( dataLoaderObj ));
-    }
-}
 
 void ViewManager::_initializeDefaultState(){
-    _makeAnimator();
-    _makeController();
-    m_animators[0]->addController( m_controllers[0]);
-    _makeLayout();
-    _makePluginList();
+    setAnalysisView();
+}
+
+int ViewManager::_findColorMap( const QString& id ) const {
+    int colorCount = m_colormaps.size();
+    int colorIndex = -1;
+    for ( int i = 0; i < colorCount; i++ ){
+        if ( m_colormaps[i]->getPath() == id ){
+            colorIndex = i;
+            break;
+        }
+    }
+    return colorIndex;
+}
+
+int ViewManager::_findController( const QString& id ) const {
+    int controlCount = m_controllers.size();
+    int controlIndex = -1;
+    for ( int i = 0; i < controlCount; i++ ){
+        if ( m_controllers[i]->getPath() == id ){
+            controlIndex = i;
+            break;
+        }
+    }
+    return controlIndex;
+}
+
+int ViewManager::_findAnimator( const QString& id ) const {
+    int animCount = m_animators.size();
+    int animIndex = -1;
+    for ( int i = 0; i < animCount; i++ ){
+        if ( m_animators[i]->getPath() == id ){
+            animIndex = i;
+            break;
+        }
+    }
+    return animIndex;
 }
 
 
-void ViewManager::_initializeExistingAnimationLinks( int index ){
-    int linkCount = m_animators[index]->getLinkCount();
-    for ( int i = 0; i < linkCount; i++ ){
-        QString controllerId = m_animators[index]->getLinkId( i );
-        for ( int j = 0; j < m_controllers.size(); j++ ){
-            if ( controllerId == m_controllers[j]->getPath()){
-                m_animators[index]->addController( m_controllers[j] );
-                break;
+
+QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
+
+    int controlIndex = _findController( destId );
+    QString result;
+    if ( controlIndex == -1 ){
+        result = "Unsupported destination link: "+destId;
+    }
+    else {
+        ObjectManager* objManager = ObjectManager::objectManager();
+        QString id = objManager->parseId( sourceId );
+        CartaObject* sourceObj = objManager->getObject( id );
+        ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
+        if ( linkSource != nullptr ){
+            bool linked = linkSource->addLink( m_controllers[controlIndex]);
+            if ( !linked ){
+                result = "Could not link source to destination.";
+            }
+        }
+        else {
+            result = "Unrecognized link source: "+sourceId;
+        }
+    }
+    return result;
+}
+
+QString ViewManager::linkRemove( const QString& sourceId, const QString& destId ){
+    int controlIndex = _findController( destId );
+    QString result;
+    if ( controlIndex == -1 ){
+        result = "Unsupported destination link: "+destId;
+    }
+    else {
+        ObjectManager* objManager = ObjectManager::objectManager();
+        QString id = objManager->parseId( sourceId );
+        CartaObject* sourceObj = objManager->getObject( id );
+        ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
+        if ( linkSource != nullptr ){
+            bool unlinked = linkSource->removeLink( m_controllers[controlIndex]);
+            if ( !unlinked ){
+                result = "Could not remove link between source and destination.";
             }
             else {
-                qDebug() << "Register view could not find controller id="<<controllerId;
+                result = "Unrecognized link source: "+sourceId;
             }
+        }
+    }
+    return result;
+}
+
+QString ViewManager::getObjectId( const QString& plugin, int index ){
+    QString viewId("");
+    if ( plugin == Controller::PLUGIN_NAME ){
+        if ( 0 <= index && index < m_controllers.size()){
+            viewId = m_controllers[index]->getPath();
+        }
+        else {
+            viewId = _makeController();
+        }
+    }
+    else if ( plugin == Animator::CLASS_NAME ){
+        if ( 0 <= index && index < m_animators.size()){
+            viewId = m_animators[index]->getPath();
+        }
+        else {
+            viewId = _makeAnimator();
+        }
+    }
+    else if ( plugin == Colormap::CLASS_NAME ){
+        if ( 0 <= index && index < m_colormaps.size()){
+            viewId = m_colormaps[index]->getPath();
+        }
+        else {
+            viewId = _makeColorMap();
+        }
+    }
+    else if ( plugin == Histogram::CLASS_NAME ){
+        if ( 0 <= index && index < m_histograms.size()){
+            viewId = m_histograms[index]->getPath();
+        }
+        else {
+            viewId = _makeHistogram();
+        }
+    }
+    else if ( plugin == ViewPlugins::CLASS_NAME ){
+        viewId = _makePluginList();
+    }
+    else {
+        qDebug() << "Unrecognized top level window type: "<<plugin;
+    }
+    return viewId;
+}
+
+void ViewManager::loadFile( const QString& controlId, const QString& fileName){
+    int controlCount = m_controllers.size();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           //Add the data to it
+            _makeDataLoader();
+           QString path = m_dataLoader->getFile( fileName, "" );
+           m_controllers[i]->addData( path );
+           break;
         }
     }
 }
 
-void ViewManager::loadFile( QString fileName ){
-    if ( m_controllers.size() == 0 ){
-        _makeController();
-    }
-    m_controllers[0]->addData( fileName );
-}
-
 QString ViewManager::_makeAnimator(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString viewId = objManager->createObject( Animator::CLASS_NAME );
-    CartaObject* animObj = objManager->getObject( viewId );
+    CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
     std::shared_ptr<Animator> target( dynamic_cast<Animator*>(animObj) );
     m_animators.append(target);
-    int lastIndex = m_animators.size() - 1;
-    _initializeExistingAnimationLinks( lastIndex );
     return target->getPath();
 }
 
+QString ViewManager::_makeColorMap(){
+   CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
+   std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
+   m_colormaps.append(target);
+   return target->getPath();
+}
 
 QString ViewManager::_makeController(){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    QString viewId = objManager->createObject( Controller::CLASS_NAME );
-    CartaObject* controlObj = objManager->getObject( viewId );
+    CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
     std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
     m_controllers.append(target);
     return target->getPath();
 }
 
+void ViewManager::_makeDataLoader(){
+    if ( m_dataLoader == nullptr ){
+        CartaObject* dataLoaderObj = Util::createObject( DataLoader::CLASS_NAME );
+        m_dataLoader.reset( dynamic_cast<DataLoader*>( dataLoaderObj ));
+    }
+}
+
+QString ViewManager::_makeHistogram(){
+    CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
+    std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
+    m_histograms.append(target);
+    return target->getPath();
+}
+
 QString ViewManager::_makeLayout(){
     if ( !m_layout ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString layoutId = objManager->createObject( Layout::CLASS_NAME );
-        CartaObject* layoutObj = objManager->getObject( layoutId );
+        CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
         m_layout.reset( dynamic_cast<Layout*>(layoutObj ));
     }
     QString layoutPath = m_layout->getPath();
@@ -250,17 +386,17 @@ QString ViewManager::_makeLayout(){
 QString ViewManager::_makePluginList(){
     if ( !m_pluginsLoaded ){
         //Initialize a view showing the plugins that have been loaded
-        ObjectManager* objManager = ObjectManager::objectManager();
-        QString pluginsId = objManager->createObject( ViewPlugins::CLASS_NAME );
-        CartaObject* pluginsObj = objManager->getObject( pluginsId );
+        CartaObject* pluginsObj = Util::createObject( ViewPlugins::CLASS_NAME );
         m_pluginsLoaded.reset( dynamic_cast<ViewPlugins*>(pluginsObj ));
     }
     QString pluginsPath = m_pluginsLoaded->getPath();
     return pluginsPath;
 }
 
+
+
 bool ViewManager::_readState( const QString& saveName ){
-    _clearLayout();
+    _clear();
     QString fullLocation = getStateLocation( saveName );
     StateReader reader( fullLocation );
     bool successfulRead = reader.restoreState();
@@ -282,10 +418,10 @@ bool ViewManager::_readState( const QString& saveName ){
 
             //Now see if this animator needs to be linked to any of the controllers
             QList<QString> oldLinks = m_animators[ animIndex ]-> getLinks();
-            m_animators[animIndex ]->clearLinks();
+            m_animators[animIndex ]->clear();
             for ( int i = 0;  i < controllerStates.size(); i++ ){
                 if ( oldLinks.contains( StateInterface::DELIMITER + controllerStates[i].first ) ){
-                    m_animators[animIndex]->addController( m_controllers[i]);
+                    m_animators[animIndex]->addLink( m_controllers[i]);
                 }
             }
          }
@@ -297,6 +433,45 @@ bool ViewManager::_readState( const QString& saveName ){
     }
     return successfulRead;
 }
+
+void ViewManager::setAnalysisView(){
+    _clear();
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setLayoutAnalysis();
+
+    //Create the view objects
+    _makeAnimator();
+    _makeController();
+    _makeHistogram();
+    _makeColorMap();
+
+    //Add the links to establish reasonable defaults.
+    m_animators[0]->addLink( m_controllers[0]);
+    m_histograms[0]->addLink( m_controllers[0]);
+    m_colormaps[0]->addLink( m_controllers[0]);
+}
+
+bool ViewManager::setColorMap( const QString& colormapId, const QString& colormapName ){
+    int colormapIndex = _findColorMap( colormapId );
+    bool colorMapFound = false;
+    if ( colormapIndex >= 0 ){
+        m_colormaps[colormapIndex]->setColorMap( colormapName );
+        colorMapFound = true;
+    }
+    return colorMapFound;
+}
+
+void ViewManager::setImageView(){
+    _clear();
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setLayoutImage();
+    _makeController();
+}
+
 
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
@@ -310,5 +485,7 @@ bool ViewManager::_saveState( const QString& saveName ){
     }
     bool stateSaved = writer.saveState();
     return stateSaved;
+}
+}
 }
 

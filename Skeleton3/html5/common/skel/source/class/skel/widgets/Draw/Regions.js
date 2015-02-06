@@ -120,15 +120,8 @@ qx.Class.define( "skel.widgets.Draw.Regions", {
         /**
          * Returns whether or not the mouse has been pressed down.
          */
-        isMouseDown: function()
-        {
-            //var mouseDown = true;
-            //if( this.m_mouseDownPt === null ){
-            //    mouseDown = false;
-            //}
-            //return mouseDown;
-
-            return this.m_mouseDownPt != null;
+        isMouseDown: function(){
+            return this.m_mouseDownPt !== null;
         },
 
         /**
@@ -160,7 +153,7 @@ qx.Class.define( "skel.widgets.Draw.Regions", {
                 // Tell all the shapes the mouse has moved so they can act on it, if appropriate.
                 if( this.m_mouseDownPt ) {
                     var movePt = this.m_translator.mouse2serverImage( this.m_lastMouse );
-                    var downPt = this.m_translator.mouse2serverImage( this.m_mouseDownPt );
+                        var downPt = this.m_translator.mouse2serverImage( this.m_mouseDownPt );
                     var dx = movePt.x - downPt.x;
                     var dy = movePt.y - downPt.y;
                     for( var ind = 0 ; ind < this.m_shapes.length ; ind ++ ) {
@@ -172,7 +165,7 @@ qx.Class.define( "skel.widgets.Draw.Regions", {
             else {
                 //Mouse is being dragged while in the down state.
                 if( ! this.m_clickEvent && this.m_mouseDownPt ) {
-                    if( this.m_shape == null ) {
+                        if ( this.m_shape === null ){
                         this._initShape();
                     }
                     if( this.m_shape !== null ) {
@@ -219,47 +212,58 @@ qx.Class.define( "skel.widgets.Draw.Regions", {
         _regionsChangedCB: function()
         {
             var val = this.m_sharedVar.get();
-            var controlState = JSON.parse( val );
-            var regionCount = controlState.regions.length;
-            var shapeCount = this.m_shapes.length;
-            var redraw = false;
-
-            //Remove any shapes the server does not know about.
-            for( var i = shapeCount - 1 ; i >= 0 ; i -- ) {
-                //If it has an id from the server and is no longer there, remove it.
-                var shapeId = this.m_shapes[i].getShapeId();
-                if( shapeId != null ) {
-                    var serverShape = false;
-                    for( var j = 0 ; j < regionCount ; j ++ ) {
-                        if( controlState.regions[j].id == shapeId ) {
-                            serverShape = true;
-                            break;
+                if ( !val ){
+                    return;
+                }
+                var i = 0;
+                try {
+                    var controlState = JSON.parse( val );
+                    var regionCount = controlState.regions.length;
+                    var shapeCount = this.m_shapes.length;
+                    var redraw = false;
+                   
+                   //Remove any shapes the server does not know about.
+                   for ( i = shapeCount-1; i >= 0; i--){
+                        //If it has an id from the server and is no longer there, remove it.
+                        var shapeId = this.m_shapes[i].getShapeId();
+                        if ( shapeId !== null ){
+                            var serverShape = false;
+                            for ( var j = 0; j < regionCount; j++ ){
+                                if ( controlState.regions[j].id == shapeId ){
+                                    serverShape = true;
+                                    break;
+                                }
+                            }
+                            if ( !serverShape ){
+                                redraw = true;
+                                this.m_shapes.splice(i,1);
+                            }
                         }
                     }
-                    if( ! serverShape ) {
-                        redraw = true;
-                        this.m_shapes.splice( i, 1 );
+                   
+                    for ( i = 0; i < regionCount; i++){
+                        var shape = controlState.regions[i];
+                    
+                        //If it is a new shape, add it to the list.
+                        if ( !this.containsShape( shape.type, shape.id ) ){
+                            var shapeNew = new skel.widgets.Draw.Rectangle( this.m_winId);
+                            shapeNew.setShapeId( shape.id );
+                            this.m_shapes.splice(i,0,shapeNew);
+                            redraw = true;
+                        }
+                     }
+                    
+                     
+                     //Trigger a redraw
+                    if ( redraw ){
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                                "shapeChanged", ""));
                     }
                 }
-            }
-
-            for( i = 0 ; i < regionCount ; i ++ ) {
-                var shape = controlState.regions[i];
-
-                //If it is a new shape, add it to the list.
-                if( ! this.containsShape( shape.type, shape.id ) ) {
-                    var shapeNew = new skel.widgets.Draw.Rectangle( this.m_winId );
-                    shapeNew.setShapeId( shape.id );
-                    this.m_shapes.splice( i, 0, shapeNew );
-                    redraw = true;
+                catch( err ){
+                    console.log( "Could not parse: "+val );
+                    return;
                 }
-            }
-
-            //Trigger a redraw
-            if( redraw ) {
-                qx.event.message.Bus.dispatch( new qx.event.message.Message(
-                    "shapeChanged", "" ) );
-            }
         },
 
         /**
@@ -288,73 +292,67 @@ qx.Class.define( "skel.widgets.Draw.Regions", {
          * @param drawInfo {String} information concerning the type of shape
          *      and whether or not multiple shapes will be drawn.
          */
-        setDrawMode: function( drawInfo )
-        {
-            //this.m_drawOnce = ! drawInfo["multiShape"];
-            //if( this.m_drawKey != drawInfo["shape"] ) {
-            //    this.m_drawKey = drawInfo["shape"];
-            //}
-
-            this.m_drawOnce = ! drawInfo.multiShape;
-            this.m_drawKey = drawInfo.shape;
-        },
-
-        /**
-         * Update whether the mouse was clicked based on the current location
-         * of the mouse.
-         */
-        _updateClickStatus: function()
-        {
-            if( this.m_mouseDownPt ) {
-                // if mouse is down, we check how far the user dragged it, and if it's more
-                // than some threshold, we know it's not a click, but a rectangle select
-                if( this.m_clickEvent ) {
-                    var dx = this.m_mouseDownPt.x - this.m_lastMouse.x;
-                    var dy = this.m_mouseDownPt.y - this.m_lastMouse.y;
-                    var distSq = dx * dx + dy * dy;
-                    if( distSq > 13 ) {
-                        this.m_clickEvent = false;
-                    }
+        setDrawMode: function( drawInfo ){
+                this.m_drawOnce = !drawInfo.multiShape;
+                if ( this.m_drawKey != drawInfo.shape ){
+                    this.m_drawKey =  drawInfo.shape;
                 }
-            }
-        },
-
-        /**
-         * Evaluates whether or not the mouse is currently over one of the managed
-         * shapes and returns an appropriate cursor based on the evaluation.
-         * @param pt {Object} the (x,y) coordinates of the current mouse location.
-         */
-        updateMouseHoverStatus: function( pt )
-        {
-            var margin = 5;
-            var cursorInfo = skel.widgets.Draw.Shape.CURSOR_DEFAULT;
-            if( this.m_lastMouse !== null ) {
-                for( var ind = 0 ; ind < this.m_shapes.length ; ind ++ ) {
-                    var shape = this.m_shapes[ind];
-                    if( shape.isVisible() ) {
-                        //TODO:  Only handling one shape not being at default.
-                        var shapeCursor = shape.updateHoverStatus( pt, margin );
-                        if( shapeCursor !== skel.widgets.Draw.Shape.CURSOR_DEFAULT ) {
-                            cursorInfo = shapeCursor;
+            },
+            
+            /**
+             * Update whether the mouse was clicked based on the current location
+             * of the mouse.
+             */
+            _updateClickStatus : function(){
+                if ( this.m_mouseDownPt ){
+                    // if mouse is down, we check how far the user dragged it, and if it's more
+                    // than some threshold, we know it's not a click, but a rectangle select
+                    if (this.m_clickEvent  ) {
+                        var dx = this.m_mouseDownPt.x - this.m_lastMouse.x;
+                        var dy = this.m_mouseDownPt.y - this.m_lastMouse.y;
+                        var distSq = dx * dx + dy * dy;
+                        if (distSq > 13) {
+                            this.m_clickEvent = false;
                         }
                     }
                 }
-            }
-            return cursorInfo;
-        },
-
-        m_mouseDownPt         : null,
-        m_lastMouse           : null,
-        m_clickEvent          : true,
-        m_shape               : null,
-        m_shapes              : null,
-        m_sharedVar           : null,
-        m_drawOnce            : true,
-        m_drawKey             : null,
-        m_connector           : null,
-        m_winId               : "",
-        m_imageMouseTranslator: null,
-        m_RECTANGLE           : "Rectangle"
+            },
+            
+            /**
+             * Evaluates whether or not the mouse is currently over one of the managed
+             * shapes and returns an appropriate cursor based on the evaluation.
+             * @param pt {Object} the (x,y) coordinates of the current mouse location.
+             */
+            updateMouseHoverStatus: function ( pt ) {
+                var margin = 5;
+                var cursorInfo = skel.widgets.Draw.Shape.CURSOR_DEFAULT;
+                if (this.m_lastMouse !== null  ) {
+                   for ( var ind = 0; ind < this.m_shapes.length; ind++ ) {
+                        var shape = this.m_shapes[ind];
+                        if (shape.isVisible() ){
+                            //TODO:  Only handling one shape not being at default.
+                            var shapeCursor = shape.updateHoverStatus( pt, margin );
+                            if ( shapeCursor != skel.widgets.Draw.Shape.CURSOR_DEFAULT ){
+                                cursorInfo = shapeCursor;
+                            }
+                        }
+                    }
+                }
+                return cursorInfo;
+            },
+            
+            m_mouseDownPt: null,
+            m_lastMouse: null,
+            m_clickEvent: true,
+            m_shape : null,
+            m_shapes : null,
+            m_sharedVar : null,
+            m_drawOnce : true,
+            m_drawKey : null,
+            m_connector: null,
+            m_winId : "",
+            m_imageMouseTranslator : null,
+            m_RECTANGLE : "Rectangle"
 
     }
 

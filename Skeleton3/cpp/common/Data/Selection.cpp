@@ -2,6 +2,10 @@
 
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 const QString Selection::HIGH_KEY = "frameEnd";
 const QString Selection::INDEX_KEY = "frame";
 const QString Selection::LOW_KEY = "frameStart";
@@ -125,4 +129,6 @@ bool Selection::_setIndexCheck(int frameValue) {
 
 Selection::~Selection() {
 
+}
+}
 }

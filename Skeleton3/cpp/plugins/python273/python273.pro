@@ -27,14 +27,13 @@ OTHER_FILES += \
     pluginBridge.pyx \
     setup.py
 
-unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
-INCLUDEPATH += $$PWD/../../common
-DEPENDPATH += $$PWD/../../common
-unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
+# experiment with
+#relative_path(filePath[, base])
+#Returns the path to filePath relative to base. If base is not specified,
+#it is the current project directory. This function is a wrapper around QDir::relativeFilePath.
 
-# ---------------------------------------------------------
-# copy json & python files to build directory
-# ---------------------------------------------------------
+
+# copy json to build directory
 MYFILES = plugin.json
 MYFILES += $$files($${PWD}/*.py)
 MYFILES += $$files($${PWD}/*.pyx)
@@ -48,7 +47,7 @@ QMAKE_EXTRA_COMPILERS += copy_files
 
 
 # ---------------------------------------------------------
-# cython rules
+# experiment with cython
 # ---------------------------------------------------------
 CYTHONSOURCES = pluginBridge.pyx
 cythoncpp.input = CYTHONSOURCES

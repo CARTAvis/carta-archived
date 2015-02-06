@@ -103,7 +103,6 @@ PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
         throw "Forget it";
     }
     qDebug() << "Do we have prerender hook:" << pb_hasPreRenderHook(m_pyModId);
-    qDebug() << "Do we have colormap hook:" << pb_hasColormapScalarHook(m_pyModId);
 
 }
 

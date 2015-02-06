@@ -21,19 +21,19 @@ qx.Class.define("skel.widgets.DisplayMain",
 
         this.addListener("appear", function() {
             var bounds = this.getBounds();
-            this.m_height = bounds["height"];
-            this.m_width = bounds["width"];
+            this.m_height = bounds.height;
+            this.m_width = bounds.width;
             
             this._resetLayoutCB();
             this.addListener("resize", function() {
                 // this._resizeContent();
                 var bounds = this.getBounds();
-                this.m_height = bounds["height"];
-                this.m_width = bounds["width"];
+                this.m_height = bounds.height;
+                this.m_width = bounds.width;
                 var sizeData = {
-                        "offsetX" : bounds["left"],
-                        "offsetY" : bounds["top"]
-                    }
+                        "offsetX" : bounds.left,
+                        "offsetY" : bounds.top
+                    };
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "mainOffsetsChanged", sizeData));
             }, this);
@@ -42,15 +42,15 @@ qx.Class.define("skel.widgets.DisplayMain",
         qx.event.message.Bus.subscribe("setView", function(
                 message) {
             var data = message.getData();
-            this._setView(data["plugin"], data["row"],
-                    data["col"]);
+            this._setView(data.plugin, data.row, data.col);
         }, this);
 
     },
 
     events : {
         "iconifyWindow" : "qx.event.type.Data",
-        "addWindowMenu" : "qx.event.type.Data"
+        "addWindowMenu" : "qx.event.type.Data",
+        "layoutGrid" : "qx.event.type.Data"
     },
 
     members : {
@@ -71,7 +71,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          * @param path {String} an identifier for data to be displayed.
          */
         dataLoaded : function(path) {
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 this.m_pane.dataLoaded(path);
             }
         },
@@ -81,13 +81,13 @@ qx.Class.define("skel.widgets.DisplayMain",
          * @param path {String} an identifier for data to be removed.
          */
         dataUnloaded : function(path) {
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 this.m_pane.dataUnloaded(path);
             }
         },
         
         _drawModeChanged : function(ev) {
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 this.m_pane.setDrawMode(ev.getData());
             }
         },
@@ -95,10 +95,11 @@ qx.Class.define("skel.widgets.DisplayMain",
         /**
          * Returns a list of screen locations where new windows
          * can be added.
+         * @return {Array} the locations where new windows can be added.
          */
         getAddWindowLocations : function() {
             var locations = [];
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 locations = this.m_pane.getAddWindowLocations();
             }
             return locations;
@@ -109,12 +110,14 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Returns a list of information concerning windows that can be linked to
          * the given source window showing the indicated plug-in.
          * @param pluginId {String} the name of the plug-in.
-         * @param sourceWinId {String} an identifier for the window displaying the
-         *      plug-in that wants information about the links that can emanate frome it.
+         * @param sourceId {String} an identifier for the window displaying the
+         *      plug-in that wants information about the links that can originate from it.
+         * @return {String} information about links that can be established from the specified
+         *      window/plug-in.
          */
         getLinkInfo : function(pluginId, sourceId) {
             var linkInfo = [];
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 linkInfo = this.m_pane.getLinkInfo(pluginId, sourceId);
             }
             return linkInfo;
@@ -188,7 +191,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             
             this.setRowCount(2);
             this.setColCount(1);
-            this._setPlugins( skel.widgets.Path.getInstance().CASA_LOADER, skel.widgets.DisplayWindow.EXCLUDED );
+            this._setPlugins( skel.widgets.Path.getInstance().CASA_LOADER, skel.widgets.Window.DisplayWindow.EXCLUDED );
         },
         
         /**
@@ -196,16 +199,17 @@ qx.Class.define("skel.widgets.DisplayMain",
          * large image area, two (analysis) plugin windows, and
          * an animation area.
          */
-        layoutImageAnalysisAnimator : function() {
+        layoutAnalysis : function() {
             
  
             this._clearLayout();
             this.setRowCount(3);
             this.setColCount(2);
+            var path = skel.widgets.Path.getInstance();
             this._setPlugins( 
-                    skel.widgets.Path.getInstance().CASA_LOADER, "plugins",
-                    skel.widgets.DisplayWindow.EXCLUDED, "statistics",
-                    skel.widgets.DisplayWindow.EXCLUDED, "animator" );
+                    path.CASA_LOADER, path.PLUGINS,
+                    skel.widgets.Window.DisplayWindow.EXCLUDED, "statistics",
+                    skel.widgets.Window.DisplayWindow.EXCLUDED, path.ANIMATOR );
      
             /*this.layout(3, 2);
 
@@ -229,11 +233,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             */
         },
 
-
-
-
-
-
         /**
          * Adds or removes the link from the window identified
          * by the sourceWinId to the window identified by the
@@ -251,7 +250,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          *                added; false otherwise.
          */
         link : function(sourceWinId, destWinId, addLink) {
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 this.m_pane.changeLink(sourceWinId, destWinId,addLink);
             }
         },
@@ -271,7 +270,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Clears out the existing windows.
          */
         _removeWindows : function() {
-            if (this.m_pane != null) {
+            if (this.m_pane !== null) {
                 this.m_pane.removeWindows();
                 this.removeAll();
             }
@@ -279,15 +278,17 @@ qx.Class.define("skel.widgets.DisplayMain",
 
         /**
          * Resets which plugins are displayed in each window.
+         * @param layoutObj {Object} information about the plug-ins that
+         *      should be displayed.
          */
         _resetDisplayedPlugins : function( layoutObj ) {
             var index = 0;
-            var pluginMap = {}
+            var pluginMap = {};
             for (var row = 0; row < this.m_gridRowCount; row++) {
                 for (var col = 0; col < this.m_gridColCount; col++) {
                     var name = layoutObj.plugins[index];
                     if ( name && typeof(name) == "string" && name.length > 0 ){
-                        if ( name != skel.widgets.DisplayWindow.EXCLUDED ){
+                        if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
                             if ( pluginMap[name] ===undefined ){
                                 pluginMap[name] = -1;
                             }
@@ -312,20 +313,27 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         _resetLayoutCB : function() {
             var layoutObjJSON = this.m_layout.get();
-            var layout = JSON.parse( layoutObjJSON );
-            if ( layout.rows > 0 && layout.cols > 0 ){
-                if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
-                    this.m_gridRowCount = layout.rows;
-                    this.m_gridColCount = layout.cols;
-                    var gridData = {
-                            "rows" : this.m_gridRowCount,
-                            "cols" : this.m_gridColCount
+            if ( layoutObjJSON ){
+                try {
+                    var layout = JSON.parse( layoutObjJSON );
+                    if ( layout.rows > 0 && layout.cols > 0 ){
+                        if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
+                            this.m_gridRowCount = layout.rows;
+                            this.m_gridColCount = layout.cols;
+                            var gridData = {
+                                    "rows" : this.m_gridRowCount,
+                                    "cols" : this.m_gridColCount
+                                };
+                            qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                                    "layoutGrid", gridData));
+                            this.layout(this.m_gridRowCount, this.m_gridColCount);
                         }
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "layoutGrid", gridData));
-                    this.layout(this.m_gridRowCount, this.m_gridColCount);
+                        this._resetDisplayedPlugins( layout );
+                    }
                 }
-                this._resetDisplayedPlugins( layout );
+                catch( err ){
+                    console.log( "Could not parse: "+layoutObjJSON );
+                }
             }
         },
         
@@ -371,7 +379,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             for( var i = 0; i < arguments.length; i++ ){
                 params = params + arguments[i];
                 if ( i != arguments.length - 1 ){
-                    params = params + "."
+                    params = params + ".";
                 }
             }
             this.m_connector.sendCommand( cmd, params, function(){} );
@@ -388,28 +396,36 @@ qx.Class.define("skel.widgets.DisplayMain",
             var path = skel.widgets.Path.getInstance();
             var layoutPath = path.LAYOUT;
             var layoutSharedVar = this.m_connector.getSharedVar(layoutPath);
-            var layoutObj = JSON.parse( layoutSharedVar.get());
-            var index = row * this.m_gridColCount + col;
-            var cmd = path.getCommandSetPlugin();
-            var params = "names:";
-            var i = 0;
-            for( var r = 0; r < this.m_gridRowCount; r++ ){
-                for ( var c = 0; c < this.m_gridColCount; c++ ){
-                    if ( i != index ){
-                        if ( typeof(layoutObj.plugins[i]) =="string" ){
-                            params = params + layoutObj.plugins[i];
+            var val = layoutSharedVar.get();
+            if ( val ){
+                try {
+                    var layoutObj = JSON.parse( val );
+                    var index = row * this.m_gridColCount + col;
+                    var cmd = path.getCommandSetPlugin();
+                    var params = "names:";
+                    var i = 0;
+                    for( var r = 0; r < this.m_gridRowCount; r++ ){
+                        for ( var c = 0; c < this.m_gridColCount; c++ ){
+                            if ( i != index ){
+                                if ( typeof(layoutObj.plugins[i]) =="string" ){
+                                    params = params + layoutObj.plugins[i];
+                                }
+                            }
+                            else {
+                                params = params + plugin;
+                            }
+                            if ( i != this.m_gridRowCount * this.m_gridColCount - 1 ){
+                                params = params + ".";
+                            }
+                            i++;
                         }
                     }
-                    else {
-                        params = params + plugin;
-                    }
-                    if ( i != this.m_gridRowCount * this.m_gridColCount - 1 ){
-                        params = params + ".";
-                    }
-                    i++;
+                    this.m_connector.sendCommand( cmd, params, function(){} );
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
                 }
             }
-            this.m_connector.sendCommand( cmd, params, function(){} );
         },
 
         m_PLUGIN_PREFIX : "win",

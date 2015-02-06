@@ -4,10 +4,9 @@
 #include "Viewer.h"
 #include "Globals.h"
 #include "IPlatform.h"
-#include "IConnector.h"
-#include "Algorithms/RawView2QImageConverter.h"
 #include "State/ObjectManager.h"
 #include "Data/ViewManager.h"
+#include "Data/Controller.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
 #include "MyQApp.h"
@@ -61,13 +60,14 @@ Viewer::start()
 	}
 
     ObjectManager* objManager = ObjectManager::objectManager();
-    QString vmId = objManager->createObject (ViewManager::CLASS_NAME);
+    QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
     CartaObject* vmObj = objManager->getObject( vmId );
-    m_viewManager.reset( dynamic_cast<ViewManager*>(vmObj));
-    if ( fname.length() > 0 ){
-        m_viewManager->loadFile( fname );
-    }
+    m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
 
+    if ( fname.length() > 0 ) {
+        QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
+        m_viewManager->loadFile( controlId, fname );
+    }
     qDebug() << "Viewer has been initialized.";
 }
 
@@ -102,5 +102,4 @@ Viewer::scriptedCommandCB( QString command )
         qWarning() << "Sorry, unknown command";
     }
 } // scriptedCommandCB
-
 

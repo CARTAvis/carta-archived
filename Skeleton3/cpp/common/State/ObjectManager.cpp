@@ -7,13 +7,14 @@
 
 #include "ObjectManager.h"
 #include "Globals.h"
-#include "Data/Layout.h"
 #include <QDebug>
 #include <cassert>
 
 using namespace std;
 
-QList<QString> CartaObjectFactory::globalIds = {"DataLoader","Layout", "ViewManager"};
+QList<QString> CartaObjectFactory::globalIds = {"Clips", "Colormaps",
+        "DataLoader","TransformsImage","TransformsData","ErrorManager","Layout",
+        "Preferences","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -86,7 +87,8 @@ void CartaObject::refreshView( IView* view ){
 
 void CartaObject::unregisterView(){
     IConnector * connector = Globals::instance()->connector();
-    connector->unregisterView( m_id );
+    QString viewId = m_path +"/view";
+    connector->unregisterView( viewId );
 }
 
 QString CartaObject::getStateLocation( const QString& name ) const {
@@ -124,6 +126,17 @@ QString ObjectManager::getRoot() const {
     return m_root;
 }
 
+
+QString ObjectManager::parseId( const QString& path ) const {
+    QString basePath = m_sep + m_root + m_sep;
+    int rootIndex = path.indexOf( basePath );
+    QString id;
+    if ( rootIndex >= 0 ){
+        id = path.right( path.length() - basePath.length());
+    }
+    return id;
+}
+
 QString
 ObjectManager::createObject (const QString & className)
 {
@@ -154,7 +167,6 @@ ObjectManager::createObject (const QString & className)
         // Install the newly created object in the object registry.
 
         assert (m_objects.find (id) == m_objects.end());
-
         m_objects [id] = ObjectRegistryEntry (className, id, path, object);
 
         result = id;
@@ -217,28 +229,6 @@ ObjectManager::objectManager ()
 }
 
 
-//QString ObjectManager::onCreateObject (const QString& /*command*/,
-//                               const QString& parameters,
-//                               const QString& /*sessionId*/)
-//{
-//    QString className = parameters;
-//
-//    QString id = objectManager()->createObject(className);
-//
-//    return id;
-//}
-//
-//QString
-//ObjectManager::onDestroyObject (QString sessionid,
-//                                Typeless const & command,
-//                                Typeless & /* responses */)
-//{
-//    string className = command.Child (ClassName).ValueOr ("");
-//
-//    string id = objectManager()->destroyObject(className);
-//
-//    return "";
-//}
 
 bool
 ObjectManager::registerClass (const QString & className, CartaObjectFactory * factory)

@@ -49,6 +49,30 @@ qx.Theme.define( "skel.theme.Decoration", {
                 backgroundColor: "background"
             }
         },
+        
+        "slider-red" :
+        {
+           style :
+            {          
+                backgroundColor : "#FF0000"
+            }
+         },
+         
+         "slider-blue" :
+         {
+            style :
+             {          
+                 backgroundColor : "#0000FF"
+             }
+          },
+          
+          "slider-green" :
+          {
+             style :
+              {          
+                  backgroundColor : "#00FF00"
+              }
+           },
 
         "desktop": {
             style: {

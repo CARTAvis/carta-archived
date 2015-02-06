@@ -7,6 +7,8 @@
 qx.Class.define("skel.widgets.Util", {
     type : "static",
     statics : {
+        
+
         /**
          * Returns the 'left' position of the widget.
          * 
@@ -21,8 +23,7 @@ qx.Class.define("skel.widgets.Util", {
         /**
          * Returns the 'right' position of the widget.
          * 
-         * @param widget
-         *                {qx.ui.core.Widget} the widget whose position is to be
+         * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
         getRight : function(widget) {
@@ -88,10 +89,7 @@ qx.Class.define("skel.widgets.Util", {
          * received the event and subract it from the mouse x/y. Or you could pass the
          * box to this function.
          */
-        localPos : function(event) {
-
-            //var target = event.getTarget();
-            var target = event.getCurrentTarget();
+        localPos : function( target, event) {
             var box = target.getContentLocation("box");
            
             var left = event.getDocumentLeft();
@@ -105,6 +103,19 @@ qx.Class.define("skel.widgets.Util", {
                 x : left,
                 y : top
             };
+        },
+        
+        /**
+         * Converts a string containing 'true' or 'false' to a boolean.
+         * @param valStr {String} the string to translate.
+         * @return {boolean} true if the string contains 'true'; false otherwise.
+         */
+        toBool : function ( valStr ){
+            var val = false;
+            if ( valStr === "true"){
+                val = true;
+            }
+            return val;
         }
 
     }

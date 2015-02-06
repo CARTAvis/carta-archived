@@ -8,6 +8,9 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 
+namespace Carta {
+
+namespace Data {
 
 class ViewPlugins : public CartaObject {
 
@@ -35,3 +38,5 @@ private:
     ViewPlugins( const ViewPlugins& other);
     ViewPlugins operator=( const ViewPlugins& other );
 };
+}
+}

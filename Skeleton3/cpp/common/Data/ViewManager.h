@@ -8,10 +8,15 @@
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
 
+namespace Carta {
+
+namespace Data {
 
 class Animator;
 class Controller;
 class DataLoader;
+class Histogram;
+class Colormap;
 class Layout;
 class ViewPlugins;
 
@@ -22,10 +27,54 @@ public:
     virtual ~ViewManager(){}
 
     /**
-     * Convenience method for loading initial data with Viewer start-up.
-     * @param fileName a locater for the data to load.
+     * Return the unique server side id of the object with the given name and index in the
+     * layout.
+     * @param pluginName an identifier for the kind of object.
+     * @param index an index in the case where there is more than one object of the given kind
+     *      in the layout.
      */
-    void loadFile( QString fileName );
+    QString getObjectId( const QString& pluginName, int index );
+
+    /**
+     * Link a source plugin to a destination plugin.
+     * @param sourceId the unique server-side id for the plugin that is the source of the link.
+     * @param destId the unique server side id for the plugin that is the destination of the link.
+     * @return an error message if the link does not succeed.
+     */
+    QString linkAdd( const QString& sourceId, const QString& destId );
+
+    /**
+     * Remove a link from a source to a destination.
+     * @param sourceId the unique server-side id for the plugin that is the source of the link.
+     * @param destId the unique server side id for the plugin that is the destination of the link.
+     * @return an error message if the link does not succeed.
+     */
+    QString linkRemove( const QString& sourceId, const QString& destId );
+
+    /**
+     * Load the file into the controller with the given id.
+     * @param fileName a locater for the data to load.
+     * @param objectId the unique server side id of the controller which is responsible for displaying
+     *      the file.
+     */
+    void loadFile( const QString& objectId, const QString& fileName);
+
+    /**
+     * Reset the layout to a predefined analysis view.
+     */
+    void setAnalysisView();
+
+    /**
+     * Change the color map to the map with the given name.
+     * @param colormapId the unique server-side id of a Colormap object.
+     * @param colormapName a unique identifier for the color map to be displayed.
+     */
+    bool setColorMap( const QString& colormapId, const QString& colormapName );
+
+    /**
+     * Reset the layout to a predefined view displaying only a single image.
+     */
+    void setImageView();
 
     static const QString CLASS_NAME;
 
@@ -33,20 +82,28 @@ private:
     ViewManager( const QString& path, const QString& id);
     class Factory;
 
-    void _clearLayout();
+    void _clear();
+
+    int _findAnimator( const QString& id ) const;
+    int _findColorMap( const QString& id ) const;
+    int _findController( const QString& id ) const;
+
 
     void _initCallbacks();
 
-    void _initializeExistingAnimationLinks( int index );
+    //void _initializeExistingAnimationLinks( int index );
     //Sets up a default set of states for constructing the UI if the user
     //has not saved one.
     void _initializeDefaultState();
-    void _initializeDataLoader();
 
     QString _makeAnimator();
     QString _makeLayout();
     QString _makePluginList();
     QString _makeController();
+    QString _makeHistogram();
+    QString _makeColorMap();
+    void _makeDataLoader();
+
 
     bool _readState( const QString& fileName );
     bool _saveState( const QString& fileName );
@@ -57,11 +114,23 @@ private:
     //A list of Animators requested by the client.
     QList < std::shared_ptr<Animator> > m_animators;
 
+    //Colormap
+    QList<std::shared_ptr<Colormap>  >m_colormaps;
+
+    //Histogram
+    QList<std::shared_ptr<Histogram> >m_histograms;
+
     static bool m_registered;
     std::shared_ptr<Layout> m_layout;
     std::shared_ptr<DataLoader> m_dataLoader;
     std::shared_ptr<ViewPlugins> m_pluginsLoaded;
 
+    const static QString SOURCE_ID;
+    const static QString DEST_ID;
+
     ViewManager( const ViewManager& other);
     ViewManager operator=( const ViewManager& other );
 };
+
+}
+}

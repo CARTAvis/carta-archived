@@ -20,32 +20,23 @@ qx.Class
                     /**
                      * Constructor; recursively builds up the screen.
                      * 
-                     * @param rows
-                     *                {Number} the number of layout rows still
+                     * @param rows {Number} the number of layout rows still
                      *                being constructed.
-                     * @param cols
-                     *                {Number} the number of layout column still
+                     * @param col {Number} the number of layout column still
                      *                being constructed.
-                     * @param height
-                     *                {Number} the number of pixels still
+                     * @param height {Number} the number of pixels still
                      *                available in the vertical direction.
-                     * @param width
-                     *                {Number} the number of pixels still
+                     * @param width {Number} the number of pixels still
                      *                available in the horizontal direction.
-                     * @param rowIndex
-                     *                {Number} the smallest row index available.
-                     * @param colIndex
-                     *                {Number} the smallest column index
+                     * @param rowIndex {Number} the smallest row index available.
+                     * @param colIndex {Number} the smallest column index
                      *                available.
-                     * @param lastColIndex
-                     *                {Number} index of the last column in the
+                     * @param lastColIndex {Number} index of the last column in the
                      *                layout.
-                     * @param secondArea
-                     *                {DisplayArea} used when splitting an
+                     * @param secondArea {DisplayArea} used when splitting an
                      *                existing display area; the second area is
                      *                provided rather than constructed.
-                     * @param splitType
-                     *                {String} used when splitting an exsiting
+                     * @param splitType {String} used when splitting an existing
                      *                area; whether to split horizontally or
                      *                vertically.
                      */
@@ -68,8 +59,20 @@ qx.Class
                     members : {
 
                         /**
-                         * Constructor for making a new display area. Please see
-                         * the constructor for parameter documentation.
+                         * Constructor for making a new display area.
+                         * @param rows {Number} the number of layout rows still
+                         *                being constructed.
+                         * @param col {Number} the number of layout column still
+                         *                being constructed.
+                         * @param height {Number} the number of pixels still
+                         *                available in the vertical direction.
+                         * @param width {Number} the number of pixels still
+                         *                available in the horizontal direction.
+                         * @param rowIndex {Number} the smallest row index available.
+                         * @param colIndex {Number} the smallest column index
+                         *                available.
+                         * @param lastColIndex {Number} index of the last column in the
+                         *                layout.
                          */
                         _constructOne : function(rows, cols, height, width,
                                 rowIndex, colIndex, lastColIndex) {
@@ -141,6 +144,13 @@ qx.Class
                         /**
                          * Constructor for splitting an existing display area in
                          * two pieces.
+                         * @param rowHeight {Number} the available height for the area.
+                         * @param colWidth {Number} the available width for the area.
+                         * @param rowIndex {Number} the grid row location.
+                         * @param colIndex {Number} the grid column location.
+                         * @param secondArea {skel.widgets.DisplayArea} the contents for the
+                         *      second side of the split pane.
+                         * @param splitType {String} whether the pane should be horizontal or vertical.
                          */
                         _constructTwo : function(rowHeight, colWidth, rowIndex,
                                 colIndex, secondArea, splitType) {
@@ -162,16 +172,14 @@ qx.Class
                          * the destination window was successfully added or
                          * removed; false otherwise.
                          * 
-                         * @param sourceWinId
-                         *                {String} an identifier for the link
+                         * @param sourceWinId {String} an identifier for the link
                          *                source.
-                         * @param destWinId
-                         *                {String} an identifier for the link
+                         * @param destWinId {String} an identifier for the link
                          *                destination.
-                         * @param addLink
-                         *                {boolean} true if the link should be
+                         * @param addLink {boolean} true if the link should be
                          *                added; false if the link should be
                          *                removed.
+                         * @return {boolean} true if the link was changed; false otherwise.
                          */
                         changeLink : function(sourceWinId, destWinId, addLink) {
                             var linkSet = this.m_areaFirst.changeLink(
@@ -186,24 +194,26 @@ qx.Class
 
                         /**
                          * Notifies children that data has been loaded.
+                         * @param path {String} an identifier for the data to load.
                          */
                         dataLoaded : function(path) {
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 this.m_areaFirst.dataLoaded(path);
                             }
-                            if (this.m_areaSecond != null) {
+                            if (this.m_areaSecond !== null) {
                                 this.m_areaSecond.dataLoaded(path);
                             }
                         },
 
                         /**
                          * Notifies children that data has been unloaded.
+                         * @param path {String} an identifier for the data to remove.
                          */
                         dataUnloaded : function(path) {
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 this.m_areaFirst.dataUnloaded(path);
                             }
-                            if (this.m_areaSecond != null) {
+                            if (this.m_areaSecond !== null) {
                                 this.m_areaSecond.dataUnloaded(path);
                             }
                         },
@@ -214,12 +224,9 @@ qx.Class
                          * column of the layout was successfully removed; used
                          * for creating asymmetrical layouts.
                          * 
-                         * @param row
-                         *                {Number} an index of a row in the
-                         *                grid.
-                         * @param col
-                         *                {Number} an index of a column in the
-                         *                grid.
+                         * @param row {Number} an index of a row in the grid.
+                         * @param col {Number} an index of a column in the grid.
+                         * @return {boolean} true if the area was removed; false otherwise.
                          */
                         excludeArea : function(row, col) {
                             var excluded = this.m_areaFirst.excludeArea(row,
@@ -231,36 +238,35 @@ qx.Class
                             return excluded;
                         },
 
-
                         /**
                          * Returns an array of points (pixel coordinates) where
                          * new display areas can be added.
+                         * @return {Array} points where new display areas can be added.
                          */
                         getAddWindowLocations : function() {
                             var locations = [];
-                            if (this.m_pane != null) {
+                            var i = 0;
+                            if (this.m_pane !== null) {
                                 var loc = this._getSplitterLocation();
                                 if (loc.length > 0) {
                                     loc.push(this);
                                     locations.push(loc);
-                                    if (this.m_areaFirst != null) {
+                                    if (this.m_areaFirst !== null) {
                                         var areaFirstLocs = this.m_areaFirst
                                                 .getAddWindowLocations();
-                                        for (var i = 0; i < areaFirstLocs.length; i++) {
+                                        for ( i = 0; i < areaFirstLocs.length; i++) {
                                             locations.push(areaFirstLocs[i]);
                                         }
                                     }
-                                    if (this.m_areaSecond != null) {
-                                        var areaSecondLocs = this.m_areaSecond
-                                                .getAddWindowLocations(locations);
-                                        for (var i = 0; i < areaSecondLocs.length; i++) {
+                                    if (this.m_areaSecond !== null) {
+                                        var areaSecondLocs = this.m_areaSecond.getAddWindowLocations(locations);
+                                        for ( i = 0; i < areaSecondLocs.length; i++) {
                                             var areaLoc = areaSecondLocs[i];
                                             if (this.m_pane.getOrientation() == "horizontal") {
-                                                areaLoc[0] = areaLoc[0]
-                                                        + loc[0];
-                                            } else {
-                                                areaLoc[1] = areaLoc[1]
-                                                        + loc[1];
+                                                areaLoc[0] = areaLoc[0] + loc[0];
+                                            } 
+                                            else {
+                                                areaLoc[1] = areaLoc[1] + loc[1];
                                             }
                                             locations.push(areaLoc);
                                         }
@@ -281,6 +287,7 @@ qx.Class
                         /**
                          * Returns the approximate width and height occupied by
                          * both sides of the split pane.
+                         * @return {Array} containing the [width,height] of the pane.
                          */
                         _getDimensions : function() {
                             var firstSize = this.m_areaFirst._getDimensions();
@@ -297,6 +304,7 @@ qx.Class
 
                         /**
                          * Returns the split pane.
+                         * @return {qx.ui.splitpane.Pane} this display area's divider.
                          */
                         getDisplayArea : function() {
                             return this.m_pane;
@@ -308,21 +316,22 @@ qx.Class
                          * the given source window showing the indicated plug-in.
                          * @param pluginId {String} the name of the plug-in.
                          * @param sourceWinId {String} an identifier for the window displaying the
-                         *      plug-in that wants information about the links that can emanate frome it.
+                         *      plug-in that wants information about the links that can originate from it.
+                         * @return {String} information about windows that can be linked to the plug-in
+                         *      displayed in the source window.
                          */
                         getLinkInfo : function(pluginId, sourceWinId) {
                             var linkInfo = [];
-                            if (this.m_areaFirst != null) {
-                                var firstInfo = this.m_areaFirst.getLinkInfo(
-                                        pluginId, sourceWinId);
-                                for (var i = 0; i < firstInfo.length; i++) {
+                            var i = 0;
+                            if (this.m_areaFirst !== null) {
+                                var firstInfo = this.m_areaFirst.getLinkInfo( pluginId, sourceWinId);
+                                for ( i = 0; i < firstInfo.length; i++) {
                                     linkInfo.push(firstInfo[i]);
                                 }
                             }
-                            if (this.m_areaSecond != null) {
-                                var secondInfo = this.m_areaSecond.getLinkInfo(
-                                        pluginId, sourceWinId);
-                                for (var i = 0; i < secondInfo.length; i++) {
+                            if (this.m_areaSecond !== null) {
+                                var secondInfo = this.m_areaSecond.getLinkInfo( pluginId, sourceWinId);
+                                for ( i = 0; i < secondInfo.length; i++) {
                                     linkInfo.push(secondInfo[i]);
                                 }
                             }
@@ -348,10 +357,8 @@ qx.Class
                             var splitterWidth = splitterRight - splitterLeft;
                             var splitterHeight = splitterBottom - splitterTop;
                             if (splitterWidth > 0 && splitterHeight > 0) {
-                                var xPos = Math.floor(splitterLeft
-                                        + splitterWidth / 2);
-                                var yPos = Math.floor(splitterTop
-                                        + splitterHeight / 2);
+                                var xPos = Math.floor(splitterLeft + splitterWidth / 2);
+                                var yPos = Math.floor(splitterTop + splitterHeight / 2);
                                 loc = [ xPos, yPos ];
                             }
                             return loc;
@@ -361,17 +368,15 @@ qx.Class
                          * Returns the window identifier for the window at the
                          * given row and column.
                          * 
-                         * @param sourceRow
-                         *                {number} a row in the screen grid.
-                         * @param sourceCol
-                         *                {number} a column in the screen grid.
+                         * @param sourceRow {number} a row in the screen grid.
+                         * @param sourceCol {number} a column in the screen grid.
+                         * @return {String} an identifier for the window at the specified grid location.
                          */
                         getWinId : function(sourceRow, sourceCol) {
                             var winId = this.m_areaFirst.getWinId(sourceRow,
                                     sourceCol);
-                            if (winId.length == 0) {
-                                winId = this.m_areaSecond.getWinId(sourceRow,
-                                        sourceCol);
+                            if (winId.length === 0) {
+                                winId = this.m_areaSecond.getWinId(sourceRow, sourceCol);
                             }
                             return winId;
                         },
@@ -382,14 +387,10 @@ qx.Class
                          * to the window located at the destination row and
                          * column.
                          * 
-                         * @param sourceRow
-                         *                {Number} a row in the screen grid.
-                         * @param souceCol
-                         *                {Number} a column in the screen grid.
-                         * @param destRow
-                         *                {Number} a row in the screen grid.
-                         * @param destCol
-                         *                {Number} a column in the screen grid.
+                         * @param sourceRow {Number} a row in the screen grid.
+                         * @param sourceCol {Number} a column in the screen grid.
+                         * @param destRow {Number} a row in the screen grid.
+                         * @param destCol {Number} a column in the screen grid.
                          */
                         link : function(sourceRow, sourceCol, destRow, destCol) {
                             var winId = this.getWinId(sourceRow, sourceCol);
@@ -402,11 +403,15 @@ qx.Class
 
                         /**
                          * Constructs a child leaf node of this composite.
+                         * @param colWidth {Number} the width of the new child.
+                         * @param rowHeight {Number} the height of the new child.
+                         * @param rowIndex {Number} the grid row location of the child.
+                         * @param colIndex {Number} the grid column location of the child.
                          */
                         _makeArea : function(colWidth, rowHeight, rowIndex,
                                 colIndex, includeView) {
 
-                            var area = new skel.widgets.DisplayDesktop(
+                            var area = new skel.widgets.Window.DisplayDesktop(
                                     rowIndex, colIndex).set({
                                 width : colWidth,
                                 height : rowHeight,
@@ -426,10 +431,12 @@ qx.Class
                             return area;
                         },
                         
-
-
                         /**
                          * Constructs a composite child node of this composite.
+                         * @param colWidth {Number} the width of the new child.
+                         * @param rowHeight {Number} the height of the new child.
+                         * @param rowIndex {Number} the grid row location of the child.
+                         * @param colIndex {Number} the grid column location of the child.
                          */
                         _makeChild : function(rows, cols, rowHeight, colWidth,
                                 rowIndex, colIndex, lastColIndex, secondArea,
@@ -454,13 +461,11 @@ qx.Class
                         /**
                          * Returns whether or not the window with the given id
                          * was restored.
-                         * 
-                         * @param row
-                         *                {Number} the layout row of the window
+                         * @param row {Number} the layout row of the window
                          *                to be restored.
-                         * @param col
-                         *                {Number} the layout column of the
+                         * @param col {Number} the layout column of the
                          *                window to be restored.
+                         * @return {boolean} true if the window was restored; false otherwise.
                          */
                         restoreWindow : function(row, col) {
                             var restored = this.m_areaFirst.restoreWindow(row,
@@ -547,17 +552,11 @@ qx.Class
                                     decreaseWidth, decreaseHeight);
                         },
 
-
-
-
-
-
-
                         setDrawMode : function(drawInfo) {
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 this.m_areaFirst.setDrawMode(drawInfo);
                             }
-                            if (this.m_areaSecond != null) {
+                            if (this.m_areaSecond !== null) {
                                 this.m_areaSecond.setDrawMode(drawInfo);
                             }
                         },
@@ -567,17 +566,21 @@ qx.Class
                          * Returns whether or not a different plug-in was reassigned to this DisplayArea
                          * based on whether its location matches the rowIndex and colIndex passed in.
                          * @param pluginId {String} a new plug-in identifier.
+                         * @param index {Number} the index of the plug-in for cases where there are multiple plug-ins
+                         *      of the same type.
                          * @param rowIndex {Number} a row index in the layout.
                          * @param colIndex {Number} a column index in the layout.
+                         * @return {boolean} true if either the right or left child will be displaying this plugin,
+                         *      false otherwise.
                          */
                         setView : function(pluginId, index, rowIndex, colIndex) {
                             var pluginAssigned = false;
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 pluginAssigned = this.m_areaFirst.setView(
                                         pluginId, index, rowIndex, colIndex);
                             }
                             if (!pluginAssigned) {
-                                if (this.m_areaSecond != null) {
+                                if (this.m_areaSecond !== null) {
                                     pluginAssigned = this.m_areaSecond.setView(
                                             pluginId, index, rowIndex, colIndex);
                                 }
@@ -590,15 +593,16 @@ qx.Class
                          * @param height {Number} the new height in pixels.
                          * @param rowIndex {Number} the row location of the target window.
                          * @param colIndex {Number} the column location of the target window.
+                         * @return {boolean} true if the height was set; false otherwise.
                          */
                         setAreaHeight : function(height, rowIndex, colIndex) {
                             var heightSet = false;
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 heightSet = this.m_areaFirst.setAreaHeight(
                                         height, rowIndex, colIndex);
                             }
                             if (!heightSet) {
-                                if (this.m_areaSecond != null) {
+                                if (this.m_areaSecond !== null) {
                                     heightSet = this.m_areaSecond
                                             .setAreaHeight(height, rowIndex,
                                                     colIndex);
@@ -612,16 +616,17 @@ qx.Class
                          * @param width {Number} the new width in pixels.
                          * @param rowIndex {Number} the row location of the target window.
                          * @param colIndex {Number} the column location of the target window.
+                         * @return {boolean} true if the width was set; false otherwise.
                          */
 
                         setAreaWidth : function(width, rowIndex, colIndex) {
                             var widthSet = false;
-                            if (this.m_areaFirst != null) {
+                            if (this.m_areaFirst !== null) {
                                 widthSet = this.m_areaFirst.setAreaWidth(width,
                                         rowIndex, colIndex);
                             }
                             if (!widthSet) {
-                                if (this.m_areaSecond != null) {
+                                if (this.m_areaSecond !== null) {
                                     widthSet = this.m_areaSecond.setAreaWidth(
                                             width, rowIndex, colIndex);
                                 }
@@ -634,7 +639,7 @@ qx.Class
                          * Notifies children that the given window was selected.
                          * 
                          * @param win
-                         *                {skel.widgets.DisplayWindow} the
+                         *                {skel.widgets.Window.DisplayWindow} the
                          *                selected window.
                          */
                         windowSelected : function(win) {

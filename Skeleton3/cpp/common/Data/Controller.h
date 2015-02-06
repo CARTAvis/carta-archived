@@ -7,22 +7,34 @@
 #include "CartaLib/ICoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
+#include <Data/IColoredView.h>
 #include <QString>
 #include <QList>
 #include <QObject>
 #include <memory>
 
 class ImageView;
+class CoordinateFormatterInterface;
+
+namespace NdArray {
+    class RawViewInterface;
+}
+
+namespace Carta {
+
+namespace Data {
+
 class DataSource;
 class Region;
 class RegionRectangle;
 class Selection;
 
-class Controller: public QObject, public CartaObject {
+class Controller: public QObject, public CartaObject, public IColoredView {
 
     Q_OBJECT
 
 public:
+    
     /**
      * Clear the view.
      */
@@ -34,6 +46,21 @@ public:
      *        this could represent a url or an absolute path on a local filesystem.
      */
     void addData(const QString& fileName);
+
+    /**
+     * Returns the raw data.
+     * @param fileName a full path to the data.
+     * @param channel a channel frame specifying a subset of the data.
+     * @return the raw data if it exists; otherwise, a nullptr.
+     */
+    NdArray::RawViewInterface *  getRawData( const QString& fileName, int channel ) const;
+
+    //IColoredView interface.
+    virtual void colorMapChanged( const QString& colorMapName ) Q_DECL_OVERRIDE;
+    virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
+    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
+
+    virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() Q_DECL_OVERRIDE;
 
     /**
      * Make a channel selection.
@@ -68,6 +95,7 @@ public:
 
     static const QString CLASS_NAME;
     static const QString CURSOR;
+    static const QString PLUGIN_NAME;
 
 signals:
     /**
@@ -79,6 +107,7 @@ signals:
 private slots:
     //Refresh the view based on the latest data selection information.
     void _loadView( bool forceReload = false );
+
 
 private:
 
@@ -106,6 +135,7 @@ private:
     static const QString DATA_PATH;
     static const QString REGIONS;
 
+
     //Data Selections
     std::shared_ptr<Selection> m_selectChannel;
     std::shared_ptr<Selection> m_selectImage;
@@ -116,16 +146,20 @@ private:
     //Data available to and managed by this controller.
     QList<std::shared_ptr<DataSource> > m_datas;
 
+
+
     QList<std::shared_ptr<Region> > m_regions;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;
 
-    /// coordinate formatter
-    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+
 
     Controller(const Controller& other);
     Controller operator=(const Controller& other);
 
 };
+
+}
+}

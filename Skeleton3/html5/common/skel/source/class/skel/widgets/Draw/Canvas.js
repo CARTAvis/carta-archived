@@ -82,7 +82,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
                 this.m_drawRegion._draw( width, height, ctx );
 
                 // draw frozen cursor
-                if( this.m_frozenCursor != null) {
+                if( this.m_frozenCursor !== null) {
                     ctx.strokeStyle = "rgb(0,255,0)";
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -142,12 +142,12 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             _mouseMoveCB: function (event) {
                 if( this.m_touchDevice)  { return; }
                 // convert event to local widget coordinates
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
 
                 // if this is not a drag event, just update the mouse location & tell the view
                 if( ! this.m_drawRegion.isMouseDown() ) {
                     this.m_mouse = pt;
-                    if ( this.m_view != null ){
+                    if ( this.m_view !== null ){
                         event.pageX = pt.x - this.m_offsetX;
                         event.pageY = pt.y + this.m_offsetY;
                         // generating fake events is not that simple :(
@@ -171,7 +171,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             _mouseDownCB: function (event) {
                 if( this.m_touchDevice) return;
                 this.capture();
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
                 if( event.getButton() === "left") {
                     this.m_drawRegion._mouseDownCB( pt );
                 }
@@ -184,7 +184,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             _mouseUpCB: function (event) {
                 if( this.m_touchDevice) return;
                 this.releaseCapture();
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
                 if( event.getButton() !== "left") {
                     return;
                 }
@@ -197,7 +197,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             
             _mouseWheelCB: function (event) {
                 if( this.m_touchDevice) return;
-                var pt = skel.widgets.Util.localPos(event);
+                var pt = skel.widgets.Util.localPos(this, event);
                 var data = {
                     x: pt.x,
                     y: pt.y,
@@ -214,7 +214,7 @@ qx.Class.define("skel.widgets.Draw.Canvas",
             },
             
             setFrozenCursor: function ( x, y) {
-                if( x == null)
+                if( x === null)
                     this.m_frozenCursor = null;
                 else
                     this.m_frozenCursor = { x: x, y: y};

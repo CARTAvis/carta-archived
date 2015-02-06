@@ -17,7 +17,7 @@ SOURCES += \
 #QMAKE_CXXFLAGS += -H
 
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
-unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.so
 DEPENDPATH += $$PROJECT_ROOT/common
 
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib

@@ -7,7 +7,7 @@ equals( CARTA_BUILD_TYPE, release) {
     CARTA_CONFIG =
 }
 else:equals( CARTA_BUILD_TYPE, bughunter) {
-    CARTA_CONFIG = noOpt gdb dbgout runtimeChecks addrSanit
+    CARTA_CONFIG = noOpt gdb dbgout runtimeChecks #addrSanit
 }
 else {
     # assuming dev build...
@@ -37,13 +37,15 @@ QMAKE_CFLAGS_RELEASE -= -O -O0 -O1 -O2 -O3 -g
 contains( CARTA_CONFIG, gdb) {
     QMAKE_CXXFLAGS += -g
     QMAKE_CFLAGS += -g
+    QMAKE_LFLAGS += -g
     message( "+ debugger support")
 } else {
     message( "- NO debugger support")
 }
 contains( CARTA_CONFIG, dbgout) {
-    QMAKE_CXXFLAGS += -DCARTA_DEBUG_OUTPUT -Wextra -Woverloaded-virtual -Wnon-virtual-dtor
-    QMAKE_CFLAGS += -DCARTA_DEBUG_OUTPUT -Wextra
+    QMAKE_CXXFLAGS += -DCARTA_DEBUG_OUTPUT
+    QMAKE_CFLAGS += -DCARTA_DEBUG_OUTPUT
+    QMAKE_LFLAGS += -DCARTA_DEBUG_OUTPUT
     message( "+ extra debug output")
 } else {
     QMAKE_CXXFLAGS += -DQT_NO_DEBUG_OUTPUT
@@ -61,6 +63,7 @@ contains( CARTA_CONFIG, noOpt) {
     message( "- NO full optimization")
     QMAKE_CXXFLAGS += -O0
     QMAKE_CFLAGS += -O0
+    QMAKE_LFLAGS += -O0
 } else {
     message( "+ full optimization")
     QMAKE_CXXFLAGS += -O2

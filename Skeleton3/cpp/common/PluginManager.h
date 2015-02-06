@@ -195,7 +195,6 @@ protected:
 template <typename T>
 void HookHelper<T>::forEachCond( std::function< bool(typename T::ResultType)> func)
 {
-    // retrieve the static hook type
     HookId hookId = T::staticId;
 
     // get the list of plugins that claim they handle this hook

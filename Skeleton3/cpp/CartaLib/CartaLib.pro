@@ -13,6 +13,7 @@ SOURCES += \
     CartaLib.cpp \
     HtmlString.cpp \
     Hooks/ColormapsScalar.cpp \
+    Hooks/Histogram.cpp \
     IImage.cpp \
     PixelType.cpp \
     Slice.cpp \
@@ -29,6 +30,7 @@ HEADERS += \
     cartalib_global.h \
     HtmlString.h \
     Hooks/ColormapsScalar.h \
+    Hooks/Histogram.h \
     Hooks/HookIDs.h \
     IPlugin.h \
     IImage.h \

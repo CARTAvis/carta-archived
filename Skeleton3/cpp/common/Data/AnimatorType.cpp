@@ -1,7 +1,14 @@
 #include "Data/Animator.h"
 #include "Data/Selection.h"
+#include "Data/Util.h"
+
+#include <set>
 
 #include <QDebug>
+
+namespace Carta {
+
+namespace Data {
 
 class AnimatorType::Factory : public CartaObjectFactory {
 
@@ -15,6 +22,9 @@ public:
 
 const QString AnimatorType::COMMAND_SET_FRAME = "setFrame";
 const QString AnimatorType::END_BEHAVIOR = "endBehavior";
+const QString AnimatorType::END_BEHAVIOR_WRAP = "Wrap";
+const QString AnimatorType::END_BEHAVIOR_JUMP = "Jump";
+const QString AnimatorType::END_BEHAVIOR_REVERSE = "Reverse";
 const QString AnimatorType::RATE = "frameRate";
 const QString AnimatorType::STEP = "frameStep";
 
@@ -53,6 +63,79 @@ void AnimatorType::setUpperBound( int value ){
     m_select->setUpperBound( value );
 }
 
+QString AnimatorType::_setEndBehavior( const QString& params ){
+    QString result;
+    std::set<QString> keys = {END_BEHAVIOR};
+    qDebug() << "_setColored params="<<params;
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString endStr = dataValues[*keys.begin()];
+    if ( endStr == END_BEHAVIOR_WRAP || endStr == END_BEHAVIOR_REVERSE || endStr == END_BEHAVIOR_JUMP ){
+        if ( endStr != m_state.getValue<QString>(END_BEHAVIOR)){
+            m_state.setValue<QString>(END_BEHAVIOR, endStr );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Invalid animator end behavior: "+ params;
+        qWarning() << result;
+    }
+    return result;
+}
+
+QString AnimatorType::_setFrameRate( const QString& params ){
+    QString result;
+    std::set<QString> keys = {RATE};
+    qDebug() << "_setFrameRate="<<params;
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString rateStr = dataValues[*keys.begin()];
+    bool validRate = false;
+    int rate = rateStr.toInt( &validRate );
+    if ( validRate  ){
+        if ( rate > 0 ){
+            if ( rate != m_state.getValue<int>(RATE)){
+                m_state.setValue<int>(RATE, rate );
+                m_state.flushState();
+            }
+        }
+        else {
+            result = "Animator frame rate must be positive: "+params;
+            qWarning() << result;
+        }
+    }
+    else {
+        result = "Invalid animator frame rate: "+ params;
+        qWarning() << result;
+    }
+    return result;
+}
+
+QString AnimatorType::_setFrameStep( const QString& params ){
+    QString result;
+    std::set<QString> keys = {STEP};
+    qDebug() << "_setFrameStep="<<params;
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString stepStr = dataValues[*keys.begin()];
+    bool validStep = false;
+    int step = stepStr.toInt( &validStep );
+    if ( validStep  ){
+        if ( step > 0 ){
+            if ( step != m_state.getValue<int>(STEP)){
+                m_state.setValue<int>(STEP, step );
+                m_state.flushState();
+            }
+        }
+        else {
+            result = "Animator frame step size must be positive: "+params;
+            qWarning() << result;
+        }
+    }
+    else {
+        result = "Invalid animator frame step size: "+ params;
+        qWarning() << result;
+    }
+    return result;
+}
+
 
 void AnimatorType::_initializeState( ){
     m_state.insertValue<int>( STEP, 1 );
@@ -89,5 +172,24 @@ void AnimatorType::_initializeCommands(){
 	    return selectId;
 	});
 
-}
+	addCommandCallback( "setEndBehavior", [=] (const QString & /*cmd*/,
+	                                    const QString & params, const QString & /*sessionId*/) -> QString {
+	                            QString result = _setEndBehavior( params );
+	                            return result;
+	                        });
 
+
+    addCommandCallback( "setFrameRate", [=] (const QString & /*cmd*/,
+                                        const QString & params, const QString & /*sessionId*/) -> QString {
+                                QString result = _setFrameRate( params );
+                                return result;
+                            });
+
+    addCommandCallback( "setFrameStep", [=] (const QString & /*cmd*/,
+                                            const QString & params, const QString & /*sessionId*/) -> QString {
+                                    QString result = _setFrameStep( params );
+                                    return result;
+                                });
+}
+}
+}

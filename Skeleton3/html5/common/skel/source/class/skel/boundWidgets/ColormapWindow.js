@@ -132,12 +132,12 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
             this.m_ui.pane1.removeAll();
             this.m_cmaps = [];
             for( var i = 0 ; i < count ; i ++ ) {
-                var name = this.m_connector.getSharedVar( "/hacks/cm-names-" + i ).get();
-                var toggle = new skel.widgets.FancyToggle( name );
-                toggle.setPadding( 2 );
-                toggle.addListener( "execute", this._toggleCB.bind( this, i, name ) );
-                this.m_cmaps[i] = {toggle: toggle};
-                this.m_ui.pane1.add( toggle );
+                var name = this.m_connector.getSharedVar("/hacks/cm-names-" + i ).get();
+                var toggle = new skel.widgets.CustomUI.FancyToggle( name);
+                toggle.setPadding( 2);
+                toggle.addListener( "execute", this._toggleCB.bind(this, i, name));
+                this.m_cmaps[i] = { toggle: toggle };
+                this.m_ui.topPane.add( toggle);
             }
         },
 

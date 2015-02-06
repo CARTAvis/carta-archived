@@ -3,19 +3,73 @@
  */
 
 #pragma once
+#include <set>
+#include <map>
+#include <QString>
 
-#include <QVector>
+class CartaObject;
+
+namespace Carta {
+
+namespace Data {
 
 class Util {
 
 public:
-    //Utility function that parses a string of the form:  key1:value1,key2:value2,etc for
-     //keys contained in the QList and returns a vector containing their corresponding values.
-     static QVector<QString> parseParamMap( const QString& params, const QList<QString> & keys );
+     /**
+      * Parses a string of the form:  key1:value1,key2:value2,etc for
+      * keys contained in the QList and returns a map of key value pairs.
+      * @param paramsToParse the string to parse.
+      * @param keyList a set containing the expected keys in the string.
+      * @return a map containing the (key,value) pairs in the string.  An empty map will
+      *     be returned is the keys in the string do not match those in the keyList.
+      */
+     static std::map < QString, QString > parseParamMap( const QString & paramsToParse,
+             const std::set < QString > & keyList );
 
+     /**
+      * Converts the a string of the form true/false into a bool.
+      * @param str the string to convert.
+      * @param valid a bool whose value will be set to false if the string is not a valid bool.
+      * @return the bool value of the str.
+      */
+     static bool toBool( const QString str, bool* valid );
 
+     /**
+      * Converts a bool to a string representation.
+      * @param val a bool to convert;
+      * @return a QString representation of the bool.
+      */
+     static QString toString( bool val );
+
+     /**
+      * Creates an object of the given class.
+      * @param objectName the class name of the object to create.
+      * @return the object that was created.
+      */
+     static CartaObject* createObject( const QString& objectName );
+
+     /**
+      * Returns the singleton object of the given class or null if there is no such object.
+      * @param objectName the class name of the object to return.
+      * @return the singleton object with the corresponding name or null if there is no
+      *     such object.
+      */
+     static CartaObject* findSingletonObject( const QString& objectName );
+
+     /**
+      * Posts the error message, if one exists, and returns the last valid value, if one exists
+      * in the case of an error.
+      * @param errorMsg {QString} an error message if one occurred; otherwise an empty string.
+      * @param revertValue {QString} a string representation of the last valid value
+      */
+     static QString commandPostProcess( const QString& errorMsg, const QString& revertValue );
 private:
     Util();
     virtual ~Util();
+    static QString TRUE;
+    static QString FALSE;
 
 };
+}
+}

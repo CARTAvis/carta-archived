@@ -10,17 +10,31 @@
 
 #include <QStringList>
 
+namespace Carta {
+
+namespace Data {
 
 class Layout : public CartaObject {
 
 public:
     /**
-     * Clear the layout.
+     * Clear the layout state.
      */
     void clear();
+
+    /**
+     * Set a predefined analysis layout.
+     */
+    void setLayoutAnalysis();
+
+    /**
+     * Set a predefined layout displaying only a single image.
+     */
+    void setLayoutImage();
     virtual ~Layout();
     const static QString CLASS_NAME;
     static const QString LAYOUT;
+
 private:
     void _initializeCommands();
     void _initializeDefaultState();
@@ -32,9 +46,12 @@ private:
 
     class Factory;
 
+    static const QString HIDDEN;
     static const QString LAYOUT_ROWS;
     static const QString LAYOUT_COLS;
     static const QString LAYOUT_PLUGINS;
     Layout( const Layout& other);
     Layout operator=( const Layout& other );
 };
+}
+}

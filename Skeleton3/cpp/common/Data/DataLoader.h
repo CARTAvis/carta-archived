@@ -11,6 +11,10 @@
 #include <State/ObjectManager.h>
 #include <memory>
 
+namespace Carta {
+
+namespace Data {
+
 class DataLoader : public CartaObject {
 
 public:
@@ -52,3 +56,5 @@ private:
     void makeFileNode(QJsonArray& parentArray, const QString& fileName);
     DataLoader( const QString& path, const QString& id);
 };
+}
+}

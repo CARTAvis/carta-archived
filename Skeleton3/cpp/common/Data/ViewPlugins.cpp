@@ -1,9 +1,16 @@
 #include "Data/ViewPlugins.h"
 #include "Globals.h"
 #include "PluginManager.h"
+#include "Animator.h"
+#include "Histogram.h"
+#include "Colormap.h"
 
 #include <QDir>
 #include <QDebug>
+
+namespace Carta {
+
+namespace Data {
 
 class ViewPlugins::Factory : public CartaObjectFactory {
 
@@ -51,16 +58,20 @@ void ViewPlugins::_initializeDefaultState(){
     auto pm = Globals::instance()-> pluginManager();
     auto infoList = pm-> getInfoList();
     int ind = 0;
-    int infoListSize = infoList.size()+2;
+    int infoListSize = infoList.size()+4;
     m_state.insertArray( PLUGINS, infoListSize );
     for( auto & entry : infoList) {
         //qDebug() << "  path:" << entry.soPath;
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
     }
-    _insertPlugin( ind, "animator", "Animation of data sets", "", "", "");
+    _insertPlugin( ind, Animator::CLASS_NAME, "Animation of data sets", "", "", "");
     ind++;
     _insertPlugin( ind, "statistics", "Placeholder for statistics plugin", "", "", "");
+    ind++;
+    _insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
+    ind++;
+    _insertPlugin( ind, Colormap::CLASS_NAME, "Colormap", "", "", "");
     ind++;
     m_state.insertValue<int>( STAMP, ind);
     m_state.flushState();
@@ -68,4 +79,6 @@ void ViewPlugins::_initializeDefaultState(){
 
 ViewPlugins::~ViewPlugins(){
 
+}
+}
 }

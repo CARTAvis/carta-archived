@@ -1,0 +1,12 @@
+{
+    "api"        : "1",
+    "name"       : "Histogram1",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Generates a histogram of an image based on a region and a range of
+        planes."
+    ],
+    "about"      : "Histogram functionality for casa images",
+    "depends"    : [ "casaCore"]
+}

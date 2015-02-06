@@ -7,14 +7,27 @@
 #include "CartaLib/Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-
+#include "CartaLib/ICoordinateFormatter.h"
 #include <QImage>
 #include <memory>
 
-namespace Image {
-class ImageInterface;
+namespace NdArray {
+    class RawViewInterface;
 }
-class RawView2QImageConverter;
+
+namespace Image {
+    class ImageInterface;
+}
+namespace Carta {
+    namespace Core {
+        class RawView2QImageConverter3;
+    }
+}
+class ICoordinateFormatter;
+
+namespace Carta {
+
+namespace Data {
 
 class DataSource : public CartaObject {
 
@@ -25,6 +38,26 @@ public:
      * @return true if the data souce was successfully loaded; false otherwise.
      */
     bool setFileName( const QString& fileName );
+
+    /**
+     * Sets a new color map.
+     * @param name the identifier for the color map.
+     */
+    void setColorMap( const QString& name );
+
+    /**
+     * Sets whether the colors in the map are inverted.
+     * @param inverted true if the colors in the map are inverted; false
+     *        otherwise.
+     */
+    void setColorInverted( bool inverted );
+
+    /**
+     * Sets whether the colors in the map are reversed.
+     * @param reversed true if the colors in the map are reversed; false
+     *        otherwise.
+     */
+    void setColorReversed( bool reversed );
 
     /**
      * Loads the data source as a QImage.
@@ -53,7 +86,7 @@ public:
      * @param forceClipRecompute true if the clip should be recomputed; false if
      *      a cached value can be used.
      */
-    Nullable<QImage> load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue );
+    QImage load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue );
 
     /**
      * Return the number of channels in the image.
@@ -66,6 +99,21 @@ public:
      * @return the number of image dimensions.
      */
     int getDimensions() const;
+
+    /**
+     * Returns the underlying image.
+     */
+    std::shared_ptr<Image::ImageInterface> getImage();
+
+    /**
+     * Returns the raw data as an array.
+     * @param channel the index of the channel needed.
+     * @return the raw data or nullptr if there is none.
+     */
+    NdArray::RawViewInterface *  getRawData( int channel ) const;
+
+
+    QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
 
     virtual ~DataSource();
 
@@ -80,23 +128,20 @@ private:
      */
     DataSource(const QString& path, const QString& id );
 
-    class Factory : public CartaObjectFactory {
-
-    public:
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new DataSource (path, id);
-        }
-    };
+    class Factory;
 
     void _initializeState();
 
     //Reset the amount of clip to perform on the image.
     void resetClipValue();
 
+
+
     //Path for loading data - todo-- do we need to store this?
     QString m_fileName;
+    bool m_cmapUseCaching;
+    bool m_cmapUseInterpolatedCaching;
+    int m_cmapCacheSize;
 
     static bool m_registered;
     static const QString DATA_PATH;
@@ -105,5 +150,12 @@ private:
     std::shared_ptr<Image::ImageInterface> m_image;
 
     /// pointer to the rendering algorithm
-    std::shared_ptr<RawView2QImageConverter> m_rawView2QImageConverter;
+    //std::shared_ptr<RawView2QImageConverter3> m_rawView2QImageConverter;
+    std::unique_ptr<Carta::Core::RawView2QImageConverter3> m_rawView2QImageConverter;
+
+    /// coordinate formatter
+    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+
 };
+}
+}

@@ -1,8 +1,18 @@
 #include "Data/Layout.h"
+#include "Data/Colormap.h"
+#include "Data/Animator.h"
+#include "Data/Colormap.h"
+#include "Data/Controller.h"
+#include "Data/Histogram.h"
+#include "Data/ViewPlugins.h"
 #include "Util.h"
 
 #include <QDir>
 #include <QDebug>
+
+namespace Carta {
+
+namespace Data {
 
 class Layout::Factory : public CartaObjectFactory {
 
@@ -19,6 +29,7 @@ public:
 
 const QString Layout::LAYOUT = "Layout";
 const QString Layout::LAYOUT_ROWS = "rows";
+const QString Layout::HIDDEN = "Hidden";
 const QString Layout::LAYOUT_COLS = "cols";
 const QString Layout::LAYOUT_PLUGINS = "plugins";
 const QString Layout::CLASS_NAME = "Layout";
@@ -32,55 +43,6 @@ Layout::Layout( const QString& path, const QString& id):
     _initializeCommands();
 }
 
-void Layout::_initializeCommands(){
-    addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"rows", "cols"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            QString rowStr = dataValues[0];
-            QString colStr = dataValues[1];
-            bool valid = false;
-            int rows = rowStr.toInt( &valid );
-            if ( valid ){
-                int cols = colStr.toInt( &valid );
-                if ( valid ){
-                    _setLayoutSize( rows, cols);
-                }
-                else {
-                    qDebug() << "Invalid layout cols: "<<params;
-                }
-            }
-            else {
-                qDebug() << "Invalid layout rows: "<<params;
-            }
-        }
-        return "";
-    });
-
-    addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-        QList<QString> keys = {"names"};
-        QVector<QString> dataValues = Util::parseParamMap( params, keys );
-        if ( dataValues.size() == keys.size()){
-            QStringList names = dataValues[0].split(".");
-            bool valid = _setPlugin( names );
-            if ( !valid ){
-                qDebug() << "Invalid layout params: "<<params;
-            }
-        }
-        return "";
-    });
-}
-
-void Layout::_initializeDefaultState(){
-    m_state.insertArray( LAYOUT_PLUGINS, 4 );
-    m_state.insertValue<int>( LAYOUT_ROWS, 2 );
-    m_state.insertValue<int>( LAYOUT_COLS, 2 );
-    QStringList pluginNames = {"CasaImageLoader", "plugins", "Hidden", "animator"};
-    _setPlugin( pluginNames );
-}
-
 void Layout::clear(){
     int oldRows = m_state.getValue<int>( LAYOUT_ROWS );
     int oldCols = m_state.getValue<int>( LAYOUT_COLS );
@@ -91,6 +53,65 @@ void Layout::clear(){
         m_state.flushState();
     }
 }
+
+void Layout::_initializeCommands(){
+    addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {LAYOUT_ROWS, LAYOUT_COLS};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString rowStr = dataValues[LAYOUT_ROWS];
+        QString colStr = dataValues[LAYOUT_COLS];
+        bool valid = false;
+        int rows = rowStr.toInt( &valid );
+        if ( valid ){
+            int cols = colStr.toInt( &valid );
+            if ( valid ){
+                _setLayoutSize( rows, cols);
+            }
+            else {
+                qDebug() << "Invalid layout cols: "<<params;
+            }
+        }
+        else {
+            qDebug() << "Invalid layout rows: "<<params;
+        }
+        return "";
+    });
+
+    addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+        const QString NAMES( "names");
+        std::set<QString> keys = { NAMES };
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QStringList names = dataValues[NAMES].split(".");
+        bool valid = _setPlugin( names );
+        if ( !valid ){
+            qDebug() << "Invalid layout params: "<<params;
+        }
+        return "";
+    });
+}
+
+void Layout::_initializeDefaultState(){
+    m_state.insertArray( LAYOUT_PLUGINS, 0 );
+    m_state.insertValue<int>( LAYOUT_ROWS, 0 );
+    m_state.insertValue<int>( LAYOUT_COLS, 0 );
+}
+
+void Layout::setLayoutAnalysis(){
+    _setLayoutSize( 3, 2 );
+    QStringList names = {Controller::PLUGIN_NAME, Animator::CLASS_NAME,
+            HIDDEN, Colormap::CLASS_NAME,
+            HIDDEN, Histogram::CLASS_NAME};
+    _setPlugin( names );
+}
+
+void Layout::setLayoutImage(){
+    _setLayoutSize( 2,1);
+    QStringList name = {Controller::PLUGIN_NAME, HIDDEN};
+    _setPlugin( name );
+}
+
 
 bool Layout::_setPlugin( const QStringList& names ){
     int rows = m_state.getValue<int>( LAYOUT_ROWS );
@@ -132,4 +153,6 @@ bool Layout::_setLayoutSize( int rows, int cols ){
 
 Layout::~Layout(){
 
+}
+}
 }

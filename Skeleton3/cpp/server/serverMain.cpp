@@ -88,7 +88,6 @@ int main(int argc, char ** argv)
     // =================
     Viewer viewer;
     HackViewer hackViewer;
-    qDebug() << "Make viewer";
     // prepare closure to execute when connector is initialized
     IConnector::InitializeCallback initCB = [&](bool valid) -> void {
         if( ! valid) {

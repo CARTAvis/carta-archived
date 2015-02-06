@@ -1,6 +1,10 @@
 #include "RegionRectangle.h"
 #include <QDebug>
 
+namespace Carta {
+
+namespace Data {
+
 const QString RegionRectangle::CLASS_NAME = "RegionRectangle";
 
 bool RegionRectangle::m_registered =
@@ -79,4 +83,6 @@ void RegionRectangle::resetState(const QString & params ){
 
 RegionRectangle::~RegionRectangle(){
 
+}
+}
 }

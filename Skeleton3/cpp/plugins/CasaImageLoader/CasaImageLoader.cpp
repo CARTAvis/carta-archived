@@ -31,7 +31,6 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
         // Register FITS and Miriad image types
         casa::FITSImage::registerOpenFunction();
         casa::MIRIADImage::registerOpenFunction();
-        qDebug() << "FITSImage registered";
         return true;
     }
 
@@ -77,7 +76,7 @@ static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 ///
 Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
 {
-    qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
+  qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
     //
     // first we open the image as a lattice
@@ -86,25 +85,24 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     // first try as paged array
     try {
         lat = casa::ImageOpener::openPagedImage ( fname.toStdString());
-        qDebug() << "\t-opened as paged image";
-    } catch ( ... ) {
-        qDebug() << "\t-paged image open failed";
+	qDebug() << "\t-opened as paged image";
+    } catch ( casa::AipsError & e) {
+        qWarning() << "\t-paged image open failed: " << e.what();
     }
     // if paged didn't work, try as unpaged
     if( ! lat ) {
         try {
             lat = casa::ImageOpener::openImage ( fname.toStdString());
-            qDebug() << "\t-opened as unpaged image";
-        } catch ( ... ) {
-            qDebug() << "\t-unpaged image open failed";
+	    qDebug() << "\t-opened as unpaged image";
+        } catch ( casa::AipsError & e) {
+	    qWarning() << "\t-unpaged image open failed: " << e.what();
         }
     }
     // if we failed to open the lattice, we are done :(
-    if( lat == nullptr ) {
-        qDebug() << "\t-lat is nullptr, out of ideas, bailing out";
+    if( lat == 0 ) {
+        qDebug() << "\t-out of ideas, bailing out";
         return nullptr;
     }
-
     qDebug() << "lat=" << lat;
     auto shape = lat->shape();
     auto shapes = shape.asStdVector();

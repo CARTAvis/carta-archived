@@ -19,6 +19,7 @@ qx.Class.define("skel.boundWidgets.Label", {
      * @param labelPrefix {String} Text to display at the beginning of the label
      * @param labelPostfix {String|Function} Text to display at the end. Can be function.
      * @param varPath {String} Path to the bound shared variable.
+     * @param functionLookup {Function} method of determining the label text from a string.
      *
      * If labelPostfix is a function, it is passed the value, and the value is not
      * rendered.
@@ -57,9 +58,15 @@ qx.Class.define("skel.boundWidgets.Label", {
             var labelVal="";
             if ( val ){
                 if ( this.m_lookupFunction ){
-                    var controlObj = JSON.parse( val );
-                    labelVal = this.m_lookupFunction( controlObj );
-                } else {
+                    try {
+                        var controlObj = JSON.parse( val );
+                        labelVal = this.m_lookupFunction( controlObj );
+                    }
+                    catch( err ) {
+                        console.log( "Could not parse: "+val );
+                    }
+                }
+                else {
                     labelVal = val;
                 }
             }

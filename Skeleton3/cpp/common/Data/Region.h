@@ -7,6 +7,10 @@
 #include "../State/StateInterface.h"
 #include "../State/ObjectManager.h"
 
+namespace Carta {
+
+namespace Data {
+
 class Region : public CartaObject {
 
 public:
@@ -38,3 +42,5 @@ private:
     void _initializeCallbacks();
 
 };
+}
+}

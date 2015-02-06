@@ -5,6 +5,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+namespace Carta {
+
+namespace Data {
 
 class DataLoader::Factory : public CartaObjectFactory {
 
@@ -117,4 +120,6 @@ void DataLoader::makeFileNode(QJsonArray& parentArray,
 
 QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
     return "/scratch/Images";
+}
+}
 }

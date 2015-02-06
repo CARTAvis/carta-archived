@@ -1,15 +1,30 @@
 #include "DataSource.h"
+#include "Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
+#include "GrayColormap.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "Algorithms/RawView2QImageConverter.h"
 
 #include <QDebug>
 
+namespace Carta {
 
+namespace Data {
 
 const QString DataSource::CLASS_NAME = "DataSource";
+
+class DataSource::Factory : public CartaObjectFactory {
+
+    public:
+
+        CartaObject * create (const QString & path, const QString & id)
+        {
+            return new DataSource (path, id);
+        }
+};
+
 bool DataSource::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataSource::Factory());
@@ -22,7 +37,15 @@ DataSource::DataSource(const QString& path, const QString& id) :
     CartaObject( CLASS_NAME, path, id),
     m_image( nullptr )
     {
-        m_rawView2QImageConverter = std::make_shared<RawView2QImageConverter>();
+        m_cmapUseCaching = true;
+        m_cmapUseInterpolatedCaching = true;
+        m_cmapCacheSize = 1000;
+        m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
+
+        // assign a default colormap to the view
+        auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
+
+        m_rawView2QImageConverter-> setColormap( rawCmap );
         _initializeState();
 }
 
@@ -34,6 +57,16 @@ bool DataSource::setFileName( const QString& fileName ){
             m_image = Globals::instance()-> pluginManager()
                       -> prepare <Carta::Lib::Hooks::LoadAstroImage>( m_fileName )
                       .first().val();
+            m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
+            CoordinateFormatterInterface::VD pixel;
+            pixel.resize( m_coordinateFormatter->nAxes(), 0 );
+            auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+            auto skycs = KnownSkyCS::Galactic;
+            m_coordinateFormatter-> setSkyCS( skycs );
+            qDebug() << "set skycs to" << int (skycs)
+                     << "now it is" << int ( m_coordinateFormatter-> skyCS() );
+            fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
+            qDebug() << "0->" << fmt.join( "|" );
         }
         catch( std::logic_error& err ){
             qDebug() << "Failed to load image "<<fileName;
@@ -47,20 +80,58 @@ bool DataSource::setFileName( const QString& fileName ){
     return successfulLoad;
 }
 
+void DataSource::setColorMap( const QString& name ){
+    ObjectManager* objManager = ObjectManager::objectManager();
+    CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
+    Colormaps* maps = dynamic_cast<Colormaps*>(obj);
+    m_rawView2QImageConverter-> setColormap( maps->getColorMap( name ) );
+}
 
-Nullable<QImage> DataSource::load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue){
-    Nullable<QImage> qimg;
+void DataSource::setColorInverted( bool /*inverted*/ ){
+    //m_rawView2QImageConverter->setInvert( inverted );
+}
+
+void DataSource::setColorReversed( bool /*reversed*/ ){
+    //m_rawView2QImageConverter->setReverse( reversed );
+}
+
+
+QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameIndex){
+    int imageDims = getDimensions();
+    auto pixCoords = std::vector<double>( imageDims, 0.0);
+    pixCoords[0] = mouseX;
+    pixCoords[1] = mouseY;
+    if( pixCoords.size() > 2) {
+
+        pixCoords[2] = frameIndex;
+    }
+    QStringList list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
+    return list;
+}
+
+NdArray::RawViewInterface * DataSource::getRawData( int channel ) const {
+    NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         auto frameSlice = SliceND().next();
         for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
-            frameSlice.next().index( i == 2 ? frameIndex : 0);
+            frameSlice.next().index( i == 2 ? channel : 0);
         }
-        NdArray::RawViewInterface * frameView = m_image->getDataSlice( frameSlice);
-        //resetClipValue();
-        m_rawView2QImageConverter-> setAutoClip( clipValue);
-        m_rawView2QImageConverter-> setView( frameView);
-        bool clipRecompute = autoClip || forceClipRecompute;
-        qimg = m_rawView2QImageConverter-> go(frameIndex, clipRecompute);
+
+        rawData = m_image->getDataSlice( frameSlice);
+    }
+    return rawData;
+}
+
+QImage DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoClip*/, float clipValue){
+    QImage qimg;
+    NdArray::RawViewInterface * frameView = getRawData( frameIndex );
+    if ( frameView != nullptr ){
+        m_rawView2QImageConverter-> setView( frameView );
+        m_rawView2QImageConverter-> computeClips( clipValue );
+        m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize);
+        m_rawView2QImageConverter-> setPixelPipelineInterpolation( m_cmapUseInterpolatedCaching);
+        m_rawView2QImageConverter-> setPixelPipelineCacheEnabled( m_cmapUseCaching);
+        m_rawView2QImageConverter-> convert( qimg );
         delete frameView;
     }
 
@@ -82,6 +153,10 @@ int DataSource::getDimensions() const {
     return imageSize;
 }
 
+std::shared_ptr<Image::ImageInterface> DataSource::getImage(){
+    return m_image;
+}
+
 void DataSource::_initializeState(){
     m_state.insertValue<QString>( DATA_PATH, "");
 }
@@ -94,22 +169,7 @@ bool DataSource::contains(const QString& fileName) const {
     return representsData;
 }
 
-/*void DataSource::resetClipValue(){
-    auto & globals = *Globals::instance();
-    IConnector* connector = globals.connector();
-    QString val = connector->getState( StateKey::CLIP_VALUE, "");
-    val.chop(1);
-    bool ok;
-    double d = val.toDouble( & ok);
-    //Use the default if the stat is not set.
-    if( ! ok) {
-        m_rawView2QImageConverter-> setAutoClip( 0.95 );
-    }
-    else {
-        d = clamp( d/100, 0.001, 1.0);
-        m_rawView2QImageConverter-> setAutoClip( d);
-    }
-}*/
+
 
 int DataSource::getFrameCount() const {
     int frameCount = 1;
@@ -124,4 +184,6 @@ int DataSource::getFrameCount() const {
 
 DataSource::~DataSource() {
 
+}
+}
 }

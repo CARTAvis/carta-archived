@@ -1,3 +1,10 @@
-*~
-*.pyc
-Skeleton3/cpp/docs/html/
+Makefile
+*.a
+*.o
+*.so
+*.so.*
+*.log
+moc*.cpp
+*.i
+*.orig
+.*

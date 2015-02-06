@@ -9,13 +9,20 @@
 #include <QObject>
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
+#include "Data/ILinkable.h"
 #include "AnimatorType.h"
+#include "Data/LinkableImpl.h"
+
+class IConnector;
+
+namespace Carta {
+
+namespace Data {
 
 class Controller;
 class Selection;
-class IConnector;
 
-class Animator : public QObject, public CartaObject {
+class Animator : public QObject, public CartaObject, public ILinkable {
 
     Q_OBJECT
 
@@ -25,12 +32,18 @@ public:
      * Adds a Controller to this animator.
      * @param controller the DataController that will be managed.
      */
-    void addController( const std::shared_ptr<Controller>& controller );
+    virtual bool addLink( const std::shared_ptr<Controller>& controller ) ;
 
     /**
-     * Remove all links to other view objects controlled by this animator.
+     * Adds a Controller to this animator.
+     * @param controller the DataController that will be managed.
      */
-    void clearLinks();
+    virtual bool removeLink( const std::shared_ptr<Controller>& controller );
+
+    /**
+     * Clear current state..
+     */
+    void clear();
 
     /**
      * Returns the number of controllees linked to this Animator.
@@ -68,11 +81,8 @@ private:
 
     class Factory;
 
-    static const QString LINK;
-    //static const QString ANIMATION_TYPE;
-
     void _adjustStateAnimatorTypes();
-    int _getIndex( const std::shared_ptr<Controller>& controller );
+
     void _initializeState();
     void _initializeAnimators();
     void _initializeCallbacks();
@@ -82,9 +92,8 @@ private:
     QString _removeAnimator( const QString& type );
     void _resetAnimationParameters();
 
-    /// List of controllers managed by this animator.
-    QList<std::shared_ptr<Controller> > m_controllers;
-
+    //Link management
+    std::unique_ptr<LinkableImpl> m_linkImpl;
 
     /// Individual animation types.
     QMap<QString, std::shared_ptr<AnimatorType> > m_animators;
@@ -95,3 +104,5 @@ private:
     Animator( const Animator& other);
     Animator operator=( const Animator& other );
 };
+}
+}

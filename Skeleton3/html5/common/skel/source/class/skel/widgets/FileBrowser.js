@@ -45,6 +45,7 @@ qx.Class.define("skel.widgets.FileBrowser", {
             loadButton.addListener("execute", function() {
                 var selectArray = this.m_tree.getSelection();
                 var pathDict = skel.widgets.Path.getInstance();
+                var filePath = "";
                 for (var i = 0; i < selectArray.length; i++) {
                     var selectedItem = selectArray[i];
                     var target = this.m_tree.getRoot();
@@ -54,12 +55,12 @@ qx.Class.define("skel.widgets.FileBrowser", {
                         path.push(pathPart);
                         selectedItem = selectedItem.getParent();
                     }
-                    var filePath = pathDict.SEP + target.getLabel();
+                    filePath = pathDict.SEP + target.getLabel();
                     for (var j = path.length - 1; j >= 0; j--) {
                         filePath = filePath + pathDict.SEP + path[j];
                     }
                 }
-                if (this.m_target != null) {
+                if (this.m_target !== null) {
                     this.m_target.dataLoaded(filePath);
                 }
 
@@ -79,15 +80,18 @@ qx.Class.define("skel.widgets.FileBrowser", {
         
         /**
          * Update the tree with the new data.
+         * @param anObject {skel.widgets.FileBrowser}.
+         * @return {Function} callback for updating the UI with available image files.
          */
         _loadDataCB : function( anObject ){
             return function( fileList ){
                 anObject._updateTree( fileList );
-            }
+            };
         },
 
         /**
          * Stores the window that wants to add data.
+         * @param source {String} an identifier for the window that needs to load data.
          */
         setTarget : function(source) {
             this.m_target = source;

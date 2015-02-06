@@ -9,7 +9,7 @@ GenericPlugin::GenericPlugin(QObject *parent) :
 
 bool GenericPlugin::handleHook(BaseHook &hookData)
 {
-    qDebug() << "GenericPlugin is handling hook #" << hookData.hookId();
+    //qDebug() << "GenericPlugin is handling hook #" << hookData.hookId();
     if( hookData.is<Initialize>()) {
 //        Initialize & initHook = static_cast<Initialize &>( hookData);
 

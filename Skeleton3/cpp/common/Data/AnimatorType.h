@@ -10,8 +10,11 @@
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 
-class Selection;
+namespace Carta {
 
+namespace Data {
+
+class Selection;
 
 class AnimatorType : public QObject, public CartaObject {
 
@@ -54,7 +57,9 @@ private:
 
     QString _makeSelection();
 
-
+    QString _setEndBehavior( const QString& params );
+    QString _setFrameRate( const QString& params );
+    QString _setFrameStep( const QString& params );
     //Set state variables involving the animator
     void _saveState();
 
@@ -65,8 +70,13 @@ private:
     std::shared_ptr<Selection> m_select;
     const static QString COMMAND_SET_FRAME;
     const static QString END_BEHAVIOR;
+    const static QString END_BEHAVIOR_WRAP;
+    const static QString END_BEHAVIOR_JUMP;
+    const static QString END_BEHAVIOR_REVERSE;
     const static QString RATE;
     const static QString STEP;
     AnimatorType( const AnimatorType& other);
     AnimatorType operator=( const AnimatorType& other );
 };
+}
+}

@@ -23,8 +23,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
     /**
      * Constructor.
      * 
-     * @param title {String} descriptor for what will be animated (Channel,
-     *                Region, Image, etc).
+     * @param title {String} descriptor for what will be animated (Channel,Region, Image, etc).
+     * @param winId {String} the unique server id.
      */
     construct : function(title,  winId) {
         this.base(arguments);
@@ -43,30 +43,19 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Callback for when the animator settings shared variable has changed value.
          */
-        _animationCB : function( val ){
-            var animObj = JSON.parse( this.m_sharedVar.get() );
-            this._endBehaviorCB( animObj.endBehavior );
-            this._frameStepCB( animObj.frameStep );
-            this._frameRateCB( animObj.frameRate );
+        _animationCB : function( ){
+            var val = this.m_sharedVar.get();
+            try {
+                var animObj = JSON.parse( val );
+                this._endBehaviorCB( animObj.endBehavior );
+                this._frameStepCB( animObj.frameStep );
+                this._frameRateCB( animObj.frameRate );
+            }
+            catch( err ){
+                console.log( "Could not parse: "+val );
+            }
         },
         
-        /**
-         * Update the new frame position.
-         */
-        _applyFrame : function() {
-            if (this.m_indexText != null) {
-                this.m_indexText.setValue(this.getFrame() + "");
-            }
-        },
-
-        /**
-         * Update the maximum number of frames available.
-         */
-        _applyFrameUpperBound : function() {
-            if (this.m_endLabel != null) {
-                this.m_endLabel.setValue(this.getFrameUpperBound() + "");
-            }
-        },
 
         /**
          * Decrease the frame value.
@@ -80,21 +69,22 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Decrease the frame value taking into account end behavior.
          */
         _decreaseValue : function() {
-            var val = this.getFrame() - this.getFrameStep();
+            var val = this.m_frame - this.getFrameStep();
 
-            var lowerBound = this.m_slider.getMinimum();
+            var lowerBound = this.m_lowBoundsSpinner.getValue();
             if (this.m_endJumpRadio.getValue()) {
-                if (this.getFrame() > lowerBound) {
+                if (this.m_frame > lowerBound) {
                     val = lowerBound;
-                } else {
-                    val = this.m_slider.getMaximum();
+                } 
+                else {
+                    val = this.m_highBoundsSpinner.getValue();
                 }
             }
 
             // May need to do a wrap.
             if (val < lowerBound) {
                 if (this.m_endWrapRadio.getValue()) {
-                    val = val + this.m_slider.getMaximum();
+                    val = this.m_highBoundsSpinner.getValue();
                 } else if (this.m_endReverseRadio.getValue()) {
                     if (this.m_revPlayButton.getValue()) {
                         this.m_playButton.execute();
@@ -103,74 +93,108 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     }
                 }
             }
-            this._setFrame(val);
+            this._sendFrame(val);
         },
 
         /**
          * Callback for behavior when the frame is at the lower or upper extreme
          * of its range.
+         * @param val {String} the new end behavior.
          */
         _endBehaviorCB : function(val) {
-            if (val) {
-                if (val == "Wrap") {
-                    this.m_endWrapRadio.setValue(true);
-                } else if (val == "Reverse") {
-                    this.m_endReverseRadio.setValue(true);
-                } else if (val == "Jump") {
-                    this.m_endJumpRadio.setValue(true);
-                } else {
+            if (val !== null) {
+                if ( val == this.m_endWrapRadio.getLabel()){
+                    if ( ! this.m_endWrapRadio.getValue()){
+                        this.m_endWrapRadio.setValue( true );
+                    }
+                }
+                else if ( val == this.m_endReverseRadio.getLabel()){
+                    if ( ! this.m_endReverseRadio.getValue()){
+                        this.m_endReverseRadio.setValue( true );
+                    }
+                }
+                else if ( val == this.m_endJumpRadio.getLabel()){
+                    if ( ! this.m_endJumpRadio.getValue()){
+                        this.m_endJumpRadio.setValue( true );
+                    }
+                }
+                else {
                     console.log("Unrecognized end behavior: " + val);
                 }
             }
         },
 
         /**
-         * Shared var callback. Read in the position of the animator and render
-         * it.
-         * 
-         * @param val
-         *                {String} Number of plugins.
+         * Shared var callback. Read in the position of the animator and render it.
          * @private
          */
-        _frameCB : function(val) {
-            if (val) {
-                this.setFrame( val );
-            }
+        _frameCB : function() {
+           if ( this.m_slider.getValue() != this.m_frame ){
+                this.m_slider.setValue( this.m_frame );
+           }
+           var valStr = this.m_frame + "";
+           if ( this.m_indexText.getValue() !== valStr ){
+                this.m_indexText.setValue( valStr );
+           }
         },
 
         /**
          * Callback for the frame end behavior.
          */
-        _frameEndCB : function(val) {
-            if (val) {
-                this.setFrameUpperBound( val );
+        _frameEndCB : function() {
+            var limit = this.m_frameHigh - 1;
+            if ( limit != this.m_slider.getMaximum() ){
+                this.m_slider.setMaximum( limit );
+            }
+            if ( limit != this.m_highBoundsSpinner.getMaximum()){
+                this.m_highBoundsSpinner.setMaximum( limit );
+            }
+            var highSpinValue = this.m_highBoundsSpinner.getValue();
+            if ( limit < highSpinValue || highSpinValue === 0 ){
+                this.m_highBoundsSpinner.setValue( limit );
+            }
+            var valStr = this.m_frameHigh + "";
+            if ( this.m_endLabel.getValue() !== valStr ){
+                this.m_endLabel.setValue( valStr);
             }
         },
 
         /**
          * Callback for the frame step size.
+         * @param val {Number} the new step size.
          */
         _frameStepCB : function(val) {
-            if (val) {
-                this.setFrameStep( val );
+            if (val !== null ) {
+                if ( val !== this.getFrameStep()){
+                    this.setFrameStep( val );
+                }
             }
         },
 
         /**
          * Callback for the speed of the animation.
+         * @param val {Number} the new speed.
          */
         _frameRateCB : function(val) {
-            if (val) {
-                this.m_speedSpinBox.setValue(val);
+            if (val !== null ) {
+                if ( val != this.m_speedSpinBox.getValue()){
+                    this.m_speedSpinBox.setValue(val);
+                }
             }
         },
 
         /**
          * Callback for the frame lower bound.
          */
-        _frameStartCB : function(val) {
-            if (val) {
-                this.setFrameLowerBound( val );
+        _frameStartCB : function() {
+            if ( this.m_frameLow != this.m_lowBoundsSpinner.getMinimum() ){
+                this.m_lowBoundsSpinner.setMinimum( this.m_frameLow );
+            }
+            if ( this.m_frameLow > this.m_lowBoundsSpinner.getValue()){
+                this.m_lowBoundsSpinner.setValue( this.m_frameLow );
+            }
+            if ( this.m_frameLow != this.m_slider.getMinimum() ){
+                this.m_slider.setMinimum( this.m_frameLow );
             }
         },
 
@@ -179,9 +203,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _goToStart : function() {
             this._stop();
-            var lowBound = this.getFrameLowerBound();
-            if ( lowBound != this.getFrame() ){
-                this._setFrame( lowBound );
+            var lowBound = this.m_lowBoundsSpinner.getValue();
+            if ( lowBound != this.m_frame ){
+                this._sendFrame( lowBound );
             }
         },
 
@@ -190,9 +214,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _goToEnd : function() {
             this._stop();
-            var highBound = this.getFrameUpperBound();
-            if ( highBound != this.getFrame()){
-                this._setFrame( highBound );
+            var highBound = this.m_highBoundsSpinner.getValue();
+            if ( highBound != this.m_frame){
+                this._sendFrame( highBound );
             }
         },
 
@@ -208,22 +232,23 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Increase the frame value taking into account end behavior.
          */
         _increaseValue : function() {
-            var val = this.getFrame() + this.getFrameStep();
+            var val = this.m_frame + this.getFrameStep();
 
-            var upperBound = this.m_slider.getMaximum();
+            var upperBound = this.m_highBoundsSpinner.getValue();
             if (this.m_endJumpRadio.getValue()) {
-                if (this.getFrame() < upperBound) {
+                if (this.m_frame < upperBound) {
                     val = upperBound;
                 } else {
-                    val = this.m_slider.getMinimum();
+                    val = this.m_lowBoundsSpinner.getValue();
                 }
             }
 
             // May need to do a wrap.
             if (val > upperBound) {
                 if (this.m_endWrapRadio.getValue()) {
-                    val = val % upperBound;
-                } else if (this.m_endReverseRadio.getValue()) {
+                    val = this.m_lowBoundsSpinner.getValue();
+                } 
+                else if (this.m_endReverseRadio.getValue()) {
                     // If we are playing, reverse play. otherwise decrease the
                     // value
                     if (this.m_playButton.getValue()) {
@@ -235,7 +260,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     console.log("Unhandled wrap val=" + val);
                 }
             }
-            this._setFrame(val);
+            this._sendFrame(val);
         },
 
         /**
@@ -251,7 +276,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this._add(locationComposite);
             this._add(sliderComposite);
             this._add(buttonComposite);
-
             this.m_timer = new qx.event.Timer(1000);
             this._setTimerSpeed();
         },
@@ -259,18 +283,19 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Initialize the part of the UI concerned with the current location of
          * the animator.
+         * @return {qx.ui.container.Composite} a container containing the location UI.
          */
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
             this.m_indexText = new qx.ui.form.TextField();
+            this.m_indexText.setValue( "0");
             this.m_indexText.addListener("input", function(e) {
                 var value = this.m_indexText.getValue();
                 var valueInt = parseInt(value);
                 if (!isNaN(valueInt)) {
-                    if (valueInt <= this.m_slider.getMaximum()
-                            && valueInt >= this.m_slider.getMinimum()) {
-                        if ( valueInt != this.getFrame() ){
-                            this._setFrame(valueInt);
+                    if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
+                        if ( valueInt != this.m_frame ){
+                            this._sendFrame(valueInt);
                         }
                     }
                 }
@@ -302,46 +327,41 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_endWrapRadio = new qx.ui.form.RadioButton("Wrap");
             this.m_endWrapRadio.addListener("changeValue", function() {
                 if (this.m_endWrapRadio.getValue()) {
-                    this._setEndBehavior("Wrap");
+                    this._sendEndBehavior(this.m_endWrapRadio.getLabel());
                 }
             }, this);
+            
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
             this.m_endReverseRadio.addListener("changeValue", function() {
                 if (this.m_endReverseRadio.getValue()) {
-                    this._setEndBehavior("Reverse");
+                    this._sendEndBehavior(this.m_endReverseRadio.getLabel());
                 }
             }, this);
+            
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
             this.m_endJumpRadio.addListener("changeValue", function() {
                 if (this.m_endJumpRadio.getValue()) {
-                    this._setEndBehavior("Jump");
+                    this._sendEndBehavior(this.m_endJumpRadio.getLabel());
                 }
             }, this);
+           
             var endRadioGroup = new qx.ui.form.RadioGroup();
-            endRadioGroup.add(this.m_endWrapRadio);
-            endRadioGroup.add(this.m_endReverseRadio);
-            endRadioGroup.add(this.m_endJumpRadio);
-            /*if (this.m_stateEndBehavior != null) {
-                this._endBehaviorCB(this.m_stateEndBehavior.get());
-            }*/
+            endRadioGroup.add(this.m_endWrapRadio, this.m_endReverseRadio, this.m_endJumpRadio);
 
             var speedLabel = new qx.ui.basic.Label("Rate:");
             this.m_speedSpinBox = new qx.ui.form.Spinner(1, 10, 100);
-            /*if (this.m_stateFrameRate != null) {
-                this._frameRateCB(this.m_stateFrameRate.get());
-            }*/
-            /*this.m_speedSpinBox.addListener("changeValue", function() {
 
+            this.m_speedSpinBox.addListener("changeValue", function() {
                 this._setTimerSpeed();
-                this.m_stateFrameRate.set(this.m_speedSpinBox.getValue());
-            }, this);*/
+                this._sendFrameRate();
+            }, this);
             var stepLabel = new qx.ui.basic.Label("Step:");
-            var stepSpinBox = new qx.ui.form.Spinner(1, 1, 100);
-            this.bind("frameUpperBound", stepSpinBox, "maximum");
-            stepSpinBox.bind("value", this, "frameStep");
-            /*if (this.m_stateFrameStep != null) {
-                this._frameStepCB(this.m_stateFrameStep.get());
-            }*/
+            this.m_stepSpin = new qx.ui.form.Spinner(1, 1, 100);
+            //this.bind("frameUpperBound", this.m_stepSpin, "maximum");
+            this.m_stepSpin.bind("value", this, "frameStep");
+            this.m_stepSpin.addListener( "changeValue", function(){
+                this._sendFrameStep();
+            });
 
             this.m_settingsComposite = new qx.ui.container.Composite();
             this.m_settingsComposite.setLayout(new qx.ui.layout.HBox(5));
@@ -349,7 +369,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 flex : 1
             });
             this.m_settingsComposite.add(stepLabel);
-            this.m_settingsComposite.add(stepSpinBox);
+            this.m_settingsComposite.add(this.m_stepSpin);
             this.m_settingsComposite.add(new qx.ui.core.Spacer(10, 10), {
                 flex : 1
             });
@@ -399,40 +419,34 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Initialize the slider controls.
+         * @return {qx.ui.container.Composite} a container containing the slider controls.
          */
         _initSliderControls : function() {
-            var lowBoundSpinner = new qx.ui.form.Spinner(0, 0, 100);
+            this.m_lowBoundsSpinner = new qx.ui.form.Spinner(0, 0, 100);
             this.m_slider = new qx.ui.form.Slider();
             this.m_slider.addListener("changeValue", function() {
                 if (this.m_inUpdateState) {
                     return;
                 }
-                if ( this.getFrame() != this.m_slider.getValue()){
-                    this._setFrame(this.m_slider.getValue());
+                if ( this.m_frame != this.m_slider.getValue()){
+                    this._sendFrame(this.m_slider.getValue());
                 }
             }, this);
 
-            var highBoundSpinner = new qx.ui.form.Spinner(0, 100, 100);
+            this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
             var sliderComposite = new qx.ui.container.Composite();
             sliderComposite.setLayout(new qx.ui.layout.HBox(5));
-            sliderComposite.add(lowBoundSpinner);
+            sliderComposite.add(this.m_lowBoundsSpinner);
             sliderComposite.add(this.m_slider, {
                 flex : 1
             });
-            sliderComposite.add(highBoundSpinner);
-            this.bind("frame", this.m_slider, "value");
-            this.bind("frameLowerBound", lowBoundSpinner, "minimum");
-            this.bind("frameUpperBound", highBoundSpinner, "maximum");
-            //this.bind("frameUpperBound", highBoundsSpinner, "value");
-            lowBoundSpinner.bind("value", this.m_slider, "minimum");
-            highBoundSpinner.bind("value", this.m_slider, "maximum");
-            lowBoundSpinner.bind("value", highBoundSpinner, "minimum");
-            highBoundSpinner.bind("value", lowBoundSpinner, "maximum");
+            sliderComposite.add(this.m_highBoundsSpinner);
             return sliderComposite;
         },
 
         /**
          * Initialize the tape recorder part of the UI.
+         * @return {qx.ui.container.Composite} a container containing the tape recorder.
          */
         _initToolBar : function() {
             // Toolbar
@@ -534,13 +548,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
         /**
          * Initialize the shared variable that controls the settings.
+         * @param anObject {skel.boundWidgets.Animator}.
+         * @return {Function} the registration callback.
          */
         _registrationCB : function( anObject ){
             return function( id ){
                 //Initialize the shared variable that manages the rate, endBehavior and step.
                 anObject.m_sharedVar = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVar.addCB( anObject._animationCB.bind( anObject ));
-                anObject._animationCB( anObject.m_sharedVar.get());
+                anObject._animationCB();
                 anObject.m_animId = id;
                 anObject._initSharedVarsSelection();
             };
@@ -549,6 +565,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
         /**
          * Initialization of the shared variable that controls the selection.
+         * @param anObject {skel.boundWidgets.Animator}.
+         * @return {Function} the selection callback.
          */
         _selectionCB : function( anObject ){
             return function( id ){
@@ -560,25 +578,39 @@ qx.Class.define("skel.boundWidgets.Animator", {
         
         /**
          * Callback for a change in the selection.
+         * @param val {String} the JSON representing the animation selection.
          */
         _selectionResetCB : function( val ){
             if ( val ){
                 if ( this._frameCB ){
-                    var frameObj = JSON.parse( val );
-                    this._frameCB( frameObj.frame );
-                    this._frameStartCB( frameObj.frameStart );
-                    this._frameEndCB( frameObj.frameEnd );
+                    try {
+                        var frameObj = JSON.parse( val );
+                        this.m_frame = frameObj.frame;
+                        this.m_frameLow = frameObj.frameStart;
+                        this.m_frameHigh = frameObj.frameEnd;
+                        
+                        this._frameStartCB();
+                        this._frameEndCB( );
+                        this._frameCB( );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse: "+val );
+                    }
                 }
             }
         },
 
         /**
-         * Set whether frames at upper or lower bounds should wrap, reverse, etc.
-         * @param behavior {String} a descriptor for the behavior.
+         * Send a command to the server indicating the new end behavior (wrap, jump, etc).
+         * @param behavior {String} a descriptor for the end behavior.
          */
-        _setEndBehavior : function(behavior) {
-            if (this.m_stateEndBehavior != null) {
-                this.m_stateEndBehavior.set(behavior);
+        _sendEndBehavior : function(behavior) {
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setEndBehavior";
+                var params = "endBehavior:"+behavior;
+                
+                this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
 
@@ -586,12 +618,36 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Notify the server of the new frame value.
          * @param frameIndex {Number} the new frame value.
          */
-        _setFrame : function(frameIndex) {
-            if (this.m_connector != null) {
-                var paramMap = frameIndex.toString();
+        _sendFrame : function(frameIndex) {
+            if (this.m_connector !== null) {
+                var paramMap = frameIndex;
                 var path = skel.widgets.Path.getInstance();
                 var setFramePath = this.m_animId + path.SEP_COMMAND + "setFrame";
                 this.m_connector.sendCommand(setFramePath, paramMap, function(val) {});
+            }
+        },
+        
+        /**
+         * Send a command to the server indicating the new frame rate.
+         */
+        _sendFrameRate : function() {
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setFrameRate";
+                var params = "frameRate:"+this.m_speedSpinBox.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
+         * Send a command to the server indicating the new frame step size.
+         */
+        _sendFrameStep : function() {
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setFrameStep";
+                var params = "frameStep:"+this.m_stepSpin.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
 
@@ -601,10 +657,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _setTimerSpeed : function() {
             var rate = this.m_speedSpinBox.getValue();
             //High values should be fast.
-            rate = rate - this.m_speedSpinBox.getMaximum();
-            rate = rate * 100;
+            var maxRate = this.m_speedSpinBox.getMaximum();
+            var ratePercent = rate / maxRate;
+            ratePercent = 1 - ratePercent;
+            var interval  = ratePercent * 2000;
+            if ( interval < 10 ){
+                interval = 10;
+            }
             if (this.m_timer) {
-                this.m_timer.setInterval(rate);
+                this.m_timer.setInterval(interval);
             }
         },
 
@@ -634,8 +695,11 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_timerListener : null,
         m_indexText : null,
         m_endWrapRadio : null,
+        m_stepSpin : null,
         m_endReverseRadio : null,
         m_endJumpRadio : null,
+        m_lowBoundsSpinner : null,
+        m_highBoundsSpinner : null,
         m_playButton : null,
         m_revPlayButton : null,
         m_speedSpinBox : null,
@@ -645,27 +709,17 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_sharedVar : null,
         m_sharedVarSelection : null,
         m_identifier : null,
-        m_inUpdateState : false
+        m_inUpdateState : false,
+        
+        m_frame : null,
+        m_frameLow : null,
+        m_frameHigh : null
     },
 
     properties : {
         appearance : {
             refine : true,
             init : "internal-area"
-        },
-        frame : {
-            init : 0,
-            apply : "_applyFrame",
-            event : "changeFrame"
-        },
-        frameUpperBound : {
-            init : 100,
-            apply : "_applyFrameUpperBound",
-            event : "changeFrameUpperBound"
-        },
-        frameLowerBound : {
-            init : 0,
-            event : "changeFrameLowerBound"
         },
         frameStep : {
             init : 1,
