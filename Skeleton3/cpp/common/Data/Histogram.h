@@ -50,7 +50,7 @@ private:
     NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
     double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
     bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
-
+    int _getLinkInfo( QString& link, QString& name );
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
@@ -94,6 +94,7 @@ private:
     const static QString FOOT_PRINT_REGION_ALL;
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
+    const static QString LINK;
     
     Histogram( const QString& path, const QString& id );
     class Factory;

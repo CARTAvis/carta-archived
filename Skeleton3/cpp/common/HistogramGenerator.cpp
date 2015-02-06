@@ -10,7 +10,6 @@
 
 HistogramGenerator::HistogramGenerator(){
     m_plot = new QwtPlot();
-    m_plot->setTitle("Histogram");
     m_plot->setCanvasBackground( Qt::white );
     m_plot->setAxisTitle(QwtPlot::yLeft, QString("count(pixels)"));
     m_plot->setAxisTitle(QwtPlot::xBottom, QString("intensity()"));
@@ -20,13 +19,18 @@ HistogramGenerator::HistogramGenerator(){
 
 }
 
-void HistogramGenerator::setData(ResultType data){
+void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
 
+    QString name = data.getName();
+    m_plot->setTitle(name);
+
+
+    std::vector<std::pair<double,double>> dataVector = data.getData();
     QVector<QwtIntervalSample> samples(0);
-    int dataCount = data.size();
+    int dataCount = dataVector.size();
 
     for ( int i = 0; i < dataCount-1; i++ ){
-        QwtIntervalSample sample(data[i].second, data[i].first, data[i+1].first);
+        QwtIntervalSample sample(dataVector[i].second, dataVector[i].first, dataVector[i+1].first);
         samples.append(sample);
     }
 

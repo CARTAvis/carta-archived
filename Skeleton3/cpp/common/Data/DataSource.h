@@ -106,6 +106,11 @@ public:
     std::shared_ptr<Image::ImageInterface> getImage();
 
     /**
+     * Returns the image's file name.
+     */
+    QString getFileName();
+
+    /**
      * Returns the raw data as an array.
      * @param channel the index of the channel needed.
      * @return the raw data or nullptr if there is none.

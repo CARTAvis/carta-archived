@@ -14,12 +14,16 @@ Histogram1::Histogram1( QObject * parent ) :
     }
 
 
-vector<std::pair<double,double> > Histogram1::_computeHistogram(){
-    vector<std::pair<double,double>> result;
+Carta::Lib::HistogramResult Histogram1::_computeHistogram(){
+    
+    vector<std::pair<double,double>> data;
+    QString name;
+
     if ( m_histogram ){
         bool computed = m_histogram->compute();
         if ( computed ){
-            result = m_histogram->getData();
+            data = m_histogram->getData();
+            name = m_histogram->getName();
         }
         else {
             qDebug() << "Could not generate histogram data";
@@ -28,6 +32,7 @@ vector<std::pair<double,double> > Histogram1::_computeHistogram(){
     else {
         qDebug() << "Histogram not initialized";
     }
+    Carta::Lib::HistogramResult result(name, data);
     return result;
 }
 
@@ -71,7 +76,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
                 m_histogram->setIntensityRange(minIntensity, maxIntensity);
 
             hook.result = _computeHistogram();
-            if ( hook.result.size() > 0 ){
+            if ( hook.result.getData().size() > 0 ){
                 histSuccess = true;
             }
         }
