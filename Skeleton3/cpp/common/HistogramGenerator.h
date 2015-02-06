@@ -1,6 +1,6 @@
 #pragma once
 #include <qwt_plot.h>
-#include <qwt_samples.h>
+//#include <qwt_samples.h>
 #include <qwt_plot_histogram.h>
 
 class HistogramGenerator{	

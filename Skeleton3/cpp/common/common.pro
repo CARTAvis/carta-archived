@@ -122,8 +122,8 @@ SOURCES += \
 #QMAKE_CXXFLAGS += -H
 
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include 
-INCLUDEPATH += /usr/local/include/qwt-qt5
+INCLUDEPATH += /usr/include/qwt
 
-LIBS += -L/usr/local/lib/qwt-qt5 -lqwt
+LIBS += -L/usr/lib/qwt -lqwt
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
