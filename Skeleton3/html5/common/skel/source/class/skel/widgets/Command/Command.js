@@ -36,7 +36,8 @@ qx.Class.define("skel.widgets.Command.Command", {
         TOOLBAR : "Toolbar",
         TYPE_GROUP : "group",
         TYPE_COMPOSITE : "composite",
-        TYPE_BOOL : "boolean"
+        TYPE_BOOL : "boolean",
+        TYPE_BUTTON : "button"
     },
     
    

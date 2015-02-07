@@ -17,7 +17,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         this._setLayout(new qx.ui.layout.HBox(5));
 
         // Status Message
-        this.m_statusMessage = new qx.ui.basic.Label("Status Text");
+        this.m_statusMessage = new qx.ui.basic.Label("");
         this.m_statusMessage.setAllowGrowX(true);
         this._add(this.m_statusMessage, {
             flex : 1
@@ -45,7 +45,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
          * Clear any messages posted on the status bar.
          */
         clearMessages : function(){
-            this.m_statusText.setValue( "");
+            this.m_statusMessage.setValue( "");
         },
         
         /**
@@ -100,17 +100,20 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
          */
         addIconifiedWindow : function(ev, restoreListener) {
             var data = ev.getData();
-            var menuButton = new qx.ui.toolbar.MenuButton("Restore: " + data.title);
+            var restoreTitle = data.title;
+            if ( data.title === null ){
+                restoreTitle = "Empty Window";
+            }
+            var menuButton = new qx.ui.toolbar.MenuButton("Restore: " + restoreTitle);
             menuButton.setAlignX("right");
             menuButton.setShowArrow(false);
             this.m_iconifiedWindows.add(menuButton);
             menuButton.addListener("execute", function() {
-                restoreListener.restoreWindow(data.row, data.col);
+                this.restoreWindow(data.row, data.col);
             }, restoreListener);
             menuButton.addListener("execute", function() {
                 this._removeIconifiedWindow(menuButton);
             }, this);
-
         },
         
         /**

@@ -18,9 +18,25 @@ class Layout : public CartaObject {
 
 public:
     /**
+     * Add a new window at the given position in the layout.
+     * @param rowIndex the index of a row in the grid.
+     * @param colIndex the index of a column in the grid.
+     * @return an errorMsg or an empty string if there was not error.
+     */
+    QString addWindow( int rowIndex, int colIndex );
+
+    /**
      * Clear the layout state.
      */
     void clear();
+
+    /**
+     * Remove the grid cell at the given row and column from the grid.
+     * @param rowIndex the row of the cell to remove.
+     * @param colIndex the column of the cell to remove.
+     * @return an error message if there was a problem removing the cell; otherwise, and empty string.
+     */
+    QString removeWindow( int rowIndex, int colIndex );
 
     /**
      * Set a predefined analysis layout.
@@ -31,25 +47,43 @@ public:
      * Set a predefined layout displaying only a single image.
      */
     void setLayoutImage();
+
+    /**
+     * Set the number of rows and columns in the layout grid.
+     * @param rows the number of rows in the grid.
+     * @param cols the number of columns in the grid.
+     * @return a possible error message or an empty QString if there is no error.
+     */
+    QString setLayoutSize( int rows, int cols );
     virtual ~Layout();
     const static QString CLASS_NAME;
     static const QString LAYOUT;
 
 private:
+    int _getArrayIndex( int rowIndex, int colIndex ) const;
+    QString _getPlugin( int rowIndex, int colIndex ) const;
+    int _getColumnCount( int colIndex ) const;
+    int _getMaxRowColumn() const;
+    int _findEmptyRow( int colIndex, int targetRowIndex ) const;
     void _initializeCommands();
     void _initializeDefaultState();
+    void _moveCell( int sourceRow, int sourceCol, int destRow, int destCol );
     bool _setPlugin( const QStringList& name );
-    bool _setLayoutSize( int rows, int cols );
+    bool _setPlugin( int rowIndex, int colIndex, const QString& name );
+
 
     static bool m_registered;
     Layout( const QString& path, const QString& id );
 
     class Factory;
 
+    static const QString COLUMN;
+    static const QString EMPTY;
     static const QString HIDDEN;
     static const QString LAYOUT_ROWS;
     static const QString LAYOUT_COLS;
     static const QString LAYOUT_PLUGINS;
+    static const QString ROW;
     Layout( const Layout& other);
     Layout operator=( const Layout& other );
 };

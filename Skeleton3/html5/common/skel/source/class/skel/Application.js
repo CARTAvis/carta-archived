@@ -149,11 +149,6 @@ qx.Class.define( "skel.Application",
                     this.m_desktop.setColCount( ev.getData() );
                 }, this );
 
-                this.m_menuBar.addListener( "newWindow", function( ev )
-                {
-                    this._showWindowLocator();
-                }, this );
-
                 this.m_menuBar.addListener( "shareSession", function( ev )
                 {
                     this.m_statusBar.updateSessionSharing( ev.getData() );
@@ -266,28 +261,22 @@ qx.Class.define( "skel.Application",
         /**
          * Removes all overlay windows.
          */
-            _hideWindows: function()
-            {
-                this._hideWindow( this.m_windowLocator );
-                this._hideWindow( this.m_windowLink );
-                if( this.m_windowLocator !== null ) {
-                    this.m_windowLocator.removeAll();
-                }
+        _hideWindows: function(){
+            this._hideWindow( this.m_windowLink );
         },
 
         /**
          * Iconify a window.
          */
-            _iconifyWindow: function( ev )
-            {
-                this.m_statusBar.addIconifiedWindow( ev, this );
+        _iconifyWindow: function( ev ){
+            this.m_statusBar.addIconifiedWindow( ev, this );
         },
 
         /**
          * A linkage between displays has either been added or removed.
          * @param addLink {boolean} whether the link is being added or removed.
          */
-            _linksChanged: function( addLink, ev )
+        _linksChanged: function( addLink, ev )
             {
                 var data = ev.getData();
                 var linkSource = data.source;
@@ -419,47 +408,12 @@ qx.Class.define( "skel.Application",
                 win.setUserBounds( leftPt, topPt, widthVal, heightVal );
             },
 
-            /**
-             * Add an overlay showing where new windows can be added.
-             */
-            _showWindowLocator: function(){
-                //var desktopMap = this._repositionDesktop();
-                if( this.m_windowLocator === null ) {
-                    this.m_windowLocator = new qx.ui.container.Composite();
-                    this.m_windowLocator.setLayout( new qx.ui.layout.Basic() );
-                    this.m_windowLocator.setBackgroundColor( "transparent" );
-
-                }
-                var locations = this.m_desktop.getAddWindowLocations();
-                var splitFunction = function(){
-                    this.splitPane.split();
-                };
-                var buttonAppearanceFunction = function(){
-                    var bounds = this.getBounds();
-                    var offsetLeft = bounds.left - bounds.width / 2 + 5;
-                    var offsetTop = bounds.top - bounds.height / 2;
-                    this.setLayoutProperties( {left: offsetLeft, top: offsetTop} );
-                };
-                for( var i = 0 ; i < locations.length ; i ++ ) {
-                    var loc = locations[i];
-                    var windowButton = new qx.ui.form.Button( "", "skel/icons/blackCross.png" );
-                    windowButton.setAppearance( "invisible-button" );
-                    windowButton.splitPane = loc[2];
-                    windowButton.addListener( "execute", splitFunction, this );
-                    windowButton.addListener( "execute", this._hideWindows(), this );
-                    this.m_windowLocator.add( windowButton, {left: loc[0], top: loc[1]} );
-                    windowButton.addListener( "appear", buttonAppearanceFunction, windowButton );
-                }
-                console.log( "Need to fix windowlocator");
-                //this.m_mainContainer.add( this.m_windowLocator, desktopMap );
-            },
 
             m_desktop       : null,
             m_menuBar       : null,
             m_toolBar : null,
             m_statusBar     : null,
             m_mainContainer : null,
-            m_windowLocator : null,
             m_windowLink    : null,
             m_fileBrowser   : null,
             m_customizeMenuDialog : null,
