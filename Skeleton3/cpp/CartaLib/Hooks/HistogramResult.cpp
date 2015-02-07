@@ -1,4 +1,4 @@
-#include <HistogramResult.h>
+#include "CartaLib/Hooks/HistogramResult.h"
 namespace Carta {
   namespace Lib {
 HistogramResult::HistogramResult( QString histogramName, 
