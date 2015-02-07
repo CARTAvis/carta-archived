@@ -91,6 +91,7 @@ void Controller::addData(const QString& fileName) {
         m_selectImage->setUpperBound(m_datas.size());
 
         saveState();
+        qDebug()<<"I'm getting called";
     }
 
     bool successfulLoad = m_datas[targetIndex]->setFileName(fileName );
@@ -154,6 +155,16 @@ std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources()
         images[i] = m_datas[i].get()->getImage();
     }
     return images;
+}
+
+int Controller::getSelectImageIndex(){
+    return m_selectImage->getIndex();
+}
+
+QString Controller::getImageName(int index){
+    std::shared_ptr<DataSource> data = Controller::m_datas[index];
+    QString name = data->getFileName();
+    return name;
 }
 
 

@@ -50,6 +50,18 @@ void LinkableImpl::clear(){
     m_state->resizeArray( LINK, 0 );
 }
 
+std::shared_ptr<Controller> LinkableImpl::searchControllers(QString& link){
+    std::shared_ptr<Controller> result = NULL;
+    int controllerCount = m_controllers.size();
+    for( int i = 0; i < controllerCount; i++ ){
+        if(m_controllers[i].get()->getPath() == link){
+            result = m_controllers[i];
+            break;
+        }
+    }
+    return result;
+}
+
 int LinkableImpl::_getIndex( const std::shared_ptr<Controller>& controller ){
     int index = -1;
     int controllerCount = m_controllers.size();

@@ -7,6 +7,7 @@
 #include <IImageHistogram.h>
 #include <QTextStream>
 
+
 #include <tr1/memory>
 
 namespace casa {
@@ -14,6 +15,7 @@ namespace casa {
     template <class T> class LatticeHistograms;
     template <class T> class SubImage;
     class ImageRegion;
+    class String;
 }
 
 /**
@@ -25,6 +27,8 @@ public:
 	ImageHistogram();
 
     virtual std::vector< std::pair<double,double> > getData() const Q_DECL_OVERRIDE;
+    virtual QString getName() const Q_DECL_OVERRIDE;
+
     virtual bool compute() Q_DECL_OVERRIDE;
 
 	int getDataCount() const;

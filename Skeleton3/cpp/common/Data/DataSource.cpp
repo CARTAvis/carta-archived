@@ -153,6 +153,10 @@ int DataSource::getDimensions() const {
     return imageSize;
 }
 
+QString DataSource::getFileName(){
+    return m_fileName;
+}
+
 std::shared_ptr<Image::ImageInterface> DataSource::getImage(){
     return m_image;
 }
