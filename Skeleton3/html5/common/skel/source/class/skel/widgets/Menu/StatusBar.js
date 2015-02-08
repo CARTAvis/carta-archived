@@ -18,6 +18,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
 
         // Status Message
         this.m_statusMessage = new qx.ui.basic.Label("");
+        this.m_statusMessage.setRich( true );
         this.m_statusMessage.setAllowGrowX(true);
         this._add(this.m_statusMessage, {
             flex : 1
@@ -69,7 +70,8 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
          * @param errorMessages {String} error messages.
          */
         showErrors : function(errorMessages) {
-            this.m_statusMessage.setValue(errorMessages);
+            var richText = "<b style='color:red'>"+errorMessages+"</b>";
+            this.m_statusMessage.setValue(richText);
             if (!this.isVisible()) {
                 this.show(this, true);
             }

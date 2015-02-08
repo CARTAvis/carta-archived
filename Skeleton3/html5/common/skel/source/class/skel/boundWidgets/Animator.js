@@ -288,6 +288,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
             this.m_indexText = new qx.ui.form.TextField();
+            this.m_indexText.setToolTipText( "Set the current value.");
             this.m_indexText.setValue( "0");
             this.m_indexText.addListener("input", function(e) {
                 var value = this.m_indexText.getValue();
@@ -313,6 +314,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 flex : 1
             });
             var settingsCheck = new qx.ui.form.CheckBox("Settings...");
+            settingsCheck.setToolTipText( "Show additional animator settings.");
             settingsCheck.addListener("changeValue", function() {
                 this._minMaxSettings(settingsCheck.getValue());
             }, this);
@@ -325,6 +327,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initSettings : function() {
             this.m_endWrapRadio = new qx.ui.form.RadioButton("Wrap");
+            this.m_endWrapRadio.setToolTipText( "Wrap around when reaching an end value.");
             this.m_endWrapRadio.addListener("changeValue", function() {
                 if (this.m_endWrapRadio.getValue()) {
                     this._sendEndBehavior(this.m_endWrapRadio.getLabel());
@@ -332,6 +335,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
             
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
+            this.m_endReverseRadio.setToolTipText( "Change direction when reaching an end value.");
             this.m_endReverseRadio.addListener("changeValue", function() {
                 if (this.m_endReverseRadio.getValue()) {
                     this._sendEndBehavior(this.m_endReverseRadio.getLabel());
@@ -339,6 +343,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
             
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
+            this.m_endJumpRadio.setToolTipText( "Move from one end to the other end.");
             this.m_endJumpRadio.addListener("changeValue", function() {
                 if (this.m_endJumpRadio.getValue()) {
                     this._sendEndBehavior(this.m_endJumpRadio.getLabel());
@@ -350,6 +355,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             var speedLabel = new qx.ui.basic.Label("Rate:");
             this.m_speedSpinBox = new qx.ui.form.Spinner(1, 10, 100);
+            this.m_speedSpinBox.setToolTipText( "Set the speed of the animation.");
 
             this.m_speedSpinBox.addListener("changeValue", function() {
                 this._setTimerSpeed();
@@ -357,6 +363,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
             var stepLabel = new qx.ui.basic.Label("Step:");
             this.m_stepSpin = new qx.ui.form.Spinner(1, 1, 100);
+            this.m_stepSpin.setToolTipText( "Set the step increment.");
             //this.bind("frameUpperBound", this.m_stepSpin, "maximum");
             this.m_stepSpin.bind("value", this, "frameStep");
             this.m_stepSpin.addListener( "changeValue", function(){
@@ -423,6 +430,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initSliderControls : function() {
             this.m_lowBoundsSpinner = new qx.ui.form.Spinner(0, 0, 100);
+            this.m_lowBoundsSpinner.setToolTipText( "Set a lower bound for valid values.");
             this.m_slider = new qx.ui.form.Slider();
             this.m_slider.addListener("changeValue", function() {
                 if (this.m_inUpdateState) {
@@ -434,6 +442,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
+            this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();
             sliderComposite.setLayout(new qx.ui.layout.HBox(5));
             sliderComposite.add(this.m_lowBoundsSpinner);
@@ -456,9 +465,11 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var startButton = new qx.ui.toolbar.Button("",
                     "skel/icons/dblarrowleft.png");
             startButton.addListener("execute", this._goToStart, this);
+            startButton.setToolTipText( "Go to the first valid value");
 
             this.m_revPlayButton = new qx.ui.form.ToggleButton("",
                     "skel/icons/movie-play-reverse16.png");
+            this.m_revPlayButton.setToolTipText( "Animate in a reverse direction.");
             this.m_revPlayButton.addListener("execute", function() {
                 this.m_playButton.setValue(false);
                 this._play(false);
@@ -466,18 +477,22 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             var revStepButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-previous-frame16.png");
+            revStepButton.setToolTipText( "Decrease by one step value.");
             revStepButton.addListener("execute", this._decrementValue, this);
-
+            
             var stopButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-stop16.png");
             stopButton.addListener("execute", this._stop, this);
+            stopButton.setToolTipText( "Stop the animation.");
 
             var stepButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-next-frame16.png");
             stepButton.addListener("execute", this._incrementValue, this);
+            stepButton.setToolTipText( "Increase by one step value.");
 
             this.m_playButton = new qx.ui.form.ToggleButton("",
                     "skel/icons/movie-play16.png");
+            this.m_playButton.setToolTipText( "Animate in a forward direction.");
             this.m_playButton.addListener("execute", function() {
                 this.m_revPlayButton.setValue(false);
                 this._play(true);
@@ -486,7 +501,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var endButton = new qx.ui.toolbar.Button("",
                     "skel/icons/dblarrowright.png");
             endButton.addListener("execute", this._goToEnd, this);
-
+            endButton.setToolTipText( "Go to the last valid value.");
             toolbar.add(startButton);
             toolbar.add(this.m_revPlayButton);
             toolbar.add(revStepButton);

@@ -107,8 +107,9 @@ public:
 
     /**
      * Returns the image's file name.
+     * @return the path to the image.
      */
-    QString getFileName();
+    QString getFileName() const;
 
     /**
      * Returns the raw data as an array.

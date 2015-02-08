@@ -153,7 +153,7 @@ int DataSource::getDimensions() const {
     return imageSize;
 }
 
-QString DataSource::getFileName(){
+QString DataSource::getFileName() const {
     return m_fileName;
 }
 

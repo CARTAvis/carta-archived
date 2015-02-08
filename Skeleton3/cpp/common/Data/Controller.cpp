@@ -158,12 +158,19 @@ std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources()
 }
 
 int Controller::getSelectImageIndex(){
-    return m_selectImage->getIndex();
+    int selectImageIndex = -1;
+    if ( m_datas.size() >= 1 ){
+        selectImageIndex = m_selectImage->getIndex();
+    }
+    return selectImageIndex;
 }
 
-QString Controller::getImageName(int index){
-    std::shared_ptr<DataSource> data = Controller::m_datas[index];
-    QString name = data->getFileName();
+QString Controller::getImageName(int index) const{
+    QString name;
+    if ( 0 <= index && index < m_datas.size()){
+        std::shared_ptr<DataSource> data = Controller::m_datas[index];
+        name = data->getFileName();
+    }
     return name;
 }
 
