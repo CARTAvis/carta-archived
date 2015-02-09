@@ -36,6 +36,8 @@ public:
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
+    int changeIndex( const QString & params );
+
 signals:
     void indexChanged(const QString& params);
 

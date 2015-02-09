@@ -101,6 +101,8 @@ public:
      */
     bool setColorMap( const QString& colormapId, const QString& colormapName );
 
+    bool setFrame( const QString& animatorId, const QString& index );
+
     /**
      * Reset the layout to a predefined view displaying only a single image.
      */

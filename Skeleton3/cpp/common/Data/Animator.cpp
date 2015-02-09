@@ -63,9 +63,13 @@ void Animator::_adjustStateAnimatorTypes(){
     m_state.flushState();
 }
 
-
+void Animator::changeChannelIndex( const QString& params ){
+    _channelIndexChanged( params );   
+}
 
 void Animator::_channelIndexChanged( const QString& params ){
+    qDebug() << "(JT) Animator::_channelIndexChanged()";
+    qDebug() << "(JT) params = " << params;
     for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
         controller->setFrameChannel( params );
     }
@@ -90,6 +94,8 @@ QString Animator::getLinkId( int linkIndex ) const {
 }
 
 void Animator::_imageIndexChanged( const QString& params ){
+    qDebug() << "(JT) Animator::_imageIndexChanged()";
+    qDebug() << "(JT) params = " << params;
     for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
         controller->setFrameImage( params );
     }

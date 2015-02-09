@@ -383,6 +383,7 @@ void Controller::_saveRegions(){
 
 
 void Controller::setFrameChannel(const QString& val) {
+    qDebug() << "(JT) Controller::setFrameChannel(" << val << ")";
     if (m_selectChannel != nullptr) {
         m_selectChannel->setIndex(val);
     }

@@ -60,6 +60,7 @@ QString AnimatorType::getStateString() const{
 
 
 void AnimatorType::setUpperBound( int value ){
+    qDebug() << "(JT) AnimatorType::setUpperBound(" << value << ")";
     m_select->setUpperBound( value );
 }
 
@@ -144,6 +145,18 @@ void AnimatorType::_initializeState( ){
     m_state.flushState();
 }
 
+int AnimatorType::changeIndex( const QString & params )
+{
+    qDebug() << "(JT) AnimatorType::changeIndex( " << params << ")";
+    //Set our state to reflect the new image.
+    int index = m_select->setIndex( params );
+    qDebug() << "(JT) index = " << index;
+
+	//Tell the children about the new image.
+	emit indexChanged( params );
+
+    return index;
+}
 
 void AnimatorType::_initializeCommands(){
 
@@ -151,13 +164,11 @@ void AnimatorType::_initializeCommands(){
 	addCommandCallback( COMMAND_SET_FRAME, [=] (const QString & /*cmd*/,
 					 const QString & params, const QString & /*sessionId*/) -> QString {
 
-        //Set our state to reflect the new image.
-        int index = m_select->setIndex( params );
+        int index = changeIndex( params );
 
-		//Tell the children about the new image.
-		emit indexChanged( params );
-
-	    return QString("%1=%2").arg(m_animationType).arg(index);
+	    QString returnString = QString("%1=%2").arg(m_animationType).arg(index);
+        qDebug() << "(JT) COMMAND_SET_FRAME returnString = " << returnString;
+        return returnString;
 	});
 
 	addCommandCallback( "getSelection", [=] (const QString & /*cmd*/,

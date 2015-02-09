@@ -492,6 +492,16 @@ bool ViewManager::setColorMap( const QString& colormapId, const QString& colorma
     return colorMapFound;
 }
 
+bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
+    int animatorIndex = _findAnimator( animatorId );
+    bool animatorFound = false;
+    if ( animatorIndex >= 0 ){
+        m_animators[animatorIndex]->changeChannelIndex( index );
+        animatorFound = true;
+    }
+    return animatorFound;
+}
+
 void ViewManager::setCustomView( int rows, int cols ){
     _clear();
     if ( m_layout == nullptr ){

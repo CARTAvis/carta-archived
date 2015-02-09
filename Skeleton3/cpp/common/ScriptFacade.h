@@ -129,6 +129,8 @@ public:
 
     void setPlugins( const QStringList& names );
 
+    void setFrame( const QString& animatorId, const QString& index );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

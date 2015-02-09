@@ -143,6 +143,12 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setColorMap( colormapId, args[1]);
     }
 
+    else if ( args.size() == 2 && args[0].toLower() == "setframe" ) {
+        qDebug() << "(JT) setFrame " << args[1];
+        QString animatorId = m_scriptFacade->getAnimatorViewId( 0 );
+        m_scriptFacade->setFrame( animatorId, args[1] );
+    }
+
     else if (args.size() > 0 && args[0].toLower() == "getfilelist") {
         QString fileList = m_scriptFacade->getFileList();
         QString substring = "";

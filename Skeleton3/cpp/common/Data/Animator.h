@@ -66,6 +66,8 @@ public:
 
     static const QString CLASS_NAME;
 
+    void changeChannelIndex( const QString& params );
+
 private slots:
     //Adjusts internal state based on the state in the child controllers.
     void _adjustStateController();

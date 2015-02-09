@@ -51,49 +51,41 @@ QString ScriptFacade::getHistogramViewId( int index ) const {
 }
 
 QStringList ScriptFacade::getImageViews() {
-    qDebug() << "(JT) ScriptFacade::getImageViews()";
     QStringList imageViewList;
     int numControllers = m_viewManager->getControllerCount();
     for (int i = 0; i < numControllers; i++) {
         QString imageView = getImageViewId( i );
         imageViewList << imageView;
-        qDebug() << "(JT) imageView =  " << imageView;
     }
     return imageViewList;
 }
 
 QStringList ScriptFacade::getColorMapViews() {
-    qDebug() << "(JT) ScriptFacade::getColorMapViews()";
     QStringList colorMapViewList;
     int numColorMaps = m_viewManager->getColorMapCount();
     for (int i = 0; i < numColorMaps; i++) {
         QString colorMapView = getColorMapId( i );
         colorMapViewList << colorMapView;
-        qDebug() << "(JT) colorMapView =  " << colorMapView;
     }
     return colorMapViewList;
 }
 
 QStringList ScriptFacade::getAnimatorViews() {
-    qDebug() << "(JT) ScriptFacade::getAnimatorViews()";
     QStringList animatorViewList;
     int numAnimators = m_viewManager->getAnimatorCount();
     for (int i = 0; i < numAnimators; i++) {
         QString animatorView = getAnimatorViewId( i );
         animatorViewList << animatorView;
-        qDebug() << "(JT) animatorView =  " << animatorView;
     }
     return animatorViewList;
 }
 
 QStringList ScriptFacade::getHistogramViews() {
-    qDebug() << "(JT) ScriptFacade::getHistogramViews()";
     QStringList histogramViewList;
     int numHistograms = m_viewManager->getHistogramCount();
     for (int i = 0; i < numHistograms; i++) {
         QString histogramView = getHistogramViewId( i );
         histogramViewList << histogramView;
-        qDebug() << "(JT) histogramView =  " << histogramView;
     }
     return histogramViewList;
 }
@@ -127,4 +119,10 @@ void ScriptFacade::setImageLayout(){
 
 void ScriptFacade::setPlugins( const QStringList& names ) {
     m_viewManager->setPlugins( names );
+}
+
+void ScriptFacade::setFrame( const QString& animatorId, const QString& index ) {
+    qDebug() << "(JT) ScriptFacade::setFrame()";
+    qDebug() << "(JT) index = " << index;
+    m_viewManager->setFrame( animatorId, index );
 }
