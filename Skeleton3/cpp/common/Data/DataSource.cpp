@@ -63,10 +63,10 @@ bool DataSource::setFileName( const QString& fileName ){
             auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
             auto skycs = KnownSkyCS::Galactic;
             m_coordinateFormatter-> setSkyCS( skycs );
-            qDebug() << "set skycs to" << int (skycs)
-                     << "now it is" << int ( m_coordinateFormatter-> skyCS() );
+            /*qDebug() << "set skycs to" << int (skycs)
+                     << "now it is" << int ( m_coordinateFormatter-> skyCS() );*/
             fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-            qDebug() << "0->" << fmt.join( "|" );
+            //qDebug() << "0->" << fmt.join( "|" );
         }
         catch( std::logic_error& err ){
             qDebug() << "Failed to load image "<<fileName;
@@ -96,7 +96,7 @@ void DataSource::setColorReversed( bool /*reversed*/ ){
 }
 
 
-QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameIndex){
+/*QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameIndex){
     int imageDims = getDimensions();
     auto pixCoords = std::vector<double>( imageDims, 0.0);
     pixCoords[0] = mouseX;
@@ -107,7 +107,7 @@ QStringList DataSource::formatCoordinates( int mouseX, int mouseY, int frameInde
     }
     QStringList list = m_coordinateFormatter->formatFromPixelCoordinate( pixCoords);
     return list;
-}
+}*/
 
 NdArray::RawViewInterface * DataSource::getRawData( int channel ) const {
     NdArray::RawViewInterface* rawData = nullptr;
@@ -153,6 +153,10 @@ int DataSource::getDimensions() const {
     return imageSize;
 }
 
+QString DataSource::getFileName() const {
+    return m_fileName;
+}
+
 std::shared_ptr<Image::ImageInterface> DataSource::getImage(){
     return m_image;
 }
@@ -169,7 +173,52 @@ bool DataSource::contains(const QString& fileName) const {
     return representsData;
 }
 
+QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight ){
+    QString str;
+    QTextStream out( & str );
+    QPointF lastMouse( mouseX, mouseY );
+    int imgX = mouseX * m_image-> dims()[0] / pictureWidth;
+    int imgY = mouseY * m_image-> dims()[1] / pictureHeight;
+    imgY = m_image-> dims()[1] - imgY - 1;
 
+    CoordinateFormatterInterface::SharedPtr cf(
+            m_image-> metaData()-> coordinateFormatter()-> clone() );
+
+    std::vector < QString > knownSCS2str {
+            "Unknown", "J2000", "B1950", "ICRS", "Galactic",
+            "Ecliptic"
+        };
+    std::vector < KnownSkyCS > css {
+            KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
+            KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
+        };
+     out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
+     out << "Image cursor:" << imgX << "," << imgY << "\n";
+
+     for ( auto cs : css ) {
+        cf-> setSkyCS( cs );
+        out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+        std::vector < Carta::Lib::AxisInfo > ais;
+        for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
+            const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
+            ais.push_back( ai );
+        }
+        std::vector < double > pixel( m_image-> dims().size(), 0.0 );
+        pixel[0] = imgX;
+        pixel[1] = imgY;
+        if( pixel.size() > 2) {
+           pixel[2] = frameIndex;
+        }
+        auto list = cf-> formatFromPixelCoordinate( pixel );
+        for ( size_t i = 0 ; i < ais.size() ; i++ ) {
+            out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+        }
+        out << "\n";
+    }
+
+    str.replace( "\n", "<br />" );
+    return str;
+}
 
 int DataSource::getFrameCount() const {
     int frameCount = 1;

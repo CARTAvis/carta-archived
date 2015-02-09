@@ -65,14 +65,13 @@ CartaObject::addCommandCallback (const QString & rawCommand, IConnector::Command
 {
     IConnector * connector = Globals::instance()->connector();
     QString actualCmd = addIdToCommand( rawCommand );
-    //qDebug() << "AddCommandCallback actual="+actualCmd;
     connector->addCommandCallback ( actualCmd, callback);
 }
 
 
 int64_t CartaObject::addStateCallback( const QString& statePath, const IConnector::StateChangedCallback & cb){
     IConnector * connector = Globals::instance()->connector();
-    return connector->addStateCallback( QString( addIdToCommand( statePath)), cb );
+    return connector->addStateCallback( statePath, cb );
 }
 
 void CartaObject::registerView( IView * view){

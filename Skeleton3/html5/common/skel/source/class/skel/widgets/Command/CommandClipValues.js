@@ -76,6 +76,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
                     var clipCount = clips.clipCount;
                     for ( var i = 0; i < clipCount; i++ ){
                         var clipAmount = clips.clipList[i];
+                        clipAmount = clipAmount * 100;
                         var clipLabel = clipAmount.toString() + "%";
                         var cmd = new skel.widgets.Command.CommandClipValue( clipLabel );
                         this.m_clips[i] = cmd;

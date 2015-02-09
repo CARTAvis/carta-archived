@@ -18,6 +18,7 @@ class DataLoader;
 class Histogram;
 class Colormap;
 class Layout;
+class Statistics;
 class ViewPlugins;
 
 class ViewManager : public CartaObject {
@@ -102,6 +103,7 @@ private:
     QString _makeController();
     QString _makeHistogram();
     QString _makeColorMap();
+    QString _makeStatistics();
     void _makeDataLoader();
 
 
@@ -119,6 +121,9 @@ private:
 
     //Histogram
     QList<std::shared_ptr<Histogram> >m_histograms;
+
+    //Statistics
+    QList<std::shared_ptr<Statistics> > m_statistics;
 
     static bool m_registered;
     std::shared_ptr<Layout> m_layout;

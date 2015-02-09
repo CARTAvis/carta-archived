@@ -118,7 +118,7 @@ qx.Class
                                     allowGrowY : true
                                 });
                                 // We can handle it with a single split pane.
-                                if (rows == 1) {
+                                if (rows == 1 && cols <= 2) {
                                     // Create container with fixed dimensions
                                     // for the top:
                                     this.m_areaFirst = this._makeArea(colWidth,
@@ -126,6 +126,14 @@ qx.Class
                                     this.m_areaSecond = this._makeArea(
                                             colWidth, rowHeight, rowIndex,
                                             colIndex + 1);
+                                }
+                                else if ( rows == 1 && cols == 3){
+                                    //First is an area, second split
+                                    this.m_areaFirst = this._makeArea( colWidth, 
+                                            rowHeight, rowIndex, colIndex );
+                                    this.m_areaSecond = this._makeChild( rows,
+                                            cols - 1, rowHeight, colWidth, rowIndex, colIndex+1,
+                                            lastColIndex );
                                 }
                                 // Each of our sides needs to be a split pane.
                                 else {
@@ -229,52 +237,14 @@ qx.Class
                          * @return {boolean} true if the area was removed; false otherwise.
                          */
                         excludeArea : function(row, col) {
-                            var excluded = this.m_areaFirst.excludeArea(row,
-                                    col);
+                            var excluded = this.m_areaFirst.excludeArea(row, col);
                             if (!excluded) {
-                                excluded = this.m_areaSecond.excludeArea(row,
-                                        col);
+                                excluded = this.m_areaSecond.excludeArea(row, col);
                             }
                             return excluded;
                         },
 
-                        /**
-                         * Returns an array of points (pixel coordinates) where
-                         * new display areas can be added.
-                         * @return {Array} points where new display areas can be added.
-                         */
-                        getAddWindowLocations : function() {
-                            var locations = [];
-                            var i = 0;
-                            if (this.m_pane !== null) {
-                                var loc = this._getSplitterLocation();
-                                if (loc.length > 0) {
-                                    loc.push(this);
-                                    locations.push(loc);
-                                    if (this.m_areaFirst !== null) {
-                                        var areaFirstLocs = this.m_areaFirst
-                                                .getAddWindowLocations();
-                                        for ( i = 0; i < areaFirstLocs.length; i++) {
-                                            locations.push(areaFirstLocs[i]);
-                                        }
-                                    }
-                                    if (this.m_areaSecond !== null) {
-                                        var areaSecondLocs = this.m_areaSecond.getAddWindowLocations(locations);
-                                        for ( i = 0; i < areaSecondLocs.length; i++) {
-                                            var areaLoc = areaSecondLocs[i];
-                                            if (this.m_pane.getOrientation() == "horizontal") {
-                                                areaLoc[0] = areaLoc[0] + loc[0];
-                                            } 
-                                            else {
-                                                areaLoc[1] = areaLoc[1] + loc[1];
-                                            }
-                                            locations.push(areaLoc);
-                                        }
-                                    }
-                                }
-                            }
-                            return locations;
-                        },
+
                         
                         /**
                          * Returns the row and column location of the second
@@ -426,6 +396,8 @@ qx.Class
                                 area.exclude();
                                 this.fireDataEvent("iconifyWindow", data);
                             }, this);
+                            
+                           
 
                             this.m_pane.add(area, 1);
                             return area;
@@ -446,9 +418,10 @@ qx.Class
                                     rowIndex, colIndex, lastColIndex,
                                     secondArea, splitType);
                             child.addListener("iconifyWindow", function(ev) {
-                                this.fireDataEvent("iconifyWindow", ev
-                                        .getData());
+                                this.fireDataEvent("iconifyWindow", ev.getData());
                             }, this);
+                            
+                           
 
                             var flex = 0;
                             if (lastColIndex == colIndex) {
@@ -457,7 +430,9 @@ qx.Class
                             this.m_pane.add(child.getDisplayArea(), flex);
                             return child;
                         },
-
+                        
+                       
+                        
                         /**
                          * Returns whether or not the window with the given id
                          * was restored.
@@ -483,6 +458,31 @@ qx.Class
                         removeWindows : function() {
                             this.m_areaFirst.removeWindows();
                             this.m_areaSecond.removeWindows();
+                        },
+                        
+                        /**
+                         * Display the given window at the given location in the grid.
+                         * @param window {skel.widgets.Window.DisplayWindow} the window to display.
+                         * @param row {Number} the grid row where the window should be located.
+                         * @param col {Number} the grid column where the window should be located.
+                         */
+                        setWindow : function( window, row, col ){
+                            var windowSet = this.m_areaFirst.setWindow( window, row, col );
+                            if ( !windowSet ){
+                                this.m_areaSecond.setWindow( window, row, col );
+                            }
+                            return windowSet;
+                        },
+                        
+                        /**
+                         * Returns a list of windows displayed by this area and its children.
+                         * @return {Array} a list of windows displayed by the area and its children.
+                         */
+                        getWindows : function ( ){
+                            var firstWindows = this.m_areaFirst.getWindows();
+                            var secondWindows = this.m_areaSecond.getWindows();
+                            var windows = firstWindows.concat( secondWindows );
+                            return windows;
                         },
 
                         /**
@@ -650,6 +650,7 @@ qx.Class
                         m_pane : null,
                         m_areaFirst : null,
                         m_areaSecond : null
+                     
                     }
 
                 });

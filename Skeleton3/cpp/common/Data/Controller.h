@@ -62,10 +62,20 @@ public:
 
     virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() Q_DECL_OVERRIDE;
 
+    int getSelectImageIndex();
+
+    /**
+     * Returns an identifier for the data source at the given index.
+     * @param index the index of a data source.
+     * @return an identifier for the image.
+     */
+    QString getImageName(int index) const;
+
     /**
      * Make a channel selection.
      * @param val a String representing a channel selection.
      */
+
     void setFrameChannel(const QString& val);
 
     /**

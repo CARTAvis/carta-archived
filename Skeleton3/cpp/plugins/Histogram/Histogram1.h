@@ -6,6 +6,8 @@
 #include <QObject>
 #include <vector>
 #include "plugins/CasaImageLoader/CCImage.h"
+#include "CartaLib/Hooks/HistogramResult.h"
+
 
 class IImageHistogram;
 
@@ -33,7 +35,7 @@ private:
      * Returns histogram data in the form of (intensity,count) pairs.
      * @returns a vector (intensity,count) pairs.
      */
-    vector<std::pair<double,double> > _computeHistogram( );
+    Carta::Lib::HistogramResult  _computeHistogram( );
 
     //Histogram implementation.
     std::shared_ptr<IImageHistogram> m_histogram;

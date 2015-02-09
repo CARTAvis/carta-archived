@@ -22,13 +22,13 @@ bool GenericPlugin::handleHook(BaseHook &hookData)
     }
 
     if( hookData.hookId() == PreRender::staticId ) {
-        PreRender & hook = static_cast<PreRender &>( hookData);
+//        PreRender & hook = static_cast<PreRender &>( hookData);
 
         //qDebug() << "Prerender hook received by generic plugin";
         //qDebug() << "  " << hook.paramsPtr->viewName;
         //qDebug() << "  " << hook.paramsPtr->imgPtr->size();
 
-        QPainter p( hook.paramsPtr->imgPtr);
+        /*QPainter p( hook.paramsPtr->imgPtr);
         QString txt = "(C) Generic Plugin";
         QRectF rect = hook.paramsPtr->imgPtr->rect();
         p.setFont( QFont( "Arial", 20));
@@ -36,7 +36,7 @@ bool GenericPlugin::handleHook(BaseHook &hookData)
         p.fillRect( rect, QColor( 0,0,0,128));
         p.setPen( QColor( "white"));
         p.drawText( hook.paramsPtr->imgPtr->rect(), Qt::AlignRight | Qt::AlignBottom, txt);
-
+*/
         return true;
     }
 
