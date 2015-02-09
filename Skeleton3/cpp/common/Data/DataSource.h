@@ -118,8 +118,16 @@ public:
      */
     NdArray::RawViewInterface *  getRawData( int channel ) const;
 
-
-    QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
+    /**
+     * Returns information about the image at the current location of the cursor.
+     * @param mouseX the mouse x-position in screen coordinates.
+     * @param mouseY the mouse y-position in screen coordinates.
+     * @param frameIndex the current channel index.
+     * @param pictureWidth the width of the QImage displaying the source.
+     * @param pictureHeight the height of the QImage displaying the source.
+     */
+    QString getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight );
+    //QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
 
     virtual ~DataSource();
 

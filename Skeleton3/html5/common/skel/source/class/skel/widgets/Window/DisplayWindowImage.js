@@ -30,17 +30,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 this.m_view = new skel.boundWidgets.View(this.m_identifier);
             }
            
-            if ( this.m_drawCanvas === null ){
+            /*if ( this.m_drawCanvas === null ){
                 this.m_drawCanvas = new skel.widgets.Draw.Canvas( this.m_identifier, this.m_view);
-            }
+            }*/
             
             var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
             if (this.m_content.indexOf(this.m_view) < 0) {
                 this.m_content.add(this.m_view, overlayMap );
             }
-            if ( this.m_content.indexOf( this.m_drawCanvas) < 0 ){
+            /*if ( this.m_content.indexOf( this.m_drawCanvas) < 0 ){
                 this.m_content.add(this.m_drawCanvas, overlayMap);
-            }
+            }*/
         },
         
         /**
@@ -203,7 +203,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var linkable = false;
             var path = skel.widgets.Path.getInstance();
             if (pluginId == path.ANIMATOR || pluginId == this.m_pluginId ||
-                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN) {
+                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
+                    pluginId == path.STATISTICS ) {
                 linkable = true;
             }
             return linkable;

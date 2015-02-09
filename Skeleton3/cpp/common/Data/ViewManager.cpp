@@ -11,6 +11,7 @@
 #include "Data/ILinkable.h"
 #include "Data/Layout.h"
 #include "Data/Preferences.h"
+#include "Data/Statistics.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
 #include "State/StateReader.h"
@@ -82,6 +83,11 @@ void ViewManager::_clear(){
         m_histograms[i]->clear();
     }
     m_histograms.clear();
+    int statCount = m_statistics.size();
+    for ( int i = 0; i < statCount; i++ ){
+        m_statistics[i]->clear();
+    }
+    m_statistics.clear();
     if ( m_layout != nullptr ){
         m_layout->clear();
     }
@@ -316,6 +322,14 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = _makeHistogram();
         }
     }
+    else if ( plugin == Statistics::CLASS_NAME ){
+        if ( 0 <= index && index < m_statistics.size()){
+            viewId = m_statistics[index]->getPath();
+        }
+        else {
+            viewId = _makeStatistics();
+        }
+    }
     else if ( plugin == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
     }
@@ -393,7 +407,12 @@ QString ViewManager::_makePluginList(){
     return pluginsPath;
 }
 
-
+QString ViewManager::_makeStatistics(){
+    CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
+    std::shared_ptr<Statistics> target( dynamic_cast<Statistics*>(controlObj) );
+    m_statistics.append(target);
+    return target->getPath();
+}
 
 bool ViewManager::_readState( const QString& saveName ){
     _clear();
@@ -446,11 +465,13 @@ void ViewManager::setAnalysisView(){
     _makeController();
     _makeHistogram();
     _makeColorMap();
+    _makeStatistics();
 
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
+    m_statistics[0]->addLink( m_controllers[0]);
 }
 
 bool ViewManager::setColorMap( const QString& colormapId, const QString& colormapName ){

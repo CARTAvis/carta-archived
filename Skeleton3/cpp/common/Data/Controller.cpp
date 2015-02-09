@@ -52,21 +52,20 @@ Controller::Controller( const QString& path, const QString& id ) :
         m_selectImage(nullptr),
         m_view(nullptr),
         m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
-
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
     _initializeSelections();
 
      connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
      connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
 
-
+     _initializeState();
      _initializeCallbacks();
      registerView(m_view.get());
 
      //Load the view.
      _loadView( false );
 
-     _initializeState();
+
 }
 
 
@@ -91,7 +90,6 @@ void Controller::addData(const QString& fileName) {
         m_selectImage->setUpperBound(m_datas.size());
 
         saveState();
-        qDebug()<<"I'm getting called";
     }
 
     bool successfulLoad = m_datas[targetIndex]->setFileName(fileName );
@@ -243,17 +241,10 @@ void Controller::_initializeCallbacks(){
         }
         return "";
     });
-
-    addCommandCallback( "updateCursor", [=] (const QString & /*cmd*/,
-                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        _updateCursor();
-        return "";
-    });
-
-
-
-
-
+    QString viewPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW;
+    addStateCallback( viewPath, [=] ( const QString& /*path*/, const QString& /*value*/ ) {
+            _updateCursor();
+        });
 
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -413,9 +404,15 @@ void Controller::setFrameImage(const QString& val) {
 }
 
 
-void Controller::_updateCursor(){
+void Controller::_updateCursor( ){
+    if ( m_datas.size() == 0 ){
+        return;
+    }
+    QSize imageSize = m_view->size();
+    int pictureWidth = imageSize.width();
+    int pictureHeight = imageSize.height();
     QString formattedCursor;
-    QString mouseXStr = m_state.getValue<QString>( ImageView::MOUSE_X );
+    QString mouseXStr = m_stateMouse.getValue<QString>( ImageView::MOUSE_X );
     bool validInt = false;
 
     int mouseX = mouseXStr.toInt(&validInt );
@@ -429,10 +426,11 @@ void Controller::_updateCursor(){
     }
     int imageIndex = m_selectImage->getIndex();
     int frameIndex = m_selectChannel->getIndex();
-    QStringList list = m_datas[imageIndex]->formatCoordinates( mouseX, mouseY, frameIndex );
-    m_stateMouse.setValue<QString>( CURSOR, list.join("\n").toHtmlEscaped());
-
-    m_stateMouse.flushState();
+    QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
+    if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
+        m_stateMouse.setValue<QString>( CURSOR, cursorText );
+        m_stateMouse.flushState();
+    }
 }
 
 Controller::~Controller(){
