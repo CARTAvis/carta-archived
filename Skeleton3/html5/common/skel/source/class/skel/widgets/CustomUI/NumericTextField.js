@@ -20,10 +20,19 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             this.setIntegerOnly( true );
             //Only set the value in the textfield if it passes numeric validation.
             this.m_text.addListener( "keyinput", function( evt ){
-                var textValue = this.m_text.getValue() + evt.getChar();
-                var numValue = Number( textValue );
-                this._setValidValue( numValue );
-                evt.preventDefault();
+                var charKey = evt.getChar();
+                if ( charKey !== '.' || charKey !== '0' || charKey !=='1'||charKey !=='2' || charKey !=='3'|| 
+                        charKey !=='4'|| charKey !== '5'|| charKey !== '6' || charKey !== '7' || charKey !== '8'||
+                    charKey !== '9' || charKey != '-'){
+                    var textValue = this.m_text.getValue() + charKey;
+                    var numValue = Number( textValue );
+                    if ( ! this._isValidValue( numValue) ){
+                        evt.preventDefault();
+                    }
+                }
+            }, this );
+            this.m_text.addListener( "input", function( evt){
+                this.setValue( this.m_text.getValue());
             }, this );
             //Range validation when field loses focus
             this.m_text.addListener( "changeValue", function( evt ){

@@ -78,7 +78,7 @@ void ImageView::redrawBuffer() {
     {
         QPainter p(&m_qimage);
         p.drawImage(m_qimage.rect(), m_defaultImage);
-        p.setPen(Qt::NoPen);
+        /*p.setPen(Qt::NoPen);
         p.setBrush(QColor(255, 255, 0, 128));
         p.drawEllipse(QPoint(m_lastMouse.x(), m_lastMouse.y()), 10, 10);
         p.setPen(QColor(255, 255, 255));
@@ -92,7 +92,7 @@ void ImageView::redrawBuffer() {
         p.translate(-m_qimage.rect().center());
         p.setFont(QFont("Arial", 20));
         p.setPen(QColor("white"));
-        p.drawText(m_qimage.rect(), Qt::AlignCenter, m_viewName);
+        p.drawText(m_qimage.rect(), Qt::AlignCenter, m_viewName);*/
     }
 
     // execute the pre-render hook

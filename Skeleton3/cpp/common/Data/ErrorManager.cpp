@@ -33,7 +33,6 @@ ErrorManager::ErrorManager(const QString& path, const QString& id) :
     CartaObject( CLASS_NAME, path, id){
         _initializeState();
         _initializeCallbacks();
-        this->registerError( "Testing");
 }
 
 QString ErrorManager::_commandGetErrors( const QString& /*params*/ ){

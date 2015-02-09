@@ -15,6 +15,7 @@ SOURCES += \
     IColormapScalar.cpp \
     Hooks/ColormapsScalar.cpp \
     Hooks/Histogram.cpp \
+    Hooks/HistogramResult.cpp \
     IImage.cpp \
     PixelType.cpp \
     Slice.cpp \
@@ -31,6 +32,7 @@ HEADERS += \
     IColormapScalar.h \
     Hooks/ColormapsScalar.h \
     Hooks/Histogram.h \
+    Hooks/HistogramResult.h \
     Hooks/HookIDs.h \
     IPlugin.h \
     IImage.h \

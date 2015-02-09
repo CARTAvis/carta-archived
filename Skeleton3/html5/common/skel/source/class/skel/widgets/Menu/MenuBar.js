@@ -44,7 +44,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         "layoutColCount" : "qx.event.type.Data",
         "menuAlwaysVisible" : "qx.event.type.Data",
         "menuMoved" : "qx.event.type.Data",
-        "newWindow" : "qx.event.type.Data",
         "shareSession" : "qx.event.type.Data",
         "statusAlwaysVisible" : "qx.event.type.Data",
         /// emitted when cursor window toggle is clicked
@@ -187,6 +186,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.m_menuPart.add(this.m_fileButton);
             var fileMenu = new qx.ui.menu.Menu();
             var sessionButton = new qx.ui.menu.Button("Snapshot");
+            sessionButton.setEnabled( false );
             fileMenu.add(sessionButton);
             fileMenu.add(new qx.ui.menu.Separator());
             var shareButton = new qx.ui.menu.CheckBox("Shared");
@@ -240,11 +240,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                         this._showCustomLayoutPopup();
                     }, this);
             layoutMenu.add(layoutCustomButton);
-            var newWindowButton = new qx.ui.menu.Button("New Window...");
-            newWindowButton.addListener("execute", function() {
-                this.fireDataEvent("newWindow", "");
-            }, this);
-            layoutMenu.add(newWindowButton);
             this.m_layoutButton.setMenu(layoutMenu);
 
             // Create the "Preferences" menu
@@ -268,6 +263,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             
             // Create the "Help" menu
             this.m_helpButton = new qx.ui.toolbar.MenuButton("Help");
+            this.m_helpButton.setEnabled( false );
             this.m_menuPart.add(this.m_helpButton);
             var helpMenu = new qx.ui.menu.Menu();
             helpMenu.add(new qx.ui.menu.Button("About..."));

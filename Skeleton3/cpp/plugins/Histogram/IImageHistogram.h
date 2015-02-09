@@ -6,7 +6,7 @@
 #define IIMAGEHISTOGRAM_H_
 
 #include <vector>
-
+#include <QString>
 
 // namespace casa {
 //     template <class T> class ImageInterface;
@@ -32,6 +32,7 @@ public:
      * @return a list of (intensity,count) data pairs.
      */
     virtual std::vector< std::pair<double,double> > getData() const = 0;
+    virtual QString getName() const = 0;
 
     virtual void setBinCount( int count ) = 0;
     virtual void setChannelRange( int minChannel, int maxChannel, int spectralIndex=-1 )=0;

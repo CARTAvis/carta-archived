@@ -80,6 +80,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             this._setLayout(widgetLayout);
             
             this.m_invertCheck = new qx.ui.form.CheckBox( "Invert");
+            this.m_invertCheck.setToolTipText( "Invert the colors in the map.");
             this.m_invertCheck.addListener( "changeValue", function(e){
                 var checked = e.getData();
                 var path = skel.widgets.Path.getInstance();
@@ -88,6 +89,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 this.m_connector.sendCommand( cmd, params, this._errorInvertCB( this ));
             }, this );
             this.m_reverseCheck = new qx.ui.form.CheckBox( "Reverse");
+            this.m_reverseCheck.setToolTipText( "Reverse the colors in the map.");
             this.m_reverseCheck.addListener( "changeValue", function(e){
                 var checked = e.getData();
                 var path = skel.widgets.Path.getInstance();
@@ -99,6 +101,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             var mapComposite = new qx.ui.groupbox.GroupBox( "Map");
             mapComposite.setLayout(new qx.ui.layout.VBox(2));
             this.m_mapCombo = new qx.ui.form.ComboBox();
+            this.m_mapCombo.setToolTipText( "Select a color map.");
             this.m_mapCombo.addListener( "changeValue", function(e){
                 var mapName = e.getData();
                 //Send a command to the server to let them know the map changed.

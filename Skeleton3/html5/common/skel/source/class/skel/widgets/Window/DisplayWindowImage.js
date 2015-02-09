@@ -98,13 +98,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             this.m_regionButton = new qx.ui.menu.Button("Region");
             this.m_regionButton.setMenu(this._initMenuRegion());
+            this.m_regionButton.setEnabled( false );
             this.m_contextMenu.add(this.m_regionButton);
 
             this.m_renderButton = new qx.ui.menu.Button("Render");
             this.m_renderButton.setMenu(this._initMenuRender());
+            this.m_renderButton.setEnabled( false );
             this.m_contextMenu.add(this.m_renderButton);
             
-            var showButton = new qx.ui.menu.Button( "Popup...");
+            var showButton = new qx.ui.menu.Button( "Show");
             showButton.setMenu( this._initMenuShow());
             skel.widgets.TestID.addTestId( showButton, skel.widgets.TestID.SHOW_POPUP_BUTTON);
             this.m_contextMenu.add( showButton );

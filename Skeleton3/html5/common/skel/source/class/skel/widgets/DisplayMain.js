@@ -93,20 +93,6 @@ qx.Class.define("skel.widgets.DisplayMain",
         },
         
         /**
-         * Returns a list of screen locations where new windows
-         * can be added.
-         * @return {Array} the locations where new windows can be added.
-         */
-        getAddWindowLocations : function() {
-            var locations = [];
-            if (this.m_pane !== null) {
-                locations = this.m_pane.getAddWindowLocations();
-            }
-            return locations;
-        },
-        
-
-        /**
          * Returns a list of information concerning windows that can be linked to
          * the given source window showing the indicated plug-in.
          * @param pluginId {String} the name of the plug-in.
@@ -122,9 +108,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
             return linkInfo;
         },
-
-        
-
 
         /**
          * Initialize the state variables.
@@ -142,24 +125,21 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Layout the screen real estate using a square grid
          * with the indicated number of rows and columns.
          * 
-         * @param rows
-         *                {Number} the number of rows in the
-         *                grid.
-         * @param cols
-         *                {Number} the number of columns in the
-         *                grid.
+         * @param rows {Number} the number of rows in the grid.
+         * @param cols {Number} the number of columns in the grid.
          */
         layout : function(rows, cols) {
             if (rows >= 1 && cols >= 1) {
-                this._removeWindows();
+                //this._removeWindows();
                 var splitterSize = 10;
-                var splitterHeight = this.m_height - (rows - 1)* splitterSize;
-                var splitterWidth = this.m_width - (cols - 1)* splitterSize;
+                var splitterHeight = this.m_height - (this.m_gridRowCount - 1)* splitterSize;
+                var splitterWidth = this.m_width - (this.m_gridColCount - 1)* splitterSize;
                 this.m_pane = new skel.widgets.DisplayArea(rows, cols, splitterHeight, splitterWidth, 0, 0, cols - 1);
                 this.m_pane.addListener("iconifyWindow",
                         function(ev) {
                             this.fireDataEvent("iconifyWindow",ev.getData());
                         }, this);
+
                 qx.event.message.Bus.subscribe("addLink", function(ev){
                     var data = ev.getData();
                     this.link( data.source, data.destination, true );
@@ -180,6 +160,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                 var displayArea = this.m_pane.getDisplayArea();
 
                 this.add(displayArea);
+               
             }
         },
 
@@ -255,8 +236,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
         },
 
-
-
         /**
          * Restore the window at the given layout position to its original location.
          * @param row {Number} the row index of the window to be restored.
@@ -275,13 +254,33 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.removeAll();
             }
         },
+        
+        /**
+         * Returns the first window in the list displaying the plug-in or null if none
+         * exists.
+         * @param plugin {String} a plug-in identifier.
+         * @param windows {Array} a list of windows.
+         * @return {skel.widgets.Window.DisplayWindow} the first window displaying the plug-in
+         *      or null if no such plug-in exists.
+         */
+        _findWindow : function( plugin, windows ){
+            var window = null;
+            for ( var i = 0; i < windows.length; i++ ){
+                if ( windows[i].getPlugin() === plugin ){
+                    window = windows[i];
+                    windows.splice( i, 1 );
+                    break;
+                }
+            }
+            return window;
+        },
 
         /**
          * Resets which plugins are displayed in each window.
          * @param layoutObj {Object} information about the plug-ins that
          *      should be displayed.
          */
-        _resetDisplayedPlugins : function( layoutObj ) {
+        _resetDisplayedPlugins : function( layoutObj, windows ) {
             var index = 0;
             var pluginMap = {};
             for (var row = 0; row < this.m_gridRowCount; row++) {
@@ -293,7 +292,13 @@ qx.Class.define("skel.widgets.DisplayMain",
                                 pluginMap[name] = -1;
                             }
                             pluginMap[name] = pluginMap[name] + 1;
-                            this.m_pane.setView(name, pluginMap[name], row, col);
+                            var window = this._findWindow ( name, windows );
+                            if ( window === null ){
+                                this.m_pane.setView(name, pluginMap[name], row, col);
+                            }
+                            else {
+                                this.m_pane.setWindow( window, row, col );
+                            }
                         }
                         else {
                             this.m_pane.excludeArea( row, col );
@@ -317,6 +322,10 @@ qx.Class.define("skel.widgets.DisplayMain",
                 try {
                     var layout = JSON.parse( layoutObjJSON );
                     if ( layout.rows > 0 && layout.cols > 0 ){
+                        var windows = [];
+                        if ( this.m_pane !== null ){
+                            windows = this.m_pane.getWindows();
+                        }
                         if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
                             this.m_gridRowCount = layout.rows;
                             this.m_gridColCount = layout.cols;
@@ -328,7 +337,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                                     "layoutGrid", gridData));
                             this.layout(this.m_gridRowCount, this.m_gridColCount);
                         }
-                        this._resetDisplayedPlugins( layout );
+                        this._resetDisplayedPlugins( layout, windows );
                     }
                 }
                 catch( err ){
@@ -343,7 +352,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         setRowCount : function(gridRows) {
             if ( this.m_gridRowCount != gridRows ){
-                this._clearLayout();
+                //this._clearLayout();
                 var path = skel.widgets.Path.getInstance();
                 var layoutSizeCmd = path.getCommandSetLayoutSize();
                 var params = "rows:"+gridRows + ",cols:"+this.m_gridColCount;
@@ -357,7 +366,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         setColCount : function(gridCols) {
             if ( this.m_gridColCount != gridCols ){
-                this._clearLayout();
+                //this._clearLayout();
                 var path = skel.widgets.Path.getInstance();
                 var layoutSizeCmd = path.getCommandSetLayoutSize();
                 var params = "rows:"+this.m_gridRowCount + ",cols:"+gridCols;

@@ -8,6 +8,8 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
 #include <vector>
+#include "CartaLib/Hooks/HistogramResult.h"
+
 namespace Image {
 class ImageInterface;
 }
@@ -26,7 +28,7 @@ public:
     /**
      * @brief Result is histogram data.
      */
-    typedef std::vector<std::pair<double,double> > ResultType;
+    typedef HistogramResult ResultType;
 
     /**
      * @brief Params

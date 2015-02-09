@@ -11,6 +11,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "plugins/CasaImageLoader/CasaImageLoader.h"
 #include <casa/Arrays/Vector.h>
+#include <casa/BasicSL/String.h>
 
 
 template <class T>
@@ -113,7 +114,7 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
 			//take rotation into account.
 			int spectralIndex = m_specIndex;
 			if ( spectralIndex == -1 ){
-				spectralIndex = cSys.spectralCoordinateNumber();
+				spectralIndex = cSys.findCoordinate(casa::Coordinate::SPECTRAL);
 			}
 			casa::IPosition imShape = image->shape();
 			int shapeCount = imShape.nelements();
@@ -305,6 +306,13 @@ std::vector< std::pair<double,double> > ImageHistogram<T>::getData() const {
         data[i] = std::pair<double,double>(m_xValues[i],m_yValues[i]);
     }
     return data;
+}
+
+template <class T>
+QString ImageHistogram<T>::getName() const {
+    casa::String strname = ImageHistogram::m_image->name(true);
+    QString qname(strname.c_str());
+    return qname;
 }
 
 template <class T>

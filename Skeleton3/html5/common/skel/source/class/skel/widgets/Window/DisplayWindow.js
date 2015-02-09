@@ -65,9 +65,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     },
 
     events : {
-        "maximizeWindow" : "qx.event.type.Data",
-        "restoreWindow" : "qx.event.type.Data",
-        "closeWindow" : "qx.event.type.Data"
+        "iconify" : "qx.event.type.Data",
+        "maximizeWindow" : "qx.event.type.Data"
     },
 
     statics : {
@@ -112,23 +111,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 }
             }
             return linkChanged;
-        },
-
-
-        /**
-         * Closes the window
-         */
-        _close : function() {
-            // Send signal to other windows that they can reclaim space.
-            this.m_closed = true;
-            this.fireDataEvent("closeWindow", this);
-            
-            //Save the name of
-            var pathDict = skel.widgets.Path.getInstance();
-            var basePath = pathDict.LAYOUT_PLUGIN;
-            var pluginPath = basePath + pathDict.SEP + this.m_identifier;
-            var pluginName = this.m_connector.getSharedVar( pluginPath).get();
-            pluginName.set( skel.widgets.Window.DisplayWindow.EXCLUDED );
         },
 
         /**
@@ -402,6 +384,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 this.m_windowMenu = new qx.ui.menu.Menu();
                 this.m_minimizeButton = new qx.ui.menu.Button("Minimize");
                 this.m_minimizeButton.addListener("execute", function() {
+                    this.fireDataEvent( "iconify", this );
                     this.hide();
                 }, this);
                 this.m_maximizeButton = new qx.ui.menu.Button("Maximize");
@@ -412,13 +395,29 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 this.m_restoreButton.addListener("execute", function() {
                     this._restore();
                 }, this);
-                this.m_closeButton = new qx.ui.menu.Button("Close");
-                this.m_closeButton.addListener("execute", function() {
-                    this._close();
+                var closeButton = new qx.ui.menu.Button("Close");
+                closeButton.addListener("execute", function() {
+                    this.m_closed = true;
+                    var removeWindowCmd = skel.widgets.Command.CommandWindowRemove.getInstance();
+                    var data = {
+                            row : this.m_row,
+                            col : this.m_col
+                    };
+                    removeWindowCmd .doAction( data, null, null );
                 }, this);
+                var openButton = new qx.ui.menu.Button( "New");
+                openButton.addListener( "execute", function(){
+                    var data = {
+                        row : this.m_row,
+                        col : this.m_col
+                    };
+                    var newWindowCmd = skel.widgets.Command.CommandWindowAdd.getInstance();
+                    newWindowCmd.doAction( data, null, null );
+                }, this );
                 this.m_windowMenu.add(this.m_maximizeButton);
                 this.m_windowMenu.add(this.m_minimizeButton);
-                this.m_windowMenu.add(this.m_closeButton);
+                this.m_windowMenu.add( closeButton);
+                this.m_windowMenu.add( openButton );
             }
             return this.m_windowMenu;
         },
@@ -444,9 +443,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
         
 
-
-
-
         /**
          * Returns whether or not this window supports establishing a two-way
          * link with the given plug-in.
@@ -465,7 +461,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             var maxIndex = this.m_windowMenu.indexOf(this.m_maximizeButton);
             if (maxIndex >= 0) {
                 this.m_windowMenu.remove(this.m_maximizeButton);
-                this.m_windowMenu.addAt(this.m_restoreButton, maxIndex);
+            }
+            var restoreIndex = this.m_windowMenu.indexOf( this.m_restoreButton );
+            if ( restoreIndex < 0 ){
+                this.m_windowMenu.addAt(this.m_restoreButton, 0);
             }
             this.fireDataEvent("maximizeWindow", this);
             this.maximize();
@@ -495,14 +494,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             var restoreIndex = this.m_windowMenu.indexOf(this.m_restoreButton);
             var maxIndex = this.m_windowMenu.indexOf(this.m_maximizeButton);
             if (maxIndex == -1) {
-                this.m_windowMenu.addAt(this.m_maximizeButton, restoreIndex);
+                this.m_windowMenu.addAt(this.m_maximizeButton, 0);
             }
             if (restoreIndex >= 0) {
                 this.m_windowMenu.remove(this.m_restoreButton);
             }
             this.open();
             this.m_closed = false;
-            this.fireDataEvent("restoreWindow", this);
             this.restore();
         },
         
