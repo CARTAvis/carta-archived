@@ -137,7 +137,7 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
                 toggle.setPadding( 2);
                 toggle.addListener( "execute", this._toggleCB.bind(this, i, name));
                 this.m_cmaps[i] = { toggle: toggle };
-                this.m_ui.topPane.add( toggle);
+                this.m_ui.pane1.add( toggle);
             }
         },
 

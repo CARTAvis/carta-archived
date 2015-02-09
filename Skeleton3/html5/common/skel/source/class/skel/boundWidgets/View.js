@@ -1,19 +1,20 @@
-/**
+/* *
  * Created by pfederl on 11/04/14.
  *
- * The View class renders a remote image (provided by the server). It lets the
- * server know if the view has been resized on the client side. It also has some
- * functionality to transform coordinates between client/server.
  */
 
 /* global qx, mImport */
 /* jshint strict: false */
 
 /**
-
- @ignore(mImport)
-
- ************************************************************************ */
+ *
+ * The View class renders a remote image (provided by the server). It lets the
+ * server know if the view has been resized on the client side. It also has some
+ * functionality to transform coordinates between client/server.
+ *
+ * @ignore(mImport)
+ *
+ * ************************************************************************ */
 
 qx.Class.define( "skel.boundWidgets.View", {
 
@@ -28,6 +29,7 @@ qx.Class.define( "skel.boundWidgets.View", {
 
         this.base( arguments );
         this.m_viewName = viewName;
+
         var setZeroTimeout = mImport( "setZeroTimeout" );
 
         // listen for appear event, because the html is not generated until the widget

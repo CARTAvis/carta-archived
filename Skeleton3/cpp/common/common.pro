@@ -122,8 +122,17 @@ SOURCES += \
 #QMAKE_CXXFLAGS += -H
 
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include 
-INCLUDEPATH += /usr/include/qwt
 
-LIBS += -L/usr/lib/qwt -lqwt
+#INCLUDEPATH += ../../../ThirdParty/qwt/include
+#LIBS += -L../../../ThirdParty/qwt/lib -lqwt
+#INCLUDEPATH += /home/pfederl/Software/qwt-6.1.2-qt-5.3.2/include
+#LIBS += -L/home/pfederl/Software/qwt-6.1.2-qt-5.3.2/lib -lqwt
+
+#QWT_ROOT = /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
+QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
+INCLUDEPATH += $$QWT_ROOT/include
+LIBS += -L$$QWT_ROOT/lib -lqwt
+QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
