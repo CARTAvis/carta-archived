@@ -78,7 +78,7 @@ Viewer::start()
     qDebug() << "Viewer has been initialized.";
 }
 
-void
+QString
 Viewer::scriptedCommandCB( QString command )
 {
     command = command.simplified();
@@ -98,6 +98,7 @@ Viewer::scriptedCommandCB( QString command )
     else if (args.size() == 3 && args[0].toLower() == "linkadd") {
         QString result = m_scriptFacade->linkAdd( args[1], args[2] );
         qDebug() << "linkAdd result: " << result;
+        return result;
     }
 
     else if (args.size() > 0 && args[0].toLower() == "getcolormapid") {
@@ -107,6 +108,7 @@ Viewer::scriptedCommandCB( QString command )
         }
         QString colormapId = m_scriptFacade->getColorMapId( index );
         cout << qPrintable(colormapId) << endl;
+        return colormapId;
     }
 
     else if (args.size() > 0 && args[0].toLower() == "getimageviewid") {
@@ -116,6 +118,7 @@ Viewer::scriptedCommandCB( QString command )
         }
         QString imageViewId = m_scriptFacade->getImageViewId( index );
         cout << qPrintable(imageViewId) << endl;
+        return imageViewId;
     }
 
     else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
@@ -167,6 +170,7 @@ Viewer::scriptedCommandCB( QString command )
                 printf("%s \n", name["name"].GetString());
             }
         }        
+        return fileList;
     }
 
     else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {
@@ -209,11 +213,13 @@ Viewer::scriptedCommandCB( QString command )
     else if ( args.size() == 1 && args[0].toLower() == "quit" ) {
         qDebug() << "Quitting...";
         MyQApp::exit();
-        return;
+        return "Quitting";
     }
 
     else {
         qWarning() << "Sorry, unknown command";
     }
+
+    return "This is only a test";
 } // scriptedCommandCB
 

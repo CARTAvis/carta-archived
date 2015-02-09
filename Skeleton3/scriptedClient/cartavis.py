@@ -68,6 +68,8 @@ class Application:
 
     def getFileList(self, substring=""):
         self.socket.sendall("getFileList " + substring + "\n")
+        self.socket.recv_into(filelist)
+        print filelist
 
     def loadFile(self, fileName):
         self.socket.sendall("loadFile " + fileName + "\n")
@@ -136,7 +138,7 @@ class Application:
         print "Saving screenshot as " + fileName
 
 def start(
-        executable = "/home/jeff/scratch/build/2015-02-01/cpp/desktop/desktop", 
+        executable = "/home/jeff/scratch/build/2015-02-09/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
         port = 9999, 
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
