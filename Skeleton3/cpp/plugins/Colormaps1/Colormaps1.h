@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CartaLib/IPlugin.h"
-#include "CartaLib/IColormapScalar.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include <QObject>
 #include <QString>
 #include <vector>
@@ -27,6 +27,6 @@ public:
 protected:
 
     /// get the actual list of colormaps
-    std::vector < Carta::Lib::IColormapScalar::SharedPtr >
+    std::vector < Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr >
     getColormaps();
 };

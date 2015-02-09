@@ -47,16 +47,8 @@ namespace Scripted
 public: \
     typedef className Me; \
     typedef std::unique_ptr < Me > UniquePtr; \
-    typedef std::shared_ptr < Me > SharedPtr
-
-/// currently does nothing, but may serve as a place to keep global settings for
-/// the whole library
-class CARTALIBSHARED_EXPORT CartaLib
-{
-public:
-
-    CartaLib();
-};
+    typedef std::shared_ptr < Me > SharedPtr; \
+    typedef std::shared_ptr < const Me > ConstSharedPtr
 
 namespace Carta
 {

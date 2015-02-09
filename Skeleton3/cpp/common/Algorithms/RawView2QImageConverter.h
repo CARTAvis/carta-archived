@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include "quantileAlgorithms.h"
 #include <QImage>
 #include <QCache>
 
-/// compute clip values from the values in a view
 template < typename Scalar >
 static
 typename std::tuple < Scalar, Scalar >
@@ -19,52 +19,21 @@ computeClips(
     double perc
     )
 {
-    // read in all values from the view into an array
-    // we need our own copy because we'll do quickselect on it...
-    std::vector < Scalar > allValues;
-    view.forEach(
-        [& allValues] ( const Scalar & val ) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
-            }
-        }
-        );
-
-    // indicate bad clip if no finite numbers were found
-    if ( allValues.size() == 0 ) {
-        return std::make_tuple(
-                   std::numeric_limits < Scalar >::quiet_NaN(),
-                   std::numeric_limits < Scalar >::quiet_NaN() );
-    }
-    Scalar clip1, clip2;
-    Scalar hist = ( 1.0 - perc ) / 2.0;
-    int x1 = allValues.size() * hist;
-    std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-    clip1 = allValues[x1];
-    x1 = allValues.size() - 1 - x1;
-    std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-    clip2 = allValues[x1];
-
-    if ( 0 ) {
-        // debug
-        int64_t count = 0;
-        for ( auto & x : allValues ) {
-            if ( x >= clip1 && x <= clip2 ) {
-                count++;
-            }
-        }
-        qDebug() << "autoClip(" << perc << ")=" << count * 100.0 / allValues.size();
-    }
-
-    return std::make_tuple( clip1, clip2 );
-} // computeClips
+    qDebug() << "perc=" << perc;
+    perc = (1 - perc) / 2;
+    std::vector<Scalar> res = Carta::Core::Algorithms::quantiles2pixels(
+                                  view, { perc, 1 - perc});
+    return std::make_tuple( res[0], res[1]);
+}
 
 /// algorithm for converting an instance of image interface to qimage
 class RawView2QImageConverter
 {
+    CLASS_BOILERPLATE( RawView2QImageConverter);
+
 public:
 
-    typedef RawView2QImageConverter & Me;
+//    typedef RawView2QImageConverter & Me;
     typedef double Scalar;
 
     RawView2QImageConverter();
@@ -83,7 +52,7 @@ public:
     setAutoClip( double val );
 
     Me &
-    setColormap( Carta::Lib::IColormapScalar::SharedPtr cmap );
+    setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap );
 
     const QImage &
     go( int frame, bool recomputeClip = true );
@@ -92,7 +61,7 @@ protected:
 
     struct CachedImage;
     QImage m_qImage;
-    Carta::Lib::IColormapScalar::SharedPtr m_cmap;
+    Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr m_cmap;
     NdArray::RawViewInterface * m_rawView = nullptr;
     double m_autoClip = 0.95;
 
@@ -111,6 +80,7 @@ template < class Pipeline >
 void
 rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
+    qDebug() << "rv2qi" << rawView-> dims();
     typedef double Scalar;
     QSize size( rawView->dims()[0], rawView->dims()[1] );
 
@@ -119,7 +89,7 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
         qImage = QImage( size, QImage::Format_ARGB32 );
     }
 
-    // construct image using clips (clipd, clipinv)
+    // construct image
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
 
@@ -154,60 +124,6 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
     typedView.forEach( lambda );
 } // rawView2QImage
 
-#include "CartaLib/PixelPipeline/Id2d.h"
-
-// converter capable of computing clips
-
-class RawView2QImageConverter2
-{
-    CLASS_BOILERPLATE( RawView2QImageConverter2 );
-
-public:
-
-    typedef double Scalar;
-
-    RawView2QImageConverter2();
-
-    /// what size cache should we use (in bytes)
-    void
-    setCacheSize( int64_t size );
-
-    /// \warning the pointer is kept for invocation of go(). Make sure it's valid
-    /// during a call to go()!
-    /// @param id string unique for the view, as it will be used by caching
-    Me &
-    setView( NdArray::RawViewInterface * rawView, QString id = "" );
-
-    /// compute clips using the current view (set by setView())
-    /// @param clip for example 0.95 means 95%
-    void
-    computeClips( double clip );
-
-    /// manual setting of clips
-    void
-    setClips( double min, double max );
-
-    /// set the pixel pipeline (uncached)
-    void
-    setPixelPipeline( Carta::Lib::PixelPipeline::Id2NormQRgb * pipeline );
-
-    /// destructor
-    ~RawView2QImageConverter2();
-
-    const QImage &
-    go( int frame, bool recomputeClip = true );
-
-protected:
-
-    struct CachedImage;
-    QImage m_qImage;
-    Carta::Lib::IColormapScalar::SharedPtr m_cmap;
-    NdArray::RawViewInterface * m_rawView = nullptr;
-    double m_autoClip = 0.95;
-
-    QCache < int, CachedImage > m_cache;
-    double m_clip1 = 1.0 / 0.0, m_clip2 = 0.0;
-};
 
 /// controlling raw data to image conversion:
 /// - invert on/off
@@ -288,8 +204,10 @@ public:
     ;
 
     Me &
-    setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
+    setColormap( Lib::PixelPipeline::IColormapNamed::SharedPtr colormap )
     ;
+
+    QString getCmapPreview( int n = 10);
 
     /// do the actual conversion with the previously set parameters
     void convert(QImage & img);
@@ -301,7 +219,7 @@ private:
     /// cache for images
     QCache < QString, QImage > m_imageCache;
     /// unoptimized pipeline
-    Lib::PixelPipeline::CustomizablePipeline::UniquePtr m_customPipeline;
+    Lib::PixelPipeline::CustomizablePixelPipeline::UniquePtr m_customPipeline;
     /// optimized pipeline
 //    Lib::PixelPipeline::CachedPipeline::UniquePtr m_cachedPipeline;
 

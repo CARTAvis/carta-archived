@@ -3,7 +3,7 @@
 /// pure template implementation to regain some speed via vectorization, at least for
 /// the cached pixel transfer function case.
 
-#include "CartaLib/PixelPipeline/Id2d.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
 
 #include "CartaLib/CartaLib.h"
@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <array>
+#include <QColor>
 
 struct RawView2QImageConverter::CachedImage {
     QImage img;
@@ -75,7 +76,7 @@ RawView2QImageConverter::setAutoClip( double val )
 }
 
 RawView2QImageConverter::Me &
-RawView2QImageConverter::setColormap( Carta::Lib::IColormapScalar::SharedPtr cmap )
+RawView2QImageConverter::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap )
 {
     m_cmap = cmap;
     m_cache.clear();
@@ -178,7 +179,35 @@ namespace Core
 {
 RawView2QImageConverter3::RawView2QImageConverter3()
 {
-    m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePipeline );
+    m_customPipeline.reset( new Lib::PixelPipeline::CustomizablePixelPipeline );
+}
+
+RawView2QImageConverter3 & RawView2QImageConverter3::setInvert(bool flag)
+{
+    CARTA_ASSERT( m_customPipeline );
+    m_customPipeline->setInvert( flag );
+    return * this;
+}
+
+RawView2QImageConverter3 & RawView2QImageConverter3::setReverse(bool flag)
+{
+    CARTA_ASSERT( m_customPipeline );
+    m_customPipeline->setReverse( flag );
+    return * this;
+}
+
+
+QString
+RawView2QImageConverter3::getCmapPreview( int n )
+{
+    QStringList list;
+    for ( int i = 0 ; i <= n ; i++ ) {
+        double x = ( m_clipMax - m_clipMin ) / n * i + m_clipMin;
+        QRgb col;
+        m_customPipeline-> convertq( x, col );
+        list << QColor( col ).name().mid( 1 );
+    }
+    return list.join( "," );
 }
 
 /// @todo some optimization would be useful here, i.e. no need to recompute the cached
@@ -193,14 +222,14 @@ RawView2QImageConverter3::convert( QImage & img )
 
     if ( m_cmapCachingEnabled ) {
         if ( m_cmapCachingInterpolated ) {
-            Lib::PixelPipeline::CachedPipeline < true > cached;
-            cached.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
-            ::rawView2QImage( m_typedView-> rawView(), cached, img );
+            Lib::PixelPipeline::CachedPipeline < true > cachedPixPipe;
+            cachedPixPipe.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
+            ::rawView2QImage( m_typedView-> rawView(), cachedPixPipe, img );
         }
         else {
-            Lib::PixelPipeline::CachedPipeline < false > cached;
-            cached.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
-            ::rawView2QImage( m_typedView-> rawView(), cached, img );
+            Lib::PixelPipeline::CachedPipeline < false > cachedPixPipe;
+            cachedPixPipe.cache( * m_customPipeline, m_cmapCacheSize, m_clipMin, m_clipMax );
+            ::rawView2QImage( m_typedView-> rawView(), cachedPixPipe, img );
         }
     }
     else {
@@ -209,7 +238,7 @@ RawView2QImageConverter3::convert( QImage & img )
 } // convert
 
 RawView2QImageConverter3 &
-RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormap::SharedPtr colormap )
+RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormapNamed::SharedPtr colormap )
 {
     CARTA_ASSERT( m_customPipeline );
     CARTA_ASSERT( colormap );

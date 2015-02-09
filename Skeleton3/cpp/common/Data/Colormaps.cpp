@@ -2,7 +2,8 @@
 #include "Data/Util.h"
 //#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
-#include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
+//#include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "GrayColormap.h"
 
 #include "Globals.h"
@@ -52,7 +53,7 @@ QString Colormaps::_commandGetColorStops( const QString& params ){
     std::set<QString> keys = {COLOR_NAME};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString nameStr = dataValues[*keys.begin()];
-    std::shared_ptr<Carta::Lib::IColormapScalar> map = getColorMap( nameStr );
+    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = getColorMap( nameStr );
     if ( map != nullptr ){
         QStringList buff;
         for ( int i = 0; i < 100; i++ ){
@@ -109,9 +110,9 @@ void Colormaps::_initializeDefaultState(){
     m_state.flushState();
 }
 
-std::shared_ptr<Carta::Lib::IColormapScalar>  Colormaps::getColorMap( const QString& mapName ) const {
+std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed>  Colormaps::getColorMap( const QString& mapName ) const {
     int mapCount = m_colormaps.size();
-    std::shared_ptr<Carta::Lib::IColormapScalar> map = nullptr;
+    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = nullptr;
     for ( int i = 0; i < mapCount; i++ ){
         if ( m_colormaps[i]->name() == mapName ){
             map = m_colormaps[i];

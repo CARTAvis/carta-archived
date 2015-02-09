@@ -82,6 +82,11 @@ qx.Class.define( "skel.Application",
                     return;
                 }
 
+                // activate experimental code
+                this.m_hacks = new skel.hacks.Hacks( this);
+                this.getRoot().add( this.m_hacks, {left: 20, top: 220} );
+                this.m_hacks.open();
+
                 this.m_mainContainer = new qx.ui.container.Composite( /*new qx.ui.layout.Canvas()*/new qx.ui.layout.VBox(0) );
                 this.m_mainContainer.setAppearance( "display-main" );
                 this.getRoot().add( this.m_mainContainer, {

@@ -6,8 +6,8 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/IPlugin.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include <vector>
 
 namespace Carta
@@ -25,7 +25,7 @@ public:
     /**
      * @brief Result is a list of colormaps offered by the plugin.
      */
-    typedef std::vector < IColormapScalar::SharedPtr > ResultType;
+    typedef std::vector < PixelPipeline::IColormapNamed::SharedPtr > ResultType;
 
     /**
      * @brief No input

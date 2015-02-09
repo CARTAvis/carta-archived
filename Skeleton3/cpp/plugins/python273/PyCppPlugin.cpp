@@ -110,7 +110,7 @@ PyCppPlug::PyCppPlug(const LoadPlugin::Params & params)
 namespace colormap_impl
 {
 
-class ColormapHelper : public Carta::Lib::IColormapScalar
+class ColormapHelper : public Carta::Lib::PixelPipeline::IColormapNamed
 {
     CLASS_BOILERPLATE( ColormapHelper);
 

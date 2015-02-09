@@ -62,9 +62,12 @@ qx.Class.define("skel.boundWidgets.Label", {
                         var controlObj = JSON.parse( val );
                         labelVal = this.m_lookupFunction( controlObj );
                     }
-                    catch( err ){
+                    catch( err ) {
                         console.log( "Could not parse: "+val );
                     }
+                }
+                else {
+                    labelVal = val;
                 }
             }
             if (typeof this.m_labelPostfix === "function") {

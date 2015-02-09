@@ -1,7 +1,7 @@
 #include "HistogramGenerator.h"
 #include <qwt_plot.h>
 #include <qwt_plot_renderer.h>
-#include <qwt_samples.h>
+//#include <qwt_samples.h>
 #include <qwt_plot_histogram.h>
 #include <QImage>
 #include <QPaintDevice>
@@ -34,7 +34,7 @@ void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
         samples.append(sample);
     }
 
-    m_histogram->setPen(Qt::blue);
+    m_histogram->setPen( QPen(Qt::blue));
     m_histogram->setSamples(samples);
     m_plot->replot();
 
