@@ -48,6 +48,7 @@ qx.Class.define("skel.widgets.Path", {
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",
+        STATISTICS : "Statistics",
         TRANSFORMS_DATA : "",
         TRANSFORMS_IMAGE : "",
         ZOOM : "",

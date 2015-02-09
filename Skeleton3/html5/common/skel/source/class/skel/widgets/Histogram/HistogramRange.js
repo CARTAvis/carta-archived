@@ -203,7 +203,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                         var path = skel.widgets.Path.getInstance();
                         var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_RANGE;
                         var params = "clipMin:"+minClip+",clipMax:"+maxClip;
-                        this.m_connector.sendCommand( cmd, params, this._errorRangeCB( this));
+                        this.m_connector.sendCommand( cmd, params, function(){});
                     }
                 }
             }
@@ -218,12 +218,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                 var minClipPercent = this.m_percentMinClipText.getValue();
                 var maxClipPercent = this.m_percentMaxClipText.getValue();
                 if ( !isNaN(minClipPercent) && !isNaN(maxClipPercent) ){
-                    // if ( minClipPercent <= maxClipPercent ){
+                    if ( minClipPercent <= maxClipPercent ){
                         var path = skel.widgets.Path.getInstance();
                         var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_PERCENT;
                         var params = "clipMinPercent:"+minClipPercent+",clipMaxPercent:"+maxClipPercent;
-                        this.m_connector.sendCommand( cmd, params, this._errorRangeCB( this));
-                    // }
+                        this.m_connector.sendCommand( cmd, params, function(){});
+                    }
                 }
             }
         },
