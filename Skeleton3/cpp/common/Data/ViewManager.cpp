@@ -83,7 +83,7 @@ void ViewManager::_clear(){
         m_histograms[i]->clear();
     }
     m_histograms.clear();
-    int statCount = m_statistics.size();
+    int statCount = getStatisticsCount();
     for ( int i = 0; i < statCount; i++ ){
         m_statistics[i]->clear();
     }
@@ -327,7 +327,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
         }
     }
     else if ( plugin == Statistics::CLASS_NAME ){
-        if ( 0 <= index && index < m_statistics.size()){
+        if ( 0 <= index && index < getStatisticsCount()){
             viewId = m_statistics[index]->getPath();
         }
         else {
@@ -380,6 +380,11 @@ int ViewManager::getAnimatorCount() const {
 int ViewManager::getHistogramCount() const {
     int histogramCount = m_histograms.size();
     return histogramCount;
+}
+
+int ViewManager::getStatisticsCount() const {
+    int statisticsCount = m_statistics.size();
+    return statisticsCount;
 }
 
 QString ViewManager::_makeAnimator(){

@@ -6,6 +6,7 @@
 #include "Data/Util.h"
 #include "Data/Animator.h"
 #include "Data/Histogram.h"
+#include "Data/Statistics.h"
 
 #include <QDebug>
 
@@ -50,6 +51,10 @@ QString ScriptFacade::getHistogramViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Histogram::CLASS_NAME, index );
 }
 
+QString ScriptFacade::getStatisticsViewId( int index ) const {
+    return m_viewManager->getObjectId( Carta::Data::Statistics::CLASS_NAME, index );
+}
+
 QStringList ScriptFacade::getImageViews() {
     QStringList imageViewList;
     int numControllers = m_viewManager->getControllerCount();
@@ -88,6 +93,16 @@ QStringList ScriptFacade::getHistogramViews() {
         histogramViewList << histogramView;
     }
     return histogramViewList;
+}
+
+QStringList ScriptFacade::getStatisticsViews() {
+    QStringList statisticsViewList;
+    int numStatistics = m_viewManager->getStatisticsCount();
+    for (int i = 0; i < numStatistics; i++) {
+        QString statisticsView = getStatisticsViewId( i );
+        statisticsViewList << statisticsView;
+    }
+    return statisticsViewList;
 }
 
 QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){

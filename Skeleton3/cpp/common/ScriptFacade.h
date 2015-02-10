@@ -53,6 +53,12 @@ public:
     QStringList getHistogramViews();
 
     /**
+     * Return a list of the statistics views defined by the layout.
+     * @return a QStringList containing the id values of statistics views.
+     */
+    QStringList getStatisticsViews();
+
+    /**
      * Return the unique server side id of the object responsible for managing a color map.
      * @param index an index identifying the color map in the case that more than one
      *      color map is being displayed; an index of -1 indicates a new color map should
@@ -78,6 +84,15 @@ public:
      * @return the unique server side id of the object managing the histogram.
      */
     QString getHistogramViewId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing a statistics view.
+     * @param index an index identifying the statistics view in the case that more than one
+     *      statistics view is being displayed; an index of -1 indicates a new statistics view should
+     *      be created whereas nonnegative indices refer to existing statistics views.
+     * @return the unique server side id of the object managing the statistics view.
+     */
+    QString getStatisticsViewId( int index = -1 ) const;
 
     /**
      * Return a list of the names of colormaps available on the server.

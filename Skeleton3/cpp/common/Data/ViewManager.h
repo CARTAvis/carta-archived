@@ -78,6 +78,11 @@ public:
     int getHistogramCount() const;
 
     /**
+     * Return the number of statistics views.
+     */
+    int getStatisticsCount() const;
+
+    /**
      * Load the file into the controller with the given id.
      * @param fileName a locater for the data to load.
      * @param objectId the unique server side id of the controller which is responsible for displaying
