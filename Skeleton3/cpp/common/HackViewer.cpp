@@ -234,6 +234,8 @@ HackViewer::start()
     auto & globals = * Globals::instance();
     m_connector = globals.connector();
 
+    m_connector-> setState( "/hacks/enabled", "1");
+
     setState( "auto_clip", "1" );
 
     auto pm = globals.pluginManager();

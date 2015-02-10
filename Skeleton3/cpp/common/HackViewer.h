@@ -107,6 +107,8 @@ class HackViewer : public QObject
 {
     Q_OBJECT
 
+    CLASS_BOILERPLATE( HackViewer);
+
 public:
 
     /// constructor

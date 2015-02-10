@@ -87,14 +87,19 @@ int main(int argc, char ** argv)
     // create the viewer
     // =================
     Viewer viewer;
-    HackViewer hackViewer;
+    HackViewer::UniquePtr hackViewer = nullptr;
+    if( globals.mainConfig()-> hacksEnabled()) {
+        hackViewer.reset( new HackViewer);
+    }
     // prepare closure to execute when connector is initialized
     IConnector::InitializeCallback initCB = [&](bool valid) -> void {
         if( ! valid) {
             qFatal( "Could not initialize connector");
         }
         viewer.start();
-        hackViewer.start();
+        if( hackViewer) {
+            hackViewer-> start();
+        }
     };
 
     // initialize connector
