@@ -91,6 +91,7 @@ DesktopPlatform::DesktopPlatform()
 
     // enable web inspector
     QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
+//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, false);
 
     // create main window
     m_mainWindow = new MainWindow();

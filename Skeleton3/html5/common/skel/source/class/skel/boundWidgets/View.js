@@ -1,23 +1,20 @@
-/**
+/* *
  * Created by pfederl on 11/04/14.
- */
-
-/**
- * Created with IntelliJ IDEA.
- * User: pfederl
- * Date: 09/04/13
- * Time: 3:09 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 
 /* global qx, mImport */
 /* jshint strict: false */
 
 /**
-
- @ignore(mImport)
-
- ************************************************************************ */
+ *
+ * The View class renders a remote image (provided by the server). It lets the
+ * server know if the view has been resized on the client side. It also has some
+ * functionality to transform coordinates between client/server.
+ *
+ * @ignore(mImport)
+ *
+ * ************************************************************************ */
 
 qx.Class.define( "skel.boundWidgets.View", {
 
@@ -31,11 +28,7 @@ qx.Class.define( "skel.boundWidgets.View", {
         this.m_connector = mImport( "connector" );
 
         this.base( arguments );
-        //this.m_viewName = viewName;
-        // reverting the following change because it does not make sense
-        var path = skel.widgets.Path.getInstance();
-        this.m_viewName = viewName + path.SEP + path.VIEW;
-        console.log( "View name="+this.m_viewName);
+        this.m_viewName = viewName;
 
         var setZeroTimeout = mImport( "setZeroTimeout" );
 
@@ -63,9 +56,6 @@ qx.Class.define( "skel.boundWidgets.View", {
 
         }, this );
 
-        //this.addListener( "mousemove", this._mouseMoveCB );
-        //this.addListener( "mousedown", this._mouseDownCB );
-        //this.addListener( "mouseup", this._mouseUpCB );
     },
 
     events: {},
@@ -98,38 +88,18 @@ qx.Class.define( "skel.boundWidgets.View", {
             };
         },
 
-        /*
-         _mouseMoveCB: function( event )
-         {
-         if( typeof this.m_iview.mouseMoveCB === "function" ) {
-         this.m_iview.mouseMoveCB( event );
-         }
-         // Todo: write for server connector.
-         },
-
-         _mouseDownCB: function( event )
-         {
-
-
-         },
-
-         _mouseUpCB: function( event )
-         {
-
-         },
-
-         _sendCoords: function( pt )
-         {
-
-         },
-
-         */
 
         /**
          * @type {String} unique name of the view
          */
         m_viewName : null,
+        /**
+         * @type {IView} pointer to connector's iview
+         */
         m_iview    : null,
+        /**
+         * @type {Connector} cached instance of the connector
+         */
         m_connector: null
     },
 

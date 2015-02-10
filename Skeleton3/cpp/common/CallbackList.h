@@ -50,6 +50,12 @@ public:
 
 */
 
+/**
+  *
+  * Internal class for handling callback lists (lists of functions with arbitrary parameters).
+  *
+  * \todo THIS NEEDS SOME DOCUMENTATION!!!! At least high-level stuff.
+  */
 template <typename ...Params>
 class CallbackList
 {
@@ -121,7 +127,7 @@ public:
     /// call all callbacks in the list
     void callEveryone(Params ... params)
     {
-        qDebug() << "Calling all callbacks";
+//        qDebug() << "Calling all callbacks";
 
         // we don't allow recursive calls
         Q_ASSERT( ! m_pimpl->insideCallEveryone);
@@ -143,7 +149,7 @@ public:
         // iterate through all callbacks
         for( auto & entry : d->callbacks) {
             const CallbackInfo & cbinfo = entry.second;
-            qDebug() << "  cb #" << cbinfo.id << cbinfo.status;
+//            qDebug() << "  cb #" << cbinfo.id << cbinfo.status;
             // skip any callback that is not active
             if( cbinfo.status != ACTIVE) continue;
             // call the callback

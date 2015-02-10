@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CartaLib.h"
-#include "PixelPipeline/Id2d.h"
+#include "PixelPipeline/IPixelPipeline.h"
 #include <QColor>
 #include <QString>
 #include <memory>
@@ -15,66 +15,6 @@ namespace Carta
 {
 namespace Lib
 {
-/**
- * This is the interface that plugins have to implement to add a new colormap for
- * scalcar-type pixels. It is the raw IColormap inteface with a name added.
- */
-class IColormapScalar : public PixelPipeline::IColormap
-{
-    CLASS_BOILERPLATE( IColormapScalar );
-
-public:
-
-    using norm_double = PixelPipeline::norm_double;
-    using NormRgb = PixelPipeline::NormRgb;
-
-    virtual QString
-    name() = 0;
-
-//    virtual QRgb
-//    convert( const double & val ) = 0;
-
-//    virtual void
-//    convert( norm_double val, NormRgb & result ) = 0;
-
-//    virtual
-//    ~IColormapScalar() { }
-};
-
-#ifdef DONT_COMPILE
-/**
- * @brief Abstract helper class for deriving from IColormapScalar. It just adds a static
- * name to the IColormapScalar.
- */
-class ColormapScalarNamed : public IColormapScalar
-{
-    CLASS_BOILERPLATE( ColormapScalarNamed );
-
-public:
-
-    ColormapScalarNamed( QString name /*= "n/a"*/ )
-    {
-        m_name = name;
-    }
-
-    virtual QString
-    name() override
-    {
-        return m_name;
-    }
-
-    void
-    setName( QString name )
-    {
-        m_name = name;
-    }
-
-protected:
-
-    QString m_name;
-};
-#endif
-
 /**
  * @brief Allows specification of a 1D function as piece-wise linear, then
  * query the values of the function using opeartor()

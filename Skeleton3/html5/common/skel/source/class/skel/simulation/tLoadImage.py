@@ -60,7 +60,7 @@ class tLoadImage(unittest.TestCase):
         
         # Message should be sent to server - check that the window is not displaying an image.
         # driver.switch_to( imageWindow )
-        viewElement = driver.find_element_by_xpath("//div[@qxclass='skel.boundWidgets.View']")
+        viewElement = driver.find_element_by_xpath("//div[@qxclass='skel.boundWidgets.SuffixedView']")
         self.assertIsNotNone(viewElement, "Could not find view element on page.")
         # driver.switchTo( viewElement )
         imageElement = driver.find_element_by_id("img_pwUID0")

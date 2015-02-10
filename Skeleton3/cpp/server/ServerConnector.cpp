@@ -232,8 +232,17 @@ public:
         CSI::ByteArray bits = target.RenderTargetImage().ImageBytes();
 
         const QImage & qimage = m_iview->getBuffer();
-        if( qimage.format() != QImage::Format_RGB888) {
-            QImage tmpImage = qimage.convertToFormat( QImage::Format_RGB888);
+//        if( qimage.format() != QImage::Format_RGB888) {
+//            QImage tmpImage = qimage.convertToFormat( QImage::Format_RGB888);
+//            CSI::ByteArray::Copy(tmpImage.scanLine(0), bits, 0, bits.Count());
+//        }
+//        else {
+//            CSI::ByteArray::Copy(qimage.scanLine(0), bits, 0, bits.Count());
+//        }
+        if( qimage.format() != QImage::Format_ARGB32_Premultiplied) {
+            // @todo could we do SSSE3 byte shuffle here as we are copying?
+            // e.g. __m128i _mm_shuffle_epi8
+            QImage tmpImage = qimage.convertToFormat( QImage::Format_ARGB32_Premultiplied);
             CSI::ByteArray::Copy(tmpImage.scanLine(0), bits, 0, bits.Count());
         }
         else {
@@ -304,7 +313,7 @@ void ServerConnector::unregisterView( const QString& viewName ){
 void ServerConnector::registerView(IView *view)
 {
     CSI::PureWeb::Server::ViewImageFormat viewImageFormat;
-    viewImageFormat.PixelFormat = CSI::PureWeb::PixelFormat::Rgb24;
+    viewImageFormat.PixelFormat = CSI::PureWeb::PixelFormat::Bgrx32;
     viewImageFormat.ScanLineOrder = CSI::PureWeb::ScanLineOrder::TopDown;
     viewImageFormat.Alignment = 4;
 

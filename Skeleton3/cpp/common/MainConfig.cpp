@@ -52,7 +52,14 @@ ParsedInfo parse(const QString & filePath)
         raw.replace( "$(APPDIR)", QCoreApplication::applicationDirPath());
         info.m_pluginDirectories.append( QDir::cleanPath(raw));
     }
-//    qDebug() << "All dirs" << info.pluginDirectories();
+
+    // hacks enabled flag
+    {
+        auto raw = json[ "hacksEnabled"].toString().toLower();
+        info.m_hacksEnabled = ( raw == "yes" || raw == "true" || raw == "1" || raw == "y"
+                                || raw == "t");
+        qDebug() << "Hacks enabled:" << info.m_hacksEnabled << raw;
+    }
 
     return info;
 }
@@ -60,6 +67,11 @@ ParsedInfo parse(const QString & filePath)
 const QStringList & ParsedInfo::pluginDirectories() const
 {
     return m_pluginDirectories;
+}
+
+bool ParsedInfo::hacksEnabled() const
+{
+    return m_hacksEnabled;
 }
 
 } // namespace MainConfig

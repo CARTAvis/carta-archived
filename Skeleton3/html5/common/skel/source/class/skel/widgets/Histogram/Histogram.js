@@ -158,7 +158,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
          */
         _initView : function(){
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.View(this.m_id);
+                this.m_view = new skel.boundWidgets.SuffixedView(this.m_id);
                 this.m_view.setAllowGrowX( false );
                 this.m_view.setAllowGrowY( false );
                 this.m_view.setHeight(335);
