@@ -41,7 +41,7 @@ public slots:
 protected slots:
 
     /// internal callback for scripted commands
-    QString scriptedCommandCB(QString command);
+    void scriptedCommandCB(QString command);
 
 protected:
 

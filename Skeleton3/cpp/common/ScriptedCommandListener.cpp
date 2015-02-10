@@ -49,6 +49,5 @@ void ScriptedCommandListener::socketDataCB()
 
     QString str( buff);
     str = str.trimmed();
-    QString test = emit command( str);
-    qDebug() << "(JT) test = " << test;
+    emit command( str);
 }

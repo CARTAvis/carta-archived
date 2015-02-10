@@ -18,7 +18,7 @@ public:
 
 signals:
 
-    QString command( QString);
+    void command( QString);
 
 public slots:
 

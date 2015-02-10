@@ -68,8 +68,6 @@ class Application:
 
     def getFileList(self, substring=""):
         self.socket.sendall("getFileList " + substring + "\n")
-        self.socket.recv_into(filelist)
-        print filelist
 
     def loadFile(self, fileName):
         self.socket.sendall("loadFile " + fileName + "\n")
