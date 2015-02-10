@@ -22,9 +22,14 @@ public:
     ///
     const QStringList & pluginDirectories() const;
 
+    /// whether hacks are enabled or not
+    bool hacksEnabled() const;
+
 protected:
 
     QStringList m_pluginDirectories;
+    bool m_hacksEnabled = false;
+
     friend ParsedInfo parse( const QString & filePath);
 };
 
