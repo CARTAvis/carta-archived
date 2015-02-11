@@ -88,11 +88,9 @@ Viewer::scriptedCommandCB( QString command )
     qDebug() << "args=" << args;
     qDebug() << "args.size=" << args.size();
 
-    if ( args.size() == 2 && args[0].toLower() == "loadfile" ) {
-        qDebug() << "Trying to load" << args[1];
-        QString controlId = m_scriptFacade->getImageViewId( 0 );
-        qDebug() << "controlId" << controlId;
-        m_scriptFacade->loadFile( controlId, "/RootDirectory/" + args[1] );
+    if ( args.size() == 3 && args[0].toLower() == "loadfile" ) {
+        qDebug() << "Trying to load" << args[2] << " into " << args[1];
+        m_scriptFacade->loadFile( args[1], "/RootDirectory/" + args[2] );
     }
 
     else if (args.size() == 3 && args[0].toLower() == "linkadd") {
@@ -143,15 +141,13 @@ Viewer::scriptedCommandCB( QString command )
         qDebug() << "(JT) statisticsViews: " << statisticsViews;
     }
 
-    else if (args.size() == 2 && args[0].toLower() == "setcolormap") {
-        QString colormapId = m_scriptFacade->getColorMapId( 0 );
-        m_scriptFacade->setColorMap( colormapId, args[1]);
+    else if (args.size() == 3 && args[0].toLower() == "setcolormap") {
+        m_scriptFacade->setColorMap( args[1], args[2] );
     }
 
-    else if ( args.size() == 2 && args[0].toLower() == "setframe" ) {
-        qDebug() << "(JT) setFrame " << args[1];
-        QString animatorId = m_scriptFacade->getAnimatorViewId( 0 );
-        m_scriptFacade->setFrame( animatorId, args[1] );
+    else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
+        qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];
+        m_scriptFacade->setFrame( args[1], args[2] );
     }
 
     else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
