@@ -198,14 +198,22 @@ QString Controller::getStateString() const{
 }
 
 void Controller::setClipValue( const QString& params ) {
+    qDebug() << "(JT) Controller::setClipValue(" << params << ")";
     std::set<QString> keys = {"clipValue"};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     bool validClip = false;
     QString clipKey = *keys.begin();
     QString clipWithoutPercent = dataValues[clipKey].remove("%");
     double clipVal = dataValues[clipKey].toDouble(&validClip);
+    // Make sure the clip value is within a valid range.
+    // I'm not sure if [0,1] is the proper, accepted range, but it seems to work.
+    if ( clipVal > 1 || clipVal < 0 ) {
+        validClip = false;
+    }
+    qDebug() << "(JT) clipVal = " << clipVal;
     if ( validClip ){
         int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
+        qDebug() << "(JT) oldClipVal = " << oldClipVal;
         if ( oldClipVal != clipVal ){
             m_state.setValue<double>( CLIP_VALUE, clipVal );
             m_state.flushState();

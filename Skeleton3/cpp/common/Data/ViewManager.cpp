@@ -534,14 +534,8 @@ void ViewManager::setCustomView( int rows, int cols ){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
-    m_layout->setLayoutCustom( rows, cols );
-
-    //Create the view objects
-//    _makeAnimator();
-//    _makeController();
-
-    //Add the links to establish reasonable defaults.
-//    m_animators[0]->addLink( m_controllers[0]);
+    QString result = m_layout->setLayoutSize( rows, cols );
+    qDebug() << "(JT) ViewManager::setCustomView() result = " << result;
 }
 
 void ViewManager::setImageView(){
@@ -558,7 +552,6 @@ void ViewManager::setPlugins( const QStringList& names ){
         _makeLayout();
     }
     m_layout->setPlugins( names );
-    _makeController();
 }
 
 void ViewManager::setClipValue( const QString& controlId, const QString& param ){

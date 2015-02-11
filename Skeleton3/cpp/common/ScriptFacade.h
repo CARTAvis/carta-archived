@@ -115,7 +115,7 @@ public:
 
     /**
      * Load a file into an image view.
-     * @param objectId the unique server-side id on an object that displays an image view.
+     * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      */
     void loadFile( const QString& objectId, const QString& fileName);
@@ -142,10 +142,24 @@ public:
      */
     void setColorMap( const QString& colormapId, const QString& colormapName );
 
+    /**
+     * Set plugins for each of the views in the layout
+     * @param names a list of plugin names.
+     */
     void setPlugins( const QStringList& names );
 
+    /**
+     * Set the image frame to the specified value.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @param index the frame number.
+     */
     void setFrame( const QString& animatorId, const QString& index );
 
+    /**
+     * Set the histogram to show the specified percentage of the data.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param clipValue the percentage of data to be shown.
+     */
     void setClipValue( const QString& controlId, const QString& clipValue );
 
     /*

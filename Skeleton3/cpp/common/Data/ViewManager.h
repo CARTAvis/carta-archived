@@ -85,8 +85,8 @@ public:
     /**
      * Load the file into the controller with the given id.
      * @param fileName a locater for the data to load.
-     * @param objectId the unique server side id of the controller which is responsible for displaying
-     *      the file.
+     * @param objectId the unique server side id of the controller which is
+     * responsible for displaying the file.
      */
     void loadFile( const QString& objectId, const QString& fileName);
 
@@ -96,7 +96,9 @@ public:
     void setAnalysisView();
 
     /**
-     * Reset the layout to a custom view.
+     * Set the number of rows and columns in the layout grid.
+     * @param rows the number of rows in the grid.
+     * @param cols the number of columns in the grid.
      */
     void setCustomView( int rows, int cols );
 
@@ -107,6 +109,11 @@ public:
      */
     bool setColorMap( const QString& colormapId, const QString& colormapName );
 
+    /**
+     * Set the image frame to the specified value.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @param index the frame number.
+     */
     bool setFrame( const QString& animatorId, const QString& index );
 
     /**
@@ -114,8 +121,17 @@ public:
      */
     void setImageView();
 
+    /**
+     * Set plugins for each of the views in the layout
+     * @param names a list of plugin names.
+     */
     void setPlugins( const QStringList& names );
 
+    /**
+     * Set the histogram to show the specified percentage of the data.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param clipValue the percentage of data to be shown.
+     */
     void setClipValue( const QString& controlId, const QString& param );
 
     static const QString CLASS_NAME;

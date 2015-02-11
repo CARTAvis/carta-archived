@@ -367,14 +367,7 @@ void Layout::setLayoutImage(){
     _setPlugin( name );
 }
 
-void Layout::setLayoutCustom( int rows, int cols ){
-    QString result;
-    result = setLayoutSize( rows, cols );
-}
-
 void Layout::setPlugins( const QStringList& names) {
-    int rows = m_state.getValue<int>( LAYOUT_ROWS );
-    int cols = m_state.getValue<int>( LAYOUT_COLS );
     _setPlugin( names );
 }
 

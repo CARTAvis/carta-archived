@@ -44,10 +44,9 @@ public:
     void setLayoutAnalysis();
 
     /**
-     * Set a custom layout.
+     * Set plugins for each of the views in the layout
+     * @param names a list of plugin names.
      */
-    void setLayoutCustom( int rows, int cols );
-
     void setPlugins( const QStringList& names);
 
     /**
