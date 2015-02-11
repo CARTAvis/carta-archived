@@ -197,31 +197,34 @@ QString Controller::getStateString() const{
     return writeState.toString();
 }
 
+void Controller::setClipValue( const QString& params ) {
+    std::set<QString> keys = {"clipValue"};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    bool validClip = false;
+    QString clipKey = *keys.begin();
+    QString clipWithoutPercent = dataValues[clipKey].remove("%");
+    double clipVal = dataValues[clipKey].toDouble(&validClip);
+    if ( validClip ){
+        int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
+        if ( oldClipVal != clipVal ){
+            m_state.setValue<double>( CLIP_VALUE, clipVal );
+            m_state.flushState();
+            if ( m_view ){
+                _loadView( true );
+            }
+        }
+    }
+    else {
+        qDebug() << "(JT) Controller::setClipValue(): Invalid clip value: "<<params;
+    }
+}
 
 void Controller::_initializeCallbacks(){
     //Listen for updates to the clip and reload the frame.
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {"clipValue"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        bool validClip = false;
-        QString clipKey = *keys.begin();
-        QString clipWithoutPercent = dataValues[clipKey].remove("%");
-        double clipVal = dataValues[clipKey].toDouble(&validClip);
-        if ( validClip ){
-            int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
-            if ( oldClipVal != clipVal ){
-                m_state.setValue<double>( CLIP_VALUE, clipVal );
-                m_state.flushState();
-                if ( m_view ){
-                    _loadView( true );
-                }
-            }
-        }
-        else {
-            qDebug() << "Invalid clip value: "<<params;
-        }
+        setClipValue( params );
         return "";
     });
 

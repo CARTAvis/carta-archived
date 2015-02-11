@@ -154,6 +154,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setFrame( animatorId, args[1] );
     }
 
+    else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
+        qDebug() << "(JT) setClipValue " << args[1];
+        m_scriptFacade->setClipValue( args[1], args[2] );
+    }
+
     else if (args.size() > 0 && args[0].toLower() == "getfilelist") {
         QString fileList = m_scriptFacade->getFileList();
         QString substring = "";

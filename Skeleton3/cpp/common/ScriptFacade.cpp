@@ -141,3 +141,9 @@ void ScriptFacade::setFrame( const QString& animatorId, const QString& index ) {
     qDebug() << "(JT) index = " << index;
     m_viewManager->setFrame( animatorId, index );
 }
+
+void ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
+    qDebug() << "(JT) ScriptFacade::setClipValue(" << clipValue << ")";
+    const QString& param = "clipValue:" + clipValue;
+    m_viewManager->setClipValue( controlId, param );
+}

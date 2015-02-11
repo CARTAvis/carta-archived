@@ -101,6 +101,8 @@ public:
      */
     virtual QString getStateString() const;
 
+    void setClipValue( const QString& params );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;

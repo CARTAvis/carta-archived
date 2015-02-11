@@ -116,6 +116,8 @@ public:
 
     void setPlugins( const QStringList& names );
 
+    void setClipValue( const QString& controlId, const QString& param );
+
     static const QString CLASS_NAME;
 
 private:

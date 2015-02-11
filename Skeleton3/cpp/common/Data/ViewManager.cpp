@@ -488,6 +488,7 @@ bool ViewManager::_readState( const QString& saveName ){
 }
 
 void ViewManager::setAnalysisView(){
+    qDebug() << "(JT) ViewManager::setAnalysisView()";
     _clear();
     if ( m_layout == nullptr ){
         _makeLayout();
@@ -560,6 +561,16 @@ void ViewManager::setPlugins( const QStringList& names ){
     _makeController();
 }
 
+void ViewManager::setClipValue( const QString& controlId, const QString& param ){
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           m_controllers[i]->setClipValue( param );
+           break;
+        }
+    }
+}
 
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );

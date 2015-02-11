@@ -146,6 +146,8 @@ public:
 
     void setFrame( const QString& animatorId, const QString& index );
 
+    void setClipValue( const QString& controlId, const QString& clipValue );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.
