@@ -112,7 +112,12 @@ QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
 
 void ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
     qDebug() << "(JT) ScriptFacade::loadFile(" << objectId << ", " << fileName << ")";
-    m_viewManager->loadFile( objectId, fileName);
+    m_viewManager->loadFile( objectId, fileName );
+}
+
+void ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
+    qDebug() << "(JT) ScriptFacade::loadLocalFile(" << objectId << ", " << fileName << ")";
+    m_viewManager->loadLocalFile( objectId, fileName );
 }
 
 void ScriptFacade::setAnalysisLayout(){

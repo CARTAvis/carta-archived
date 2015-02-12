@@ -93,6 +93,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->loadFile( args[1], "/RootDirectory/" + args[2] );
     }
 
+    if ( args.size() == 3 && args[0].toLower() == "loadlocalfile" ) {
+        qDebug() << "Trying to load local file " << args[2] << " into " << args[1];
+        m_scriptFacade->loadLocalFile( args[1], args[2] );
+    }
+
     else if (args.size() == 3 && args[0].toLower() == "linkadd") {
         QString result = m_scriptFacade->linkAdd( args[1], args[2] );
         qDebug() << "linkAdd result: " << result;

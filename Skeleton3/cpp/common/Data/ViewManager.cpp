@@ -357,6 +357,19 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
     }
 }
 
+void ViewManager::loadLocalFile( const QString& controlId, const QString& fileName){
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           //Add the data to it
+            _makeDataLoader();
+           m_controllers[i]->addData( fileName );
+           break;
+        }
+    }
+}
+
 QString ViewManager::getFileList() {
     QString fileList = m_dataLoader->getData("", "");
     return fileList;

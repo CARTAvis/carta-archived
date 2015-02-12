@@ -114,11 +114,20 @@ public:
     QString linkAdd( const QString& sourceId, const QString& destId );
 
     /**
+     * Load a file from /scratch/Images into an image view.
+     * @param objectId the unique server-side id of an object that displays an
+     * image view.
+     * @param fileName a path, relative to /scratch/Images, identifying the
+     * file containing an image.
+     */
+    void loadFile( const QString& objectId, const QString& fileName);
+
+    /**
      * Load a file into an image view.
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      */
-    void loadFile( const QString& objectId, const QString& fileName);
+    void loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
      * Set the layout to a predefined analysis layout.
