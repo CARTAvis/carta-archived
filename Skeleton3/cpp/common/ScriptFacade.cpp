@@ -152,3 +152,8 @@ void ScriptFacade::setClipValue( const QString& controlId, const QString& clipVa
     const QString& param = "clipValue:" + clipValue;
     m_viewManager->setClipValue( controlId, param );
 }
+
+bool ScriptFacade::saveState( const QString& saveName ) {
+    bool result = m_viewManager->saveState( saveName );
+    return result;
+}

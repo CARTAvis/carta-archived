@@ -578,6 +578,11 @@ void ViewManager::setClipValue( const QString& controlId, const QString& param )
     }
 }
 
+bool ViewManager::saveState( const QString& saveName ){
+    bool result = _saveState( saveName );
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

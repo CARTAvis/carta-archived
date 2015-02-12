@@ -216,6 +216,11 @@ Viewer::scriptedCommandCB( QString command )
         MyQApp::exit();
     }
 
+    else if ( args.size() == 2 && args[0].toLower() == "savestate" ) {
+        bool result = m_scriptFacade->saveState( args[1] );
+        qDebug() << "(JT) saveState result = " << result;
+    }
+
     else {
         qWarning() << "Sorry, unknown command";
     }
