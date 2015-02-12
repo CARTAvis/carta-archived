@@ -7,6 +7,9 @@
 #include <QObject>
 #include <memory>
 #include "ScriptFacade.h"
+#include <rapidjson/document.h>
+
+using namespace rapidjson;
 
 class ScriptedCommandListener;
 namespace Carta {
@@ -14,7 +17,6 @@ namespace Data {
 class ViewManager;
 }
 }
-
 
 ///
 /// \brief The Viewer class is the main class of the viewer. It sets up all other
@@ -53,5 +55,8 @@ protected:
 
     std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
 
+private:
+    /// Recursively parse through a directory structure contained in a json value
+    void _parseDirectory( const Value& dir, QString prefix );
 };
 
