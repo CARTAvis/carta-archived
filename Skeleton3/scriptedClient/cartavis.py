@@ -69,8 +69,8 @@ class Application:
     def getFileList(self, substring=""):
         self.socket.sendall("getFileList " + substring + "\n")
 
-    def loadFile(self, fileName):
-        self.socket.sendall("loadFile " + fileName + "\n")
+    def loadFile(self, imageViewId, fileName):
+        self.socket.sendall("loadFile " + imageViewId + " " + fileName + "\n")
 
     def getColorMapId(self, index=-1):
         self.socket.sendall("getColorMapId " + str(index) + "\n")
@@ -100,8 +100,8 @@ class Application:
     def setImageLayout(self):
         self.socket.sendall("setImageLayout" + "\n")
 
-    def setColorMap(self, colormap):
-        self.socket.sendall("setColorMap " + colormap + "\n")
+    def setColorMap(self, colormapId, colormap):
+        self.socket.sendall("setColorMap " + colormapId + " " + colormap + "\n")
 
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
@@ -109,6 +109,9 @@ class Application:
 
     def linkAdd(self, sourceId, destId):
         self.socket.sendall("linkAdd " + sourceId + " " + destId + "\n")
+
+    def setFrame(self, animatorId, index):
+        self.socket.sendall("setFrame " + animatorId + " " + index + "\n")
 
 # Commands below this point are possibly broken or just not implemented yet.
 
@@ -136,7 +139,7 @@ class Application:
         print "Saving screenshot as " + fileName
 
 def start(
-        executable = "/home/jeff/scratch/build/2015-02-09/cpp/desktop/desktop", 
+        executable = "/home/jeff/scratch/build/2015-02-10_new_master_version/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
         port = 9999, 
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
