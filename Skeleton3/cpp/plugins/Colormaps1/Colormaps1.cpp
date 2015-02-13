@@ -1,5 +1,6 @@
 #include "Colormaps1.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
+#include "CartaLib/PWLinear.h"
 #include <QDebug>
 #include <cstdint>
 
@@ -35,7 +36,7 @@ Colormap1::getInitialHookList()
 
 namespace Impl
 {
-class MyColormapFunc : public Carta::Lib::IColormapScalar
+class MyColormapFunc : public Carta::Lib::PixelPipeline::IColormapNamed
 {
 public:
 
@@ -107,7 +108,7 @@ MyColormapFunc::MyColormapFunc( QString name, PWLinear & red, PWLinear & green, 
 ///
 /// Green, D. A., 2011, Bulletin of the Astronomical Society of India, Vol.39, p.289
 /// ================================================================================
-static Carta::Lib::IColormapScalar::SharedPtr
+static Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr
 cubeHelix( QString name, double start, double rots, double hue, double gamma )
 {
     Carta::Lib::PWLinear red, green, blue;
@@ -150,12 +151,12 @@ cubeHelix( QString name, double start, double rots, double hue, double gamma )
 } // cubeHelix
 }
 
-std::vector < Carta::Lib::IColormapScalar::SharedPtr >
+std::vector < Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr >
 Colormap1::getColormaps()
 {
     using namespace Carta::Lib;
 
-    std::vector < IColormapScalar::SharedPtr > res;
+    std::vector < PixelPipeline::IColormapNamed::SharedPtr > res;
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (

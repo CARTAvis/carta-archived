@@ -138,14 +138,16 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
          * Notify the server that the color mix has changed.
          */
         _sendColorMixChangedCommand : function(){
-            if ( this.m_redSlider !== null && this.m_greenSlider !==null && this.m_blueSlider !== null){
-                var redPercent = this._getColorPercent( this.m_redSlider.getValue());
-                var greenPercent = this._getColorPercent( this.m_greenSlider.getValue());
-                var bluePercent = this._getColorPercent( this.m_blueSlider.getValue());
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorMix.CMD_SET_COLORMIX;
-                var params = "redPercent:"+redPercent+",greenPercent:"+greenPercent+",bluePercent:"+bluePercent;
-                this.m_connector.sendCommand( cmd, params, this._errorColorsCB( this ));
+            if ( this.m_id !== null ){
+                if ( this.m_redSlider !== null && this.m_greenSlider !==null && this.m_blueSlider !== null){
+                    var redPercent = this._getColorPercent( this.m_redSlider.getValue());
+                    var greenPercent = this._getColorPercent( this.m_greenSlider.getValue());
+                    var bluePercent = this._getColorPercent( this.m_blueSlider.getValue());
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorMix.CMD_SET_COLORMIX;
+                    var params = "redPercent:"+redPercent+",greenPercent:"+greenPercent+",bluePercent:"+bluePercent;
+                    this.m_connector.sendCommand( cmd, params, this._errorColorsCB( this ));
+                }
             }
         },
         

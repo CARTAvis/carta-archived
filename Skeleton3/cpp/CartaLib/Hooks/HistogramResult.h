@@ -3,7 +3,7 @@
 
 namespace Carta{
 namespace Lib{
-
+namespace Hooks {
 class HistogramResult {
   private:
   	QString name;
@@ -16,5 +16,6 @@ class HistogramResult {
     ~HistogramResult(){}
     std::vector<std::pair<double,double>> getData() const;
 };
+}
 }
 }

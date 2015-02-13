@@ -52,7 +52,20 @@ ParsedInfo parse(const QString & filePath)
         raw.replace( "$(APPDIR)", QCoreApplication::applicationDirPath());
         info.m_pluginDirectories.append( QDir::cleanPath(raw));
     }
-//    qDebug() << "All dirs" << info.pluginDirectories();
+
+    // hacks enabled flag
+    {
+        auto raw = json[ "hacksEnabled"].toString().toLower();
+        info.m_hacksEnabled = ( raw == "yes" || raw == "true" || raw == "1" || raw == "y"
+                                || raw == "t");
+        qDebug() << "Hacks enabled:" << info.m_hacksEnabled << raw;
+    }
+
+    // developer layout
+    QString devLayoutStr = json[ "developerLayout"].toString().toLower();
+    info.m_developerLayout = ( devLayoutStr == "yes" || devLayoutStr == "true" ||
+            devLayoutStr == "1" || devLayoutStr == "y");
+    qDebug() << "Developer layout:" << info.m_developerLayout << devLayoutStr;
 
     return info;
 }
@@ -60,6 +73,15 @@ ParsedInfo parse(const QString & filePath)
 const QStringList & ParsedInfo::pluginDirectories() const
 {
     return m_pluginDirectories;
+}
+
+bool ParsedInfo::hacksEnabled() const
+{
+    return m_hacksEnabled;
+}
+
+bool ParsedInfo::isDeveloperLayout() const {
+    return m_developerLayout;
 }
 
 } // namespace MainConfig

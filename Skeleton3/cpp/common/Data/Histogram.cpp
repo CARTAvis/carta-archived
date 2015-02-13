@@ -105,7 +105,7 @@ NdArray::RawViewInterface* Histogram::_findRawData( const QString& fileName, int
 }
 
 double Histogram::_getPercentile( const QString& fileName, int frameIndex, double intensity ) const {
-    double percentile = -1;
+    double percentile = 0;
     NdArray::RawViewInterface* rawData = _findRawData( fileName, frameIndex );
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
@@ -121,8 +121,9 @@ double Histogram::_getPercentile( const QString& fileName, int frameIndex, doubl
             }
             return;
         });
-
-        percentile = double(countBelow) / totalCount;
+        if ( totalCount > 0 ){
+            percentile = double(countBelow) / totalCount;
+        }
     }
     return percentile;
 }
@@ -146,6 +147,9 @@ bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double p
         // indicate bad clip if no finite numbers were found
         if ( allValues.size() > 0 ) {
             int locationIndex = allValues.size() * percentile - 1;
+            if ( locationIndex < 0 ){
+                locationIndex = 0;
+            }
             std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
             *intensity = allValues[locationIndex];
             intensityFound = true;
@@ -665,7 +669,7 @@ void Histogram::_generateHistogram(){
         auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSource, binCount,
                             minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
-        auto lam = [=] ( const Carta::Lib::HistogramResult &data ) {
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
 
                 HistogramGenerator * histogram = new HistogramGenerator();
                 histogram->setStyle(style);

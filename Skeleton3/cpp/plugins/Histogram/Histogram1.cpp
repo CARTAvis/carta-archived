@@ -14,7 +14,7 @@ Histogram1::Histogram1( QObject * parent ) :
     }
 
 
-Carta::Lib::HistogramResult Histogram1::_computeHistogram(){
+Carta::Lib::Hooks::HistogramResult Histogram1::_computeHistogram(){
     
     vector<std::pair<double,double>> data;
     QString name;
@@ -32,7 +32,7 @@ Carta::Lib::HistogramResult Histogram1::_computeHistogram(){
     else {
         qDebug() << "Histogram not initialized";
     }
-    Carta::Lib::HistogramResult result(name, data);
+    Carta::Lib::Hooks::HistogramResult result(name, data);
     return result;
 }
 

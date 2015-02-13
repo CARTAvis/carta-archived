@@ -353,9 +353,17 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
 }
 
 void Layout::setLayoutAnalysis(){
+    setLayoutSize( 3, 2 );
+    QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
+            HIDDEN, Animator::CLASS_NAME,
+            HIDDEN, Colormap::CLASS_NAME};
+    _setPlugin( names );
+}
+
+void Layout::setLayoutDeveloper(){
     setLayoutSize( 4, 2 );
-    QStringList names = {Controller::PLUGIN_NAME, Animator::CLASS_NAME,
-            HIDDEN, Statistics::CLASS_NAME,
+    QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
+            HIDDEN, Animator::CLASS_NAME,
             HIDDEN, Colormap::CLASS_NAME,
             HIDDEN, Histogram::CLASS_NAME};
     _setPlugin( names );

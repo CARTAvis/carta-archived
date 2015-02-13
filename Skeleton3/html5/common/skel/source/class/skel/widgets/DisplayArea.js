@@ -147,6 +147,7 @@ qx.Class
 
                                 }
                             }
+                           
                         },
 
                         /**
@@ -171,8 +172,7 @@ qx.Class
                             this.m_areaFirst = this._makeArea(rowHeight,
                                     colWidth, rowIndex, colIndex, true);
                             this.m_areaSecond = secondArea;
-                            this.m_pane.add(this.m_areaSecond.getDisplayArea(),
-                                    1);
+                            this.m_pane.add(this.m_areaSecond.getDisplayArea(),1);
                         },
                         
                         /**
@@ -380,9 +380,7 @@ qx.Class
                          */
                         _makeArea : function(colWidth, rowHeight, rowIndex,
                                 colIndex, includeView) {
-
-                            var area = new skel.widgets.Window.DisplayDesktop(
-                                    rowIndex, colIndex).set({
+                            var area = new skel.widgets.Window.DisplayDesktop(rowIndex, colIndex).set({
                                 width : colWidth,
                                 height : rowHeight,
                                 decorator : "main"
@@ -397,8 +395,6 @@ qx.Class
                                 this.fireDataEvent("iconifyWindow", data);
                             }, this);
                             
-                           
-
                             this.m_pane.add(area, 1);
                             return area;
                         },
@@ -421,11 +417,11 @@ qx.Class
                                 this.fireDataEvent("iconifyWindow", ev.getData());
                             }, this);
                             
-                           
-
                             var flex = 0;
+                            //Variable flex so the content is sized according to how
+                            //many subpanes it contains.
                             if (lastColIndex == colIndex) {
-                                flex = 1;
+                                flex = rows;
                             }
                             this.m_pane.add(child.getDisplayArea(), flex);
                             return child;
@@ -443,11 +439,9 @@ qx.Class
                          * @return {boolean} true if the window was restored; false otherwise.
                          */
                         restoreWindow : function(row, col) {
-                            var restored = this.m_areaFirst.restoreWindow(row,
-                                    col);
+                            var restored = this.m_areaFirst.restoreWindow(row,col);
                             if (!restored) {
-                                restored = this.m_areaSecond.restoreWindow(row,
-                                        col);
+                                restored = this.m_areaSecond.restoreWindow(row, col);
                             }
                             return restored;
                         },
@@ -511,8 +505,7 @@ qx.Class
                                 decreaseHeight = true;
                             }
 
-                            this.m_pane.add(this.m_areaFirst.getDisplayArea(),
-                                    1);
+                            this.m_pane.add(this.m_areaFirst.getDisplayArea(),1);
                             this.m_areaSecond._setDimensions(colWidth,
                                     rowHeight, decreaseWidth, decreaseHeight);
                             this.m_areaSecond = this._makeChild(1, 1, colWidth,
@@ -527,10 +520,8 @@ qx.Class
                          * split pane, decreasing them as appropriate to make
                          * space for a new area.
                          * 
-                         * @param width
-                         *                {Number} the base width.
-                         * @param height
-                         *                {Number} the base height.
+                         * @param width {Number} the base width.
+                         * @param height {Number} the base height.
                          * @param decreaseWidth
                          *                {Boolean} whether or not the width
                          *                should be halved.
@@ -595,7 +586,7 @@ qx.Class
                          * @param colIndex {Number} the column location of the target window.
                          * @return {boolean} true if the height was set; false otherwise.
                          */
-                        setAreaHeight : function(height, rowIndex, colIndex) {
+                        setAreaHeight : function(height, rowIndex, colIndex ) {
                             var heightSet = false;
                             if (this.m_areaFirst !== null) {
                                 heightSet = this.m_areaFirst.setAreaHeight(
@@ -608,6 +599,7 @@ qx.Class
                                                     colIndex);
                                 }
                             }
+                            
                             return heightSet;
                         },
 

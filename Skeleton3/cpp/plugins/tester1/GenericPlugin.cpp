@@ -22,7 +22,7 @@ bool GenericPlugin::handleHook(BaseHook &hookData)
     }
 
     if( hookData.hookId() == PreRender::staticId ) {
-        PreRender & hook = static_cast<PreRender &>( hookData);
+//        PreRender & hook = static_cast<PreRender &>( hookData);
 
         //qDebug() << "Prerender hook received by generic plugin";
         //qDebug() << "  " << hook.paramsPtr->viewName;

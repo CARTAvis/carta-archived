@@ -1,12 +1,17 @@
 #include "HistogramGenerator.h"
-#include <qwt_plot.h>
+#include <qwt_scale_engine.h>
+#include <qwt_scale_map.h>
+#include <QPaintDevice>
+#include <QRectF>
+#include <QPainter>
 #include <qwt_plot_renderer.h>
+#include <QImage>
+#include "HistogramSelection.h"
+#include <QWidget>
+#include <qwt_plot.h>
 #include <qwt_samples.h>
 #include <qwt_plot_histogram.h>
-#include <QImage>
-#include <QPaintDevice>
-#include <QString>
-#include <qwt_scale_engine.h>
+
 
 HistogramGenerator::HistogramGenerator(){
     m_plot = new QwtPlot();
@@ -17,9 +22,12 @@ HistogramGenerator::HistogramGenerator(){
     m_histogram = new QwtPlotHistogram();
     m_histogram->attach(m_plot);
 
+    m_height = 335;
+    m_width = 335;
+
 }
 
-void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
+void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data){
 
     QString name = data.getName();
     m_plot->setTitle(name);
@@ -42,7 +50,7 @@ void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
 
 QImage * HistogramGenerator::toImage(){
 	QwtPlotRenderer * renderer = new QwtPlotRenderer();
-	QSize size(335,335);
+	QSize size(m_height,m_width);
     QImage * histogramImage =new QImage(size, QImage::Format_RGB32);
     renderer->renderTo(m_plot,*histogramImage);
     return histogramImage;
@@ -65,15 +73,28 @@ void HistogramGenerator::setLogScale(bool display){
     if(display){
         m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
         m_histogram->setBaseline(1.0);
-
     }
-
     else{
         m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
         m_histogram->setBaseline(0.0);
     }
-    
+}
 
+void HistogramGenerator::setHistogramRange(double min, double max){
+   HistogramSelection * range = new HistogramSelection();
+    //QRect rect = m_plot->frameRect();
+    //int w = rect.width();
+
+   // double minClip = m_plot -> transform(QwtPlot::xBottom, min);
+   // double maxClip = m_plot -> transform(QwtPlot::xBottom, max);
+
+   QwtScaleMap canvasMap = m_plot-> canvasMap(QwtPlot::xBottom);
+    //double minClip = canvasMap.transform(min);
+   //double maxClip = canvasMap.transform(max);
+   range->setHeight(m_height);
+   range->setBoundaryValues(min, max);
+   range->attach(m_plot);
+   m_plot->replot();
 }
 
 // void HistogramGenerator::setColored( bool colored ){

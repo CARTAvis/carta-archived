@@ -66,6 +66,11 @@ public:
     void setAnalysisView();
 
     /**
+     * Reset the layout to show objects under active development.
+     */
+    void setDeveloperView();
+
+    /**
      * Change the color map to the map with the given name.
      * @param colormapId the unique server-side id of a Colormap object.
      * @param colormapName a unique identifier for the color map to be displayed.
@@ -84,6 +89,11 @@ private:
     class Factory;
 
     void _clear();
+    void _clearAnimators( int startIndex );
+    void _clearColormaps( int startIndex );
+    void _clearControllers( int startIndex );
+    void _clearHistograms( int startIndex );
+    void _clearStatistics( int startIndex );
 
     int _findAnimator( const QString& id ) const;
     int _findColorMap( const QString& id ) const;
@@ -92,18 +102,17 @@ private:
 
     void _initCallbacks();
 
-    //void _initializeExistingAnimationLinks( int index );
     //Sets up a default set of states for constructing the UI if the user
     //has not saved one.
     void _initializeDefaultState();
 
-    QString _makeAnimator();
+    QString _makeAnimator( int maxCount );
     QString _makeLayout();
     QString _makePluginList();
-    QString _makeController();
-    QString _makeHistogram();
-    QString _makeColorMap();
-    QString _makeStatistics();
+    QString _makeController( int maxCount );
+    QString _makeHistogram( int maxCount );
+    QString _makeColorMap( int maxCount );
+    QString _makeStatistics( int maxCount );
     void _makeDataLoader();
 
 

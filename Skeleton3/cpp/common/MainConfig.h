@@ -22,9 +22,21 @@ public:
     ///
     const QStringList & pluginDirectories() const;
 
+    /// whether hacks are enabled or not
+    bool hacksEnabled() const;
+
+    /**
+     * Returns whether CARTA should come up with areas under
+     * active development shown.
+     */
+    bool isDeveloperLayout() const;
+
 protected:
 
     QStringList m_pluginDirectories;
+    bool m_hacksEnabled = false;
+    bool m_developerLayout = false;
+
     friend ParsedInfo parse( const QString & filePath);
 };
 

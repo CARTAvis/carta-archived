@@ -5,7 +5,6 @@
 #include "Data/IColoredView.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
-#include "CartaLib/IColormapScalar.h"
 #include "ImageView.h"
 
 #include <set>
@@ -273,7 +272,8 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
             m_state.setValue<bool>(INVERT, invert );
             m_state.flushState();
             QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-            std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapName );
+            std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> coloredMap
+                    = m_colors->getColorMap( mapName );
             //coloredMap->setInverted( invert );
             for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
                 controller -> colorMapChanged( mapName );
@@ -338,7 +338,7 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
             m_state.setValue<bool>(REVERSE, reverse );
             m_state.flushState();
             QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-            std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapName );
+            std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> coloredMap = m_colors->getColorMap( mapName );
             //coloredMap->setReversed( mapName );
             for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
                 controller -> colorMapChanged( mapName );

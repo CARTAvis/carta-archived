@@ -7,6 +7,15 @@
 #include <measures/Measures/Stokes.h>
 #include <QDebug>
 
+#define CARTA_DEBUG_THIS_FILE 0
+
+#if CARTA_DEBUG_THIS_FILE > 0 && defined ( CARTA_DEBUG_OUTPUT )
+#define cartaDebug qDebug
+#else
+#define cartaDebug while ( false ) \
+        qDebug
+#endif
+
 /// shortcut to HtmlString
 typedef Carta::Lib::HtmlString HtmlString;
 
@@ -15,6 +24,7 @@ class DoubleFormatter
     CLASS_BOILERPLATE( DoubleFormatter );
 
 public:
+
     Me
     showPlus( bool flag )
     {
@@ -26,7 +36,7 @@ public:
     sexagesimal( bool flag, QString separator = ":" )
     {
         m_sexagesimal = flag;
-        m_separator   = separator;
+        m_separator = separator;
         return * this;
     }
 
@@ -45,7 +55,7 @@ public:
             result += "+";
         }
         if ( value < 0 ) {
-            value   = - value;
+            value = - value;
             result += "-";
         }
         if ( ! m_sexagesimal ) {
@@ -59,9 +69,9 @@ public:
         else {
             // format the 60^2 part and remove it from value
             long dig;
-            dig     = long (value) / ( 60 * 60 );
+            dig = long (value) / ( 60 * 60 );
             result += QString::number( dig ) + ':';
-            value  -= dig * 60 * 60;
+            value -= dig * 60 * 60;
 
             // format the 60^1 part and remove it from value
             // but make sure to insert a leading 0
@@ -79,9 +89,10 @@ public:
     } // go
 
 protected:
-    bool m_showPlus     = false;
-    bool m_sexagesimal  = false;
-    int m_precision     = 3;
+
+    bool m_showPlus = false;
+    bool m_sexagesimal = false;
+    int m_precision = 3;
     QString m_separator = ":";
 };
 
@@ -112,8 +123,8 @@ CCCoordinateFormatter::CCCoordinateFormatter( std::shared_ptr < casa::Coordinate
 CCCoordinateFormatter *
 CCCoordinateFormatter::clone() const
 {
-    CCCoordinateFormatter * res = new CCCoordinateFormatter( * this);
-    res->m_casaCS.reset( new casa::CoordinateSystem( * m_casaCS));
+    CCCoordinateFormatter * res = new CCCoordinateFormatter( * this );
+    res->m_casaCS.reset( new casa::CoordinateSystem( * m_casaCS ) );
     return res;
 }
 
@@ -227,7 +238,7 @@ CCCoordinateFormatter::skyCS()
     }
     int which = m_casaCS->directionCoordinateNumber();
     const casa::DirectionCoordinate & dirCoord = m_casaCS->directionCoordinate( which );
-    casa::MDirection::Types dirType            = dirCoord.directionType( true );
+    casa::MDirection::Types dirType = dirCoord.directionType( true );
     switch ( dirType )
     {
     case casa::MDirection::Types::B1950 :
@@ -253,7 +264,7 @@ CCCoordinateFormatter::skyCS()
 CCCoordinateFormatter::Me &
 CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
 {
-    qDebug() << "setSkyCS" << static_cast < int > ( scs );
+    cartaDebug() << "setSkyCS" << static_cast < int > ( scs );
 
     // don't even try to set this to unknown
     if ( scs == KnownSkyCS::Unknown ) {
@@ -338,12 +349,12 @@ CCCoordinateFormatter::setSkyFormatting( SkyFormatting format )
 void
 CCCoordinateFormatter::parseCasaCS()
 {
-    qDebug() << "CCC nAxes=" << nAxes();
+    cartaDebug() << "CCC nAxes=" << nAxes();
     for ( auto & u : m_casaCS->worldAxisUnits() ) {
-        qDebug() << "all units:" << u.c_str();
+        cartaDebug() << "all units:" << u.c_str();
     }
     for ( auto & u : m_casaCS->worldAxisNames() ) {
-        qDebug() << "all names:" << u.c_str();
+        cartaDebug() << "all names:" << u.c_str();
     }
 
     // default precision is 3
@@ -352,11 +363,11 @@ CCCoordinateFormatter::parseCasaCS()
     for ( int i = 0 ; i < nAxes() ; i++ ) {
         parseCasaCSi( i );
     }
-    qDebug() << "Parsed axis infos:";
+    cartaDebug() << "Parsed axis infos:";
     for ( auto & ai : m_axisInfos ) {
-        qDebug() << "  lp:" << ai.longLabel().plain() << "lh:" << ai.longLabel().html()
-                 << "sp:" << ai.shortLabel().html() << "sh:" << ai.shortLabel().html()
-                 << "u:" << ai.unit();
+        cartaDebug() << "  lp:" << ai.longLabel().plain() << "lh:" << ai.longLabel().html()
+                     << "sp:" << ai.shortLabel().html() << "sh:" << ai.shortLabel().html()
+                     << "u:" << ai.unit();
     }
 
     // set formatting to default
@@ -379,9 +390,9 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
 
     m_casaCS->findPixelAxis( coord, coord2, pixelAxis );
 
-    qDebug() << pixelAxis << "-->" << coord << "," << coord2;
-    qDebug() << "   "
-             << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
+    cartaDebug() << pixelAxis << "-->" << coord << "," << coord2;
+    cartaDebug() << "   "
+                 << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
 
     AxisInfo & aInfo = m_axisInfos[pixelAxis];
 
@@ -394,7 +405,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
     // did we find the world coordinate for this axis in casa core's coordinatesystem?
     if ( coord >= 0 ) {
         const auto & cc = m_casaCS->coordinate( coord );
-        auto skycs      = skyCS();
+        auto skycs = skyCS();
 
         // we handle sky coordinate
         if ( cc.type() == casa::Coordinate::DIRECTION ) {
@@ -454,8 +465,8 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
             aInfo.setKnownType( aInfo.KnownType::STOKES )
-                    .setLongLabel( HtmlString::fromPlain( "Stokes"))
-                    .setShortLabel( HtmlString::fromPlain( "Stokes"));
+                .setLongLabel( HtmlString::fromPlain( "Stokes" ) )
+                .setShortLabel( HtmlString::fromPlain( "Stokes" ) );
         }
         else if ( cc.type() == casa::Coordinate::TABULAR ) {
             aInfo.setKnownType( aInfo.KnownType::TABULAR );
@@ -468,7 +479,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             // other types... we copy whatever casacore dishes out
             aInfo.setKnownType( aInfo.KnownType::OTHER );
             QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
-            QString shortLabel   = rawAxisLabel;
+            QString shortLabel = rawAxisLabel;
             aInfo.setLongLabel( HtmlString::fromPlain( rawAxisLabel ) );
             aInfo.setShortLabel( HtmlString::fromPlain( shortLabel ) );
         }

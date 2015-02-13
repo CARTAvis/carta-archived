@@ -29,6 +29,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                 // this._resizeContent();
                 var bounds = this.getBounds();
                 this.m_height = bounds.height;
+                
                 this.m_width = bounds.width;
                 var sizeData = {
                         "offsetX" : bounds.left,
@@ -121,6 +122,8 @@ qx.Class.define("skel.widgets.DisplayMain",
             this.m_layout.addCB( this._resetLayoutCB.bind(this));
         },
         
+        
+        
         /**
          * Layout the screen real estate using a square grid
          * with the indicated number of rows and columns.
@@ -130,7 +133,12 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         layout : function(rows, cols) {
             if (rows >= 1 && cols >= 1) {
-                //this._removeWindows();
+                if ( this.m_pane !== null ){
+                    var area = this.m_pane.getDisplayArea();
+                    if ( this.indexOf( area ) >= 0 ){
+                        this.remove( area );
+                    }
+                }
                 var splitterSize = 10;
                 var splitterHeight = this.m_height - (this.m_gridRowCount - 1)* splitterSize;
                 var splitterWidth = this.m_width - (this.m_gridColCount - 1)* splitterSize;
@@ -162,56 +170,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.add(displayArea);
                
             }
-        },
-
-        /**
-         * Display a single image on the screen.
-         */
-        layoutImage : function() {
-            this._clearLayout();
-            
-            this.setRowCount(2);
-            this.setColCount(1);
-            this._setPlugins( skel.widgets.Path.getInstance().CASA_LOADER, skel.widgets.Window.DisplayWindow.EXCLUDED );
-        },
-        
-        /**
-         * Layout the display area using a grid containing a
-         * large image area, two (analysis) plugin windows, and
-         * an animation area.
-         */
-        layoutAnalysis : function() {
-            
- 
-            this._clearLayout();
-            this.setRowCount(3);
-            this.setColCount(2);
-            var path = skel.widgets.Path.getInstance();
-            this._setPlugins( 
-                    path.CASA_LOADER, path.PLUGINS,
-                    skel.widgets.Window.DisplayWindow.EXCLUDED, "statistics",
-                    skel.widgets.Window.DisplayWindow.EXCLUDED, path.ANIMATOR );
-     
-            /*this.layout(3, 2);
-
-            var imagePercent = .6;
-            this.m_pane.setView(skel.widgets.Path.getInstance().CASA_LOADER,0, 0);
-            this.m_pane.setAreaWidth(Math.floor(this.m_width* imagePercent), 0, 0);
-            this.m_pane.setAreaHeight(this.m_height, 0, 0);
-
-            this.m_pane.excludeArea(1, 0);
-            this.m_pane.excludeArea(2, 0);
-
-            this.m_pane.setView("plugins", 0, 1);
-            this.m_pane.setAreaWidth(Math.floor(this.m_width* (1 - imagePercent)), 0, 1);
-
-            this.m_pane.setView("statistics", 1, 1);
-            this.m_pane.setAreaWidth(Math.floor(this.m_width* (1 - imagePercent)), 1, 1);
-            // this.m_pane.link( 0, 0, 1, 1);
-
-            this.m_pane.setView("animator", 2, 1);
-            this.m_pane.setAreaWidth(Math.floor(this.m_width* (1 - imagePercent)), 2, 1);
-            */
         },
 
         /**
@@ -346,6 +304,8 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
         },
         
+       
+        
         /**
          * Update the number of rows in the current layout.
          * @param gridRows {Number} the number of rows in the layout.
@@ -373,8 +333,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
             }
         },
-
-
         
         /**
          * Set the shared variables that store the plugins that will be displayed

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/IPlugin.h"
 
 ///

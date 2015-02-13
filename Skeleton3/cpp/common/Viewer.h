@@ -33,6 +33,11 @@ public:
     /// safe to start setting/getting state)
     void start();
 
+    /**
+     * Show areas under active development.
+     */
+    void setDeveloperView( );
+
 signals:
 
 public slots:
@@ -47,6 +52,11 @@ protected:
     /// pointer to scripted command listener
     /// @todo make it unique ptr for auto-delete niceness
     ScriptedCommandListener * m_scl = nullptr;
+
+private:
+
+    bool m_devView;
+
 
     std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
 };

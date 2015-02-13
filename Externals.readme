@@ -1,0 +1,16 @@
+The Externals is a symlink that points to a directory outside of the
+source tree (i.e. it is not managed by git).
+
+The structure of the external directory looks like this on my (Pavol) machine. You should adjust yours to look similarly:
+
+pfederl@snail$ find ../CARTAvis-externals -printf '%p -> %l\n'
+../CARTAvis-externals -> 
+../CARTAvis-externals/ThirdParty -> 
+../CARTAvis-externals/ThirdParty/qwt -> /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
+../CARTAvis-externals/ThirdParty/qooxdoo-3.5-sdk -> /home/pfederl/Software/qooxdoo-3.5-sdk
+../CARTAvis-externals/ThirdParty/qooxdoo-4.0.1-sdk -> /home/pfederl/Software/qooxdoo-4.0.1-sdk
+../CARTAvis-externals/ThirdParty/pureweb-4.1.1-sdk -> /home/pfederl/Work/Software/PureWeb/4.1.1/SDK
+../CARTAvis-externals/ThirdParty/cfitsio-3360-shared -> /home/pfederl/Software/cfitsio3360shared
+../CARTAvis-externals/ThirdParty/wcslib-4.23-shared -> /home/pfederl/Software/wcslib-4.23-shared
+../CARTAvis-externals/ThirdParty/rapidjson -> /home/pfederl/Software/rapidjson
+../CARTAvis-externals/ThirdParty/casacore-1.5.0-shared -> /home/pfederl/Software/casacore-1.5.0-shared

@@ -10,6 +10,7 @@ qx.Class.define("skel.widgets.Command.CommandShowStatus", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setStatusVisible";
         this.base( arguments, "Show Status", cmd );
+        this.m_toolBarVisible = false;
     },
     
     members : {

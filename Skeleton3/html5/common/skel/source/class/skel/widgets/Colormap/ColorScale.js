@@ -103,12 +103,14 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             this.m_mapCombo = new qx.ui.form.ComboBox();
             this.m_mapCombo.setToolTipText( "Select a color map.");
             this.m_mapCombo.addListener( "changeValue", function(e){
-                var mapName = e.getData();
-                //Send a command to the server to let them know the map changed.
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorScale.CMD_SET_MAP;
-                var params = "name:"+mapName;
-                this.m_connector.sendCommand( cmd, params, this._errorMapIndexCB( this ));
+                if ( this.m_id !== null ){
+                    var mapName = e.getData();
+                    //Send a command to the server to let them know the map changed.
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorScale.CMD_SET_MAP;
+                    var params = "name:"+mapName;
+                    this.m_connector.sendCommand( cmd, params, this._errorMapIndexCB( this ));
+                }
             },this);
             var mapLayout = new qx.ui.layout.HBox(2);
             var comboComp = new qx.ui.container.Composite();

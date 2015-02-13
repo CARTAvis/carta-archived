@@ -10,6 +10,8 @@
 ///
 /// The only code that should go into this class is Qt specific stuff that needs
 /// access to the internals of QApplication.
+///
+/// @todo For server side this should be QGuiApplication
 class MyQApp : public QApplication
 {
     Q_OBJECT

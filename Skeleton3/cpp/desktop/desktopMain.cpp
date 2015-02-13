@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
 
     // initialize plugin manager
     // =========================
-    globals.setPluginManager( new PluginManager );
+    globals.setPluginManager( std::make_shared<PluginManager>() );
     auto pm = globals.pluginManager();
     // tell plugin manager where to find plugins
     pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories() );
@@ -84,14 +84,23 @@ int main(int argc, char ** argv)
     // create the viewer
     // =================
     Viewer viewer;
-    HackViewer hackViewer;
+    HackViewer::UniquePtr hackViewer = nullptr;
+    if( globals.mainConfig()-> hacksEnabled()) {
+        hackViewer.reset( new HackViewer);
+    }
+    if ( globals.mainConfig()->isDeveloperLayout()){
+        viewer.setDeveloperView();
+    }
+
     // prepare closure to execute when connector is initialized
     IConnector::InitializeCallback initCB = [&](bool valid) -> void {
         if( ! valid) {
             qFatal( "Could not initialize connector");
         }
         viewer.start();
-        hackViewer.start();
+        if( hackViewer) {
+            hackViewer-> start();
+        }
     };
 
     // initialize connector

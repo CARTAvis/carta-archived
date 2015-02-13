@@ -147,21 +147,23 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             var enableRange = this.m_planeRange.getValue();
             this.m_rangeMinSpin.setEnabled( enableRange );
             this.m_rangeMaxSpin.setEnabled( enableRange );
-            var mode = null;
-            if ( enableSingle ){
-                mode = this.m_planeSingle.getLabel();
-            }
-            else if ( enableRange ){
-                mode = this.m_planeRange.getLabel();
-            }
-            else if ( this.m_planeAll.getValue()){
-                mode = this.m_planeAll.getLabel();
-            }
-            if ( mode !== null && this.m_connector !== null){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_PLANE_MODE;
-                var params = "planeMode:"+mode;
-                this.m_connector.sendCommand( cmd, params, this._errorPlaneModeCB( this ));
+            if ( this.m_id !== null ){
+                var mode = null;
+                if ( enableSingle ){
+                    mode = this.m_planeSingle.getLabel();
+                }
+                else if ( enableRange ){
+                    mode = this.m_planeRange.getLabel();
+                }
+                else if ( this.m_planeAll.getValue()){
+                    mode = this.m_planeAll.getLabel();
+                }
+                if ( mode !== null && this.m_connector !== null){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_PLANE_MODE;
+                    var params = "planeMode:"+mode;
+                    this.m_connector.sendCommand( cmd, params, this._errorPlaneModeCB( this ));
+                }
             }
         },
         

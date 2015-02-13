@@ -4,14 +4,19 @@
 
 #include "HackViewer.h"
 #include "Globals.h"
+#include "CmdLine.h"
 #include "IConnector.h"
+#include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "ScriptTester.h"
+#include "common/Hacks/MainModel.h"
 #include "common/GrayColormap.h"
+#include "LinearMap.h"
 #include <QPainter>
 #include <set>
 
+namespace Hacks
+{
 namespace StateKey
 {
 QString MOUSE_X = "mouse_x";
@@ -20,198 +25,205 @@ QString HACKS = "hacks";
 QString AUTO_CLIP = "auto_clip";
 }
 
-class TestView2 : public IView
+TestView2::TestView2( QString prefix,
+                      QString viewName,
+                      QColor bgColor,
+                      Image::ImageInterface::SharedPtr astroImage )
 {
-public:
+    // we keep m_imageBuffer sized to the client size
+    m_imageBuffer = QImage( 100, 100, QImage::Format_ARGB32_Premultiplied );
+    m_imageBuffer.fill( bgColor );
 
-    TestView2( QString prefix,
-               QString viewName,
-               QColor bgColor,
-               QImage img,
-               Image::ImageInterface::SharedPtr astroImage )
-    {
-//        m_defaultImage = img;
-        m_defaultImage = QPixmap::fromImage( img);
-        m_qimage = QImage( 100, 100, QImage::Format_RGB888 );
-        m_qimage.fill( bgColor );
+    m_viewName = viewName;
+    m_connector = nullptr;
+    m_bgColor = bgColor;
+    m_astroImage = astroImage;
+    m_prefix = prefix + "/" + viewName;
+    m_qImageToRender = QImage( 100, 100, QImage::Format_ARGB32_Premultiplied );
+}
 
-        m_viewName = viewName;
-        m_connector = nullptr;
-        m_bgColor = bgColor;
-        m_astroImage = astroImage;
-        m_prefix = prefix + "/" + viewName;
+void
+TestView2::scheduleRedraw()
+{
+    m_connector-> refreshView( this );
+}
+
+void
+TestView2::registration( IConnector * connector )
+{
+    m_connector = connector;
+}
+
+const QString &
+TestView2::name() const
+{
+    return m_viewName;
+}
+
+QSize
+TestView2::size()
+{
+    return m_imageBuffer.size();
+}
+
+const QImage &
+TestView2::getBuffer()
+{
+    redrawBuffer();
+    return m_imageBuffer;
+}
+
+void
+TestView2::handleResizeRequest( const QSize & pSize )
+{
+    QSize size( std::max( pSize.width(), 1 ), std::max( pSize.height(), 1 ) );
+    m_imageBuffer = QImage( size, m_imageBuffer.format() );
+    scheduleRedraw();
+
+    emit resized();
+}
+
+void
+TestView2::handleMouseEvent( const QMouseEvent & ev )
+{
+    QString str;
+    QTextStream out( & str );
+
+    m_lastMouse = QPointF( ev.x(), ev.y() );
+    scheduleRedraw();
+
+    m_connector-> setState( m_prefix + "/mouse_x", QString::number( ev.x() ) );
+    m_connector-> setState( m_prefix + "/mouse_y", QString::number( ev.y() ) );
+
+    emit mouseX( double ( ev.x() ) / size().width() );
+
+    if ( ! m_astroImage ) {
+        return;
     }
+    int imgX = ev.x() * m_astroImage-> dims()[0] / m_imageBuffer.width();
+    int imgY = ev.y() * m_astroImage-> dims()[1] / m_imageBuffer.height();
+    imgY = m_astroImage-> dims()[1] - imgY - 1;
 
-    void
-    setImage( const QImage & img )
-    {
-//        m_defaultImage = img;
-        m_defaultImage = QPixmap::fromImage( img);
-        m_connector-> refreshView( this );
-    }
+    CoordinateFormatterInterface::SharedPtr cf(
+        m_astroImage-> metaData()-> coordinateFormatter()-> clone() );
 
-    virtual void
-    registration( IConnector * connector )
-    {
-        m_connector = connector;
-    }
+    std::vector < QString > knownSCS2str {
+        "Unknown", "J2000", "B1950", "ICRS", "Galactic",
+        "Ecliptic"
+    };
+    std::vector < KnownSkyCS > css {
+        KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
+        KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
+    };
+    out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
+    out << "Image cursor:" << imgX << "," << imgY << "\n";
 
-    virtual const QString &
-    name() const
-    {
-        return m_viewName;
-    }
-
-    virtual QSize
-    size()
-    {
-        return m_qimage.size();
-    }
-
-    /// @todo Investigate QPixmap performance vs QImage
-    virtual const QImage &
-    getBuffer()
-    {
-        redrawBuffer();
-        return m_qimage;
-    }
-
-    virtual void
-    handleResizeRequest( const QSize & pSize )
-    {
-        QSize size( std::max( pSize.width(), 1 ), std::max( pSize.height(), 1 ) );
-        m_qimage = QImage( size, m_qimage.format() );
-        m_connector-> refreshView( this );
-    }
-
-    virtual void
-    handleMouseEvent( const QMouseEvent & ev )
-    {
-        QString str;
-        QTextStream out( & str );
-
-        m_lastMouse = QPointF( ev.x(), ev.y() );
-        m_connector-> refreshView( this );
-
-        m_connector-> setState( m_prefix + "/mouse_x", QString::number( ev.x() ) );
-        m_connector-> setState( m_prefix + "/mouse_y", QString::number( ev.y() ) );
-
-        int imgX = ev.x() * m_astroImage-> dims()[0] / m_qimage.width();
-        int imgY = ev.y() * m_astroImage-> dims()[1] / m_qimage.height();
-        imgY = m_astroImage-> dims()[1] - imgY - 1;
-
-        CoordinateFormatterInterface::SharedPtr cf(
-            m_astroImage-> metaData()-> coordinateFormatter()-> clone() );
-
-        std::vector < QString > knownSCS2str {
-            "Unknown", "J2000", "B1950", "ICRS", "Galactic",
-            "Ecliptic"
-        };
-        std::vector < KnownSkyCS > css {
-            KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-            KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
-        };
-        out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
-        out << "Image cursor:" << imgX << "," << imgY << "\n";
-
-        for ( auto cs : css ) {
-            cf-> setSkyCS( cs );
-            out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
-            std::vector < Carta::Lib::AxisInfo > ais;
-            for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
-                const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
-                ais.push_back( ai );
-            }
-            std::vector < double > pixel( m_astroImage-> dims().size(), 0.0 );
-            pixel[0] = imgX;
-            pixel[1] = imgY;
-            auto list = cf-> formatFromPixelCoordinate( pixel );
-            for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
-            }
-            out << "\n";
+    for ( auto cs : css ) {
+        cf-> setSkyCS( cs );
+        out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+        std::vector < Carta::Lib::AxisInfo > ais;
+        for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
+            const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
+            ais.push_back( ai );
         }
-
-        str.replace( "\n", "<br />" );
-        m_connector-> setState( "/hacks/cursorText", str );
-    } // handleMouseEvent
-
-    virtual void
-    handleKeyEvent( const QKeyEvent & /*event*/ )
-    { }
-
-signals:
-
-protected:
-
-    void
-    redrawBuffer()
-    {
-        QPointF center = m_qimage.rect().center();
-        QPointF diff = m_lastMouse - center;
-        double angle = atan2( diff.x(), diff.y() );
-        angle *= - 180 / M_PI;
-
-        m_qimage.fill( m_bgColor );
-        {
-            QPainter p( & m_qimage );
-//            p.drawImage( m_qimage.rect(), m_defaultImage );
-//            p.setRenderHint( QPainter::SmoothPixmapTransform);
-//            QImage tmpImage = m_defaultImage.scaled( m_qimage.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-//            p.drawImage( m_qimage.rect(), tmpImage);
-
-            QPixmap tmpPixmap = m_defaultImage.scaled( m_qimage.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-            p.drawPixmap( m_qimage.rect(), tmpPixmap);
-
-//            p.drawPixmap( m_qimage.rect(), m_defaultImage);
-
-            p.setPen( Qt::NoPen );
-            p.setBrush( QColor( 255, 255, 0, 128 ) );
-            p.drawEllipse( QPoint( m_lastMouse.x(), m_lastMouse.y() ), 10, 10 );
-            p.setPen( QColor( 255, 255, 255 ) );
-            p.drawLine( 0, m_lastMouse.y(), m_qimage.width() - 1, m_lastMouse.y() );
-            p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_qimage.height() - 1 );
-
-            p.translate( m_qimage.rect().center() );
-            p.rotate( angle );
-            p.translate( - m_qimage.rect().center() );
-            p.setFont( QFont( "Arial", 20 ) );
-            p.setPen( QColor( "white" ) );
-            p.drawText( m_qimage.rect(), Qt::AlignCenter, m_viewName );
+        std::vector < double > pixel( m_astroImage-> dims().size(), 0.0 );
+        pixel[0] = imgX;
+        pixel[1] = imgY;
+        auto list = cf-> formatFromPixelCoordinate( pixel );
+        for ( size_t i = 0 ; i < ais.size() ; i++ ) {
+            out << ais[i].shortLabel().html() << ":" << list[i] << " ";
         }
+        out << "\n";
+    }
 
-        // execute the pre-render hook
-        Globals::instance()-> pluginManager()
-            -> prepare < PreRender > ( m_viewName, & m_qimage )
-            .executeAll();
-    } // redrawBuffer
+    str.replace( "\n", "<br />" );
+    m_connector-> setState( "/hacks/cursorText", str );
+} // handleMouseEvent
 
-    QColor m_bgColor;
-//    QImage m_defaultImage;
-    QPixmap m_defaultImage;
-    Image::ImageInterface::SharedPtr m_astroImage;
-    IConnector * m_connector;
-    QImage m_qimage;
-    QString m_viewName, m_prefix;
-    int m_timerId;
-    QPointF m_lastMouse;
-};
+void
+TestView2::redrawBuffer()
+{
+//    QPointF center = m_imageBuffer.rect().center();
+//    QPointF diff = m_lastMouse - center;
+//    double angle = atan2( diff.x(), diff.y() );
+//    angle *= - 180 / M_PI;
 
-static TestView2 * testView2 = nullptr;
+//    m_imageBuffer = m_qImageToRender.scaled( m_imageBuffer.size(), Qt::IgnoreAspectRatio,
+//                                             Qt::SmoothTransformation );
+
+//    ////                                                 Qt::FastTransformation );
+
+//    {
+//        QPainter p( & m_imageBuffer );
+
+//        p.setPen( Qt::NoPen );
+//        p.setBrush( QColor( 255, 255, 0, 128 ) );
+//        p.drawEllipse( QPoint( m_lastMouse.x(), m_lastMouse.y() ), 10, 10 );
+//        p.setPen( QColor( 255, 255, 255 ) );
+//        p.drawLine( 0, m_lastMouse.y(), m_imageBuffer.width() - 1, m_lastMouse.y() );
+//        p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_imageBuffer.height() - 1 );
+
+//        p.translate( m_imageBuffer.rect().center() );
+//        p.rotate( angle );
+//        p.translate( - m_imageBuffer.rect().center() );
+//        p.setFont( QFont( "Arial", 20 ) );
+//        p.setPen( QColor( "white" ) );
+//        p.drawText( m_imageBuffer.rect(), Qt::AlignCenter, m_viewName );
+//    }
+
+    // execute the pre-render hook
+    Globals::instance()-> pluginManager()
+        -> prepare < PreRender > ( m_viewName, & m_imageBuffer )
+        .executeAll();
+} // redrawBuffer
+}
+using namespace Hacks;
+
+//static TestView2 * m_testView2 = nullptr;
 
 HackViewer::HackViewer( QString prefix ) :
     QObject( nullptr )
 {
     m_statePrefix = prefix;
 
-//    m_rawView2QImageConverter = std::make_shared < RawView2QImageConverter > ();
-    m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
-
-//    m_rawView2QImageConverter-> setAutoClip( 0.95 /* 95% */ );
-
     // assign a default colormap to the view
     auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
+    m_rawView2QImageConverter.reset( new Carta::Core::RawView2QImageConverter3 );
     m_rawView2QImageConverter-> setColormap( rawCmap );
+
+    m_wholeImage = QImage( 10, 10, QImage::Format_ARGB32_Premultiplied );
+}
+
+QPointF
+HackViewer::img2screen( QPointF p )
+{
+    double icx = m_centeredImagePoint.x();
+    double scx = m_testView2->size().width() / 2.0;
+    double icy = m_centeredImagePoint.y();
+    double scy = m_testView2->size().height() / 2.0;
+    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1 );
+    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1 );
+
+    QPointF res;
+    res.rx() = xmap.inv( p.x() );
+    res.ry() = ymap.inv( p.y() );
+    return res;
+}
+
+QPointF
+HackViewer::screen2img( QPointF p )
+{
+    double icx = m_centeredImagePoint.x();
+    double scx = m_testView2->size().width() / 2.0;
+    double icy = m_centeredImagePoint.y();
+    double scy = m_testView2->size().height() / 2.0;
+    LinearMap1D xmap( scx, scx + m_pixelZoom, icx, icx + 1 );
+    LinearMap1D ymap( scy, scy + m_pixelZoom, icy, icy + 1 );
+
+    QPointF res;
+    res.rx() = xmap.apply( p.x() );
+    res.ry() = ymap.apply( p.y() );
+    return res;
 }
 
 void
@@ -222,34 +234,40 @@ HackViewer::start()
     auto & globals = * Globals::instance();
     m_connector = globals.connector();
 
+    m_connector-> setState( "/hacks/enabled", "1");
+
     setState( "auto_clip", "1" );
 
     auto pm = globals.pluginManager();
 
-    // setup some colormap hacks
+    // prepare a list of known colormaps
     {
-        // get all colormaps provided by core
-        static std::vector < Carta::Lib::IColormapScalar::SharedPtr > allColormaps;
-        allColormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
+        // built-in colormaps first (we only have one)
+        m_allColormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
 
-        // ask plugins for colormaps
+        // now ask plugins for colormaps
         auto hh =
             pm-> prepare < Carta::Lib::Hooks::ColormapsScalarHook > ();
 
-        auto lam = [] ( const Carta::Lib::Hooks::ColormapsScalarHook::ResultType & cmaps ) {
-            allColormaps.insert( allColormaps.end(), cmaps.begin(), cmaps.end() );
+        auto lam = [this] ( const Carta::Lib::Hooks::ColormapsScalarHook::ResultType & cmaps ) {
+            m_allColormaps.insert( m_allColormaps.end(), cmaps.begin(), cmaps.end() );
         };
         hh.forEach( lam );
 
-        qDebug() << "We have" << allColormaps.size() << "colormaps:";
-        for ( auto & cmap : allColormaps ) {
+        qDebug() << "We have" << m_allColormaps.size() << "colormaps:";
+        for ( auto & cmap : m_allColormaps ) {
             qDebug() << "    " << cmap-> name();
         }
-        for ( size_t i = 0 ; i < allColormaps.size() ; i++ ) {
-            setState( QString( "cm-names-%1" ).arg( i ), allColormaps[i]-> name() );
-        }
-        setState( "cm-count", QString::number( allColormaps.size() ) );
-        setState( "cm-current", "0" );
+    }
+
+    // tell clients about available colormaps
+    for ( size_t i = 0 ; i < m_allColormaps.size() ; i++ ) {
+        setState( QString( "cm-names-%1" ).arg( i ), m_allColormaps[i]-> name() );
+    }
+    setState( "cm-count", QString::number( m_allColormaps.size() ) );
+    setState( "cm-current", "0" );
+
+    {
         auto colormapCB = [this] ( const QString & /*path*/, const QString & value ) {
             qDebug() << "Cmap changed to" << value;
             bool ok;
@@ -258,19 +276,29 @@ HackViewer::start()
                 return;
             }
             using namespace Carta::Core;
-            if ( ind < 0 || size_t( ind ) >= allColormaps.size() ) {
+            if ( ind < 0 || size_t( ind ) >= m_allColormaps.size() ) {
                 CARTA_ASSERT( "colormap index out of range!" );
                 return;
             }
-            m_rawView2QImageConverter-> setColormap( allColormaps[ind] );
-            reloadFrame();
+            m_rawView2QImageConverter-> setColormap( m_allColormaps[ind] );
+            scheduleFrameReload();
         };
 
-//        m_connector->addStateCallback(
-//            "/hacks/cm-current",
-//            colormapCB
-//            );
         addStateCallback( "cm-current", colormapCB );
+
+        addStateCallback(
+            "cm-invert",
+            [this] ( QString, QString ) {
+                scheduleFrameReload();
+            }
+            );
+
+        addStateCallback(
+            "cm-reverse",
+            [this] ( QString, QString ) {
+                scheduleFrameReload();
+            }
+            );
     }
 
     // ask plugins to load the image
@@ -291,17 +319,18 @@ HackViewer::start()
         if ( res2.isNull() ) {
             qFatal( "Could not find any plugin to load astroImage" );
         }
-        m_image = res2.val();
+        m_astroImage = res2.val();
 
-        CARTA_ASSERT( m_image );
-        m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
+        CARTA_ASSERT( m_astroImage );
+        m_coordinateFormatter = m_astroImage-> metaData()-> coordinateFormatter();
 
         qDebug() << "Pixel type = " << Image::pixelType2int( res2.val()-> pixelType() );
-        testView2 = new TestView2(
+
+        m_testView2 = new TestView2(
             "/hacks",
-            "hackView", QColor( "pink" ), QImage( 10, 10, QImage::Format_ARGB32 ),
-            m_image );
-        m_connector-> registerView( testView2 );
+            "hackView",
+            QColor( "pink" ),
+            m_astroImage );
 
         CoordinateFormatterInterface::VD pixel;
         pixel.resize( m_coordinateFormatter->nAxes(), 0 );
@@ -315,42 +344,224 @@ HackViewer::start()
 
         // convert the loaded image into QImage
         m_currentFrame = 0;
-        reloadFrame();
+        m_pixelZoom = 1.0;
+        m_centeredImagePoint.rx() = m_astroImage-> dims()[0] / 2.0;
+        m_centeredImagePoint.ry() = m_astroImage-> dims()[1] / 2.0;
+        scheduleFrameReload();
     }
-
-    if ( fname.length() > 0 ) {
-        reloadFrame();
+    else {
+        m_testView2 = new TestView2(
+            "/hacks",
+            "hackView",
+            QColor( "pink" ),
+            nullptr );
     }
+    m_connector-> registerView( m_testView2 );
+    connect( m_testView2, & TestView2::resized, this, & HackViewer::scheduleFrameRepaint );
+    connect( m_testView2, & TestView2::mouseX, [ = ] ( double x ) {
+                 this->m_pixelZoom = x + 1;
+                 this->scheduleFrameRepaint();
+             }
+             );
 
     QString pixelCachingOn = "pixelCacheOn";
     QString pixelCacheSize = "pixelCacheSize";
     QString pixelCacheInterpolationOn = "pixelCacheInterpolationOn";
-    setState( pixelCachingOn, m_cmapUseCaching ? "1" : "0");
-    setState( pixelCacheInterpolationOn, m_cmapUseInterpolatedCaching ? "1" : "0");
-    setState( pixelCacheSize, QString::number( m_cmapCacheSize));
+    setState( pixelCachingOn, m_cmapUseCaching ? "1" : "0" );
+    setState( pixelCacheInterpolationOn, m_cmapUseInterpolatedCaching ? "1" : "0" );
+    setState( pixelCacheSize, QString::number( m_cmapCacheSize ) );
 
     typedef const QString & CSR;
-    addStateCallback( pixelCachingOn, [this] ( CSR, CSR val) {
-        m_cmapUseCaching = val == "1";
-        reloadFrame();
-    });
-    addStateCallback( pixelCacheInterpolationOn, [this] ( CSR, CSR val) {
-        m_cmapUseInterpolatedCaching = val == "1";
-        reloadFrame();
-    });
-    addStateCallback( pixelCacheSize, [=] ( CSR, CSR val) {
-        bool ok;
-        m_cmapCacheSize = val.toInt( & ok);
-        if( ! ok || m_cmapCacheSize < 2) {
-            m_cmapCacheSize = 2;
+    addStateCallback(
+        pixelCachingOn, [this] ( CSR, CSR val ) {
+            m_cmapUseCaching = val == "1";
+            scheduleFrameReload();
         }
-        setState( pixelCacheSize, QString::number( m_cmapCacheSize));
-        reloadFrame();
-    });
-    qDebug() << "HackViewer has been initialized.";
+        );
+    addStateCallback(
+        pixelCacheInterpolationOn, [this] ( CSR, CSR val ) {
+            m_cmapUseInterpolatedCaching = val == "1";
+            scheduleFrameReload();
+        }
+        );
+    addStateCallback(
+        pixelCacheSize, [ = ] ( CSR, CSR val ) {
+            bool ok;
+            m_cmapCacheSize = val.toInt( & ok );
+            if ( ! ok || m_cmapCacheSize < 2 ) {
+                m_cmapCacheSize = 2;
+            }
+            setState( pixelCacheSize, QString::number( m_cmapCacheSize ) );
+            scheduleFrameReload();
+        }
+        );
 
-    //ScriptTester tester;
-    //tester.runTest();
+    // add listener for pointer move (using state API for automatic throttling)
+    addStateCallback( "views/hackView/pointer-move", [ = ] ( CSR, CSR val ) {
+                          qDebug() << "hackView mm" << val;
+                      }
+                      );
+
+    // string 2 list of doubles
+    auto s2vd = [] ( QString s, QString sep = " " ) {
+        QStringList lst = s.split( sep );
+        std::vector < double > res;
+        for ( auto v : lst ) {
+            bool ok;
+            double val = v.toDouble( & ok );
+            if ( ! ok ) {
+                return res;
+            }
+            res.push_back( val );
+        }
+        return res;
+    };
+
+    // add listener for zoom
+    m_connector-> addCommandCallback(
+        m_statePrefix + "/views/hackView/zoom",
+        [ = ] ( CSR, CSR params, CSR ) -> QString {
+            try {
+                qDebug() << "zoom" << params;
+
+                double x, y, z;
+                bool ok;
+                QStringList list = params.split( " " );
+                if ( list.size() < 3 ) {
+                    throw "need 2 entries in list";
+                }
+                x = list[0].toDouble( & ok );
+                if ( ! ok ) {
+                    throw "bad x";
+                }
+                y = list[1].toDouble( & ok );
+                if ( ! ok ) {
+                    throw "bad y";
+                }
+                z = list[2].toDouble( & ok );
+                if ( ! ok ) {
+                    throw "bad z";
+                }
+                if ( z < 0 ) {
+                    this-> m_pixelZoom /= 0.9;
+                }
+                else {
+                    this-> m_pixelZoom *= 0.9;
+                }
+                this->m_pixelZoom = clamp( this->m_pixelZoom, 0.1, 16.0 );
+                this->scheduleFrameRepaint();
+
+                Q_UNUSED( x );
+                Q_UNUSED( y );
+            }
+            catch ( std::string what ) {
+                qWarning() << "Error:" << what.c_str();
+                return "";
+            }
+            catch ( ... ) {
+                qWarning() << "Other error";
+                return "";
+            }
+
+            return "";
+        }
+        );
+
+    // add listener for center
+    m_connector-> addCommandCallback(
+        m_statePrefix + "/views/hackView/center",
+        [ = ] ( CSR, CSR params, CSR ) -> QString {
+            qDebug() << "center" << params;
+
+            auto vals = s2vd( params );
+            if ( vals.size() > 1 ) {
+                QPointF screenPt( vals[0], vals[1] );
+                auto newCenter = screen2img( screenPt );
+
+                qDebug() << "  " << m_centeredImagePoint << "->" << newCenter;
+
+                m_centeredImagePoint = newCenter;
+
+                this->scheduleFrameRepaint();
+            }
+            qDebug() << "  vals=" << vals;
+            return "";
+        }
+        );
+
+    // newest hacks:
+    // =================================================================================
+
+    // initialize hack model
+    Hacks::GlobalsH::instance().setPluginManager( pm);
+
+    // new experiment with asynchronous renderer
+    m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
+
+    auto cmdLineInfo = Globals::instance()-> cmdLineInfo();
+    if( cmdLineInfo && cmdLineInfo-> fileList().size() > 0) {
+        m_imageViewController-> loadImage( cmdLineInfo-> fileList()[0]);
+    }
+    else {
+        m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
+    }
+
+    // invert toggle
+    addStateCallback(
+        "cm-invert",
+        [this] ( CSR, CSR val ) {
+            m_imageViewController-> setCmapInvert( val == "1" );
+        }
+        );
+
+    // reverse toggle
+    addStateCallback(
+        "cm-reverse",
+        [this] ( CSR, CSR val ) {
+            m_imageViewController-> setCmapReverse( val == "1" );
+        }
+        );
+
+    auto colormapCB2 = [this] ( const QString & /*path*/, const QString & value ) {
+        qDebug() << "Cmap2 changed to" << value;
+        bool ok;
+        int ind = value.toInt( & ok );
+        if ( ! ok ) {
+            return;
+        }
+        using namespace Carta::Core;
+        if ( ind < 0 || size_t( ind ) >= m_allColormaps.size() ) {
+            CARTA_ASSERT( "colormap index out of range!" );
+            return;
+        }
+        m_imageViewController-> setColormap( m_allColormaps[ind] );
+    };
+
+    addStateCallback( pixelCachingOn, [this] ( CSR, CSR val ) {
+        auto set = m_imageViewController-> getPPCsettings();
+        set.enabled = val == "1";
+        m_imageViewController-> setPPCsettings( set);
+    });
+    addStateCallback( pixelCacheInterpolationOn, [this] ( CSR, CSR val ) {
+        auto set = m_imageViewController-> getPPCsettings();
+        set.interpolated = val == "1";
+        m_imageViewController-> setPPCsettings( set);
+    });
+    addStateCallback( pixelCacheSize, [ = ] ( CSR, CSR val ) {
+        auto set = m_imageViewController-> getPPCsettings();
+        bool ok;
+        int size = val.toInt( & ok );
+        if ( ! ok || size < 2 ) {
+            size = 2;
+        }
+        set.size = size;
+        m_imageViewController-> setPPCsettings( set);
+    });
+
+
+    addStateCallback( "cm-current", colormapCB2 );
+
+    qDebug() << "HackViewer has been initialized.";
 } // start
 
 // prefixed setState
@@ -374,34 +585,93 @@ HackViewer::addStateCallback( QString path, IConnector::StateChangedCallback cb 
 }
 
 void
-HackViewer::reloadFrame()
+HackViewer::scheduleFrameReload()
 {
-    //CARTA_ASSERT( m_image );
-    if ( m_image ){
+    CARTA_ASSERT( m_astroImage );
+
+    // if reload is already pending, do nothing
+    if ( m_reloadFrameQueued ) {
+        return;
+    }
+    m_reloadFrameQueued = true;
+    QMetaObject::invokeMethod( this, "_reloadFrameNow", Qt::QueuedConnection );
+}
+
+void
+HackViewer::_reloadFrameNow()
+{
+    CARTA_ASSERT( m_astroImage );
+
+    m_reloadFrameQueued = false;
+
     qDebug() << "reloadFrame ppCacheSize" << m_cmapCacheSize;
 
-    // prepare slice description (entire frame)
+    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
     auto frameSlice = SliceND().next();
-    for ( size_t i = 2 ; i < m_image->dims().size() ; i++ ) {
+    for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
         frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
     }
 
-    // get the data slice
-    NdArray::RawViewInterface::UniquePtr frameView ( m_image-> getDataSlice( frameSlice ));
+    // get a view of the data using the slice description
+    NdArray::RawViewInterface::UniquePtr frameView( m_astroImage-> getDataSlice( frameSlice ) );
 
-    // make an image out of it
-    QImage qimg;
+    // setup the pipeline with this view
     m_rawView2QImageConverter-> setView( frameView.get() );
-    m_rawView2QImageConverter-> computeClips( 0.95 );
-    m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize);
-    m_rawView2QImageConverter-> setPixelPipelineInterpolation( m_cmapUseInterpolatedCaching);
-    m_rawView2QImageConverter-> setPixelPipelineCacheEnabled( m_cmapUseCaching);
-    m_rawView2QImageConverter-> convert( qimg );
 
-    // display the image
-    testView2->setImage( qimg );
+    // recompute clips
+    m_rawView2QImageConverter-> computeClips( 0.95 );
+
+    // update options for the pipeline
+    m_rawView2QImageConverter-> setPixelPipelineCacheSize( m_cmapCacheSize );
+    m_rawView2QImageConverter-> setPixelPipelineInterpolation( m_cmapUseInterpolatedCaching );
+    m_rawView2QImageConverter-> setPixelPipelineCacheEnabled( m_cmapUseCaching );
+    m_rawView2QImageConverter-> setInvert( getState( "cm-invert" ) == "1" );
+    m_rawView2QImageConverter-> setReverse( getState( "cm-reverse" ) == "1" );
+
+    // convert the data to image
+    m_rawView2QImageConverter-> convert( m_wholeImage );
+
+    setState( "cm-preview", m_rawView2QImageConverter-> getCmapPreview( 300 ) );
+
+    _repaintFrameNow();
+} // scheduleFrameReload
+
+void
+HackViewer::scheduleFrameRepaint()
+{
+    CARTA_ASSERT( m_astroImage );
+
+    // if reload is already pending, do nothing
+    if ( m_repaintFrameQueued ) {
+        return;
     }
-} // reloadFrame
+    else {
+//        qDebug() << "Scheduling repaint";
+    }
+    m_repaintFrameQueued = true;
+    QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+}
+
+void
+HackViewer::_repaintFrameNow()
+{
+    m_repaintFrameQueued = false;
+
+    m_testView2->getBufferRW().fill( QColor( "pink" ) );
+    QPainter p( & m_testView2->getBufferRW() );
+    double w = m_wholeImage.width();
+    double h = m_wholeImage.height();
+
+    // figure out rectf according to pixelzoom, centerx and centery
+    QPointF p1 = img2screen( QPointF( 0, 0 ) );
+    QPointF p2 = img2screen( QPointF( w, h ) );
+    QRectF rectf( p1, p2 );
+
+    p.drawImage( rectf, m_wholeImage );
+
+    // schedule a redraw for the client
+    m_testView2-> scheduleRedraw();
+} // _repaintFrame
 
 /// experiment, currently unused
 ///

@@ -59,13 +59,13 @@ Controller::Controller( const QString& path, const QString& id ) :
      connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
 
      _initializeState();
-     _initializeCallbacks();
+
      registerView(m_view.get());
 
      //Load the view.
      _loadView( false );
 
-
+     _initializeCallbacks();
 }
 
 
@@ -146,9 +146,7 @@ void Controller::setColorReversed( bool reversed ){
 }
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
-
     std::vector<std::shared_ptr<Image::ImageInterface>> images(m_datas.count());
-
     for( int i=0; i<m_datas.count(); ++i ){ 
         images[i] = m_datas[i].get()->getImage();
     }
@@ -174,7 +172,6 @@ QString Controller::getImageName(int index) const{
 
 
 int Controller::getState( const QString& type, const QString& key ){
-
     int value = -1;
     if ( type == Selection::IMAGE ){
         value = m_selectImage->getState( key );
