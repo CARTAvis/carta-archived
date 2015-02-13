@@ -72,6 +72,9 @@ class Application:
     def loadFile(self, imageViewId, fileName):
         self.socket.sendall("loadFile " + imageViewId + " " + fileName + "\n")
 
+    def loadLocalFile(self, imageViewId, fileName):
+        self.socket.sendall("loadLocalFile " + imageViewId + " " + fileName + "\n")
+
     def getColorMapId(self, index=-1):
         self.socket.sendall("getColorMapId " + str(index) + "\n")
 
@@ -112,6 +115,9 @@ class Application:
 
     def setFrame(self, animatorId, index):
         self.socket.sendall("setFrame " + animatorId + " " + index + "\n")
+
+    def saveState(self, saveName):
+        self.socket.sendall("saveState " + saveName + "\n")
 
 # Commands below this point are possibly broken or just not implemented yet.
 
