@@ -15,6 +15,7 @@ class ScriptedCommandListener : public QObject
     Q_OBJECT
 public:
     explicit ScriptedCommandListener(int port, QObject *parent = 0);
+    QString dataTransporter(QString input);
 
 signals:
 

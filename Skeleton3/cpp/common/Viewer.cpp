@@ -172,6 +172,7 @@ Viewer::scriptedCommandCB( QString command )
         fileListJson.Parse(fileList.toStdString().c_str());
         const Value& dir = fileListJson["dir"];
         _parseDirectory( dir, "" );
+        m_scl->dataTransporter( "getFileList" );
     }
 
     else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {

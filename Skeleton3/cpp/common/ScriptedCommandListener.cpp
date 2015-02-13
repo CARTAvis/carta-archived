@@ -51,3 +51,10 @@ void ScriptedCommandListener::socketDataCB()
     str = str.trimmed();
     emit command( str);
 }
+
+QString ScriptedCommandListener::dataTransporter( QString input )
+{
+    qDebug() << "(JT) ScriptedCommandListener::dataTransporter()";
+    qDebug() << "input = " << input;
+    return input;
+}
