@@ -10,6 +10,7 @@ qx.Class.define("skel.widgets.Command.CommandClipAuto", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + path.AUTO_CLIP;
         this.base( arguments, "Recompute Clips on New Frame", cmd);
+        this.m_toolBarVisible = true;
     },
     
     members : {

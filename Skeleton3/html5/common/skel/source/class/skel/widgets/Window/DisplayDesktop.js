@@ -15,19 +15,13 @@ qx.Class
                     /**
                      * Constructor.
                      * 
-                     * @param row
-                     *                {Number} the layout row index of this
-                     *                desktop.
-                     * @param col
-                     *                {Number} the layout col index of this
-                     *                desktop.
+                     * @param row {Number} the layout row index of this desktop.
+                     * @param col {Number} the layout col index of this desktop.
                      */
                     construct : function(row, col) {
                         this.base(arguments);
-
                         this.m_row = row;
                         this.m_col = col;
-
                         this.set({
                             decorator : "desktop"
                         });
@@ -54,7 +48,6 @@ qx.Class
                                 }
                             }, this);
                            
-
                             this.m_window.addListener("maximizeWindow",
                                             function() {
                                                 var appRoot = this
@@ -62,8 +55,7 @@ qx.Class
                                                 appRoot.add(this.m_window);
                                             }, this);
 
-                            this.addListener("resize", this._resetWindowSize,
-                                    this);
+                            this.addListener("resize", this._resetWindowSize, this);
                             
                         },
                         
@@ -93,9 +85,7 @@ qx.Class
                         /**
                          * Loads the data.
                          * 
-                         * @param path
-                         *                {String} the location or lookup for
-                         *                the data.
+                         * @param path {String} the location or lookup for the data.
                          */
                         dataLoaded : function(path) {
                             if (this.m_window !== null) {
@@ -106,9 +96,7 @@ qx.Class
                         /**
                          * Removes the data.
                          * 
-                         * @param path
-                         *                {String} the location or identifier
-                         *                for the data.
+                         * @param path {String} the location or identifier for the data.
                          */
                         dataUnloaded : function(path) {
                             if (this.m_window !== null) {
@@ -310,12 +298,12 @@ qx.Class
                             var target = true;
                             if (rowIndex !== this.m_row || colIndex !== this.m_col) {
                                 target = false;
-                            } else {
-                                this.setHeight(height);
+                            } 
+                            else {
+                                this.setHeight( height );
                             }
                             return target;
                         },
-
                         
                         /**
                          * Returns whether or not the width was set based on the

@@ -61,6 +61,12 @@ ParsedInfo parse(const QString & filePath)
         qDebug() << "Hacks enabled:" << info.m_hacksEnabled << raw;
     }
 
+    // developer layout
+    QString devLayoutStr = json[ "developerLayout"].toString().toLower();
+    info.m_developerLayout = ( devLayoutStr == "yes" || devLayoutStr == "true" ||
+            devLayoutStr == "1" || devLayoutStr == "y");
+    qDebug() << "Developer layout:" << info.m_developerLayout << devLayoutStr;
+
     return info;
 }
 
@@ -72,6 +78,10 @@ const QStringList & ParsedInfo::pluginDirectories() const
 bool ParsedInfo::hacksEnabled() const
 {
     return m_hacksEnabled;
+}
+
+bool ParsedInfo::isDeveloperLayout() const {
+    return m_developerLayout;
 }
 
 } // namespace MainConfig

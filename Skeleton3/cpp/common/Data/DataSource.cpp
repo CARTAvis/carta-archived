@@ -58,8 +58,8 @@ bool DataSource::setFileName( const QString& fileName ){
     if (m_fileName.length() > 0) {
         try {
             m_image = Globals::instance()-> pluginManager()
-                      -> prepare <Carta::Lib::Hooks::LoadAstroImage>( m_fileName )
-                      .first().val();
+                                  -> prepare <Carta::Lib::Hooks::LoadAstroImage>( m_fileName )
+                                  .first().val();
             m_coordinateFormatter = m_image-> metaData()-> coordinateFormatter();
             CoordinateFormatterInterface::VD pixel;
             pixel.resize( m_coordinateFormatter->nAxes(), 0 );

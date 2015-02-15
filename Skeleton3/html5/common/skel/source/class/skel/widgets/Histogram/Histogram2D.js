@@ -78,10 +78,12 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
          * @param footPrint {String} identifier for the type of 2D footprint.
          */
         _sendFootPrintCmd : function( footPrint ){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.Histogram2D.CMD_SET_2D_FOOTPRINT;
-            var params = "twoDFootPrint:"+footPrint;
-            this.m_connector.sendCommand( cmd, params, this._errorFootPrintCB(this));
+            if ( this.m_id !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.Histogram2D.CMD_SET_2D_FOOTPRINT;
+                var params = "twoDFootPrint:"+footPrint;
+                this.m_connector.sendCommand( cmd, params, this._errorFootPrintCB(this));
+            }
         },
         
         /**

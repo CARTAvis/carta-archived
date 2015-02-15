@@ -13,15 +13,28 @@ qx.Class.define("skel.widgets.Command.CommandClipValue", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + path.CLIP_VALUE;
         this.base( arguments, label, cmd);
+        this.m_toolBarVisible = true;
     },
     
     members : {
 
         doAction : function( vals, objectIDs, undoCB ){
             var path = skel.widgets.Path.getInstance();
-            var params = this.m_params + vals;
-            for ( var i = 0; i < objectIDs.length; i++ ){
-               this.sendCommand( objectIDs[i], params, undoCB );
+            var label = this.m_title;
+            //Remove the %
+            label = label.substring( 0, label.length - 1);
+            //Change to a decimal
+            label = label / 100;
+            var params = this.m_params + label;
+            var errMan = skel.widgets.ErrorHandler.getInstance();
+            if ( objectIDs.length > 0 ){
+                for ( var i = 0; i < objectIDs.length; i++ ){
+                    this.sendCommand( objectIDs[i], params, undoCB );
+                }
+                errMan.clearErrors();
+            }
+            else {
+                errMan.updateErrors( "Please select an image to clip.");
             }
         },
         

@@ -49,6 +49,11 @@ public:
      */
     void setPlugins( const QStringList& names);
 
+     /**
+     * Set a layout showing widgets currently under development.
+     */
+    void setLayoutDeveloper();
+
     /**
      * Set a predefined layout displaying only a single image.
      */

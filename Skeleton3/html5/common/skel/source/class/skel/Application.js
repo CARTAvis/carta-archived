@@ -126,18 +126,6 @@ qx.Class.define( "skel.Application",
          */
             _initMenuBar: function(){
                 this.m_menuBar = new skel.widgets.Menu.MenuBar();
-                this.m_menuBar.addListener( "layoutImage", function()
-                {
-                    this._hideWindows();
-                    this.m_desktop.layoutImage();
-                }, this );
-
-                this.m_menuBar.addListener( "layoutAnalysis", function()
-                {
-                    this._hideWindows();
-                    this.m_desktop.layoutAnalysis();
-                }, this );
-
                 this.m_menuBar.addListener( "layoutRowCount", function( ev )
                 {
                     this._hideWindows();

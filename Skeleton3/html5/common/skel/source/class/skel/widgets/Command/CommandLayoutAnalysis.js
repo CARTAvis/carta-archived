@@ -10,6 +10,7 @@ qx.Class.define("skel.widgets.Command.CommandLayoutAnalysis", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setAnalysisLayout";
         this.base( arguments, "Analysis Layout", cmd);
+        this.m_toolBarVisible = false;
     },
     
     members : {

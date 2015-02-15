@@ -63,33 +63,48 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 }
 
 void ViewManager::_clear(){
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        m_controllers[i]->clear();
-    }
-    m_controllers.clear();
-    int animCount = getAnimatorCount();
-    for ( int i = 0; i < animCount; i++ ){
-        m_animators[i]->clear();
-    }
-    m_animators.clear();
-    int colorCount = getColorMapCount();
-    for ( int i = 0; i < colorCount; i++ ){
-        m_colormaps[i]->clear();
-    }
-    m_colormaps.clear();
-    int histCount = getHistogramCount();
-    for ( int i = 0; i < histCount; i++ ){
-        m_histograms[i]->clear();
-    }
-    m_histograms.clear();
-    int statCount = getStatisticsCount();
-    for ( int i = 0; i < statCount; i++ ){
-        m_statistics[i]->clear();
-    }
-    m_statistics.clear();
+    _clearControllers( 0 );
+    _clearAnimators( 0 );
+    _clearColormaps( 0 );
+    _clearHistograms( 0 );
+    _clearStatistics( 0 );
     if ( m_layout != nullptr ){
         m_layout->clear();
+    }
+}
+
+void ViewManager::_clearControllers( int startIndex ){
+    int controlCount = m_controllers.size();
+    for ( int i = startIndex; i < controlCount; i++ ){
+        m_controllers.pop_back();
+    }
+}
+
+void ViewManager::_clearAnimators( int startIndex ){
+    int animCount = m_animators.size();
+    for ( int i = startIndex; i < animCount; i++ ){
+        m_animators.pop_back();
+    }
+}
+
+void ViewManager::_clearColormaps( int startIndex ){
+    int colorCount = m_colormaps.size();
+    for ( int i = startIndex; i < colorCount; i++ ){
+        m_colormaps.pop_back();
+    }
+}
+
+void ViewManager::_clearHistograms( int startIndex ){
+    int histCount = m_histograms.size();
+    for ( int i = startIndex; i < histCount; i++ ){
+        m_histograms.pop_back();
+    }
+}
+
+void ViewManager::_clearStatistics( int startIndex ){
+    int statCount = m_statistics.size();
+    for ( int i = startIndex; i < statCount; i++ ){
+        m_statistics.pop_back();
     }
 }
 
@@ -299,7 +314,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_controllers[index]->getPath();
         }
         else {
-            viewId = _makeController();
+            viewId = _makeController(index+1);
         }
     }
     else if ( plugin == Animator::CLASS_NAME ){
@@ -307,7 +322,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_animators[index]->getPath();
         }
         else {
-            viewId = _makeAnimator();
+            viewId = _makeAnimator(index+1);
         }
     }
     else if ( plugin == Colormap::CLASS_NAME ){
@@ -315,7 +330,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_colormaps[index]->getPath();
         }
         else {
-            viewId = _makeColorMap();
+            viewId = _makeColorMap(index+1);
         }
     }
     else if ( plugin == Histogram::CLASS_NAME ){
@@ -323,7 +338,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_histograms[index]->getPath();
         }
         else {
-            viewId = _makeHistogram();
+            viewId = _makeHistogram(index+1);
         }
     }
     else if ( plugin == Statistics::CLASS_NAME ){
@@ -331,7 +346,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_statistics[index]->getPath();
         }
         else {
-            viewId = _makeStatistics();
+            viewId = _makeStatistics(index+1);
         }
     }
     else if ( plugin == ViewPlugins::CLASS_NAME ){
@@ -400,25 +415,41 @@ int ViewManager::getStatisticsCount() const {
     return statisticsCount;
 }
 
-QString ViewManager::_makeAnimator(){
-    CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
-    std::shared_ptr<Animator> target( dynamic_cast<Animator*>(animObj) );
-    m_animators.append(target);
-    return target->getPath();
+QString ViewManager::_makeAnimator( int maxCount ){
+    int currentCount = m_animators.size();
+    if ( currentCount < maxCount ){
+        for ( int i = currentCount; i < maxCount; i++ ){
+            CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
+            std::shared_ptr<Animator> animator( dynamic_cast<Animator*>(animObj) );
+            m_animators.append(animator);
+        }
+    }
+    QString path = m_animators[maxCount-1] ->getPath();
+    return path;
 }
 
-QString ViewManager::_makeColorMap(){
-   CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
-   std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
-   m_colormaps.append(target);
-   return target->getPath();
+QString ViewManager::_makeColorMap( int maxCount ){
+    int currentCount = m_colormaps.size();
+    if ( currentCount < maxCount ){
+        for ( int i = currentCount; i < maxCount; i++  ){
+            CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
+            std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
+            m_colormaps.append(target);
+        }
+    }
+   return m_colormaps[maxCount-1]->getPath();
 }
 
-QString ViewManager::_makeController(){
-    CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
-    std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
-    m_controllers.append(target);
-    return target->getPath();
+QString ViewManager::_makeController( int maxCount ){
+    int currentCount = m_controllers.size();
+    if ( currentCount < maxCount ){
+        for ( int i = currentCount; i < maxCount; i++ ){
+            CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
+            std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
+            m_controllers.append(target);
+        }
+    }
+    return m_controllers[maxCount-1]->getPath();
 }
 
 void ViewManager::_makeDataLoader(){
@@ -428,11 +459,16 @@ void ViewManager::_makeDataLoader(){
     }
 }
 
-QString ViewManager::_makeHistogram(){
-    CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
-    std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
-    m_histograms.append(target);
-    return target->getPath();
+QString ViewManager::_makeHistogram( int maxCount ){
+    int currentCount = m_histograms.size();
+    if ( currentCount < maxCount ){
+        for ( int i = currentCount; i < maxCount; i++ ){
+            CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
+            std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
+            m_histograms.append(target);
+        }
+    }
+    return m_histograms[maxCount - 1]->getPath();
 }
 
 QString ViewManager::_makeLayout(){
@@ -454,11 +490,16 @@ QString ViewManager::_makePluginList(){
     return pluginsPath;
 }
 
-QString ViewManager::_makeStatistics(){
-    CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
-    std::shared_ptr<Statistics> target( dynamic_cast<Statistics*>(controlObj) );
-    m_statistics.append(target);
-    return target->getPath();
+QString ViewManager::_makeStatistics( int maxCount ){
+    int currentCount = m_statistics.size();
+    if (currentCount < maxCount ){
+        for ( int i = currentCount; i < maxCount; i++ ){
+            CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
+            std::shared_ptr<Statistics> target( dynamic_cast<Statistics*>(controlObj) );
+            m_statistics.append(target);
+        }
+    }
+    return m_statistics[maxCount-1]->getPath();
 }
 
 bool ViewManager::_readState( const QString& saveName ){
@@ -470,16 +511,20 @@ bool ViewManager::_readState( const QString& saveName ){
 
         //Make the controllers specified in the state.
         QList<std::pair<QString,QString> > controllerStates = reader.getViews(Controller::CLASS_NAME);
+        int count = 0;
         for ( std::pair<QString,QString> state : controllerStates ){
-            _makeController();
-            m_controllers[getControllerCount() - 1]->resetState( state.second );
+            count++;
+            _makeController(count);
+            m_controllers[count - 1]->resetState( state.second );
         }
 
         //Make the animators specified in the state.
+        count = 0;
         QList< std::pair<QString,QString> > animatorStates = reader.getViews(Animator::CLASS_NAME);
         for ( std::pair<QString,QString> state : animatorStates ){
-            _makeAnimator();
-            int animIndex = getAnimatorCount() - 1;
+            count++;
+            _makeAnimator( count );
+            int animIndex = count - 1;
             m_animators[ animIndex ]->resetState( state.second );
 
             //Now see if this animator needs to be linked to any of the controllers
@@ -501,23 +546,25 @@ bool ViewManager::_readState( const QString& saveName ){
 }
 
 void ViewManager::setAnalysisView(){
-    qDebug() << "(JT) ViewManager::setAnalysisView()";
-    _clear();
+    _clearControllers( 1 );
+    _clearAnimators( 1 );
+     _clearColormaps( 1 );
+    _clearHistograms( 0 );
+    _clearStatistics( 1 );
+
     if ( m_layout == nullptr ){
         _makeLayout();
     }
     m_layout->setLayoutAnalysis();
 
     //Create the view objects
-    _makeAnimator();
-    _makeController();
-    _makeHistogram();
-    _makeColorMap();
-    _makeStatistics();
+    _makeAnimator(1);
+    _makeController(1);
+    _makeColorMap(1);
+    _makeStatistics(1);
 
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
-    m_histograms[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
 }
@@ -551,13 +598,44 @@ void ViewManager::setCustomView( int rows, int cols ){
     qDebug() << "(JT) ViewManager::setCustomView() result = " << result;
 }
 
+void ViewManager::setDeveloperView(){
+
+    _clearControllers( 1 );
+    _clearAnimators( 1 );
+    _clearColormaps( 1 );
+    _clearHistograms( 1 );
+    _clearStatistics( 1 );
+
+    //Create the view objects
+    _makeAnimator(1);
+    _makeController(1);
+    _makeColorMap(1);
+    _makeHistogram(1);
+    _makeStatistics(1);
+
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    m_layout->setLayoutDeveloper();
+
+    //Add the links to establish reasonable defaults.
+    m_animators[0]->addLink( m_controllers[0]);
+    m_histograms[0]->addLink( m_controllers[0]);
+    m_colormaps[0]->addLink( m_controllers[0]);
+    m_statistics[0]->addLink( m_controllers[0]);
+}
+
 void ViewManager::setImageView(){
-    _clear();
+    _clearControllers( 1 );
+     _clearAnimators( 0 );
+     _clearColormaps( 0 );
+     _clearHistograms( 0 );
+    _clearStatistics( 0 );
     if ( m_layout == nullptr ){
         _makeLayout();
     }
     m_layout->setLayoutImage();
-    _makeController();
+    _makeController(1);
 }
 
 void ViewManager::setPlugins( const QStringList& names ){

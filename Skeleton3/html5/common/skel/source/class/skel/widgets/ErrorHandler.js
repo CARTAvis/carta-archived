@@ -23,6 +23,15 @@ qx.Class.define("skel.widgets.ErrorHandler", {
 
     members : {
         /**
+         * Clear the status bar of errors
+         */
+        clearErrors : function(){
+            if ( this.m_statusBar !== null ){
+                this.m_statusBar.clearMessages();
+            }
+        },
+        
+        /**
          * Callback for an error status change on the server.
          */
         _errorStatusCB : function(){
@@ -51,7 +60,7 @@ qx.Class.define("skel.widgets.ErrorHandler", {
          */
         _getErrorListCB : function( anObject ){
             return function( errorList ){
-                anObject._updateErrors( errorList );
+                anObject.updateErrors( errorList );
             };
         },
         
@@ -67,7 +76,7 @@ qx.Class.define("skel.widgets.ErrorHandler", {
          * Posts the errors to the user for viewing.
          * @param errors {String} a list of messages/errors for display to the user.
          */
-        _updateErrors : function( errors ){
+        updateErrors : function( errors ){
             if ( this.m_statusBar !== null ){
                 this.m_statusBar.showErrors( errors );
             }

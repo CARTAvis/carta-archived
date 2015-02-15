@@ -647,10 +647,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendFrameRate : function() {
             if ( this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_animId + path.SEP_COMMAND + "setFrameRate";
-                var params = "frameRate:"+this.m_speedSpinBox.getValue();
-                this.m_connector.sendCommand( cmd, params, function(){});
+                if ( this.m_animId !== null && this.m_animId.length() > 0 ){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_animId + path.SEP_COMMAND + "setFrameRate";
+                    var params = "frameRate:"+this.m_speedSpinBox.getValue();
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
             }
         },
         

@@ -91,6 +91,10 @@ int main(int argc, char ** argv)
     if( globals.mainConfig()-> hacksEnabled()) {
         hackViewer.reset( new HackViewer);
     }
+    if ( globals.mainConfig()->isDeveloperLayout()){
+       viewer.setDeveloperView();
+    }
+
     // prepare closure to execute when connector is initialized
     IConnector::InitializeCallback initCB = [&](bool valid) -> void {
         if( ! valid) {

@@ -37,9 +37,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
     },
 
     events : {
-
-        "layoutImage" : "qx.event.type.Data",
-        "layoutAnalysis" : "qx.event.type.Data",
         "layoutRowCount" : "qx.event.type.Data",
         "layoutColCount" : "qx.event.type.Data",
         "menuAlwaysVisible" : "qx.event.type.Data",
@@ -223,12 +220,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             var layoutMenu = new qx.ui.menu.Menu();
             var cmdImageLayout = skel.widgets.Command.CommandLayoutImage.getInstance();
             var layoutImageButton = this._makeButton( cmdImageLayout, function(){});
-            /*var cmdAction = cmdImageLayout.getAction( this );
-            layoutImageButton.addListener("execute",
-                    function() {
-                        cmdImageLayout.doAction( "", this.m_activeWindowIds, null);
-                        //this.fireDataEvent("layoutImage", "");
-                    }, this);*/
             layoutMenu.add(layoutImageButton);
             var cmdAnalysisLayout = skel.widgets.Command.CommandLayoutAnalysis.getInstance();
             var layoutAnalysisButton = this._makeButton( cmdAnalysisLayout, function(){} );
