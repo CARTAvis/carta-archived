@@ -54,7 +54,8 @@ void ScriptedCommandListener::socketDataCB()
 
 QString ScriptedCommandListener::dataTransporter( QString input )
 {
-    qDebug() << "(JT) ScriptedCommandListener::dataTransporter()";
-    qDebug() << "input = " << input;
+    //qDebug() << "(JT) ScriptedCommandListener::dataTransporter()";
+    //qDebug() << "input = " << input;
+    m_connection->write( input.toLocal8Bit() );
     return input;
 }

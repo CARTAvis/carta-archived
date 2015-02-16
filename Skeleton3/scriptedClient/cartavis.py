@@ -65,9 +65,11 @@ class Application:
 
     def getColorMaps(self, substring=""):
         self.socket.sendall("getColorMaps " + substring + "\n")
+        return self.socket.recv(4096)
 
     def getFileList(self, substring=""):
         self.socket.sendall("getFileList " + substring + "\n")
+        return self.socket.recv(4096)
 
     def loadFile(self, imageViewId, fileName):
         self.socket.sendall("loadFile " + imageViewId + " " + fileName + "\n")
@@ -83,15 +85,19 @@ class Application:
 
     def getImageViews(self):
         self.socket.sendall("getImageViews" + "\n")
+        return self.socket.recv(4096)
 
     def getColorMapViews(self):
         self.socket.sendall("getColorMapViews" + "\n")
+        return self.socket.recv(4096)
 
     def getAnimatorViews(self):
         self.socket.sendall("getAnimatorViews" + "\n")
+        return self.socket.recv(4096)
 
     def getHistogramViews(self):
         self.socket.sendall("getHistogramViews" + "\n")
+        return self.socket.recv(4096)
 
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
