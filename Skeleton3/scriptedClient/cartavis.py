@@ -99,6 +99,10 @@ class Application:
         self.socket.sendall("getHistogramViews" + "\n")
         return self.socket.recv(4096)
 
+    def getStatisticsViews(self):
+        self.socket.sendall("getStatisticsViews" + "\n")
+        return self.socket.recv(4096)
+
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
 
@@ -121,6 +125,9 @@ class Application:
 
     def setFrame(self, animatorId, index):
         self.socket.sendall("setFrame " + animatorId + " " + index + "\n")
+
+    def setClipValue(self, imageViewId, index):
+        self.socket.sendall("setClipValue " + imageViewId + " " + index + "\n")
 
     def saveState(self, saveName):
         self.socket.sendall("saveState " + saveName + "\n")
