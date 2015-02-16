@@ -54,14 +54,26 @@ namespace Carta
 {
 namespace Lib
 {
+///
+/// \brief print out a message and abort
+/// \param assertion message to print
+/// \param file file where the error occurred
+/// \param func function where the error occurred
+/// \param line line number where the error occurred
+/// \param extraMessage optional extra message
+///
 inline
 void
-cartaAssert( const char * assertion, const char * file, const char * func, int line )
+cartaAssertAbort( const char * assertion, const char * file, const char * func, int line,
+                  QString extraMessage = "")
 {
     std::cerr << "ASSERT: " << assertion << "\n"
               << "....in: " << file << ":" << line << "\n"
-              << ".func.: " << func << "\n"
-              << "Aborting now, sorry\n";
+              << "..func: " << func << "\n";
+    if( ! extraMessage.isEmpty()) {
+        std::cerr << "...msg: " << extraMessage.toStdString() << "\n";
+    }
+    std::cerr << "Aborting now!\n";
     std::abort();
 }
 }
@@ -69,18 +81,20 @@ cartaAssert( const char * assertion, const char * file, const char * func, int l
 
 /// You can use this macro to always perform the assert, but be careful because
 /// it will coredump, leaving user upset... It's like the blue screen of death :)
-#define CARTA_ASSERT_ALWAYS( cond ) \
-    ( ( ! ( cond ) ) ? Carta::Lib::cartaAssert( # cond, __FILE__, __PRETTY_FUNCTION__, \
-                                                __LINE__ ) : qt_noop() )
+#define CARTA_ASSERT_ALWAYS_X( cond, msg ) \
+    ( ( ! ( cond ) ) ? Carta::Lib::cartaAssertAbort( # cond, __FILE__, __PRETTY_FUNCTION__, \
+                                                __LINE__, msg ) : qt_noop() )
 
+/// assert macro that is compiled out in release, with additional message
 #ifdef CARTA_RUNTIME_CHECKS
+#define CARTA_ASSERT_X( cond, msg ) CARTA_ASSERT_ALWAYS_X( cond, msg )
+#else
+#define CARTA_ASSERT_X( cond, msg ) qt_noop();
+#endif
 
 /// use this macro for regular development, it will be compiled out
 /// in a release build
-#define CARTA_ASSERT( cond ) CARTA_ASSERT_ALWAYS( cond )
-#else
-#define CARTA_ASSERT( cond ) qt_noop();
-#endif
+#define CARTA_ASSERT( cond ) CARTA_ASSERT_X( cond, "")
 
 /// @todo move everything below to Carta::Lib namespace
 
@@ -141,6 +155,13 @@ swap_ordered( T & v1, T & v2 )
     if ( v1 > v2 ) {
         std::swap( v1, v2 );
     }
+}
+
+/// helper to convert double to base64
+namespace Carta {
+namespace Lib {
+QString double2base64( double x);
+}
 }
 
 // ===-----------------------------------------------------------------------------===

@@ -17,11 +17,12 @@ namespace PixelPipeline
 /// NaN takes a different path, the following are for non-nans
 ///
 /// - stage 0: double -> double (clamping)
+///   - this is where values are clamped to fall between clip values
 ///   - not configurable
 /// - stage 1: double -> double
 ///   - this can have multiple double -> double steps
 ///   - min/max is carried through
-///   - configurable
+///   - configurable (reverse,scale eg. power,log)
 /// - stage 2: normalization double -> [0..1]
 ///    - not configurable
 /// - stage 3: [0..1] -> DRgb
@@ -73,7 +74,7 @@ public:
 };
 
 /// interface for implementing stage 1 (double-> double)
-/// but as a stage in the staged pipeline, so it needs concept of min/max
+/// we add here the concept of min/max
 class IStage1 : public Id2d
 {
     CLASS_BOILERPLATE( IStage1 );
