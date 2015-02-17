@@ -198,11 +198,11 @@ Viewer::scriptedCommandCB( QString command )
             substring = args[1];
             //qDebug() << "substring: " << substring;
         }
-//        Document fileListJson;
-//        fileListJson.Parse(fileList.toStdString().c_str());
-//        const Value& dir = fileListJson["dir"];
-//        _parseDirectory( dir, "" );
-        m_scl->dataTransporter( fileList );
+        Document fileListJson;
+        fileListJson.Parse(fileList.toStdString().c_str());
+        const Value& dir = fileListJson["dir"];
+        QStringList fileListList = _parseDirectory( dir, "" );
+        m_scl->dataTransporter( fileListList.join(',') );
     }
 
     // command: setAnalysisLayout
@@ -265,23 +265,28 @@ Viewer::scriptedCommandCB( QString command )
     }
 } // scriptedCommandCB
 
-void Viewer::_parseDirectory( const Value& dir, QString prefix )
+QStringList Viewer::_parseDirectory( const Value& dir, QString prefix )
 {
+    QStringList fileList;
     for (rapidjson::SizeType i = 0; i < dir.Size(); i++)
     {
         const Value& name = dir[i];
         QString filename = QString::fromStdString(name["name"].GetString());
         if (name.HasMember("dir")) {
             const Value& subdir = name["dir"];
-            _parseDirectory( subdir, prefix + "/" + filename );
+            QStringList subFileList = _parseDirectory( subdir, prefix + "/" + filename );
+            fileList.append( subFileList );
         }
         else {
             if (prefix != "")
             {
                 filename = prefix + "/" + filename;
             }
-            const char *printableName = filename.toLocal8Bit().constData();
-            printf("%s \n", printableName);
+            fileList.append(filename);
+            //const char *printableName = filename.toLocal8Bit().constData();
+            //printf("%s \n", printableName);
         }
-    }        
+    }
+    //return fileList.join(',');
+    return fileList;
 }

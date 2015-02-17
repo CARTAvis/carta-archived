@@ -48,6 +48,11 @@ class Application:
         lastPort = lastPort + 1;
         return
 
+    def __getListFromSocket(self):
+        stringData = self.socket.recv(4096)
+        listData = stringData.split(',')
+        return listData
+
     # It would be nice if this function could actually tun the GUI on and off
     # with whatever the current state is.
     def setGuiVisible(self,flag):
@@ -65,11 +70,13 @@ class Application:
 
     def getColorMaps(self, substring=""):
         self.socket.sendall("getColorMaps " + substring + "\n")
-        return self.socket.recv(4096)
+        colorMapsList = self.__getListFromSocket()
+        return colorMapsList
 
     def getFileList(self, substring=""):
         self.socket.sendall("getFileList " + substring + "\n")
-        return self.socket.recv(4096)
+        fileList = self.__getListFromSocket()
+        return fileList
 
     def loadFile(self, imageViewId, fileName):
         self.socket.sendall("loadFile " + imageViewId + " " + fileName + "\n")
@@ -85,23 +92,28 @@ class Application:
 
     def getImageViews(self):
         self.socket.sendall("getImageViews" + "\n")
-        return self.socket.recv(4096)
+        imageViewsList = self.__getListFromSocket()
+        return imageViewsList
 
     def getColorMapViews(self):
         self.socket.sendall("getColorMapViews" + "\n")
-        return self.socket.recv(4096)
+        colorMapViewsList = self.__getListFromSocket()
+        return colorMapViewsList
 
     def getAnimatorViews(self):
         self.socket.sendall("getAnimatorViews" + "\n")
-        return self.socket.recv(4096)
+        animatorViewsList = self.__getListFromSocket()
+        return animatorViewsList
 
     def getHistogramViews(self):
         self.socket.sendall("getHistogramViews" + "\n")
-        return self.socket.recv(4096)
+        histogramViewsList = self.__getListFromSocket()
+        return histogramViewsList
 
     def getStatisticsViews(self):
         self.socket.sendall("getStatisticsViews" + "\n")
-        return self.socket.recv(4096)
+        statisticsViewsList = self.__getListFromSocket()
+        return statisticsViewsList
 
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")

@@ -66,6 +66,6 @@ private:
 
 private:
     /// Recursively parse through a directory structure contained in a json value
-    void _parseDirectory( const Value& dir, QString prefix );
+    QStringList _parseDirectory( const Value& dir, QString prefix );
 };
 
