@@ -1,16 +1,39 @@
 The Externals is a symlink that points to a directory outside of the
-source tree (i.e. it is not managed by git).
+source tree (i.e. it is not managed by git):
 
-The structure of the external directory looks like this on my (Pavol) machine. You should adjust yours to look similarly:
+        Externals -> ../CARTAvis-externals
 
-pfederl@snail$ find ../CARTAvis-externals -printf '%p -> %l\n'
-../CARTAvis-externals -> 
-../CARTAvis-externals/ThirdParty -> 
-../CARTAvis-externals/ThirdParty/qwt -> /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
-../CARTAvis-externals/ThirdParty/qooxdoo-3.5-sdk -> /home/pfederl/Software/qooxdoo-3.5-sdk
-../CARTAvis-externals/ThirdParty/qooxdoo-4.0.1-sdk -> /home/pfederl/Software/qooxdoo-4.0.1-sdk
-../CARTAvis-externals/ThirdParty/pureweb-4.1.1-sdk -> /home/pfederl/Work/Software/PureWeb/4.1.1/SDK
-../CARTAvis-externals/ThirdParty/cfitsio-3360-shared -> /home/pfederl/Software/cfitsio3360shared
-../CARTAvis-externals/ThirdParty/wcslib-4.23-shared -> /home/pfederl/Software/wcslib-4.23-shared
-../CARTAvis-externals/ThirdParty/rapidjson -> /home/pfederl/Software/rapidjson
-../CARTAvis-externals/ThirdParty/casacore-1.5.0-shared -> /home/pfederl/Software/casacore-1.5.0-shared
+The idea is to put any developer-specific files into
+../CARTAvis-externals directory, rather than storing them in the git
+repo directly. The directory itself is organized into subdirectories:
+
+================================================================================
+ThirdParty/
+================================================================================
+
+ThirdParty contains symbolic links to various libraries that carta
+needs.  On Pavol's machine, the contents look like this and you should
+adjust yours to look similarly:
+
+        qwt -> /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
+        qooxdoo-3.5-sdk -> /home/pfederl/Software/qooxdoo-3.5-sdk
+        qooxdoo-4.0.1-sdk -> /home/pfederl/Software/qooxdoo-4.0.1-sdk
+        pureweb-4.1.1-sdk -> /home/pfederl/Work/Software/PureWeb/4.1.1/SDK
+        cfitsio-3360-shared -> /home/pfederl/Software/cfitsio3360shared
+        wcslib-4.23-shared -> /home/pfederl/Software/wcslib-4.23-shared
+        rapidjson -> /home/pfederl/Software/rapidjson
+        casacore-1.5.0-shared -> /home/pfederl/Software/casacore-1.5.0-shared
+
+================================================================================
+Idea/
+================================================================================
+
+Here are intellij idea settings. If you are not using intellij idea,
+you probably don't care about this.
+
+================================================================================
+QtCreator/
+================================================================================
+
+QtCreator settings. If you are not using Qt creator, you probably
+don't care about this.

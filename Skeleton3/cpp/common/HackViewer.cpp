@@ -553,7 +553,6 @@ HackViewer::start()
         m_imageViewController-> setPPCsettings( set);
     });
 
-
     addStateCallback( "cm-current", colormapCB2 );
 
     qDebug() << "HackViewer has been initialized.";
