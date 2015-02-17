@@ -27,7 +27,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         _dataLoadedCB : function(){
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.SuffixedView(this.m_identifier);
+                this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
             }
            
             /*if ( this.m_drawCanvas === null ){
@@ -72,9 +72,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             dataButton.setMenu(this._initDataMenu());
 
             var regionButton = new qx.ui.toolbar.MenuButton("Region");
+            regionButton.setEnabled( false );
             regionButton.setMenu(this._initMenuRegion());
 
             var renderButton = new qx.ui.toolbar.MenuButton("Render");
+            renderButton.setEnabled( false );
             renderButton.setMenu(this._initMenuRender());
             
             var showButton = new qx.ui.toolbar.MenuButton( "Show");

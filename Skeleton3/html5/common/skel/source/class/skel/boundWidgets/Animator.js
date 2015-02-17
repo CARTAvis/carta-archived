@@ -177,7 +177,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _frameRateCB : function(val) {
             if (val !== null ) {
-                if ( val != this.m_speedSpinBox.getValue()){
+                var oldValue = this.m_speedSpinBox.getValue();
+                if ( oldValue != val){
                     this.m_speedSpinBox.setValue(val);
                 }
             }
@@ -647,7 +648,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendFrameRate : function() {
             if ( this.m_connector !== null ){
-                if ( this.m_animId !== null && this.m_animId.length() > 0 ){
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_animId + path.SEP_COMMAND + "setFrameRate";
                     var params = "frameRate:"+this.m_speedSpinBox.getValue();

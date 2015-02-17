@@ -8,6 +8,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/ICoordinateFormatter.h"
+#include "../ImageRenderService.h"
 #include <QImage>
 #include <memory>
 
@@ -18,18 +19,24 @@ namespace NdArray {
 namespace Image {
     class ImageInterface;
 }
+
+class ICoordinateFormatter;
+
 namespace Carta {
-    namespace Core {
-        class RawView2QImageConverter3;
+    namespace Lib {
+        namespace PixelPipeline {
+            class CustomizablePixelPipeline;
+        }
     }
 }
-class ICoordinateFormatter;
 
 namespace Carta {
 
 namespace Data {
 
-class DataSource : public CartaObject {
+class DataSource : public QObject, public CartaObject {
+
+Q_OBJECT
 
 public:
     /**
@@ -60,6 +67,24 @@ public:
     void setColorReversed( bool reversed );
 
     /**
+     * Set whether or not to use pixel caching.
+     * @param enabled true if pixel caching should be used; false otherwise.
+     */
+    void setPixelCaching( bool enabled );
+
+    /**
+     * Set the pixel cache size.
+     * @param size the new pixel cache size.
+     */
+    void setCacheSize( int size );
+
+    /**
+     * Set whether or not to use pixel cache interpolation.
+     * @param enabled true if pixel cache interpolation should be used; false otherwise.
+     */
+    void setCacheInterpolation( bool enabled );
+
+    /**
      * Loads the data source as a QImage.
      * @param frameIndex the channel to load.
      * @param true to force a recompute of the image clip.
@@ -86,7 +111,7 @@ public:
      * @param forceClipRecompute true if the clip should be recomputed; false if
      *      a cached value can be used.
      */
-    QImage load(int frameIndex, bool forceClipRecompute, bool autoClip, float clipValue );
+    void load(int frameIndex, bool forceClipRecompute, bool autoClip, double clipMinPercentile, double clipMaxPercentile );
 
     /**
      * Return the number of channels in the image.
@@ -99,6 +124,32 @@ public:
      * @return the number of image dimensions.
      */
     int getDimensions() const;
+
+    /**
+     * Return the zoom factor for this image.
+     * @return the zoom multiplier.
+     */
+    double getZoom() const;
+
+    /**
+     * Set the center for this image's display.
+     * @param imgX the x-coordinate of the center.
+     * @param imgY the y-coordinate of the center.
+     */
+    void setPan( double imgX, double imgY );
+
+    /**
+     * Set the zoom factor for this image.
+     * @param zoomFactor the zoom multiplier.
+     */
+    void setZoom( double zoomFactor );
+
+    /**
+     * Return the image size for the given coordinate index.
+     * @param coordIndex an index of a coordinate of the image.
+     * @return the corresponding dimension for that coordinate or -1 if none exists.
+     */
+    int getDimension( int coordIndex ) const;
 
     /**
      * Returns the underlying image.
@@ -127,11 +178,26 @@ public:
      * @param pictureHeight the height of the QImage displaying the source.
      */
     QString getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight );
-    //QStringList formatCoordinates( int mouseX, int mouseY, int frameIndex);
+
+    /**
+     * Resize the view of the image.
+     */
+    void viewResize( const QSize& newSize );
+
 
     virtual ~DataSource();
 
     const static QString CLASS_NAME;
+
+signals:
+
+    //Notification that a new image has been produced.
+    void renderingDone( QImage img);
+
+private slots:
+
+    //Notification from the rendering service that a new image has been produced.
+    void _renderingDone( QImage img, Carta::Core::ImageRenderService::JobId jobId );
 
 private:
 
@@ -146,10 +212,8 @@ private:
 
     void _initializeState();
 
-    //Reset the amount of clip to perform on the image.
-    void resetClipValue();
-
-
+    void _updateClips( NdArray::RawViewInterface::SharedPtr& view, int frameIndex,
+            double minClipPercentile, double maxClipPercentile );
 
     //Path for loading data - todo-- do we need to store this?
     QString m_fileName;
@@ -164,12 +228,19 @@ private:
     std::shared_ptr<Image::ImageInterface> m_image;
 
     /// pointer to the rendering algorithm
-    //std::shared_ptr<RawView2QImageConverter3> m_rawView2QImageConverter;
-    std::unique_ptr<Carta::Core::RawView2QImageConverter3> m_rawView2QImageConverter;
+    //std::unique_ptr<Carta::Core::RawView2QImageConverter3> m_rawView2QImageConverter;
 
     /// coordinate formatter
     CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
 
+    /// clip cache, hard-coded to single quantile
+    std::vector< std::vector<double> > m_quantileCache;
+
+    /// the rendering service
+    std::unique_ptr<Carta::Core::ImageRenderService::Service> m_renderService;
+
+    ///pixel pipeline
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
 };
 }
 }

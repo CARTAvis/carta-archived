@@ -1,22 +1,13 @@
-//#include "Viewer.h"
 #include "IView.h"
-//#include "Globals.h"
-//#include "IPlatform.h"
-//#include "IConnector.h"
-//#include "misc.h"
-//#include "PluginManager.h"
-//#include "Data/DataController.h"
-//#include <iostream>
 #include <QImage>
 #include <QColor>
-//#include <QPainter>
-//#include <cmath>
-//#include <QCoreApplication>
 
 class IConnector;
 class StateInterface;
 
-class ImageView: public IView {
+class ImageView: public QObject, public IView {
+
+Q_OBJECT
 
 public:
 
@@ -34,6 +25,11 @@ public:
     static const QString MOUSE_X;
     static const QString MOUSE_Y;
     static const QString VIEW;
+
+signals:
+    //Signal the image needs to be resized.
+    void resize( const QSize& size );
+
 protected:
 
     void redrawBuffer();

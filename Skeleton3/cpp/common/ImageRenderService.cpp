@@ -278,7 +278,7 @@ Service::internalRenderSlot( JobId jobId )
 
     // prepare output
     QImage img( m_outputSize, QImage::Format_ARGB32 );
-    img.fill( QColor( "blue" ) );
+    img.fill( QColor( "#E0E0E0" ) );
     QPainter p( & img );
 
     // draw the frame image to satisfy zoom/pan

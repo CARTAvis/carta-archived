@@ -64,6 +64,14 @@ public:
       * @param revertValue {QString} a string representation of the last valid value
       */
      static QString commandPostProcess( const QString& errorMsg, const QString& revertValue );
+
+     /**
+      * Converts a string containing doubles with a separator between them to a vector.
+      * @param sep {QString} the separator.
+      * @param s {QString} a string containing doubles separated by a delimiter.
+      * @return a vector of doubles.
+      */
+     static std::vector < double > string2VectorDouble( QString s, QString sep = " " );
 private:
     Util();
     virtual ~Util();

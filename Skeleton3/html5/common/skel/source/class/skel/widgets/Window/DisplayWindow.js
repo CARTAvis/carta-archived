@@ -358,6 +358,26 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                             pluginMenu.add(nameButton);
                         }
                     }
+                    
+                    //So the user does not permanently lose the menu bar.
+                    var showMenuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+                    var label = showMenuCmd.getLabel();
+                    var checkBox = new qx.ui.menu.CheckBox( label );
+                    checkBox.setValue( showMenuCmd.getValue());
+
+                    //Updates from the GUI to server
+                    checkBox.addListener("execute", function() {
+                        showMenuCmd.doAction( this.getValue(), null, null);
+                    }, checkBox);
+                   
+                    //Updates from the server to GUI
+                    showMenuCmd.addListener( "cmdValueChanged", function(evt){
+                        var data = evt.getData();
+                        if ( data.value !== this.getValue()){
+                            this.setValue( data.value );
+                        }
+                    }, checkBox);
+                    pluginMenu.add( checkBox );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );

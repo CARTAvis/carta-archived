@@ -8,16 +8,16 @@
 
 /**
  *
- * This is a simple extension of the raw skel.boundWidgets.View, where we append a suffix
+ * This is a simple extension of the raw skel.boundWidgets.View.View, where we append a suffix
  * to the end of the view name. The suffix is usually '/view', but it is determined
  * by calling an external singleton, i.e.:
  *
  * suffix = skel.widgets.Path.getInstance().SEP + skel.widgets.Path.getInstance().VIEW
  *
  */
-qx.Class.define( "skel.boundWidgets.SuffixedView", {
+qx.Class.define( "skel.boundWidgets.View.SuffixedView", {
 
-    extend: skel.boundWidgets.View,
+    extend: skel.boundWidgets.View.View,
 
     /**
      * @param partialViewName {String} partial name of the view.
