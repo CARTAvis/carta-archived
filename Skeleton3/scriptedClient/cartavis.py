@@ -49,10 +49,16 @@ class Application:
         return
 
     def __getListFromSocket(self):
-        stringData = self.socket.recv(4096)
+        # Get a small amount of data from the socket
+        bufferSize = 10
+        stringData = self.socket.recv(bufferSize)
+        # Figure out its length
         lengthStr, ignored, stringData = stringData.partition(':')
-        length = int(lengthStr)
-        print "In Python, the length of the data is " + lengthStr
+        goodDataLength = int(lengthStr)
+        lengthSoFar = len(stringData)
+        # If more data is needed, grab it before returning
+        if (goodDataLength > bufferSize):
+            stringData = stringData + self.socket.recv(goodDataLength - lengthSoFar)
         listData = stringData.split(',')
         return listData
 

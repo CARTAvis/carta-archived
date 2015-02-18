@@ -34,7 +34,6 @@ QStringList ScriptFacade::getColorMaps() const {
 }
 
 QString ScriptFacade::getFileList() const {
-    qDebug() << "(JT) ScriptFacade::getFileList()";
     QString fileList = m_viewManager->getFileList();
     return fileList;
 }
@@ -111,12 +110,10 @@ QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
 }
 
 void ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
-    qDebug() << "(JT) ScriptFacade::loadFile(" << objectId << ", " << fileName << ")";
     m_viewManager->loadFile( objectId, fileName );
 }
 
 void ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
-    qDebug() << "(JT) ScriptFacade::loadLocalFile(" << objectId << ", " << fileName << ")";
     m_viewManager->loadLocalFile( objectId, fileName );
 }
 
@@ -129,7 +126,6 @@ void ScriptFacade::setCustomLayout( int rows, int cols ){
 }
 
 void ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
-    qDebug() << "(JT) ScriptFacade::setColorMap(" << colormapId << ", " << colormapName << ")";
     m_viewManager->setColorMap( colormapId, colormapName );
 }
 
@@ -142,13 +138,10 @@ void ScriptFacade::setPlugins( const QStringList& names ) {
 }
 
 void ScriptFacade::setFrame( const QString& animatorId, const QString& index ) {
-    qDebug() << "(JT) ScriptFacade::setFrame()";
-    qDebug() << "(JT) index = " << index;
     m_viewManager->setFrame( animatorId, index );
 }
 
 void ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
-    qDebug() << "(JT) ScriptFacade::setClipValue(" << clipValue << ")";
     const QString& param = "clipValue:" + clipValue;
     m_viewManager->setClipValue( controlId, param );
 }

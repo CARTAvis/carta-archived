@@ -54,12 +54,12 @@ void ScriptedCommandListener::socketDataCB()
 
 QString ScriptedCommandListener::dataTransporter( QString input )
 {
-    //qDebug() << "(JT) ScriptedCommandListener::dataTransporter()";
-    //qDebug() << "input = " << input;
     int inputSize = input.size();
-    qDebug() << "(JT) inputSize = " << inputSize;
+    // Prepend the data with "size:"
+    // Python can then partition the incoming data to determine how much data
+    // it should actually be receiving and make a second attempt to get the
+    // rest, if necessary.
     input = QString::number(inputSize) + ":" + input;
-    qDebug() << "(JT) input (with size) = " << input;
     m_connection->write( input.toLocal8Bit() );
     return input;
 }
