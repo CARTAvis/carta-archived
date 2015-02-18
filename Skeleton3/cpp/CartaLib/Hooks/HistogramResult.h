@@ -3,6 +3,7 @@
 
 namespace Carta{
 namespace Lib{
+  namespace Hooks {
 
 class HistogramResult {
   private:
@@ -16,5 +17,6 @@ class HistogramResult {
     ~HistogramResult(){}
     std::vector<std::pair<double,double>> getData() const;
 };
+}
 }
 }

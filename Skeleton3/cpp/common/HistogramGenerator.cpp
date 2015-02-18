@@ -1,12 +1,7 @@
 #include "HistogramGenerator.h"
-#include <qwt_plot.h>
-#include <qwt_plot_renderer.h>
-#include <qwt_samples.h>
-#include <qwt_plot_histogram.h>
-#include <QImage>
-#include <QPaintDevice>
-#include <QString>
-#include <qwt_scale_engine.h>
+
+
+const double HistogramGenerator::EXTRA_RANGE_PERCENT = 0.05;
 
 HistogramGenerator::HistogramGenerator(){
     m_plot = new QwtPlot();
@@ -14,12 +9,18 @@ HistogramGenerator::HistogramGenerator(){
     m_plot->setAxisTitle(QwtPlot::yLeft, QString("count(pixels)"));
     m_plot->setAxisTitle(QwtPlot::xBottom, QString("intensity()"));
 
-    m_histogram = new QwtPlotHistogram();
+    m_histogram = new HistogramPlot();
     m_histogram->attach(m_plot);
+    
+
+    m_height = 335;
+    m_width = 335;
+
+    m_range = new HistogramSelection();
 
 }
 
-void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
+void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data, double minIntensity, double maxIntensity){
 
     QString name = data.getName();
     m_plot->setTitle(name);
@@ -34,15 +35,35 @@ void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
         samples.append(sample);
     }
 
-    m_histogram->setPen(Qt::blue);
+    m_histogram->setSampleCount(dataCount);
+    // m_histogram->setPen(Qt::blue);
     m_histogram->setSamples(samples);
+
+    // QwtPlotHistogram* m_histogram2 = new QwtPlotHistogram();
+    // m_histogram2->attach(m_plot);
+    // m_histogram2->setPen(Qt::red);
+    // m_histogram2->setSamples(samples);
+
+    std::vector<double> range =_getAxisRange(minIntensity, maxIntensity);
+    m_plot->setAxisScale(QwtPlot::xBottom, range[0], range[1]);
+
     m_plot->replot();
 
 }
 
+std::vector<double> HistogramGenerator::_getAxisRange(double minIntensity, double maxIntensity){
+    std::vector<double> result;
+    double difference = maxIntensity - minIntensity;
+    double percent = difference*EXTRA_RANGE_PERCENT;
+    result.push_back((minIntensity - percent));
+    result.push_back((maxIntensity + percent));
+    qDebug()<<"Axis min: "<<result[0]<<" , max: "<<result[1];
+    return result;
+}
+
 QImage * HistogramGenerator::toImage(){
 	QwtPlotRenderer * renderer = new QwtPlotRenderer();
-	QSize size(335,335);
+	QSize size(m_height,m_width);
     QImage * histogramImage =new QImage(size, QImage::Format_RGB32);
     renderer->renderTo(m_plot,*histogramImage);
     return histogramImage;
@@ -67,12 +88,48 @@ void HistogramGenerator::setLogScale(bool display){
         m_histogram->setBaseline(1.0);
 
     }
-
     else{
         m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
         m_histogram->setBaseline(0.0);
     }
     
+
+}
+
+void HistogramGenerator::lineSelected(){
+    // int lowerBound = m_range->getLowerBound();
+    // int upperBound = m_range->getUpperBound();
+    // double lowerBoundWorld = binPlot.invTransform( QwtPlot::xBottom, lowerBound );
+    // double upperBoundWorld = binPlot.invTransform( QwtPlot::xBottom, upperBound );
+    // setMinMaxValues( lowerBoundWorld, upperBoundWorld, false );
+    qDebug()<<"line selected";
+}
+
+void HistogramGenerator::lineMoved( const QPointF& pt ){
+    // m_range->boundaryLineMoved( pt );
+    // m_range->show();
+    // m_plot->replot();
+    qDebug()<<"line moved";
+}
+
+void HistogramGenerator::setHistogramRange(double min, double max){
+    m_range->setHeight(m_height);
+    m_range->setBoundaryValues(min, max);
+    m_range->attach(m_plot);
+
+   //This is what draws the rectangle while it is being dragged.
+    // m_dragLine = new QwtPlotPicker(m_plot->canvas());
+    m_dragLine = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft,
+     QwtPlotPicker::VLineRubberBand, QwtPicker::ActiveOnly, m_plot->canvas());
+
+    m_dragLine -> setStateMachine(new QwtPickerDragLineMachine());
+    connect( m_dragLine, SIGNAL(selected(const QPointF &)), this, SLOT(lineSelected()));
+    connect( m_dragLine, SIGNAL(moved(const QPointF &)), this, SLOT(lineMoved(const QPointF &)));
+    //m_dragLine -> setRubberBand(QwtPlotPicker::VLineRubberBand);
+    //m_dragLine -> setTrackerMode(QwtPlotPicker::ActiveOnly);
+
+
+
 
 }
 

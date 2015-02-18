@@ -35,7 +35,7 @@ private:
      * Returns histogram data in the form of (intensity,count) pairs.
      * @returns a vector (intensity,count) pairs.
      */
-    Carta::Lib::HistogramResult  _computeHistogram( );
+    Carta::Lib::Hooks::HistogramResult  _computeHistogram( );
 
     //Histogram implementation.
     std::shared_ptr<IImageHistogram> m_histogram;

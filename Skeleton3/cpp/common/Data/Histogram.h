@@ -45,6 +45,7 @@ public:
 
 private slots:
     void  _generateHistogram();
+    void _createHistogram();
 
 private:
     NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
@@ -54,8 +55,11 @@ private:
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
+    QString _setClipMin( const QString& params );
+    QString _setClipMax( const QString& params );
     QString _setClipPercent( const QString& params );
-    QString _setClipRange( const QString& params );
+    // QString _setClipMaxPercent( const QString& params );
+    // QString _setClipMinPercent( const QString& params );
     QString _setClipToImage( const QString& params );
     QString _setColored( const QString& params );
     QString _setLogCount( const QString& params );
@@ -96,6 +100,8 @@ private:
     const static QString CLIP_MAX_PERCENT;
     const static QString LINK;
     
+    const static double CLIP_ERROR_MARGIN;
+
     Histogram( const QString& path, const QString& id );
     class Factory;
 

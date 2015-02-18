@@ -33,6 +33,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                         //this.m_rangeSettings.setClipIndex( hist.clipIndex );
                         this.m_rangeSettings.setApplyClipToImage( hist.applyClipToImage );
                         this.m_rangeSettings.setClipPercents( hist.clipMinPercent, hist.clipMaxPercent);
+                        this.m_rangeSettings.setLinks(hist.links);
                     }
                     if ( this.m_cubeSettings !== null ){
                         this.m_cubeSettings.setPlaneMode( hist.planeMode );
@@ -47,6 +48,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_twoDSettings !== null ){
                         this.m_twoDSettings.setFootPrint( hist.twoDFootPrint );
                     }
+
+
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val+" error: "+err );
