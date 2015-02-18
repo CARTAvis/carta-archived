@@ -19,12 +19,21 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             this.m_text = new qx.ui.form.TextField();
             this.setIntegerOnly( true );
             //Only set the value in the textfield if it passes numeric validation.
-            this.m_text.addListener( "keyinput", function( evt ){
-                var textValue = this.m_text.getValue() + evt.getChar();
-                var numValue = Number( textValue );
-                this._setValidValue( numValue );
-                evt.preventDefault();
-            }, this );
+             this.m_text.addListener( "keyinput", function( evt ){
+                var char = evt.getChar();
+                if ( char !== '.' || char !== '0' || char !=='1'||char !=='2' || char !=='3'||
+                        char !=='4'|| char !== '5'|| char !== '6' || char !== '7' || char !== '8'||
+                    char !== '9'){
+                    var textValue = this.m_text.getValue() + char;
+                    var numValue = parseFloat( textValue );
+                    if ( ! this._isValidValue( numValue) ){
+                        evt.preventDefault();
+                    }
+                    else{
+                        this.setValue(numValue);
+                    }
+                }
+            }, this ); 
             //Range validation when field loses focus
             this.m_text.addListener( "changeValue", function( evt ){
                 var numValue = this.getValue();
@@ -77,7 +86,7 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                 var valueStr = this.m_text.getValue();
                 var num = NaN;
                 if ( valueStr !== null ){
-                    num = Number( valueStr );
+                   num = parseFloat(valueStr);
                 }
                 return num;
             },

@@ -61,6 +61,8 @@ HEADERS += \
     ColormapsOptimization.h \
     HackViewer.h \
     HistogramGenerator.h \
+    HistogramSelection.h \
+    HistogramPlot.h \
     ScriptTester.h \
     ScriptFacade.h
     
@@ -110,6 +112,8 @@ SOURCES += \
     HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
     HistogramGenerator.cpp \
+    HistogramSelection.cpp \
+    HistogramPlot.cpp \
     ScriptFacade.cpp \
     ScriptTester.cpp
     
