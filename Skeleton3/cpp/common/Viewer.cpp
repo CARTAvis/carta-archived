@@ -117,28 +117,6 @@ Viewer::scriptedCommandCB( QString command )
         qDebug() << "linkAdd result: " << result;
     }
 
-    // command: getColorMapId
-    else if (args.size() > 0 && args[0].toLower() == "getcolormapid") {
-        int index = -1;
-        if (args.size() > 1) {
-            index = args[1].toInt();
-        }
-        QString colormapId = m_scriptFacade->getColorMapId( index );
-        //cout << qPrintable(colormapId) << endl;
-        m_scl->dataTransporter( colormapId );
-    }
-
-    // command: getImageViewId
-    else if (args.size() > 0 && args[0].toLower() == "getimageviewid") {
-        int index = -1;
-        if (args.size() > 1) {
-            index = args[1].toInt();
-        }
-        QString imageViewId = m_scriptFacade->getImageViewId( index );
-        //cout << qPrintable(imageViewId) << endl;
-        m_scl->dataTransporter( imageViewId );
-    }
-
     // command: getImageViews
     else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
         QStringList imageViews = m_scriptFacade->getImageViews();

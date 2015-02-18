@@ -110,7 +110,6 @@ SOURCES += \
     HistogramGenerator.cpp \
     HistogramSelection.cpp \
     ScriptFacade.cpp \
-    ScriptTester.cpp \
     ImageRenderService.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \

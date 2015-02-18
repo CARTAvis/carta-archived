@@ -19,16 +19,6 @@ class ScriptFacade {
 public:
 
     /**
-     * Return the unique server-side id of the object responsible for displaying an
-     * image in the view.
-     * @param index an index identifying the view for the case where there is more than
-     *      one view displaying an image; the index is zero based for existing views whereas
-     *      the default index will create a view.
-     * @return the unique server side id of the object displaying the image.
-     */
-    QString getImageViewId( int index = -1 ) const;
-
-    /**
      * Return a list of the image views defined by the layout.
      * @return a QStringList containing the id values of image views.
      */
@@ -57,42 +47,6 @@ public:
      * @return a QStringList containing the id values of statistics views.
      */
     QStringList getStatisticsViews();
-
-    /**
-     * Return the unique server side id of the object responsible for managing a color map.
-     * @param index an index identifying the color map in the case that more than one
-     *      color map is being displayed; an index of -1 indicates a new color map should
-     *      be created whereas nonnegative indices refer to existing color maps.
-     * @return the unique server side id of the object managing the color map.
-     */
-    QString getColorMapId( int index = -1 ) const;
-
-    /**
-     * Return the unique server side id of the object responsible for managing an animator.
-     * @param index an index identifying the animator in the case that more than one
-     *      animator is being displayed; an index of -1 indicates a new animator should
-     *      be created whereas nonnegative indices refer to existing animators.
-     * @return the unique server side id of the object managing the animator.
-     */
-    QString getAnimatorViewId( int index = -1 ) const;
-
-    /**
-     * Return the unique server side id of the object responsible for managing a histogram.
-     * @param index an index identifying the histogram in the case that more than one
-     *      histogram is being displayed; an index of -1 indicates a new histogram should
-     *      be created whereas nonnegative indices refer to existing histograms.
-     * @return the unique server side id of the object managing the histogram.
-     */
-    QString getHistogramViewId( int index = -1 ) const;
-
-    /**
-     * Return the unique server side id of the object responsible for managing a statistics view.
-     * @param index an index identifying the statistics view in the case that more than one
-     *      statistics view is being displayed; an index of -1 indicates a new statistics view should
-     *      be created whereas nonnegative indices refer to existing statistics views.
-     * @return the unique server side id of the object managing the statistics view.
-     */
-    QString getStatisticsViewId( int index = -1 ) const;
 
     /**
      * Return a list of the names of colormaps available on the server.
@@ -190,5 +144,51 @@ private:
     ScriptFacade();
     ScriptFacade( const ScriptFacade& other);
     ScriptFacade operator=( const ScriptFacade& other );
+
+    /**
+     * Return the unique server-side id of the object responsible for displaying an
+     * image in the view.
+     * @param index an index identifying the view for the case where there is more than
+     *      one view displaying an image; the index is zero based for existing views whereas
+     *      the default index will create a view.
+     * @return the unique server side id of the object displaying the image.
+     */
+    QString getImageViewId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing a color map.
+     * @param index an index identifying the color map in the case that more than one
+     *      color map is being displayed; an index of -1 indicates a new color map should
+     *      be created whereas nonnegative indices refer to existing color maps.
+     * @return the unique server side id of the object managing the color map.
+     */
+    QString getColorMapId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing an animator.
+     * @param index an index identifying the animator in the case that more than one
+     *      animator is being displayed; an index of -1 indicates a new animator should
+     *      be created whereas nonnegative indices refer to existing animators.
+     * @return the unique server side id of the object managing the animator.
+     */
+    QString getAnimatorViewId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing a histogram.
+     * @param index an index identifying the histogram in the case that more than one
+     *      histogram is being displayed; an index of -1 indicates a new histogram should
+     *      be created whereas nonnegative indices refer to existing histograms.
+     * @return the unique server side id of the object managing the histogram.
+     */
+    QString getHistogramViewId( int index = -1 ) const;
+
+    /**
+     * Return the unique server side id of the object responsible for managing a statistics view.
+     * @param index an index identifying the statistics view in the case that more than one
+     *      statistics view is being displayed; an index of -1 indicates a new statistics view should
+     *      be created whereas nonnegative indices refer to existing statistics views.
+     * @return the unique server side id of the object managing the statistics view.
+     */
+    QString getStatisticsViewId( int index = -1 ) const;
 };
 
