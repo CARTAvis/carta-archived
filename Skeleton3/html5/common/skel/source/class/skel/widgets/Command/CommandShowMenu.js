@@ -21,7 +21,7 @@ qx.Class.define("skel.widgets.Command.CommandShowMenu", {
         },
         
         getType : function(){
-            return skel.widgets.Command.Command.TYPE_BOOL;
+            return skel.widgets.Command.Command.TYPE_BOOLEAN;
         }
     }
 });

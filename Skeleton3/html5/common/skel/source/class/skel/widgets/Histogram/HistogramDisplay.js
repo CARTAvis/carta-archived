@@ -131,10 +131,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
          * @param style {String} the new graph style.
          */
         _sendStyleChangedCmd : function( style ){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_GRAPH_STYLE;
-            var params = "graphStyle:"+style;
-            this.m_connector.sendCommand( cmd, params, this._errorStyleCB(this));
+            if ( this.m_id !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_GRAPH_STYLE;
+                var params = "graphStyle:"+style;
+                this.m_connector.sendCommand( cmd, params, this._errorStyleCB(this));
+            }
         },
         
         /**

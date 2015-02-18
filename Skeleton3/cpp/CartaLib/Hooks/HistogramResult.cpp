@@ -2,6 +2,7 @@
 namespace Carta {
   namespace Lib {
     namespace Hooks {
+
 HistogramResult::HistogramResult( QString histogramName, 
 	std::vector<std::pair<double,double>> histogramData ){
 
@@ -20,4 +21,5 @@ std::vector<std::pair<double,double>> HistogramResult::getData() const{
 
     }
   }
+
 }

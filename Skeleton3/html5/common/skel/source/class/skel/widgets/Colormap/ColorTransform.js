@@ -48,6 +48,7 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
             var imageComposite = new qx.ui.container.Composite();
             imageComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_imageCombo = new qx.ui.form.ComboBox();
+            this.m_imageCombo.setToolTipText( "Select an image transformation.");
             this.m_imageCombo.setEnabled( false );
             var imageLabel = new qx.ui.basic.Label( "Image:");
             imageComposite.add( imageLabel );
@@ -56,6 +57,7 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
             var dataComposite = new qx.ui.container.Composite();
             dataComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_dataCombo = new qx.ui.form.ComboBox();
+            this.m_dataCombo.setToolTipText( "Select a data transformation.");
             var dataLabel = new qx.ui.basic.Label( "Data:");
             dataComposite.add( dataLabel );
             dataComposite.add( this.m_dataCombo );

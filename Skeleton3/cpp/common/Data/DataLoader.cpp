@@ -42,14 +42,15 @@ DataLoader::DataLoader( const QString& path, const QString& id ):
 QString DataLoader::getFile( const QString& bogusPath, const QString& sessionId ) const {
     QString path( bogusPath );
     QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
-    if( ! path.startsWith( fakePath )){
-        /// security issue...
-        qDebug() << "Security issue, filePath="<<path;
-        return "";
+    if( path.startsWith( fakePath )){
+        QString rootDir = getRootDir( sessionId );
+        QString baseRemoved = path.remove( 0, fakePath.length() );
+        path = QString( "%1%2").arg( rootDir).arg( baseRemoved);
     }
-    QString rootDir = getRootDir( sessionId );
-    QString baseRemoved = path.remove( 0, fakePath.length() );
-    path = QString( "%1%2").arg( rootDir).arg( baseRemoved);
+    else {
+        /// security issue...
+        //qDebug() << "Security issue, filePath="<<path;
+    }
     return path;
 }
 

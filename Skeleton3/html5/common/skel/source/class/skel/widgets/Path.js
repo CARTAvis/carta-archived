@@ -20,7 +20,6 @@ qx.Class.define("skel.widgets.Path", {
         this.REGION = this.BASE_PATH + "region" + this.SEP;
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
-        this.ZOOM = this.BASE_PATH + "zoom" + this.SEP;
     },
     members : {
         ANIMATOR : "Animator",
@@ -28,6 +27,7 @@ qx.Class.define("skel.widgets.Path", {
         BASE_PATH : "",
         CARTA : "CartaObjects",
         CASA_LOADER : "CasaImageLoader",
+        CENTER : "center",
         CLIP_VALUE : "setClipValue",
         CLIPS : "",
         COLORMAP_PLUGIN : "Colormap",
@@ -48,9 +48,10 @@ qx.Class.define("skel.widgets.Path", {
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",
+        STATISTICS : "Statistics",
         TRANSFORMS_DATA : "",
         TRANSFORMS_IMAGE : "",
-        ZOOM : "",
+        ZOOM : "zoom",
         VIEW : "view",
         VIEW_MANAGER : "ViewManager",
         

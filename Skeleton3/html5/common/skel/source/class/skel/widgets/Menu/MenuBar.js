@@ -37,14 +37,10 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
     },
 
     events : {
-
-        "layoutImage" : "qx.event.type.Data",
-        "layoutAnalysis" : "qx.event.type.Data",
         "layoutRowCount" : "qx.event.type.Data",
         "layoutColCount" : "qx.event.type.Data",
         "menuAlwaysVisible" : "qx.event.type.Data",
         "menuMoved" : "qx.event.type.Data",
-        "newWindow" : "qx.event.type.Data",
         "shareSession" : "qx.event.type.Data",
         "statusAlwaysVisible" : "qx.event.type.Data",
         /// emitted when cursor window toggle is clicked
@@ -167,14 +163,15 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
          * Initialize a context menu.
          */
         _initContextMenu : function() {
-            this.m_contextMenu = new qx.ui.menu.Menu();
+            //Disabled for now
+            /*this.m_contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
             customizeButton.addListener("execute", function() {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "showCustomizeMenuDialog", this));
             }, this);
             this.m_contextMenu.add(customizeButton);
-            this.setContextMenu(this.m_contextMenu);
+            this.setContextMenu(this.m_contextMenu);*/
         },
         
         /**
@@ -187,6 +184,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.m_menuPart.add(this.m_fileButton);
             var fileMenu = new qx.ui.menu.Menu();
             var sessionButton = new qx.ui.menu.Button("Snapshot");
+            sessionButton.setEnabled( false );
             fileMenu.add(sessionButton);
             fileMenu.add(new qx.ui.menu.Separator());
             var shareButton = new qx.ui.menu.CheckBox("Shared");
@@ -223,12 +221,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             var layoutMenu = new qx.ui.menu.Menu();
             var cmdImageLayout = skel.widgets.Command.CommandLayoutImage.getInstance();
             var layoutImageButton = this._makeButton( cmdImageLayout, function(){});
-            /*var cmdAction = cmdImageLayout.getAction( this );
-            layoutImageButton.addListener("execute",
-                    function() {
-                        cmdImageLayout.doAction( "", this.m_activeWindowIds, null);
-                        //this.fireDataEvent("layoutImage", "");
-                    }, this);*/
             layoutMenu.add(layoutImageButton);
             var cmdAnalysisLayout = skel.widgets.Command.CommandLayoutAnalysis.getInstance();
             var layoutAnalysisButton = this._makeButton( cmdAnalysisLayout, function(){} );
@@ -240,11 +232,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                         this._showCustomLayoutPopup();
                     }, this);
             layoutMenu.add(layoutCustomButton);
-            var newWindowButton = new qx.ui.menu.Button("New Window...");
-            newWindowButton.addListener("execute", function() {
-                this.fireDataEvent("newWindow", "");
-            }, this);
-            layoutMenu.add(newWindowButton);
             this.m_layoutButton.setMenu(layoutMenu);
 
             // Create the "Preferences" menu
@@ -262,12 +249,14 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 var showSpecButton = this._makeCmdCheck( showCmds[i], null);
                 menuBarMenu.add( showSpecButton );
             }
+           
             this.m_prefButton.setMenu( prefMenu );
             
            
             
             // Create the "Help" menu
             this.m_helpButton = new qx.ui.toolbar.MenuButton("Help");
+            this.m_helpButton.setEnabled( false );
             this.m_menuPart.add(this.m_helpButton);
             var helpMenu = new qx.ui.menu.Menu();
             helpMenu.add(new qx.ui.menu.Button("About..."));

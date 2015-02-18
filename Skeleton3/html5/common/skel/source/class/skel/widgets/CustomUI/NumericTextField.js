@@ -19,21 +19,23 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             this.m_text = new qx.ui.form.TextField();
             this.setIntegerOnly( true );
             //Only set the value in the textfield if it passes numeric validation.
-             this.m_text.addListener( "keyinput", function( evt ){
-                var char = evt.getChar();
-                if ( char !== '.' || char !== '0' || char !=='1'||char !=='2' || char !=='3'||
-                        char !=='4'|| char !== '5'|| char !== '6' || char !== '7' || char !== '8'||
-                    char !== '9'){
-                    var textValue = this.m_text.getValue() + char;
+
+            this.m_text.addListener( "keyinput", function( evt ){
+                var charKey = evt.getChar();
+                if ( charKey !== '.' || charKey !== '0' || charKey !=='1'||charKey !=='2' || charKey !=='3'|| 
+                        charKey !=='4'|| charKey !== '5'|| charKey !== '6' || charKey !== '7' || charKey !== '8'||
+                    charKey !== '9' || charKey != '-'){
+                    var textValue = this.m_text.getValue() + charKey;
                     var numValue = parseFloat( textValue );
                     if ( ! this._isValidValue( numValue) ){
                         evt.preventDefault();
                     }
-                    else{
-                        this.setValue(numValue);
-                    }
                 }
-            }, this ); 
+            }, this );
+            this.m_text.addListener( "input", function( evt){
+                this.setValue( this.m_text.getValue());
+            }, this );
+
             //Range validation when field loses focus
             this.m_text.addListener( "changeValue", function( evt ){
                 var numValue = this.getValue();

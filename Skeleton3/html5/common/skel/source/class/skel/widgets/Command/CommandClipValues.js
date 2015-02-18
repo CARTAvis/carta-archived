@@ -14,6 +14,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + path.CLIP_VALUE;
         this.base( arguments, "Clips", null );
+        this.m_clips = [];
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
             var pathDict = skel.widgets.Path.getInstance();
@@ -21,7 +22,6 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
             this.m_sharedVarClips.addCB(this._clipPercentsChangedCB.bind(this));
             this._clipPercentsChangedCB();
         }
-       
     },
     
     members : {
@@ -76,6 +76,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
                     var clipCount = clips.clipCount;
                     for ( var i = 0; i < clipCount; i++ ){
                         var clipAmount = clips.clipList[i];
+                        clipAmount = clipAmount * 100;
                         var clipLabel = clipAmount.toString() + "%";
                         var cmd = new skel.widgets.Command.CommandClipValue( clipLabel );
                         this.m_clips[i] = cmd;

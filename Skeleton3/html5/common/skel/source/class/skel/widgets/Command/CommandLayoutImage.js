@@ -10,6 +10,7 @@ qx.Class.define("skel.widgets.Command.CommandLayoutImage", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setImageLayout";
         this.base( arguments, "Image Layout", cmd );
+        this.m_toolBarVisible = false;
     },
     
     members : {

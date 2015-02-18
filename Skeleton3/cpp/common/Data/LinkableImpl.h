@@ -48,7 +48,7 @@ public:
      */
     QList<QString> getLinks() const;
 
-    std::shared_ptr<Controller> searchControllers(QString& link);
+    std::shared_ptr<Controller> searchLinks(const QString& link);
 
     virtual bool removeLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;;
     virtual bool addLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;;

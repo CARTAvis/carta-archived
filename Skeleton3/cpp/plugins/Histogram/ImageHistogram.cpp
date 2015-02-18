@@ -114,7 +114,7 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
 			//take rotation into account.
 			int spectralIndex = m_specIndex;
 			if ( spectralIndex == -1 ){
-				spectralIndex = cSys.spectralCoordinateNumber();
+				spectralIndex = cSys.findCoordinate(casa::Coordinate::SPECTRAL);
 			}
 			casa::IPosition imShape = image->shape();
 			int shapeCount = imShape.nelements();

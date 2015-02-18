@@ -193,7 +193,9 @@ qx.Class
                             if ( this.m_animators === null ){
                                 this.m_animators = {};
                             }
-                            this._initChecks(); 
+                            if ( this.m_checks.length === 0 ){
+                                this._initChecks();
+                            }
                             for (var i = 0; i < this.m_checks.length; i++) {
 
                                 var animId = this.m_checks[i].getLabel();
@@ -226,7 +228,7 @@ qx.Class
                         
                         
                         m_showAnimationButton : null,
-                        m_supportedAnimations : [ "Channel", "Image", "Region" ],
+                        m_supportedAnimations : [ "Channel", "Image"/*, "Region"*/ ],
                         m_checks : null,
                         m_animators : null
                     }

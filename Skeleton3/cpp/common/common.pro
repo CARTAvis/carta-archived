@@ -7,9 +7,6 @@ TEMPLATE = lib
 ###CONFIG += staticlib
 QT += widgets network
 QT += xml
-QT += widgets
-
-
 
 HEADERS += \
     IConnector.h \
@@ -51,6 +48,7 @@ HEADERS += \
     Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
+    Data/Statistics.h \
     Data/TransformsData.h \
     Data/TransformsImage.h \
     Data/Util.h \
@@ -58,16 +56,17 @@ HEADERS += \
     ColormapsOptimization.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
-    ColormapsOptimization.h \
+    GrayColormap.h \
     HackViewer.h \
+    ImageRenderService.h \
     HistogramGenerator.h \
     HistogramSelection.h \
     HistogramPlot.h \
     ScriptTester.h \
-    ScriptFacade.h
-    
-    
-    
+    ScriptFacade.h \
+    Hacks/ImageViewController.h \
+    Hacks/MainModel.h \
+    Algorithms/quantileAlgorithms.h
 
 SOURCES += \
     Viewer.cpp \
@@ -101,6 +100,7 @@ SOURCES += \
     Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
+    Data/Statistics.cpp \
     Data/TransformsData.cpp \
     Data/TransformsImage.cpp \
     Data/Util.cpp \
@@ -108,16 +108,17 @@ SOURCES += \
     Data/ViewPlugins.cpp \
     ScriptedCommandListener.cpp \
     GrayColormap.cpp \
-    ColormapsOptimization.cpp \
     HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
     HistogramGenerator.cpp \
     HistogramSelection.cpp \
     HistogramPlot.cpp \
     ScriptFacade.cpp \
-    ScriptTester.cpp
-    
-    
+    ScriptTester.cpp \
+    ImageRenderService.cpp \
+    Hacks/ImageViewController.cpp \
+    Hacks/MainModel.cpp \
+    Algorithms/quantileAlgorithms.cpp
 
 
 #message( "common            PWD=$$PWD")
@@ -130,8 +131,17 @@ SOURCES += \
 #QMAKE_CXXFLAGS += -H
 
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include 
-INCLUDEPATH += /usr/local/include/qwt-qt5
 
-LIBS += -L/usr/local/lib/qwt-qt5 -lqwt
+#INCLUDEPATH += ../../../ThirdParty/qwt/include
+#LIBS += -L../../../ThirdParty/qwt/lib -lqwt
+#INCLUDEPATH += /home/pfederl/Software/qwt-6.1.2-qt-5.3.2/include
+#LIBS += -L/home/pfederl/Software/qwt-6.1.2-qt-5.3.2/lib -lqwt
+
+#QWT_ROOT = /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
+QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
+INCLUDEPATH += $$QWT_ROOT/include
+LIBS += -L$$QWT_ROOT/lib -lqwt
+QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib

@@ -102,6 +102,21 @@ QString Util::commandPostProcess( const QString& errorMsg, const QString& revert
     return result;
 }
 
+/// convert string to array of doubles
+std::vector < double > Util::string2VectorDouble( QString s, QString sep){
+    QStringList lst = s.split( sep );
+    std::vector < double > res;
+    for ( auto v : lst ) {
+        bool ok;
+        double val = v.toDouble( & ok );
+        if ( ! ok ) {
+            return res;
+        }
+        res.push_back( val );
+    }
+    return res;
+}
+
 Util::~Util(){
 
 }

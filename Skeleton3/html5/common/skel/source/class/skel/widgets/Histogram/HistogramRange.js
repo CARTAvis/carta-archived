@@ -177,6 +177,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                     var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_MAX;
                     var params = "clipMax:"+maxClip+",links:"+links;
                     this.m_connector.sendCommand( cmd, params, this._errorRangeCB( this ));
+
                 }
             }
 
@@ -225,6 +226,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                     var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_PERCENT;
                     var params = "clipMinPercent:"+minClipPercent+",clipMaxPercent:"+maxClipPercent+",links:"+links;
                     this.m_connector.sendCommand( cmd, params, this._errorRangeCB( this));
+
                 }
             }
         },

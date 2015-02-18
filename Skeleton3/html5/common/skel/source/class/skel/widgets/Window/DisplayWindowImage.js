@@ -27,20 +27,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         _dataLoadedCB : function(){
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.View(this.m_identifier);
+                this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
             }
            
-            if ( this.m_drawCanvas === null ){
+            /*if ( this.m_drawCanvas === null ){
                 this.m_drawCanvas = new skel.widgets.Draw.Canvas( this.m_identifier, this.m_view);
-            }
+            }*/
             
             var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
             if (this.m_content.indexOf(this.m_view) < 0) {
                 this.m_content.add(this.m_view, overlayMap );
             }
-            if ( this.m_content.indexOf( this.m_drawCanvas) < 0 ){
+            /*if ( this.m_content.indexOf( this.m_drawCanvas) < 0 ){
                 this.m_content.add(this.m_drawCanvas, overlayMap);
-            }
+            }*/
         },
         
         /**
@@ -72,9 +72,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             dataButton.setMenu(this._initDataMenu());
 
             var regionButton = new qx.ui.toolbar.MenuButton("Region");
+            regionButton.setEnabled( false );
             regionButton.setMenu(this._initMenuRegion());
 
             var renderButton = new qx.ui.toolbar.MenuButton("Render");
+            renderButton.setEnabled( false );
             renderButton.setMenu(this._initMenuRender());
             
             var showButton = new qx.ui.toolbar.MenuButton( "Show");
@@ -98,13 +100,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             this.m_regionButton = new qx.ui.menu.Button("Region");
             this.m_regionButton.setMenu(this._initMenuRegion());
+            this.m_regionButton.setEnabled( false );
             this.m_contextMenu.add(this.m_regionButton);
 
             this.m_renderButton = new qx.ui.menu.Button("Render");
             this.m_renderButton.setMenu(this._initMenuRender());
+            this.m_renderButton.setEnabled( false );
             this.m_contextMenu.add(this.m_renderButton);
             
-            var showButton = new qx.ui.menu.Button( "Popup...");
+            var showButton = new qx.ui.menu.Button( "Show");
             showButton.setMenu( this._initMenuShow());
             skel.widgets.TestID.addTestId( showButton, skel.widgets.TestID.SHOW_POPUP_BUTTON);
             this.m_contextMenu.add( showButton );
@@ -201,7 +205,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var linkable = false;
             var path = skel.widgets.Path.getInstance();
             if (pluginId == path.ANIMATOR || pluginId == this.m_pluginId ||
-                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN) {
+                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
+                    pluginId == path.STATISTICS ) {
                 linkable = true;
             }
             return linkable;

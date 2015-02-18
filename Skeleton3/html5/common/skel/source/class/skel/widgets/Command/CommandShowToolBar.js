@@ -10,6 +10,7 @@ qx.Class.define("skel.widgets.Command.CommandShowToolBar", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setToolBarVisible";
         this.base( arguments, "Show Toolbar", cmd);
+        this.m_value = true;
     },
     
     members : {

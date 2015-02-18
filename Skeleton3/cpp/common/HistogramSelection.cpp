@@ -87,6 +87,7 @@ void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
 		painter->drawLine( upperBoundT, 0, upperBoundT, rectHeight );
 		painter->setPen( oldPen );
 	}
+
 }
 
 HistogramSelection::~HistogramSelection(){

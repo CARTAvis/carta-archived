@@ -39,6 +39,24 @@ public:
      */
     void clear();
 
+    /**
+     * Set the clip min and max percent of the histogram.
+     * @param clipMinPercent percentage to clip from the left.
+     * @param clipMaxPercent percentage to clip from the right.
+     * @param link the server-side id of the controller whose data was used to generate the histogram.
+     * @return an error message if there was a problem setting the percentages; an empty QString otherwise.
+     */
+    QString setClipPercent( double clipMinPercent, double clipMaxPercent, const QString& link );
+
+    /**
+     * Set the clip min and max of the histogram.
+     * @param clipMin the minimum intensity.
+     * @param clipMax the maximum intensity.
+     * @param link the server-side id of the controller whose data was used to generate the histogram.
+     * @return an error message if there was a problem setting the range; an empty QString otherwise.
+     */
+    QString setClipRange( double clipMin, double clipMax, const QString& link );
+
 
     virtual ~Histogram();
     const static QString CLASS_NAME;
@@ -51,15 +69,20 @@ private:
     NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
     double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
     bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
-    int _getLinkInfo( QString& link, QString& name );
+    int _getLinkInfo( const QString& link, QString& name ) const;
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
+<<<<<<< HEAD
     QString _setClipMin( const QString& params );
     QString _setClipMax( const QString& params );
     QString _setClipPercent( const QString& params );
     // QString _setClipMaxPercent( const QString& params );
     // QString _setClipMinPercent( const QString& params );
+=======
+
+
+>>>>>>> dd4500aa8fa1392af59a7ccfd13a56ca2591d5c1
     QString _setClipToImage( const QString& params );
     QString _setColored( const QString& params );
     QString _setLogCount( const QString& params );

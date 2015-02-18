@@ -24,11 +24,22 @@ class CCRawView
     : public NdArray::RawViewInterface
 {
 public:
+
+    /// \param ccimage pointer to CCImage which we keep on using, but we don't assume ownership.
+    /// It has to remain valid for the duration of existance of this instance.
     CCRawView( CCImage < PType > * ccimage, const SliceND & sliceInfo );
+
+//    ~CCRawView() {
+//        qDebug() << "deallocating ccrawview" << this;
+////        if( m_ccimage) {
+////            delete m_ccimage;
+////        }
+//    }
 
     virtual PixelType
     pixelType() override
     {
+        qDebug() << "m_ccimage=" << m_ccimage << sizeof(PType);
         return m_ccimage->pixelType();
     }
 
@@ -96,7 +107,7 @@ public:
     }
 
 protected:
-    CCImage < PType > * m_ccimage = nullptr;
+    CCImage < PType > * m_ccimage = nullptr; // we don't own this!
     VI m_currPosImage, m_currPosView;
     SliceND::ApplyResult m_appliedSlice;
     VI m_viewDims;
@@ -108,7 +119,7 @@ protected:
 template < typename PType >
 CCRawView < PType >::CCRawView( CCImage < PType > * ccimage, const SliceND & sliceInfo )
 {
-    m_ccimage      = ccimage;
+    m_ccimage = ccimage;
     m_appliedSlice = sliceInfo.apply( m_ccimage-> dims() );
     qDebug() << sliceInfo.toStr() << "applied to" << m_ccimage->dims() << "="
              << m_appliedSlice.toStr();
@@ -158,10 +169,11 @@ CCRawView < PType >::forEach(
     if ( traversal == NdArray::RawViewInterface::Traversal::Optimal ) {
         qFatal( "sorry, not implemented yet" );
     }
-    qDebug() << "view dims=" << dims();
     auto casaII     = m_ccimage-> m_casaII;
     int imgDims     = casaII-> ndim();
     auto imageShape = casaII-> shape();
+
+    qDebug() << "CCRawView::forEach=" << m_appliedSlice.toStr()  ;
 
     /// \todo I guessed wrong as to what the cursor shape meant when using subSection()
     /// \todo the shape refers to the shape within the subsection... so there is no need
@@ -179,9 +191,6 @@ CCRawView < PType >::forEach(
         trc( i ) = slice1d.end();
         inc( i ) = slice1d.step;
     }
-    qDebug() << "blc=" << blc.asStdVector();
-    qDebug() << "trc=" << trc.asStdVector();
-    qDebug() << "inc=" << inc.asStdVector();
     stepper.subSection( blc, trc, inc );
     casa::RO_LatticeIterator < PType > iterator( * casaII, stepper );
 
@@ -193,7 +202,6 @@ CCRawView < PType >::forEach(
             qFatal( "something went wrong" );
         }
         const auto & cursor = iterator.cursor();
-        qDebug() << "cursor.nelements=" << cursor.nelements();
         for ( const auto & val : cursor ) {
             func( reinterpret_cast < const char * > ( & val ) );
         }

@@ -124,9 +124,10 @@ double Histogram::_getPercentile( const QString& fileName, int frameIndex, doubl
             }
             return;
         });
-	if ( totalCount > 0 ){
-	  percentile = double(countBelow) / totalCount;
-	}
+
+        if ( totalCount > 0 ){
+            percentile = double(countBelow) / totalCount;
+        }
     }
     return percentile;
 }
@@ -150,9 +151,10 @@ bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double p
         // indicate bad clip if no finite numbers were found
         if ( allValues.size() > 0 ) {
             int locationIndex = allValues.size() * percentile - 1;
-	    if ( locationIndex < 0 ){
-	      locationIndex = 0;
-	    }
+
+            if ( locationIndex < 0 ){
+                locationIndex = 0;
+            }
             std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
             *intensity = allValues[locationIndex];
             intensityFound = true;
@@ -161,10 +163,10 @@ bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double p
     return intensityFound;
 }
 
-int Histogram::_getLinkInfo( QString& link, QString& name ){
-    std::shared_ptr<Controller> controller = m_linkImpl->searchControllers(link);
+int Histogram::_getLinkInfo( const QString& link, QString& name ) const {
+    std::shared_ptr<Controller> controller = m_linkImpl->searchLinks(link);
     int index = -1;
-    if(controller != NULL){
+    if(controller){
         index = controller->getSelectImageIndex();
         name = controller-> getImageName(index);
     }
@@ -230,6 +232,7 @@ void Histogram::_initializeCallbacks(){
               qDebug() << "clipmin params: " << params;
             QString result = _setClipMin( params );
             return result;
+
         });
 
     // addCommandCallback( "setClipMinPercent", [=] (const QString & /*cmd*/,
@@ -409,6 +412,7 @@ QString Histogram::_setClipMin( const QString& params ){
     }
     else {
         result = "Invalid Histogram clip min parameters: "+ params;
+
     }
     QString origValues = QString::number(oldMin);
     result = Util::commandPostProcess( result, origValues );
@@ -459,16 +463,9 @@ QString Histogram::_setClipMin( const QString& params ){
 // }
 
 QString Histogram::_setClipPercent( const QString& params ){
+
     QString result;
-    std::set<QString> keys = {CLIP_MIN_PERCENT, CLIP_MAX_PERCENT, LINK};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString clipMinPercentStr = dataValues[CLIP_MIN_PERCENT];
-    QString clipMaxPercentStr = dataValues[CLIP_MAX_PERCENT];
-    QString links = dataValues[LINK];
-    bool validRangePercentMin = false;
-    double clipMinPercent = clipMinPercentStr.toDouble( &validRangePercentMin );
-    bool validRangePercentMax = false;
-    double clipMaxPercent = clipMaxPercentStr.toDouble( &validRangePercentMax );
+
     double oldClipMinPercent = m_state.getValue<double>(CLIP_MIN_PERCENT);
     double oldClipMaxPercent = m_state.getValue<double>(CLIP_MAX_PERCENT);
     double oldClipMin = m_state.getValue<double>(CLIP_MIN);
@@ -520,12 +517,20 @@ QString Histogram::_setClipPercent( const QString& params ){
             else {
                 result = "Invalid Histogram clip range parameters: "+ params + 
                 "clip min range has to be less than clip max range";
+
             }
         }
+        else {
+            result = "Invalid clip percent link: "+links;
+        }
+        m_state.flushState();
+        if(clipMin < clipMax)
+            _generateHistogram();
+        else {
+            result = "Histogram clip min range has to be less than clip max range";
+        }
     }
-    else {
-        result = "Invalid clip params: "+params;
-    }
+
     QString origValues = QString::number(oldClipMinPercent)+","+QString::number(oldClipMaxPercent);
     result = Util::commandPostProcess( result, origValues);
     return result;
@@ -815,7 +820,6 @@ void Histogram::_generateHistogram(){
             ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
             hr->registerError( errorStr );
         }
-
     }
 }
 

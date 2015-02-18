@@ -8,9 +8,11 @@
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <Data/IColoredView.h>
+
 #include <QString>
 #include <QList>
 #include <QObject>
+#include <QImage>
 #include <memory>
 
 class ImageView;
@@ -19,6 +21,8 @@ class CoordinateFormatterInterface;
 namespace NdArray {
     class RawViewInterface;
 }
+
+
 
 namespace Carta {
 
@@ -62,9 +66,34 @@ public:
 
     virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() Q_DECL_OVERRIDE;
 
+
     int getSelectImageIndex();
 
-    QString getImageName(int index);
+    /**
+     * Set the pixel cache size.
+     * @param size the new pixel cache size.
+     */
+    void setCacheSize( int size );
+
+    /**
+     * Set whether or not to use pixel cache interpolation.
+     * @param enabled true if pixel cache interpolation should be used; false otherwise.
+     */
+    void setCacheInterpolation( bool enabled );
+
+    /**
+     * Set whether or not to use pixel caching.
+     * @param enabled true if pixel caching should be used; false otherwise.
+     */
+    void setPixelCaching( bool enabled );
+
+    /**
+     * Returns an identifier for the data source at the given index.
+     * @param index the index of a data source.
+     * @return an identifier for the image.
+     */
+    QString getImageName(int index) const;
+
     /**
      * Make a channel selection.
      * @param val a String representing a channel selection.
@@ -95,6 +124,19 @@ public:
      */
     virtual QString getStateString() const;
 
+    /**
+     * Change the pan of the current image.
+     * @param imgX the x-coordinate for the center of the pan.
+     * @param imgY the y-coordinate for the center of the pan.
+     */
+    void updatePan( double imgX , double imgY);
+
+    /**
+     * Update the zoom settings.
+     * @param z either positive or negative depending on the desired zoom direction.
+     */
+    void updateZoom( double /*centerX*/, double /*centerY*/, double z );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
@@ -112,6 +154,15 @@ private slots:
     //Refresh the view based on the latest data selection information.
     void _loadView( bool forceReload = false );
 
+    /**
+     * The rendering service has finished and produced a new QImage for display.
+     */
+    void _renderingDone( QImage img );
+
+    /**
+     * The view has been resized.
+     */
+    void viewResize( const QSize& newSize );
 
 private:
 
@@ -129,16 +180,19 @@ private:
     void _initializeSelection( std::shared_ptr<Selection> & selection );
     QString _makeRegion( const QString& regionType );
     void _saveRegions();
-    void _updateCursor();
+    void _updateCursor( int mouseX, int mouseY );
 
     static bool m_registered;
 
-    static const QString CLIP_VALUE;
+    static const QString CLIP_VALUE_MIN;
+    static const QString CLIP_VALUE_MAX;
     static const QString AUTO_CLIP;
     static const QString DATA_COUNT;
     static const QString DATA_PATH;
     static const QString REGIONS;
-
+    static const QString CENTER;
+    static const QString POINTER_MOVE;
+    static const QString ZOOM;
 
     //Data Selections
     std::shared_ptr<Selection> m_selectChannel;
@@ -158,6 +212,7 @@ private:
     //everyone wants to listen to them.
     StateInterface m_stateMouse;
 
+    QSize m_viewSize;
 
 
     Controller(const Controller& other);
