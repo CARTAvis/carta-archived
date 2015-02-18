@@ -41,6 +41,8 @@ public:
      */
     void setDeveloperView( );
 
+    static const QString SOCKET_DELIMITER;
+
 signals:
 
 public slots:

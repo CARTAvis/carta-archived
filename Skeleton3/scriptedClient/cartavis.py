@@ -53,13 +53,15 @@ class Application:
         bufferSize = 10
         stringData = self.socket.recv(bufferSize)
         # Figure out its length
+        # (The separator character needs to be the same as 
+        # ScriptedCommandListener::SIZE_DELIMITER)
         lengthStr, ignored, stringData = stringData.partition(':')
         goodDataLength = int(lengthStr)
         lengthSoFar = len(stringData)
         # If more data is needed, grab it before returning
         if (goodDataLength > bufferSize):
             stringData = stringData + self.socket.recv(goodDataLength - lengthSoFar)
-        listData = stringData.split(',')
+        listData = stringData.splitlines()
         return listData
 
     # It would be nice if this function could actually tun the GUI on and off

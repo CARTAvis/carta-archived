@@ -29,6 +29,8 @@
 
 using namespace rapidjson;
 
+const QString Viewer::SOCKET_DELIMITER("\n");
+
 Viewer::Viewer() :
     QObject( nullptr ),
     m_viewManager( nullptr)
@@ -141,35 +143,35 @@ Viewer::scriptedCommandCB( QString command )
     else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
         QStringList imageViews = m_scriptFacade->getImageViews();
         //qDebug() << "(JT) imageViews: " << imageViews;
-        m_scl->dataTransporter( imageViews.join(',') );
+        m_scl->dataTransporter( imageViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getColorMapViews
     else if (args.size() == 1 && args[0].toLower() == "getcolormapviews") {
         QStringList colorMapViews = m_scriptFacade->getColorMapViews();
         //qDebug() << "(JT) colorMapViews: " << colorMapViews;
-        m_scl->dataTransporter( colorMapViews.join(',') );
+        m_scl->dataTransporter( colorMapViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getAnimatorViews
     else if (args.size() == 1 && args[0].toLower() == "getanimatorviews") {
         QStringList animatorViews = m_scriptFacade->getAnimatorViews();
         //qDebug() << "(JT) animatorViews: " << animatorViews;
-        m_scl->dataTransporter( animatorViews.join(',') );
+        m_scl->dataTransporter( animatorViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getHistogramViews
     else if (args.size() == 1 && args[0].toLower() == "gethistogramviews") {
         QStringList histogramViews = m_scriptFacade->getHistogramViews();
         //qDebug() << "(JT) histogramViews: " << histogramViews;
-        m_scl->dataTransporter( histogramViews.join(',') );
+        m_scl->dataTransporter( histogramViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getStatisticsViews
     else if (args.size() == 1 && args[0].toLower() == "getstatisticsviews") {
         QStringList statisticsViews = m_scriptFacade->getStatisticsViews();
         //qDebug() << "(JT) statisticsViews: " << statisticsViews;
-        m_scl->dataTransporter( statisticsViews.join(',') );
+        m_scl->dataTransporter( statisticsViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: setColorMap
@@ -202,7 +204,7 @@ Viewer::scriptedCommandCB( QString command )
         fileListJson.Parse(fileList.toStdString().c_str());
         const Value& dir = fileListJson["dir"];
         QStringList fileListList = _parseDirectory( dir, "" );
-        m_scl->dataTransporter( fileListList.join(',') );
+        m_scl->dataTransporter( fileListList.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: setAnalysisLayout
@@ -235,7 +237,7 @@ Viewer::scriptedCommandCB( QString command )
 //        for (int i = 0; i < colormaps.size(); ++i) {
 //            cout << colormaps.at(i).toLocal8Bit().constData() << endl;
 //        }
-        m_scl->dataTransporter( colormaps.join(',') );
+        m_scl->dataTransporter( colormaps.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: setPlugins

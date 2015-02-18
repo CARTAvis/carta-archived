@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <stdexcept>
 
+const QString ScriptedCommandListener::SIZE_DELIMITER(":");
+
 ScriptedCommandListener::ScriptedCommandListener(int port, QObject * parent)
     : QObject(parent)
 {
@@ -59,7 +61,7 @@ QString ScriptedCommandListener::dataTransporter( QString input )
     // Python can then partition the incoming data to determine how much data
     // it should actually be receiving and make a second attempt to get the
     // rest, if necessary.
-    input = QString::number(inputSize) + ":" + input;
+    input = QString::number(inputSize) + ScriptedCommandListener::SIZE_DELIMITER + input;
     m_connection->write( input.toLocal8Bit() );
     return input;
 }
