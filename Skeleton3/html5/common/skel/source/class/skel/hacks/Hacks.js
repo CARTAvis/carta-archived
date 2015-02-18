@@ -71,7 +71,7 @@ qx.Class.define("skel.hacks.Hacks", {
         win2.add( mp.slider);
         mp.container = new qx.ui.container.Composite( new qx.ui.layout.HBox(5 ));
         mp.container.getLayout().setAlignY( "middle");
-        mp.playButton = new skel.boundWidgets.Toggle( "Play", mp.prefix + "/playToggle");;
+        mp.playButton = new skel.boundWidgets.Toggle( "Play", mp.prefix + "/playToggle");
         mp.container.add( mp.playButton);
         mp.container.add( new qx.ui.basic.Label( "Delay:"));
         mp.delayTF = new skel.boundWidgets.TextField( mp.prefix + "/delay");
