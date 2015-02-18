@@ -50,6 +50,9 @@ class Application:
 
     def __getListFromSocket(self):
         stringData = self.socket.recv(4096)
+        lengthStr, ignored, stringData = stringData.partition(':')
+        length = int(lengthStr)
+        print "In Python, the length of the data is " + lengthStr
         listData = stringData.split(',')
         return listData
 

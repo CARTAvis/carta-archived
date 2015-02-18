@@ -56,6 +56,10 @@ QString ScriptedCommandListener::dataTransporter( QString input )
 {
     //qDebug() << "(JT) ScriptedCommandListener::dataTransporter()";
     //qDebug() << "input = " << input;
+    int inputSize = input.size();
+    qDebug() << "(JT) inputSize = " << inputSize;
+    input = QString::number(inputSize) + ":" + input;
+    qDebug() << "(JT) input (with size) = " << input;
     m_connection->write( input.toLocal8Bit() );
     return input;
 }
