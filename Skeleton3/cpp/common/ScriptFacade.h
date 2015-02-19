@@ -133,12 +133,37 @@ public:
      */
     bool saveState( const QString& saveName );
 
+    /**
+     * Get the animators that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getLinkedAnimators( const QString& controlId );
+
+    /**
+     * Get the colormaps that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getLinkedColorMaps( const QString& controlId );
+
+    /**
+     * Get the histograms that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getLinkedHistograms( const QString& controlId );
+
+    /**
+     * Get the statistics views that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getLinkedStatistics( const QString& controlId );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.
      */
     static ScriptFacade * getInstance ();
     virtual ~ScriptFacade(){}
+
 private:
     Carta::Data::ViewManager* m_viewManager; //Used
     ScriptFacade();

@@ -47,6 +47,10 @@ bool Statistics::removeLink( const std::shared_ptr<Controller>& controller ){
     return objRemoved;
 }
 
+QList<QString> Statistics::getLinks() const {
+    return m_linkImpl->getLinks();
+}
+
 
 void Statistics::clear(){
     m_linkImpl->clear();

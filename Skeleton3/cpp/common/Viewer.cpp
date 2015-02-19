@@ -240,6 +240,26 @@ Viewer::scriptedCommandCB( QString command )
         //qDebug() << "(JT) saveState result = " << result;
     }
 
+    else if ( args.size() == 2 && args[0].toLower() == "getlinkedcolormaps" ) {
+        QStringList linkedColorMaps = m_scriptFacade->getLinkedColorMaps( args[1] );
+        m_scl->dataTransporter( linkedColorMaps.join(Viewer::SOCKET_DELIMITER) );
+    }
+
+    else if ( args.size() == 2 && args[0].toLower() == "getlinkedanimators" ) {
+        QStringList linkedAnimators = m_scriptFacade->getLinkedAnimators( args[1] );
+        m_scl->dataTransporter( linkedAnimators.join(Viewer::SOCKET_DELIMITER) );
+    }
+
+    else if ( args.size() == 2 && args[0].toLower() == "getlinkedhistograms" ) {
+        QStringList linkedHistograms = m_scriptFacade->getLinkedHistograms( args[1] );
+        m_scl->dataTransporter( linkedHistograms.join(Viewer::SOCKET_DELIMITER) );
+    }
+
+    else if ( args.size() == 2 && args[0].toLower() == "getlinkedstatistics" ) {
+        QStringList linkedStatistics = m_scriptFacade->getLinkedStatistics( args[1] );
+        m_scl->dataTransporter( linkedStatistics.join(Viewer::SOCKET_DELIMITER) );
+    }
+
     else {
         qWarning() << "Sorry, unknown command";
     }

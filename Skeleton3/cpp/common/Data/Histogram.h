@@ -57,6 +57,11 @@ public:
      */
     QString setClipRange( double clipMin, double clipMax, const QString& link );
 
+    /**
+     * Return a list of identifiers for all objects that are controlled by this histogram.
+     * @return a list of identifiers for objects under the control of this histogram.
+     */
+    QList<QString> getLinks() const;
 
     virtual ~Histogram();
     const static QString CLASS_NAME;

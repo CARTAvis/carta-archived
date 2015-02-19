@@ -661,6 +661,58 @@ bool ViewManager::saveState( const QString& saveName ){
     return result;
 }
 
+QStringList ViewManager::getLinkedColorMaps( const QString& controlId ) {
+    QStringList linkedColorMaps;
+    int colormapCount = m_colormaps.size();
+    for ( int i = 0; i < colormapCount; i++ ){
+        QList<QString> oldLinks = m_colormaps[ i ]-> getLinks();
+        QString colormapId = getObjectId(Colormap::CLASS_NAME, i);
+        if (oldLinks.contains( controlId )) {
+            linkedColorMaps.append(colormapId);
+        }
+    }
+    return linkedColorMaps;
+}
+
+QStringList ViewManager::getLinkedAnimators( const QString& controlId ) {
+    QStringList linkedAnimators;
+    int animatorCount = m_animators.size();
+    for ( int i = 0; i < animatorCount; i++ ){
+        QList<QString> oldLinks = m_animators[ i ]-> getLinks();
+        QString animatorId = getObjectId(Animator::CLASS_NAME, i);
+        if (oldLinks.contains( controlId )) {
+            linkedAnimators.append(animatorId);
+        }
+    }
+    return linkedAnimators;
+}
+
+QStringList ViewManager::getLinkedHistograms( const QString& controlId ) {
+    QStringList linkedHistograms;
+    int histogramCount = m_histograms.size();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QList<QString> oldLinks = m_histograms[ i ]-> getLinks();
+        QString histogramId = getObjectId(Histogram::CLASS_NAME, i);
+        if (oldLinks.contains( controlId )) {
+            linkedHistograms.append(histogramId);
+        }
+    }
+    return linkedHistograms;
+}
+
+QStringList ViewManager::getLinkedStatistics( const QString& controlId ) {
+    QStringList linkedStatistics;
+    int statisticsCount = m_statistics.size();
+    for ( int i = 0; i < statisticsCount; i++ ){
+        QList<QString> oldLinks = m_statistics[ i ]-> getLinks();
+        QString statisticsId = getObjectId(Statistics::CLASS_NAME, i);
+        if (oldLinks.contains( controlId )) {
+            linkedStatistics.append(statisticsId);
+        }
+    }
+    return linkedStatistics;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

@@ -95,12 +95,6 @@ class Application:
     def loadLocalFile(self, imageViewId, fileName):
         self.socket.sendall("loadLocalFile " + imageViewId + " " + fileName + "\n")
 
-    def getColorMapId(self, index=-1):
-        self.socket.sendall("getColorMapId " + str(index) + "\n")
-
-    def getImageViewId(self, index=-1):
-        self.socket.sendall("getImageViewId " + str(index) + "\n")
-
     def getImageViews(self):
         self.socket.sendall("getImageViews" + "\n")
         imageViewsList = self.__getListFromSocket()
@@ -125,6 +119,26 @@ class Application:
         self.socket.sendall("getStatisticsViews" + "\n")
         statisticsViewsList = self.__getListFromSocket()
         return statisticsViewsList
+
+    def getLinkedColorMaps(self, controlId):
+        self.socket.sendall("getLinkedColorMaps " + controlId + "\n")
+        linkedColorMaps = self.__getListFromSocket()
+        return linkedColorMaps
+
+    def getLinkedAnimators(self, controlId):
+        self.socket.sendall("getLinkedAnimators " + controlId + "\n")
+        linkedAnimators = self.__getListFromSocket()
+        return linkedAnimators
+
+    def getLinkedHistograms(self, controlId):
+        self.socket.sendall("getLinkedHistograms " + controlId + "\n")
+        linkedHistograms = self.__getListFromSocket()
+        return linkedHistograms
+
+    def getLinkedStatistics(self, controlId):
+        self.socket.sendall("getLinkedStatistics " + controlId + "\n")
+        linkedStatistics = self.__getListFromSocket()
+        return linkedStatistics
 
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")

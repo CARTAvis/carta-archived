@@ -150,3 +150,23 @@ bool ScriptFacade::saveState( const QString& saveName ) {
     bool result = m_viewManager->saveState( saveName );
     return result;
 }
+
+QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
+    QStringList linkedColorMaps = m_viewManager->getLinkedColorMaps( controlId );
+    return linkedColorMaps;
+}
+
+QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
+    QStringList linkedAnimators = m_viewManager->getLinkedAnimators( controlId );
+    return linkedAnimators;
+}
+
+QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
+    QStringList linkedHistograms = m_viewManager->getLinkedHistograms( controlId );
+    return linkedHistograms;
+}
+
+QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
+    QStringList linkedStatistics = m_viewManager->getLinkedStatistics( controlId );
+    return linkedStatistics;
+}

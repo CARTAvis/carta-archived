@@ -36,6 +36,11 @@ public:
      */
     void clear();
 
+    /**
+     * Return a list of identifiers for all objects that are controlled by this statistics view.
+     * @return a list of identifiers for objects under the control of this statistics view.
+     */
+    QList<QString> getLinks() const;
 
     virtual ~Statistics();
     const static QString CLASS_NAME;

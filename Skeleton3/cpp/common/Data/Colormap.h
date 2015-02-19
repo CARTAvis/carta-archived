@@ -59,6 +59,13 @@ public:
      * @return error information if one or more of the scales could not be set.
      */
     QString setScales( double scale1, double scale2 );
+
+    /**
+     * Return a list of identifiers for all objects that are controlled by this colormap.
+     * @return a list of identifiers for objects under the control of this colormap.
+     */
+    QList<QString> getLinks() const;
+
     virtual ~Colormap();
     const static QString CLASS_NAME;
 

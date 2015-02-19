@@ -698,6 +698,10 @@ bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
     return removed;
 }
 
+QList<QString> Histogram::getLinks() const {
+    return m_linkImpl->getLinks();
+}
+
 Histogram::~Histogram(){
 
 }

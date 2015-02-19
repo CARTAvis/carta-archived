@@ -155,6 +155,14 @@ public:
      */
     bool saveState( const QString& fileName );
 
+    QStringList getLinkedColorMaps( const QString& controlId );
+
+    QStringList getLinkedAnimators( const QString& controlId );
+
+    QStringList getLinkedHistograms( const QString& controlId );
+
+    QStringList getLinkedStatistics( const QString& controlId );
+
     static const QString CLASS_NAME;
 
 private:

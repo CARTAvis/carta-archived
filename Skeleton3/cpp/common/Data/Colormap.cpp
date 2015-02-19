@@ -446,6 +446,10 @@ QString Colormap::setDataTransform( const QString& transformString ){
     return result;
 }
 
+QList<QString> Colormap::getLinks() const {
+    return m_linkImpl->getLinks();
+}
+
 Colormap::~Colormap(){
 
 }
