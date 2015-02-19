@@ -195,6 +195,7 @@ QString Controller::getStateString() const{
 }
 
 void Controller::setClipValue( const QString& params ) {
+/*
     qDebug() << "(JT) Controller::setClipValue(" << params << ")";
     std::set<QString> keys = {"clipValue"};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
@@ -222,6 +223,7 @@ void Controller::setClipValue( const QString& params ) {
     else {
         qDebug() << "(JT) Controller::setClipValue(): Invalid clip value: "<<params;
     }
+*/
 }
 
 void Controller::_initializeCallbacks(){
