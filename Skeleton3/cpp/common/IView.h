@@ -2,8 +2,7 @@
  *
  **/
 
-#ifndef COMMON_IVIEW_H
-#define COMMON_IVIEW_H
+#pragma once
 
 class IConnector;
 class QImage;
@@ -47,4 +46,3 @@ public:
     virtual ~IView() {}
 };
 
-#endif // COMMON_IVIEW_H

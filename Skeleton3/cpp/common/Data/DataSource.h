@@ -7,8 +7,8 @@
 #include "CartaLib/Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include "CartaLib/ICoordinateFormatter.h"
-#include "../ImageRenderService.h"
+//#include "CartaLib/ICoordinateFormatter.h"
+
 #include <QImage>
 #include <memory>
 
@@ -20,12 +20,20 @@ namespace Image {
     class ImageInterface;
 }
 
-class ICoordinateFormatter;
+class CoordinateFormatterInterface;
 
 namespace Carta {
     namespace Lib {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
+        }
+    }
+}
+
+namespace Carta {
+    namespace Core {
+        namespace ImageRenderService {
+            class Service;
         }
     }
 }
@@ -85,6 +93,12 @@ public:
     void setCacheInterpolation( bool enabled );
 
     /**
+     * Set the data transform.
+     * @param name QString a unique identifier for a data transform.
+     */
+    void setTransformData( const QString& name );
+
+    /**
      * Loads the data source as a QImage.
      * @param frameIndex the channel to load.
      * @param true to force a recompute of the image clip.
@@ -124,6 +138,21 @@ public:
      * @return the number of image dimensions.
      */
     int getDimensions() const;
+
+    /**
+     * Returns the location on the image corresponding to a screen point in
+     * pixels.
+     * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding location on the image.
+     */
+    QPointF getImagePt( QPointF screenPt, bool* valid ) const;
+
+    /**
+     * Return the current pan center.
+     * @return the centered image location.
+     */
+    QPointF getCenter() const;
 
     /**
      * Return the zoom factor for this image.
@@ -197,7 +226,7 @@ signals:
 private slots:
 
     //Notification from the rendering service that a new image has been produced.
-    void _renderingDone( QImage img, Carta::Core::ImageRenderService::JobId jobId );
+    void _renderingDone( QImage img, int64_t jobId );
 
 private:
 
@@ -212,7 +241,7 @@ private:
 
     void _initializeState();
 
-    void _updateClips( NdArray::RawViewInterface::SharedPtr& view, int frameIndex,
+    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
             double minClipPercentile, double maxClipPercentile );
 
     //Path for loading data - todo-- do we need to store this?
@@ -227,11 +256,8 @@ private:
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_image;
 
-    /// pointer to the rendering algorithm
-    //std::unique_ptr<Carta::Core::RawView2QImageConverter3> m_rawView2QImageConverter;
-
     /// coordinate formatter
-    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+    std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
 
     /// clip cache, hard-coded to single quantile
     std::vector< std::vector<double> > m_quantileCache;

@@ -108,6 +108,12 @@ public:
     void setFrameImage(const QString& val);
 
     /**
+     * Set the data transform.
+     * @param name QString a unique identifier for a data transform.
+     */
+    void setTransformData( const QString& name );
+
+    /**
      * Returns the state associated with the key.
      * @param key a look up for a specific state.
      */
@@ -133,9 +139,11 @@ public:
 
     /**
      * Update the zoom settings.
+     * @param centerX the screen x-coordinate where the zoom was centered.
+     * @param centerY the screen y-coordinate where the zoom was centered.
      * @param z either positive or negative depending on the desired zoom direction.
      */
-    void updateZoom( double /*centerX*/, double /*centerY*/, double z );
+    void updateZoom( double centerX, double centerY, double z );
 
     virtual ~Controller();
 
@@ -213,7 +221,6 @@ private:
     StateInterface m_stateMouse;
 
     QSize m_viewSize;
-
 
     Controller(const Controller& other);
     Controller operator=(const Controller& other);

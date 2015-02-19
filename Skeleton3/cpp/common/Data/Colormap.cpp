@@ -427,7 +427,9 @@ QString Colormap::setDataTransform( const QString& transformString ){
             if ( transformString != transformName ){
                 m_state.setValue<QString>(TRANSFORM_DATA, transformString );
                 m_state.flushState();
-                //TODO: Notify pavol's code of transform.
+                for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+                    controller->setTransformData( transformString );
+                }
             }
             else {
                result = "Invalid data transform: " + transformString;

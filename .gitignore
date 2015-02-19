@@ -1,10 +1,17 @@
-Makefile
+# qmake byproducts. actually there should be none as we should shadow build...
+# Makefile
+# moc*.cpp
+
+# qt creator
+# to be fixed
+
+# C++ byproducts
 *.a
 *.o
 *.so
 *.so.*
 *.log
-moc*.cpp
 *.i
+
+# git mergetool byproducts
 *.orig
-.*

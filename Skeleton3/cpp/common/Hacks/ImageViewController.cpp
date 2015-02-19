@@ -54,7 +54,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_pixelPipeline-> setReverse( false );
     m_pixelPipeline-> setColormap( std::make_shared < Carta::Core::GrayColormap > () );
     m_pixelPipeline-> setMinMax( 0, 1 );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
     // register with connector as a view
     m_connector-> registerView( this );
@@ -88,19 +88,22 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_connector-> addCommandCallback( m_statePrefix + "/setFrame", mmpSliderCB );
 
     // hook-up movie play button
-    m_connector-> addStateCallback( m_statePrefix + "/playToggle", [&]( CSR, CSR val) {
-        playMovie( val == "1");
-    });
+    m_connector-> addStateCallback( m_statePrefix + "/playToggle", [&] ( CSR, CSR val ) {
+                                        playMovie( val == "1" );
+                                    }
+                                    );
 
     /// connect movie timer to the frame advance slot
-    connect( & m_movieTimer, & QTimer::timeout, this, & ImageViewController::loadNextFrame);
+    connect( & m_movieTimer, & QTimer::timeout, this, & ImageViewController::loadNextFrame );
 }
 
 void
-ImageViewController::playMovie( bool flag) {
-    if( flag) {
-        m_movieTimer.start( 1000 / 60);
-    } else {
+ImageViewController::playMovie( bool flag )
+{
+    if ( flag ) {
+        m_movieTimer.start( 1000 / 60 );
+    }
+    else {
         m_movieTimer.stop();
     }
 }
@@ -111,6 +114,11 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
 {
     auto vals = Impl::s2vd( params );
     if ( vals.size() > 2 ) {
+        // remember where the user clicked
+        QPointF clickPtScreen( vals[0], vals[1]);
+        QPointF clickPtImageOld = m_renderService-> screen2img (clickPtScreen);
+
+        // apply new zoom
         double z = vals[2];
         double newZoom;
         if ( z < 0 ) {
@@ -120,6 +128,18 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
             newZoom = m_renderService-> zoom() * 0.9;
         }
         m_renderService-> setZoom( newZoom );
+
+        // what is the new image pixel under the mouse cursor?
+        QPointF clickPtImageNew = m_renderService-> screen2img (clickPtScreen);
+
+        // calculate the difference
+        QPointF delta = clickPtImageOld - clickPtImageNew;
+
+        // add the delta to the current center
+        QPointF currCenter = m_renderService-> pan();
+        m_renderService-> setPan( currCenter + delta);
+
+        // tell the service to rerender
         m_renderService-> render( 0 );
     }
 
@@ -147,7 +167,7 @@ void
 ImageViewController::setCmapInvert( bool flag )
 {
     m_pixelPipeline-> setInvert( flag );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
     m_renderService-> render( 0 );
 }
 
@@ -155,7 +175,7 @@ void
 ImageViewController::setCmapReverse( bool flag )
 {
     m_pixelPipeline-> setReverse( flag );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
     m_renderService-> render( 0 );
 }
 
@@ -163,7 +183,7 @@ void
 ImageViewController::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap )
 {
     m_pixelPipeline-> setColormap( cmap );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
     m_renderService-> render( 0 );
 }
 
@@ -192,8 +212,6 @@ ImageViewController::handleResizeRequest( const QSize & size )
 void
 ImageViewController::loadImage( QString fname )
 {
-//    Carta::Core::ImageRenderService::Input jobParams;
-
     m_fileName = fname;
 
     qDebug() << "loadImage() Trying to load astroImage...";
@@ -211,10 +229,12 @@ ImageViewController::loadImage( QString fname )
                               );
 
     // clear quantile cache
-    m_quantileCache.resize(0);
+    m_quantileCache.resize( 0 );
     int nf = 1;
-    if( m_astroImage-> dims().size() > 2) nf = m_astroImage-> dims()[2];
-    m_quantileCache.resize( nf);
+    if ( m_astroImage-> dims().size() > 2 ) {
+        nf = m_astroImage-> dims()[2];
+    }
+    m_quantileCache.resize( nf );
 
     // set the frame to first one
     loadFrame( 0 );
@@ -245,33 +265,35 @@ ImageViewController::loadFrame( int frame )
     NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
 
     // compute 95% clip values, unless we already have them in the cache
-    std::vector<double> clips = m_quantileCache[ m_currentFrame];
-    if( clips.size() < 2) {
+    std::vector < double > clips = m_quantileCache[m_currentFrame];
+    if ( clips.size() < 2 ) {
         NdArray::Double doubleView( view.get(), false );
         clips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, { 0.025, 0.975 }
             );
         qDebug() << "recomputed clips" << clips;
-        m_quantileCache[ m_currentFrame] = clips;
+        m_quantileCache[m_currentFrame] = clips;
     }
 
     m_pixelPipeline-> setMinMax( clips[0], clips[1] );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
     // tell the render service to render this job
-    m_renderService-> setInputView( view, QString( "%1//%2").arg(m_fileName).arg(m_currentFrame));
+    m_renderService-> setInputView( view, QString( "%1//%2" ).arg( m_fileName ).arg( m_currentFrame ) );
     m_renderService-> render( 0 );
 
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
     qDebug() << "loadFrame done" << frame;
+} // loadFrame
 
-}
-
-void ImageViewController::loadNextFrame()
+void
+ImageViewController::loadNextFrame()
 {
     int nf = 1;
-    if( m_astroImage-> dims().size() > 2) nf = m_astroImage-> dims()[2];
-    loadFrame( (m_currentFrame + 1) % nf);
+    if ( m_astroImage-> dims().size() > 2 ) {
+        nf = m_astroImage-> dims()[2];
+    }
+    loadFrame( ( m_currentFrame + 1 ) % nf );
 } // loadFrame
 
 void
