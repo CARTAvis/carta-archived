@@ -63,7 +63,8 @@ HEADERS += \
     HistogramSelection.h \
     Hacks/ImageViewController.h \
     Hacks/MainModel.h \
-    Algorithms/quantileAlgorithms.h
+    Algorithms/quantileAlgorithms.h \
+    ILayeredView.h
 
 SOURCES += \
     Viewer.cpp \
@@ -113,7 +114,8 @@ SOURCES += \
     ImageRenderService.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
-    Algorithms/quantileAlgorithms.cpp
+    Algorithms/quantileAlgorithms.cpp \
+    ILayeredView.cpp
 
 
 #message( "common            PWD=$$PWD")

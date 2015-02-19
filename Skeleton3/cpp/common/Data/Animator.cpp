@@ -53,7 +53,6 @@ void Animator::_adjustStateController(){
 void Animator::_adjustStateAnimatorTypes(){
     int animationCount = m_animators.size();
     m_state.setObject( AnimatorType::ANIMATIONS );
-    m_state.flushState();
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
         QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + keys[i];
@@ -136,18 +135,23 @@ QString Animator::_initAnimator( const QString& type ){
 
 QString Animator::_initializeAnimator( const QString& type ){
     QString animatorTypeId;
-    if ( type == Selection::IMAGE ){
-        animatorTypeId = _initAnimator( type );
-        connect( m_animators[Selection::IMAGE].get(), SIGNAL(indexChanged( const QString&)), this, SLOT(_imageIndexChanged(const QString&)));
-    }
-    else if ( type == Selection::CHANNEL ){
-        animatorTypeId = _initAnimator( type );
-        connect( m_animators[Selection::CHANNEL].get(), SIGNAL(indexChanged( const QString&)), this, SLOT(_channelIndexChanged( const QString&)));
+    if ( !m_animators.contains( type )){
+        if ( type == Selection::IMAGE ){
+            animatorTypeId = _initAnimator( type );
+            connect( m_animators[Selection::IMAGE].get(), SIGNAL(indexChanged( const QString&)), this, SLOT(_imageIndexChanged(const QString&)));
+        }
+        else if ( type == Selection::CHANNEL ){
+            animatorTypeId = _initAnimator( type );
+            connect( m_animators[Selection::CHANNEL].get(), SIGNAL(indexChanged( const QString&)), this, SLOT(_channelIndexChanged( const QString&)));
+        }
+        else {
+            QString errorMsg = "Unrecognized animation initialization type=" +type;
+            qWarning() << errorMsg;
+            animatorTypeId = Util::commandPostProcess( errorMsg, "-1");
+        }
     }
     else {
-        QString errorMsg = "Unrecognized animation initialization type=" +type;
-        qWarning() << errorMsg;
-        animatorTypeId = Util::commandPostProcess( errorMsg, "-1");
+        animatorTypeId= m_animators[type]->getPath();
     }
     return animatorTypeId;
 }

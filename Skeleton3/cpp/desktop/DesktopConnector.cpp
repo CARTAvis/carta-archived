@@ -286,7 +286,6 @@ void DesktopConnector::refreshViewNow(IView *view)
         emit jsViewUpdatedSignal( view-> name(), pix);
     }
     else {
-        qDebug() << "Re-scale not needed";
         viewInfo-> tx = LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = LinearMap1D( 0, 1, 0, 1);
 

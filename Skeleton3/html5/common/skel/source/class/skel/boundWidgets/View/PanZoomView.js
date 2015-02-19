@@ -8,9 +8,9 @@
  @ignore( mImport)
  */
 
-qx.Class.define( "skel.hacks.HackView", {
+qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
 
-    extend: skel.boundWidgets.View.ViewWithInputDiv,
+    extend: skel.boundWidgets.View.ViewWithInputDivSuffixed,
 
     /**
      * Constructor
@@ -27,9 +27,9 @@ qx.Class.define( "skel.hacks.HackView", {
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
 
-        this.m_prefix = "/hacks/views/" + this.m_viewId + "/";
-        this.m_pointerMoveVar = this.m_connector.getSharedVar(
-            this.m_prefix + "pointer-move");
+        var path = skel.widgets.Path.getInstance();
+        this.m_prefix = this.m_viewId + path.SEP+ path.VIEW + path.SEP +"pointer-move";
+        this.m_viewSharedVar = this.m_connector.getSharedVar(this.m_prefix);
     },
 
     members: {
@@ -40,10 +40,7 @@ qx.Class.define( "skel.hacks.HackView", {
                 x: ev.getDocumentLeft() - box.left,
                 y: ev.getDocumentTop() - box.top
             };
-            console.log( "vwid mm", pt.x, pt.y);
-
-
-            this.m_pointerMoveVar.set( "" + pt.x + " " + pt.y);
+            this.m_viewSharedVar.set( "" + pt.x + " " + pt.y);
 
         },
 
@@ -53,9 +50,10 @@ qx.Class.define( "skel.hacks.HackView", {
                 x: ev.getDocumentLeft() - box.left,
                 y: ev.getDocumentTop() - box.top
             };
-            console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
-
-            this.m_connector.sendCommand( this.m_prefix + "zoom",
+            //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
+            this.m_connector.sendCommand( cmd,
                 "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
         },
 
@@ -65,9 +63,11 @@ qx.Class.define( "skel.hacks.HackView", {
                 x: ev.getDocumentLeft() - box.left,
                 y: ev.getDocumentTop() - box.top
             };
-            console.log( "vwid click", pt.x, pt.y, ev.getButton());
-
-            this.m_connector.sendCommand( this.m_prefix + "center",
+            //console.log( "vwid click", pt.x, pt.y, ev.getButton());
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + path.CENTER;
+            //console.log( "center cmd "+cmd);
+            this.m_connector.sendCommand( cmd,
                 "" + pt.x + " " + pt.y + " " + ev.getButton());
         },
 

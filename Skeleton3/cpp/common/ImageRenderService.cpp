@@ -88,6 +88,11 @@ Service::setPan( QPointF pt )
     }
 }
 
+QPointF Service::pan()
+{
+    return m_pan;
+}
+
 void
 Service::setZoom( double zoom )
 {
@@ -278,7 +283,7 @@ Service::internalRenderSlot( JobId jobId )
 
     // prepare output
     QImage img( m_outputSize, QImage::Format_ARGB32 );
-    img.fill( QColor( "blue" ) );
+    img.fill( QColor( "#E0E0E0" ) );
     QPainter p( & img );
 
     // draw the frame image to satisfy zoom/pan

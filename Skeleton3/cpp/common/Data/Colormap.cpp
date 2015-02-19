@@ -271,12 +271,8 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
         if ( invert != oldInvert ){
             m_state.setValue<bool>(INVERT, invert );
             m_state.flushState();
-            QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-            std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> coloredMap
-                    = m_colors->getColorMap( mapName );
-            //coloredMap->setInverted( invert );
             for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-                controller -> colorMapChanged( mapName );
+                controller -> setColorInverted ( invert );
             }
         }
     }
@@ -337,11 +333,8 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
         if ( reverse != oldReverse ){
             m_state.setValue<bool>(REVERSE, reverse );
             m_state.flushState();
-            QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-            std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> coloredMap = m_colors->getColorMap( mapName );
-            //coloredMap->setReversed( mapName );
             for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-                controller -> colorMapChanged( mapName );
+                controller -> setColorReversed( reverse );
             }
         }
     }
@@ -435,7 +428,9 @@ QString Colormap::setDataTransform( const QString& transformString ){
             if ( transformString != transformName ){
                 m_state.setValue<QString>(TRANSFORM_DATA, transformString );
                 m_state.flushState();
-                //TODO: Notify pavol's code of transform.
+                for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+                    controller->setTransformData( transformString );
+                }
             }
             else {
                result = "Invalid data transform: " + transformString;

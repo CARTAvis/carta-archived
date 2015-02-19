@@ -98,8 +98,10 @@ struct Input
 struct PixelPipelineCacheSettings {
     /// size of the cache (in entries, must be >= 2
     int size = 1000;
+
     /// whether caching is enabled or not
     bool enabled = true;
+
     /// whether interpolation is enabled or not
     bool interpolated = true;
 };
@@ -133,11 +135,15 @@ public:
     void
     setOutputSize( QSize size );
 
-    /// specifies coordinates of the data pixel to be centered in the generated
+    /// set coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
-    /// (0,0), while (1,1) is it's right-top corner
+    /// (0,0), while (1,1) is it's right-top corner, and (1/2,1/2) is it's center
     void
     setPan( QPointF pt );
+
+    /// getter for pan (see setPan())
+    QPointF
+    pan();
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
@@ -153,13 +159,15 @@ public:
     ///
     /// if pixel pipeline caching is enabled, the cache will be updated
     void
-    setPixelPipeline(IClippedPixelPipeline::SharedPtr pixelPipeline , QString cacheId);
+    setPixelPipeline( IClippedPixelPipeline::SharedPtr pixelPipeline, QString cacheId );
 
     /// set settings that control pixel pipeline cache
-    void setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & params);
+    void
+    setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & params );
 
     /// get the current settings for pixel pipeline cache
-    const PixelPipelineCacheSettings & pixelPipelineCacheSettings() const;
+    const PixelPipelineCacheSettings &
+    pixelPipelineCacheSettings() const;
 
     /// ask the service to render using the current settings and use the given
     /// jobId when notifying us of the results
@@ -193,13 +201,15 @@ public:
     /// \param p point to convert
     /// \return translated point
     ///
-    QPointF img2screen(const QPointF & p);
+    QPointF
+    img2screen( const QPointF & p );
 
     /// the inverse of img2screen()
     /// \param p point to convert
     /// \return translated point
     ///
-    QPointF screen2img(const QPointF & p);
+    QPointF
+    screen2img( const QPointF & p );
 
 protected slots:
 
@@ -228,17 +238,20 @@ private:
     NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
     QString m_inputViewCacheId;
     QString m_pixelPipelineCacheId;
-    QSize m_outputSize = QSize(10,10);
+    QSize m_outputSize = QSize( 10, 10 );
+
     /// instance of the pixel pipeline (very likely slow)
     IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw;
+
     /// current zoom
     double m_zoom = 1.0;
+
     /// current pan (coordinates of the image pixel that is to be centered on the screen)
     QPointF m_pan = QPointF( 0, 0 );
 
     // cached pipelines
-    Lib::PixelPipeline::CachedPipeline<true>::UniquePtr m_cachedPPinterp = nullptr;
-    Lib::PixelPipeline::CachedPipeline<false>::UniquePtr m_cachedPP = nullptr;
+    Lib::PixelPipeline::CachedPipeline < true >::UniquePtr m_cachedPPinterp = nullptr;
+    Lib::PixelPipeline::CachedPipeline < false >::UniquePtr m_cachedPP = nullptr;
     PixelPipelineCacheSettings m_pixelPipelineCacheSettings;
 
     /// here we store the whole frame rendered, it is essentially a cache to make
@@ -246,7 +259,7 @@ private:
     QImage m_frameImage;
 
     /// cache for individual frames (to make movie playing little bit faster)
-    QCache<QString,QImage> m_frameCache;
+    QCache < QString, QImage > m_frameCache;
 };
 }
 }

@@ -11,6 +11,7 @@
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QList>
@@ -33,11 +34,15 @@ public:
     }
 };
 
-const QString Controller::CLIP_VALUE = "clipValue";
+const QString Controller::CLIP_VALUE_MIN = "clipValueMin";
+const QString Controller::CLIP_VALUE_MAX = "clipValueMax";
 const QString Controller::AUTO_CLIP = "autoClip";
 const QString Controller::DATA_COUNT = "dataCount";
 const QString Controller::DATA_PATH = "dataPath";
 const QString Controller::CURSOR = "formattedCursorCoordinates";
+const QString Controller::CENTER = "center";
+const QString Controller::POINTER_MOVE = "pointer-move";
+const QString Controller::ZOOM = "zoom";
 const QString Controller::REGIONS = "regions";
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 
@@ -51,7 +56,8 @@ Controller::Controller( const QString& path, const QString& id ) :
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
         m_view(nullptr),
-        m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
+        m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW),
+        m_viewSize( 400, 400){
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
     _initializeSelections();
 
@@ -61,12 +67,14 @@ Controller::Controller( const QString& path, const QString& id ) :
      _initializeState();
 
      registerView(m_view.get());
+     connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(viewResize(const QSize&)));
 
      //Load the view.
      _loadView( false );
 
      _initializeCallbacks();
 }
+
 
 
 void Controller::addData(const QString& fileName) {
@@ -84,7 +92,9 @@ void Controller::addData(const QString& fileName) {
         CartaObject* dataSource = Util::createObject( DataSource::CLASS_NAME );
         std::shared_ptr<DataSource> targetSource( dynamic_cast<DataSource*>(dataSource));
         targetIndex = m_datas.size();
+        connect( targetSource.get(), SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         m_datas.push_back(targetSource);
+        targetSource->viewResize( m_viewSize );
 
         //Update the data selectors upper bound and index based on the data.
         m_selectImage->setUpperBound(m_datas.size());
@@ -114,10 +124,12 @@ void Controller::clear(){
 }
 
 void Controller::colorMapChanged( const QString& name ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setColorMap( name );
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setColorMap( name );
+        }
+        _loadView( true );
     }
-    _loadView( true );
 }
 
 NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
@@ -131,19 +143,7 @@ NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, in
     return rawData;
 }
 
-void Controller::setColorInverted( bool inverted ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setColorInverted( inverted );
-    }
-    _loadView( true );
-}
 
-void Controller::setColorReversed( bool reversed ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setColorReversed( reversed );
-    }
-    _loadView( true );
-}
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
     std::vector<std::shared_ptr<Image::ImageInterface>> images(m_datas.count());
@@ -229,7 +229,33 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        setClipValue( params );
+        //setClipValue( params );
+        std::set<QString> keys = {"clipValue"};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        bool validClip = false;
+        QString clipKey = *keys.begin();
+        QString clipWithoutPercent = dataValues[clipKey].remove("%");
+        double clipVal = dataValues[clipKey].toDouble(&validClip);
+        if ( validClip ){
+            double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
+            double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
+            double oldClipVal = oldClipValMax - oldClipValMin;
+            const double ERROR_MARGIN = 0.000001;
+            if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
+                double leftOver = 1 - clipVal;
+                double clipValMin = leftOver / 2;
+                double clipValMax = clipVal + leftOver / 2;
+                m_state.setValue<double>( CLIP_VALUE_MIN, clipValMin );
+                m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
+                m_state.flushState();
+                if ( m_view ){
+                    _loadView( true );
+                }
+            }
+        }
+        else {
+            qDebug() << "Invalid clip value: "<<params;
+        }
         return "";
     });
 
@@ -249,10 +275,44 @@ void Controller::_initializeCallbacks(){
         }
         return "";
     });
-    QString viewPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW;
-    addStateCallback( viewPath, [=] ( const QString& /*path*/, const QString& /*value*/ ) {
-            _updateCursor();
+
+    QString pointerPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW +
+            StateInterface::DELIMITER + POINTER_MOVE;
+    addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
+        QStringList mouseList = value.split( " ");
+        if ( mouseList.size() == 2 ){
+            bool validX = false;
+            int mouseX = mouseList[0].toInt( &validX );
+            bool validY = false;
+            int mouseY = mouseList[1].toInt( &validY );
+            if ( validX && validY ){
+                _updateCursor( mouseX, mouseY );
+            }
+        }
+
+    });
+
+    addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) ->QString {
+            auto vals = Util::string2VectorDouble( params );
+            int count = vals.size();
+            if ( count > 1 ) {
+                updatePan( vals[0], vals[1]);
+            }
+            return "";
         });
+
+    addCommandCallback( ZOOM, [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        auto vals = Util::string2VectorDouble( params );
+        if ( vals.size() > 2 ) {
+            double centerX = vals[0];
+            double centerY = vals[1];
+            double z = vals[2];
+            updateZoom( centerX, centerY, z );
+        }
+        return "";
+    });
 
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -300,7 +360,8 @@ void Controller::_initializeState(){
 
     //Set whether or not to auto clip
     m_state.insertValue<bool>( AUTO_CLIP, true );
-    m_state.insertValue<double>( CLIP_VALUE, 0.95 );
+    m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
+    m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
     m_state.insertValue<int>(DATA_COUNT, 0 );
 
 
@@ -313,9 +374,11 @@ void Controller::_initializeState(){
 
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
-    m_stateMouse.insertValue<QString>(ImageView::MOUSE_X, 0 );
-    m_stateMouse.insertValue<QString>(ImageView::MOUSE_Y, 0 );
+    m_stateMouse.insertValue<QString>(POINTER_MOVE, "");
+    m_stateMouse.insertValue<int>(ImageView::MOUSE_X, 0 );
+    m_stateMouse.insertValue<int>(ImageView::MOUSE_Y, 0 );
     m_stateMouse.flushState();
+
 
 }
 
@@ -339,20 +402,19 @@ void Controller::_loadView( bool forceReload ) {
 
             //Load the image.
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
-            double clipValue = m_state.getValue<double>(CLIP_VALUE);
-            QImage res = m_datas[imageIndex]->load(frameIndex, forceReload, autoClip, clipValue);
-            if (res.isNull()) {
-                qDebug() << "Could not find any plugin to load image";
-            } else {
-                //Refresh the view.
-                m_view->resetImage(res);
-                refreshView( m_view.get());
-            }
+            double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
+            double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
+            m_datas[imageIndex]->load(frameIndex, forceReload, autoClip, clipValueMin, clipValueMax);
         }
-    } else {
+        else {
+            qDebug() << "Uninitialized image: "<<imageIndex;
+        }
+    }
+    else {
         qDebug() << "Image index=" << imageIndex << " is out of range";
     }
 }
+
 
 QString Controller::_makeRegion( const QString& regionType ){
     QString shapePath = Region::makeRegion( regionType );
@@ -365,6 +427,11 @@ QString Controller::_makeRegion( const QString& regionType ){
 
      }
     return shapePath;
+}
+
+void Controller::_renderingDone( QImage img ){;
+    m_view->resetImage( img );
+    refreshView( m_view.get() );
 }
 
 void Controller::saveState() {
@@ -396,7 +463,44 @@ void Controller::_saveRegions(){
     }
 }
 
+void Controller::setColorInverted( bool inverted ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorInverted( inverted );
+    }
+}
 
+void Controller::setColorReversed( bool reversed ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorReversed( reversed );
+    }
+}
+
+void Controller::setPixelCaching( bool enabled ){
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setPixelCaching( enabled );
+        }
+        _loadView( false );
+    }
+}
+
+void Controller::setCacheInterpolation( bool enabled ){
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setCacheInterpolation( enabled );
+        }
+        _loadView( false );
+    }
+}
+
+void Controller::setCacheSize( int size ){
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setCacheSize( size );
+        }
+        _loadView( false );
+    }
+}
 
 
 void Controller::setFrameChannel(const QString& val) {
@@ -412,35 +516,104 @@ void Controller::setFrameImage(const QString& val) {
     }
 }
 
+void Controller::setTransformData( const QString& name ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setTransformData( name );
+        }
+        _loadView( false );
+    }
+}
 
-void Controller::_updateCursor( ){
+
+void Controller::_updateCursor( int mouseX, int mouseY ){
     if ( m_datas.size() == 0 ){
         return;
     }
-    QSize imageSize = m_view->size();
-    int pictureWidth = imageSize.width();
-    int pictureHeight = imageSize.height();
-    QString formattedCursor;
-    QString mouseXStr = m_stateMouse.getValue<QString>( ImageView::MOUSE_X );
-    bool validInt = false;
-
-    int mouseX = mouseXStr.toInt(&validInt );
-    if ( !validInt ){
-        return;
-    }
-    QString mouseYStr = m_stateMouse.getValue<QString>( ImageView::MOUSE_Y );
-    int mouseY = mouseYStr.toInt( &validInt );
-    if ( !validInt ){
-        return;
-    }
-    int imageIndex = m_selectImage->getIndex();
-    int frameIndex = m_selectChannel->getIndex();
-    QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
-    if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
-        m_stateMouse.setValue<QString>( CURSOR, cursorText );
-        m_stateMouse.flushState();
+    int oldMouseX = m_stateMouse.getValue<int>( ImageView::MOUSE_X );
+    int oldMouseY = m_stateMouse.getValue<int>( ImageView::MOUSE_Y );
+    if ( oldMouseX != mouseX || oldMouseY != mouseY ){
+        QSize imageSize = m_view->size();
+        int pictureWidth = imageSize.width();
+        int pictureHeight = imageSize.height();
+        QString formattedCursor;
+        int imageIndex = m_selectImage->getIndex();
+        int frameIndex = m_selectChannel->getIndex();
+        QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
+        if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
+            m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
+            m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
+            m_stateMouse.setValue<QString>( CURSOR, cursorText );
+            m_stateMouse.flushState();
+        }
     }
 }
+
+void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
+
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        //Remember where the user clicked
+        QPointF clickPtScreen( centerX, centerY);
+        bool validImage = false;
+        QPointF clickPtImageOld = m_datas[imageIndex]->getImagePt( clickPtScreen, &validImage );
+        if ( validImage ){
+            //Set the zoom
+            double newZoom = 1;
+            double oldZoom = m_datas[imageIndex]->getZoom();
+            if ( zoomFactor < 0 ) {
+                newZoom = oldZoom / 0.9;
+            }
+            else {
+                newZoom = oldZoom * 0.9;
+            }
+            for (std::shared_ptr<DataSource> data : m_datas ){
+                data->setZoom( newZoom );
+            }
+
+            // what is the new image pixel under the mouse cursor?
+            QPointF clickPtImageNew = m_datas[imageIndex]->getImagePt( clickPtScreen, &validImage );
+
+            // calculate the difference
+            QPointF delta = clickPtImageOld - clickPtImageNew;
+
+            // add the delta to the current center
+            QPointF currCenter = m_datas[imageIndex]->getCenter();
+            QPointF newCenter = currCenter + delta;
+            for ( std::shared_ptr<DataSource> data : m_datas ){
+                data->setPan( newCenter.x(), newCenter.y() );
+            }
+            _loadView( false );
+        }
+    }
+}
+
+void Controller::updatePan( double centerX , double centerY){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        bool validImage = false;
+        QPointF newCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
+        if ( validImage ){
+            for ( std::shared_ptr<DataSource> data : m_datas ){
+                data->setPan( newCenter.x(), newCenter.y() );
+            }
+            _loadView( false );
+        }
+    }
+}
+
+void Controller::viewResize( const QSize& newSize ){
+    if ( m_datas.size() > 0 ){
+        for ( int i = 0; i < m_datas.size(); i++ ){
+            m_datas[i]->viewResize( newSize );
+        }
+        m_viewSize = newSize;
+        _loadView( false );
+    }
+}
+
+
 
 Controller::~Controller(){
     clear();

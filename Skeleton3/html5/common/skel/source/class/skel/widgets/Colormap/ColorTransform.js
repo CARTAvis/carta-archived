@@ -58,6 +58,16 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
             dataComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_dataCombo = new qx.ui.form.ComboBox();
             this.m_dataCombo.setToolTipText( "Select a data transformation.");
+            this.m_dataCombo.addListener( "changeValue", function(e){
+                if ( this.m_id !== null ){
+                    var transformName = e.getData();
+                    //Send a command to the server to let them know the map changed.
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + "setDataTransform";
+                    var params = "dataTransform:"+transformName;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+            },this);
             var dataLabel = new qx.ui.basic.Label( "Data:");
             dataComposite.add( dataLabel );
             dataComposite.add( this.m_dataCombo );

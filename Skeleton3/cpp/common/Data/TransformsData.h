@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <vector>
 
 
@@ -32,6 +33,8 @@ public:
      */
     QStringList getTransformsData() const;
 
+    Carta::Lib::PixelPipeline::ScaleType getScaleType( const QString& name ) const;
+
     virtual ~TransformsData();
 
     const static QString CLASS_NAME;
@@ -44,6 +47,11 @@ private:
     static bool m_registered;
     const static QString DATA_TRANSFORMS;
     const static QString TRANSFORM_COUNT;
+    const static QString TRANSFORM_NONE;
+    const static QString TRANSFORM_ROOT;
+    const static QString TRANSFORM_POLY;
+    const static QString TRANSFORM_SQUARE;
+    const static QString TRANSFORM_LOG;
     TransformsData( const QString& path, const QString& id );
 
     class Factory;

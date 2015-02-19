@@ -16,7 +16,7 @@
  *
  * ************************************************************************ */
 
-qx.Class.define( "skel.boundWidgets.View", {
+qx.Class.define( "skel.boundWidgets.View.View", {
 
     extend: qx.ui.core.Widget,
 
@@ -29,6 +29,7 @@ qx.Class.define( "skel.boundWidgets.View", {
 
         this.base( arguments );
         this.m_viewName = viewName;
+        console.log( "view name="+this.m_viewName);
 
         var setZeroTimeout = mImport( "setZeroTimeout" );
 

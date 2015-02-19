@@ -27,20 +27,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         _dataLoadedCB : function(){
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.SuffixedView(this.m_identifier);
+                this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
             }
-           
-            /*if ( this.m_drawCanvas === null ){
-                this.m_drawCanvas = new skel.widgets.Draw.Canvas( this.m_identifier, this.m_view);
-            }*/
             
             var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
             if (this.m_content.indexOf(this.m_view) < 0) {
                 this.m_content.add(this.m_view, overlayMap );
             }
-            /*if ( this.m_content.indexOf( this.m_drawCanvas) < 0 ){
-                this.m_content.add(this.m_drawCanvas, overlayMap);
-            }*/
         },
         
         /**
@@ -72,9 +65,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             dataButton.setMenu(this._initDataMenu());
 
             var regionButton = new qx.ui.toolbar.MenuButton("Region");
+            regionButton.setEnabled( false );
             regionButton.setMenu(this._initMenuRegion());
 
             var renderButton = new qx.ui.toolbar.MenuButton("Render");
+            renderButton.setEnabled( false );
             renderButton.setMenu(this._initMenuRender());
             
             var showButton = new qx.ui.toolbar.MenuButton( "Show");
@@ -157,7 +152,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         "showPopupWindow", data));
             }, this );
             showMenu.add( colormapButton );
-            var histogramButton = new qx.ui.menu.Button( path.HISTOGRAM_PLUGIN );
+            /*var histogramButton = new qx.ui.menu.Button( path.HISTOGRAM_PLUGIN );
             skel.widgets.TestID.addTestId( histogramButton, skel.widgets.TestID.HISTOGRAM_BUTTON);
             histogramButton.addListener( "execute", function(){
                 var data = {
@@ -167,7 +162,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "showPopupWindow", data));
             }, this );
-            showMenu.add( histogramButton );
+            showMenu.add( histogramButton );*/
             return showMenu;
         },
 

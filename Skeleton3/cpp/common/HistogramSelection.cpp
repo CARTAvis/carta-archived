@@ -59,7 +59,7 @@ void HistogramSelection::boundaryLineMoved( const QPoint& pos ){
 }
 
 void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
-        const QwtScaleMap& yMap, const QRectF& canvasRect) const{
+        const QwtScaleMap& /*yMap*/, const QRectF& /*canvasRect*/) const{
 
     double lowerBoundT = xMap.transform( lowerBound );
     double upperBoundT = xMap.transform( upperBound );

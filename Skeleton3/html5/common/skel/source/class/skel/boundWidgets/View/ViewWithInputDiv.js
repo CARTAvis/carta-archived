@@ -8,7 +8,7 @@
  * this is controlled by PureWeb. So wrapping it this way avoids this issue altogether.
  */
 
-qx.Class.define( "skel.boundWidgets.ViewWithInputDiv", {
+qx.Class.define( "skel.boundWidgets.View.ViewWithInputDiv", {
 
     extend: qx.ui.container.Composite,
 
@@ -17,13 +17,11 @@ qx.Class.define( "skel.boundWidgets.ViewWithInputDiv", {
      */
     construct: function( viewName) {
         this.base( arguments);
-
         this.setLayout( new qx.ui.layout.Grow());
-        this.m_viewWidget = new skel.boundWidgets.View( viewName);
+        this.m_viewWidget = new skel.boundWidgets.View.View( viewName );
         this.add( this.m_viewWidget);
         this.m_overlayWidget = new qx.ui.core.Widget();
         this.add( this.m_overlayWidget);
-
         // this.m_overlayWidget.setBackgroundColor( "rgba(255,0,0,0.2)");
     },
 

@@ -163,14 +163,15 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
          * Initialize a context menu.
          */
         _initContextMenu : function() {
-            this.m_contextMenu = new qx.ui.menu.Menu();
+            //Disabled for now
+            /*this.m_contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
             customizeButton.addListener("execute", function() {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "showCustomizeMenuDialog", this));
             }, this);
             this.m_contextMenu.add(customizeButton);
-            this.setContextMenu(this.m_contextMenu);
+            this.setContextMenu(this.m_contextMenu);*/
         },
         
         /**
@@ -248,6 +249,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 var showSpecButton = this._makeCmdCheck( showCmds[i], null);
                 menuBarMenu.add( showSpecButton );
             }
+           
             this.m_prefButton.setMenu( prefMenu );
             
            
