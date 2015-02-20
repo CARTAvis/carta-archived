@@ -9,7 +9,7 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "Data/LinkableImpl.h"
-
+#include "HistogramGenerator.h"
 #include <QObject>
 
 namespace Image {
@@ -64,6 +64,7 @@ public:
 private slots:
     void  _generateHistogram();
     void _createHistogram();
+    
 
 private:
     NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
@@ -73,16 +74,13 @@ private:
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
-<<<<<<< HEAD
+
     QString _setClipMin( const QString& params );
     QString _setClipMax( const QString& params );
     QString _setClipPercent( const QString& params );
     // QString _setClipMaxPercent( const QString& params );
     // QString _setClipMinPercent( const QString& params );
-=======
 
-
->>>>>>> dd4500aa8fa1392af59a7ccfd13a56ca2591d5c1
     QString _setClipToImage( const QString& params );
     QString _setColored( const QString& params );
     QString _setLogCount( const QString& params );
@@ -92,10 +90,20 @@ private:
     QString _set2DFootPrint( const QString& params );
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData();
     
+    void _startSelection(const QString& params );
+    // void _updateSelection(const QString& params );
+    void _updateSelection(int x);
+    void _endSelection(const QString& params );
+
     void _initializeDefaultState();
     void _initializeCallbacks();
 
     static bool m_registered;
+
+    bool m_selectionEnabled;
+    double m_selectionStart;
+    double m_selectionEnd;
+    bool m_selectionEnded;
 
     const static QString CLIP_INDEX;
     const static QString CLIP_MIN;
@@ -122,6 +130,8 @@ private:
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
     const static QString LINK;
+    const static QString X_COORDINATE;
+    const static QString POINTER_MOVE;
     
     const static double CLIP_ERROR_MARGIN;
 
@@ -136,6 +146,7 @@ private:
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
+    HistogramGenerator* m_histogram;
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;

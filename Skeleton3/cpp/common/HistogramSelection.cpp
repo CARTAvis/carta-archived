@@ -70,12 +70,12 @@ void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
 		QColor shadeColor( 200,200,200 );
 		shadeColor.setAlpha( 100 );
 
-		int startX = lowerBoundT;
-		if ( upperBoundT < lowerBoundT ){
-			startX = upperBoundT;
+		int startX = lowerBound;
+		if ( upperBound < lowerBound ){
+			startX = upperBound;
 		}
 		int rectHeight = m_height;
-		int rectWidth = qAbs( lowerBoundT - upperBoundT );
+		int rectWidth = qAbs( lowerBound - upperBound );
 		QRect rect( startX, 0, rectWidth, rectHeight );
 		painter->fillRect( rect , shadeColor );
 
@@ -83,8 +83,8 @@ void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
 		QPen oldPen = painter->pen();
 		QPen boundaryPen( Qt::black );
 		painter->setPen( boundaryPen );
-		painter->drawLine( lowerBoundT, 0, lowerBoundT, rectHeight );
-		painter->drawLine( upperBoundT, 0, upperBoundT, rectHeight );
+		painter->drawLine( lowerBound, 0, lowerBound, rectHeight );
+		painter->drawLine( upperBound, 0, upperBound, rectHeight );
 		painter->setPen( oldPen );
 	}
 

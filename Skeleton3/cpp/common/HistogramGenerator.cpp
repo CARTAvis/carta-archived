@@ -6,7 +6,6 @@
 #include <QPainter>
 #include <qwt_plot_renderer.h>
 #include <QImage>
-#include "HistogramSelection.h"
 #include <QWidget>
 #include <qwt_plot.h>
 #include <qwt_samples.h>
@@ -108,22 +107,22 @@ void HistogramGenerator::setLogScale(bool display){
     }
 }
 
-void HistogramGenerator::setHistogramRange(double min, double max){
-   HistogramSelection * range = new HistogramSelection();
+// void HistogramGenerator::setHistogramRange(double min, double max){
+   // HistogramSelection * range = new HistogramSelection();
     //QRect rect = m_plot->frameRect();
     //int w = rect.width();
 
    // double minClip = m_plot -> transform(QwtPlot::xBottom, min);
    // double maxClip = m_plot -> transform(QwtPlot::xBottom, max);
 
-   QwtScaleMap canvasMap = m_plot-> canvasMap(QwtPlot::xBottom);
+   // QwtScaleMap canvasMap = m_plot-> canvasMap(QwtPlot::xBottom);
     //double minClip = canvasMap.transform(min);
    //double maxClip = canvasMap.transform(max);
-   range->setHeight(m_height);
-   range->setBoundaryValues(min, max);
-   range->attach(m_plot);
-   m_plot->replot();
-}
+//    range->setHeight(m_height);
+//    range->setBoundaryValues(min, max);
+//    range->attach(m_plot);
+//    m_plot->replot();
+// }
 
 void HistogramGenerator::lineSelected(){
     // int lowerBound = m_range->getLowerBound();
@@ -145,21 +144,6 @@ void HistogramGenerator::setHistogramRange(double min, double max){
     m_range->setHeight(m_height);
     m_range->setBoundaryValues(min, max);
     m_range->attach(m_plot);
-
-   //This is what draws the rectangle while it is being dragged.
-    // m_dragLine = new QwtPlotPicker(m_plot->canvas());
-    m_dragLine = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft,
-     QwtPlotPicker::VLineRubberBand, QwtPicker::ActiveOnly, m_plot->canvas());
-
-    m_dragLine -> setStateMachine(new QwtPickerDragLineMachine());
-    connect( m_dragLine, SIGNAL(selected(const QPointF &)), this, SLOT(lineSelected()));
-    connect( m_dragLine, SIGNAL(moved(const QPointF &)), this, SLOT(lineMoved(const QPointF &)));
-    //m_dragLine -> setRubberBand(QwtPlotPicker::VLineRubberBand);
-    //m_dragLine -> setTrackerMode(QwtPlotPicker::ActiveOnly);
-
-
-
-
 }
 
 // void HistogramGenerator::setColored( bool colored ){
