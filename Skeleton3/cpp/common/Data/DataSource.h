@@ -7,8 +7,8 @@
 #include "CartaLib/Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include "CartaLib/ICoordinateFormatter.h"
-#include "../ImageRenderService.h"
+#include "Data/IColoredView.h"
+
 #include <QImage>
 #include <memory>
 
@@ -20,7 +20,7 @@ namespace Image {
     class ImageInterface;
 }
 
-class ICoordinateFormatter;
+class CoordinateFormatterInterface;
 
 namespace Carta {
     namespace Lib {
@@ -31,14 +31,23 @@ namespace Carta {
 }
 
 namespace Carta {
+    namespace Core {
+        namespace ImageRenderService {
+            class Service;
+        }
+    }
+}
+
+namespace Carta {
 
 namespace Data {
 
-class DataSource : public QObject, public CartaObject {
+class DataSource : public QObject, public CartaObject, public IColoredView {
 
 Q_OBJECT
 
 public:
+
     /**
      * Returns whether or not the data was successfully loaded.
      * @param fileName an identifier for the location of a data source.
@@ -50,39 +59,59 @@ public:
      * Sets a new color map.
      * @param name the identifier for the color map.
      */
-    void setColorMap( const QString& name );
+    virtual void setColorMap( const QString& name ) Q_DECL_OVERRIDE;
 
     /**
      * Sets whether the colors in the map are inverted.
      * @param inverted true if the colors in the map are inverted; false
      *        otherwise.
      */
-    void setColorInverted( bool inverted );
+    virtual void setColorInverted( bool inverted )  Q_DECL_OVERRIDE;
 
     /**
      * Sets whether the colors in the map are reversed.
      * @param reversed true if the colors in the map are reversed; false
      *        otherwise.
      */
-    void setColorReversed( bool reversed );
+    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the amount of red, green, and blue in the color scale.
+     * @param newRed the amount of red; should be in the range [0,1].
+     * @param newGreen the amount of green; should be in the range [0,1].
+     * @param newBlue the amount of blue; should be in the range[0,1].
+     */
+    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the gamma color map parameter.
+     * @param gamma a color map parameter.
+     */
+    virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to use pixel caching.
      * @param enabled true if pixel caching should be used; false otherwise.
      */
-    void setPixelCaching( bool enabled );
+    virtual void setPixelCaching( bool enabled )  Q_DECL_OVERRIDE;
 
     /**
      * Set the pixel cache size.
      * @param size the new pixel cache size.
      */
-    void setCacheSize( int size );
+    virtual void setCacheSize( int size )  Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to use pixel cache interpolation.
      * @param enabled true if pixel cache interpolation should be used; false otherwise.
      */
-    void setCacheInterpolation( bool enabled );
+    virtual void setCacheInterpolation( bool enabled )  Q_DECL_OVERRIDE;
+
+    /**
+     * Set the data transform.
+     * @param name QString a unique identifier for a data transform.
+     */
+    void setTransformData( const QString& name );
 
     /**
      * Loads the data source as a QImage.
@@ -124,6 +153,21 @@ public:
      * @return the number of image dimensions.
      */
     int getDimensions() const;
+
+    /**
+     * Returns the location on the image corresponding to a screen point in
+     * pixels.
+     * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding location on the image.
+     */
+    QPointF getImagePt( QPointF screenPt, bool* valid ) const;
+
+    /**
+     * Return the current pan center.
+     * @return the centered image location.
+     */
+    QPointF getCenter() const;
 
     /**
      * Return the zoom factor for this image.
@@ -184,6 +228,10 @@ public:
      */
     void viewResize( const QSize& newSize );
 
+    /**
+     * Generate a new QImage.
+     */
+    void render();
 
     virtual ~DataSource();
 
@@ -197,7 +245,7 @@ signals:
 private slots:
 
     //Notification from the rendering service that a new image has been produced.
-    void _renderingDone( QImage img, Carta::Core::ImageRenderService::JobId jobId );
+    void _renderingDone( QImage img, int64_t jobId );
 
 private:
 
@@ -212,7 +260,7 @@ private:
 
     void _initializeState();
 
-    void _updateClips( NdArray::RawViewInterface::SharedPtr& view, int frameIndex,
+    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
             double minClipPercentile, double maxClipPercentile );
 
     //Path for loading data - todo-- do we need to store this?
@@ -227,11 +275,8 @@ private:
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_image;
 
-    /// pointer to the rendering algorithm
-    //std::unique_ptr<Carta::Core::RawView2QImageConverter3> m_rawView2QImageConverter;
-
     /// coordinate formatter
-    CoordinateFormatterInterface::SharedPtr m_coordinateFormatter;
+    std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
 
     /// clip cache, hard-coded to single quantile
     std::vector< std::vector<double> > m_quantileCache;

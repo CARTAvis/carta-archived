@@ -20,7 +20,7 @@ public:
      * Notification that the selected color map has changed.
      * @param colorMapName a QString identifying the selected color map.
      */
-    virtual void colorMapChanged( const QString& colorMapName )=0;
+    virtual void setColorMap( const QString& colorMapName )=0;
 
     /**
      * Sets whether or not the colors in the map have been inverted.
@@ -34,7 +34,37 @@ public:
      */
     virtual void setColorReversed( bool reversed ) = 0;
 
-    virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() = 0;
+    /**
+    * Set the amount of red, green, and blue in the color scale.
+    * @param newRed the amount of red; should be in the range [0,1].
+    * @param newGreen the amount of green; should be in the range [0,1].
+    * @param newBlue the amount of blue; should be in the range[0,1].
+    */
+    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) = 0;
+
+    /**
+     * Set the gamma color map parameter.
+     * @param gamma a color map parameter.
+     */
+    virtual void setGamma( double gamma ) = 0;
+
+    /**
+     * Set whether or not to use pixel caching.
+     * @param enabled true if pixel caching should be used; false otherwise.
+     */
+    virtual void setPixelCaching( bool enabled ) = 0;
+
+    /**
+     * Set the pixel cache size.
+     * @param size the new pixel cache size.
+     */
+    virtual void setCacheSize( int size ) = 0;
+
+    /**
+     * Set whether or not to use pixel cache interpolation.
+     * @param enabled true if pixel cache interpolation should be used; false otherwise.
+     */
+    virtual void setCacheInterpolation( bool enabled ) = 0;
 
 };
 }

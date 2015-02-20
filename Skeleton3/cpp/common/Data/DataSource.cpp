@@ -4,10 +4,12 @@
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
-
+#include "Data/Util.h"
+#include "Data/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "Algorithms/RawView2QImageConverter.h"
-
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include "../ImageRenderService.h"
+#include "../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QImageWriter>
 
@@ -117,6 +119,23 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex, int p
     return str;
 }
 
+QPointF DataSource::getCenter() const{
+    return m_renderService->pan();
+}
+
+
+QPointF DataSource::getImagePt( QPointF screenPt, bool* valid ) const {
+    QPointF imagePt;
+    if ( m_image != nullptr ){
+        imagePt = m_renderService-> screen2img (screenPt);
+        *valid = true;
+    }
+    else {
+        *valid = false;
+    }
+    return imagePt;
+}
+
 int DataSource::getFrameCount() const {
     int frameCount = 1;
     if ( m_image ){
@@ -206,11 +225,15 @@ void DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoCl
     // tell the render service to render this job
     QString argStr = QString( "%1//%2").arg(m_fileName).arg(frameIndex);
     m_renderService-> setInputView( view, argStr);
-    m_renderService-> render( 0 );
+    render();
 
 }
 
-void DataSource::_renderingDone( QImage img, Carta::Core::ImageRenderService::JobId jobId ){
+void DataSource::render(){
+    m_renderService-> render( 0 );
+}
+
+void DataSource::_renderingDone( QImage img, int64_t jobId ){
     Q_UNUSED( jobId );
     QImageWriter imagefile;
     imagefile.setFileName("/tmp/imagePict");
@@ -267,27 +290,43 @@ void DataSource::setColorMap( const QString& name ){
     CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
     m_pixelPipeline-> setColormap( maps->getColorMap( name ) );
+    m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
 void DataSource::setColorInverted( bool inverted ){
     m_pixelPipeline-> setInvert( inverted );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
-    m_renderService-> render( 0 );
 }
 
 void DataSource::setColorReversed( bool reversed ){
     m_pixelPipeline-> setReverse( reversed );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
-    m_renderService-> render( 0 );
+}
+
+void DataSource::setColorAmounts( double newRed, double newGreen, double newBlue ){
+    std::array<double,3> colorArray;
+    colorArray[0] = newRed;
+    colorArray[1] = newGreen;
+    colorArray[2] = newBlue;
+    m_pixelPipeline->setRgbMax( colorArray );
+    m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
 void DataSource::setPan( double imgX, double imgY ){
-    auto newCenter = m_renderService-> screen2img( { imgX, imgY } );
-    m_renderService-> setPan( newCenter );
+    m_renderService-> setPan( QPointF(imgX,imgY) );
 }
 
-void DataSource::setZoom( double newZoom){
-    m_renderService-> setZoom( newZoom );
+void DataSource::setTransformData( const QString& name ){
+    CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
+    TransformsData* transformData = dynamic_cast<TransformsData*>(transformDataObj);
+    Carta::Lib::PixelPipeline::ScaleType scaleType = transformData->getScaleType( name );
+    m_pixelPipeline->setScale( scaleType );
+    m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId() );
+}
+
+void DataSource::setZoom( double zoomAmount){
+    // apply new zoom
+    m_renderService-> setZoom( zoomAmount );
 }
 
 void DataSource::setPixelCaching( bool cachePixels ){
@@ -308,6 +347,12 @@ void DataSource::setCacheSize( int cacheSize ){
     m_renderService->setPixelPipelineCacheSettings( settings );
 }
 
+void DataSource::setGamma( double gamma ){
+    m_pixelPipeline->setGamma( gamma );
+    m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
+}
+
+
 void DataSource::saveState( ) {
     QString oldSavedFile = m_state.getValue<QString>( DATA_PATH );
     if ( m_fileName != oldSavedFile ){
@@ -315,7 +360,7 @@ void DataSource::saveState( ) {
     }
 }
 
-void DataSource::_updateClips( NdArray::RawViewInterface::SharedPtr& view, int frameIndex,
+void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
         double minClipPercentile, double maxClipPercentile ){
     std::vector<double> clips = m_quantileCache[ frameIndex];
     NdArray::Double doubleView( view.get(), false );

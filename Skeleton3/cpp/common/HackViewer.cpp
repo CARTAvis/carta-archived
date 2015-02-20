@@ -498,13 +498,8 @@ HackViewer::start()
     // new experiment with asynchronous renderer
     m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
 
-    auto cmdLineInfo = Globals::instance()-> cmdLineInfo();
-    if( cmdLineInfo && cmdLineInfo-> fileList().size() > 0) {
-        m_imageViewController-> loadImage( cmdLineInfo-> fileList()[0]);
-    }
-    else {
-        m_imageViewController-> loadImage( "/scratch/mosaic.fits" );
-    }
+    // tell the view controller to load the image specified on the command line/url
+    m_imageViewController-> loadImage( fname);
 
     // invert toggle
     addStateCallback(
@@ -557,7 +552,6 @@ HackViewer::start()
         set.size = size;
         m_imageViewController-> setPPCsettings( set);
     });
-
 
     addStateCallback( "cm-current", colormapCB2 );
 

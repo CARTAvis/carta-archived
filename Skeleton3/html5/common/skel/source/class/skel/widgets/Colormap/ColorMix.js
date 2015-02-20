@@ -83,8 +83,15 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             this.m_blueSlider.setDecorator( "slider-blue" );
             this._add( sliderContainer );
             
+            var syncContainer = new qx.ui.container.Composite();
+            syncContainer.setAllowGrowX( true );
+            syncContainer.setLayout( new qx.ui.layout.HBox(1));
             this.m_synchronizeCheck = new qx.ui.form.CheckBox( "Synchronize Colors");
             this.m_synchronizeCheck.setValue( true );
+            syncContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            syncContainer.add( this.m_synchronizeCheck );
+            syncContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            this._add( syncContainer );
         },
         
         /**

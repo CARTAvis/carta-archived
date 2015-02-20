@@ -273,7 +273,7 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
             }
         }
         else {
-            result = "Unrecognized link source: "+sourceId;
+            result = "Unrecognized add link source: "+sourceId;
         }
     }
     return result;
@@ -295,9 +295,9 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
             if ( !unlinked ){
                 result = "Could not remove link between source and destination.";
             }
-            else {
-                result = "Unrecognized link source: "+sourceId;
-            }
+        }
+        else {
+            result = "Could not remove link, unrecognized source: "+sourceId;
         }
     }
     return result;
@@ -310,6 +310,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_controllers[index]->getPath();
         }
         else {
+            if ( index == -1 ){
+                index = m_controllers.size() - 1;
+            }
             viewId = _makeController(index+1);
         }
     }
@@ -318,6 +321,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_animators[index]->getPath();
         }
         else {
+            if ( index == -1 ){
+                index = m_animators.size() - 1;
+            }
             viewId = _makeAnimator(index+1);
         }
     }
@@ -326,7 +332,11 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_colormaps[index]->getPath();
         }
         else {
-            viewId = _makeColorMap(index+1);
+            if ( index == -1 ){
+                index = m_colormaps.size() - 1;
+            }
+            int newIndex = index + 1;
+            viewId = _makeColorMap(newIndex);
         }
     }
     else if ( plugin == Histogram::CLASS_NAME ){
@@ -334,6 +344,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_histograms[index]->getPath();
         }
         else {
+            if ( index == -1 ){
+                index = m_histograms.size() - 1;
+            }
             viewId = _makeHistogram(index+1);
         }
     }
@@ -342,6 +355,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index ){
             viewId = m_statistics[index]->getPath();
         }
         else {
+            if ( index == -1 ){
+                index = m_statistics.size() - 1;
+            }
             viewId = _makeStatistics(index+1);
         }
     }
@@ -390,7 +406,8 @@ QString ViewManager::_makeColorMap( int maxCount ){
             m_colormaps.append(target);
         }
     }
-   return m_colormaps[maxCount-1]->getPath();
+    QString path = m_colormaps[maxCount-1]->getPath();
+   return path;
 }
 
 QString ViewManager::_makeController( int maxCount ){

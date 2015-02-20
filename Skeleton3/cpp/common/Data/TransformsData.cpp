@@ -1,6 +1,7 @@
 #include "Data/TransformsData.h"
 #include "Data/Util.h"
 
+
 #include <QDebug>
 #include <set>
 
@@ -11,6 +12,11 @@ namespace Data {
 const QString TransformsData::DATA_TRANSFORMS = "dataTransforms";
 const QString TransformsData::CLASS_NAME = "TransformsData";
 const QString TransformsData::TRANSFORM_COUNT = "dataTransformCount";
+const QString TransformsData::TRANSFORM_NONE = "None";
+const QString TransformsData::TRANSFORM_ROOT = "Square Root";
+const QString TransformsData::TRANSFORM_SQUARE = "Square";
+const QString TransformsData::TRANSFORM_LOG = "Logarithm";
+const QString TransformsData::TRANSFORM_POLY = "Polynomial";
 
 class TransformsData::Factory : public CartaObjectFactory {
 
@@ -51,10 +57,11 @@ void TransformsData::_initializeDefaultState(){
 
     // get all TransformsData provided by core
     //hard-code the possible transforms until Pavol's code is available.
-    m_transforms.push_back("None");
-    m_transforms.push_back("x^.5");
-    m_transforms.push_back("x^2");
-    m_transforms.push_back("logarithm");
+    m_transforms.push_back(TRANSFORM_NONE);
+    m_transforms.push_back(TRANSFORM_ROOT);
+    m_transforms.push_back(TRANSFORM_SQUARE);
+    m_transforms.push_back(TRANSFORM_LOG);
+    m_transforms.push_back(TRANSFORM_POLY );
 
     int transformCount = m_transforms.size();
     m_state.insertValue<int>( TRANSFORM_COUNT, transformCount );
@@ -88,6 +95,22 @@ bool TransformsData::isTransform( const QString& name ) const {
     return validTransform;
 }
 
+Carta::Lib::PixelPipeline::ScaleType TransformsData::getScaleType( const QString& name ) const {
+    Carta::Lib::PixelPipeline::ScaleType scaleType = Carta::Lib::PixelPipeline::ScaleType::Linear;
+    if ( name == TRANSFORM_LOG ){
+        scaleType = Carta::Lib::PixelPipeline::ScaleType::Log;
+    }
+    else if ( name == TRANSFORM_POLY ){
+        scaleType = Carta::Lib::PixelPipeline::ScaleType::Polynomial;
+    }
+    else if ( name == TRANSFORM_SQUARE ){
+        scaleType = Carta::Lib::PixelPipeline::ScaleType::Sqr;
+    }
+    else if ( name == TRANSFORM_ROOT ){
+        scaleType = Carta::Lib::PixelPipeline::ScaleType::Sqrt;
+    }
+    return scaleType;
+}
 
 
 TransformsData::~TransformsData(){

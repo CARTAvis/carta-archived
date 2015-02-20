@@ -123,12 +123,7 @@ void Controller::clear(){
     unregisterView();
 }
 
-void Controller::colorMapChanged( const QString& name ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setColorMap( name );
-    }
-    _loadView( true );
-}
+
 
 NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
     NdArray::RawViewInterface * rawData = nullptr;
@@ -397,7 +392,14 @@ QString Controller::_makeRegion( const QString& regionType ){
     return shapePath;
 }
 
-void Controller::_renderingDone( QImage img ){;
+void Controller::_render(){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        m_datas[imageIndex]->render();
+    }
+}
+
+void Controller::_renderingDone( QImage img ){
     m_view->resetImage( img );
     refreshView( m_view.get() );
 }
@@ -435,33 +437,52 @@ void Controller::setColorInverted( bool inverted ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
         data->setColorInverted( inverted );
     }
+    _render();
+}
+
+void Controller::setColorMap( const QString& name ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorMap( name );
+    }
+    _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
         data->setColorReversed( reversed );
     }
+    _render();
+}
+
+void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorAmounts( newRed, newGreen, newBlue );
+    }
+    _render();
 }
 
 void Controller::setPixelCaching( bool enabled ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setPixelCaching( enabled );
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setPixelCaching( enabled );
+        }
     }
-    _loadView( false );
 }
 
 void Controller::setCacheInterpolation( bool enabled ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setCacheInterpolation( enabled );
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setCacheInterpolation( enabled );
+        }
     }
-    _loadView( false );
 }
 
 void Controller::setCacheSize( int size ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
-        data->setCacheSize( size );
+    if ( m_datas.size() > 0 ){
+        for ( std::shared_ptr<DataSource> data : m_datas ){
+            data->setCacheSize( size );
+        }
     }
-    _loadView( false );
 }
 
 
@@ -475,6 +496,20 @@ void Controller::setFrameImage(const QString& val) {
     if (m_selectImage != nullptr) {
         m_selectImage->setIndex(val);
     }
+}
+
+void Controller::setGamma( double gamma ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setGamma( gamma );
+    }
+    _render();
+}
+
+void Controller::setTransformData( const QString& name ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setTransformData( name );
+    }
+    _render();
 }
 
 
@@ -501,25 +536,58 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
     }
 }
 
-void Controller::updateZoom( double /*centerX*/, double /*centerY*/, double z ){
-    double newZoom;
-    int imageIndex = m_selectImage->getIndex();
-    double currentZoom = m_datas[imageIndex]->getZoom();
-    if ( z < 0 ) {
-        newZoom = currentZoom / 0.9;
-    }
-    else {
-        newZoom = currentZoom * 0.9;
-    }
-    m_datas[imageIndex]->setZoom( newZoom );
-    _loadView( false );
+void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
 
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        //Remember where the user clicked
+        QPointF clickPtScreen( centerX, centerY);
+        bool validImage = false;
+        QPointF clickPtImageOld = m_datas[imageIndex]->getImagePt( clickPtScreen, &validImage );
+        if ( validImage ){
+            //Set the zoom
+            double newZoom = 1;
+            double oldZoom = m_datas[imageIndex]->getZoom();
+            if ( zoomFactor < 0 ) {
+                newZoom = oldZoom / 0.9;
+            }
+            else {
+                newZoom = oldZoom * 0.9;
+            }
+            for (std::shared_ptr<DataSource> data : m_datas ){
+                data->setZoom( newZoom );
+            }
+
+            // what is the new image pixel under the mouse cursor?
+            QPointF clickPtImageNew = m_datas[imageIndex]->getImagePt( clickPtScreen, &validImage );
+
+            // calculate the difference
+            QPointF delta = clickPtImageOld - clickPtImageNew;
+
+            // add the delta to the current center
+            QPointF currCenter = m_datas[imageIndex]->getCenter();
+            QPointF newCenter = currCenter + delta;
+            for ( std::shared_ptr<DataSource> data : m_datas ){
+                data->setPan( newCenter.x(), newCenter.y() );
+            }
+            _render();
+        }
+    }
 }
 
-void Controller::updatePan( double imgX , double imgY){
+void Controller::updatePan( double centerX , double centerY){
     int imageIndex = m_selectImage->getIndex();
-    m_datas[imageIndex]->setPan( imgX, imgY );
-    _loadView( false );
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        bool validImage = false;
+        QPointF newCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
+        if ( validImage ){
+            for ( std::shared_ptr<DataSource> data : m_datas ){
+                data->setPan( newCenter.x(), newCenter.y() );
+            }
+            //_loadView( false );
+            _render();
+        }
+    }
 }
 
 void Controller::viewResize( const QSize& newSize ){
@@ -527,8 +595,11 @@ void Controller::viewResize( const QSize& newSize ){
         m_datas[i]->viewResize( newSize );
     }
     m_viewSize = newSize;
-    _loadView( false );
+    //_loadView( false );
+    _render();
 }
+
+
 
 Controller::~Controller(){
     clear();

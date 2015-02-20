@@ -88,6 +88,11 @@ Service::setPan( QPointF pt )
     }
 }
 
+QPointF Service::pan()
+{
+    return m_pan;
+}
+
 void
 Service::setZoom( double zoom )
 {

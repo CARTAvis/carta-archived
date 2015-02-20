@@ -28,12 +28,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics",
                 this.m_links = [];
                 qx.event.message.Bus.subscribe("addLink", function(ev){
                     var data = ev.getData();
-                    this._updateStatSource( data.source, data.destination, true);
+                    this._updateStatSource( data.source, data.destination);
                 }, this );
             },
 
             members : {
                 
+                
+                /**
+                 * Remove a link.
+                 * @param link {skel.widgets.Link.Link} the link to remove.
+                 */
+                removeLink : function( sourceWinId, destWinId ){
+                    if ( this.m_identifier === null || sourceWinId !== this.m_identifier ){
+                        return;
+                    }
+                    //Note:  need to be more sophisticated for multiple images.
+                    this.m_content.removeAll();
+                },
 
                 /**
                  * Adds a window displaying cursor statistics if the sourceWinId matches
@@ -41,28 +53,27 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics",
                  * 
                  * @param sourceWinId {String} for the window displaying the statistics.
                  * @param destWinId {String} an identifier for the window generating the statistics.
-                 * @param addLink {boolean} true if the statistics should be added;
-                 *                false if cursor statistics should be removed.
                  */
-                _updateStatSource : function(sourceWinId, destWinId, addLink) {
+                _updateStatSource : function(sourceWinId, destWinId ) {
                     if ( this.m_identifier === null || sourceWinId !== this.m_identifier ){
                         return;
                     }
-                    if (addLink) {
+                    if ( this.m_cursorLabel === null ){
                         // Right now only generic support is statistics.
                         // Need to generalize.
                         var path = skel.widgets.Path.getInstance();
                         var viewPath = destWinId + path.SEP + path.VIEW;
-                        var cursorLabel = new skel.boundWidgets.Label( "", "", viewPath, function( anObject){
+                        this.m_cursorLabel = new skel.boundWidgets.Label( "", "", viewPath, function( anObject){
                             return anObject.formattedCursorCoordinates;
                         });
-                        cursorLabel.setRich( true );
-                        this.m_content.add( cursorLabel );
-                    } 
-                    else if (!addLink) {
-                        this.m_content.removeAll();
+                        this.m_cursorLabel.setRich( true );
                     }
-                }
+                    if ( this.m_content.indexOf( this.m_cursorLabel) < 0){
+                        this.m_content.add( this.m_cursorLabel );
+                    }
+                },
+                
+                m_cursorLabel : null
             }
 
         });

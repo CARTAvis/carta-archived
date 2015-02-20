@@ -95,18 +95,18 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 this.m_settingsComposite.add( this.m_scaleSettings );
             }
         
-            //Model displaying the grid
-            if ( this.m_modelSettings === null ){
-                this.m_modelSettings = new skel.widgets.Colormap.ColorModel();
-                this.m_settingsComposite.add( this.m_modelSettings );
-            }
-            
             //Transform settings
             if ( this.m_transformSettings === null ){
                 this.m_transformSettings = new skel.widgets.Colormap.ColorTransform();
                 this.m_settingsComposite.add( this.m_transformSettings );
             }
 
+            //Model displaying the grid
+            if ( this.m_modelSettings === null ){
+                this.m_modelSettings = new skel.widgets.Colormap.ColorModel();
+                this.m_settingsComposite.add( this.m_modelSettings );
+            }
+            
             //Red,blue,green sliders in color panel.
             if ( this.m_colorMixSettings === null ){
                 this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
