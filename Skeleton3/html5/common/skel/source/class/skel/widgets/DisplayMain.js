@@ -152,9 +152,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                     var data = ev.getData();
                     this.link( data.source, data.destination, true );
                 }, this );
-                qx.event.message.Bus.subscribe( "clearLinks", function(ev){
-                    console.log( "Clearing links needs to be implemented");
-                }, this);
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
                 qx.event.message.Bus.subscribe(
                                 "windowSelected",

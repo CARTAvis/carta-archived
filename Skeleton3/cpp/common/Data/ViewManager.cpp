@@ -273,7 +273,7 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
             }
         }
         else {
-            result = "Unrecognized link source: "+sourceId;
+            result = "Unrecognized add link source: "+sourceId;
         }
     }
     return result;
@@ -295,9 +295,9 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
             if ( !unlinked ){
                 result = "Could not remove link between source and destination.";
             }
-            else {
-                result = "Unrecognized link source: "+sourceId;
-            }
+        }
+        else {
+            result = "Could not remove link, unrecognized source: "+sourceId;
         }
     }
     return result;
