@@ -45,9 +45,18 @@ public:
     QString setColorMap( const QString& colorMapName );
 
     /**
+     * Reverse the current colormap.
+     * @param reverseStr Should be equal to either "true" or "false".
      * @return error information if the color map was not successfully reversed.
      */
     QString reverseColorMap( const QString& reverseStr );
+
+    /**
+     * Invert the current colormap.
+     * @param invertStr Should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully reversed.
+     */
+    QString invertColorMap( const QString& invertStr );
 
     /**
      * Set the name of the data transform.

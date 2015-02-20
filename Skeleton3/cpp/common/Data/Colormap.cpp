@@ -264,22 +264,7 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
     std::set<QString> keys = {INVERT};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString invertStr = dataValues[*keys.begin()];
-    bool validBool = false;
-    bool invert = Util::toBool(invertStr, &validBool);
-    bool oldInvert = m_state.getValue<bool>(INVERT );
-    if ( validBool ){
-        if ( invert != oldInvert ){
-            m_state.setValue<bool>(INVERT, invert );
-            m_state.flushState();
-            for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-                controller -> setColorInverted ( invert );
-            }
-        }
-    }
-    else {
-        result = "Invalid color map invert parameters: "+ params;
-    }
-    result = Util::commandPostProcess( result, Util::toString(oldInvert) );
+    result = invertColorMap( invertStr );
     return result;
 }
 
@@ -401,6 +386,28 @@ QString Colormap::reverseColorMap( const QString& reverseStr )
         result = "Invalid color map reverse parameters: "+ reverseStr;
     }
     result = Util::commandPostProcess( result, Util::toString(oldReverse) );
+    return result;
+}
+
+QString Colormap::invertColorMap( const QString& invertStr )
+{
+    QString result;
+    bool validBool = false;
+    bool invert = Util::toBool(invertStr, &validBool);
+    bool oldInvert = m_state.getValue<bool>(INVERT );
+    if ( validBool ){
+        if ( invert != oldInvert ){
+            m_state.setValue<bool>(INVERT, invert );
+            m_state.flushState();
+            for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+                controller -> setColorInverted ( invert );
+            }
+        }
+    }
+    else {
+        result = "Invalid color map invert parameters: "+ invertStr;
+    }
+    result = Util::commandPostProcess( result, Util::toString(oldInvert) );
     return result;
 }
 

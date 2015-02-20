@@ -159,7 +159,12 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: reverseColorMap
     else if (args.size() == 3 && args[0].toLower() == "reversecolormap") {
-        m_scriptFacade->reverseColorMap( args[1], args[2] );
+        m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
+    }
+
+    // command: invertColorMap
+    else if (args.size() == 3 && args[0].toLower() == "invertcolormap") {
+        m_scriptFacade->invertColorMap( args[1], args[2].toLower() );
     }
 
     // command: setFrame

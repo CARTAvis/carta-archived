@@ -123,9 +123,18 @@ public:
     bool setColorMap( const QString& colormapId, const QString& colormapName );
 
     /**
-     * @param colormapId the unique server-side id of a Colormap object.
+     * Reverse the current colormap.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param trueOrFalse should be equal to either "true" or "false".
      */
     bool reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
+
+    /**
+     * Invert the current colormap.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param trueOrFalse should be equal to either "true" or "false".
+     */
+    bool invertColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
      * Set the image frame to the specified value.

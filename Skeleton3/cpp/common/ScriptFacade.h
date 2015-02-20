@@ -106,9 +106,18 @@ public:
     void setColorMap( const QString& colormapId, const QString& colormapName );
 
     /**
+     * Reverse the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
+     * @param trueOrFalse should be equal to either "true" or "false".
      */
     void reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
+
+    /**
+     * Invert the current colormap.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param trueOrFalse should be equal to either "true" or "false".
+     */
+    void invertColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
      * Set plugins for each of the views in the layout

@@ -153,6 +153,12 @@ class Application:
     def setColorMap(self, colormapId, colormap):
         self.socket.sendall("setColorMap " + colormapId + " " + colormap + "\n")
 
+    def reverseColorMap(self, colormapId, trueOrFalse):
+        self.socket.sendall("reverseColorMap " + colormapId + " " + trueOrFalse + "\n")
+
+    def invertColorMap(self, colormapId, trueOrFalse):
+        self.socket.sendall("invertColorMap " + colormapId + " " + trueOrFalse + "\n")
+
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")

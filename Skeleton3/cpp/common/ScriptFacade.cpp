@@ -133,6 +133,10 @@ void ScriptFacade::reverseColorMap( const QString& colormapId, const QString& tr
     m_viewManager->reverseColorMap( colormapId, trueOrFalse );
 }
 
+void ScriptFacade::invertColorMap( const QString& colormapId, const QString& trueOrFalse ){
+    m_viewManager->invertColorMap( colormapId, trueOrFalse );
+}
+
 void ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
 }
