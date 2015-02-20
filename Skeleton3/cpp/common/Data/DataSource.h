@@ -7,7 +7,7 @@
 #include "CartaLib/Nullable.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-//#include "CartaLib/ICoordinateFormatter.h"
+#include "Data/IColoredView.h"
 
 #include <QImage>
 #include <memory>
@@ -42,11 +42,12 @@ namespace Carta {
 
 namespace Data {
 
-class DataSource : public QObject, public CartaObject {
+class DataSource : public QObject, public CartaObject, public IColoredView {
 
 Q_OBJECT
 
 public:
+
     /**
      * Returns whether or not the data was successfully loaded.
      * @param fileName an identifier for the location of a data source.
@@ -58,39 +59,53 @@ public:
      * Sets a new color map.
      * @param name the identifier for the color map.
      */
-    void setColorMap( const QString& name );
+    virtual void setColorMap( const QString& name ) Q_DECL_OVERRIDE;
 
     /**
      * Sets whether the colors in the map are inverted.
      * @param inverted true if the colors in the map are inverted; false
      *        otherwise.
      */
-    void setColorInverted( bool inverted );
+    virtual void setColorInverted( bool inverted )  Q_DECL_OVERRIDE;
 
     /**
      * Sets whether the colors in the map are reversed.
      * @param reversed true if the colors in the map are reversed; false
      *        otherwise.
      */
-    void setColorReversed( bool reversed );
+    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the amount of red, green, and blue in the color scale.
+     * @param newRed the amount of red; should be in the range [0,1].
+     * @param newGreen the amount of green; should be in the range [0,1].
+     * @param newBlue the amount of blue; should be in the range[0,1].
+     */
+    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the gamma color map parameter.
+     * @param gamma a color map parameter.
+     */
+    virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to use pixel caching.
      * @param enabled true if pixel caching should be used; false otherwise.
      */
-    void setPixelCaching( bool enabled );
+    virtual void setPixelCaching( bool enabled )  Q_DECL_OVERRIDE;
 
     /**
      * Set the pixel cache size.
      * @param size the new pixel cache size.
      */
-    void setCacheSize( int size );
+    virtual void setCacheSize( int size )  Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to use pixel cache interpolation.
      * @param enabled true if pixel cache interpolation should be used; false otherwise.
      */
-    void setCacheInterpolation( bool enabled );
+    virtual void setCacheInterpolation( bool enabled )  Q_DECL_OVERRIDE;
 
     /**
      * Set the data transform.
@@ -213,6 +228,10 @@ public:
      */
     void viewResize( const QSize& newSize );
 
+    /**
+     * Generate a new QImage.
+     */
+    void render();
 
     virtual ~DataSource();
 

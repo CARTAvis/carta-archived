@@ -53,12 +53,11 @@ public:
     QString setDataTransform( const QString& transformString );
 
     /**
-     * Set the gamma color scales.
-     * @param scale1 the first scale.
-     * @param scale2 the second scale.
-     * @return error information if one or more of the scales could not be set.
+     * Set the gamma color map parameter.
+     * @param gamma a parameter for color mapping.
+     * @return error information if gamma could not be set.
      */
-    QString setScales( double scale1, double scale2 );
+    QString setGamma( double gamma );
     virtual ~Colormap();
     const static QString CLASS_NAME;
 

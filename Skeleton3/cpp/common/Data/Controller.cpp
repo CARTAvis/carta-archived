@@ -123,14 +123,7 @@ void Controller::clear(){
     unregisterView();
 }
 
-void Controller::colorMapChanged( const QString& name ){
-    if ( m_datas.size() > 0 ){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
-            data->setColorMap( name );
-        }
-        _loadView( true );
-    }
-}
+
 
 NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
     NdArray::RawViewInterface * rawData = nullptr;
@@ -399,7 +392,14 @@ QString Controller::_makeRegion( const QString& regionType ){
     return shapePath;
 }
 
-void Controller::_renderingDone( QImage img ){;
+void Controller::_render(){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        m_datas[imageIndex]->render();
+    }
+}
+
+void Controller::_renderingDone( QImage img ){
     m_view->resetImage( img );
     refreshView( m_view.get() );
 }
@@ -437,12 +437,28 @@ void Controller::setColorInverted( bool inverted ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
         data->setColorInverted( inverted );
     }
+    _render();
+}
+
+void Controller::setColorMap( const QString& name ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorMap( name );
+    }
+    _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
         data->setColorReversed( reversed );
     }
+    _render();
+}
+
+void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorAmounts( newRed, newGreen, newBlue );
+    }
+    _render();
 }
 
 void Controller::setPixelCaching( bool enabled ){
@@ -450,7 +466,6 @@ void Controller::setPixelCaching( bool enabled ){
         for ( std::shared_ptr<DataSource> data : m_datas ){
             data->setPixelCaching( enabled );
         }
-        _loadView( false );
     }
 }
 
@@ -459,7 +474,6 @@ void Controller::setCacheInterpolation( bool enabled ){
         for ( std::shared_ptr<DataSource> data : m_datas ){
             data->setCacheInterpolation( enabled );
         }
-        _loadView( false );
     }
 }
 
@@ -468,7 +482,6 @@ void Controller::setCacheSize( int size ){
         for ( std::shared_ptr<DataSource> data : m_datas ){
             data->setCacheSize( size );
         }
-        _loadView( false );
     }
 }
 
@@ -485,14 +498,18 @@ void Controller::setFrameImage(const QString& val) {
     }
 }
 
-void Controller::setTransformData( const QString& name ){
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
-            data->setTransformData( name );
-        }
-        _loadView( false );
+void Controller::setGamma( double gamma ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setGamma( gamma );
     }
+    _render();
+}
+
+void Controller::setTransformData( const QString& name ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setTransformData( name );
+    }
+    _render();
 }
 
 
@@ -553,7 +570,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             for ( std::shared_ptr<DataSource> data : m_datas ){
                 data->setPan( newCenter.x(), newCenter.y() );
             }
-            _loadView( false );
+            _render();
         }
     }
 }
@@ -567,19 +584,19 @@ void Controller::updatePan( double centerX , double centerY){
             for ( std::shared_ptr<DataSource> data : m_datas ){
                 data->setPan( newCenter.x(), newCenter.y() );
             }
-            _loadView( false );
+            //_loadView( false );
+            _render();
         }
     }
 }
 
 void Controller::viewResize( const QSize& newSize ){
-    if ( m_datas.size() > 0 ){
-        for ( int i = 0; i < m_datas.size(); i++ ){
-            m_datas[i]->viewResize( newSize );
-        }
-        m_viewSize = newSize;
-        _loadView( false );
+    for ( int i = 0; i < m_datas.size(); i++ ){
+        m_datas[i]->viewResize( newSize );
     }
+    m_viewSize = newSize;
+    //_loadView( false );
+    _render();
 }
 
 

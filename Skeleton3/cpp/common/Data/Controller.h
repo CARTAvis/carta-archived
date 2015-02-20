@@ -60,32 +60,34 @@ public:
     NdArray::RawViewInterface *  getRawData( const QString& fileName, int channel ) const;
 
     //IColoredView interface.
-    virtual void colorMapChanged( const QString& colorMapName ) Q_DECL_OVERRIDE;
+    virtual void setColorMap( const QString& colorMapName ) Q_DECL_OVERRIDE;
     virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
     virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
-
-    virtual std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources() Q_DECL_OVERRIDE;
-
-
-    int getSelectImageIndex();
-
+    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
+    virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
     /**
      * Set the pixel cache size.
      * @param size the new pixel cache size.
      */
-    void setCacheSize( int size );
+    virtual void setCacheSize( int size ) Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to use pixel cache interpolation.
      * @param enabled true if pixel cache interpolation should be used; false otherwise.
      */
-    void setCacheInterpolation( bool enabled );
+    virtual void setCacheInterpolation( bool enabled ) Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to use pixel caching.
      * @param enabled true if pixel caching should be used; false otherwise.
      */
-    void setPixelCaching( bool enabled );
+    virtual void setPixelCaching( bool enabled ) Q_DECL_OVERRIDE;
+
+
+    std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
+
+
+    int getSelectImageIndex();
 
     /**
      * Returns an identifier for the data source at the given index.
@@ -187,6 +189,7 @@ private:
     void _initializeSelections();
     void _initializeSelection( std::shared_ptr<Selection> & selection );
     QString _makeRegion( const QString& regionType );
+    void _render();
     void _saveRegions();
     void _updateCursor( int mouseX, int mouseY );
 

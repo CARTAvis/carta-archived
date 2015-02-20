@@ -335,13 +335,14 @@ public:
     QString
     cacheId()
     {
-        return QString( "%1/%2/%3/%4/%5/%6" )
+        return QString( "%1/%2/%3/%4/%5/%6/%7/" )
                    .arg( m_cmapName )
                    .arg( m_invertFlag )
                    .arg( m_reverseFlag )
                    .arg( m_scaleStage-> cacheId() )
                    .arg( double2base64( m_clipMin ) )
-                   .arg( double2base64( m_clipMax ) );
+                   .arg( double2base64( m_clipMax ) )
+                   .arg( QString::number(m_maxRgb[0])+QString::number(m_maxRgb[1])+QString::number(m_maxRgb[2]));
     }
 
 private:

@@ -64,7 +64,7 @@ Colormap::Colormap( const QString& path, const QString& id):
 bool Colormap::addLink( const std::shared_ptr<Controller>& target ){
     bool objAdded = m_linkImpl->addLink( target );
     if ( objAdded ){
-        target->colorMapChanged( m_state.getValue<QString>(COLOR_MAP_NAME));
+        target->setColorMap( m_state.getValue<QString>(COLOR_MAP_NAME));
     }
     return objAdded;
 }
@@ -166,7 +166,30 @@ void Colormap::_initializeCallbacks(){
                 result = "Invalid color scale: "+params;
             }
             else {
-                result = setScales( scale1, scale2 );
+                double oldScale1 = m_state.getValue<double>(SCALE_1);
+                double oldScale2 = m_state.getValue<double>(SCALE_2);
+                bool changedState = false;
+                if ( scale1 != oldScale1 ){
+                    m_state.setValue<double>(SCALE_1, scale1 );
+                    changedState = true;
+                }
+                if ( scale2 != oldScale2 ){
+                    m_state.setValue<double>(SCALE_2, scale2 );
+                    changedState = true;
+                }
+                if ( changedState ){
+                    m_state.flushState();
+                    //Calculate the new gamma
+                    double maxndig = 10;
+                    double ndig = (scale2 + 1) / 2 * maxndig;
+                    double expo = std::pow( 2.0, ndig);
+                    double xx = std::pow(scale1 * 2, 3) / 8.0;
+                    double gamma = fabs(xx) * expo + 1;
+                    if( scale1 < 0){
+                        gamma = 1 / gamma;
+                    }
+                    result = setGamma( gamma );
+                }
             }
         }
         return result;
@@ -187,14 +210,9 @@ void Colormap::_initializeStatics(){
     }
 }
 
-
-
-
 void Colormap::clear(){
     m_linkImpl->clear();
 }
-
-
 
 QString Colormap::_commandCacheColorMap( const QString& params ){
     QString result;
@@ -299,14 +317,11 @@ QString Colormap::_commandSetColorMix( const QString& params ){
     QString currValues;
     if ( redChanged || blueChanged || greenChanged ){
         m_state.flushState();
-        QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-        /*std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapIndex );
-        float redPercent = static_cast<float>(m_state.getValue<double>( RED_PERCENT ));
-        float greenPercent = static_cast<float>(m_state.getValue<double>( GREEN_PERCENT ));
-        float bluePercent = static_cast<float>(m_state.getValue<double>( BLUE_PERCENT ));
-        coloredMap->setColorScales( redPercent, greenPercent, bluePercent );*/
+        double newRed = m_state.getValue<double>(COLOR_MIX_RED );
+        double newGreen = m_state.getValue<double>(COLOR_MIX_GREEN );
+        double newBlue = m_state.getValue<double>(COLOR_MIX_BLUE );
         for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-            controller->colorMapChanged( mapName);
+            controller->setColorAmounts( newRed, newGreen, newBlue );
         }
     }
     else if ( !validRed || !validGreen || !validBlue ){
@@ -384,7 +399,7 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
               m_state.setValue<QString>(COLOR_MAP_NAME, colorMapStr );
               m_state.flushState();
               for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-                  controller->colorMapChanged( colorMapStr );
+                  controller->setColorMap( colorMapStr );
               }
            }
         }
@@ -396,25 +411,17 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
     return result;
 }
 
-QString Colormap::setScales( double scale1, double scale2 ){
-    //TODO:  Data validation????
+QString Colormap::setGamma( double gamma ){
     QString result;
-    double oldScale1 = m_state.getValue<double>(SCALE_1);
-    double oldScale2 = m_state.getValue<double>(SCALE_2);
-    bool changedState = false;
-    if ( scale1 != oldScale1 ){
-        m_state.setValue<double>(SCALE_1, scale1 );
-        changedState = true;
-    }
-    if ( scale2 != oldScale2 ){
-        m_state.setValue<double>(SCALE_2, scale2 );
-        changedState = true;
-    }
-    if ( changedState ){
-        //Todo:  Notify pavol's code of change????
-         //Then get the new gamma and write it to the state as well.
+    double oldGamma = m_state.getValue<double>( GAMMA );
+    const double ERROR_MARGIN = 0.000001;
+    if ( qAbs( gamma - oldGamma) > ERROR_MARGIN ){
+        m_state.setValue<double>(GAMMA, gamma );
         m_state.flushState();
-
+        //Let the controllers know gamma has changed.
+        for ( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+            controller->setGamma( gamma );
+        }
     }
     return result;
 }

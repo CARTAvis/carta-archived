@@ -227,7 +227,6 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
             },
 
             _keyDownCB: function (event) {
-                fv.console.log("keydown " + event.getKeyIdentifier() + ' ' + event.getKeyCode());
                 if( event.getKeyCode() == 27) {
                     this._setValue( 0, 0);
                 }
