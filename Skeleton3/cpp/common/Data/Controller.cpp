@@ -195,8 +195,6 @@ QString Controller::getStateString() const{
 }
 
 void Controller::setClipValue( const QString& params ) {
-/*
-    qDebug() << "(JT) Controller::setClipValue(" << params << ")";
     std::set<QString> keys = {"clipValue"};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     bool validClip = false;
@@ -208,12 +206,17 @@ void Controller::setClipValue( const QString& params ) {
     if ( clipVal > 1 || clipVal < 0 ) {
         validClip = false;
     }
-    qDebug() << "(JT) clipVal = " << clipVal;
     if ( validClip ){
-        int oldClipVal = m_state.getValue<double>( CLIP_VALUE );
-        qDebug() << "(JT) oldClipVal = " << oldClipVal;
-        if ( oldClipVal != clipVal ){
-            m_state.setValue<double>( CLIP_VALUE, clipVal );
+        double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
+        double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
+        double oldClipVal = oldClipValMax - oldClipValMin;
+        const double ERROR_MARGIN = 0.000001;
+        if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
+            double leftOver = 1 - clipVal;
+            double clipValMin = leftOver / 2;
+            double clipValMax = clipVal + leftOver / 2;
+            m_state.setValue<double>( CLIP_VALUE_MIN, clipValMin );
+            m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
             m_state.flushState();
             if ( m_view ){
                 _loadView( true );
@@ -221,9 +224,8 @@ void Controller::setClipValue( const QString& params ) {
         }
     }
     else {
-        qDebug() << "(JT) Controller::setClipValue(): Invalid clip value: "<<params;
+        qDebug() << "Invalid clip value: "<<params;
     }
-*/
 }
 
 void Controller::_initializeCallbacks(){
@@ -231,33 +233,7 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        //setClipValue( params );
-        std::set<QString> keys = {"clipValue"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        bool validClip = false;
-        QString clipKey = *keys.begin();
-        QString clipWithoutPercent = dataValues[clipKey].remove("%");
-        double clipVal = dataValues[clipKey].toDouble(&validClip);
-        if ( validClip ){
-            double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
-            double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
-            double oldClipVal = oldClipValMax - oldClipValMin;
-            const double ERROR_MARGIN = 0.000001;
-            if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
-                double leftOver = 1 - clipVal;
-                double clipValMin = leftOver / 2;
-                double clipValMax = clipVal + leftOver / 2;
-                m_state.setValue<double>( CLIP_VALUE_MIN, clipValMin );
-                m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
-                m_state.flushState();
-                if ( m_view ){
-                    _loadView( true );
-                }
-            }
-        }
-        else {
-            qDebug() << "Invalid clip value: "<<params;
-        }
+        setClipValue( params );
         return "";
     });
 
