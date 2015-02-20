@@ -596,6 +596,16 @@ bool ViewManager::setColorMap( const QString& colormapId, const QString& colorma
     return colorMapFound;
 }
 
+bool ViewManager::reverseColorMap( const QString& colormapId, const QString& trueOrFalse ){
+    int colormapIndex = _findColorMap( colormapId );
+    bool colorMapFound = false;
+    if ( colormapIndex >= 0 ){
+        m_colormaps[colormapIndex]->reverseColorMap( trueOrFalse );
+        colorMapFound = true;
+    }
+    return colorMapFound;
+}
+
 bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
     int animatorIndex = _findAnimator( animatorId );
     bool animatorFound = false;

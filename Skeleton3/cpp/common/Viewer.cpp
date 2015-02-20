@@ -157,6 +157,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setColorMap( args[1], args[2] );
     }
 
+    // command: reverseColorMap
+    else if (args.size() == 3 && args[0].toLower() == "reversecolormap") {
+        m_scriptFacade->reverseColorMap( args[1], args[2] );
+    }
+
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
         //qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];

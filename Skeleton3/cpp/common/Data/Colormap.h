@@ -44,6 +44,10 @@ public:
      */
     QString setColorMap( const QString& colorMapName );
 
+    /**
+     * @return error information if the color map was not successfully reversed.
+     */
+    QString reverseColorMap( const QString& reverseStr );
 
     /**
      * Set the name of the data transform.

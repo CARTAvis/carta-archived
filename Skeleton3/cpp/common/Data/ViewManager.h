@@ -123,6 +123,11 @@ public:
     bool setColorMap( const QString& colormapId, const QString& colormapName );
 
     /**
+     * @param colormapId the unique server-side id of a Colormap object.
+     */
+    bool reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
+
+    /**
      * Set the image frame to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the frame number.

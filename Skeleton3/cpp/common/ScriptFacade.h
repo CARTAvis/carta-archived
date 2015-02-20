@@ -106,6 +106,11 @@ public:
     void setColorMap( const QString& colormapId, const QString& colormapName );
 
     /**
+     * @param colormapId the unique server-side id of an object managing a color map.
+     */
+    void reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
+
+    /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
      */
