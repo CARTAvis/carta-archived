@@ -159,6 +159,9 @@ class Application:
     def invertColorMap(self, colormapId, trueOrFalse):
         self.socket.sendall("invertColorMap " + colormapId + " " + trueOrFalse + "\n")
 
+    def setColorMix(self, colormapId, redPercent, greenPercent, bluePercent):
+        self.socket.sendall("setColorMix " + colormapId + " " + redPercent + " " + greenPercent + " " + bluePercent + "\n")
+
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")

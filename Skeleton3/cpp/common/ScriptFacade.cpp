@@ -137,6 +137,10 @@ void ScriptFacade::invertColorMap( const QString& colormapId, const QString& tru
     m_viewManager->invertColorMap( colormapId, trueOrFalse );
 }
 
+void ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){
+    m_viewManager->setColorMix( colormapId, percentString );
+}
+
 void ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
 }

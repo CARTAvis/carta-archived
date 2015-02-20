@@ -120,6 +120,13 @@ public:
     void invertColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
+     * Set a color mix.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     */
+    void setColorMix( const QString& colormapId, const QString& something );
+
+    /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
      */

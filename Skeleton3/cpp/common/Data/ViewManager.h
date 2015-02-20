@@ -137,6 +137,13 @@ public:
     bool invertColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
+     * Set a color mix.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     */
+    bool setColorMix( const QString& colormapId, const QString& percentString );
+
+    /**
      * Set the image frame to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the frame number.

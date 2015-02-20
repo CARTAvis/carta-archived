@@ -167,6 +167,13 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->invertColorMap( args[1], args[2].toLower() );
     }
 
+    // command: setColorMix
+    else if (args.size() == 5 && args[0].toLower() == "setcolormix") {
+        QString percentString;
+        percentString = "redPercent:" + args[2] + ",greenPercent:" + args[3] + ",bluePercent:" + args[4];
+        m_scriptFacade->setColorMix( args[1], percentString );
+    }
+
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
         //qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];

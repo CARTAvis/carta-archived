@@ -616,6 +616,17 @@ bool ViewManager::invertColorMap( const QString& colormapId, const QString& true
     return colorMapFound;
 }
 
+bool ViewManager::setColorMix( const QString& colormapId, const QString& percentString ){
+    int colormapIndex = _findColorMap( colormapId );
+    bool colorMapFound = false;
+    if ( colormapIndex >= 0 ){
+        QString output = m_colormaps[colormapIndex]->setColorMix( percentString );
+        qDebug() << "(JT) ViewManager::setColorMix() output = " << output;
+        colorMapFound = true;
+    }
+    return colorMapFound;
+}
+
 bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
     int animatorIndex = _findAnimator( animatorId );
     bool animatorFound = false;

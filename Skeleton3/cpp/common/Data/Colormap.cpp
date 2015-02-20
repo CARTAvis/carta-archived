@@ -270,38 +270,7 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
 
 QString Colormap::_commandSetColorMix( const QString& params ){
     QString result;
-    std::set<QString> keys = {RED_PERCENT, GREEN_PERCENT, BLUE_PERCENT};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-
-    bool validRed = false;
-    bool redChanged = _processColorStr( COLOR_MIX_RED, dataValues[RED_PERCENT], &validRed );
-
-    bool validBlue = false;
-    bool blueChanged = _processColorStr( COLOR_MIX_BLUE, dataValues[BLUE_PERCENT], &validBlue );
-
-    bool validGreen = false;
-    bool greenChanged = _processColorStr( COLOR_MIX_GREEN, dataValues[GREEN_PERCENT], &validGreen);
-    QString currValues;
-    if ( redChanged || blueChanged || greenChanged ){
-        m_state.flushState();
-        QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-        /*std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapIndex );
-        float redPercent = static_cast<float>(m_state.getValue<double>( RED_PERCENT ));
-        float greenPercent = static_cast<float>(m_state.getValue<double>( GREEN_PERCENT ));
-        float bluePercent = static_cast<float>(m_state.getValue<double>( BLUE_PERCENT ));
-        coloredMap->setColorScales( redPercent, greenPercent, bluePercent );*/
-        for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
-            controller->colorMapChanged( mapName);
-        }
-    }
-    else if ( !validRed || !validGreen || !validBlue ){
-        result = "Invalid Colormap color percent: "+ params;
-        double redPercent = m_state.getValue<double>( COLOR_MIX_RED );
-        double greenPercent = m_state.getValue<double>( COLOR_MIX_GREEN );
-        double bluePercent = m_state.getValue<double>( COLOR_MIX_BLUE );
-        currValues = QString::number(redPercent )+","+QString::number(greenPercent)+","+QString::number(bluePercent );
-    }
-    result = Util::commandPostProcess( result, currValues );
+    result = setColorMix( params );
     return result;
 }
 
@@ -408,6 +377,43 @@ QString Colormap::invertColorMap( const QString& invertStr )
         result = "Invalid color map invert parameters: "+ invertStr;
     }
     result = Util::commandPostProcess( result, Util::toString(oldInvert) );
+    return result;
+}
+
+QString Colormap::setColorMix( const QString& percentString )
+{
+    QString result;
+    std::set<QString> keys = {RED_PERCENT, GREEN_PERCENT, BLUE_PERCENT};
+    std::map<QString,QString> dataValues = Util::parseParamMap( percentString, keys );
+    bool validRed = false;
+    bool redChanged = _processColorStr( COLOR_MIX_RED, dataValues[RED_PERCENT], &validRed );
+
+    bool validBlue = false;
+    bool blueChanged = _processColorStr( COLOR_MIX_BLUE, dataValues[BLUE_PERCENT], &validBlue );
+
+    bool validGreen = false;
+    bool greenChanged = _processColorStr( COLOR_MIX_GREEN, dataValues[GREEN_PERCENT], &validGreen);
+    QString currValues;
+    if ( redChanged || blueChanged || greenChanged ){
+        m_state.flushState();
+        QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+        /*std::shared_ptr<Carta::Lib::IColormapScalar> coloredMap = m_colors->getColorMap( mapIndex );
+        float redPercent = static_cast<float>(m_state.getValue<double>( RED_PERCENT ));
+        float greenPercent = static_cast<float>(m_state.getValue<double>( GREEN_PERCENT ));
+        float bluePercent = static_cast<float>(m_state.getValue<double>( BLUE_PERCENT ));
+        coloredMap->setColorScales( redPercent, greenPercent, bluePercent );*/
+        for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+            controller->colorMapChanged( mapName);
+        }
+    }
+    else if ( !validRed || !validGreen || !validBlue ){
+        result = "Invalid Colormap color percent: "+ percentString;
+        double redPercent = m_state.getValue<double>( COLOR_MIX_RED );
+        double greenPercent = m_state.getValue<double>( COLOR_MIX_GREEN );
+        double bluePercent = m_state.getValue<double>( COLOR_MIX_BLUE );
+        currValues = QString::number(redPercent )+","+QString::number(greenPercent)+","+QString::number(bluePercent );
+    }
+    result = Util::commandPostProcess( result, currValues );
     return result;
 }
 

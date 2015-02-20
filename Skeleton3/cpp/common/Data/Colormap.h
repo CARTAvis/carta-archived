@@ -59,6 +59,13 @@ public:
     QString invertColorMap( const QString& invertStr );
 
     /**
+     * Set a color mix.
+     * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     * @return error information if the color mix was successfully set.
+     */
+    QString setColorMix( const QString& percentString );
+
+    /**
      * Set the name of the data transform.
      * @param transformString a unique identifier for a data transform.
      * @return error information if the data transfrom was not set.
