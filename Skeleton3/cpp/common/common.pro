@@ -59,9 +59,9 @@ HEADERS += \
     GrayColormap.h \
     HackViewer.h \
     ImageRenderService.h \
-    HistogramGenerator.h \
-    HistogramSelection.h \
-    HistogramPlot.h \
+    Histogram/HistogramGenerator.h \
+    Histogram/HistogramSelection.h \
+    Histogram/HistogramPlot.h \
     ScriptTester.h \
     ScriptFacade.h \
     Hacks/ImageViewController.h \
@@ -111,9 +111,9 @@ SOURCES += \
     GrayColormap.cpp \
     HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
-    HistogramGenerator.cpp \
-    HistogramSelection.cpp \
-    HistogramPlot.cpp \
+    Histogram/HistogramGenerator.cpp \
+    Histogram/HistogramSelection.cpp \
+    Histogram/HistogramPlot.cpp \
     ScriptFacade.cpp \
     ScriptTester.cpp \
     ImageRenderService.cpp \

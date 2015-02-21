@@ -1,4 +1,4 @@
-#include "HistogramGenerator.h"
+#include "../Histogram/HistogramGenerator.h"
 #include <qwt_scale_engine.h>
 #include <qwt_scale_map.h>
 #include <QPaintDevice>
@@ -20,6 +20,7 @@ HistogramGenerator::HistogramGenerator(){
     m_plot->setAxisTitle(QwtPlot::yLeft, QString("count(pixels)"));
     m_plot->setAxisTitle(QwtPlot::xBottom, QString("intensity()"));
 
+
     m_histogram = new HistogramPlot();
     m_histogram->attach(m_plot);
     
@@ -31,7 +32,7 @@ HistogramGenerator::HistogramGenerator(){
 
     m_height = 335;
     m_width = 335;
-
+    setLogScale( true );
 }
 
 void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data, double minIntensity, double maxIntensity){
@@ -41,12 +42,12 @@ void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data, double
 
 
     std::vector<std::pair<double,double>> dataVector = data.getData();
-    QVector<QwtIntervalSample> samples(0);
-    int dataCount = dataVector.size();
 
+    int dataCount = dataVector.size();
+    QVector<QwtIntervalSample> samples(dataCount);
     for ( int i = 0; i < dataCount-1; i++ ){
         QwtIntervalSample sample(dataVector[i].second, dataVector[i].first, dataVector[i+1].first);
-        samples.append(sample);
+        samples[i]=sample;
     }
 
     m_histogram->setSampleCount(dataCount);
@@ -96,7 +97,6 @@ void HistogramGenerator::setStyle( QString style ){
 }
 
 void HistogramGenerator::setLogScale(bool display){
-
     if(display){
         m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
         m_histogram->setBaseline(1.0);
@@ -133,7 +133,7 @@ void HistogramGenerator::lineSelected(){
     qDebug()<<"line selected";
 }
 
-void HistogramGenerator::lineMoved( const QPointF& pt ){
+void HistogramGenerator::lineMoved( const QPointF& /*pt*/ ){
     // m_range->boundaryLineMoved( pt );
     // m_range->show();
     // m_plot->replot();

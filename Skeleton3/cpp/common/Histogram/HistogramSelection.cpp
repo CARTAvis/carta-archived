@@ -1,4 +1,4 @@
-#include "HistogramSelection.h"
+#include "Histogram/HistogramSelection.h"
 #include <QPainter>
 #include <QDebug>
 #include <qwt_plot.h>

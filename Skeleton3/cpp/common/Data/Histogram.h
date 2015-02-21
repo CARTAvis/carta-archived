@@ -9,7 +9,6 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "Data/LinkableImpl.h"
-#include "HistogramGenerator.h"
 #include <QObject>
 
 namespace Image {
@@ -17,6 +16,8 @@ class ImageInterface;
 }
 
 class ImageView;
+class HistogramGenerator;
+
 namespace Carta {
 
 namespace Data {
@@ -62,7 +63,7 @@ public:
     const static QString CLASS_NAME;
 
 private slots:
-    void  _generateHistogram();
+    void  _generateHistogram( bool newDataNeeded);
     void _createHistogram();
     
 
@@ -71,6 +72,7 @@ private:
     double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
     bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
     int _getLinkInfo( const QString& link, QString& name ) const;
+    void _loadData();
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );

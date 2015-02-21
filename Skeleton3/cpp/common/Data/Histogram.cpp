@@ -2,6 +2,7 @@
 #include "Data/Clips.h"
 #include "Data/Controller.h"
 #include "Data/Util.h"
+#include "Histogram/HistogramGenerator.h"
 #include "Globals.h"
 #include "ImageView.h"
 #include "PluginManager.h"
@@ -358,12 +359,14 @@ QString Histogram::_setClipMax( const QString& params ){
             int index = _getLinkInfo(links, filename);
             if(index >=0 ){
                 double clipMaxPercent = _getPercentile(filename, 0, clipMax);
-                if(qAbs(oldMaxPercent - clipMaxPercent) > CLIP_ERROR_MARGIN)
+                if(qAbs(oldMaxPercent - clipMaxPercent) > CLIP_ERROR_MARGIN){
                     m_state.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent);
+                }
             }
             m_state.flushState();
-            if(clipMin<clipMax)
-                _generateHistogram();
+            if(clipMin<clipMax){
+                _generateHistogram( true );
+            }
         }
     }
     else {
@@ -439,8 +442,9 @@ QString Histogram::_setClipMin( const QString& params ){
                     m_state.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent);
             }
             m_state.flushState();
-            if(clipMin<clipMax)
-                _generateHistogram();
+            if(clipMin<clipMax){
+                _generateHistogram( true );
+            }
         }
     }
     else {
@@ -551,16 +555,14 @@ QString Histogram::_setClipPercent( const QString& params ){
                 }
             }
             m_state.flushState();
-            if(clipMin < clipMax)
-                _generateHistogram();
+            if(clipMin < clipMax){
+                _generateHistogram( true );
+            }
             else {
                 result = "Invalid Histogram clip range parameters: "+ params + 
                 "clip min range has to be less than clip max range";
 
             }
-        }
-        else {
-            result = "Invalid clip percent link: "+links;
         }
     }
 
@@ -582,7 +584,7 @@ QString Histogram::_setColored( const QString& params ){
         if ( colored != oldColored){
             m_state.setValue<bool>(GRAPH_COLORED, colored );
             m_state.flushState();
-            _generateHistogram();
+            _generateHistogram( false );
         }
     }
     else {
@@ -604,7 +606,7 @@ QString Histogram::_setBinCount( const QString& params ){
         if ( binCount != oldBinCount ){
            m_state.setValue<int>(BIN_COUNT, binCount );
            m_state.flushState();
-           _generateHistogram();
+           _generateHistogram( true );
 
         }
     }
@@ -628,7 +630,7 @@ QString Histogram::_setLogCount( const QString& params ){
         if ( logCount != oldLogCount ){
            m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
            m_state.flushState();
-           _generateHistogram();
+           _generateHistogram( false );
         }
     }
     else {
@@ -649,7 +651,7 @@ QString Histogram::_setPlaneMode( const QString& params ){
         if ( planeModeStr != oldPlaneMode ){
            m_state.setValue<QString>(PLANE_MODE, planeModeStr );
            m_state.flushState();
-           _generateHistogram();
+           _generateHistogram( true );
         }
     }
     else {
@@ -671,7 +673,7 @@ QString Histogram::_setPlaneSingle( const QString& params ){
         if ( plane != oldPlane ){
            m_state.setValue<int>(PLANE_SINGLE, plane );
            m_state.flushState();
-           _generateHistogram();
+           _generateHistogram( true );
         }
     }
     else {
@@ -692,7 +694,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
         if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
-            _generateHistogram();
+            _generateHistogram( true );
         }
     }
     else {
@@ -728,7 +730,7 @@ QString Histogram::_setPlaneRange( const QString& params ){
             }
             if ( changedState ){
                 m_state.flushState();
-                _generateHistogram();
+                _generateHistogram( true );
             }
         }
         else {
@@ -754,7 +756,7 @@ QString Histogram::_setGraphStyle( const QString& params ){
         if ( styleStr != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, styleStr );
             m_state.flushState();
-            _generateHistogram();
+            _generateHistogram( false );
         }
     }
     else {
@@ -777,7 +779,7 @@ QString Histogram::_setClipToImage( const QString& params ){
        if ( clipApply != oldClipApply ){
           m_state.setValue<bool>(CLIP_APPLY, clipApply );
           m_state.flushState();
-          _generateHistogram();
+          _generateHistogram( false );
        }
     }
     else {
@@ -817,8 +819,8 @@ void Histogram::_startSelection(const QString& params ){
     // QString xstr = dataValues[X_COORDINATE];
     m_selectionEnd = x;
     qDebug()<<"x: "<<x;
-    // m_selectionEnabled = true;
-    _generateHistogram();
+    m_selectionEnabled = true;
+    _generateHistogram( false );
 }
 
 void Histogram::_endSelection(const QString& params ){
@@ -827,7 +829,7 @@ void Histogram::_endSelection(const QString& params ){
     QString xstr = dataValues[X_COORDINATE];
     m_selectionEnd = xstr.toDouble();
     m_selectionEnded = true;
-    _generateHistogram();
+    _generateHistogram( false );
     m_selectionEnabled = false;
 
 }
@@ -844,54 +846,56 @@ void Histogram::_createHistogram(){
         m_state.setValue<double>(CLIP_MAX, maxIntensity);
         m_state.flushState();
     }
-    _generateHistogram();
+    _generateHistogram( true );
 }
 
-void Histogram::_generateHistogram(){
-
+void Histogram::_loadData(){
     int binCount = m_state.getValue<int>(BIN_COUNT);
     int minChannel = m_state.getValue<int>(PLANE_MIN);
     int maxChannel = m_state.getValue<int>(PLANE_MAX);
     int spectralIndex = m_state.getValue<int>(PLANE_SINGLE);
     double minIntensity = m_state.getValue<double>(CLIP_MIN);
     double maxIntensity = m_state.getValue<double>(CLIP_MAX);
-    QString style = m_state.getValue<QString>(GRAPH_STYLE);
-    bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
-    // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
-    if(!m_selectionEnabled){
-        std::vector<std::shared_ptr<Image::ImageInterface>> dataSource = _generateData();
-        if(dataSource.size()>=1){
-            auto result = Globals::instance()-> pluginManager()
-                              -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSource, binCount,
-                                minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
-            auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-
-                    m_histogram->setStyle(style);
-                    m_histogram->setLogScale(logCount); 
-                    m_histogram->setData(data, minIntensity, maxIntensity);
-                    
-                    QImage * histogramImage = m_histogram->toImage();
-                    m_view->resetImage(*histogramImage);
-                    // if(!m_selectionEnabled)
-                        refreshView(m_view.get());
-                };
-            try {
-                result.forEach( lam );
-            }
-            catch( char*& error ){
-                QString errorStr( error );
-                ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
-                hr->registerError( errorStr );
-            }
+    std::vector<std::shared_ptr<Image::ImageInterface>> dataSource = _generateData();
+    if(dataSource.size()>=1){
+        auto result = Globals::instance()-> pluginManager()
+                          -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSource, binCount,
+                            minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
+            m_histogram->setData(data, minIntensity, maxIntensity);
+        };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
+            hr->registerError( errorStr );
         }
     }
+}
 
+void Histogram::_generateHistogram( bool newDataNeeded ){
+    if ( newDataNeeded ){
+        _loadData();
+    }
+    //Refresh the view
+    //User is not selecting a range
+    if ( !m_selectionEnabled ){
+        QString style = m_state.getValue<QString>(GRAPH_STYLE);
+        bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
+        // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
+        m_histogram->setStyle(style);
+        m_histogram->setLogScale(logCount);
+
+    }
+    //User is selecting a range.
     else{
         m_histogram->setHistogramRange(m_selectionStart, m_selectionEnd);
-        QImage * histogramImage = m_histogram->toImage();
-        m_view->resetImage(*histogramImage);
-        refreshView(m_view.get());
     }
+    QImage * histogramImage = m_histogram->toImage();
+    m_view->resetImage( *histogramImage );
+    m_view->scheduleRedraw();
 }
 
 bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
