@@ -3,12 +3,9 @@
 
 namespace Carta{
 namespace Lib{
-<<<<<<< HEAD
-  namespace Hooks {
 
-=======
 namespace Hooks {
->>>>>>> dd4500aa8fa1392af59a7ccfd13a56ca2591d5c1
+
 class HistogramResult {
   private:
   	QString name;

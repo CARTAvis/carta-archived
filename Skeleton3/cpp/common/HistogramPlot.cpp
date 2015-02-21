@@ -5,7 +5,7 @@ HistogramPlot::HistogramPlot(){
 }
 
 void HistogramPlot::drawSeries(QPainter* painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap,
-		const QRectF& canvasRect, int from, int to) const{
+		const QRectF& /*canvasRect*/, int /*from*/, int /*to*/) const{
 
 	QBrush brush(Qt::yellow);
 	QPen pen(Qt::red);
