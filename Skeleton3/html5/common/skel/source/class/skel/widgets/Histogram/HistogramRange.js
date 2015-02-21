@@ -155,7 +155,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          */
 
         _sendClipMinCmd: function(){
-            if( this.m_connector !== null ){
+            if( this.m_connector !== null && this.m_links !== null ){
                 var minClip = this.m_minClipText.getValue();
                 var links = this.m_links;
                 if( !isNaN(minClip) ){
@@ -169,7 +169,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         },
 
         _sendClipMaxCmd: function(){
-            if( this.m_connector !== null ){
+            if( this.m_connector !== null && this.m_links !== null ){
                 var maxClip = this.m_maxClipText.getValue();
                 var links = this.m_links;
                 if( !isNaN(maxClip) ){
@@ -215,7 +215,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          * Notify the server that the clip range has changed.
          */
         _sendClipRangePercentCmd : function(){
-            if ( this.m_connector !== null ){
+            if ( this.m_connector !== null && this.m_links !== null ){
                 var minClipPercent = this.m_percentMinClipText.getValue();
                 var maxClipPercent = this.m_percentMaxClipText.getValue();
                 var links = this.m_links;

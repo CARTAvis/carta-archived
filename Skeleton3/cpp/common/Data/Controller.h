@@ -162,7 +162,7 @@ signals:
 
 private slots:
     //Refresh the view based on the latest data selection information.
-    void _loadView( bool forceReload = false );
+    void _loadView();
 
     /**
      * The rendering service has finished and produced a new QImage for display.
@@ -172,7 +172,17 @@ private slots:
     /**
      * The view has been resized.
      */
-    void viewResize( const QSize& newSize );
+    void _viewResize( const QSize& newSize );
+
+    /**
+     * Schedule a frame reload event.
+     */
+    void _scheduleFrameReload();
+
+    /**
+     * Repaint the image.
+     */
+    void _repaintFrameNow();
 
 private:
 
@@ -191,6 +201,7 @@ private:
     QString _makeRegion( const QString& regionType );
     void _render();
     void _saveRegions();
+    void _scheduleFrameRepaint( const QImage& img );
     void _updateCursor( int mouseX, int mouseY );
 
     static bool m_registered;
@@ -224,6 +235,9 @@ private:
     StateInterface m_stateMouse;
 
     QSize m_viewSize;
+
+    bool m_reloadFrameQueued;
+    bool m_repaintFrameQueued;
 
     Controller(const Controller& other);
     Controller operator=(const Controller& other);

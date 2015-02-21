@@ -137,10 +137,11 @@ public:
     /**
      * Return a QImage representation of this data.
      * @param frameIndex the index of the spectral coordinate to load.
-     * @param forceClipRecompute true if the clip should be recomputed; false if
-     *      a cached value can be used.
+     * @param autoClip true if clips should be automatically generated; false otherwise.
+     * @param clipMinPercentile the minimum clip value.
+     * @param clipMaxPercentile the maximum clip value.
      */
-    void load(int frameIndex, bool forceClipRecompute, bool autoClip, double clipMinPercentile, double clipMaxPercentile );
+    void load(int frameIndex, bool autoClip, double clipMinPercentile, double clipMaxPercentile );
 
     /**
      * Return the number of channels in the image.

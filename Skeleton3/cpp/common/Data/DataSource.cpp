@@ -195,8 +195,7 @@ void DataSource::_initializeState(){
     m_state.insertValue<QString>( DATA_PATH, "");
 }
 
-void DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoClip*/, double minClipPercentile, double maxClipPercentile){
-    QImage qimg;
+void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
 
     if ( frameIndex < 0 ) {
         frameIndex = 0;
@@ -235,11 +234,6 @@ void DataSource::render(){
 
 void DataSource::_renderingDone( QImage img, int64_t jobId ){
     Q_UNUSED( jobId );
-    QImageWriter imagefile;
-    imagefile.setFileName("/tmp/imagePict");
-    imagefile.setFormat("png");
-    imagefile.setQuality(100);
-    imagefile.write(img);
     emit renderingDone( img );
 }
 
