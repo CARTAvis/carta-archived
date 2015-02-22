@@ -1,15 +1,33 @@
 #pragma once
 
 #include "CartaLib/Hooks/HistogramResult.h"
-
-
+#include "HistogramSelection.h"
+#include <QWidget>
+#include <QRect>
+#include <QRectF>
+#include <QPainter>
+#include <qwt_plot_renderer.h>
+#include <QImage>
+#include <QPaintDevice>
+#include <QString>
+#include <qwt_scale_engine.h>
+#include <qwt_scale_map.h>
+#include <qwt_plot_picker.h>
+#include <qwt_picker_machine.h>
+#include <QObject>
+#include "HistogramPlot.h"
 #include <QString>
 
 class QwtPlot;
 class QwtPlotHistogram;
 class QImage;
 
-class HistogramGenerator{	
+
+class HistogramGenerator : public QWidget{
+  Q_OBJECT
+
+friend class HistogramSelection;	
+
 public:
   /**
    * Constructor.
@@ -20,7 +38,7 @@ public:
    * Sets the data for the histogram.
    * @param data the histogram (intensity,count) pairs and additional information for plotting.
    */
-  void setData( Carta::Lib::Hooks::HistogramResult data);
+  void setData( Carta::Lib::Hooks::HistogramResult data, double minIntensity, double maxIntensity);
 
   /**
    * Set the drawing style for the histogram.
@@ -48,9 +66,18 @@ public:
    */
   QImage * toImage();
 private:
-      QwtPlot *m_plot;
-      QwtPlotHistogram *m_histogram;
-      int m_height;
-      int m_width;
+  const static double EXTRA_RANGE_PERCENT;
+	QwtPlot *m_plot;
+	//QwtPlotHistogram *m_histogram;
+  HistogramPlot *m_histogram;
+  HistogramSelection *m_range;
+  QwtPlotPicker* m_dragLine;
+  int m_height;
+  int m_width;
+  std::vector<double> _getAxisRange(double minIntensity, double maxIntensity);
+private slots:
+  void lineMoved( const QPointF& pt );
+  void lineSelected();
+
 };
 

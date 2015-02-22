@@ -187,16 +187,10 @@ qx.Class
                          * @param addLink {boolean} true if the link should be
                          *                added; false if the link should be
                          *                removed.
-                         * @return {boolean} true if the link was changed; false otherwise.
                          */
                         changeLink : function(sourceWinId, destWinId, addLink) {
-                            var linkSet = this.m_areaFirst.changeLink(
-                                    sourceWinId, destWinId, addLink);
-                            if (!linkSet) {
-                                linkSet = this.m_areaSecond.changeLink(
-                                        sourceWinId, destWinId, addLink);
-                            }
-                            return linkSet;
+                            this.m_areaFirst.changeLink(sourceWinId, destWinId, addLink);
+                            this.m_areaSecond.changeLink(sourceWinId, destWinId, addLink);
                         },
                         
 

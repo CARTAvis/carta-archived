@@ -9,7 +9,6 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "Data/LinkableImpl.h"
-
 #include <QObject>
 
 namespace Image {
@@ -17,6 +16,8 @@ class ImageInterface;
 }
 
 class ImageView;
+class HistogramGenerator;
+
 namespace Carta {
 
 namespace Data {
@@ -67,17 +68,25 @@ public:
     const static QString CLASS_NAME;
 
 private slots:
-    void  _generateHistogram();
+    void  _generateHistogram( bool newDataNeeded);
+    void _createHistogram();
+    
 
 private:
     NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
     double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
     bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
     int _getLinkInfo( const QString& link, QString& name ) const;
+    void _loadData();
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
 
+    QString _setClipMin( const QString& params );
+    QString _setClipMax( const QString& params );
+    QString _setClipPercent( const QString& params );
+    // QString _setClipMaxPercent( const QString& params );
+    // QString _setClipMinPercent( const QString& params );
 
     QString _setClipToImage( const QString& params );
     QString _setColored( const QString& params );
@@ -88,10 +97,20 @@ private:
     QString _set2DFootPrint( const QString& params );
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData();
     
+    void _startSelection(const QString& params );
+    // void _updateSelection(const QString& params );
+    void _updateSelection(int x);
+    void _endSelection(const QString& params );
+
     void _initializeDefaultState();
     void _initializeCallbacks();
 
     static bool m_registered;
+
+    bool m_selectionEnabled;
+    double m_selectionStart;
+    double m_selectionEnd;
+    bool m_selectionEnded;
 
     const static QString CLIP_INDEX;
     const static QString CLIP_MIN;
@@ -118,7 +137,11 @@ private:
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
     const static QString LINK;
+    const static QString X_COORDINATE;
+    const static QString POINTER_MOVE;
     
+    const static double CLIP_ERROR_MARGIN;
+
     Histogram( const QString& path, const QString& id );
     class Factory;
 
@@ -130,6 +153,7 @@ private:
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
+    HistogramGenerator* m_histogram;
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;

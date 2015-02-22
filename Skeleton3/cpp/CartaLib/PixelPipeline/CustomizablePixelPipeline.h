@@ -104,27 +104,33 @@ public:
     QString
     cacheId()
     {
-        QString res;
+        QString gamma = "G" + double2base64( m_gamma);
         switch ( m_scaleType )
         {
         case ScaleType::Linear :
-            return "Lin";
+            return gamma + "Lin";
 
         case ScaleType::Log :
-            return "Log" + double2base64( m_a );
+            return gamma + "Log" + double2base64( m_a );
 
         case ScaleType::Sqr :
-            return "Sqr";
+            return gamma + "Sqr";
 
         case ScaleType::Sqrt :
-            return "Sqrt";
+            return gamma + "Sqrt";
 
         case ScaleType::Polynomial :
-            return "Poly" + double2base64( m_a );
+            return gamma + "Poly" + double2base64( m_a );
         }
         CARTA_ASSERT_X( false, "Invalid scale type" );
         return "";
     } // cacheId
+
+    void
+    setGamma( double gamma) {
+        m_gamma = gamma;
+        if( m_gamma < 0) { m_gamma = 0; }
+    }
 
     virtual void
     convert( double & val ) override
@@ -133,6 +139,8 @@ public:
         double n = (val - m_min) / (m_max - m_min);
         // apply function
         m_func(n);
+        // apply gamma
+        n = std::pow( n, m_gamma);
         // denormalize
         val = n * (m_max-m_min) + m_min;
     }
@@ -203,15 +211,17 @@ private:
     double m_a = 1000.0;
     ScaleType m_scaleType = ScaleType::Linear;
     std::function < void (double &) > m_func;
-    double m_min = 0;
-    double m_max = 1;
+    double m_min = 0.0;
+    double m_max = 1.0;
+    double m_gamma = 1.0;
 };
 
 /// this is the pipeline that we use in CARTA
 /// it should support all of the GUI actions of a colormap dialog, e.g.:
 /// - invert, reverse, colormap, log/gamma/cycles, manual clip
 ///
-/// \todo add missing functionality, e.g. gamma,log,power,sqrt, etc
+/// \todo this is getting extremely inefficient, I think it's time to
+/// hand-optimize it without the stages
 ///
 class CustomizablePixelPipeline : public IClippedPixelPipeline
 {
@@ -230,12 +240,27 @@ public:
         m_pipe-> addStage4( m_invertible );
     }
 
+    /// set gamma correction facor (1.0 is default, i.e. no gamma)
+    void
+    setGamma( double gamma)
+    {
+        m_scaleStage-> setGamma( gamma);
+    }
+
+    /// set max values for rgb (values will be interpolated up to this value)
+    /// for example, setting red=0 means there will be no red in the image
+    void
+    setRgbMax( NormRgb rgb) {
+        m_maxRgb = rgb;
+    }
+
     /// some scales require a parameter
     void
     setScaleParam( double a )
     {
         m_scaleStage-> setParam( a );
     }
+
 
     /// get the current scale parameter
     /// this could be set as a result of setScale()
@@ -285,12 +310,19 @@ public:
     convert( double val, Carta::Lib::PixelPipeline::NormRgb & result ) override
     {
         m_pipe-> convert( val, result );
+        result[0] *= m_maxRgb[0];
+        result[1] *= m_maxRgb[1];
+        result[2] *= m_maxRgb[2];
     }
 
     virtual void
     convertq( double val, QRgb & result ) override
     {
         m_pipe-> convertq( val, result );
+        auto red = std::round( qRed( result) * m_maxRgb[0]);
+        auto green = std::round(qGreen( result) * m_maxRgb[1]);
+        auto blue = std::round(qBlue( result) * m_maxRgb[2]);
+        result = qRgb( red, green, blue);
     }
 
     virtual void
@@ -303,13 +335,14 @@ public:
     QString
     cacheId()
     {
-        return QString( "%1/%2/%3/%4/%5/%6" )
+        return QString( "%1/%2/%3/%4/%5/%6/%7/" )
                    .arg( m_cmapName )
                    .arg( m_invertFlag )
                    .arg( m_reverseFlag )
                    .arg( m_scaleStage-> cacheId() )
                    .arg( double2base64( m_clipMin ) )
-                   .arg( double2base64( m_clipMax ) );
+                   .arg( double2base64( m_clipMax ) )
+                   .arg( QString::number(m_maxRgb[0])+QString::number(m_maxRgb[1])+QString::number(m_maxRgb[2]));
     }
 
 private:
@@ -319,6 +352,7 @@ private:
     ReversableStage1::SharedPtr m_reversible = nullptr;
     InvertibleStage4::SharedPtr m_invertible = nullptr;
     double m_clipMin = 0, m_clipMax = 1;
+    NormRgb m_maxRgb {{ 1.0, 1.0, 1.0}};
 
     QString m_cmapName;
     bool m_invertFlag = false, m_reverseFlag = false;

@@ -14,13 +14,17 @@ public:
     ImageView(const QString & viewName, QColor bgColor, QImage img, StateInterface* mouseState);
 
     void resetImage(QImage img);
+    /**
+     * Refresh the view.
+     */
+    void scheduleRedraw();
     virtual void registration(IConnector *connector);
     virtual const QString & name() const;
     virtual QSize size();
     virtual const QImage & getBuffer();
     virtual void handleResizeRequest(const QSize & size);
     virtual void handleMouseEvent(const QMouseEvent & ev);
-    virtual void handleKeyEvent(const QKeyEvent & /*event*/);
+    virtual void handleKeyEvent(const QKeyEvent & /*event*/) override {}
     static const QString MOUSE;
     static const QString MOUSE_X;
     static const QString MOUSE_Y;

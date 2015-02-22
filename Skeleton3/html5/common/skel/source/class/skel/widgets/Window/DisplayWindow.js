@@ -98,19 +98,34 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         changeLink : function(sourceWinId, destWinId, addLink) {
             var linkChanged = false;
-            if (destWinId == this.m_identifier) {
+            if ( sourceWinId == this.m_identifier ){
+                if ( !addLink ){
+                    this.removeLink( sourceWinId, destWinId);
+                }
+            }
+            else if (destWinId == this.m_identifier) {
                 var linkIndex = this.m_links.indexOf(sourceWinId);
                 if (addLink && linkIndex < 0) {
                     linkChanged = true;
                     this.m_links.push(sourceWinId);
                     this._sendLinkCommand(sourceWinId, addLink);
-                } else if (!addLink && linkIndex >= 0) {
+                } 
+                else if (!addLink && linkIndex >= 0) {
                     this.m_links.splice(linkIndex, 1);
                     linkChanged = true;
                     this._sendLinkCommand(sourceWinId, addLink);
                 }
             }
             return linkChanged;
+        },
+        
+        /**
+         * Window specific action to be taken when a link is removed.
+         * @param sourceWinId {String} server side id of the source window.
+         * @param destWinId {String} server side id of the destination window.
+         */
+        removeLink : function( sourceWinId, destWinId ){
+            console.log( "Remove link not implemented for "+this.m_pluginId);
         },
 
         /**
@@ -550,16 +565,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( val ){
                 try {
                     var winObj = JSON.parse( val );
-                    //Update the links for this window if they exist.
+                    var i = 0;
+                    //Update the new links for this window.
+                    this.m_links = [];
                     if ( winObj.links && winObj.links.length > 0 ){
-                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "clearLinks", this.m_identifier));
-                        for ( var i = 0; i < winObj.links.length; i++ ){
+                        for ( i = 0; i < winObj.links.length; i++ ){
                             var destId = winObj.links[i];
                             var link = new skel.widgets.Link.Link( this.m_identifier, destId );
                             qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
                         }
                     }
+                   
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
@@ -567,15 +583,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             }
         },
 
-
-
         setDrawMode : function(drawInfo) {
 
         },
-
-       
-        
-        
 
         /**
          * Set the appearance of this window based on whether or not it is selected.

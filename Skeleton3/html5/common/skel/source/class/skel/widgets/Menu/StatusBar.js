@@ -76,6 +76,18 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
                 this.show(this, true);
             }
         },
+        
+        /**
+         * Display an informational message.
+         * @param info {String} information message.
+         */
+        showInformation : function ( info ){
+            var richText = "<b style='color:black'>"+info+"</b>";
+            this.m_statusMessage.setValue(richText);
+            if (!this.isVisible()) {
+                this.show(this, true);
+            }
+        },
 
         /**
          * Removes the button representing an iconfied window from the status

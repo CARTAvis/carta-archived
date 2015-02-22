@@ -252,6 +252,7 @@ qx.Class.define( "skel.Application",
          */
         _hideWindows: function(){
             this._hideWindow( this.m_windowLink );
+            this.m_statusBar.clearMessages();
         },
 
         /**
@@ -314,100 +315,100 @@ qx.Class.define( "skel.Application",
                 this.m_windowLink.addListener( "linkingFinished", function( ev ){
                     this._hideWindows();
                 }, this );
-                }
-                this.m_windowLink.setDrawInfo( linkInfo );
-               
-                var topPos = this._getLinkTopOffset();
-                var bottomPos = this._getLinkBottomOffset();
-                this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
-            },
+            }
+            this.m_windowLink.setDrawInfo( linkInfo );
+            this.m_statusBar.showInformation( this.m_windowLink.getHelp());
+            var topPos = this._getLinkTopOffset();
+            var bottomPos = this._getLinkBottomOffset();
+            this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
+       },
             
-            /**
-             * Return the total height in pixels of display elements like a possible menu or toolbar
-             * bar at the top of the main window.
-             * @return {Number} an offset from the top of the window where the main
-             *          display begins.
-             */
-            _getLinkTopOffset : function(){
-                var topPos = 0;
-                var menuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
-                if ( menuCmd.getValue() ){
-                    var menuBounds = this.m_menuBar.getBounds();
-                    var height = menuBounds.height;
-                    topPos = topPos + height;
-                }
-                var toolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
-                if ( toolCmd.getValue()){
-                    var toolBounds = this.m_toolBar.getBounds();
-                    var toolHeight = toolBounds.height;
-                    topPos = topPos + toolHeight;
-                }
-                return topPos;
-            },
+        /**
+         * Return the total height in pixels of display elements like a possible menu or toolbar
+         * bar at the top of the main window.
+         * @return {Number} an offset from the top of the window where the main
+         *          display begins.
+         */
+        _getLinkTopOffset : function(){
+            var topPos = 0;
+            var menuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+            if ( menuCmd.getValue() ){
+                var menuBounds = this.m_menuBar.getBounds();
+                var height = menuBounds.height;
+                topPos = topPos + height;
+            }
+            var toolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
+            if ( toolCmd.getValue()){
+                var toolBounds = this.m_toolBar.getBounds();
+                var toolHeight = toolBounds.height;
+                topPos = topPos + toolHeight;
+            }
+            return topPos;
+        },
             
-            /**
-             * Return the total height in pixels of display elements like a possible status
-             * bar at the bottom of the main window.
-             * @return {Number} an offset from the bottom of the window where the main
-             *          display begins.
-             */
-            _getLinkBottomOffset : function(){
-                var bottomPos = 0;
-                var statusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
-                if ( statusCmd.getValue()){
-                    var statusBounds = this.m_statusBar.getBounds();
-                    var height = statusBounds.height;
-                    bottomPos = bottomPos + height;
-                }
-                return bottomPos;
-            },
+        /**
+         * Return the total height in pixels of display elements like a possible status
+         * bar at the bottom of the main window.
+         * @return {Number} an offset from the bottom of the window where the main
+         *          display begins.
+         */
+        _getLinkBottomOffset : function(){
+            var bottomPos = 0;
+            var statusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
+            if ( statusCmd.getValue()){
+                var statusBounds = this.m_statusBar.getBounds();
+                var height = statusBounds.height;
+                bottomPos = bottomPos + height;
+            }
+            return bottomPos;
+        },
+        
+        /**
+         * Show a window as a popup dialog.
+         * @param message {Object} information about thee window that will be shown.
+         */
+        _showPopup : function( message ){
+            var data = message.getData();
+            var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
+            this._setPopupWinProperties( win );
+        },
             
-            /**
-             * Show a window as a popup dialog.
-             * @param message {Object} information about thee window that will be shown.
-             */
-            _showPopup : function( message ){
-                var data = message.getData();
-                var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
-                this._setPopupWinProperties( win );
-            },
-            
-            /**
-             * Set uniform look and feel for a popup window.
-             * @param win {skel.widgets.Window.MoveResizeWindow}.
-             */
-            _setPopupWinProperties : function( win ){
-                win.setWidth( 300 );
-                win.setHeight( 200 );
-                win.setLayout( new qx.ui.layout.Grow() );
-                win.setContentPadding( 5, 5, 5, 5 );
-                win.setShowClose( true );
-                win.setMovable( true );
-                win.setResizable( true );
-                win.setAlwaysOnTop( true );
-                var center = skel.widgets.Util.getCenter( this.m_mainContainer );
-                var halfWidth = 250;
-                var halfHeight = 100;
-                var leftPt = center[0] - halfWidth;
-                var topPt = center[1] - halfHeight;
-                var widthVal = 2 * halfWidth;
-                var heightVal = 2 * halfHeight;
-                this.getRoot().add(win);
-                win.open();
-                win.setUserBounds( leftPt, topPt, widthVal, heightVal );
-            },
+        /**
+         * Set uniform look and feel for a popup window.
+         * @param win {skel.widgets.Window.MoveResizeWindow}.
+         */
+        _setPopupWinProperties : function( win ){
+            win.setWidth( 300 );
+            win.setHeight( 200 );
+            win.setLayout( new qx.ui.layout.Grow() );
+            win.setContentPadding( 5, 5, 5, 5 );
+            win.setShowClose( true );
+            win.setMovable( true );
+            win.setResizable( true );
+            win.setAlwaysOnTop( true );
+            var center = skel.widgets.Util.getCenter( this.m_mainContainer );
+            var halfWidth = 250;
+            var halfHeight = 100;
+            var leftPt = center[0] - halfWidth;
+            var topPt = center[1] - halfHeight;
+            var widthVal = 2 * halfWidth;
+            var heightVal = 2 * halfHeight;
+            this.getRoot().add(win);
+            win.open();
+            win.setUserBounds( leftPt, topPt, widthVal, heightVal );
+        },
 
 
-            m_desktop       : null,
-            m_menuBar       : null,
-            m_toolBar : null,
-            m_statusBar     : null,
-            m_mainContainer : null,
-            m_windowLink    : null,
-            m_fileBrowser   : null,
-            m_customizeMenuDialog : null,
-            m_sharedVarPreferences : null
-        }
-    } );
+        m_desktop       : null,
+        m_menuBar       : null,
+        m_toolBar : null,
+        m_statusBar     : null,
+        m_mainContainer : null,
+        m_windowLink    : null,
+        m_fileBrowser   : null,
+        m_customizeMenuDialog : null,
+        m_sharedVarPreferences : null
+    }
+} );
 
 

@@ -195,8 +195,7 @@ void DataSource::_initializeState(){
     m_state.insertValue<QString>( DATA_PATH, "");
 }
 
-void DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoClip*/, double minClipPercentile, double maxClipPercentile){
-    QImage qimg;
+void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
 
     if ( frameIndex < 0 ) {
         frameIndex = 0;
@@ -225,17 +224,16 @@ void DataSource::load(int frameIndex, bool /*forceClipRecompute*/, bool /*autoCl
     // tell the render service to render this job
     QString argStr = QString( "%1//%2").arg(m_fileName).arg(frameIndex);
     m_renderService-> setInputView( view, argStr);
-    m_renderService-> render( 0 );
+    render();
 
+}
+
+void DataSource::render(){
+    m_renderService-> render( 0 );
 }
 
 void DataSource::_renderingDone( QImage img, int64_t jobId ){
     Q_UNUSED( jobId );
-    QImageWriter imagefile;
-    imagefile.setFileName("/tmp/imagePict");
-    imagefile.setFormat("png");
-    imagefile.setQuality(100);
-    imagefile.write(img);
     emit renderingDone( img );
 }
 
@@ -286,22 +284,29 @@ void DataSource::setColorMap( const QString& name ){
     CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
     m_pixelPipeline-> setColormap( maps->getColorMap( name ) );
+    m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
 void DataSource::setColorInverted( bool inverted ){
     m_pixelPipeline-> setInvert( inverted );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
-    m_renderService-> render( 0 );
 }
 
 void DataSource::setColorReversed( bool reversed ){
     m_pixelPipeline-> setReverse( reversed );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
-    m_renderService-> render( 0 );
+}
+
+void DataSource::setColorAmounts( double newRed, double newGreen, double newBlue ){
+    std::array<double,3> colorArray;
+    colorArray[0] = newRed;
+    colorArray[1] = newGreen;
+    colorArray[2] = newBlue;
+    m_pixelPipeline->setRgbMax( colorArray );
+    m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
 void DataSource::setPan( double imgX, double imgY ){
-
     m_renderService-> setPan( QPointF(imgX,imgY) );
 }
 
@@ -310,7 +315,7 @@ void DataSource::setTransformData( const QString& name ){
     TransformsData* transformData = dynamic_cast<TransformsData*>(transformDataObj);
     Carta::Lib::PixelPipeline::ScaleType scaleType = transformData->getScaleType( name );
     m_pixelPipeline->setScale( scaleType );
-
+    m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId() );
 }
 
 void DataSource::setZoom( double zoomAmount){
@@ -335,6 +340,12 @@ void DataSource::setCacheSize( int cacheSize ){
     settings.size = cacheSize;
     m_renderService->setPixelPipelineCacheSettings( settings );
 }
+
+void DataSource::setGamma( double gamma ){
+    m_pixelPipeline->setGamma( gamma );
+    m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
+}
+
 
 void DataSource::saveState( ) {
     QString oldSavedFile = m_state.getValue<QString>( DATA_PATH );

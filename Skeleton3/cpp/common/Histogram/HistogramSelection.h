@@ -44,9 +44,11 @@ public:
 	 */
 	void setBoundaryValues( double minX, double maxX );
 
+
 	/**
 	 * Set the range back to a single line.
 	 */
+
 	void reset();
 	virtual ~HistogramSelection();
 private:

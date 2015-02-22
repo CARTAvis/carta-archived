@@ -58,19 +58,23 @@ Controller::Controller( const QString& path, const QString& id ) :
         m_view(nullptr),
         m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW),
         m_viewSize( 400, 400){
+
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
+    m_reloadFrameQueued = false;
+    m_repaintFrameQueued = false;
+
     _initializeSelections();
 
-     connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
-     connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));
+     connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
+     connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
 
      _initializeState();
 
      registerView(m_view.get());
-     connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(viewResize(const QSize&)));
+     connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_viewResize(const QSize&)));
 
      //Load the view.
-     _loadView( false );
+     _scheduleFrameReload();
 
      _initializeCallbacks();
 }
@@ -109,7 +113,7 @@ void Controller::addData(const QString& fileName) {
         m_selectImage->setIndex(targetIndex);
 
         //Refresh the view of the data.
-        _loadView( false );
+        _scheduleFrameReload();
 
         //Notify others there has been a change to the data.
         emit dataChanged();
@@ -123,14 +127,7 @@ void Controller::clear(){
     unregisterView();
 }
 
-void Controller::colorMapChanged( const QString& name ){
-    if ( m_datas.size() > 0 ){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
-            data->setColorMap( name );
-        }
-        _loadView( true );
-    }
-}
+
 
 NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
     NdArray::RawViewInterface * rawData = nullptr;
@@ -160,6 +157,7 @@ int Controller::getSelectImageIndex(){
     }
     return selectImageIndex;
 }
+
 
 QString Controller::getImageName(int index) const{
     QString name;
@@ -219,7 +217,7 @@ void Controller::setClipValue( const QString& params ) {
             m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
             m_state.flushState();
             if ( m_view ){
-                _loadView( true );
+                _loadView();
             }
         }
     }
@@ -356,13 +354,11 @@ void Controller::_initializeState(){
     m_stateMouse.insertValue<int>(ImageView::MOUSE_X, 0 );
     m_stateMouse.insertValue<int>(ImageView::MOUSE_Y, 0 );
     m_stateMouse.flushState();
-
-
 }
 
 
-void Controller::_loadView( bool forceReload ) {
-
+void Controller::_loadView( ) {
+    m_reloadFrameQueued = false;
     //Determine the index of the data to load.
     int imageIndex = 0;
     if (m_selectImage != nullptr) {
@@ -382,7 +378,7 @@ void Controller::_loadView( bool forceReload ) {
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
             double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
             double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
-            m_datas[imageIndex]->load(frameIndex, forceReload, autoClip, clipValueMin, clipValueMax);
+            m_datas[imageIndex]->load(frameIndex, autoClip, clipValueMin, clipValueMax);
         }
         else {
             qDebug() << "Uninitialized image: "<<imageIndex;
@@ -407,9 +403,20 @@ QString Controller::_makeRegion( const QString& regionType ){
     return shapePath;
 }
 
-void Controller::_renderingDone( QImage img ){;
-    m_view->resetImage( img );
-    refreshView( m_view.get() );
+void Controller::_render(){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        m_datas[imageIndex]->render();
+    }
+}
+
+void Controller::_renderingDone( QImage img ){
+    _scheduleFrameRepaint( img );
+}
+
+void Controller::_repaintFrameNow(){
+    m_view->scheduleRedraw();
+    m_repaintFrameQueued = false;
 }
 
 void Controller::saveState() {
@@ -441,16 +448,57 @@ void Controller::_saveRegions(){
     }
 }
 
+void Controller::_scheduleFrameRepaint( const QImage& img ){
+    if ( m_datas.size() > 0 ){
+        // if reload is already pending, do nothing
+        if ( m_repaintFrameQueued ) {
+            return;
+        }
+        m_view->resetImage( img );
+        m_repaintFrameQueued = true;
+        QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+    }
+}
+
+
+void Controller::_scheduleFrameReload(){
+    if ( m_datas.size() > 0  ){
+
+        // if reload is already pending, do nothing
+        if ( m_reloadFrameQueued ) {
+            return;
+        }
+        m_reloadFrameQueued = true;
+        QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
+    }
+}
+
 void Controller::setColorInverted( bool inverted ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
         data->setColorInverted( inverted );
     }
+    _render();
+}
+
+void Controller::setColorMap( const QString& name ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorMap( name );
+    }
+    _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
     for ( std::shared_ptr<DataSource> data : m_datas ){
         data->setColorReversed( reversed );
     }
+    _render();
+}
+
+void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setColorAmounts( newRed, newGreen, newBlue );
+    }
+    _render();
 }
 
 void Controller::setPixelCaching( bool enabled ){
@@ -458,7 +506,6 @@ void Controller::setPixelCaching( bool enabled ){
         for ( std::shared_ptr<DataSource> data : m_datas ){
             data->setPixelCaching( enabled );
         }
-        _loadView( false );
     }
 }
 
@@ -467,7 +514,6 @@ void Controller::setCacheInterpolation( bool enabled ){
         for ( std::shared_ptr<DataSource> data : m_datas ){
             data->setCacheInterpolation( enabled );
         }
-        _loadView( false );
     }
 }
 
@@ -476,7 +522,6 @@ void Controller::setCacheSize( int size ){
         for ( std::shared_ptr<DataSource> data : m_datas ){
             data->setCacheSize( size );
         }
-        _loadView( false );
     }
 }
 
@@ -494,14 +539,18 @@ void Controller::setFrameImage(const QString& val) {
     }
 }
 
-void Controller::setTransformData( const QString& name ){
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
-            data->setTransformData( name );
-        }
-        _loadView( false );
+void Controller::setGamma( double gamma ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setGamma( gamma );
     }
+    _render();
+}
+
+void Controller::setTransformData( const QString& name ){
+    for ( std::shared_ptr<DataSource> data : m_datas ){
+        data->setTransformData( name );
+    }
+    _render();
 }
 
 
@@ -562,7 +611,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             for ( std::shared_ptr<DataSource> data : m_datas ){
                 data->setPan( newCenter.x(), newCenter.y() );
             }
-            _loadView( false );
+            _render();
         }
     }
 }
@@ -576,19 +625,17 @@ void Controller::updatePan( double centerX , double centerY){
             for ( std::shared_ptr<DataSource> data : m_datas ){
                 data->setPan( newCenter.x(), newCenter.y() );
             }
-            _loadView( false );
+            _render();
         }
     }
 }
 
-void Controller::viewResize( const QSize& newSize ){
-    if ( m_datas.size() > 0 ){
-        for ( int i = 0; i < m_datas.size(); i++ ){
-            m_datas[i]->viewResize( newSize );
-        }
-        m_viewSize = newSize;
-        _loadView( false );
+void Controller::_viewResize( const QSize& newSize ){
+    for ( int i = 0; i < m_datas.size(); i++ ){
+        m_datas[i]->viewResize( newSize );
     }
+    m_viewSize = newSize;
+    _render();
 }
 
 

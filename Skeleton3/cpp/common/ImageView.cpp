@@ -56,29 +56,23 @@ void ImageView::handleResizeRequest(const QSize & size) {
 
 void ImageView::handleMouseEvent(const QMouseEvent & ev) {
     m_lastMouse = QPointF(ev.x(), ev.y());
-    m_connector->refreshView(this);
-
+    //m_connector->refreshView(this);
     m_mouseState->setValue<QString>( MOUSE_X, QString::number(ev.x()));
     m_mouseState->setValue<QString>( MOUSE_Y, QString::number(ev.y()));
     m_mouseState->flushState();
 }
 
-void ImageView::handleKeyEvent(const QKeyEvent & /*event*/) {
+
+void ImageView::scheduleRedraw(){
+    redrawBuffer();
+    m_connector-> refreshView( this );
 }
 
-
-
 void ImageView::redrawBuffer() {
-    /*QPointF center = m_qimage.rect().center();
-    QPointF diff = m_lastMouse - center;
-    double angle = atan2(diff.x(), diff.y());
-    angle *= -180 / M_PI;*/
     m_qimage.fill( "#E0E0E0" );
-    //m_qimage.fill(m_bgColor);
     {
         QPainter p(&m_qimage);
         p.drawImage(m_qimage.rect(), m_defaultImage);
-
     }
 
     // execute the pre-render hook
