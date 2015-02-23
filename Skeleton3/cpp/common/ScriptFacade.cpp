@@ -143,8 +143,7 @@ void ScriptFacade::setColorMix( const QString& colormapId, const QString& percen
 
 QString ScriptFacade::setGamma( const QString& colormapId, double gamma ){
     QString output = m_viewManager->setGamma( colormapId, gamma );
-    qDebug() << "(JT) Did we make it back to scriptFacade?";
-    qDebug() << "output = " << output;
+    return output;
 }
 
 void ScriptFacade::setImageLayout(){

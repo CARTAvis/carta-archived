@@ -162,6 +162,9 @@ class Application:
     def setColorMix(self, colormapId, redPercent, greenPercent, bluePercent):
         self.socket.sendall("setColorMix " + colormapId + " " + redPercent + " " + greenPercent + " " + bluePercent + "\n")
 
+    def setGamma(self, colormapId, gamma):
+        self.socket.sendall("setGamma " + colormapId + " " + gamma + "\n")
+
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")

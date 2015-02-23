@@ -176,7 +176,8 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: setGamma
     else if (args.size() == 3 && args[0].toLower() == "setgamma") {
-        m_scriptFacade->setGamma( args[1], args[2].toDouble() );
+        QString output = m_scriptFacade->setGamma( args[1], args[2].toDouble() );
+        m_scl->dataTransporter( output );
     }
 
     // command: setFrame

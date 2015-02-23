@@ -334,7 +334,6 @@ bool Colormap::removeLink( const std::shared_ptr<Controller>& controller ){
 }
 
 QString Colormap::setColorMap( const QString& colorMapStr ){
-    qDebug() << "(JT) Colormap::setColorMap(" << colorMapStr << ")";
     QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
     QString result;
     if ( m_colors != nullptr ){
@@ -435,13 +434,10 @@ QString Colormap::setColorMix( const QString& percentString )
 }
 
 QString Colormap::setGamma( double gamma ){
-    qDebug() << "(JT) Colormap::setGamma(" << gamma << ")";
     QString result;
     double oldGamma = m_state.getValue<double>( GAMMA );
-    qDebug() << "(JT) oldGamma = " << oldGamma;
     const double ERROR_MARGIN = 0.000001;
     if ( qAbs( gamma - oldGamma) > ERROR_MARGIN ){
-        qDebug() << "(JT) threshold ok, changing gamma value.";
         m_state.setValue<double>(GAMMA, gamma );
         m_state.flushState();
         //Let the controllers know gamma has changed.

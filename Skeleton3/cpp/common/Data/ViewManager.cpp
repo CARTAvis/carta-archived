@@ -628,12 +628,10 @@ bool ViewManager::setColorMix( const QString& colormapId, const QString& percent
 }
 
 QString ViewManager::setGamma( const QString& colormapId, double gamma ){
-    qDebug() << "(JT) ViewManager::setGamma( " << colormapId << ", " << gamma << ")";
     QString output = "";
     int colormapIndex = _findColorMap( colormapId );
     if ( colormapIndex >= 0 ){
         output = m_colormaps[colormapIndex]->setGamma( gamma );
-        qDebug() << "(JT) ViewManager::setGamma() output = " << output;
     }
     return output;
 }
