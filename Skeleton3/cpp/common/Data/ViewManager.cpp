@@ -606,6 +606,15 @@ bool ViewManager::reverseColorMap( const QString& colormapId, const QString& tru
     return colorMapFound;
 }
 
+QString ViewManager::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
+    QString output = "";
+    int colormapIndex = _findColorMap( colormapId );
+    if ( colormapIndex >= 0 ){
+        output = m_colormaps[colormapIndex]->setCacheColormap( cacheStr );
+    }
+    return output;
+}
+
 QString ViewManager::setCacheSize( const QString& colormapId, const QString& cacheSize ){
     QString output = "";
     int colormapIndex = _findColorMap( colormapId );

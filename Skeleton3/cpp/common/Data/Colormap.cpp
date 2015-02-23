@@ -220,19 +220,7 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
     std::set<QString> keys = {CACHE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString cacheStr = dataValues[*keys.begin()];
-    bool validBool = false;
-    bool cache = Util::toBool(cacheStr, &validBool);
-    bool oldCache = m_state.getValue<bool>(CACHE);
-    if ( validBool ){
-        if ( cache != oldCache){
-            m_state.setValue<bool>(CACHE, cache );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "Invalid color map cache parameters: "+ params;
-    }
-    result = Util::commandPostProcess( result , Util::toString(oldCache));
+    result = setCacheColormap( cacheStr );
     return result;
 }
 
@@ -349,6 +337,25 @@ QString Colormap::reverseColorMap( const QString& reverseStr )
         result = "Invalid color map reverse parameters: "+ reverseStr;
     }
     result = Util::commandPostProcess( result, Util::toString(oldReverse) );
+    return result;
+}
+
+QString Colormap::setCacheColormap( const QString& cacheStr )
+{
+    QString result;
+    bool validBool = false;
+    bool cache = Util::toBool(cacheStr, &validBool);
+    bool oldCache = m_state.getValue<bool>(CACHE);
+    if ( validBool ){
+        if ( cache != oldCache){
+            m_state.setValue<bool>(CACHE, cache );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Invalid color map cache parameters: "+ cacheStr;
+    }
+    result = Util::commandPostProcess( result , Util::toString(oldCache));
     return result;
 }
 

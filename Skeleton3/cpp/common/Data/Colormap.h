@@ -52,6 +52,13 @@ public:
     QString reverseColorMap( const QString& reverseStr );
 
     /**
+     * Set caching for the current colormap.
+     * @param cacheSizeStr should be equal to either "true" or "false"
+     * @return error information if the cache size was not successfully set.
+     */
+    QString setCacheColormap( const QString& cacheSizeStr );
+
+    /**
      * Set the cache size of the current colormap.
      * @param cacheSizeStr the desired size of the cache
      * @return error information if the cache size was not successfully set.

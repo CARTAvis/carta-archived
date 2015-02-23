@@ -113,6 +113,13 @@ public:
     void reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
+     * Set caching for the current colormap
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param cacheStr should be equal to either "true" or "false"
+     */
+    QString setCacheColormap( const QString& colormapId, const QString& cacheStr );
+
+    /**
      * Set the cache size of the colormap
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param cacheSize the desired cache size.

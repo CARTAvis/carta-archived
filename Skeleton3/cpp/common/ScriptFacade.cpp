@@ -133,6 +133,11 @@ void ScriptFacade::reverseColorMap( const QString& colormapId, const QString& tr
     m_viewManager->reverseColorMap( colormapId, trueOrFalse );
 }
 
+QString ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
+    QString output = m_viewManager->setCacheColormap( colormapId, cacheStr );
+    return output;
+}
+
 QString ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
     QString output = m_viewManager->setCacheSize( colormapId, cacheSize );
     return output;

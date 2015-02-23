@@ -162,6 +162,12 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
     }
 
+    // command: setCacheColormap
+    else if (args.size() == 3 && args[0].toLower() == "setcachecolormap") {
+        QString output = m_scriptFacade->setCacheColormap( args[1], args[2] );
+        m_scl->dataTransporter( output );
+    }
+
     // command: setCacheSize
     else if (args.size() == 3 && args[0].toLower() == "setcachesize") {
         QString output = m_scriptFacade->setCacheSize( args[1], args[2] );
