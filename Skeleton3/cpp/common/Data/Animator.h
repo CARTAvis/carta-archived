@@ -68,7 +68,7 @@ public:
 
 private slots:
     //Adjusts internal state based on the state in the child controllers.
-    void _adjustStateController();
+    void _adjustStateController( const Controller* controller);
     void _imageIndexChanged( const QString& params );
     void _channelIndexChanged( const QString& params );
 
@@ -90,7 +90,7 @@ private:
     QString _initializeAnimator( const QString& type );
 
     QString _removeAnimator( const QString& type );
-    void _resetAnimationParameters();
+    void _resetAnimationParameters( int selectedImage );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;

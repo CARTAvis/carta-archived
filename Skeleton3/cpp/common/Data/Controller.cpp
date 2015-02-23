@@ -97,12 +97,11 @@ void Controller::addData(const QString& fileName) {
         std::shared_ptr<DataSource> targetSource( dynamic_cast<DataSource*>(dataSource));
         targetIndex = m_datas.size();
         connect( targetSource.get(), SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
-        m_datas.push_back(targetSource);
+        m_datas.append(targetSource);
         targetSource->viewResize( m_viewSize );
 
-        //Update the data selectors upper bound and index based on the data.
+        //Update the data selectors upper bound based on the data.
         m_selectImage->setUpperBound(m_datas.size());
-
         saveState();
     }
 
@@ -116,7 +115,7 @@ void Controller::addData(const QString& fileName) {
         _scheduleFrameReload();
 
         //Notify others there has been a change to the data.
-        emit dataChanged();
+        emit dataChanged( this );
     }
     else {
         m_datas.removeAt( targetIndex );
@@ -150,13 +149,14 @@ std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources()
     return images;
 }
 
-int Controller::getSelectImageIndex(){
+int Controller::getSelectImageIndex() const {
     int selectImageIndex = -1;
     if ( m_datas.size() >= 1 ){
         selectImageIndex = m_selectImage->getIndex();
     }
     return selectImageIndex;
 }
+
 
 
 QString Controller::getImageName(int index) const{
@@ -166,6 +166,10 @@ QString Controller::getImageName(int index) const{
         name = data->getFileName();
     }
     return name;
+}
+
+int Controller::getStackedImageCount() const {
+    return m_selectImage->getUpperBound();
 }
 
 
@@ -527,6 +531,11 @@ void Controller::setFrameChannel(const QString& val) {
 void Controller::setFrameImage(const QString& val) {
     if (m_selectImage != nullptr) {
         m_selectImage->setIndex(val);
+    }
+    int imageIndex = m_selectImage->getIndex();
+    if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
+        int upperBound = m_datas[imageIndex]->getFrameCount();
+        m_selectChannel->setUpperBound( upperBound );
     }
 }
 

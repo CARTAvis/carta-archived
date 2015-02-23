@@ -150,9 +150,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this.m_highBoundsSpinner.setMaximum( limit );
             }
             var highSpinValue = this.m_highBoundsSpinner.getValue();
-            if ( limit < highSpinValue || highSpinValue === 0 ){
+            //if ( limit < highSpinValue || highSpinValue === 0 ){
                 this.m_highBoundsSpinner.setValue( limit );
-            }
+            //}
             var valStr = this.m_frameHigh + "";
             if ( this.m_endLabel.getValue() !== valStr ){
                 this.m_endLabel.setValue( valStr);
