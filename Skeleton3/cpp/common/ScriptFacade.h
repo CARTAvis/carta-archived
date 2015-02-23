@@ -127,6 +127,14 @@ public:
     void setColorMix( const QString& colormapId, const QString& something );
 
     /**
+     * Set the gamma color map parameter.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param gamma a parameter for color mapping.
+     * @return error information if gamma could not be set.
+     */
+    QString setGamma( const QString& colormapId, double gamma );
+
+    /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
      */

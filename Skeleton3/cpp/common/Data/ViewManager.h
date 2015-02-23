@@ -144,6 +144,14 @@ public:
     bool setColorMix( const QString& colormapId, const QString& percentString );
 
     /**
+     * Set the gamma color map parameter.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param gamma a parameter for color mapping.
+     * @return error information if gamma could not be set.
+     */
+    QString setGamma( const QString& colormapId, double gamma );
+
+    /**
      * Set the image frame to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the frame number.

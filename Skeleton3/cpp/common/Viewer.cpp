@@ -174,6 +174,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->setColorMix( args[1], percentString );
     }
 
+    // command: setGamma
+    else if (args.size() == 3 && args[0].toLower() == "setgamma") {
+        m_scriptFacade->setGamma( args[1], args[2].toDouble() );
+    }
+
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
         //qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];

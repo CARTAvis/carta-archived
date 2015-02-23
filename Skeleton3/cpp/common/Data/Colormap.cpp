@@ -153,6 +153,7 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "setScales", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
+        qDebug() << "(JT) setScales params = " << params;
         std::set<QString> keys = {SCALE_1, SCALE_2};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
         bool valid = false;
@@ -434,10 +435,13 @@ QString Colormap::setColorMix( const QString& percentString )
 }
 
 QString Colormap::setGamma( double gamma ){
+    qDebug() << "(JT) Colormap::setGamma(" << gamma << ")";
     QString result;
     double oldGamma = m_state.getValue<double>( GAMMA );
+    qDebug() << "(JT) oldGamma = " << oldGamma;
     const double ERROR_MARGIN = 0.000001;
     if ( qAbs( gamma - oldGamma) > ERROR_MARGIN ){
+        qDebug() << "(JT) threshold ok, changing gamma value.";
         m_state.setValue<double>(GAMMA, gamma );
         m_state.flushState();
         //Let the controllers know gamma has changed.
