@@ -65,6 +65,25 @@ int LinkableImpl::_getIndex( const std::shared_ptr<Controller>& controller ){
      return index;
 }
 
+int LinkableImpl::getSelectedImage() const {
+    int selectedImage = 0;
+    if ( m_controllers.size() > 0 ){
+        selectedImage = m_controllers[0]->getSelectImageIndex();
+    }
+    return selectedImage;
+}
+
+int LinkableImpl::getImageCount() const {
+    int maxImages = 0;
+    for (std::shared_ptr<Controller> controller : m_controllers ){
+        int imageCount = controller->getStackedImageCount();
+        if ( imageCount > maxImages ){
+            maxImages = imageCount;
+        }
+    }
+    return maxImages;
+}
+
 int LinkableImpl::getLinkCount() const {
     int linkCount = m_state->getArraySize( LINK );
     return linkCount;

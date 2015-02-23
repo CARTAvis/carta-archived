@@ -87,7 +87,11 @@ public:
     std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
 
 
-    int getSelectImageIndex();
+    /**
+     * Return the index of the image that is currently at the top of the stack.
+     * @return the index of the current image.
+     */
+    int getSelectImageIndex() const ;
 
     /**
      * Returns an identifier for the data source at the given index.
@@ -108,6 +112,7 @@ public:
      *  @param val a String representing the index of a specific data selection.
      */
     void setFrameImage(const QString& val);
+
 
     /**
      * Set the data transform.
@@ -149,6 +154,12 @@ public:
      */
     void updateZoom( double centerX, double centerY, double z );
 
+    /**
+     * Return a count of the number of images in the stack.
+     * @return the number of images in the stack.
+     */
+    int getStackedImageCount() const;
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
@@ -159,8 +170,9 @@ signals:
     /**
      *  Notification that the data/selection managed by this controller has
      *  changed.
+     *  @param controller this Controller.
      */
-    void dataChanged();
+    void dataChanged( const Controller* controller );
 
 private slots:
     //Refresh the view based on the latest data selection information.

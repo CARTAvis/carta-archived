@@ -48,6 +48,18 @@ public:
      */
     QList<QString> getLinks() const;
 
+    /**
+     * Returns the largest image stack size of any of the controllers.
+     * @return a count of the maximum number of images loaded by any controller.
+     */
+    int getImageCount() const;
+
+    /**
+     * Return the index of the image that has been selected.
+     * @return the selected image index.
+     */
+    int getSelectedImage() const;
+
     std::shared_ptr<Controller> searchLinks(const QString& link);
 
     virtual bool removeLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;;

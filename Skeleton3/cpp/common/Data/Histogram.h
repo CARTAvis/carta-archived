@@ -69,7 +69,7 @@ public:
 
 private slots:
     void  _generateHistogram( bool newDataNeeded);
-    void _createHistogram();
+    void _createHistogram( const Controller* );
     
 
 private:

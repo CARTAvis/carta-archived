@@ -39,9 +39,13 @@ AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType
         const QString& path, const QString& id ):
 	CartaObject( CLASS_NAME, path, id ){
         _makeSelection();
-
+        m_removed = false;
         _initializeState();
         _initializeCommands();
+}
+
+bool AnimatorType::isRemoved() const {
+    return m_removed;
 }
 
 QString AnimatorType::_makeSelection(){
@@ -64,10 +68,13 @@ void AnimatorType::setUpperBound( int value ){
     m_select->setUpperBound( value );
 }
 
+void AnimatorType::setIndex( int value ){
+    m_select->setIndex( value );
+}
+
 QString AnimatorType::_setEndBehavior( const QString& params ){
     QString result;
     std::set<QString> keys = {END_BEHAVIOR};
-    qDebug() << "_setColored params="<<params;
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString endStr = dataValues[*keys.begin()];
     if ( endStr == END_BEHAVIOR_WRAP || endStr == END_BEHAVIOR_REVERSE || endStr == END_BEHAVIOR_JUMP ){
@@ -86,7 +93,6 @@ QString AnimatorType::_setEndBehavior( const QString& params ){
 QString AnimatorType::_setFrameRate( const QString& params ){
     QString result;
     std::set<QString> keys = {RATE};
-    qDebug() << "_setFrameRate="<<params;
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString rateStr = dataValues[*keys.begin()];
     bool validRate = false;
@@ -113,7 +119,6 @@ QString AnimatorType::_setFrameRate( const QString& params ){
 QString AnimatorType::_setFrameStep( const QString& params ){
     QString result;
     std::set<QString> keys = {STEP};
-    qDebug() << "_setFrameStep="<<params;
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString stepStr = dataValues[*keys.begin()];
     bool validStep = false;
@@ -201,6 +206,10 @@ void AnimatorType::_initializeCommands(){
                                     QString result = _setFrameStep( params );
                                     return result;
                                 });
+}
+
+void AnimatorType::setRemoved( bool removed ){
+    m_removed = removed;
 }
 }
 }

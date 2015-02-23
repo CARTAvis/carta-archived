@@ -88,7 +88,7 @@ Histogram::Histogram( const QString& path, const QString& id):
 bool Histogram::addLink( const std::shared_ptr<Controller> & controller){
     bool linkAdded = m_linkImpl->addLink( controller );
     if ( linkAdded ){
-        connect(controller.get(), SIGNAL(dataChanged()), this , SLOT(_createHistogram()));
+        connect(controller.get(), SIGNAL(dataChanged(const Controller*)), this , SLOT(_createHistogram(const Controller*)));
     }
     return linkAdded;
 }
@@ -834,10 +834,11 @@ void Histogram::_endSelection(const QString& params ){
 
 }
 
-void Histogram::_createHistogram(){
+void Histogram::_createHistogram( const Controller* controller){
     double minIntensity = 0;
     double maxIntensity = 0;
-    QString filename = m_linkImpl->m_controllers[0]->getImageName(0);
+
+    QString filename = controller->getImageName(0);
     bool minValid = _getIntensity( filename, 0, 0, &minIntensity );
     bool maxValid = _getIntensity( filename, 0, 1, &maxIntensity );
 
@@ -901,7 +902,7 @@ void Histogram::_generateHistogram( bool newDataNeeded ){
 bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
     bool removed = m_linkImpl->removeLink( controller );
     if ( removed ){
-        disconnect(controller.get(), SIGNAL(dataChanged()), this , SLOT(_createHistogram()));
+        disconnect(controller.get(), SIGNAL(dataChanged(const Controller*)), this , SLOT(_createHistogram( const Controller*)));
     }
     return removed;
 }

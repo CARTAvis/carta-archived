@@ -39,14 +39,15 @@ Animator::Animator(const QString& path, const QString& id):
 bool Animator::addLink( const std::shared_ptr<Controller>& controller ){
     bool linkAdded = m_linkImpl->addLink( controller );
     if ( linkAdded ){
-        connect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStateController()) );
-        _resetAnimationParameters();
+        connect( controller.get(), SIGNAL(dataChanged(const Controller*)), this, SLOT(_adjustStateController(const Controller*)) );
+        _resetAnimationParameters(-1);
     }
     return linkAdded;
 }
 
-void Animator::_adjustStateController(){
-    _resetAnimationParameters();
+void Animator::_adjustStateController( const Controller* controller){
+    int selectImageIndex = controller->getSelectImageIndex();
+    _resetAnimationParameters(selectImageIndex);
     m_linkImpl->_adjustStateController();
 }
 
@@ -55,9 +56,11 @@ void Animator::_adjustStateAnimatorTypes(){
     m_state.setObject( AnimatorType::ANIMATIONS );
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
-        QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + keys[i];
-        QString val(m_animators[keys[i]]->getStateString());
-        m_state.insertObject( objPath, val );
+        if ( !m_animators[keys[i]]->isRemoved()){
+            QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + keys[i];
+            QString val(m_animators[keys[i]]->getStateString());
+            m_state.insertObject( objPath, val );
+        }
     }
     m_state.flushState();
 }
@@ -93,11 +96,16 @@ QString Animator::getLinkId( int linkIndex ) const {
 }
 
 void Animator::_imageIndexChanged( const QString& params ){
-    qDebug() << "(JT) Animator::_imageIndexChanged()";
-    qDebug() << "(JT) params = " << params;
+    int selectedImage = -1;
     for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
         controller->setFrameImage( params );
     }
+    bool validInt = false;
+    selectedImage = params.toInt(&validInt );
+    if ( !validInt ){
+        selectedImage = -1;
+    }
+    _resetAnimationParameters(selectedImage);
 }
 
 
@@ -139,6 +147,8 @@ QString Animator::_initializeAnimator( const QString& type ){
         if ( type == Selection::IMAGE ){
             animatorTypeId = _initAnimator( type );
             connect( m_animators[Selection::IMAGE].get(), SIGNAL(indexChanged( const QString&)), this, SLOT(_imageIndexChanged(const QString&)));
+            int selectImage = m_linkImpl->getSelectedImage();
+            _resetAnimationParameters( selectImage );
         }
         else if ( type == Selection::CHANNEL ){
             animatorTypeId = _initAnimator( type );
@@ -151,6 +161,8 @@ QString Animator::_initializeAnimator( const QString& type ){
         }
     }
     else {
+        m_animators[type]->setRemoved( false );
+        _adjustStateAnimatorTypes();
         animatorTypeId= m_animators[type]->getPath();
     }
     return animatorTypeId;
@@ -165,9 +177,10 @@ void Animator::_initializeState(){
 QString Animator::_removeAnimator( const QString& type ){
     QString result;
     if ( m_animators.contains( type )){
-        m_animators[type] ->getPath();
-        disconnect( m_animators[type].get() );
-        m_animators.remove( type );
+        //m_animators[type] ->getPath();
+        //disconnect( m_animators[type].get() );
+        //m_animators.remove( type );
+        m_animators[type]->setRemoved( true );
         _adjustStateAnimatorTypes();
     }
     else {
@@ -181,15 +194,19 @@ QString Animator::_removeAnimator( const QString& type ){
 bool Animator::removeLink( const std::shared_ptr<Controller>& controller ){
     bool linkRemoved = m_linkImpl->removeLink( controller );
     if ( linkRemoved  ){
-        disconnect( controller.get(), SIGNAL(dataChanged()), this, SLOT(_adjustStateController()) );
-        _resetAnimationParameters();
+        disconnect( controller.get(), SIGNAL(dataChanged(const Controller*)), this, SLOT(_adjustStateController(const Controller*)) );
+        _resetAnimationParameters(-1);
     }
     return linkRemoved;
 }
 
-void Animator::_resetAnimationParameters(){
+void Animator::_resetAnimationParameters( int selectedImage ){
     if ( m_animators.contains( Selection::IMAGE) ){
-        m_animators[Selection::IMAGE]->setUpperBound(m_linkImpl->getLinkCount());
+        int maxImages = m_linkImpl->getImageCount();
+        m_animators[Selection::IMAGE]->setUpperBound(maxImages);
+        if ( selectedImage >= 0 ){
+            m_animators[Selection::IMAGE]->setIndex( selectedImage );
+        }
     }
     if ( m_animators.contains( Selection::CHANNEL)){
        int maxChannel = 0;
@@ -202,6 +219,8 @@ void Animator::_resetAnimationParameters(){
        m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
    }
 }
+
+
 }
 }
 

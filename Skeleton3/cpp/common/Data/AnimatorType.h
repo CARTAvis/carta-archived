@@ -21,6 +21,11 @@ class AnimatorType : public QObject, public CartaObject {
     Q_OBJECT
 
 public:
+    /**
+     * Returns true if the animator is no longer visually available; false otherwise.
+     * @return true if the animator is hidden; false otherwise.
+     */
+    bool isRemoved() const;
 
     /**
      * Sets the upper bound for the selection.
@@ -29,10 +34,22 @@ public:
     void setUpperBound( int value );
 
     /**
+     * Set the current index of the selection.
+     * @param index the current selection index.
+     */
+    void setIndex( int index );
+
+    /**
      * Returns a json string representing the state of this AnimatorType.
      * @return a Json string representing the state of this AnimatorType.
      */
     virtual QString getStateString() const;
+
+    /**
+     * Set the animator visible/invisible.
+     * @param removed true if the animator should be hidden; false otherwise.
+     */
+    void setRemoved( bool removed );
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
@@ -62,10 +79,12 @@ private:
     QString _setEndBehavior( const QString& params );
     QString _setFrameRate( const QString& params );
     QString _setFrameStep( const QString& params );
+
     //Set state variables involving the animator
     void _saveState();
 
     QString m_animationType;
+    bool m_removed;
     static bool m_registered;
 
     //Animator's channel selection.
