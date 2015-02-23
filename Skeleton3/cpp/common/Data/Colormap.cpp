@@ -241,19 +241,7 @@ QString Colormap::_commandCacheSize( const QString& params ){
     std::set<QString> keys = {CACHE_SIZE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString cacheSizeStr = dataValues[*keys.begin()];
-    bool validInt = false;
-    int cacheSize = cacheSizeStr.toInt(&validInt);
-    int currentCacheSize = m_state.getValue<int>(CACHE_SIZE);
-    if ( validInt ){
-        if ( cacheSize != currentCacheSize ){
-            m_state.setValue<int>(CACHE_SIZE, cacheSize );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "Invalid color map cache size parameters: "+ params;
-    }
-    result = Util::commandPostProcess( result, QString::number(currentCacheSize) );
+    result = setCacheSize( cacheSizeStr );
     return result;
 }
 
@@ -262,7 +250,7 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
     std::set<QString> keys = {INTERPOLATED};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString interpolateStr = dataValues[*keys.begin()];
-    result = interpolateColorMap( interpolateStr );
+    result = setInterpolatedColorMap( interpolateStr );
     return result;
 }
 
@@ -364,7 +352,26 @@ QString Colormap::reverseColorMap( const QString& reverseStr )
     return result;
 }
 
-QString Colormap::interpolateColorMap( const QString& interpolateStr )
+QString Colormap::setCacheSize( const QString& cacheSizeStr )
+{
+    QString result;
+    bool validInt = false;
+    int cacheSize = cacheSizeStr.toInt(&validInt);
+    int currentCacheSize = m_state.getValue<int>(CACHE_SIZE);
+    if ( validInt ){
+        if ( cacheSize != currentCacheSize ){
+            m_state.setValue<int>(CACHE_SIZE, cacheSize );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Invalid color map cache size parameters: "+ cacheSizeStr;
+    }
+    result = Util::commandPostProcess( result, QString::number(currentCacheSize) );
+    return result;
+}
+
+QString Colormap::setInterpolatedColorMap( const QString& interpolateStr )
 {
     QString result;
     bool validBool = false;

@@ -113,11 +113,18 @@ public:
     void reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
+     * Set the cache size of the colormap
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param cacheSize the desired cache size.
+     */
+    QString setCacheSize( const QString& colormapId, const QString& cacheSize );
+
+    /**
      * Interpolate the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param trueOrFalse should be equal to either "true" or "false".
      */
-    QString interpolateColorMap( const QString& colormapId, const QString& trueOrFalse );
+    QString setInterpolatedColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
      * Invert the current colormap.
@@ -131,7 +138,7 @@ public:
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param percentString a formatted string specifying the blue, green, and red percentanges.
      */
-    void setColorMix( const QString& colormapId, const QString& something );
+    void setColorMix( const QString& colormapId, const QString& percentString );
 
     /**
      * Set the gamma color map parameter.

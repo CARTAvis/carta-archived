@@ -52,11 +52,18 @@ public:
     QString reverseColorMap( const QString& reverseStr );
 
     /**
+     * Set the cache size of the current colormap.
+     * @param cacheSizeStr the desired size of the cache
+     * @return error information if the cache size was not successfully set.
+     */
+    QString setCacheSize( const QString& cacheSizeStr );
+
+    /**
      * Interpolate the current colormap.
      * @param interpolateStr Should be equal to either "true" or "false".
      * @return error information if the color map was not successfully reversed.
      */
-    QString interpolateColorMap( const QString& interpolateStr );
+    QString setInterpolatedColorMap( const QString& interpolateStr );
 
     /**
      * Invert the current colormap.

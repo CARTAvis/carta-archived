@@ -162,9 +162,15 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
     }
 
-    // command: interpolateColorMap
-    else if (args.size() == 3 && args[0].toLower() == "interpolatecolormap") {
-        QString output = m_scriptFacade->interpolateColorMap( args[1], args[2].toLower() );
+    // command: setCacheSize
+    else if (args.size() == 3 && args[0].toLower() == "setcachesize") {
+        QString output = m_scriptFacade->setCacheSize( args[1], args[2] );
+        m_scl->dataTransporter( output );
+    }
+
+    // command: setInterpolatedColorMap
+    else if (args.size() == 3 && args[0].toLower() == "setinterpolatedcolormap") {
+        QString output = m_scriptFacade->setInterpolatedColorMap( args[1], args[2].toLower() );
         m_scl->dataTransporter( output );
     }
 

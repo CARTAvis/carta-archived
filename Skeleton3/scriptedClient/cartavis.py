@@ -156,6 +156,11 @@ class Application:
     def reverseColorMap(self, colormapId, trueOrFalse):
         self.socket.sendall("reverseColorMap " + colormapId + " " + trueOrFalse + "\n")
 
+    def setCacheSize(self, colormapId, cacheSize):
+        self.socket.sendall("setCacheSize " + colormapId + " " + cacheSize + "\n")
+        result = self.__getListFromSocket()
+        return result
+
     def interpolateColorMap(self, colormapId, trueOrFalse):
         self.socket.sendall("interpolateColorMap " + colormapId + " " + trueOrFalse + "\n")
         result = self.__getListFromSocket()
