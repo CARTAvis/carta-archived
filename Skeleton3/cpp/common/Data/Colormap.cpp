@@ -262,19 +262,7 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
     std::set<QString> keys = {INTERPOLATED};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString interpolateStr = dataValues[*keys.begin()];
-    bool validBool = false;
-    bool interpolated = Util::toBool(interpolateStr, &validBool);
-    bool currentInterpolated = m_state.getValue<bool>(INTERPOLATED);
-    if ( validBool ){
-        if ( interpolated != currentInterpolated ){
-            m_state.setValue<bool>(INTERPOLATED, interpolated );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "Invalid interpolated caching color map parameters: "+ params;
-    }
-    result = Util::commandPostProcess( result, Util::toString(currentInterpolated) );
+    result = interpolateColorMap( interpolateStr );
     return result;
 }
 
@@ -373,6 +361,25 @@ QString Colormap::reverseColorMap( const QString& reverseStr )
         result = "Invalid color map reverse parameters: "+ reverseStr;
     }
     result = Util::commandPostProcess( result, Util::toString(oldReverse) );
+    return result;
+}
+
+QString Colormap::interpolateColorMap( const QString& interpolateStr )
+{
+    QString result;
+    bool validBool = false;
+    bool interpolated = Util::toBool(interpolateStr, &validBool);
+    bool currentInterpolated = m_state.getValue<bool>(INTERPOLATED);
+    if ( validBool ){
+        if ( interpolated != currentInterpolated ){
+            m_state.setValue<bool>(INTERPOLATED, interpolated );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Invalid interpolated caching color map parameters: "+ interpolateStr;
+    }
+    result = Util::commandPostProcess( result, Util::toString(currentInterpolated) );
     return result;
 }
 

@@ -606,6 +606,15 @@ bool ViewManager::reverseColorMap( const QString& colormapId, const QString& tru
     return colorMapFound;
 }
 
+QString ViewManager::interpolateColorMap( const QString& colormapId, const QString& trueOrFalse ){
+    QString output = "";
+    int colormapIndex = _findColorMap( colormapId );
+    if ( colormapIndex >= 0 ){
+        output = m_colormaps[colormapIndex]->interpolateColorMap( trueOrFalse );
+    }
+    return output;
+}
+
 bool ViewManager::invertColorMap( const QString& colormapId, const QString& trueOrFalse ){
     int colormapIndex = _findColorMap( colormapId );
     bool colorMapFound = false;

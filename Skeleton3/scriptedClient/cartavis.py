@@ -156,6 +156,11 @@ class Application:
     def reverseColorMap(self, colormapId, trueOrFalse):
         self.socket.sendall("reverseColorMap " + colormapId + " " + trueOrFalse + "\n")
 
+    def interpolateColorMap(self, colormapId, trueOrFalse):
+        self.socket.sendall("interpolateColorMap " + colormapId + " " + trueOrFalse + "\n")
+        result = self.__getListFromSocket()
+        return result
+
     def invertColorMap(self, colormapId, trueOrFalse):
         self.socket.sendall("invertColorMap " + colormapId + " " + trueOrFalse + "\n")
 

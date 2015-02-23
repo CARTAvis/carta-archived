@@ -113,6 +113,13 @@ public:
     void reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
+     * Interpolate the current colormap.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param trueOrFalse should be equal to either "true" or "false".
+     */
+    QString interpolateColorMap( const QString& colormapId, const QString& trueOrFalse );
+
+    /**
      * Invert the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param trueOrFalse should be equal to either "true" or "false".

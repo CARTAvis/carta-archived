@@ -162,6 +162,12 @@ Viewer::scriptedCommandCB( QString command )
         m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
     }
 
+    // command: interpolateColorMap
+    else if (args.size() == 3 && args[0].toLower() == "interpolatecolormap") {
+        QString output = m_scriptFacade->interpolateColorMap( args[1], args[2].toLower() );
+        m_scl->dataTransporter( output );
+    }
+
     // command: invertColorMap
     else if (args.size() == 3 && args[0].toLower() == "invertcolormap") {
         m_scriptFacade->invertColorMap( args[1], args[2].toLower() );

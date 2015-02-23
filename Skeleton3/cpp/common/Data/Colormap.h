@@ -52,6 +52,13 @@ public:
     QString reverseColorMap( const QString& reverseStr );
 
     /**
+     * Interpolate the current colormap.
+     * @param interpolateStr Should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully reversed.
+     */
+    QString interpolateColorMap( const QString& interpolateStr );
+
+    /**
      * Invert the current colormap.
      * @param invertStr Should be equal to either "true" or "false".
      * @return error information if the color map was not successfully reversed.

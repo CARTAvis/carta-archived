@@ -133,6 +133,11 @@ void ScriptFacade::reverseColorMap( const QString& colormapId, const QString& tr
     m_viewManager->reverseColorMap( colormapId, trueOrFalse );
 }
 
+QString ScriptFacade::interpolateColorMap( const QString& colormapId, const QString& trueOrFalse ){
+    QString output = m_viewManager->interpolateColorMap( colormapId, trueOrFalse );
+    return output;
+}
+
 void ScriptFacade::invertColorMap( const QString& colormapId, const QString& trueOrFalse ){
     m_viewManager->invertColorMap( colormapId, trueOrFalse );
 }
