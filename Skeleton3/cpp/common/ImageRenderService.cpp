@@ -283,7 +283,8 @@ Service::internalRenderSlot( JobId jobId )
 
     // prepare output
     QImage img( m_outputSize, QImage::Format_ARGB32 );
-    img.fill( QColor( "blue" ) );
+//    img.fill( QColor( "blue" ) );
+    img.fill( QColor( 50, 50, 50 ) );
     QPainter p( & img );
 
     // draw the frame image to satisfy zoom/pan
@@ -308,7 +309,7 @@ Service::internalRenderSlot( JobId jobId )
         static int counter = 0;
         counter++;
         p.setPen( QColor( "yellow" ) );
-        p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
+        p.drawText( img.rect(), Qt::AlignRight | Qt::AlignBottom, "Cached" );
     }
 
     // insert this image into frame cache

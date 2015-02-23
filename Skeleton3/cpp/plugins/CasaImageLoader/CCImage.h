@@ -29,7 +29,7 @@ public:
     }
 
     /**
-     * Returns a shared pointer to the underlying casa::LatticeBase* or null if there is no underlying
+     * Returns a pointer to the underlying casa::LatticeBase* or null if there is no underlying
      * casacore image.
      * @return casa::LatticeBase *
      */

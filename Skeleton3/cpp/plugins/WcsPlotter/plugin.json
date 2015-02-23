@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "WcsPlotter",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Plots WCS grids using starlink AST lib"
+    ],
+    "about"      : "Written by Pavol Federl",
+    "depends"    : [ "casaCore", "CasaImageLoader"]
+}

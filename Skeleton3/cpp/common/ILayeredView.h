@@ -5,6 +5,7 @@
 #include "CartaLib/CartaLib.h"
 #include "IView.h"
 
+#include <QImage>
 #include <QSize>
 
 
@@ -71,14 +72,19 @@ class LayeredView : public QObject, public IView
 
     LayeredView( QString name, QObject * parent = nullptr);
 
-    void addLayer( int z, IRasterLayer::SharedPtr layer) {}
+    void addLayer( int z, IRasterLayer::SharedPtr layer) {
+        Q_UNUSED(z);
+        Q_UNUSED(layer);
+    }
 
 protected:
     virtual void registration(IConnector * connector)
     {
+        Q_UNUSED(connector);
     }
     virtual const QString &name() const
     {
+        return m_name;
     }
     virtual QSize size()
     {
@@ -86,16 +92,23 @@ protected:
     }
     virtual const QImage &getBuffer()
     {
+        return m_imageBuffer;
     }
     virtual void handleResizeRequest(const QSize & size)
     {
+        Q_UNUSED(size);
     }
     virtual void handleMouseEvent(const QMouseEvent & event)
     {
+        Q_UNUSED(event);
     }
     virtual void handleKeyEvent(const QKeyEvent & event)
     {
+        Q_UNUSED(event);
     }
+
+    QImage m_imageBuffer;
+    QString m_name;
 };
 
 }

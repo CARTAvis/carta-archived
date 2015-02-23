@@ -8,7 +8,9 @@
 #include "../PluginManager.h"
 #include "Algorithms/quantileAlgorithms.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/DrawWcsGrid.h"
 #include "GrayColormap.h"
+#include <QPainter>
 #include <functional>
 
 namespace Impl
@@ -93,6 +95,15 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
                                     }
                                     );
 
+    // hook up grid toggle
+    m_connector-> addStateCallback( m_statePrefix + "/gridToggle", [&] ( CSR, CSR val ) {
+                                        m_gridToggle = ( val == "1" );
+
+                                        // this is very inefficient, but it'll get the job done for now
+                                        m_renderService-> render( 0 );
+                                    }
+                                    );
+
     /// connect movie timer to the frame advance slot
     connect( & m_movieTimer, & QTimer::timeout, this, & ImageViewController::loadNextFrame );
 }
@@ -115,8 +126,8 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
     auto vals = Impl::s2vd( params );
     if ( vals.size() > 2 ) {
         // remember where the user clicked
-        QPointF clickPtScreen( vals[0], vals[1]);
-        QPointF clickPtImageOld = m_renderService-> screen2img (clickPtScreen);
+        QPointF clickPtScreen( vals[0], vals[1] );
+        QPointF clickPtImageOld = m_renderService-> screen2img( clickPtScreen );
 
         // apply new zoom
         double z = vals[2];
@@ -130,14 +141,14 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
         m_renderService-> setZoom( newZoom );
 
         // what is the new image pixel under the mouse cursor?
-        QPointF clickPtImageNew = m_renderService-> screen2img (clickPtScreen);
+        QPointF clickPtImageNew = m_renderService-> screen2img( clickPtScreen );
 
         // calculate the difference
         QPointF delta = clickPtImageOld - clickPtImageNew;
 
         // add the delta to the current center
         QPointF currCenter = m_renderService-> pan();
-        m_renderService-> setPan( currCenter + delta);
+        m_renderService-> setPan( currCenter + delta );
 
         // tell the service to rerender
         m_renderService-> render( 0 );
@@ -301,6 +312,43 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 {
     Q_UNUSED( jobId );
     m_imageBuffer = img;
+
+    if ( m_gridToggle ) {
+        QPainter p( & m_imageBuffer );
+//        p.setPen( QPen( QColor( "red" ), 5 ) );
+//        p.drawLine( QPointF( 0, 0 ), QPointF( img.width(), img.height() ) );
+
+        Carta::Lib::Hooks::DrawWcsGrid::Params params( nullptr );
+        params.m_astroImage = m_astroImage;
+        params.outputSize = m_imageBuffer.size();
+        {
+            int left = 50;
+            int right = 10;
+            int bottom = 50;
+            int top = 10;
+
+            QSize s = m_imageBuffer.size();
+            QPointF bl( left, m_imageBuffer.size().height() - bottom);
+            bl = m_renderService-> screen2img( bl );
+            QPointF tr( m_imageBuffer.size().width() - right, top );
+            tr = m_renderService-> screen2img( tr );
+//            bl.ry() = m_astroImage->dims()[1] - bl.ry();
+//            tr.ry() = m_astroImage->dims()[1] - tr.ry();
+            params.frameRect = QRectF( bl, tr );
+            params.outputRect = QRectF( left, top, s.width() - left - right, s.height() - top - bottom);
+        }
+
+        auto res =
+            Globals::instance()-> pluginManager()
+                -> prepare < Carta::Lib::Hooks::DrawWcsGrid > ( params ).first();
+        if ( res.isNull() ) {
+            qWarning( "Grid failed" );
+        }
+        else {
+            p.drawImage( QPoint( 0, 0 ), res.val() );
+        }
+    }
+
     m_connector-> refreshView( this );
-}
+} // irsDoneSlot
 }

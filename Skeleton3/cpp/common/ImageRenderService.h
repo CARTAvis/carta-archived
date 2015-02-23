@@ -198,15 +198,15 @@ public:
     ~Service();
 
     /// convert image coordinates to screen coordinates
-    /// \param p point to convert
-    /// \return translated point
+    /// \param p coordinates to convert
+    /// \return converted coordinates
     ///
     QPointF
     img2screen( const QPointF & p );
 
     /// the inverse of img2screen()
-    /// \param p point to convert
-    /// \return translated point
+    /// \param p coordinates to convert
+    /// \return converted coordinates
     ///
     QPointF
     screen2img( const QPointF & p );

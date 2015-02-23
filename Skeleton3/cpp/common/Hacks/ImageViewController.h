@@ -120,5 +120,8 @@ private:
     /// current 'frame'... for movie playing
     int m_currentFrame = 0;
 
+    /// grid plotting
+    bool m_gridToggle = false;
+
 };
 }

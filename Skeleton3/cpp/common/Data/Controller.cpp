@@ -52,7 +52,7 @@ Controller::Controller( const QString& path, const QString& id ) :
         m_selectImage(nullptr),
         m_view(nullptr),
         m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
-    m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
+    m_view.reset( new ImageView( path, QColor(128, 128, 128), QImage(), &m_stateMouse));
     _initializeSelections();
 
      connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_loadView(bool)));

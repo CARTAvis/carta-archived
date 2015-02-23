@@ -47,7 +47,8 @@ HEADERS += \
     TPixelPipeline/IScalar2Scalar.h \
     PixelPipeline/IPixelPipeline.h \
     PixelPipeline/CustomizablePixelPipeline.h \
-    PWLinear.h
+    PWLinear.h \
+    Hooks/DrawWcsGrid.h
 
 unix {
     target.path = /usr/lib

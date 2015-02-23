@@ -50,7 +50,9 @@ qx.Class.define("skel.hacks.Hacks", {
         this.m_app.getRoot().add( win, {left: 200, top: 220} );
         win.open();
 
+        // ==================================================================================
         // newer hack view
+        // ==================================================================================
         var newViewName = "IVC7";
         var win2 = new qx.ui.window.Window( "Hack view new" );
         win2.setWidth( 300 );
@@ -77,6 +79,8 @@ qx.Class.define("skel.hacks.Hacks", {
         mp.delayTF = new skel.boundWidgets.TextField( mp.prefix + "/delay");
         mp.container.add( mp.delayTF);
         mp.container.add( new skel.boundWidgets.Label( "Frame:", "", mp.prefix + "/frame"));
+        mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
+        mp.container.add( mp.gridTB);
         win2.add( mp.container);
         mp.slider.addListener( "changeValue", function(mp, ev) {
             var v = ev.getData() / mp.slider.getMaximum();

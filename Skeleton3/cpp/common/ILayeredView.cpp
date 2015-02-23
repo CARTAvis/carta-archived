@@ -45,7 +45,10 @@ void Node::add(Node::SharedPtr node)
 namespace Carta {
 namespace Core {
 
-LayeredView::LayeredView(QString name, QObject * parent) {}
+LayeredView::LayeredView(QString name, QObject * parent) {
+    Q_UNUSED(name);
+    Q_UNUSED(parent);
+}
 
 }
 }
