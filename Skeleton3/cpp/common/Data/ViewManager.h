@@ -173,6 +173,14 @@ public:
     QString setGamma( const QString& colormapId, double gamma );
 
     /**
+     * Set the name of the data transform.
+     * @param colormapId the unique server-side id of an object managing a color map.
+     * @param transformString a unique identifier for a data transform.
+     * @return error information if the data transfrom was not set.
+     */
+    QString setDataTransform( const QString& colormapId, const QString& transformString );
+
+    /**
      * Set the image frame to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the frame number.

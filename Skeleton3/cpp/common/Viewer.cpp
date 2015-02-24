@@ -198,6 +198,16 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->dataTransporter( output );
     }
 
+    // command: setDataTransform
+    else if (args.size() > 1 && args[0].toLower() == "setdatatransform") {
+        QString transformString;
+        for (int i = 2; i < args.size(); i++) {
+            transformString += args[i] + " ";
+        }
+        QString output = m_scriptFacade->setDataTransform( args[1], transformString.trimmed() );
+        m_scl->dataTransporter( output );
+    }
+
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
         //qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];

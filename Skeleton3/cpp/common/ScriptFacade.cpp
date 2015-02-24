@@ -161,6 +161,11 @@ QString ScriptFacade::setGamma( const QString& colormapId, double gamma ){
     return output;
 }
 
+QString ScriptFacade::setDataTransform( const QString& colormapId, const QString& transformString ){
+    QString output = m_viewManager->setDataTransform( colormapId, transformString );
+    return output;
+}
+
 void ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
 }

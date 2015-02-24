@@ -663,6 +663,15 @@ QString ViewManager::setGamma( const QString& colormapId, double gamma ){
     return output;
 }
 
+QString ViewManager::setDataTransform( const QString& colormapId, const QString& transformString ){
+    QString output = "";
+    int colormapIndex = _findColorMap( colormapId );
+    if ( colormapIndex >= 0 ){
+        output = m_colormaps[colormapIndex]->setDataTransform( transformString );
+    }
+    return output;
+}
+
 bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
     int animatorIndex = _findAnimator( animatorId );
     bool animatorFound = false;

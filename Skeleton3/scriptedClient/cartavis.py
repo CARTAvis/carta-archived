@@ -180,6 +180,11 @@ class Application:
     def setGamma(self, colormapId, gamma):
         self.socket.sendall("setGamma " + colormapId + " " + gamma + "\n")
 
+    def setDataTransform(self, colormapId, transformString):
+        self.socket.sendall("setDataTransform " + colormapId + " " + transformString + "\n")
+        result = self.__getListFromSocket()
+        return result
+
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")

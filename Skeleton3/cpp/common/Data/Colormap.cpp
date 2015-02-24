@@ -481,9 +481,9 @@ QString Colormap::setDataTransform( const QString& transformString ){
                     controller->setTransformData( transformString );
                 }
             }
-            else {
-               result = "Invalid data transform: " + transformString;
-            }
+        }
+        else {
+            result = "Invalid data transform: " + transformString + " is not a valid transform";
         }
     }
     result = Util::commandPostProcess( result, transformName );
