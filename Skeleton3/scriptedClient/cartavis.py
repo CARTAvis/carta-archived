@@ -25,24 +25,146 @@ lastPort = 9999
 class Colormap:
     """Represents a colormap view"""
 
-    def __init__(self, colormapId):
-        self.colormapId = colormapId
+    def __init__(self, colormapId, socket):
+        self.__colormapId = colormapId
+        self.__socket = socket
         return
 
     def getId(self):
-        return self.colormapId
+        """This is mainly for testing/debugging/sanity purposes"""
+        return self.__colormapId
+
+    def setColormap(self, colormap):
+        """Set the specified colormap"""
+        self.__socket.sendall("setColormap " + self.__colormapId + " " + colormap + "\n")
+
+    def reverseColormap(self, trueOrFalse):
+        self.__socket.sendall("reverseColormap " + self.__colormapId + " " + trueOrFalse + "\n")
+
+    def setCacheColormap(self, cacheStr):
+        self.__socket.sendall("setCacheColormap " + self.__colormapId + " " + cacheStr + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def setCacheSize(self, cacheSize):
+        self.__socket.sendall("setCacheSize " + self.__colormapId + " " + cacheSize + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def setInterpolatedColormap(self, trueOrFalse):
+        self.__socket.sendall("setInterpolatedColormap " + self.__colormapId + " " + trueOrFalse + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def invertColormap(self, trueOrFalse):
+        self.__socket.sendall("invertColormap " + self.__colormapId + " " + trueOrFalse + "\n")
+
+    def setColorMix(self, redPercent, greenPercent, bluePercent):
+        self.__socket.sendall("setColorMix " + self.__colormapId + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent) + "\n")
+
+    def setGamma(self, gamma):
+        self.__socket.sendall("setGamma " + self.__colormapId + " " + str(gamma) + "\n")
+
+    def setDataTransform(self, transformString):
+        self.__socket.sendall("setDataTransform " + self.__colormapId + " " + transformString + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
 class Image:
     """Represents an image view"""
 
+    def __init__(self, imageViewId, socket):
+        self.__imageViewId = imageViewId
+        self.__socket = socket
+        return
+
+    def getId(self):
+        """This is mainly for testing/debugging/sanity purposes"""
+        return self.__imageViewId
+
+    def loadFile(self, fileName):
+        self.__socket.sendall("loadFile " + self.__imageViewId + " " + fileName + "\n")
+
+    def loadLocalFile(self, fileName):
+        self.__socket.sendall("loadLocalFile " + self.__imageViewId + " " + fileName + "\n")
+
+    def getLinkedColormaps(self):
+        self.__socket.sendall("getLinkedColormaps " + self.__imageViewId + "\n")
+        linkedColormapViewsList = getListFromSocket(self.__socket)
+        linkedColormapViews = []
+        for colomap in linkedColormapViewsList:
+            linkedColormapView = makeColormap(colomap, self.__socket)
+            linkedColormapViews.append(linkedColormapView)
+        return linkedColormapViews
+
+    def getLinkedAnimators(self):
+        self.__socket.sendall("getLinkedAnimators " + self.__imageViewId + "\n")
+        linkedAnimatorViewsList = getListFromSocket(self.__socket)
+        linkedAnimatorViews = []
+        for animator in linkedAnimatorViewsList:
+            linkedAnimatorView = makeAnimator(animator, self.__socket)
+            linkedAnimatorViews.append(linkedAnimatorView)
+        return linkedAnimatorViews
+
+    def getLinkedHistograms(self):
+        self.__socket.sendall("getLinkedHistograms " + self.__imageViewId + "\n")
+        linkedHistogramViewsList = getListFromSocket(self.__socket)
+        linkedHistogramViews = []
+        for histogram in linkedHistogramViewsList:
+            linkedHistogramView = makeHistogram(histogram, self.__socket)
+            linkedHistogramViews.append(linkedHistogramView)
+        return linkedHistogramViews
+
+    def getLinkedStatistics(self):
+        self.__socket.sendall("getLinkedStatistics " + self.__imageViewId + "\n")
+        linkedStatisticsViewsList = getListFromSocket(self.__socket)
+        linkedStatisticsViews = []
+        for statistics in linkedStatisticsViewsList:
+            linkedStatisticsView = makeStatistics(statistics, self.__socket)
+            linkedStatisticsViews.append(linkedStatisticsView)
+        return linkedStatisticsViews
+
+    def setClipValue(self, index):
+        self.__socket.sendall("setClipValue " + self.__imageViewId + " " + index + "\n")
+
 class Animator:
     """Represents an animator view"""
+
+    def __init__(self, animatorId, socket):
+        self.__animatorId = animatorId
+        self.__socket = socket
+        return
+
+    def getId(self):
+        """This is mainly for testing/debugging/sanity purposes"""
+        return self.__animatorId
+
+    def setFrame(self, index):
+        self.__socket.sendall("setFrame " + self.__animatorId + " " + str(index) + "\n")
 
 class Statistics:
     """Represents a statistics view"""
 
+    def __init__(self, statisticsId, socket):
+        self.__statisticsId = statisticsId
+        self.__socket = socket
+        return
+
+    def getId(self):
+        """This is mainly for testing/debugging/sanity purposes"""
+        return self.__statisticsId
+
 class Histogram:
     """Represents a histogram view"""
+
+    def __init__(self, histogramId, socket):
+        self.__histogramId = histogramId
+        self.__socket = socket
+        return
+
+    def getId(self):
+        """This is mainly for testing/debugging/sanity purposes"""
+        return self.__histogramId
 
 class Application:
     """Represents an application"""
@@ -70,22 +192,6 @@ class Application:
         lastPort = lastPort + 1;
         return
 
-    def __getListFromSocket(self):
-        # Get a small amount of data from the socket
-        bufferSize = 10
-        stringData = self.socket.recv(bufferSize)
-        # Figure out its length
-        # (The separator character needs to be the same as 
-        # ScriptedCommandListener::SIZE_DELIMITER)
-        lengthStr, ignored, stringData = stringData.partition(':')
-        goodDataLength = int(lengthStr)
-        lengthSoFar = len(stringData)
-        # If more data is needed, grab it before returning
-        if (goodDataLength > bufferSize):
-            stringData = stringData + self.socket.recv(goodDataLength - lengthSoFar)
-        listData = stringData.splitlines()
-        return listData
-
     # It would be nice if this function could actually tun the GUI on and off
     # with whatever the current state is.
     def setGuiVisible(self,flag):
@@ -101,66 +207,60 @@ class Application:
     def quit(self):
         self.kill()
 
-    def getColorMaps(self, substring=""):
-        self.socket.sendall("getColorMaps " + substring + "\n")
-        colorMapsList = self.__getListFromSocket()
-        return colorMapsList
+    def getColormaps(self, substring=""):
+        self.socket.sendall("getColormaps " + substring + "\n")
+        colormapsList = getListFromSocket(self.socket)
+        return colormapsList
 
     def getFileList(self, substring=""):
         self.socket.sendall("getFileList " + substring + "\n")
-        fileList = self.__getListFromSocket()
+        fileList = getListFromSocket(self.socket)
         return fileList
-
-    def loadFile(self, imageViewId, fileName):
-        self.socket.sendall("loadFile " + imageViewId + " " + fileName + "\n")
-
-    def loadLocalFile(self, imageViewId, fileName):
-        self.socket.sendall("loadLocalFile " + imageViewId + " " + fileName + "\n")
 
     def getImageViews(self):
         self.socket.sendall("getImageViews" + "\n")
-        imageViewsList = self.__getListFromSocket()
-        return imageViewsList
+        imageViewsList = getListFromSocket(self.socket)
+        imageViews = []
+        for iv in imageViewsList:
+            imageView = makeImage(iv, self.socket)
+            imageViews.append(imageView)
+        return imageViews
 
-    def getColorMapViews(self):
-        self.socket.sendall("getColorMapViews" + "\n")
-        colorMapViewsList = self.__getListFromSocket()
-        return colorMapViewsList
+    def getColormapViews(self):
+        self.socket.sendall("getColormapViews" + "\n")
+        colormapViewsList = getListFromSocket(self.socket)
+        colormapViews = []
+        for cmv in colormapViewsList:
+            colormapView = makeColormap(cmv, self.socket)
+            colormapViews.append(colormapView)
+        return colormapViews
 
     def getAnimatorViews(self):
         self.socket.sendall("getAnimatorViews" + "\n")
-        animatorViewsList = self.__getListFromSocket()
-        return animatorViewsList
+        animatorViewsList = getListFromSocket(self.socket)
+        animatorViews = []
+        for av in animatorViewsList:
+            animatorView = makeAnimator(av, self.socket)
+            animatorViews.append(animatorView)
+        return animatorViews
 
     def getHistogramViews(self):
         self.socket.sendall("getHistogramViews" + "\n")
-        histogramViewsList = self.__getListFromSocket()
-        return histogramViewsList
+        histogramViewsList = getListFromSocket(self.socket)
+        histogramViews = []
+        for hv in histogramViewsList:
+            histogramView = makeHistogram(hv, self.socket)
+            histogramViews.append(histogramView)
+        return histogramViews
 
     def getStatisticsViews(self):
         self.socket.sendall("getStatisticsViews" + "\n")
-        statisticsViewsList = self.__getListFromSocket()
-        return statisticsViewsList
-
-    def getLinkedColorMaps(self, controlId):
-        self.socket.sendall("getLinkedColorMaps " + controlId + "\n")
-        linkedColorMaps = self.__getListFromSocket()
-        return linkedColorMaps
-
-    def getLinkedAnimators(self, controlId):
-        self.socket.sendall("getLinkedAnimators " + controlId + "\n")
-        linkedAnimators = self.__getListFromSocket()
-        return linkedAnimators
-
-    def getLinkedHistograms(self, controlId):
-        self.socket.sendall("getLinkedHistograms " + controlId + "\n")
-        linkedHistograms = self.__getListFromSocket()
-        return linkedHistograms
-
-    def getLinkedStatistics(self, controlId):
-        self.socket.sendall("getLinkedStatistics " + controlId + "\n")
-        linkedStatistics = self.__getListFromSocket()
-        return linkedStatistics
+        statisticsViewsList = getListFromSocket(self.socket)
+        statisticsViews = []
+        for sv in statisticsViewsList:
+            statisticsView = makeStatistics(sv, self.socket)
+            statisticsViews.append(statisticsView)
+        return statisticsViews
 
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
@@ -172,53 +272,12 @@ class Application:
     def setImageLayout(self):
         self.socket.sendall("setImageLayout" + "\n")
 
-    def setColorMap(self, colormapId, colormap):
-        self.socket.sendall("setColorMap " + colormapId + " " + colormap + "\n")
-
-    def reverseColorMap(self, colormapId, trueOrFalse):
-        self.socket.sendall("reverseColorMap " + colormapId + " " + trueOrFalse + "\n")
-
-    def setCacheColormap(self, colormapId, cacheStr):
-        self.socket.sendall("setCacheColormap " + colormapId + " " + cacheStr + "\n")
-        result = self.__getListFromSocket()
-        return result
-
-    def setCacheSize(self, colormapId, cacheSize):
-        self.socket.sendall("setCacheSize " + colormapId + " " + cacheSize + "\n")
-        result = self.__getListFromSocket()
-        return result
-
-    def setInterpolateColorMap(self, colormapId, trueOrFalse):
-        self.socket.sendall("interpolateColorMap " + colormapId + " " + trueOrFalse + "\n")
-        result = self.__getListFromSocket()
-        return result
-
-    def invertColorMap(self, colormapId, trueOrFalse):
-        self.socket.sendall("invertColorMap " + colormapId + " " + trueOrFalse + "\n")
-
-    def setColorMix(self, colormapId, redPercent, greenPercent, bluePercent):
-        self.socket.sendall("setColorMix " + colormapId + " " + redPercent + " " + greenPercent + " " + bluePercent + "\n")
-
-    def setGamma(self, colormapId, gamma):
-        self.socket.sendall("setGamma " + colormapId + " " + gamma + "\n")
-
-    def setDataTransform(self, colormapId, transformString):
-        self.socket.sendall("setDataTransform " + colormapId + " " + transformString + "\n")
-        result = self.__getListFromSocket()
-        return result
-
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")
 
-    def linkAdd(self, sourceId, destId):
-        self.socket.sendall("linkAdd " + sourceId + " " + destId + "\n")
-
-    def setFrame(self, animatorId, index):
-        self.socket.sendall("setFrame " + animatorId + " " + index + "\n")
-
-    def setClipValue(self, imageViewId, index):
-        self.socket.sendall("setClipValue " + imageViewId + " " + index + "\n")
+    def linkAdd(self, source, dest):
+        self.socket.sendall("linkAdd " + source.getId() + " " + dest.getId() + "\n")
 
     def saveState(self, saveName):
         self.socket.sendall("saveState " + saveName + "\n")
@@ -249,7 +308,7 @@ class Application:
         print "Saving screenshot as " + fileName
 
 def start(
-        executable = "/home/jeff/scratch/build/2015-02-10_new_master_version/cpp/desktop/desktop", 
+        executable = "/home/jeff/scratch/build/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
         port = 9999, 
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
@@ -263,6 +322,39 @@ def start(
     print "    imageFile: " + imageFile + "\n"
     return Application(executable, configFile, port, htmlFile, imageFile)
 
-def makeColormap(colormapId):
-    colormap = Colormap(colormapId)
+def makeImage(imageViewId, socket):
+    image = Image(imageViewId, socket)
+    return image
+
+def makeColormap(colormapId, socket):
+    colormap = Colormap(colormapId, socket)
     return colormap
+
+def makeStatistics(statisticsId, socket):
+    statistics = Statistics(statisticsId, socket)
+    return statistics
+
+def makeAnimator(animatorId, socket):
+    animator = Animator(animatorId, socket)
+    return animator
+
+def makeHistogram(histogramId, socket):
+    histogram = Histogram(histogramId, socket)
+    return histogram
+
+def getListFromSocket(socket):
+    # Get a small amount of data from the socket
+    bufferSize = 10
+    stringData = socket.recv(bufferSize)
+    # Figure out its length
+    # (The separator character needs to be the same as 
+    # ScriptedCommandListener::SIZE_DELIMITER)
+    lengthStr, ignored, stringData = stringData.partition(':')
+    goodDataLength = int(lengthStr)
+    lengthSoFar = len(stringData)
+    # If more data is needed, grab it before returning
+    if (goodDataLength > bufferSize):
+        stringData = stringData + socket.recv(goodDataLength - lengthSoFar)
+    listData = stringData.splitlines()
+    return listData
+
