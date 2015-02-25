@@ -22,6 +22,28 @@ v.saveScreenshot( "/scratch/1.png")
 #lastPort = 12345
 lastPort = 9999
 
+class Colormap:
+    """Represents a colormap view"""
+
+    def __init__(self, colormapId):
+        self.colormapId = colormapId
+        return
+
+    def getId(self):
+        return self.colormapId
+
+class Image:
+    """Represents an image view"""
+
+class Animator:
+    """Represents an animator view"""
+
+class Statistics:
+    """Represents a statistics view"""
+
+class Histogram:
+    """Represents a histogram view"""
+
 class Application:
     """Represents an application"""
 
@@ -240,3 +262,7 @@ def start(
     print "    htmlFile: " + htmlFile + "\n"
     print "    imageFile: " + imageFile + "\n"
     return Application(executable, configFile, port, htmlFile, imageFile)
+
+def makeColormap(colormapId):
+    colormap = Colormap(colormapId)
+    return colormap
