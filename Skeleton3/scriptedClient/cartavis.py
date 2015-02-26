@@ -22,217 +22,157 @@ v.saveScreenshot( "/scratch/1.png")
 #lastPort = 12345
 lastPort = 9999
 
-class Colormap:
-    """Represents a colormap view"""
-
-    def __init__(self, colormapId, socket):
-        self.__colormapId = colormapId
-        self.__socket = socket
+class CartaView:
+    """Base class for Carta objects"""
+    def __init__(self, idStr, socket):
+        self.__id = idStr
+        self.socket = socket
         return
 
     def getId(self):
         """This is mainly for testing/debugging/sanity purposes"""
-        return self.__colormapId
-
-    def setColormap(self, colormap):
-        """Set the specified colormap"""
-        commandStr = "setColormap " + self.__colormapId + " " + colormap
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def reverseColormap(self, trueOrFalse):
-        commandStr = "reverseColormap " + self.__colormapId + " " + trueOrFalse
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def setCacheColormap(self, cacheStr):
-        commandStr = "setCacheColormap " + self.__colormapId + " " + cacheStr
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def setCacheSize(self, cacheSize):
-        commandStr = "setCacheSize " + self.__colormapId + " " + str(cacheSize)
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def setInterpolatedColormap(self, trueOrFalse):
-        commandStr = "setInterpolatedColormap " + self.__colormapId + " " + trueOrFalse
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def invertColormap(self, trueOrFalse):
-        commandStr = "invertColormap " + self.__colormapId + " " + trueOrFalse
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def setColorMix(self, redPercent, greenPercent, bluePercent):
-        commandStr = "setColorMix " + self.__colormapId + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent)
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def setGamma(self, gamma):
-        commandStr = "setGamma " + self.__colormapId + " " + str(gamma)
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def setDataTransform(self, transformString):
-        commandStr = "setDataTransform " + self.__colormapId + " " + transformString
-        result = sendCommand(self.__socket, commandStr)
-        return result
+        return self.__id
 
     def addLink(self, imageView):
         commandStr = "addLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def removeLink(self, imageView):
         commandStr = "removeLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
+        result = sendCommand(self.socket, commandStr)
         return result
 
-class Image:
+class Colormap(CartaView):
+    """Represents a colormap view"""
+
+    def setColormap(self, colormap):
+        """Set the specified colormap"""
+        commandStr = "setColormap " + self.getId() + " " + colormap
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def reverseColormap(self, trueOrFalse):
+        commandStr = "reverseColormap " + self.getId() + " " + trueOrFalse
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def setCacheColormap(self, cacheStr):
+        commandStr = "setCacheColormap " + self.getId() + " " + cacheStr
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def setCacheSize(self, cacheSize):
+        commandStr = "setCacheSize " + self.getId() + " " + str(cacheSize)
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def setInterpolatedColormap(self, trueOrFalse):
+        commandStr = "setInterpolatedColormap " + self.getId() + " " + trueOrFalse
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def invertColormap(self, trueOrFalse):
+        commandStr = "invertColormap " + self.getId() + " " + trueOrFalse
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def setColorMix(self, redPercent, greenPercent, bluePercent):
+        commandStr = "setColorMix " + self.getId() + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent)
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def setGamma(self, gamma):
+        commandStr = "setGamma " + self.getId() + " " + str(gamma)
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def setDataTransform(self, transformString):
+        commandStr = "setDataTransform " + self.getId() + " " + transformString
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+class Image(CartaView):
     """Represents an image view"""
 
-    def __init__(self, imageViewId, socket):
-        self.__imageViewId = imageViewId
-        self.__socket = socket
-        return
-
-    def getId(self):
-        """This is mainly for testing/debugging/sanity purposes"""
-        return self.__imageViewId
-
     def loadFile(self, fileName):
-        commandStr = "loadFile " + self.__imageViewId + " " + fileName
-        result = sendCommand(self.__socket, commandStr)
+        commandStr = "loadFile " + self.getId() + " " + fileName
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def loadLocalFile(self, fileName):
-        commandStr = "loadLocalFile " + self.__imageViewId + " " + fileName
-        result = sendCommand(self.__socket, commandStr)
+        commandStr = "loadLocalFile " + self.getId() + " " + fileName
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def getLinkedColormaps(self):
-        commandStr = "getLinkedColormaps " + self.__imageViewId
-        linkedColormapViewsList = sendCommand(self.__socket, commandStr)
+        commandStr = "getLinkedColormaps " + self.getId()
+        linkedColormapViewsList = sendCommand(self.socket, commandStr)
         linkedColormapViews = []
         for colomap in linkedColormapViewsList:
-            linkedColormapView = makeColormap(colomap, self.__socket)
+            linkedColormapView = makeColormap(colomap, self.socket)
             linkedColormapViews.append(linkedColormapView)
         return linkedColormapViews
 
     def getLinkedAnimators(self):
-        commandStr = "getLinkedAnimators " + self.__imageViewId
-        linkedAnimatorViewsList = sendCommand(self.__socket, commandStr)
+        commandStr = "getLinkedAnimators " + self.getId()
+        linkedAnimatorViewsList = sendCommand(self.socket, commandStr)
         linkedAnimatorViews = []
         for animator in linkedAnimatorViewsList:
-            linkedAnimatorView = makeAnimator(animator, self.__socket)
+            linkedAnimatorView = makeAnimator(animator, self.socket)
             linkedAnimatorViews.append(linkedAnimatorView)
         return linkedAnimatorViews
 
     def getLinkedHistograms(self):
-        commandStr = "getLinkedHistograms " + self.__imageViewId
-        linkedHistogramViewsList = sendCommand(self.__socket, commandStr)
+        commandStr = "getLinkedHistograms " + self.getId()
+        linkedHistogramViewsList = sendCommand(self.socket, commandStr)
         linkedHistogramViews = []
         for histogram in linkedHistogramViewsList:
-            linkedHistogramView = makeHistogram(histogram, self.__socket)
+            linkedHistogramView = makeHistogram(histogram, self.socket)
             linkedHistogramViews.append(linkedHistogramView)
         return linkedHistogramViews
 
     def getLinkedStatistics(self):
-        commandStr = "getLinkedStatistics " + self.__imageViewId
-        linkedStatisticsViewsList = sendCommand(self.__socket, commandStr)
+        commandStr = "getLinkedStatistics " + self.getId()
+        linkedStatisticsViewsList = sendCommand(self.socket, commandStr)
         linkedStatisticsViews = []
         for statistics in linkedStatisticsViewsList:
-            linkedStatisticsView = makeStatistics(statistics, self.__socket)
+            linkedStatisticsView = makeStatistics(statistics, self.socket)
             linkedStatisticsViews.append(linkedStatisticsView)
         return linkedStatisticsViews
 
     def setClipValue(self, index):
-        commandStr = "setClipValue " + self.__imageViewId + " " + str(index)
-        result = sendCommand(self.__socket, commandStr)
+        commandStr = "setClipValue " + self.getId() + " " + str(index)
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def addLink(self, destView):
+        """ Note that this method needs to override the base class method
+            because the source and destination are flipped."""
         commandStr = "addLink " + destView.getId() + " " + self.getId()
-        result = sendCommand(self.__socket, commandStr)
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def removeLink(self, destView):
+        """ Note that this method needs to override the base class method
+            because the source and destination are flipped."""
         commandStr = "removeLink " + destView.getId() + " " + self.getId()
-        result = sendCommand(self.__socket, commandStr)
+        result = sendCommand(self.socket, commandStr)
         return result
 
-class Animator:
+class Animator(CartaView):
     """Represents an animator view"""
 
-    def __init__(self, animatorId, socket):
-        self.__animatorId = animatorId
-        self.__socket = socket
-        return
-
-    def getId(self):
-        """This is mainly for testing/debugging/sanity purposes"""
-        return self.__animatorId
-
     def setFrame(self, index):
-        commandStr = "setFrame " + self.__animatorId + " " + str(index)
-        result = sendCommand(self.__socket, commandStr)
+        commandStr = "setFrame " + self.getId() + " " + str(index)
+        result = sendCommand(self.socket, commandStr)
         return result
 
-    def addLink(self, imageView):
-        commandStr = "addLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def removeLink(self, imageView):
-        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-class Statistics:
+class Statistics(CartaView):
     """Represents a statistics view"""
 
-    def __init__(self, statisticsId, socket):
-        self.__statisticsId = statisticsId
-        self.__socket = socket
-        return
-
-    def getId(self):
-        """This is mainly for testing/debugging/sanity purposes"""
-        return self.__statisticsId
-
-    def addLink(self, imageView):
-        commandStr = "addLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def removeLink(self, imageView):
-        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-class Histogram:
+class Histogram(CartaView):
     """Represents a histogram view"""
-
-    def __init__(self, histogramId, socket):
-        self.__histogramId = histogramId
-        self.__socket = socket
-        return
-
-    def getId(self):
-        """This is mainly for testing/debugging/sanity purposes"""
-        return self.__histogramId
-
-    def addLink(self, imageView):
-        commandStr = "addLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
-        return result
-
-    def removeLink(self, imageView):
-        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.__socket, commandStr)
-        return result
 
 class Application:
     """Represents an application"""
@@ -240,14 +180,6 @@ class Application:
     def __init__(self, executable, configFile, port, htmlFile, imageFile):
         global lastPort
         print "lastPort = ", lastPort
-#        args = ["/home/jeff/scratch/build/2014-10-24/cpp/desktop/desktop",
-#            "--config",
-#            "/home/jeff/.cartavis/config.json",
-#            "--scriptPort",
-#            str(lastPort),
-#            "--html",
-#            "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html",
-#            "/home/jeff/Dropbox/Astronomy/m31_cropped.fits"]
         args = [executable, "--scriptPort", 
                 str(port), "--html", htmlFile, imageFile]
         print args
