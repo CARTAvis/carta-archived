@@ -48,7 +48,7 @@ const QString Histogram::POINTER_MOVE = "pointer-move";
 
 const double Histogram::CLIP_ERROR_MARGIN = 0.000001;
 
-std::shared_ptr<Clips>  Histogram::m_clips = nullptr;
+Clips*  Histogram::m_clips = nullptr;
 
 class Histogram::Factory : public CartaObjectFactory {
     public:
@@ -80,15 +80,15 @@ Histogram::Histogram( const QString& path, const QString& id):
     //Load the available clips.
     if ( m_clips == nullptr ){
         CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
-        m_clips.reset(dynamic_cast<Clips*>(obj));
+        m_clips = dynamic_cast<Clips*>(obj);
     }
 
 }
 
-bool Histogram::addLink( const std::shared_ptr<Controller> & controller){
+bool Histogram::addLink( Controller* & controller){
     bool linkAdded = m_linkImpl->addLink( controller );
     if ( linkAdded ){
-        connect(controller.get(), SIGNAL(dataChanged(const Controller*)), this , SLOT(_createHistogram(const Controller*)));
+        connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram(const Controller*)));
     }
     return linkAdded;
 }
@@ -102,7 +102,7 @@ void Histogram::clear(){
 
 NdArray::RawViewInterface* Histogram::_findRawData( const QString& fileName, int frameIndex ) const {
     NdArray::RawViewInterface * rawData = nullptr;
-    for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+    for( Controller* controller : m_linkImpl->m_controllers ){
         rawData = controller->getRawData( fileName, frameIndex);
         if ( rawData != nullptr ){
             break;
@@ -168,7 +168,7 @@ bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double p
 }
 
 int Histogram::_getLinkInfo( const QString& link, QString& name ) const {
-    std::shared_ptr<Controller> controller = m_linkImpl->searchLinks(link);
+    Controller* controller = m_linkImpl->searchLinks(link);
     int index = -1;
     if(controller){
         index = controller->getSelectImageIndex();
@@ -792,7 +792,7 @@ QString Histogram::_setClipToImage( const QString& params ){
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
-    for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+    for( Controller* controller : m_linkImpl->m_controllers ){
         std::vector<std::shared_ptr<Image::ImageInterface>> images = controller->getDataSources();
         int imageCount = images.size();
         for( int j = 0; j < imageCount; j++){
@@ -899,10 +899,10 @@ void Histogram::_generateHistogram( bool newDataNeeded ){
     m_view->scheduleRedraw();
 }
 
-bool Histogram::removeLink( const std::shared_ptr<Controller> & controller){
+bool Histogram::removeLink( Controller* & controller){
     bool removed = m_linkImpl->removeLink( controller );
     if ( removed ){
-        disconnect(controller.get(), SIGNAL(dataChanged(const Controller*)), this , SLOT(_createHistogram( const Controller*)));
+        disconnect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram( const Controller*)));
     }
     return removed;
 }

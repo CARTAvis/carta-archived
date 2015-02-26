@@ -1,5 +1,6 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
+#include "Data/Clips.h"
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
 #include "Data/Controller.h"
@@ -48,6 +49,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_layout( nullptr ),
       m_dataLoader( nullptr ),
       m_pluginsLoaded( nullptr ){
+    Util::findSingletonObject( Clips::CLASS_NAME );
     Util::findSingletonObject( Colormaps::CLASS_NAME );
     Util::findSingletonObject( TransformsData::CLASS_NAME);
     Util::findSingletonObject( TransformsImage::CLASS_NAME);
@@ -74,36 +76,46 @@ void ViewManager::_clear(){
 }
 
 void ViewManager::_clearControllers( int startIndex ){
+    ObjectManager* objMan = ObjectManager::objectManager();
     int controlCount = m_controllers.size();
-    for ( int i = startIndex; i < controlCount; i++ ){
+    for ( int i = controlCount-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_controllers[i]->getId());
         m_controllers.pop_back();
     }
 }
 
 void ViewManager::_clearAnimators( int startIndex ){
     int animCount = m_animators.size();
-    for ( int i = startIndex; i < animCount; i++ ){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = animCount-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_animators[i]->getId());
         m_animators.pop_back();
     }
 }
 
 void ViewManager::_clearColormaps( int startIndex ){
     int colorCount = m_colormaps.size();
-    for ( int i = startIndex; i < colorCount; i++ ){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = colorCount-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_colormaps[i]->getId());
         m_colormaps.pop_back();
     }
 }
 
 void ViewManager::_clearHistograms( int startIndex ){
     int histCount = m_histograms.size();
-    for ( int i = startIndex; i < histCount; i++ ){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = histCount-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_histograms[i]->getId());
         m_histograms.pop_back();
     }
 }
 
 void ViewManager::_clearStatistics( int startIndex ){
     int statCount = m_statistics.size();
-    for ( int i = startIndex; i < statCount; i++ ){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = statCount-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_statistics[i]->getId());
         m_statistics.pop_back();
     }
 }
@@ -209,6 +221,20 @@ void ViewManager::_initCallbacks(){
         }
         return returnVal;
     });
+
+    addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+            const QString NAMES( "names");
+            std::set<QString> keys = { NAMES };
+            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            QStringList names = dataValues[NAMES].split(".");
+            bool valid = setPlugins( names );
+            QString result;
+            if ( !valid ){
+                result="Could not set plugins";
+            }
+            return result;
+        });
 }
 
 
@@ -303,6 +329,51 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
     return result;
 }
 
+void ViewManager::_removeView( const QString& plugin, int index ){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    if ( plugin == Controller::PLUGIN_NAME ){
+        //First remove all links to the controller.
+        QString destId = m_controllers[index]->getPath();
+        for ( Animator* animator : m_animators ){
+            QString sourceId = animator->getPath();
+            linkRemove( sourceId, destId );
+        }
+        for ( Statistics* stat : m_statistics ){
+            QString sourceId = stat->getPath();
+            linkRemove( sourceId, destId );
+        }
+        for ( Colormap* map : m_colormaps ){
+            QString sourceId = map->getPath();
+            linkRemove( sourceId, destId );
+        }
+        for ( Histogram* hist : m_histograms ){
+            QString sourceId = hist->getPath();
+            linkRemove( sourceId, destId );
+        }
+        objMan->destroyObject( m_controllers[index]->getId());
+        m_controllers.removeAt( index );
+    }
+    else if ( plugin == Animator::CLASS_NAME ){
+        objMan->destroyObject( m_animators[index]->getId());
+        m_animators.removeAt( index );
+    }
+    else if ( plugin == Colormap::CLASS_NAME ){
+        objMan->destroyObject( m_colormaps[index]->getId());
+        m_colormaps.removeAt( index );
+    }
+    else if ( plugin == Histogram::CLASS_NAME ){
+        objMan->destroyObject( m_histograms[index]->getId());
+        m_histograms.removeAt( index );
+    }
+    else if ( plugin == Statistics::CLASS_NAME ){
+        objMan->destroyObject( m_statistics[index]->getId());
+        m_statistics.removeAt( index );
+    }
+    else {
+        qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
+    }
+}
+
 QString ViewManager::getObjectId( const QString& plugin, int index ){
     QString viewId("");
     if ( plugin == Controller::PLUGIN_NAME ){
@@ -389,8 +460,7 @@ QString ViewManager::_makeAnimator( int maxCount ){
     if ( currentCount < maxCount ){
         for ( int i = currentCount; i < maxCount; i++ ){
             CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
-            std::shared_ptr<Animator> animator( dynamic_cast<Animator*>(animObj) );
-            m_animators.append(animator);
+            m_animators.append( dynamic_cast<Animator*>(animObj));
         }
     }
     QString path = m_animators[maxCount-1] ->getPath();
@@ -402,8 +472,7 @@ QString ViewManager::_makeColorMap( int maxCount ){
     if ( currentCount < maxCount ){
         for ( int i = currentCount; i < maxCount; i++  ){
             CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
-            std::shared_ptr<Colormap> target( dynamic_cast<Colormap*>(controlObj) );
-            m_colormaps.append(target);
+            m_colormaps.append( dynamic_cast<Colormap*>(controlObj) );
         }
     }
     QString path = m_colormaps[maxCount-1]->getPath();
@@ -415,8 +484,7 @@ QString ViewManager::_makeController( int maxCount ){
     if ( currentCount < maxCount ){
         for ( int i = currentCount; i < maxCount; i++ ){
             CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
-            std::shared_ptr<Controller> target( dynamic_cast<Controller*>(controlObj) );
-            m_controllers.append(target);
+            m_controllers.append( dynamic_cast<Controller*>(controlObj) );
         }
     }
     return m_controllers[maxCount-1]->getPath();
@@ -425,7 +493,7 @@ QString ViewManager::_makeController( int maxCount ){
 void ViewManager::_makeDataLoader(){
     if ( m_dataLoader == nullptr ){
         CartaObject* dataLoaderObj = Util::createObject( DataLoader::CLASS_NAME );
-        m_dataLoader.reset( dynamic_cast<DataLoader*>( dataLoaderObj ));
+        m_dataLoader =dynamic_cast<DataLoader*>( dataLoaderObj );
     }
 }
 
@@ -434,8 +502,7 @@ QString ViewManager::_makeHistogram( int maxCount ){
     if ( currentCount < maxCount ){
         for ( int i = currentCount; i < maxCount; i++ ){
             CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
-            std::shared_ptr<Histogram> target( dynamic_cast<Histogram*>(controlObj) );
-            m_histograms.append(target);
+            m_histograms.append( dynamic_cast<Histogram*>(controlObj) );
         }
     }
     return m_histograms[maxCount - 1]->getPath();
@@ -444,7 +511,7 @@ QString ViewManager::_makeHistogram( int maxCount ){
 QString ViewManager::_makeLayout(){
     if ( !m_layout ){
         CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
-        m_layout.reset( dynamic_cast<Layout*>(layoutObj ));
+        m_layout = dynamic_cast<Layout*>(layoutObj );
     }
     QString layoutPath = m_layout->getPath();
     return layoutPath;
@@ -454,7 +521,7 @@ QString ViewManager::_makePluginList(){
     if ( !m_pluginsLoaded ){
         //Initialize a view showing the plugins that have been loaded
         CartaObject* pluginsObj = Util::createObject( ViewPlugins::CLASS_NAME );
-        m_pluginsLoaded.reset( dynamic_cast<ViewPlugins*>(pluginsObj ));
+        m_pluginsLoaded = dynamic_cast<ViewPlugins*>(pluginsObj);
     }
     QString pluginsPath = m_pluginsLoaded->getPath();
     return pluginsPath;
@@ -465,8 +532,7 @@ QString ViewManager::_makeStatistics( int maxCount ){
     if (currentCount < maxCount ){
         for ( int i = currentCount; i < maxCount; i++ ){
             CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
-            std::shared_ptr<Statistics> target( dynamic_cast<Statistics*>(controlObj) );
-            m_statistics.append(target);
+            m_statistics.append( dynamic_cast<Statistics*>(controlObj) );
         }
     }
     return m_statistics[maxCount-1]->getPath();
@@ -602,6 +668,50 @@ bool ViewManager::_saveState( const QString& saveName ){
     }
     bool stateSaved = writer.saveState();
     return stateSaved;
+}
+
+bool ViewManager::setPlugins( const QStringList& names ){
+    bool pluginsSet = false;
+    if ( m_layout ){
+        QStringList oldNames = m_layout->getPluginList();
+        bool valid = m_layout->_setPlugin( names );
+        if ( !valid ){
+            qDebug() << "Invalid plugins for layout size";
+        }
+        else {
+            QMap<QString, int> pluginMap;
+            for ( int i = 0; i < oldNames.size(); i++ ){
+                pluginMap[oldNames[i]] = -1;
+            }
+            for ( int i = 0; i < names.size(); i++ ){
+                pluginMap[oldNames[i]] = pluginMap[oldNames[i]] + 1;
+                if ( names[i] != oldNames[i]){
+                    _removeView( oldNames[i], pluginMap[oldNames[i]]);
+                }
+            }
+            pluginsSet = true;
+        }
+    }
+    else {
+        qWarning() << "A layout for the plugins is missing";
+    }
+    return pluginsSet;
+}
+
+ViewManager::~ViewManager(){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    if ( m_layout != nullptr){
+        objMan->destroyObject(m_layout->getId());
+        m_layout = nullptr;
+    }
+    if ( m_dataLoader != nullptr ){
+        objMan->destroyObject( m_dataLoader->getId());
+        m_dataLoader = nullptr;
+    }
+    if ( m_pluginsLoaded != nullptr ){
+        objMan->destroyObject(m_pluginsLoaded->getId());
+        m_pluginsLoaded = nullptr;
+    }
 }
 }
 }

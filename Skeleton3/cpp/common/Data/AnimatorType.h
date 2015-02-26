@@ -53,6 +53,8 @@ public:
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
+    virtual ~AnimatorType();
+
 signals:
     void indexChanged(const QString& params);
 
@@ -86,7 +88,7 @@ private:
     static bool m_registered;
 
     //Animator's channel selection.
-    std::shared_ptr<Selection> m_select;
+    Selection* m_select;
     const static QString COMMAND_SET_FRAME;
     const static QString END_BEHAVIOR;
     const static QString END_BEHAVIOR_WRAP;

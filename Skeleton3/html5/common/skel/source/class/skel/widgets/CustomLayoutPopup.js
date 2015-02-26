@@ -42,29 +42,40 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
         this.m_colCountSpin.addListener("changeValue", function() {
             this.fireDataEvent("colCount", this.m_colCountSpin.getValue());
         }, this);
-
-        this.setLayout(new qx.ui.layout.Grid());
-        this.add(rowLabel, {
+        var gridContainer = new qx.ui.container.Composite();
+        gridContainer.setLayout(new qx.ui.layout.Grid());
+        gridContainer.add(rowLabel, {
             row : 0,
             column : 0
         });
-        this.add(this.m_rowCountSpin, {
+        gridContainer.add(this.m_rowCountSpin, {
             row : 0,
             column : 1
         });
-        this.add(colLabel, {
+        gridContainer.add(colLabel, {
             row : 1,
             column : 0
         });
-        this.add(this.m_colCountSpin, {
+        gridContainer.add(this.m_colCountSpin, {
             row : 1,
             column : 1
         });
+        this.setLayout( new qx.ui.layout.VBox(2));
+        this.add( gridContainer);
         
-        
+        var butContainer = new qx.ui.container.Composite();
+        butContainer.setLayout( new qx.ui.layout.HBox());
+        butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+        var closeButton = new qx.ui.form.Button( "Close");
+        closeButton.addListener( "execute", function(){
+            this.fireDataEvent("closeCustomLayout", "");
+        }, this);
+        butContainer.add( closeButton );
+        this.add( butContainer);
     },
 
     events : {
+        "closeCustomLayout" : "qx.event.type.Data",
         "rowCount" : "qx.event.type.Data",
         "colCount" : "qx.event.type,Data"
     },

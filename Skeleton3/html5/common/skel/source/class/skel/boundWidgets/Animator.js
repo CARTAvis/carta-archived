@@ -143,6 +143,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _frameEndCB : function() {
             var limit = this.m_frameHigh - 1;
+            if ( limit < 0  ){
+                limit = 0;
+            }
             if ( limit != this.m_slider.getMaximum() ){
                 this.m_slider.setMaximum( limit );
             }
@@ -604,7 +607,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
                         this.m_frame = frameObj.frame;
                         this.m_frameLow = frameObj.frameStart;
                         this.m_frameHigh = frameObj.frameEnd;
-                        
                         this._frameStartCB();
                         this._frameEndCB( );
                         this._frameCB( );

@@ -19,14 +19,14 @@ public:
      * @param controller the image view that should no longer be linked.
      * @return true if the link was successfully removed; false otherwise.
      */
-    virtual bool removeLink( const std::shared_ptr<Controller>& controller ) = 0;
+    virtual bool removeLink( Controller *& controller ) = 0;
 
     /**
      * Add a link to the image view.
      * @param controller the image view that should be linked.
      * @return true if the controller is linked; false otherwise.
      */
-    virtual bool addLink( const std::shared_ptr<Controller>& controller ) = 0;
+    virtual bool addLink( Controller* & controller ) = 0;
 
 };
 }

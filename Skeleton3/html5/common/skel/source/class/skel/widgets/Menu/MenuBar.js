@@ -519,6 +519,9 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                                     var colCount = ev.getData();
                                     this.fireDataEvent("layoutColCount",colCount);
                                 }, this);
+                this.m_layoutCustom.addListener("closeCustomLayout", function(ev){
+                    this.m_layoutCustom.setVisibility( "excluded");
+                }, this );
             }
             var rightButton = skel.widgets.Util.getRight(this.m_layoutButton);
             var topButton = skel.widgets.Util.getTop(this.m_layoutButton);

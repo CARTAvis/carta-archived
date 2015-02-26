@@ -11,6 +11,7 @@
 #include "../ImageRenderService.h"
 #include "../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
+#include <QDir>
 #include <QImageWriter>
 
 namespace Carta {
@@ -66,7 +67,7 @@ DataSource::DataSource(const QString& path, const QString& id) :
 
 bool DataSource::contains(const QString& fileName) const {
     bool representsData = false;
-    if (m_fileName == fileName) {
+    if (m_fileName.endsWith(fileName)) {
         representsData = true;
     }
     return representsData;
@@ -172,6 +173,15 @@ QString DataSource::getFileName() const {
 
 std::shared_ptr<Image::ImageInterface> DataSource::getImage(){
     return m_image;
+}
+
+QString DataSource::getImageViewName() const {
+    QString shortName = m_fileName;
+    int sepIndex = m_fileName.lastIndexOf( QDir::separator() );
+    if ( sepIndex >= 0 ){
+        shortName = m_fileName.right( m_fileName.length() - sepIndex - 1 );
+    }
+    return shortName;
 }
 
 NdArray::RawViewInterface * DataSource::getRawData( int channel ) const {

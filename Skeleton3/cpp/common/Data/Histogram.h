@@ -32,8 +32,8 @@ class Histogram : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    bool addLink( const std::shared_ptr<Controller> & controller) Q_DECL_OVERRIDE;
-    bool removeLink( const std::shared_ptr<Controller>& controller) Q_DECL_OVERRIDE;
+    bool addLink( Controller* & controller) Q_DECL_OVERRIDE;
+    bool removeLink( Controller*& controller) Q_DECL_OVERRIDE;
 
     /**
      * Clear the state of the histogram.
@@ -143,7 +143,7 @@ private:
     //Data View
     std::shared_ptr<ImageView> m_view;
 
-    static std::shared_ptr<Clips> m_clips;
+    static Clips*  m_clips;
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;

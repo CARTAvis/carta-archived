@@ -38,6 +38,7 @@ bool AnimatorType::m_registered =
 AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType, const QString& id*/
         const QString& path, const QString& id ):
 	CartaObject( CLASS_NAME, path, id ){
+        m_select = nullptr;
         _makeSelection();
         m_removed = false;
         _initializeState();
@@ -50,9 +51,11 @@ bool AnimatorType::isRemoved() const {
 
 QString AnimatorType::_makeSelection(){
     ObjectManager* objManager = ObjectManager::objectManager();
+    if ( m_select != nullptr ){
+        objManager->destroyObject( m_select->getId());
+    }
     QString selId = objManager->createObject( Selection::CLASS_NAME );
-    CartaObject* selObj = objManager->getObject( selId );
-    m_select.reset( dynamic_cast<Selection*>(selObj) );
+    m_select = dynamic_cast<Selection*>(objManager->getObject( selId ));
     return m_select->getPath();
 }
 
@@ -199,6 +202,13 @@ void AnimatorType::_initializeCommands(){
 
 void AnimatorType::setRemoved( bool removed ){
     m_removed = removed;
+}
+
+AnimatorType::~AnimatorType(){
+    if ( m_select != nullptr ){
+        ObjectManager* objMan = ObjectManager::objectManager();
+        objMan->destroyObject( m_select->getId());
+    }
 }
 }
 }

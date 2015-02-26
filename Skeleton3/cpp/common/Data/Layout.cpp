@@ -198,6 +198,18 @@ int Layout::_getMaxRowColumn() const {
     return maxColIndex;
 }
 
+QStringList Layout::getPluginList() const {
+    int rows = m_state.getValue<int>( LAYOUT_ROWS);
+    int cols = m_state.getValue<int>( LAYOUT_COLS );
+    int pluginCount = rows * cols;
+    QStringList plugins;
+    for ( int i = 0; i < pluginCount; i++ ){
+        QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number(i) );
+        plugins.push_back(m_state.getValue<QString>(lookup));
+    }
+    return plugins;
+}
+
 void Layout::_initializeCommands(){
     addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -223,19 +235,7 @@ void Layout::_initializeCommands(){
         return result;
     });
 
-    addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString NAMES( "names");
-        std::set<QString> keys = { NAMES };
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QStringList names = dataValues[NAMES].split(".");
-        bool valid = _setPlugin( names );
-        QString result;
-        if ( !valid ){
-            result + "Invalid layout params: "+params;
-        }
-        return result;
-    });
+
 
     addCommandCallback( "addWindow", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -441,7 +441,6 @@ bool Layout::_setPlugin( const QStringList& names ){
         m_state.flushState();
     }
     else {
-        qDebug() << "Error plugin size "<< names.size() << "must match grid size="<<(rows * cols);
         valid = false;
     }
     return valid;

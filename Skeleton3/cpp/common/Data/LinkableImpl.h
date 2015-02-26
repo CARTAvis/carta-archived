@@ -60,10 +60,10 @@ public:
      */
     int getSelectedImage() const;
 
-    std::shared_ptr<Controller> searchLinks(const QString& link);
+    Controller* searchLinks(const QString& link);
 
-    virtual bool removeLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;;
-    virtual bool addLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;;
+    virtual bool removeLink( Controller*& controller ) Q_DECL_OVERRIDE;;
+    virtual bool addLink( Controller*& controller ) Q_DECL_OVERRIDE;;
     virtual ~LinkableImpl();
 
     static const QString LINK;
@@ -83,10 +83,13 @@ public:
      * @param controller an image view.
      * @return a nonnegative index if the image view is linked; -1 otherwise.
      */
-    int _getIndex( const std::shared_ptr<Controller>& controller );
+    int _getIndex( Controller*& controller );
     /// List of controllers managed by this animator.
-    QList<std::shared_ptr<Controller> > m_controllers;
+    QList<Controller* > m_controllers;
     StateInterface* m_state; //Used
+
+    LinkableImpl( const LinkableImpl& other);
+    LinkableImpl operator=( const LinkableImpl& other );
 };
 }
 }

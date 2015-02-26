@@ -29,8 +29,8 @@ class Colormap : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    virtual bool addLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;
-    virtual bool removeLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;
+    virtual bool addLink( Controller*& controller ) Q_DECL_OVERRIDE;
+    virtual bool removeLink( Controller*& controller ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -61,6 +61,8 @@ public:
     virtual ~Colormap();
     const static QString CLASS_NAME;
 
+private slots:
+    void _setColorProperties( Controller* target );
 
 private:
     QString _commandCacheColorMap( const QString& params );
@@ -106,10 +108,10 @@ private:
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     //Supported color maps
-    static std::shared_ptr<Colormaps> m_colors;
+    static Colormaps* m_colors;
 
     //Supported data transforms
-    static std::shared_ptr<TransformsData> m_dataTransforms;
+    static TransformsData* m_dataTransforms;
 
 
     //Separate state for mouse events since they get updated rapidly and not

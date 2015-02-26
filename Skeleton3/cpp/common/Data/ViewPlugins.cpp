@@ -2,6 +2,7 @@
 #include "Globals.h"
 #include "PluginManager.h"
 #include "Animator.h"
+#include "Statistics.h"
 #include "Histogram.h"
 #include "Colormap.h"
 
@@ -55,7 +56,7 @@ void ViewPlugins::_insertPlugin( int ind, const QString& name, const QString& de
 }
 
 void ViewPlugins::_initializeDefaultState(){
-    auto pm = Globals::instance()-> pluginManager();
+    /*auto pm = Globals::instance()-> pluginManager();
     auto infoList = pm-> getInfoList();
     int ind = 0;
     int infoListSize = infoList.size()+4;
@@ -64,14 +65,18 @@ void ViewPlugins::_initializeDefaultState(){
         //qDebug() << "  path:" << entry.soPath;
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
-    }
+    }*/
+    m_state.insertArray( PLUGINS, 4 );
+    int ind = 0;
+    _insertPlugin( ind, Controller::PLUGIN_NAME, "Image display", "", "", "");
+    ind++;
     _insertPlugin( ind, Animator::CLASS_NAME, "Animation of data sets", "", "", "");
     ind++;
-    _insertPlugin( ind, "statistics", "Placeholder for statistics plugin", "", "", "");
+    _insertPlugin( ind, Statistics::CLASS_NAME, "Cursor information", "", "", "");
     ind++;
-    _insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
-    ind++;
-    _insertPlugin( ind, Colormap::CLASS_NAME, "Colormap", "", "", "");
+    //_insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
+    //ind++;
+    _insertPlugin( ind, Colormap::CLASS_NAME, "Color map", "", "", "");
     ind++;
     m_state.insertValue<int>( STAMP, ind);
     m_state.flushState();

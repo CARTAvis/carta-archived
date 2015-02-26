@@ -15,6 +15,7 @@ namespace Carta {
 namespace Data {
 
 class Layout : public CartaObject {
+    friend class ViewManager;
 
 public:
     /**
@@ -29,6 +30,12 @@ public:
      * Clear the layout state.
      */
     void clear();
+
+    /**
+     * Returns a list of the current plugins in the view.
+     * @return a list of view plugins.
+     */
+    QStringList getPluginList() const;
 
     /**
      * Remove the grid cell at the given row and column from the grid.

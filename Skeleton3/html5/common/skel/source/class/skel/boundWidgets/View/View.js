@@ -26,24 +26,22 @@ qx.Class.define( "skel.boundWidgets.View.View", {
     construct: function( viewName )
     {
         this.m_connector = mImport( "connector" );
-
+        
         this.base( arguments );
         this.m_viewName = viewName;
-        console.log( "view name="+this.m_viewName);
+ 
 
         var setZeroTimeout = mImport( "setZeroTimeout" );
 
-        // listen for appear event, because the html is not generated until the widget
-        // appears
         var appearListenerId = this.addListener( "appear", function( e )
-        {
-            this.m_iview = this.m_connector.registerViewElement( this
-                .getContentElement().getDomElement(), this.m_viewName );
-            this.removeListenerById( appearListenerId );
+                {
+                    this.m_iview = this.m_connector.registerViewElement( this
+                        .getContentElement().getDomElement(), this.m_viewName );
+                    this.removeListenerById( appearListenerId );
 
-            this.m_iview.updateSize();
-        }, this );
-
+                    this.m_iview.updateSize();
+                }, this );
+       
         this.addListener( "resize", function( /*e*/ )
         {
             // only continue if the dom element has been created

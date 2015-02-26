@@ -37,12 +37,12 @@ Statistics::Statistics( const QString& path, const QString& id ) :
      _initializeState();
 }
 
-bool Statistics::addLink( const std::shared_ptr<Controller>& target ){
+bool Statistics::addLink( Controller*& target ){
     bool objAdded = m_linkImpl->addLink( target );
     return objAdded;
 }
 
-bool Statistics::removeLink( const std::shared_ptr<Controller>& controller ){
+bool Statistics::removeLink( Controller*& controller ){
     bool objRemoved = m_linkImpl->removeLink( controller );
     return objRemoved;
 }

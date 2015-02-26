@@ -54,7 +54,9 @@ private:
 
     static bool m_registered;
     const static QString ERRORS_EXIST;
-    std::queue< std::shared_ptr <ErrorReport> > errorList;
+    std::queue< std::shared_ptr<ErrorReport> > errorList;
+    ErrorManager( const ErrorManager& other);
+    ErrorManager operator=( const ErrorManager& other );
 
 };
 }

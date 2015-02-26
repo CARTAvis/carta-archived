@@ -30,6 +30,7 @@ qx.Class.define("skel.widgets.Path", {
         CENTER : "center",
         CLIP_VALUE : "setClipValue",
         CLIPS : "",
+        CLOSE_IMAGE : "closeImage",
         COLORMAP_PLUGIN : "Colormap",
         COLORMAPS : "",
         DATA_COUNT : "",
@@ -126,7 +127,7 @@ qx.Class.define("skel.widgets.Path", {
          * @return {String} command for updating the displayed plug-in.
          */
         getCommandSetPlugin : function(){
-            return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setPlugin";
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "setPlugin";
         },
         
         /**

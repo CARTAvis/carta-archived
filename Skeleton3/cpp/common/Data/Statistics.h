@@ -28,8 +28,8 @@ class Statistics : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    virtual bool addLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;
-    virtual bool removeLink( const std::shared_ptr<Controller>& controller ) Q_DECL_OVERRIDE;
+    virtual bool addLink( Controller*& controller ) Q_DECL_OVERRIDE;
+    virtual bool removeLink( Controller*& controller ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.

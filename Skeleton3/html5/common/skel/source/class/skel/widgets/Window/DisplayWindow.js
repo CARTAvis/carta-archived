@@ -120,13 +120,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
         
         /**
-         * Window specific action to be taken when a link is removed.
-         * @param sourceWinId {String} server side id of the source window.
-         * @param destWinId {String} server side id of the destination window.
+         * Clean-up items; this window is going to disappear.
          */
-        removeLink : function( sourceWinId, destWinId ){
-            console.log( "Remove link not implemented for "+this.m_pluginId);
+        clean : function(){
+            //console.log( "No cleaning on this window");
         },
+        
+        
 
         /**
          * Implemented by subclasses that display particular types of data.
@@ -276,14 +276,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                         "showFileBrowser", this));
             }, this);
             dataMenu.add(openButton);
-
-            var closeButton = new qx.ui.menu.Button("Close...");
-            closeButton.addListener("execute", function() {
-                this.dataUnloaded("bogusFilePath");
-            }, this);
+            
+            if ( this.m_closeDataMenu === null ){
+                this.m_closeDataMenu = new qx.ui.menu.Menu();
+            }
+            var closeButton = new qx.ui.menu.Button("Close");
             dataMenu.add(closeButton);
+            
+            closeButton.setMenu(this.m_closeDataMenu);
             return dataMenu;
         },
+        
         
         /**
          * Sends a command to the server to get the unique object id (identifier)
@@ -351,6 +354,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( val ){
                 try {
                     var plugins = JSON.parse( val );
+                    
                     var buttonFunction = function( ){
                         var pluginName = this.getLabel();
                         var data = {
@@ -523,6 +527,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
         
         /**
+         * Window specific action to be taken when a link is removed.
+         * @param sourceWinId {String} server side id of the source window.
+         * @param destWinId {String} server side id of the destination window.
+         */
+        removeLink : function( sourceWinId, destWinId ){
+            //console.log( "Remove link not implemented for "+this.m_pluginId);
+        },
+        
+        /**
          * Restores the window to its location in the main display.
          */
         _restore : function() {
@@ -575,13 +588,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                             qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
                         }
                     }
-                   
+                    this.windowSharedVarUpdate( winObj );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
                 }
             }
         },
+        
 
         setDrawMode : function(drawInfo) {
 
@@ -601,12 +615,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             else {
                 this.getChildControl("captionbar" ).removeState( "winsel");
             }
-
             if (selected &&  !multiple) {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                     "windowSelected", this));
             }
-
         },
 
         /**
@@ -649,9 +661,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         windowIdInitialized : function(){
         },
+        
+        /**
+         * Update window specific elements from the shared variable.
+         * @param winObj {String} represents the server state of this window.
+         */
+        windowSharedVarUpdate : function( winObj ){
+        },
 
         m_closed : false,
         m_contextMenu : null,
+        m_closeDataMenu : null,
         m_windowMenu : null,
         m_scrollArea : null,
         m_content : null,

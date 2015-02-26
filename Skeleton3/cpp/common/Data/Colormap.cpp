@@ -36,8 +36,8 @@ const QString Colormap::GAMMA = "gamma";
 const QString Colormap::TRANSFORM_IMAGE = "imageTransform";
 const QString Colormap::TRANSFORM_DATA = "dataTransform";
 
-std::shared_ptr<Colormaps> Colormap::m_colors = nullptr;
-std::shared_ptr<TransformsData> Colormap::m_dataTransforms = nullptr;
+Colormaps* Colormap::m_colors = nullptr;
+TransformsData* Colormap::m_dataTransforms = nullptr;
 
 class Colormap::Factory : public CartaObjectFactory {
 
@@ -61,13 +61,16 @@ Colormap::Colormap( const QString& path, const QString& id):
     _initializeStatics();
 }
 
-bool Colormap::addLink( const std::shared_ptr<Controller>& target ){
+bool Colormap::addLink( Controller* & target ){
     bool objAdded = m_linkImpl->addLink( target );
     if ( objAdded ){
-        target->setColorMap( m_state.getValue<QString>(COLOR_MAP_NAME));
+        _setColorProperties( target );
+        connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(_setColorProperties(Controller*)));
     }
     return objAdded;
 }
+
+
 
 void Colormap::_initializeDefaultState(){
     m_state.insertValue<QString>( COLOR_MAP_NAME, "Gray" );
@@ -75,7 +78,7 @@ void Colormap::_initializeDefaultState(){
     m_state.insertValue<bool>(INVERT, false );
     m_state.insertValue<bool>(CACHE, true);
     m_state.insertValue<bool>(INTERPOLATED, true );
-    m_state.insertValue<int>(CACHE_SIZE, 2 );
+    m_state.insertValue<int>(CACHE_SIZE, 1000 );
 
     m_state.insertValue<double>(GAMMA, 1.0 );
     m_state.insertValue<double>(SCALE_1, 0.0 );
@@ -200,13 +203,13 @@ void Colormap::_initializeStatics(){
     //Load the available color maps.
     if ( m_colors == nullptr ){
         CartaObject* obj = Util::findSingletonObject( Colormaps::CLASS_NAME );
-        m_colors.reset( dynamic_cast<Colormaps*>( obj ));
+        m_colors = dynamic_cast<Colormaps*>( obj );
     }
 
     //Data transforms
     if ( m_dataTransforms == nullptr ){
         CartaObject* obj = Util::findSingletonObject( TransformsData::CLASS_NAME );
-        m_dataTransforms.reset( dynamic_cast<TransformsData*>( obj ));
+        m_dataTransforms =dynamic_cast<TransformsData*>( obj );
     }
 }
 
@@ -226,6 +229,9 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
         if ( cache != oldCache){
             m_state.setValue<bool>(CACHE, cache );
             m_state.flushState();
+            for( Controller* controller : m_linkImpl->m_controllers ){
+                controller -> setPixelCaching ( cache );
+            }
         }
     }
     else {
@@ -247,6 +253,9 @@ QString Colormap::_commandCacheSize( const QString& params ){
         if ( cacheSize != currentCacheSize ){
             m_state.setValue<int>(CACHE_SIZE, cacheSize );
             m_state.flushState();
+            for( Controller* controller : m_linkImpl->m_controllers ){
+                controller -> setCacheSize ( cacheSize );
+            }
         }
     }
     else {
@@ -268,6 +277,9 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
         if ( interpolated != currentInterpolated ){
             m_state.setValue<bool>(INTERPOLATED, interpolated );
             m_state.flushState();
+            for( Controller* controller : m_linkImpl->m_controllers ){
+                controller -> setCacheInterpolation ( interpolated );
+            }
         }
     }
     else {
@@ -289,7 +301,7 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
         if ( invert != oldInvert ){
             m_state.setValue<bool>(INVERT, invert );
             m_state.flushState();
-            for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+            for( Controller* controller : m_linkImpl->m_controllers ){
                 controller -> setColorInverted ( invert );
             }
         }
@@ -320,7 +332,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
         double newRed = m_state.getValue<double>(COLOR_MIX_RED );
         double newGreen = m_state.getValue<double>(COLOR_MIX_GREEN );
         double newBlue = m_state.getValue<double>(COLOR_MIX_BLUE );
-        for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+        for( Controller* controller : m_linkImpl->m_controllers ){
             controller->setColorAmounts( newRed, newGreen, newBlue );
         }
     }
@@ -348,7 +360,7 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
         if ( reverse != oldReverse ){
             m_state.setValue<bool>(REVERSE, reverse );
             m_state.flushState();
-            for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+            for( Controller* controller : m_linkImpl->m_controllers ){
                 controller -> setColorReversed( reverse );
             }
         }
@@ -385,8 +397,11 @@ bool Colormap::_processColorStr( const QString key, const QString colorStr, bool
     return colorChanged;
 }
 
-bool Colormap::removeLink( const std::shared_ptr<Controller>& controller ){
+bool Colormap::removeLink( Controller*& controller ){
     bool objRemoved = m_linkImpl->removeLink( controller );
+    if ( objRemoved ){
+        disconnect( controller );
+    }
     return objRemoved;
 }
 
@@ -398,7 +413,7 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
            if ( colorMapStr != mapName ){
               m_state.setValue<QString>(COLOR_MAP_NAME, colorMapStr );
               m_state.flushState();
-              for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+              for( Controller* controller : m_linkImpl->m_controllers ){
                   controller->setColorMap( colorMapStr );
               }
            }
@@ -407,6 +422,7 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
            result = "Invalid colormap: " + colorMapStr;
        }
     }
+
     result = Util::commandPostProcess( result, mapName );
     return result;
 }
@@ -419,7 +435,7 @@ QString Colormap::setGamma( double gamma ){
         m_state.setValue<double>(GAMMA, gamma );
         m_state.flushState();
         //Let the controllers know gamma has changed.
-        for ( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+        for ( Controller* controller : m_linkImpl->m_controllers ){
             controller->setGamma( gamma );
         }
     }
@@ -434,7 +450,7 @@ QString Colormap::setDataTransform( const QString& transformString ){
             if ( transformString != transformName ){
                 m_state.setValue<QString>(TRANSFORM_DATA, transformString );
                 m_state.flushState();
-                for( std::shared_ptr<Controller> controller : m_linkImpl->m_controllers ){
+                for( Controller* controller : m_linkImpl->m_controllers ){
                     controller->setTransformData( transformString );
                 }
             }
@@ -445,6 +461,21 @@ QString Colormap::setDataTransform( const QString& transformString ){
     }
     result = Util::commandPostProcess( result, transformName );
     return result;
+}
+
+void Colormap::_setColorProperties( Controller* target ){
+    target->setColorMap( m_state.getValue<QString>(COLOR_MAP_NAME));
+    target->setColorInverted( m_state.getValue<bool>(INVERT) );
+    target->setColorReversed( m_state.getValue<bool>(REVERSE) );
+    double redPercent = m_state.getValue<double>(COLOR_MIX_RED);
+    double greenPercent = m_state.getValue<double>(COLOR_MIX_GREEN );
+    double bluePercent = m_state.getValue<double>(COLOR_MIX_BLUE);
+    target->setColorAmounts( redPercent, greenPercent, bluePercent );
+    target->setGamma( m_state.getValue<double>(GAMMA) );
+    target->setTransformData( m_state.getValue<QString>(TRANSFORM_DATA ));
+    target->setCacheSize( m_state.getValue<int>(CACHE_SIZE) );
+    target->setCacheInterpolation( m_state.getValue<bool>(INTERPOLATED));
+    target->setPixelCaching( m_state.getValue<bool>(CACHE) );
 }
 
 Colormap::~Colormap(){

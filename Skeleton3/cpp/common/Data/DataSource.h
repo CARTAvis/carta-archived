@@ -206,6 +206,12 @@ public:
      * @return the path to the image.
      */
     QString getFileName() const;
+    
+    /**
+     * Returns a name suitable for display.
+     * @return a display name for the image.
+     */
+    QString getImageViewName() const;
 
     /**
      * Returns the raw data as an array.
@@ -287,6 +293,9 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
+    
+    DataSource(const DataSource& other);
+    DataSource operator=(const DataSource& other);
 };
 }
 }
