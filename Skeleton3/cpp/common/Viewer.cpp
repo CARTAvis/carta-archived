@@ -113,10 +113,17 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->dataTransporter( output );
     }
 
-    // command: linkAdd
-    else if (args.size() == 3 && args[0].toLower() == "linkadd") {
-        QString output = m_scriptFacade->linkAdd( args[1], args[2] );
-        qDebug() << "linkAdd result: " << output;
+    // command: addLink
+    else if (args.size() == 3 && args[0].toLower() == "addlink") {
+        QString output = m_scriptFacade->addLink( args[1], args[2] );
+        qDebug() << "addLink result: " << output;
+        m_scl->dataTransporter( output );
+    }
+
+    // command: removeLink
+    else if (args.size() == 3 && args[0].toLower() == "removelink") {
+        QString output = m_scriptFacade->removeLink( args[1], args[2] );
+        qDebug() << "removeLink result: " << output;
         m_scl->dataTransporter( output );
     }
 

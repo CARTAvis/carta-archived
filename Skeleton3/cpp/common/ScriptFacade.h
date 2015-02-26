@@ -65,7 +65,15 @@ public:
      * @param sourceId the unique server side id of the link source.
      * @param destId the unique server side id of an object responsible for an image view.
      */
-    QString linkAdd( const QString& sourceId, const QString& destId );
+    QString addLink( const QString& sourceId, const QString& destId );
+
+    /**
+     * Remove a link from a source to a destination.
+     * @param sourceId the unique server-side id for the plugin that is the source of the link.
+     * @param destId the unique server side id for the plugin that is the destination of the link.
+     * @return an error message if the link does not succeed.
+     */
+    QString removeLink( const QString& sourceId, const QString& destId );
 
     /**
      * Load a file from /scratch/Images into an image view.

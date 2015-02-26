@@ -255,10 +255,6 @@ int ViewManager::_findAnimator( const QString& id ) const {
 
 
 QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
-    qDebug() << "(JT) ViewManager::linkAdd";
-    qDebug() << "sourceId = " << sourceId;
-    qDebug() << "destId = " << destId;
-
     int controlIndex = _findController( destId );
     QString result;
     if ( controlIndex == -1 ){

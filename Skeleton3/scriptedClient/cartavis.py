@@ -80,6 +80,16 @@ class Colormap:
         result = getListFromSocket(self.__socket)
         return result
 
+    def addLink(self, imageView):
+        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def removeLink(self, imageView):
+        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
 class Image:
     """Represents an image view"""
 
@@ -143,6 +153,16 @@ class Image:
         result = getListFromSocket(self.__socket)
         return result
 
+    def addLink(self, destView):
+        self.__socket.sendall("addLink " + destView.getId() + " " + self.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def removeLink(self, destView):
+        self.__socket.sendall("removeLink " + destView.getId() + " " + self.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
 class Animator:
     """Represents an animator view"""
 
@@ -160,6 +180,16 @@ class Animator:
         result = getListFromSocket(self.__socket)
         return result
 
+    def addLink(self, imageView):
+        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def removeLink(self, imageView):
+        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
 class Statistics:
     """Represents a statistics view"""
 
@@ -172,6 +202,16 @@ class Statistics:
         """This is mainly for testing/debugging/sanity purposes"""
         return self.__statisticsId
 
+    def addLink(self, imageView):
+        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def removeLink(self, imageView):
+        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
 class Histogram:
     """Represents a histogram view"""
 
@@ -183,6 +223,16 @@ class Histogram:
     def getId(self):
         """This is mainly for testing/debugging/sanity purposes"""
         return self.__histogramId
+
+    def addLink(self, imageView):
+        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
+
+    def removeLink(self, imageView):
+        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
 class Application:
     """Represents an application"""
@@ -282,34 +332,39 @@ class Application:
 
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
-        result = getListFromSocket(self.__socket)
+        result = getListFromSocket(self.socket)
         return result
 
     def setCustomLayout(self, rows, cols):
         self.socket.sendall("setCustomLayout " + str(rows) + " "
                             + str(cols) + "\n")
-        result = getListFromSocket(self.__socket)
+        result = getListFromSocket(self.socket)
         return result
 
     def setImageLayout(self):
         self.socket.sendall("setImageLayout" + "\n")
-        result = getListFromSocket(self.__socket)
+        result = getListFromSocket(self.socket)
         return result
 
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")
-        result = getListFromSocket(self.__socket)
+        result = getListFromSocket(self.socket)
         return result
 
-    def linkAdd(self, source, dest):
-        self.socket.sendall("linkAdd " + source.getId() + " " + dest.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+    def addLink(self, source, dest):
+        self.socket.sendall("addLink " + source.getId() + " " + dest.getId() + "\n")
+        result = getListFromSocket(self.socket)
+        return result
+
+    def removeLink(self, source, dest):
+        self.socket.sendall("removeLink " + source.getId() + " " + dest.getId() + "\n")
+        result = getListFromSocket(self.socket)
         return result
 
     def saveState(self, saveName):
         self.socket.sendall("saveState " + saveName + "\n")
-        result = getListFromSocket(self.__socket)
+        result = getListFromSocket(self.socket)
         return result
 
 # Commands below this point are possibly broken or just not implemented yet.

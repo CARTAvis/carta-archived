@@ -104,8 +104,13 @@ QStringList ScriptFacade::getStatisticsViews() {
     return statisticsViewList;
 }
 
-QString ScriptFacade::linkAdd( const QString& sourceId, const QString& destId ){
+QString ScriptFacade::addLink( const QString& sourceId, const QString& destId ){
     QString result = m_viewManager->linkAdd( sourceId, destId );
+    return result;
+}
+
+QString ScriptFacade::removeLink( const QString& sourceId, const QString& destId ){
+    QString result = m_viewManager->linkRemove( sourceId, destId );
     return result;
 }
 
