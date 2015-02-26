@@ -211,7 +211,7 @@ public:
      * /tmp/fileName.json.
      * @return whether the operation was a success or not.
      */
-    bool saveState( const QString& fileName );
+    QString saveState( const QString& fileName );
 
     QStringList getLinkedColorMaps( const QString& controlId );
 

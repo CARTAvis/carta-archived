@@ -749,9 +749,10 @@ void ViewManager::setClipValue( const QString& controlId, const QString& param )
     }
 }
 
-bool ViewManager::saveState( const QString& saveName ){
+QString ViewManager::saveState( const QString& saveName ){
     bool result = _saveState( saveName );
-    return result;
+    QString resultStr = Util::toString( result );
+    return resultStr;
 }
 
 QStringList ViewManager::getLinkedColorMaps( const QString& controlId ) {

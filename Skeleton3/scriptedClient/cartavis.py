@@ -37,9 +37,13 @@ class Colormap:
     def setColormap(self, colormap):
         """Set the specified colormap"""
         self.__socket.sendall("setColormap " + self.__colormapId + " " + colormap + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def reverseColormap(self, trueOrFalse):
         self.__socket.sendall("reverseColormap " + self.__colormapId + " " + trueOrFalse + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setCacheColormap(self, cacheStr):
         self.__socket.sendall("setCacheColormap " + self.__colormapId + " " + cacheStr + "\n")
@@ -58,12 +62,18 @@ class Colormap:
 
     def invertColormap(self, trueOrFalse):
         self.__socket.sendall("invertColormap " + self.__colormapId + " " + trueOrFalse + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setColorMix(self, redPercent, greenPercent, bluePercent):
         self.__socket.sendall("setColorMix " + self.__colormapId + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent) + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setGamma(self, gamma):
         self.__socket.sendall("setGamma " + self.__colormapId + " " + str(gamma) + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setDataTransform(self, transformString):
         self.__socket.sendall("setDataTransform " + self.__colormapId + " " + transformString + "\n")
@@ -84,9 +94,13 @@ class Image:
 
     def loadFile(self, fileName):
         self.__socket.sendall("loadFile " + self.__imageViewId + " " + fileName + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def loadLocalFile(self, fileName):
         self.__socket.sendall("loadLocalFile " + self.__imageViewId + " " + fileName + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def getLinkedColormaps(self):
         self.__socket.sendall("getLinkedColormaps " + self.__imageViewId + "\n")
@@ -126,6 +140,8 @@ class Image:
 
     def setClipValue(self, index):
         self.__socket.sendall("setClipValue " + self.__imageViewId + " " + index + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
 class Animator:
     """Represents an animator view"""
@@ -141,6 +157,8 @@ class Animator:
 
     def setFrame(self, index):
         self.__socket.sendall("setFrame " + self.__animatorId + " " + str(index) + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
 class Statistics:
     """Represents a statistics view"""
@@ -264,23 +282,35 @@ class Application:
 
     def setAnalysisLayout(self):
         self.socket.sendall("setAnalysisLayout" + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setCustomLayout(self, rows, cols):
         self.socket.sendall("setCustomLayout " + str(rows) + " "
                             + str(cols) + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setImageLayout(self):
         self.socket.sendall("setImageLayout" + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
         self.socket.sendall("setPlugins " + pluginString + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def linkAdd(self, source, dest):
         self.socket.sendall("linkAdd " + source.getId() + " " + dest.getId() + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
     def saveState(self, saveName):
         self.socket.sendall("saveState " + saveName + "\n")
+        result = getListFromSocket(self.__socket)
+        return result
 
 # Commands below this point are possibly broken or just not implemented yet.
 

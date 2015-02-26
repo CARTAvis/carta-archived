@@ -74,43 +74,43 @@ public:
      * @param fileName a path, relative to /scratch/Images, identifying the
      * file containing an image.
      */
-    void loadFile( const QString& objectId, const QString& fileName);
+    QString loadFile( const QString& objectId, const QString& fileName);
 
     /**
      * Load a file into an image view.
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      */
-    void loadLocalFile( const QString& objectId, const QString& fileName);
+    QString loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
      * Set the layout to a predefined analysis layout.
      */
-    void setAnalysisLayout();
+    QString setAnalysisLayout();
 
     /**
      * Set the layout to a custom layout.
      */
-    void setCustomLayout( int rows, int cols );
+    QString setCustomLayout( int rows, int cols );
 
     /**
      * Set the layout to a predefined layout displaying a single image.
      */
-    void setImageLayout();
+    QString setImageLayout();
 
     /**
      * Set the color map that is being displayed.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param colormapName the name of the color map.
      */
-    void setColorMap( const QString& colormapId, const QString& colormapName );
+    QString setColorMap( const QString& colormapId, const QString& colormapName );
 
     /**
      * Reverse the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param trueOrFalse should be equal to either "true" or "false".
      */
-    void reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
+    QString reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
      * Set caching for the current colormap
@@ -138,14 +138,14 @@ public:
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param trueOrFalse should be equal to either "true" or "false".
      */
-    void invertColorMap( const QString& colormapId, const QString& trueOrFalse );
+    QString invertColorMap( const QString& colormapId, const QString& trueOrFalse );
 
     /**
      * Set a color mix.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param percentString a formatted string specifying the blue, green, and red percentanges.
      */
-    void setColorMix( const QString& colormapId, const QString& percentString );
+    QString setColorMix( const QString& colormapId, const QString& percentString );
 
     /**
      * Set the gamma color map parameter.
@@ -167,21 +167,21 @@ public:
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
      */
-    void setPlugins( const QStringList& names );
+    QString setPlugins( const QStringList& names );
 
     /**
      * Set the image frame to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the frame number.
      */
-    void setFrame( const QString& animatorId, const QString& index );
+    QString setFrame( const QString& animatorId, const QString& index );
 
     /**
      * Set the histogram to show the specified percentage of the data.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param clipValue the percentage of data to be shown.
      */
-    void setClipValue( const QString& controlId, const QString& clipValue );
+    QString setClipValue( const QString& controlId, const QString& clipValue );
 
     /**
      * Save the current layout to a .json file in the /tmp directory.
@@ -189,7 +189,7 @@ public:
      * /tmp/fileName.json.
      * @return whether the operation was a success or not.
      */
-    bool saveState( const QString& saveName );
+    QString saveState( const QString& saveName );
 
     /**
      * Get the animators that are linked to the given image view.

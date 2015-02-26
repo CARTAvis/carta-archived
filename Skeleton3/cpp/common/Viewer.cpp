@@ -102,19 +102,22 @@ Viewer::scriptedCommandCB( QString command )
     // command: loadFile
     if ( args.size() == 3 && args[0].toLower() == "loadfile" ) {
         qDebug() << "Trying to load" << args[2] << " into " << args[1];
-        m_scriptFacade->loadFile( args[1], "/RootDirectory/" + args[2] );
+        QString output = m_scriptFacade->loadFile( args[1], "/RootDirectory/" + args[2] );
+        m_scl->dataTransporter( output );
     }
 
     // command: loadLocalFile
     if ( args.size() == 3 && args[0].toLower() == "loadlocalfile" ) {
         qDebug() << "Trying to load local file " << args[2] << " into " << args[1];
-        m_scriptFacade->loadLocalFile( args[1], args[2] );
+        QString output = m_scriptFacade->loadLocalFile( args[1], args[2] );
+        m_scl->dataTransporter( output );
     }
 
     // command: linkAdd
     else if (args.size() == 3 && args[0].toLower() == "linkadd") {
-        QString result = m_scriptFacade->linkAdd( args[1], args[2] );
-        qDebug() << "linkAdd result: " << result;
+        QString output = m_scriptFacade->linkAdd( args[1], args[2] );
+        qDebug() << "linkAdd result: " << output;
+        m_scl->dataTransporter( output );
     }
 
     // command: getImageViews
@@ -154,12 +157,14 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: setColorMap
     else if (args.size() == 3 && args[0].toLower() == "setcolormap") {
-        m_scriptFacade->setColorMap( args[1], args[2] );
+        QString output = m_scriptFacade->setColorMap( args[1], args[2] );
+        m_scl->dataTransporter( output );
     }
 
     // command: reverseColorMap
     else if (args.size() == 3 && args[0].toLower() == "reversecolormap") {
-        m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
+        QString output = m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
+        m_scl->dataTransporter( output );
     }
 
     // command: setCacheColormap
@@ -182,14 +187,16 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: invertColorMap
     else if (args.size() == 3 && args[0].toLower() == "invertcolormap") {
-        m_scriptFacade->invertColorMap( args[1], args[2].toLower() );
+        QString output = m_scriptFacade->invertColorMap( args[1], args[2].toLower() );
+        m_scl->dataTransporter( output );
     }
 
     // command: setColorMix
     else if (args.size() == 5 && args[0].toLower() == "setcolormix") {
         QString percentString;
         percentString = "redPercent:" + args[2] + ",greenPercent:" + args[3] + ",bluePercent:" + args[4];
-        m_scriptFacade->setColorMix( args[1], percentString );
+        QString output = m_scriptFacade->setColorMix( args[1], percentString );
+        m_scl->dataTransporter( output );
     }
 
     // command: setGamma
@@ -211,13 +218,15 @@ Viewer::scriptedCommandCB( QString command )
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
         //qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];
-        m_scriptFacade->setFrame( args[1], args[2] );
+        QString output = m_scriptFacade->setFrame( args[1], args[2] );
+        m_scl->dataTransporter( output );
     }
 
     // command: setClipValue
     else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
         //qDebug() << "(JT) setClipValue " << args[1];
-        m_scriptFacade->setClipValue( args[1], args[2] );
+        QString output = m_scriptFacade->setClipValue( args[1], args[2] );
+        m_scl->dataTransporter( output );
     }
 
     // command: getFileList
@@ -238,19 +247,22 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: setAnalysisLayout
     else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {
-        m_scriptFacade->setAnalysisLayout();
+        QString output = m_scriptFacade->setAnalysisLayout();
+        m_scl->dataTransporter( output );
     }
 
     // command: setCustomLayout
     else if (args.size() == 3 && args[0].toLower() == "setcustomlayout") {
         int rows = args[1].toInt();
         int cols = args[2].toInt();
-        m_scriptFacade->setCustomLayout( rows, cols );
+        QString output = m_scriptFacade->setCustomLayout( rows, cols );
+        m_scl->dataTransporter( output );
     }
 
     // command: setImageLayout
     else if (args.size() == 1 && args[0].toLower() == "setimagelayout") {
-        m_scriptFacade->setImageLayout();
+        QString output = m_scriptFacade->setImageLayout();
+        m_scl->dataTransporter( output );
     }
 
     // command: getColorMaps
@@ -276,7 +288,8 @@ Viewer::scriptedCommandCB( QString command )
             names << args[i];
         }
         //qDebug() << "(JT) setplugins: names = " << names;
-        m_scriptFacade->setPlugins(names);
+        QString output = m_scriptFacade->setPlugins(names);
+        m_scl->dataTransporter( output );
     }
     
     // command: quit
@@ -287,7 +300,8 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: saveState
     else if ( args.size() == 2 && args[0].toLower() == "savestate" ) {
-        bool result = m_scriptFacade->saveState( args[1] );
+        QString output = m_scriptFacade->saveState( args[1] );
+        m_scl->dataTransporter( output );
         //qDebug() << "(JT) saveState result = " << result;
     }
 
