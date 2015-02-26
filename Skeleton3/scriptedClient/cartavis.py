@@ -51,7 +51,7 @@ class Colormap:
         return result
 
     def setCacheSize(self, cacheSize):
-        self.__socket.sendall("setCacheSize " + self.__colormapId + " " + cacheSize + "\n")
+        self.__socket.sendall("setCacheSize " + self.__colormapId + " " + str(cacheSize) + "\n")
         result = getListFromSocket(self.__socket)
         return result
 
@@ -139,7 +139,7 @@ class Image:
         return linkedStatisticsViews
 
     def setClipValue(self, index):
-        self.__socket.sendall("setClipValue " + self.__imageViewId + " " + index + "\n")
+        self.__socket.sendall("setClipValue " + self.__imageViewId + " " + str(index) + "\n")
         result = getListFromSocket(self.__socket)
         return result
 
