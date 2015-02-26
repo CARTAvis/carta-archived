@@ -36,58 +36,58 @@ class Colormap:
 
     def setColormap(self, colormap):
         """Set the specified colormap"""
-        self.__socket.sendall("setColormap " + self.__colormapId + " " + colormap + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setColormap " + self.__colormapId + " " + colormap
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def reverseColormap(self, trueOrFalse):
-        self.__socket.sendall("reverseColormap " + self.__colormapId + " " + trueOrFalse + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "reverseColormap " + self.__colormapId + " " + trueOrFalse
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def setCacheColormap(self, cacheStr):
-        self.__socket.sendall("setCacheColormap " + self.__colormapId + " " + cacheStr + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setCacheColormap " + self.__colormapId + " " + cacheStr
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def setCacheSize(self, cacheSize):
-        self.__socket.sendall("setCacheSize " + self.__colormapId + " " + str(cacheSize) + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setCacheSize " + self.__colormapId + " " + str(cacheSize)
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def setInterpolatedColormap(self, trueOrFalse):
-        self.__socket.sendall("setInterpolatedColormap " + self.__colormapId + " " + trueOrFalse + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setInterpolatedColormap " + self.__colormapId + " " + trueOrFalse
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def invertColormap(self, trueOrFalse):
-        self.__socket.sendall("invertColormap " + self.__colormapId + " " + trueOrFalse + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "invertColormap " + self.__colormapId + " " + trueOrFalse
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def setColorMix(self, redPercent, greenPercent, bluePercent):
-        self.__socket.sendall("setColorMix " + self.__colormapId + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent) + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setColorMix " + self.__colormapId + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent)
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def setGamma(self, gamma):
-        self.__socket.sendall("setGamma " + self.__colormapId + " " + str(gamma) + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setGamma " + self.__colormapId + " " + str(gamma)
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def setDataTransform(self, transformString):
-        self.__socket.sendall("setDataTransform " + self.__colormapId + " " + transformString + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setDataTransform " + self.__colormapId + " " + transformString
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def addLink(self, imageView):
-        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "addLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def removeLink(self, imageView):
-        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
 class Image:
@@ -103,18 +103,18 @@ class Image:
         return self.__imageViewId
 
     def loadFile(self, fileName):
-        self.__socket.sendall("loadFile " + self.__imageViewId + " " + fileName + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "loadFile " + self.__imageViewId + " " + fileName
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def loadLocalFile(self, fileName):
-        self.__socket.sendall("loadLocalFile " + self.__imageViewId + " " + fileName + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "loadLocalFile " + self.__imageViewId + " " + fileName
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def getLinkedColormaps(self):
-        self.__socket.sendall("getLinkedColormaps " + self.__imageViewId + "\n")
-        linkedColormapViewsList = getListFromSocket(self.__socket)
+        commandStr = "getLinkedColormaps " + self.__imageViewId
+        linkedColormapViewsList = sendCommand(self.__socket, commandStr)
         linkedColormapViews = []
         for colomap in linkedColormapViewsList:
             linkedColormapView = makeColormap(colomap, self.__socket)
@@ -122,8 +122,8 @@ class Image:
         return linkedColormapViews
 
     def getLinkedAnimators(self):
-        self.__socket.sendall("getLinkedAnimators " + self.__imageViewId + "\n")
-        linkedAnimatorViewsList = getListFromSocket(self.__socket)
+        commandStr = "getLinkedAnimators " + self.__imageViewId
+        linkedAnimatorViewsList = sendCommand(self.__socket, commandStr)
         linkedAnimatorViews = []
         for animator in linkedAnimatorViewsList:
             linkedAnimatorView = makeAnimator(animator, self.__socket)
@@ -131,8 +131,8 @@ class Image:
         return linkedAnimatorViews
 
     def getLinkedHistograms(self):
-        self.__socket.sendall("getLinkedHistograms " + self.__imageViewId + "\n")
-        linkedHistogramViewsList = getListFromSocket(self.__socket)
+        commandStr = "getLinkedHistograms " + self.__imageViewId
+        linkedHistogramViewsList = sendCommand(self.__socket, commandStr)
         linkedHistogramViews = []
         for histogram in linkedHistogramViewsList:
             linkedHistogramView = makeHistogram(histogram, self.__socket)
@@ -140,8 +140,8 @@ class Image:
         return linkedHistogramViews
 
     def getLinkedStatistics(self):
-        self.__socket.sendall("getLinkedStatistics " + self.__imageViewId + "\n")
-        linkedStatisticsViewsList = getListFromSocket(self.__socket)
+        commandStr = "getLinkedStatistics " + self.__imageViewId
+        linkedStatisticsViewsList = sendCommand(self.__socket, commandStr)
         linkedStatisticsViews = []
         for statistics in linkedStatisticsViewsList:
             linkedStatisticsView = makeStatistics(statistics, self.__socket)
@@ -149,18 +149,18 @@ class Image:
         return linkedStatisticsViews
 
     def setClipValue(self, index):
-        self.__socket.sendall("setClipValue " + self.__imageViewId + " " + str(index) + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setClipValue " + self.__imageViewId + " " + str(index)
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def addLink(self, destView):
-        self.__socket.sendall("addLink " + destView.getId() + " " + self.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "addLink " + destView.getId() + " " + self.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def removeLink(self, destView):
-        self.__socket.sendall("removeLink " + destView.getId() + " " + self.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "removeLink " + destView.getId() + " " + self.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
 class Animator:
@@ -176,18 +176,18 @@ class Animator:
         return self.__animatorId
 
     def setFrame(self, index):
-        self.__socket.sendall("setFrame " + self.__animatorId + " " + str(index) + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "setFrame " + self.__animatorId + " " + str(index)
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def addLink(self, imageView):
-        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "addLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def removeLink(self, imageView):
-        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
 class Statistics:
@@ -203,13 +203,13 @@ class Statistics:
         return self.__statisticsId
 
     def addLink(self, imageView):
-        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "addLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def removeLink(self, imageView):
-        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
 class Histogram:
@@ -225,13 +225,13 @@ class Histogram:
         return self.__histogramId
 
     def addLink(self, imageView):
-        self.__socket.sendall("addLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "addLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
     def removeLink(self, imageView):
-        self.__socket.sendall("removeLink " + self.getId() + " " + imageView.getId() + "\n")
-        result = getListFromSocket(self.__socket)
+        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
+        result = sendCommand(self.__socket, commandStr)
         return result
 
 class Application:
@@ -276,18 +276,18 @@ class Application:
         self.kill()
 
     def getColormaps(self, substring=""):
-        self.socket.sendall("getColormaps " + substring + "\n")
-        colormapsList = getListFromSocket(self.socket)
+        commandStr = "getColormaps " + substring
+        colormapsList = sendCommand(self.socket, commandStr)
         return colormapsList
 
     def getFileList(self, substring=""):
-        self.socket.sendall("getFileList " + substring + "\n")
-        fileList = getListFromSocket(self.socket)
+        commandStr = "getFileList " + substring
+        fileList = sendCommand(self.socket, commandStr)
         return fileList
 
     def getImageViews(self):
-        self.socket.sendall("getImageViews" + "\n")
-        imageViewsList = getListFromSocket(self.socket)
+        commandStr = "getImageViews"
+        imageViewsList = sendCommand(self.socket, commandStr)
         imageViews = []
         for iv in imageViewsList:
             imageView = makeImage(iv, self.socket)
@@ -295,8 +295,8 @@ class Application:
         return imageViews
 
     def getColormapViews(self):
-        self.socket.sendall("getColormapViews" + "\n")
-        colormapViewsList = getListFromSocket(self.socket)
+        commandStr = "getColormapViews"
+        colormapViewsList = sendCommand(self.socket, commandStr)
         colormapViews = []
         for cmv in colormapViewsList:
             colormapView = makeColormap(cmv, self.socket)
@@ -304,8 +304,8 @@ class Application:
         return colormapViews
 
     def getAnimatorViews(self):
-        self.socket.sendall("getAnimatorViews" + "\n")
-        animatorViewsList = getListFromSocket(self.socket)
+        commandStr = "getAnimatorViews"
+        animatorViewsList = sendCommand(self.socket, commandStr)
         animatorViews = []
         for av in animatorViewsList:
             animatorView = makeAnimator(av, self.socket)
@@ -313,8 +313,8 @@ class Application:
         return animatorViews
 
     def getHistogramViews(self):
-        self.socket.sendall("getHistogramViews" + "\n")
-        histogramViewsList = getListFromSocket(self.socket)
+        commandStr = "getHistogramViews"
+        histogramViewsList = sendCommand(self.socket, commandStr)
         histogramViews = []
         for hv in histogramViewsList:
             histogramView = makeHistogram(hv, self.socket)
@@ -322,8 +322,8 @@ class Application:
         return histogramViews
 
     def getStatisticsViews(self):
-        self.socket.sendall("getStatisticsViews" + "\n")
-        statisticsViewsList = getListFromSocket(self.socket)
+        commandStr = "getStatisticsViews"
+        statisticsViewsList = sendCommand(self.socket, commandStr)
         statisticsViews = []
         for sv in statisticsViewsList:
             statisticsView = makeStatistics(sv, self.socket)
@@ -331,66 +331,40 @@ class Application:
         return statisticsViews
 
     def setAnalysisLayout(self):
-        self.socket.sendall("setAnalysisLayout" + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "setAnalysisLayout"
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def setCustomLayout(self, rows, cols):
-        self.socket.sendall("setCustomLayout " + str(rows) + " "
-                            + str(cols) + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "setCustomLayout " + str(rows) + " " + str(cols)
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def setImageLayout(self):
-        self.socket.sendall("setImageLayout" + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "setImageLayout"
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
-        self.socket.sendall("setPlugins " + pluginString + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "setPlugins " + pluginString
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def addLink(self, source, dest):
-        self.socket.sendall("addLink " + source.getId() + " " + dest.getId() + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "addLink " + source.getId() + " " + dest.getId()
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def removeLink(self, source, dest):
-        self.socket.sendall("removeLink " + source.getId() + " " + dest.getId() + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "removeLink " + source.getId() + " " + dest.getId()
+        result = sendCommand(self.socket, commandStr)
         return result
 
     def saveState(self, saveName):
-        self.socket.sendall("saveState " + saveName + "\n")
-        result = getListFromSocket(self.socket)
+        commandStr = "saveState " + saveName
+        result = sendCommand(self.socket, commandStr)
         return result
-
-# Commands below this point are possibly broken or just not implemented yet.
-
-    def setResolution(self, xres, yres):
-        print "Setting resolution to (" + str(xres) + ", " + str(yres) + ")"
-
-    def applyAutoClip(self, percentage):
-        print "Applying autoclip of " + str(percentage) + "%"
-        self.socket.sendall("applyAutoClip " + str(percentage) + "\n")
-
-    def setCoordinates(self, coordinateSystem):
-        print "Setting coordinates to " + coordinateSystem + " system"
-        self.socket.sendall("setCoordinates " + coordinateSystem + "\n")
-
-    def showCoordinates(self):
-        self.socket.sendall("showcoordinates" + "\n")
-
-    def hideCoordinates(self):
-        self.socket.sendall("hidecoordinates" + "\n")
-
-    def toggleCoordinates(self):
-        self.socket.sendall("togglecoordinates" + "\n")
-
-    def saveScreenshot(self, fileName):
-        print "Saving screenshot as " + fileName
 
 def start(
         executable = "/home/jeff/scratch/build/cpp/desktop/desktop", 
@@ -427,7 +401,9 @@ def makeHistogram(histogramId, socket):
     histogram = Histogram(histogramId, socket)
     return histogram
 
-def getListFromSocket(socket):
+def sendCommand(socket, commandStr):
+    socket.sendall(commandStr + "\n")
+
     # Get a small amount of data from the socket
     bufferSize = 10
     stringData = socket.recv(bufferSize)
