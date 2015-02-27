@@ -334,8 +334,25 @@ def makeHistogram(histogramId, socket):
     return histogram
 
 def sendCommand(socket, commandStr):
-    socket.sendall(commandStr + "\n")
+    sendTypedMessage(socket, commandStr, 1)
+    data = []
+    print "sendCommand data (before) = " + str(data)
+    output = receiveTypedMessage(socket, 1, data)
+    print "sendCommand data (after) = " + str(data)
+    #return output
+    return data
 
+def sendNBytes(socket, message):
+    """the sendNBytes() method"""
+    """returns a boolean value, either:"""
+    """     nothing else to read"""
+    """     all bytes"""
+    """needs to loop until all bytes have been read"""
+    print "Sending message: " + message
+    socket.sendall(message + "\n")
+
+def receiveNBytes(socket, n, data):
+    """the receiveNBytes() method"""
     # Get a small amount of data from the socket
     bufferSize = 10
     stringData = socket.recv(bufferSize)
@@ -349,5 +366,35 @@ def sendCommand(socket, commandStr):
     if (goodDataLength > bufferSize):
         stringData = stringData + socket.recv(goodDataLength - lengthSoFar)
     listData = stringData.splitlines()
-    return listData
+    for d in listData:
+        data.append(d)
+    print "receiveNBytes data = " + str(data)
+    return True
+    #return listData
 
+def sendMessage(socket, message):
+    """the sendMessage() method"""
+    sendNBytes(socket, message)
+
+def receiveMessage(socket, data):
+    """the receiveMessage() method"""
+    """format: 4, 6, or 8 bytes: the size of the following message"""
+    """after receiving this, enter a loop to receive this number of bytes"""
+    #output = receiveNBytes(socket, 100000)
+    print "receiveMessage data (before) = " + str(data)
+    output = receiveNBytes(socket, 100000, data)
+    print "receiveMessage data (after) = " + str(data)
+    return output
+
+def sendTypedMessage(socket, message, messageType):
+    """the sendTypedMessage() method"""
+    sendMessage(socket, message)
+
+def receiveTypedMessage(socket, messageType, data):
+    """the receiveTypedMessage() method"""
+    #output = receiveMessage(socket)
+    print "receiveTypedMessage data (before) = " + str(data)
+    output = receiveMessage(socket, data)
+    print "receiveTypedMessage data (after) = " + str(data)
+    #return output
+    return data
