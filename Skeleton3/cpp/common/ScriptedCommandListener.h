@@ -18,11 +18,11 @@ public:
 
     QString dataTransporter(QString input);
 
-    bool receiveNBytes( int n, QString& data );
+    bool receiveNBytes( int n, char** data );
 
-    bool receiveMessage( QString& data);
+    bool receiveMessage( char** data);
 
-    bool receiveTypedMessage( QString messageType, QString& data );
+    bool receiveTypedMessage( QString messageType, char** data );
 
     static const QString SIZE_DELIMITER;
 

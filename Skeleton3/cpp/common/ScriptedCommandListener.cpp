@@ -37,8 +37,11 @@ void ScriptedCommandListener::newConnectionCB()
 void ScriptedCommandListener::socketDataCB()
 {
     qDebug() << "scripted command listener: socket data ready";
-    QString str;
-    bool result = receiveTypedMessage( "whatever", str );
+    //QString str;
+    char* buffer;
+    bool result = receiveTypedMessage( "whatever", &buffer );
+    QString str = QString::fromUtf8(buffer);
+    qDebug() << "(JT) ScriptedCommandListener::socketDataCB str = " << str;
     if (result == true) {
         str = str.trimmed();
         emit command( str);
@@ -60,11 +63,13 @@ QString ScriptedCommandListener::dataTransporter( QString input )
     return input;
 }
 
-bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
+//bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
+bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 {
     bool result = true;
     char buff[n];
-    qint64 lineLength = m_connection-> readLine( buff, n );
+    qint64 lineLength = m_connection-> readLine( buff, n+1 );
+    qDebug() << "(JT) receiveNBytes() lineLength = " << lineLength;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = false;
@@ -75,22 +80,37 @@ bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
         result = false;
     }
 
+    qDebug() << "(JT) receiveNBytes() data before = " << data;
     if (result == true) {
-        data = buff;
+        *data = buff;
     }
+    qDebug() << "(JT) receiveNBytes() data after = " << data;
     return result;
 }
 
-bool ScriptedCommandListener::receiveMessage( QString& data )
+//bool ScriptedCommandListener::receiveMessage( QString& data )
+bool ScriptedCommandListener::receiveMessage( char** data )
 {
     //format: 4, 6, or 8 bytes: the size of the following message
     //after receiving this, enter a loop to receive this number of bytes
-    bool result = receiveNBytes( 1000000, data );
+    //QString sizeStr;
+    int sizeLength = sizeof(int);
+    qDebug() << "(JT) receiveMessage() sizeLength = " << sizeLength;
+    char* sizeStr[sizeLength];
+    bool result = receiveNBytes(sizeLength, sizeStr);
+    //unsigned long size = sizeStr.toULong();
+    int size = atoi( *sizeStr );
+    qDebug() << "(JT) receiveMessage() size = " << size;
+    qDebug() << "(JT) receiveMessage() data before = " << data;
+    result = receiveNBytes( 1000000, data );
+    qDebug() << "(JT) receiveMessage() data after = " << data;
     return result;
 }
 
-bool ScriptedCommandListener::receiveTypedMessage( QString messageType, QString& data )
+bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
 {
+    qDebug() << "(JT) receiveTypedMessage() data before = " << data;
     bool result = receiveMessage( data );
+    qDebug() << "(JT) receiveTypedMessage() data after = " << data;
     return result;
 }

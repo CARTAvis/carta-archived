@@ -5,6 +5,7 @@ import subprocess
 import socket
 import time
 import os.path
+import struct
 
 """
 Sample run:
@@ -342,14 +343,15 @@ def sendCommand(socket, commandStr):
     #return output
     return data
 
-def sendNBytes(socket, message):
+def sendNBytes(socket, message, n):
     """the sendNBytes() method"""
     """returns a boolean value, either:"""
     """     nothing else to read"""
     """     all bytes"""
     """needs to loop until all bytes have been read"""
-    print "Sending message: " + message
-    socket.sendall(message + "\n")
+    print "sendNBytes"
+    print "Sending message: " + str(message)
+    socket.sendall(message)
 
 def receiveNBytes(socket, n, data):
     """the receiveNBytes() method"""
@@ -374,7 +376,9 @@ def receiveNBytes(socket, n, data):
 
 def sendMessage(socket, message):
     """the sendMessage() method"""
-    sendNBytes(socket, message)
+    packed_len = struct.pack('>i', len(message))
+    print "len(packed_len) = " + str(len(packed_len))
+    sendNBytes(socket, packed_len + message, 100000)
 
 def receiveMessage(socket, data):
     """the receiveMessage() method"""
