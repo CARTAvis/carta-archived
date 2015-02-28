@@ -59,7 +59,7 @@ def uploadBuildFiles():
     rsync_project(
         local_dir=".",
         remote_dir=remoteDeployDir+"/build",
-        extra_opts="--links")
+        extra_opts="--links --delete")
     puts("OK")
     return
 
