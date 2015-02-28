@@ -67,9 +67,11 @@ public:
     /// add a callback for a state change event
     virtual CallbackID addStateCallback( CSR path, const StateChangedCallback & cb) = 0;
 
-    /// remove a callback for a state change event
-    virtual void removeStateCallback( const CallbackID & id ) = 0;
+    /// add a callback for a tree change
 
+    /// remove a callback for a state change event
+    /// \todo maybe we can have a universal 'removeCallback' for commands/states
+    virtual void removeStateCallback( const CallbackID & id ) = 0;
 
     virtual ~IConnector() {}
 };
