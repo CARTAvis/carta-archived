@@ -79,8 +79,8 @@ void ErrorManager::_addReport( const QString& msg, ErrorSeverity sev){
     assert( msg.trimmed().length() > 0 );
     QString cleanedMsg(msg);
     cleanedMsg.replace(ERROR_SEPARATOR, ' ');
-    ErrorReport* report = new ErrorReport(cleanedMsg, sev );
-    errorList.push( std::shared_ptr<ErrorReport>(report));
+    std::shared_ptr<ErrorReport> report(new ErrorReport(cleanedMsg, sev ));
+    errorList.push(report);
     bool existingErrors = m_state.getValue<bool>( ERRORS_EXIST );
     if ( !existingErrors ){
         m_state.setValue<bool>(ERRORS_EXIST, true );

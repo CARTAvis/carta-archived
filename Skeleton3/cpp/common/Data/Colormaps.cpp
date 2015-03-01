@@ -116,6 +116,7 @@ std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed>  Colormaps::getColorM
     for ( int i = 0; i < mapCount; i++ ){
         if ( m_colormaps[i]->name() == mapName ){
             map = m_colormaps[i];
+            break;
         }
     }
     return map;

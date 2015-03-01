@@ -439,7 +439,7 @@ qx.Class
                             }
                             return restored;
                         },
-
+                        
                         /**
                          * Remove all windows.
                          */
@@ -471,6 +471,26 @@ qx.Class
                             var secondWindows = this.m_areaSecond.getWindows();
                             var windows = firstWindows.concat( secondWindows );
                             return windows;
+                        },
+                        
+                        /**
+                         * Returns the window at the given location if one exists; otherwise returns null.
+                         * @param row {Number} the desired grid row.
+                         * @param col {Number} the desired grid column.
+                         * @return {skel.widgets.Window.DisplayWindow} window at the given location contained
+                         *      in a child of this object or null if there is no such window.
+                         */
+                        getWindow : function( row, col ){
+                            var win = null;
+                            if ( this.m_areaFirst !== null ){
+                                win = this.m_areaFirst.getWindow( row, col );
+                            }
+                            if ( win === null ){
+                                if ( this.m_areaSecond !== null ){
+                                    win = this.m_areaSecond.getWindow( row, col );
+                                }
+                            }
+                            return win;
                         },
 
                         /**

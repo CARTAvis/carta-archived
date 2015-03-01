@@ -194,6 +194,22 @@ qx.Class
                             }
                             return winArray;
                         },
+                        
+                        /**
+                         * Returns this desktop window if the location matches; otherwise return null.
+                         * @param row {Number} the desired grid row.
+                         * @param col {Number} the desired grid column.
+                         * @return {skel.widgets.Window.DisplayWindow} window managed by this desktop or
+                         *      null if the desktop is not located in the specified grid row and column.
+                         */
+                        getWindow : function( row, col ){
+                            var win = null;
+                            if ( this.m_row == row && this.m_col == col ){
+                                win = this.m_window;
+                            }
+                            return win;
+                        },
+
 
                         /**
                          * Returns the identifier for the window this desktop
@@ -231,6 +247,7 @@ qx.Class
                                     this.m_row, this.m_col, false );
                             this._addWindowListeners();
                         },
+                        
                         
                         /**
                          * Remove all DisplayWindows.
@@ -368,9 +385,12 @@ qx.Class
                                 return false;
                             }
                             var existingWindow = false;
-                            if (this.m_window !== null) {
-                                //Not the same plugin so we will remake the window.
-                                if( this.m_window.getPlugin() != pluginId ) {
+                            
+                            if (this.m_window !== null ) {
+                                
+                                //Not the same plugin or the window has beeen removed because it is being used
+                                //elsewhere so we will remake the window.
+                                if( this.m_window.getPlugin() != pluginId) {
                                     this.removeWindows();
                                     this.m_window = null;
                                     this._makeWindow( pluginId, index);
@@ -410,9 +430,15 @@ qx.Class
                             if (rowIndex != this.m_row || colIndex != this.m_col) {
                                 return false;
                             }
-                            this.m_window = window;
-                            this.add( this.m_window );
-                            this._resetWindowSize();
+                            
+                            if ( this.m_window === null ||this.m_window.getPlugin() != window.getPlugin() ){
+                                if ( this.m_window !== null ){
+                                    this.removeAll();
+                                }
+                                this.m_window = window;
+                                this.add( this.m_window );
+                                this._resetWindowSize();
+                            }
                             return true;
                         },
                         

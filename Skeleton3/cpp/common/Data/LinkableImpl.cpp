@@ -17,12 +17,11 @@ LinkableImpl::LinkableImpl( StateInterface* state ){
     _initializeState();
 }
 
-bool LinkableImpl::addLink( const std::shared_ptr<Controller>& controller ){
+bool LinkableImpl::addLink( Controller*& controller ){
     bool linkAdded = false;
     if ( controller ){
         int index = _getIndex( controller );
         if ( index < 0  ){
-
             m_controllers.push_back( controller );
             _adjustStateController();
         }
@@ -52,7 +51,7 @@ void LinkableImpl::clear(){
 
 
 
-int LinkableImpl::_getIndex( const std::shared_ptr<Controller>& controller ){
+int LinkableImpl::_getIndex( Controller*& controller ){
     int index = -1;
     int controllerCount = m_controllers.size();
     QString targetPath = controller->getPath();
@@ -75,7 +74,7 @@ int LinkableImpl::getSelectedImage() const {
 
 int LinkableImpl::getImageCount() const {
     int maxImages = 0;
-    for (std::shared_ptr<Controller> controller : m_controllers ){
+    for (Controller* controller : m_controllers ){
         int imageCount = controller->getStackedImageCount();
         if ( imageCount > maxImages ){
             maxImages = imageCount;
@@ -113,7 +112,7 @@ void LinkableImpl::_initializeState(){
     m_state->insertArray(LINK, 0 );
 }
 
-bool LinkableImpl::removeLink( const std::shared_ptr<Controller>& controller ){
+bool LinkableImpl::removeLink( Controller*& controller ){
     bool linkRemoved = false;
     if ( controller ){
         int index = _getIndex( controller );
@@ -126,11 +125,11 @@ bool LinkableImpl::removeLink( const std::shared_ptr<Controller>& controller ){
     return linkRemoved;
 }
 
-std::shared_ptr<Controller> LinkableImpl::searchLinks(const QString& link){
-    std::shared_ptr<Controller> result(nullptr);
+Controller* LinkableImpl::searchLinks(const QString& link){
+    Controller* result = nullptr;
     int controllerCount = m_controllers.size();
     for( int i = 0; i < controllerCount; i++ ){
-        if(m_controllers[i].get()->getPath() == link){
+        if(m_controllers[i]->getPath() == link){
             result = m_controllers[i];
             break;
         }

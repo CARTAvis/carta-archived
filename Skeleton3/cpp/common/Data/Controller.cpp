@@ -36,7 +36,9 @@ public:
 
 const QString Controller::CLIP_VALUE_MIN = "clipValueMin";
 const QString Controller::CLIP_VALUE_MAX = "clipValueMax";
+const QString Controller::CLOSE_IMAGE = "closeImage";
 const QString Controller::AUTO_CLIP = "autoClip";
+const QString Controller::DATA = "data";
 const QString Controller::DATA_COUNT = "dataCount";
 const QString Controller::DATA_PATH = "dataPath";
 const QString Controller::CURSOR = "formattedCursorCoordinates";
@@ -65,8 +67,8 @@ Controller::Controller( const QString& path, const QString& id ) :
 
     _initializeSelections();
 
-     connect( m_selectChannel.get(), SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
-     connect( m_selectImage.get(), SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
+     connect( m_selectChannel, SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
+     connect( m_selectImage, SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
 
      _initializeState();
 
@@ -94,15 +96,14 @@ void Controller::addData(const QString& fileName) {
     //Add the data if it is not already there.
     if (targetIndex == -1) {
         CartaObject* dataSource = Util::createObject( DataSource::CLASS_NAME );
-        std::shared_ptr<DataSource> targetSource( dynamic_cast<DataSource*>(dataSource));
+        DataSource* targetSource = dynamic_cast<DataSource*>(dataSource);
         targetIndex = m_datas.size();
-        connect( targetSource.get(), SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
+        connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         m_datas.append(targetSource);
         targetSource->viewResize( m_viewSize );
 
         //Update the data selectors upper bound based on the data.
         m_selectImage->setUpperBound(m_datas.size());
-        saveState();
     }
 
     bool successfulLoad = m_datas[targetIndex]->setFileName(fileName );
@@ -110,6 +111,7 @@ void Controller::addData(const QString& fileName) {
         int frameCount = m_datas[targetIndex]->getFrameCount();
         m_selectChannel->setUpperBound( frameCount );
         m_selectImage->setIndex(targetIndex);
+        saveState();
 
         //Refresh the view of the data.
         _scheduleFrameReload();
@@ -118,7 +120,7 @@ void Controller::addData(const QString& fileName) {
         emit dataChanged( this );
     }
     else {
-        m_datas.removeAt( targetIndex );
+        _removeData( targetIndex );
     }
 }
 
@@ -126,11 +128,28 @@ void Controller::clear(){
     unregisterView();
 }
 
-
+QString Controller::closeImage( const QString& name ){
+    int targetIndex = -1;
+    QString result;
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->contains( name )){
+            targetIndex = i;
+            break;
+        }
+    }
+    if ( targetIndex >= 0 ){
+        this->_removeData( targetIndex );
+    }
+    else {
+        result = "Could not find data to remove for name="+name;
+    }
+    return result;
+}
 
 NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
     NdArray::RawViewInterface * rawData = nullptr;
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         if ( data->contains( fileName )){
             rawData = data->getRawData( channel );
             break;
@@ -144,7 +163,7 @@ NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, in
 std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
     std::vector<std::shared_ptr<Image::ImageInterface>> images(m_datas.count());
     for( int i=0; i<m_datas.count(); ++i ){ 
-        images[i] = m_datas[i].get()->getImage();
+        images[i] = m_datas[i]->getImage();
     }
     return images;
 }
@@ -162,7 +181,7 @@ int Controller::getSelectImageIndex() const {
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
-        std::shared_ptr<DataSource> data = Controller::m_datas[index];
+        DataSource* data = Controller::m_datas[index];
         name = data->getFileName();
     }
     return name;
@@ -272,6 +291,15 @@ void Controller::_initializeCallbacks(){
 
     });
 
+    addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) ->QString {
+        std::set<QString> keys = {"image"};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString imageName = dataValues[*keys.begin()];
+        QString result = closeImage( imageName );
+                return result;
+            });
+
     addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) ->QString {
             auto vals = Util::string2VectorDouble( params );
@@ -330,9 +358,9 @@ void Controller::_initializeSelections(){
 }
 
 
-void Controller::_initializeSelection( std::shared_ptr<Selection> & selection ){
+void Controller::_initializeSelection( Selection* & selection ){
     CartaObject* selectObj = Util::createObject( Selection::CLASS_NAME );
-    selection.reset( dynamic_cast<Selection*>(selectObj) );
+    selection = dynamic_cast<Selection*>(selectObj);
 }
 
 
@@ -343,6 +371,7 @@ void Controller::_initializeState(){
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
     m_state.insertValue<int>(DATA_COUNT, 0 );
+    m_state.insertArray(DATA, 0 );
 
 
     //For testing only.
@@ -400,11 +429,26 @@ QString Controller::_makeRegion( const QString& regionType ){
         ObjectManager* objManager = ObjectManager::objectManager();
         CartaObject* shapeObj = objManager->getObject( shapePath );
         shapePath = shapeObj->getPath();
-        std::shared_ptr<Region> target( dynamic_cast<Region*>(shapeObj) );
-        m_regions.append(target);
+        m_regions.append(dynamic_cast<Region*>(shapeObj));
 
      }
     return shapePath;
+}
+
+void Controller::_removeData( int index ){
+    disconnect( m_datas[index]);
+    int selectedImage = m_selectImage->getIndex();
+    m_datas.removeAt( index );
+    m_selectImage->setUpperBound( m_datas.size());
+    if ( selectedImage == index ){
+       m_selectImage->setIndex( 0 );
+    }
+    else if ( index < selectedImage ){
+       m_selectImage->setIndex( selectedImage - 1);
+    }
+    this->_loadView();
+
+    saveState();
 }
 
 void Controller::_render(){
@@ -424,20 +468,33 @@ void Controller::_repaintFrameNow(){
 }
 
 void Controller::saveState() {
-    //Note:: we need to save the number of data items that have been added
-    //since otherwise, if data items have been deleted, their states will not
-    //have been deleted, and we need to know when we read the states back in,
-    //which ones represent valid data items and which ones do not.
-
+    bool stateChanged = false;
     int dataCount = m_datas.size();
-    m_state.setValue<int>( DATA_COUNT, dataCount );
-    for (int i = 0; i < dataCount; i++) {
-        m_datas[i]->saveState(/*m_winId, i*/);
+    int oldDataCount = m_state.getValue<int>(DATA_COUNT );
+    if ( oldDataCount != dataCount ){
+        stateChanged = true;
+        m_state.setValue<int>( DATA_COUNT, dataCount );
+        //Insert the names of the data items for display purposes.
+        m_state.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
+        for (int i = 0; i < dataCount; i++) {
+            m_datas[i]->saveState(/*m_winId, i*/);
+            QString imageViewName = m_datas[i]->getImageViewName();
+            QString dataKey = DATA + StateInterface::DELIMITER +QString::number(i);
+            QString oldViewName;
+            if ( i < oldDataCount ){
+                oldViewName = m_state.getValue<QString>(dataKey);
+            }
+            if ( imageViewName != oldViewName ){
+                m_state.setValue<QString>( dataKey, imageViewName );
+            }
+        }
     }
-    int regionCount = m_regions.size();
+    /*int regionCount = m_regions.size();
     m_state.resizeArray( REGIONS, regionCount );
-    _saveRegions();
-    m_state.flushState();
+    _saveRegions();*/
+    if ( stateChanged ){
+        m_state.flushState();
+    }
 }
 
 void Controller::_saveRegions(){
@@ -478,28 +535,28 @@ void Controller::_scheduleFrameReload(){
 }
 
 void Controller::setColorInverted( bool inverted ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         data->setColorInverted( inverted );
     }
     _render();
 }
 
 void Controller::setColorMap( const QString& name ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         data->setColorMap( name );
     }
     _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         data->setColorReversed( reversed );
     }
     _render();
 }
 
 void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         data->setColorAmounts( newRed, newGreen, newBlue );
     }
     _render();
@@ -507,7 +564,7 @@ void Controller::setColorAmounts( double newRed, double newGreen, double newBlue
 
 void Controller::setPixelCaching( bool enabled ){
     if ( m_datas.size() > 0 ){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
+        for ( DataSource* data : m_datas ){
             data->setPixelCaching( enabled );
         }
     }
@@ -515,7 +572,7 @@ void Controller::setPixelCaching( bool enabled ){
 
 void Controller::setCacheInterpolation( bool enabled ){
     if ( m_datas.size() > 0 ){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
+        for ( DataSource* data : m_datas ){
             data->setCacheInterpolation( enabled );
         }
     }
@@ -523,7 +580,7 @@ void Controller::setCacheInterpolation( bool enabled ){
 
 void Controller::setCacheSize( int size ){
     if ( m_datas.size() > 0 ){
-        for ( std::shared_ptr<DataSource> data : m_datas ){
+        for ( DataSource* data : m_datas ){
             data->setCacheSize( size );
         }
     }
@@ -549,14 +606,14 @@ void Controller::setFrameImage(const QString& val) {
 }
 
 void Controller::setGamma( double gamma ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         data->setGamma( gamma );
     }
     _render();
 }
 
 void Controller::setTransformData( const QString& name ){
-    for ( std::shared_ptr<DataSource> data : m_datas ){
+    for ( DataSource* data : m_datas ){
         data->setTransformData( name );
     }
     _render();
@@ -604,7 +661,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             else {
                 newZoom = oldZoom * 0.9;
             }
-            for (std::shared_ptr<DataSource> data : m_datas ){
+            for (DataSource* data : m_datas ){
                 data->setZoom( newZoom );
             }
 
@@ -617,7 +674,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             // add the delta to the current center
             QPointF currCenter = m_datas[imageIndex]->getCenter();
             QPointF newCenter = currCenter + delta;
-            for ( std::shared_ptr<DataSource> data : m_datas ){
+            for ( DataSource* data : m_datas ){
                 data->setPan( newCenter.x(), newCenter.y() );
             }
             _render();
@@ -631,7 +688,7 @@ void Controller::updatePan( double centerX , double centerY){
         bool validImage = false;
         QPointF newCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
-            for ( std::shared_ptr<DataSource> data : m_datas ){
+            for ( DataSource* data : m_datas ){
                 data->setPan( newCenter.x(), newCenter.y() );
             }
             _render();
@@ -647,10 +704,26 @@ void Controller::_viewResize( const QSize& newSize ){
     _render();
 }
 
-
-
 Controller::~Controller(){
     clear();
+    ObjectManager* objMan = ObjectManager::objectManager();
+    if ( m_selectChannel != nullptr){
+        objMan->destroyObject(m_selectChannel->getId());
+        m_selectChannel = nullptr;
+    }
+    if ( m_selectImage != nullptr ){
+        objMan->destroyObject( m_selectImage->getId());
+        m_selectImage = nullptr;
+    }
+    for ( DataSource* source : m_datas ){
+        objMan->destroyObject( source->getId());
+    }
+    m_datas.clear();
+
+    for ( Region* region : m_regions ){
+        objMan->destroyObject( region->getId());
+    }
+    m_regions.clear();
 }
 
 }

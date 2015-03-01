@@ -32,13 +32,13 @@ public:
      * Adds a Controller to this animator.
      * @param controller the DataController that will be managed.
      */
-    virtual bool addLink( const std::shared_ptr<Controller>& controller ) ;
+    virtual bool addLink( Controller*& controller ) ;
 
     /**
      * Adds a Controller to this animator.
      * @param controller the DataController that will be managed.
      */
-    virtual bool removeLink( const std::shared_ptr<Controller>& controller );
+    virtual bool removeLink( Controller*& controller );
 
     /**
      * Clear current state..
@@ -68,9 +68,11 @@ public:
 
     void changeChannelIndex( const QString& params );
 
+    virtual ~Animator();
+
 private slots:
     //Adjusts internal state based on the state in the child controllers.
-    void _adjustStateController( const Controller* controller);
+    void _adjustStateController( Controller* controller);
     void _imageIndexChanged( const QString& params );
     void _channelIndexChanged( const QString& params );
 
@@ -98,7 +100,7 @@ private:
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     /// Individual animation types.
-    QMap<QString, std::shared_ptr<AnimatorType> > m_animators;
+    QMap<QString, AnimatorType*> m_animators;
 
 
     static bool m_registered;

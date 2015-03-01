@@ -24,9 +24,6 @@ class ViewPlugins;
 class ViewManager : public CartaObject {
 
 public:
-
-    virtual ~ViewManager(){}
-
     /**
      * Return the unique server side id of the object with the given name and index in the
      * layout.
@@ -89,6 +86,7 @@ public:
      * responsible for displaying the file.
      */
     void loadFile( const QString& objectId, const QString& fileName);
+
 
     /**
      * Load a local file into the controller with the given id.
@@ -193,12 +191,6 @@ public:
     void setImageView();
 
     /**
-     * Set plugins for each of the views in the layout
-     * @param names a list of plugin names.
-     */
-    void setPlugins( const QStringList& names );
-
-    /**
      * Set the histogram to show the specified percentage of the data.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param clipValue the percentage of data to be shown.
@@ -221,7 +213,18 @@ public:
 
     QStringList getLinkedStatistics( const QString& controlId );
 
+    /**
+     * Set the list of plugins to be displayed.
+     * @param names a list of identifiers for the plugins.
+     */
+    bool setPlugins( const QStringList& names );
+
     static const QString CLASS_NAME;
+
+    /**
+     * Destructor.
+     */
+    virtual ~ViewManager();
 
 private:
     ViewManager( const QString& path, const QString& id);
@@ -255,28 +258,31 @@ private:
     void _makeDataLoader();
 
 
+    void _removeView( const QString& plugin, int index );
+
+
     bool _readState( const QString& fileName );
     bool _saveState( const QString& fileName );
 
     //A list of Controllers requested by the client.
-    QList <std::shared_ptr<Controller> > m_controllers;
+    QList <Controller* > m_controllers;
 
     //A list of Animators requested by the client.
-    QList < std::shared_ptr<Animator> > m_animators;
+    QList < Animator* > m_animators;
 
     //Colormap
-    QList<std::shared_ptr<Colormap>  >m_colormaps;
+    QList<Colormap* >m_colormaps;
 
     //Histogram
-    QList<std::shared_ptr<Histogram> >m_histograms;
+    QList<Histogram* >m_histograms;
 
     //Statistics
-    QList<std::shared_ptr<Statistics> > m_statistics;
+    QList<Statistics* > m_statistics;
 
     static bool m_registered;
-    std::shared_ptr<Layout> m_layout;
-    std::shared_ptr<DataLoader> m_dataLoader;
-    std::shared_ptr<ViewPlugins> m_pluginsLoaded;
+    Layout* m_layout;
+    DataLoader* m_dataLoader;
+    ViewPlugins* m_pluginsLoaded;
 
     const static QString SOURCE_ID;
     const static QString DEST_ID;

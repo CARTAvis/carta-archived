@@ -121,6 +121,8 @@ private:
     //Set the upper, lower, or index value, checking that it is a valid value.
     bool _setFrameBoundsCheck(/*StateKey key*/const QString& key , int bound);
 
+    Selection( const Selection& other);
+    Selection operator=( const Selection& other );
 };
 }
 }

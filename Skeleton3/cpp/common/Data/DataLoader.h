@@ -40,6 +40,8 @@ public:
     static QString fakeRootDirName;
     const static QString CLASS_NAME;
 
+    virtual ~DataLoader(){};
+
 private:
 
     static bool m_registered;
@@ -55,6 +57,8 @@ private:
     //Add a file to the list of those available in a given directory.
     void makeFileNode(QJsonArray& parentArray, const QString& fileName);
     DataLoader( const QString& path, const QString& id);
+    DataLoader( const DataLoader& other);
+    DataLoader operator=( const DataLoader& other );
 };
 }
 }

@@ -223,6 +223,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             for ( var i = 0; i < windows.length; i++ ){
                 if ( windows[i].getPlugin() === plugin ){
                     window = windows[i];
+                    //this.m_pane.removeWindow( windows[i]);
                     windows.splice( i, 1 );
                     break;
                 }
@@ -239,8 +240,10 @@ qx.Class.define("skel.widgets.DisplayMain",
             var index = 0;
             var pluginMap = {};
             for (var row = 0; row < this.m_gridRowCount; row++) {
+                console.log( "row="+row);
                 for (var col = 0; col < this.m_gridColCount; col++) {
                     var name = layoutObj.plugins[index];
+                    console.log( "Name="+name+" col="+col);
                     if ( name && typeof(name) == "string" && name.length > 0 ){
                         if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
                             if ( pluginMap[name] ===undefined ){
@@ -248,10 +251,15 @@ qx.Class.define("skel.widgets.DisplayMain",
                             }
                             pluginMap[name] = pluginMap[name] + 1;
                             var window = this._findWindow ( name, windows );
-                            if ( window === null ){
+                            console.log( "Found window "+name);
+                            var origWin = this.m_pane.getWindow( row, col );
+                            console.log( origWin );
+                            if ( window === null || (origWin !== null && origWin.getPlugin() !== name)){
+                                console.log( "Set view "+pluginMap[name]+" row="+row+" col="+col);
                                 this.m_pane.setView(name, pluginMap[name], row, col);
                             }
                             else {
+                                console.log( "setWindow row="+row+" col="+col);
                                 this.m_pane.setWindow( window, row, col );
                             }
                         }
@@ -364,6 +372,13 @@ qx.Class.define("skel.widgets.DisplayMain",
             if ( val ){
                 try {
                     var layoutObj = JSON.parse( val );
+                    var win = this.m_pane.getWindow( row, col );
+                    if ( win !== null ){
+                        win.clean();
+                    }
+                    else {
+                        console.log( "Missing window at "+row+" "+col);
+                    }
                     var index = row * this.m_gridColCount + col;
                     var cmd = path.getCommandSetPlugin();
                     var params = "names:";

@@ -260,35 +260,38 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
             _matchesLine : function(pt) {
                 var matchingDestination = null;
                 for (var i = 0; i < this.m_destLinks.length; i++) {
-                    var xDiff = this.m_sourceLink.locationX - this.m_destLinks[i].locationX;
-                    var distance = this.m_ERROR_MARGIN;
-                    if (xDiff !== 0) {
-                        var slope = (this.m_sourceLink.locationY - this.m_destLinks[i].locationY) / xDiff;
-                        var yIntercept = (this.m_sourceLink.locationY - this.m_top) - slope * (this.m_sourceLink.locationX - this.m_left);
-                        distance = Math.abs(pt.y - slope * pt.x - yIntercept) / Math.sqrt(slope * slope + 1);
-                    } else {
-                        distance = Math.abs(pt.x - this.m_sourceLink.locationX);
-                    }
-
-                    if (distance < this.m_ERROR_MARGIN) {
-                        // Make sure the point is in the segment
-                        // range.
-                        var minX = Math.min(
-                                this.m_sourceLink.locationX,
-                                this.m_destLinks[i].locationX);
-                        var maxX = Math.min(
-                                this.m_sourceLink.locationX,
-                                this.m_destLinks[i].locationX);
-                        if (minX == maxX || (minX <= pt.x && pt.x <= maxX)) {
-                            var minY = Math.min(
-                                    this.m_sourceLink.locationY,
-                                    this.m_destLinks[i].locationY);
-                            var maxY = Math.min(
-                                    this.m_sourceLink.locationY,
-                                    this.m_destLinks[i].locationY);
-                            if (minY == maxY || (minY <= pt.y && pt.y <= maxY)) {
-                                matchingDestination = this.m_destLinks[i];
-                                break;
+                    if ( this.m_destLinks[i].linked ){
+                        var xDiff = this.m_sourceLink.locationX - this.m_destLinks[i].locationX;
+                        var distance = this.m_ERROR_MARGIN;
+                        if (xDiff !== 0) {
+                            var slope = (this.m_sourceLink.locationY - this.m_destLinks[i].locationY) / xDiff;
+                            var yIntercept = (this.m_sourceLink.locationY - this.m_top) - slope * (this.m_sourceLink.locationX - this.m_left);
+                            var yDist = Math.abs( pt.y - slope * pt.x - yIntercept );
+                            distance = yDist / Math.sqrt(slope * slope + 1);
+                        } else {
+                            distance = Math.abs(pt.x - this.m_sourceLink.locationX);
+                        }
+    
+                        if (distance < this.m_ERROR_MARGIN) {
+                            // Make sure the point is in the segment
+                            // range.
+                            var minX = Math.min(
+                                    this.m_sourceLink.locationX,
+                                    this.m_destLinks[i].locationX);
+                            var maxX = Math.min(
+                                    this.m_sourceLink.locationX,
+                                    this.m_destLinks[i].locationX);
+                            if (minX == maxX || (minX <= pt.x && pt.x <= maxX)) {
+                                var minY = Math.min(
+                                        this.m_sourceLink.locationY,
+                                        this.m_destLinks[i].locationY);
+                                var maxY = Math.min(
+                                        this.m_sourceLink.locationY,
+                                        this.m_destLinks[i].locationY);
+                                if (minY == maxY || (minY <= pt.y && pt.y <= maxY)) {
+                                    matchingDestination = this.m_destLinks[i];
+                                    break;
+                                }
                             }
                         }
                     }
@@ -351,12 +354,14 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
                     pt = skel.widgets.Util.localPos(this, ev);
                     var lineMatch = this._matchesLine(pt);
                     if (lineMatch !== null) {
-                        if ( this.m_removeLinkButton === null ){
-                            this.m_removeLinkButton = new qx.ui.menu.Button("Remove Link");
-                            this.m_removeLinkButton.addListener("execute", function(){
-                                this._removeLink( lineMatch );
-                            }, this );
+                        if ( this.m_contextMenu.indexOf( this.m_removeLinkButton) >= 0 ){
+                            this.m_contextMenu.remove( this.m_removeLinkButton );
                         }
+                        this.m_removeLinkButton = new qx.ui.menu.Button("Remove Link");
+                        this.m_removeLinkButton.addListener("execute", function(){
+                            this._removeLink( lineMatch );
+                        }, this );
+                       
                         if ( this.m_contextMenu.indexOf( this.m_removeLinkButton) < 0 ){
                             this.m_contextMenu.add(this.m_removeLinkButton);
                         }
@@ -468,7 +473,8 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
                 for (var i = 0; i < drawInfo.length; i++) {
                     if (drawInfo[i].source) {
                         this.m_sourceLink = drawInfo[i];
-                    } else if (drawInfo[i].linkable) {
+                    } 
+                    else if (drawInfo[i].linkable) {
                         this.m_destLinks.push(drawInfo[i]);
                     }
                 }

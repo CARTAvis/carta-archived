@@ -52,6 +52,12 @@ public:
     void addData(const QString& fileName);
 
     /**
+     * Close the given image.
+     * @param name an identifier for the image to close.
+     */
+    QString closeImage( const QString& name );
+
+    /**
      * Returns the raw data.
      * @param fileName a full path to the data.
      * @param channel a channel frame specifying a subset of the data.
@@ -172,7 +178,7 @@ signals:
      *  changed.
      *  @param controller this Controller.
      */
-    void dataChanged( const Controller* controller );
+    void dataChanged( Controller* controller );
 
 private slots:
     //Refresh the view based on the latest data selection information.
@@ -211,8 +217,9 @@ private:
     void _initializeState();
     void _initializeCallbacks();
     void _initializeSelections();
-    void _initializeSelection( std::shared_ptr<Selection> & selection );
+    void _initializeSelection( Selection* & selection );
     QString _makeRegion( const QString& regionType );
+    void _removeData( int index );
     void _render();
     void _saveRegions();
     void _scheduleFrameRepaint( const QImage& img );
@@ -222,7 +229,9 @@ private:
 
     static const QString CLIP_VALUE_MIN;
     static const QString CLIP_VALUE_MAX;
+    static const QString CLOSE_IMAGE;
     static const QString AUTO_CLIP;
+    static const QString DATA;
     static const QString DATA_COUNT;
     static const QString DATA_PATH;
     static const QString REGIONS;
@@ -231,18 +240,18 @@ private:
     static const QString ZOOM;
 
     //Data Selections
-    std::shared_ptr<Selection> m_selectChannel;
-    std::shared_ptr<Selection> m_selectImage;
+    Selection* m_selectChannel;
+    Selection* m_selectImage;
 
     //Data View
     std::shared_ptr<ImageView> m_view;
 
     //Data available to and managed by this controller.
-    QList<std::shared_ptr<DataSource> > m_datas;
+    QList<DataSource* > m_datas;
 
 
 
-    QList<std::shared_ptr<Region> > m_regions;
+    QList<Region* > m_regions;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
