@@ -22,6 +22,8 @@ public:
 
     bool receiveMessage( char** data);
 
+    int getMessageSize( );
+
     bool receiveTypedMessage( QString messageType, char** data );
 
     static const QString SIZE_DELIMITER;

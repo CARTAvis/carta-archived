@@ -3,6 +3,8 @@
 #include <QTcpSocket>
 #include <QDebug>
 #include <stdexcept>
+#include <iostream>
+#include <sstream>
 
 const QString ScriptedCommandListener::SIZE_DELIMITER(":");
 
@@ -66,6 +68,8 @@ QString ScriptedCommandListener::dataTransporter( QString input )
 //bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
 bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 {
+    //qDebug() << "(JT) receiveNBytes() data address = " << data;
+    qDebug() << "(JT) ScriptedCommandListener::receiveNBytes() n = " << n;
     bool result = true;
     char buff[n];
     qint64 lineLength = m_connection-> readLine( buff, n+1 );
@@ -80,37 +84,69 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
         result = false;
     }
 
-    qDebug() << "(JT) receiveNBytes() data before = " << data;
+    //qDebug() << "(JT) receiveNBytes() data before = " << *data;
     if (result == true) {
+        //qDebug() << "(JT) receiveNBytes() buff = " << buff;
+        //qDebug() << "(JT) receiveNBytes() strlen(buff) = " << strlen(buff);
         *data = buff;
     }
-    qDebug() << "(JT) receiveNBytes() data after = " << data;
+    //qDebug() << "(JT) receiveNBytes() data after = " << *data;
     return result;
 }
 
 //bool ScriptedCommandListener::receiveMessage( QString& data )
 bool ScriptedCommandListener::receiveMessage( char** data )
 {
+    //qDebug() << "(JT) receiveMessage() data address = " << data;
     //format: 4, 6, or 8 bytes: the size of the following message
     //after receiving this, enter a loop to receive this number of bytes
     //QString sizeStr;
-    int sizeLength = sizeof(int);
-    qDebug() << "(JT) receiveMessage() sizeLength = " << sizeLength;
-    char* sizeStr[sizeLength];
-    bool result = receiveNBytes(sizeLength, sizeStr);
-    //unsigned long size = sizeStr.toULong();
-    int size = atoi( *sizeStr );
+
+    int size = getMessageSize();
     qDebug() << "(JT) receiveMessage() size = " << size;
-    qDebug() << "(JT) receiveMessage() data before = " << data;
-    result = receiveNBytes( 1000000, data );
-    qDebug() << "(JT) receiveMessage() data after = " << data;
+
+    //qDebug() << "(JT) receiveMessage() data before = " << *data;
+    bool result = receiveNBytes( size, data );
+    //qDebug() << "(JT) receiveMessage() data after = " << *data;
+    return result;
+}
+
+int ScriptedCommandListener::getMessageSize( )
+{
+    // Can I make this method return an int (the actual message size)?
+    // A return value of 0 can be interpreted as an error.
+    int result;
+    int messageSize = sizeof(int);
+    char buff[messageSize];
+    qint64 lineLength = m_connection-> readLine( buff, messageSize+1 );
+    qDebug() << "(JT) getMessageSize() lineLength = " << lineLength;
+    if( lineLength == -1) {
+        qWarning() << "scripted command listener: something wrong with socket";
+        result = -1;
+    }
+
+    if( lineLength == 0) {
+        qDebug() << "scripted command listener: not a full line yet...";
+        result = -1;
+    }
+
+    //qDebug() << "(JT) getMessageSize() data before = " << *data;
+    if (lineLength >= 1) {
+        for (int i = 0; i < messageSize; i++) {
+            //qDebug() << "(JT) getMessageSize() buff[" << i << "] = " << buff[i];
+            //qDebug() << "buff[" << i << "] =" << QString::number(int(buff[i]), 16);
+        }
+        result = (buff[3]<<0) | (buff[2]<<8) | (buff[1]<<16) | (buff[0]<<24);
+        //qDebug() << "(JT) getMessageSize() result  = " << result;
+    }
     return result;
 }
 
 bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
 {
-    qDebug() << "(JT) receiveTypedMessage() data before = " << data;
+    //qDebug() << "(JT) receiveTypedMessage() data address = " << data;
+    //qDebug() << "(JT) receiveTypedMessage() data before = " << *data;
     bool result = receiveMessage( data );
-    qDebug() << "(JT) receiveTypedMessage() data after = " << data;
+    //qDebug() << "(JT) receiveTypedMessage() data after = " << *data;
     return result;
 }

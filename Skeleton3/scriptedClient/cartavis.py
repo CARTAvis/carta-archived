@@ -6,6 +6,7 @@ import socket
 import time
 import os.path
 import struct
+import binascii
 
 """
 Sample run:
@@ -299,6 +300,11 @@ class Application:
         result = sendCommand(self.socket, commandStr)
         return result
 
+    def fakeCommand(self):
+        commandStr = """fake command to send a huge amount of text"""
+        result = sendCommand(self.socket, commandStr)
+        return result;
+
 def start(
         executable = "/home/jeff/scratch/build/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
@@ -351,7 +357,8 @@ def sendNBytes(socket, message, n):
     """needs to loop until all bytes have been read"""
     print "sendNBytes"
     print "Sending message: " + str(message)
-    socket.sendall(message)
+    result = socket.sendall(message)
+    print "sendall result = " + str(result)
 
 def receiveNBytes(socket, n, data):
     """the receiveNBytes() method"""
@@ -377,7 +384,12 @@ def receiveNBytes(socket, n, data):
 def sendMessage(socket, message):
     """the sendMessage() method"""
     packed_len = struct.pack('>i', len(message))
+    print "message length = " + str(len(message))
     print "len(packed_len) = " + str(len(packed_len))
+    print "total length = " + str(len(message+packed_len))
+    print 'sending "%s"' % binascii.hexlify(packed_len)
+    for i in range(0,4):
+        print 'packed_len[%s] = "%s"' % (i, binascii.hexlify(packed_len[i]))
     sendNBytes(socket, packed_len + message, 100000)
 
 def receiveMessage(socket, data):
