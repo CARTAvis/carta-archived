@@ -7,6 +7,7 @@ import time
 import os.path
 import struct
 import binascii
+import random
 
 """
 Sample run:
@@ -343,25 +344,31 @@ def makeHistogram(histogramId, socket):
 def sendCommand(socket, commandStr):
     sendTypedMessage(socket, commandStr, 1)
     data = []
-    print "sendCommand data (before) = " + str(data)
+    #print "sendCommand data (before) = " + str(data)
     output = receiveTypedMessage(socket, 1, data)
-    print "sendCommand data (after) = " + str(data)
+    #print "sendCommand data (after) = " + str(data)
     #return output
     return data
 
-def sendNBytes(socket, message, n):
+def sendNBytes(socket, n, message):
     """the sendNBytes() method"""
+    """returns a boolean value, either:"""
+    """     nothing else to send"""
+    """     all bytes"""
+    """needs to loop until all bytes have been sent"""
+    print "sendNBytes"
+    print "n = " + str(n)
+    while message:
+        bytesSent = socket.send(message)
+        print "Sent " + str(bytesSent) + " bytes"
+        message = message[bytesSent:]
+
+def receiveNBytes(socket, n, data):
+    """the receiveNBytes() method"""
     """returns a boolean value, either:"""
     """     nothing else to read"""
     """     all bytes"""
     """needs to loop until all bytes have been read"""
-    print "sendNBytes"
-    print "Sending message: " + str(message)
-    result = socket.sendall(message)
-    print "sendall result = " + str(result)
-
-def receiveNBytes(socket, n, data):
-    """the receiveNBytes() method"""
     # Get a small amount of data from the socket
     bufferSize = 10
     stringData = socket.recv(bufferSize)
@@ -383,23 +390,30 @@ def receiveNBytes(socket, n, data):
 
 def sendMessage(socket, message):
     """the sendMessage() method"""
+    # Encode the length of the message into 4 bytes by converting it into a C
+    # int in big-endian byte order.
     packed_len = struct.pack('>i', len(message))
+    print "message = " + message
     print "message length = " + str(len(message))
     print "len(packed_len) = " + str(len(packed_len))
     print "total length = " + str(len(message+packed_len))
     print 'sending "%s"' % binascii.hexlify(packed_len)
     for i in range(0,4):
         print 'packed_len[%s] = "%s"' % (i, binascii.hexlify(packed_len[i]))
-    sendNBytes(socket, packed_len + message, 100000)
+    # Get the total length of the message we will be transmitting.
+    total_length = len(packed_len + message)
+    print "Total bytes to send = " + str(total_length)
+    # Prepend the message length to the message itself.
+    sendNBytes(socket, total_length, packed_len + message)
 
 def receiveMessage(socket, data):
     """the receiveMessage() method"""
     """format: 4, 6, or 8 bytes: the size of the following message"""
     """after receiving this, enter a loop to receive this number of bytes"""
     #output = receiveNBytes(socket, 100000)
-    print "receiveMessage data (before) = " + str(data)
+    #print "receiveMessage data (before) = " + str(data)
     output = receiveNBytes(socket, 100000, data)
-    print "receiveMessage data (after) = " + str(data)
+    #print "receiveMessage data (after) = " + str(data)
     return output
 
 def sendTypedMessage(socket, message, messageType):
@@ -409,8 +423,8 @@ def sendTypedMessage(socket, message, messageType):
 def receiveTypedMessage(socket, messageType, data):
     """the receiveTypedMessage() method"""
     #output = receiveMessage(socket)
-    print "receiveTypedMessage data (before) = " + str(data)
+    #print "receiveTypedMessage data (before) = " + str(data)
     output = receiveMessage(socket, data)
-    print "receiveTypedMessage data (after) = " + str(data)
+    #print "receiveTypedMessage data (after) = " + str(data)
     #return output
     return data

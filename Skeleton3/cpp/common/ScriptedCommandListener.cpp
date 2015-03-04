@@ -39,7 +39,6 @@ void ScriptedCommandListener::newConnectionCB()
 void ScriptedCommandListener::socketDataCB()
 {
     qDebug() << "scripted command listener: socket data ready";
-    //QString str;
     char* buffer;
     bool result = receiveTypedMessage( "whatever", &buffer );
     QString str = QString::fromUtf8(buffer);
@@ -68,12 +67,30 @@ QString ScriptedCommandListener::dataTransporter( QString input )
 //bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
 bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 {
-    //qDebug() << "(JT) receiveNBytes() data address = " << data;
-    qDebug() << "(JT) ScriptedCommandListener::receiveNBytes() n = " << n;
     bool result = true;
     char buff[n];
-    qint64 lineLength = m_connection-> readLine( buff, n+1 );
-    qDebug() << "(JT) receiveNBytes() lineLength = " << lineLength;
+    int buffIndex = 0;
+    qint64 lineLength = 0;
+    while (lineLength < n) {
+        char tempBuff[n];
+        qint64 bytesRead = -1;
+        int futileReads = 0;
+        while (bytesRead < 1) {
+            bytesRead = m_connection-> readLine( tempBuff, n+1 );
+            if (bytesRead == 0) {
+                futileReads += 1;
+            }
+        }
+        // Now copy what was read into buff[]
+        for (int i = 0; i < bytesRead && buffIndex < n; i++) {
+            buff[buffIndex] = tempBuff[i];
+            buffIndex++;
+        }
+        lineLength += bytesRead;
+        qDebug() << "(JT) receiveNBytes() made " << futileReads << "futile attempts";
+    }
+    // Why should this be necessary? I sometimes get garbage data without it.
+    buff[n] = NULL;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = false;
@@ -84,30 +101,21 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
         result = false;
     }
 
+    if ( lineLength < n ) {
+        qDebug() << "(JT) receiveNBytes() haven't received the full message yet.";
+        result = false;
+    }
+
+    if ( lineLength > n ) {
+        qDebug() << "(JT) receiveNBytes() received too much data.";
+        result = false;
+    }
+
     //qDebug() << "(JT) receiveNBytes() data before = " << *data;
     if (result == true) {
-        //qDebug() << "(JT) receiveNBytes() buff = " << buff;
-        //qDebug() << "(JT) receiveNBytes() strlen(buff) = " << strlen(buff);
-        *data = buff;
+        *data = (char *) malloc( strlen(buff) + 1 ); 
+        strcpy( *data, buff );
     }
-    //qDebug() << "(JT) receiveNBytes() data after = " << *data;
-    return result;
-}
-
-//bool ScriptedCommandListener::receiveMessage( QString& data )
-bool ScriptedCommandListener::receiveMessage( char** data )
-{
-    //qDebug() << "(JT) receiveMessage() data address = " << data;
-    //format: 4, 6, or 8 bytes: the size of the following message
-    //after receiving this, enter a loop to receive this number of bytes
-    //QString sizeStr;
-
-    int size = getMessageSize();
-    qDebug() << "(JT) receiveMessage() size = " << size;
-
-    //qDebug() << "(JT) receiveMessage() data before = " << *data;
-    bool result = receiveNBytes( size, data );
-    //qDebug() << "(JT) receiveMessage() data after = " << *data;
     return result;
 }
 
@@ -117,9 +125,25 @@ int ScriptedCommandListener::getMessageSize( )
     // A return value of 0 can be interpreted as an error.
     int result;
     int messageSize = sizeof(int);
-    char buff[messageSize];
-    qint64 lineLength = m_connection-> readLine( buff, messageSize+1 );
-    qDebug() << "(JT) getMessageSize() lineLength = " << lineLength;
+    char message[messageSize];
+    // This needs to be put into a loop in case the whole size cannot be read
+    // all at once. Can I maybe just read one byte at a time?
+    qint64 lineLength = 0;
+    for (int i = 0; i < messageSize; i++) {
+        char buff[1];
+        int futileReads = 0;
+        qint64 bytesRead = -1;
+        while (bytesRead < 1) {
+            //qDebug() << "(JT) getMessageSize() trying to read a byte";
+            bytesRead = m_connection-> readLine( buff, 2 );
+            if (bytesRead == 0) {
+                futileReads += 1;
+            }
+        }
+        qDebug() << "(JT) getMessageSize() made " << futileReads << "futile attempts for byte " << i;
+        lineLength += bytesRead;
+        message[i] = buff[0];
+    }
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = -1;
@@ -130,23 +154,32 @@ int ScriptedCommandListener::getMessageSize( )
         result = -1;
     }
 
-    //qDebug() << "(JT) getMessageSize() data before = " << *data;
-    if (lineLength >= 1) {
-        for (int i = 0; i < messageSize; i++) {
-            //qDebug() << "(JT) getMessageSize() buff[" << i << "] = " << buff[i];
-            //qDebug() << "buff[" << i << "] =" << QString::number(int(buff[i]), 16);
-        }
-        result = (buff[3]<<0) | (buff[2]<<8) | (buff[1]<<16) | (buff[0]<<24);
-        //qDebug() << "(JT) getMessageSize() result  = " << result;
+    if ( lineLength < 4 ) {
+        qDebug() << "(JT) getMessageSize() haven't received the full size yet.";
     }
+
+    if ( lineLength > 4 ) {
+        qDebug() << "(JT) getMessageSize() received too much data.";
+    }
+
+    if (lineLength >= 1) {
+        result = (message[3]<<0) | (message[2]<<8) | (message[1]<<16) | (message[0]<<24);
+    }
+    return result;
+}
+
+//bool ScriptedCommandListener::receiveMessage( QString& data )
+bool ScriptedCommandListener::receiveMessage( char** data )
+{
+    //format: 4, 6, or 8 bytes: the size of the following message
+    //after receiving this, enter a loop to receive this number of bytes
+    int size = getMessageSize();
+    bool result = receiveNBytes( size, data );
     return result;
 }
 
 bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
 {
-    //qDebug() << "(JT) receiveTypedMessage() data address = " << data;
-    //qDebug() << "(JT) receiveTypedMessage() data before = " << *data;
     bool result = receiveMessage( data );
-    //qDebug() << "(JT) receiveTypedMessage() data after = " << *data;
     return result;
 }
