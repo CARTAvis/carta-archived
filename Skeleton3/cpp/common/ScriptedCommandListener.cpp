@@ -52,16 +52,33 @@ void ScriptedCommandListener::socketDataCB()
     }
 }
 
-QString ScriptedCommandListener::dataTransporter( QString input )
+bool ScriptedCommandListener::dataTransporter( QString input )
 {
-    int inputSize = input.size();
-    // Prepend the data with "size:"
-    // Python can then partition the incoming data to determine how much data
-    // it should actually be receiving and make a second attempt to get the
-    // rest, if necessary.
-    input = QString::number(inputSize) + ScriptedCommandListener::SIZE_DELIMITER + input;
-    m_connection->write( input.toLocal8Bit() );
-    return input;
+    bool result = sendTypedMessage( "whatever", input );
+    return result;
+}
+
+bool ScriptedCommandListener::sendNBytes( int n, QString data )
+{
+    data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
+    int bytesSent = m_connection->write( data.toLocal8Bit() );
+    qDebug() <<"(JT) sendNBytes() n =" << n;
+    return true;
+}
+
+bool ScriptedCommandListener::sendMessage( QString data )
+{
+    //format: 4, 6, or 8 bytes: the size of the following message
+    int size = data.length();
+    bool result = sendNBytes( size, data );
+    return result;
+}
+
+bool ScriptedCommandListener::sendTypedMessage( QString messageType, QString data )
+{
+    qDebug() << "(JT) sendTypedMessage() messageType =" << messageType;
+    bool result = sendMessage( data );
+    return result;
 }
 
 //bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
@@ -121,7 +138,7 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 
 int ScriptedCommandListener::getMessageSize( )
 {
-    // Can I make this method return an int (the actual message size)?
+    // Instead of bool, this method will return an int.
     // A return value of 0 can be interpreted as an error.
     int result;
     int messageSize = sizeof(int);
@@ -134,7 +151,6 @@ int ScriptedCommandListener::getMessageSize( )
         int futileReads = 0;
         qint64 bytesRead = -1;
         while (bytesRead < 1) {
-            //qDebug() << "(JT) getMessageSize() trying to read a byte";
             bytesRead = m_connection-> readLine( buff, 2 );
             if (bytesRead == 0) {
                 futileReads += 1;
@@ -168,7 +184,6 @@ int ScriptedCommandListener::getMessageSize( )
     return result;
 }
 
-//bool ScriptedCommandListener::receiveMessage( QString& data )
 bool ScriptedCommandListener::receiveMessage( char** data )
 {
     //format: 4, 6, or 8 bytes: the size of the following message
@@ -180,6 +195,7 @@ bool ScriptedCommandListener::receiveMessage( char** data )
 
 bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
 {
+    qDebug() << "(JT) receiveTypedMessage() messageType =" << messageType;
     bool result = receiveMessage( data );
     return result;
 }

@@ -16,11 +16,17 @@ class ScriptedCommandListener : public QObject
 public:
     explicit ScriptedCommandListener(int port, QObject *parent = 0);
 
-    QString dataTransporter(QString input);
+    bool dataTransporter(QString input);
+
+    bool sendNBytes( int n, QString data );
+
+    bool sendMessage( QString data );
+
+    bool sendTypedMessage( QString messageType, QString data );
 
     bool receiveNBytes( int n, char** data );
 
-    bool receiveMessage( char** data);
+    bool receiveMessage( char** data );
 
     int getMessageSize( );
 

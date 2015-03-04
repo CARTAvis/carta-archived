@@ -361,6 +361,8 @@ def sendNBytes(socket, n, message):
     while message:
         bytesSent = socket.send(message)
         print "Sent " + str(bytesSent) + " bytes"
+        # If the entire message hasn't been sent, trim the message down to
+        # the remaining portion. Keep looping until it has all been sent.
         message = message[bytesSent:]
 
 def receiveNBytes(socket, n, data):
