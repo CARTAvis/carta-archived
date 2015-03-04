@@ -85,14 +85,26 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          * Initializes the UI.
          */
         _init : function( ) {
-            var widgetLayout = new qx.ui.layout.HBox(2);
+            var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
+            
+            var overallContainer = new qx.ui.groupbox.GroupBox( "Range", "");
+            overallContainer.setLayout( new qx.ui.layout.VBox(1));
+            overallContainer.setContentPadding(1,1,1,1);
+            this._add( overallContainer );
+            
+            var rangeContainer = new qx.ui.container.Composite();
+            var gridLayout = new qx.ui.layout.Grid();
+            gridLayout.setColumnAlign(0, "right","middle");
+            gridLayout.setRowAlign( 0, "center", "middle");
+            gridLayout.setSpacingX( 1 );
+            gridLayout.setSpacingY( 1 );
+            rangeContainer.setLayout( gridLayout);
+            overallContainer.add( rangeContainer);
 
             //Minimum
-            var minComposite = new qx.ui.container.Composite();
-            minComposite.setLayout(new qx.ui.layout.VBox(2));
-
-            var minLabel = new qx.ui.basic.Label( "Min:");
+            var minLabel = new qx.ui.basic.Label( "Min");
+            minLabel.setTextAlign( "center");
             this.m_minClipText = new skel.widgets.CustomUI.NumericTextField( null, null);
             this.m_minClipText.setIntegerOnly( false );
             this.m_minClipText.addListener( "textChanged", function(){
@@ -100,7 +112,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                 this._sendClipMinCmd();
             }, this );
 
-            var percentMinLabel = new qx.ui.basic.Label( "Min Percent:");
+            var valueLabel = new qx.ui.basic.Label( "Value:");
+            valueLabel.setTextAlign( "right");
             this.m_percentMinClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMinClipText.setIntegerOnly( false );
 
@@ -108,15 +121,14 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                 this._sendClipRangePercentCmd();
             }, this );
 
-            minComposite.add( minLabel );
-            minComposite.add( this.m_minClipText );
-            minComposite.add(percentMinLabel);
-            minComposite.add(this.m_percentMinClipText);
+            rangeContainer.add( minLabel, {row: 0, column:1});
+            rangeContainer.add( this.m_minClipText, {row:1, column:1});
+            rangeContainer.add( this.m_percentMinClipText, {row:2, column:1});
+            rangeContainer.add( valueLabel, {row:1, column:0});
             
             //Maximum
-            var maxComposite = new qx.ui.container.Composite();
-            maxComposite.setLayout(new qx.ui.layout.VBox(2));
-            var maxLabel = new qx.ui.basic.Label( "Max:");
+            var maxLabel = new qx.ui.basic.Label( "Max");
+            maxLabel.setTextAlign( "center");
             this.m_maxClipText = new skel.widgets.CustomUI.NumericTextField( null, null );
             this.m_maxClipText.setIntegerOnly( false );
             this.m_maxClipText.addListener( "textChanged", function(){
@@ -124,17 +136,18 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                 this._sendClipMaxCmd();
             }, this );
 
-            var percentMaxLabel = new qx.ui.basic.Label( "Max Percent:");
+            var percentLabel = new qx.ui.basic.Label( "Percent:");
+            percentLabel.setTextAlign( "right");
             this.m_percentMaxClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMaxClipText.setIntegerOnly( false );
             this.m_percentMaxClipText.addListener( "textChanged", function(){
                 this._sendClipRangePercentCmd();
             }, this );
-
-            maxComposite.add( maxLabel );
-            maxComposite.add( this.m_maxClipText );
-            maxComposite.add(percentMaxLabel);
-            maxComposite.add(this.m_percentMaxClipText);
+            
+            rangeContainer.add( maxLabel, {row:0, column:2});
+            rangeContainer.add( this.m_maxClipText, {row:1, column:2});
+            rangeContainer.add( this.m_percentMaxClipText, {row:2, column:2});
+            rangeContainer.add( percentLabel, {row:2, column:0});
             
             //Apply to image
             this.m_applyImageClip = new qx.ui.form.CheckBox( "Apply to Image(s)");
@@ -146,8 +159,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
                     this.m_connector.sendCommand( cmd, params, this._errorClipToImageCB(this));
                 }
             }, this );
-            this._add( minComposite );
-            this._add( maxComposite );
+            var horContainer = new qx.ui.container.Composite();
+            horContainer.setLayout( new qx.ui.layout.HBox(2));
+            horContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            horContainer.add( this.m_applyImageClip );
+            horContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            overallContainer.add( horContainer );
         },
         
         /**
@@ -296,5 +313,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         m_applyImageClip : null,
 
         m_links : null
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

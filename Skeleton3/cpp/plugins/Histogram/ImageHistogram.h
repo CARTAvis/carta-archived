@@ -28,6 +28,7 @@ public:
 
     virtual std::vector< std::pair<double,double> > getData() const Q_DECL_OVERRIDE;
     virtual QString getName() const Q_DECL_OVERRIDE;
+    virtual QString getUnits() const Q_DECL_OVERRIDE;
 
     virtual bool compute() Q_DECL_OVERRIDE;
 

@@ -131,6 +131,7 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
             this.m_cacheSizeText.setEnabled( this.m_cacheCheck.getValue() );
             
             var mapComposite = new qx.ui.groupbox.GroupBox( "Caching");
+            mapComposite.setContentPadding(1,1,1,1);
             mapComposite.setLayout(new qx.ui.layout.VBox(2));
             mapComposite.add( this.m_cacheCheck );
             mapComposite.add( this.m_interpolateCheck );

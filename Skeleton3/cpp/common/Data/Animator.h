@@ -29,16 +29,16 @@ class Animator : public QObject, public CartaObject, public ILinkable {
 public:
 
     /**
-     * Adds a Controller to this animator.
-     * @param controller the DataController that will be managed.
+     * Adds a link to this animator.
+     * @param cartaObject the link that will be managed.
      */
-    virtual bool addLink( Controller*& controller ) ;
+    virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
-     * Adds a Controller to this animator.
-     * @param controller the DataController that will be managed.
+     * Adds a link to this animator.
+     * @param cartaObject the link to remove.
      */
-    virtual bool removeLink( Controller*& controller );
+    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear current state..
@@ -84,7 +84,7 @@ private:
     class Factory;
 
     void _adjustStateAnimatorTypes();
-
+    int _getMaxImageCount() const;
     void _initializeState();
     void _initializeAnimators();
     void _initializeCallbacks();

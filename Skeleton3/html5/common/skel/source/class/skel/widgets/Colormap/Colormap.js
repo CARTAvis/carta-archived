@@ -46,7 +46,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this.m_settingsComposite = new qx.ui.container.Composite();
             this.m_settingsComposite.setAllowGrowX( true );
             this.m_settingsComposite.setAllowGrowY( true );
-            this.m_settingsComposite.setLayout( new qx.ui.layout.HBox());
+            this.m_settingsComposite.setLayout( new qx.ui.layout.Flow());
            
             this.m_content.add( this.m_settingsComposite);
         },

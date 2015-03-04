@@ -16,7 +16,6 @@ namespace Carta {
 
 namespace Data {
 
-
 class LinkableImpl;
 class Controller;
 
@@ -28,8 +27,8 @@ class Statistics : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    virtual bool addLink( Controller*& controller ) Q_DECL_OVERRIDE;
-    virtual bool removeLink( Controller*& controller ) Q_DECL_OVERRIDE;
+    virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.

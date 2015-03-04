@@ -91,15 +91,12 @@ CartaObject* Util::findSingletonObject( const QString& objectName ){
     return obj;
 }
 
-QString Util::commandPostProcess( const QString& errorMsg, const QString& revertValue ){
-    QString result;
+void Util::commandPostProcess( const QString& errorMsg){
     if ( errorMsg.trimmed().length() > 0 ){
         CartaObject* obj = Util::findSingletonObject( ErrorManager::CLASS_NAME );
         ErrorManager* errorMan = dynamic_cast<ErrorManager*>(obj);
         errorMan->registerWarning( errorMsg );
-        result = revertValue;
     }
-    return result;
 }
 
 /// convert string to array of doubles

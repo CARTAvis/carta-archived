@@ -34,7 +34,6 @@ HEADERS += \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
     Hooks/HookIDs.h \
-    Hooks/HistogramResult.h \
     IPlugin.h \
     IImage.h \
     PixelType.h \

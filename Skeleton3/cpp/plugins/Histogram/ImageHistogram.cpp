@@ -315,6 +315,12 @@ QString ImageHistogram<T>::getName() const {
     return qname;
 }
 
+template<class T>
+QString ImageHistogram<T>::getUnits() const {
+    const casa::Unit pixelUnit = ImageHistogram::m_image->units();
+    return pixelUnit.getName().c_str();
+}
+
 template <class T>
 pair<float,float> ImageHistogram<T>::getDataRange() const {
     int count = m_xValues.size();

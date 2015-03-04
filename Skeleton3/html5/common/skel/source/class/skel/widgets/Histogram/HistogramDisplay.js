@@ -66,8 +66,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
          * Initializes the UI.
          */
         _init : function( ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
+            this.m_displayContainer = new qx.ui.groupbox.GroupBox("Display", "");
+            this.m_displayContainer.setContentPadding(1,1,1,1);
+            this.m_displayContainer.setLayout( new qx.ui.layout.VBox(1));
+            this._add( this.m_displayContainer );
             this._initStyle();
             this._initOptions();
         },
@@ -90,8 +94,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
                 var params = "colored:"+this.m_coloredCheck.getValue();
                 this.m_connector.sendCommand( cmd, params, this._errorColoredCB(this));
             }, this);
-            this._add( this.m_logCheck );
-            this._add( this.m_coloredCheck );
+            this.m_displayContainer.add( this.m_logCheck );
+            this.m_displayContainer.add( this.m_coloredCheck );
         },
         
         /**
@@ -121,9 +125,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
             var styleGroupRadio = new qx.ui.form.RadioGroup();
             styleGroupRadio.add( this.m_lineRadio, this.m_barRadio, this.m_fillRadio );
          
-            this._add( this.m_lineRadio );
-            this._add( this.m_barRadio );
-            this._add( this.m_fillRadio );
+            this.m_displayContainer.add( this.m_lineRadio );
+            this.m_displayContainer.add( this.m_barRadio );
+            this.m_displayContainer.add( this.m_fillRadio );
         },
         
         /**
@@ -199,6 +203,14 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
         m_barRadio : null,
         m_fillRadio : null,
         m_logCheck : null,
-        m_coloredCheck : null
+        m_coloredCheck : null,
+        m_displayContainer : null
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

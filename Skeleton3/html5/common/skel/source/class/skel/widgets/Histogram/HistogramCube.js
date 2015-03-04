@@ -71,7 +71,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
             this._initPlane();
         },
@@ -82,13 +82,18 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          */
         _initPlane : function(){
             
+            var planeContainer = new qx.ui.groupbox.GroupBox("Cube", "");
+            planeContainer.setContentPadding(1,1,1,1);
+            planeContainer.setLayout( new qx.ui.layout.VBox(1));
+            this._add( planeContainer );
+            
             this.m_planeAll = new qx.ui.form.RadioButton( "All");
             this.m_planeAll.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, function(){
                 if ( this.m_planeAll.getValue() ){
                     this._planeModeChanged();
                 }
             }, this );
-            this._add( this.m_planeAll );
+            planeContainer.add( this.m_planeAll );
             
             var singleComposite = new qx.ui.container.Composite();
             singleComposite.setLayout(new qx.ui.layout.HBox(2));
@@ -133,8 +138,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             
             var radGroup = new qx.ui.form.RadioGroup();
             radGroup.add(this.m_planeAll, this.m_planeSingle, this.m_planeRange );
-            this._add( singleComposite );
-            this._add( rangeComposite );
+            planeContainer.add( singleComposite );
+            planeContainer.add( rangeComposite );
 
         },
         
@@ -261,5 +266,12 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
         m_singlePlaneText : null,
         m_rangeMinSpin : null,
         m_rangeMaxSpin : null
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

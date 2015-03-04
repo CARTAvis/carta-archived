@@ -56,7 +56,6 @@ void ImageView::handleResizeRequest(const QSize & size) {
 
 void ImageView::handleMouseEvent(const QMouseEvent & ev) {
     m_lastMouse = QPointF(ev.x(), ev.y());
-    //m_connector->refreshView(this);
     m_mouseState->setValue<QString>( MOUSE_X, QString::number(ev.x()));
     m_mouseState->setValue<QString>( MOUSE_Y, QString::number(ev.y()));
     m_mouseState->flushState();

@@ -240,10 +240,8 @@ qx.Class.define("skel.widgets.DisplayMain",
             var index = 0;
             var pluginMap = {};
             for (var row = 0; row < this.m_gridRowCount; row++) {
-                console.log( "row="+row);
                 for (var col = 0; col < this.m_gridColCount; col++) {
                     var name = layoutObj.plugins[index];
-                    console.log( "Name="+name+" col="+col);
                     if ( name && typeof(name) == "string" && name.length > 0 ){
                         if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
                             if ( pluginMap[name] ===undefined ){
@@ -251,15 +249,11 @@ qx.Class.define("skel.widgets.DisplayMain",
                             }
                             pluginMap[name] = pluginMap[name] + 1;
                             var window = this._findWindow ( name, windows );
-                            console.log( "Found window "+name);
                             var origWin = this.m_pane.getWindow( row, col );
-                            console.log( origWin );
                             if ( window === null || (origWin !== null && origWin.getPlugin() !== name)){
-                                console.log( "Set view "+pluginMap[name]+" row="+row+" col="+col);
                                 this.m_pane.setView(name, pluginMap[name], row, col);
                             }
                             else {
-                                console.log( "setWindow row="+row+" col="+col);
                                 this.m_pane.setWindow( window, row, col );
                             }
                         }

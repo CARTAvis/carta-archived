@@ -175,7 +175,7 @@ void ViewManager::_initCallbacks(){
         std::set<QString> keys = {SOURCE_ID, DEST_ID};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
         QString result = linkAdd( dataValues[SOURCE_ID], dataValues[DEST_ID]);
-        result = Util::commandPostProcess( result, "");
+        Util::commandPostProcess( result);
         return result;
     });
 
@@ -185,7 +185,7 @@ void ViewManager::_initCallbacks(){
             std::set<QString> keys = {SOURCE_ID, DEST_ID};
             std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
             QString result = linkRemove( dataValues[SOURCE_ID], dataValues[DEST_ID]);
-            result = Util::commandPostProcess( result, "");
+            Util::commandPostProcess( result );
             return result;
         });
 
@@ -281,19 +281,16 @@ int ViewManager::_findAnimator( const QString& id ) const {
 
 
 QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
-
-    int controlIndex = _findController( destId );
     QString result;
-    if ( controlIndex == -1 ){
-        result = "Unsupported destination link: "+destId;
-    }
-    else {
-        ObjectManager* objManager = ObjectManager::objectManager();
+    ObjectManager* objManager = ObjectManager::objectManager();
+    QString dId = objManager->parseId( destId );
+    CartaObject* destObj = objManager->getObject( dId );
+    if ( destObj != nullptr ){
         QString id = objManager->parseId( sourceId );
         CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
-            bool linked = linkSource->addLink( m_controllers[controlIndex]);
+            bool linked = linkSource->addLink( destObj );
             if ( !linked ){
                 result = "Could not link source to destination.";
             }
@@ -302,22 +299,23 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
             result = "Unrecognized add link source: "+sourceId;
         }
     }
+    else {
+        result = "Unrecognized add link destination: "+dId;
+    }
     return result;
 }
 
 QString ViewManager::linkRemove( const QString& sourceId, const QString& destId ){
-    int controlIndex = _findController( destId );
     QString result;
-    if ( controlIndex == -1 ){
-        result = "Unsupported destination link: "+destId;
-    }
-    else {
-        ObjectManager* objManager = ObjectManager::objectManager();
+    ObjectManager* objManager = ObjectManager::objectManager();
+    QString dId = objManager->parseId( destId );
+    CartaObject* destObj = objManager->getObject( dId );
+    if ( destObj != nullptr ){
         QString id = objManager->parseId( sourceId );
         CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
-            bool unlinked = linkSource->removeLink( m_controllers[controlIndex]);
+            bool unlinked = linkSource->removeLink( destObj );
             if ( !unlinked ){
                 result = "Could not remove link between source and destination.";
             }
@@ -325,6 +323,9 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
         else {
             result = "Could not remove link, unrecognized source: "+sourceId;
         }
+    }
+    else {
+        result = "Could not remove link, unrecognized destination: "+destId;
     }
     return result;
 }
@@ -640,6 +641,7 @@ void ViewManager::setDeveloperView(){
     m_histograms[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
+    m_histograms[0]->addLink( m_colormaps[0]);
 }
 
 void ViewManager::setImageView(){

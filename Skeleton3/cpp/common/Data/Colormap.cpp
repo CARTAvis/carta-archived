@@ -6,6 +6,7 @@
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "ImageView.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 
 #include <set>
 
@@ -54,18 +55,22 @@ bool Colormap::m_registered =
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
-    m_linkImpl( new LinkableImpl( &m_state) ),
+    m_linkImpl( new LinkableImpl( &m_state ) ),
     m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     _initializeDefaultState();
     _initializeCallbacks();
     _initializeStatics();
 }
 
-bool Colormap::addLink( Controller* & target ){
-    bool objAdded = m_linkImpl->addLink( target );
-    if ( objAdded ){
-        _setColorProperties( target );
-        connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(_setColorProperties(Controller*)));
+bool Colormap::addLink( CartaObject*  cartaObject ){
+    Controller* target = dynamic_cast<Controller*>(cartaObject);
+    bool objAdded = false;
+    if ( target != nullptr ){
+        objAdded = m_linkImpl->addLink( target );
+        if ( objAdded ){
+            _setColorProperties( target );
+            connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(_setColorProperties(Controller*)));
+        }
     }
     return objAdded;
 }
@@ -229,7 +234,9 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
         if ( cache != oldCache){
             m_state.setValue<bool>(CACHE, cache );
             m_state.flushState();
-            for( Controller* controller : m_linkImpl->m_controllers ){
+            int linkCount = m_linkImpl->getLinkCount();
+            for( int i = 0; i < linkCount; i++ ){
+                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                 controller -> setPixelCaching ( cache );
             }
         }
@@ -237,7 +244,7 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
     else {
         result = "Invalid color map cache parameters: "+ params;
     }
-    result = Util::commandPostProcess( result , Util::toString(oldCache));
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -253,7 +260,9 @@ QString Colormap::_commandCacheSize( const QString& params ){
         if ( cacheSize != currentCacheSize ){
             m_state.setValue<int>(CACHE_SIZE, cacheSize );
             m_state.flushState();
-            for( Controller* controller : m_linkImpl->m_controllers ){
+            int linkCount = m_linkImpl->getLinkCount();
+            for( int i = 0; i < linkCount; i++ ){
+                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                 controller -> setCacheSize ( cacheSize );
             }
         }
@@ -261,7 +270,7 @@ QString Colormap::_commandCacheSize( const QString& params ){
     else {
         result = "Invalid color map cache size parameters: "+ params;
     }
-    result = Util::commandPostProcess( result, QString::number(currentCacheSize) );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -277,7 +286,9 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
         if ( interpolated != currentInterpolated ){
             m_state.setValue<bool>(INTERPOLATED, interpolated );
             m_state.flushState();
-            for( Controller* controller : m_linkImpl->m_controllers ){
+            int linkCount = m_linkImpl->getLinkCount();
+            for( int i = 0; i < linkCount; i++ ){
+                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                 controller -> setCacheInterpolation ( interpolated );
             }
         }
@@ -285,7 +296,7 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
     else {
         result = "Invalid interpolated caching color map parameters: "+ params;
     }
-    result = Util::commandPostProcess( result, Util::toString(currentInterpolated) );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -301,15 +312,18 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
         if ( invert != oldInvert ){
             m_state.setValue<bool>(INVERT, invert );
             m_state.flushState();
-            for( Controller* controller : m_linkImpl->m_controllers ){
+            int linkCount = m_linkImpl->getLinkCount();
+            for( int i = 0; i < linkCount; i++ ){
+                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                 controller -> setColorInverted ( invert );
             }
+            emit colorMapChanged( this );
         }
     }
     else {
         result = "Invalid color map invert parameters: "+ params;
     }
-    result = Util::commandPostProcess( result, Util::toString(oldInvert) );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -332,18 +346,17 @@ QString Colormap::_commandSetColorMix( const QString& params ){
         double newRed = m_state.getValue<double>(COLOR_MIX_RED );
         double newGreen = m_state.getValue<double>(COLOR_MIX_GREEN );
         double newBlue = m_state.getValue<double>(COLOR_MIX_BLUE );
-        for( Controller* controller : m_linkImpl->m_controllers ){
+        int linkCount = m_linkImpl->getLinkCount();
+        for( int i = 0; i < linkCount; i++ ){
+            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
             controller->setColorAmounts( newRed, newGreen, newBlue );
         }
+        emit colorMapChanged( this );
     }
     else if ( !validRed || !validGreen || !validBlue ){
         result = "Invalid Colormap color percent: "+ params;
-        double redPercent = m_state.getValue<double>( COLOR_MIX_RED );
-        double greenPercent = m_state.getValue<double>( COLOR_MIX_GREEN );
-        double bluePercent = m_state.getValue<double>( COLOR_MIX_BLUE );
-        currValues = QString::number(redPercent )+","+QString::number(greenPercent)+","+QString::number(bluePercent );
     }
-    result = Util::commandPostProcess( result, currValues );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -360,15 +373,18 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
         if ( reverse != oldReverse ){
             m_state.setValue<bool>(REVERSE, reverse );
             m_state.flushState();
-            for( Controller* controller : m_linkImpl->m_controllers ){
+            int linkCount = m_linkImpl->getLinkCount();
+            for( int i = 0; i < linkCount; i++ ){
+                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                 controller -> setColorReversed( reverse );
             }
+            emit colorMapChanged( this );
         }
     }
     else {
         result = "Invalid color map reverse parameters: "+ params;
     }
-    result = Util::commandPostProcess( result, Util::toString(oldReverse) );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -380,6 +396,13 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     return result;
 }
 
+std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> Colormap::getColorMap( ) const {
+
+    QString colorMapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap = m_colors->getColorMap( colorMapName );
+
+    return cMap;
+}
 
 bool Colormap::_processColorStr( const QString key, const QString colorStr, bool* valid ){
     double colorPercent = colorStr.toDouble( valid );
@@ -397,10 +420,14 @@ bool Colormap::_processColorStr( const QString key, const QString colorStr, bool
     return colorChanged;
 }
 
-bool Colormap::removeLink( Controller*& controller ){
-    bool objRemoved = m_linkImpl->removeLink( controller );
-    if ( objRemoved ){
-        disconnect( controller );
+bool Colormap::removeLink( CartaObject* cartaObject ){
+    Controller* controller = dynamic_cast<Controller*>(cartaObject);
+    bool objRemoved = false;
+    if ( controller != nullptr ){
+        objRemoved = m_linkImpl->removeLink( controller );
+        if ( objRemoved ){
+            disconnect( controller );
+        }
     }
     return objRemoved;
 }
@@ -413,9 +440,12 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
            if ( colorMapStr != mapName ){
               m_state.setValue<QString>(COLOR_MAP_NAME, colorMapStr );
               m_state.flushState();
-              for( Controller* controller : m_linkImpl->m_controllers ){
+              int linkCount = m_linkImpl->getLinkCount();
+              for( int i = 0; i < linkCount; i++ ){
+                  Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                   controller->setColorMap( colorMapStr );
               }
+              emit colorMapChanged( this );
            }
         }
        else {
@@ -423,7 +453,7 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
        }
     }
 
-    result = Util::commandPostProcess( result, mapName );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -435,9 +465,12 @@ QString Colormap::setGamma( double gamma ){
         m_state.setValue<double>(GAMMA, gamma );
         m_state.flushState();
         //Let the controllers know gamma has changed.
-        for ( Controller* controller : m_linkImpl->m_controllers ){
+        int linkCount = m_linkImpl->getLinkCount();
+        for( int i = 0; i < linkCount; i++ ){
+            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
             controller->setGamma( gamma );
         }
+        emit colorMapChanged( this );
     }
     return result;
 }
@@ -450,16 +483,19 @@ QString Colormap::setDataTransform( const QString& transformString ){
             if ( transformString != transformName ){
                 m_state.setValue<QString>(TRANSFORM_DATA, transformString );
                 m_state.flushState();
-                for( Controller* controller : m_linkImpl->m_controllers ){
+                int linkCount = m_linkImpl->getLinkCount();
+                for( int i = 0; i < linkCount; i++ ){
+                    Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
                     controller->setTransformData( transformString );
                 }
+                emit colorMapChanged( this );
             }
             else {
                result = "Invalid data transform: " + transformString;
             }
         }
     }
-    result = Util::commandPostProcess( result, transformName );
+    Util::commandPostProcess( result );
     return result;
 }
 

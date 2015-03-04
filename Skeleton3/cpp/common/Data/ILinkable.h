@@ -5,7 +5,7 @@
 #ifndef ILINKABLE_H_
 #define ILINKABLE_H_
 
-#include "Data/Controller.h"
+#include "State/ObjectManager.h"
 
 namespace Carta {
 
@@ -15,18 +15,18 @@ class ILinkable {
 public:
 
     /**
-     * Remove the link to the image view.
-     * @param controller the image view that should no longer be linked.
+     * Remove the link to the CartaObject.
+     * @param cartaObj the CartaObject that should no longer be linked.
      * @return true if the link was successfully removed; false otherwise.
      */
-    virtual bool removeLink( Controller *& controller ) = 0;
+    virtual bool removeLink( CartaObject * cartaObj ) = 0;
 
     /**
-     * Add a link to the image view.
-     * @param controller the image view that should be linked.
-     * @return true if the controller is linked; false otherwise.
+     * Add a link to the CartaObject.
+     * @param artaObj the CartaObject that should be linked.
+     * @return true if the CartaObject is linked; false otherwise.
      */
-    virtual bool addLink( Controller* & controller ) = 0;
+    virtual bool addLink( CartaObject* cartaObj ) = 0;
 
 };
 }

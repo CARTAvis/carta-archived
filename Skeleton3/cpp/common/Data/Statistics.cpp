@@ -37,13 +37,20 @@ Statistics::Statistics( const QString& path, const QString& id ) :
      _initializeState();
 }
 
-bool Statistics::addLink( Controller*& target ){
-    bool objAdded = m_linkImpl->addLink( target );
+bool Statistics::addLink( CartaObject* cartaObject ){
+    Controller* target = dynamic_cast<Controller*>( cartaObject);
+    bool objAdded = false;
+    if ( target != nullptr){
+        objAdded = m_linkImpl->addLink( target );
+    }
+    else {
+        qWarning() << "Statistics: unrecognized link type";
+    }
     return objAdded;
 }
 
-bool Statistics::removeLink( Controller*& controller ){
-    bool objRemoved = m_linkImpl->removeLink( controller );
+bool Statistics::removeLink( CartaObject* cartaObject ){
+    bool objRemoved = m_linkImpl->removeLink( cartaObject );
     return objRemoved;
 }
 
