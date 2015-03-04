@@ -1,32 +1,82 @@
+/**
+ * Represents the histogram data on a plot.
+ */
 #pragma once
-#include <qwt_plot.h>
-#include <qwt_samples.h>
+
+#include <qwt_interval.h>
 #include <qwt_plot_histogram.h>
-#include <QWidget>
-#include <QRect>
 #include <QRectF>
-#include <QPainter>
-#include <qwt_plot_renderer.h>
-#include <QImage>
-#include <QPaintDevice>
 #include <QString>
-#include <qwt_scale_engine.h>
 #include <qwt_scale_map.h>
-#include <qwt_plot_picker.h>
-#include <qwt_picker_machine.h>
-#include <QDebug>
+#include <memory>
+
+namespace Carta {
+namespace Lib {
+namespace PixelPipeline {
+class IColormapNamed;
+}
+}
+}
 
 class QPainter;
 
+namespace Carta {
+namespace Histogram {
+
+
 class HistogramPlot : public QwtPlotHistogram {
 	public:
-	HistogramPlot();
-	virtual void drawSeries ( QPainter* painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap,
-		const QRectF& canvasRect, int from, int to ) const;
-	void setSampleCount(int sampleNumber);
-	virtual ~HistogramPlot();
 
-	private:
-	int m_sampleCount;
-	// QString m_style;
+        /**
+         * Constructor.
+         */
+        HistogramPlot();
+        /**
+         * Store the data to be plotted.
+         * @param data the histogram data.
+         */
+        void setData (const QVector< QwtIntervalSample > & data );
+
+        /**
+         * Set the draw style for the data (outline, filled, line).
+         * @param style an identifier for a data drawing style.
+         */
+        void setDrawStyle( const QString& style );
+
+        /**
+         * Store the color map capable of mapping intensities to colors.
+         * @param CMap an object capable of intensity to color mapping.
+         */
+        void setColorMap( std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap );
+
+        /**
+         * Set whether the histogram should be drawn in a single color or whether it should be
+         * multi-colored based on intensity.
+         * @param colored true for a histogram colored based on intensity; false otherwise.
+         */
+        void setColored( bool colored );
+
+        /**
+         * Destructor.
+         */
+        virtual ~HistogramPlot();
+
+	protected:
+        virtual void drawColumn (QPainter *, const QwtColumnRect &, const QwtIntervalSample &) const;
+
+        virtual void drawSeries ( QPainter* painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap,
+                    const QRectF& canvasRect, int from, int to ) const;
+
+     private:
+       std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> m_colorMap;
+	   QString m_drawStyle;
+	   QColor m_defaultColor;
+	   QBrush m_brush;
+	   bool m_colored;
+	   QVector< QwtIntervalSample > m_data;
+	   mutable double m_lastY;
+	   mutable double m_lastX;
 };
+
+}
+}

@@ -57,7 +57,7 @@ void Preferences::_initializeCallbacks(){
                else {
                    result = "Menu visibility must be a bool : " + dataValues[0];
                }
-               result = Util::commandPostProcess( result, SHOW_MENU );
+               Util::commandPostProcess( result );
                return result;
         });
 
@@ -74,7 +74,7 @@ void Preferences::_initializeCallbacks(){
                    else {
                        result = "Toolbar visibility must be a bool : " + dataValues[0];
                    }
-                   result = Util::commandPostProcess( result, SHOW_TOOLBAR );
+                   Util::commandPostProcess( result );
                    return result;
             });
 
@@ -91,7 +91,7 @@ void Preferences::_initializeCallbacks(){
        else {
            result = "Status bar visibility must be a bool : " + dataValues[0];
        }
-       result = Util::commandPostProcess( result, SHOW_STATUS );
+       Util::commandPostProcess( result );
        return result;
 });
 }

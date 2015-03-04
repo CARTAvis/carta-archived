@@ -39,11 +39,12 @@ qx.Class.define("skel.widgets.ErrorHandler", {
                 var statusStr = this.m_sharedVar.get();
                 var errors = JSON.parse( statusStr );
                 if ( errors ){
+                    //Clear out any old errors.
+                    if ( this.m_statusBar !== null ){
+                        this.m_statusBar.clearMessages();
+                    }
                     if ( errors.errorsExist === true ){
-                        //Clear out any old errors.
-                        if ( this.m_statusBar !== null ){
-                            this.m_statusBar.clearMessages();
-                        }
+                       
                         //Send a command to get the new errors.
                         var path = skel.widgets.Path.getInstance();
                         var cmd = path.ERROR_HANDLER + path.SEP_COMMAND + "getErrors";

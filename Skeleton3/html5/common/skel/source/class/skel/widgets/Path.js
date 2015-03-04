@@ -42,6 +42,8 @@ qx.Class.define("skel.widgets.Path", {
         LAYOUT_MANAGER : "Layout",
         LAYOUT_PLUGIN : "",
         MOUSE : "mouse",
+        MOUSE_DOWN : "mouseDown",
+        MOUSE_UP : "mouseUp",
         MOUSE_X : "",
         MOUSE_Y : "",
         PLUGINS : "ViewPlugins",

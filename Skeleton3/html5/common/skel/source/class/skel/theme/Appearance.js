@@ -37,6 +37,17 @@ qx.Theme.define( "skel.theme.Appearance", {
                 };
             }
         },
+        
+        "errorTextField" : {
+            style : function(states)
+            {
+                 return {
+                     decorator : "redBorder",
+                     padding : [ 2, 4, 1 ],
+                     textColor : "error"
+                   };
+            }
+        },
 
         "window/captionbar" :
         {

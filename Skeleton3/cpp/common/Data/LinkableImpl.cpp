@@ -1,8 +1,5 @@
 
-#include "Data/Controller.h"
 #include "Data/LinkableImpl.h"
-#include "State/StateInterface.h"
-
 #include <QDebug>
 
 namespace Carta {
@@ -11,76 +8,63 @@ namespace Data {
 
 const QString LinkableImpl::LINK = "links";
 
-
 LinkableImpl::LinkableImpl( StateInterface* state ){
     m_state = state;
     _initializeState();
+
 }
 
-bool LinkableImpl::addLink( Controller*& controller ){
+bool LinkableImpl::addLink( CartaObject* cartaObj ){
     bool linkAdded = false;
-    if ( controller ){
-        int index = _getIndex( controller );
+    if ( cartaObj ){
+        int index = _getIndex( cartaObj );
         if ( index < 0  ){
-            m_controllers.push_back( controller );
-            _adjustStateController();
+            m_cartaObjs.push_back( cartaObj );
+            _adjustState();
         }
         linkAdded = true;
     }
     return linkAdded;
 }
 
-
-
-void LinkableImpl::_adjustStateController(){
-    int controllerCount = m_controllers.size();
-    m_state->resizeArray( LINK, controllerCount );
-    for ( int i = 0; i < controllerCount; i++ ){
+void LinkableImpl::_adjustState(){
+    int cartaObjCount = m_cartaObjs.size();
+    m_state->resizeArray( LINK, cartaObjCount );
+    for ( int i = 0; i < cartaObjCount; i++ ){
         QString idStr( LINK + StateInterface::DELIMITER + QString::number(i));
-        m_state->setValue<QString>(idStr, m_controllers[i]->getPath());
+        m_state->setValue<QString>(idStr, m_cartaObjs[i]->getPath());
     }
     m_state->flushState();
 }
 
 
-
 void LinkableImpl::clear(){
-    m_controllers.clear();
+    m_cartaObjs.clear();
     m_state->resizeArray( LINK, 0 );
+    m_state->flushState();
 }
 
-
-
-int LinkableImpl::_getIndex( Controller*& controller ){
+int LinkableImpl::_getIndex( CartaObject* cartaObj ){
     int index = -1;
-    int controllerCount = m_controllers.size();
-    QString targetPath = controller->getPath();
-    for ( int i = 0; i < controllerCount; i++ ){
-        if ( targetPath == m_controllers[i]->getPath()){
-           index = i;
-           break;
-        }
+    if ( cartaObj != nullptr ){
+        int cartaObjCount = m_cartaObjs.size();
+        QString targetPath = cartaObj->getPath();
+        for ( int i = 0; i < cartaObjCount; i++ ){
+            if ( targetPath == m_cartaObjs[i]->getPath()){
+               index = i;
+               break;
+            }
+         }
      }
      return index;
 }
 
-int LinkableImpl::getSelectedImage() const {
-    int selectedImage = 0;
-    if ( m_controllers.size() > 0 ){
-        selectedImage = m_controllers[0]->getSelectImageIndex();
+CartaObject* LinkableImpl::getLink( int index ) const {
+    CartaObject* link = nullptr;
+    if ( 0 <= index && index < m_cartaObjs.size() ){
+        link = m_cartaObjs[index];
     }
-    return selectedImage;
-}
-
-int LinkableImpl::getImageCount() const {
-    int maxImages = 0;
-    for (Controller* controller : m_controllers ){
-        int imageCount = controller->getStackedImageCount();
-        if ( imageCount > maxImages ){
-            maxImages = imageCount;
-        }
-    }
-    return maxImages;
+    return link;
 }
 
 int LinkableImpl::getLinkCount() const {
@@ -88,7 +72,7 @@ int LinkableImpl::getLinkCount() const {
     return linkCount;
 }
 
-QList<QString> LinkableImpl::getLinks() const {
+QList<QString> LinkableImpl::getLinkIds() const {
     int linkCount = getLinkCount();
     QList<QString> linkList;
     for ( int i = 0; i < linkCount; i++ ){
@@ -96,7 +80,6 @@ QList<QString> LinkableImpl::getLinks() const {
     }
     return linkList;
 }
-
 
 QString LinkableImpl::getLinkId( int linkIndex ) const {
     QString linkId;
@@ -107,30 +90,29 @@ QString LinkableImpl::getLinkId( int linkIndex ) const {
     return linkId;
 }
 
-
 void LinkableImpl::_initializeState(){
     m_state->insertArray(LINK, 0 );
 }
 
-bool LinkableImpl::removeLink( Controller*& controller ){
+bool LinkableImpl::removeLink( CartaObject* cartaObj ){
     bool linkRemoved = false;
-    if ( controller ){
-        int index = _getIndex( controller );
+    if ( cartaObj ){
+        int index = _getIndex( cartaObj );
         if ( index >= 0  ){
-            m_controllers.removeAt( index );
-            _adjustStateController();
+            m_cartaObjs.removeAt( index );
+            _adjustState();
             linkRemoved = true;
         }
     }
     return linkRemoved;
 }
 
-Controller* LinkableImpl::searchLinks(const QString& link){
-    Controller* result = nullptr;
-    int controllerCount = m_controllers.size();
-    for( int i = 0; i < controllerCount; i++ ){
-        if(m_controllers[i]->getPath() == link){
-            result = m_controllers[i];
+CartaObject* LinkableImpl::searchLinks(const QString& link){
+    CartaObject* result = nullptr;
+    int cartaObjCount = m_cartaObjs.size();
+    for( int i = 0; i < cartaObjCount; i++ ){
+        if(m_cartaObjs[i]->getPath() == link){
+            result = m_cartaObjs[i];
             break;
         }
     }
@@ -143,4 +125,3 @@ LinkableImpl::~LinkableImpl(){
 
 }
 }
-

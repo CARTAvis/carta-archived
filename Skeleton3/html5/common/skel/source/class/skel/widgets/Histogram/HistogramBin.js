@@ -30,15 +30,40 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
          * @param anObject {skel.widgets.Histogram.HistogramBin}.
          */
         _errorBinCountCB : function( anObject ){
-            return function( binCount ){
-                if ( binCount ){
-                    var binCountInt = parseInt( binCount );
-                    anObject.setBinCount( binCountInt );
+            return function( msg ){
+                if ( msg !== null && msg.length > 0 ){
+                    anObject.m_binCountText.setError( true );
+                }
+                else {
+                    var oldError = anObject.m_binCountText.isError();
+                    if ( oldError ){
+                        anObject.m_binCountText.setError( false );
+                        var errorMan = skel.widgets.ErrorHandler.getInstance();
+                        errorMan.clearErrors();
+                    }
                 }
             };
         },
         
-
+        /**
+         * Callback for a server error when setting the bin width.
+         * @param anObject {skel.widgets.Histogram.HistogramBin}.
+         */
+        _errorBinWidthCB : function( anObject ){
+            return function( msg ){
+                if ( msg !== null && msg.length > 0 ){
+                    anObject.m_widthText.setError( true );
+                }
+                else {
+                    var oldError = anObject.m_widthText.isError();
+                    if ( oldError ){
+                        anObject.m_widthText.setError( false );
+                        var errorMan = skel.widgets.ErrorHandler.getInstance();
+                        errorMan.clearErrors();
+                    }
+                }
+            };
+        },
 
         /**
          * Initializes the UI.
@@ -48,10 +73,19 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
 
-            //var binContainer =  new qx.ui.groupbox.GroupBox("Code Assist", "");
-            //binContainer.setLayout(new qx.ui.layout.VBox(2));
-
+            var binContainer = new qx.ui.groupbox.GroupBox("Bins", "");
+            binContainer.setContentPadding(1,1,1,1);
+            binContainer.setLayout( new qx.ui.layout.VBox(1));
+            this._add( binContainer);
+            
+            //Bin Count
+            var binCountContainer = new qx.ui.container.Composite();
+            var gridLayout = new qx.ui.layout.Grid();
+            gridLayout.setColumnAlign( 0, "center", "middle");
+            binCountContainer.setLayout( gridLayout );
+            
             this.m_binCountText = new skel.widgets.CustomUI.NumericTextField(0,this.m_MAX_BINS);
+            this.m_binCountText.setToolTipText("Set the number of histogram bins.");
             this.m_binCountText.addListener("textChanged",
                     function(ev) {
                         var binCount = this.m_binCountText.getValue();
@@ -60,29 +94,58 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
                         }
                 }, this);
             this.m_binCountText.setTextId( skel.widgets.TestID.HISTOGRAM_BIN_COUNT_INPUT );
-            this._add( this.m_binCountText );
+            binCountContainer.add( this.m_binCountText, {row:0, column:1} );
             
             this.m_binCountSlider = new qx.ui.form.Slider();
             this.m_binCountSlider.setMinimum( 0 );
             this.m_binCountSlider.setMaximum( this.m_MAX_BINS );
             this.m_binCountSlider.setValue( 25 );
-            this.m_binCountSlider.addListener( "changeValue", function(){
-                if ( this.m_connector !== null ){
-                    //Notify the server of the new value.
-                    var value = this.m_binCountSlider.getValue();
-                    var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramBin.CMD_SET_BIN_COUNT;
-                    var params = "binCount:"+value;
-                    this.m_connector.sendCommand( cmd, params, this._errorBinCountCB(this));
-                }
-            }, this);
+            this.m_binCountSlider.setToolTipText( "Slide to set the number of histogram bins.");
+            this.m_binCountListenerId = this.m_binCountSlider.addListener( "changeValue", this._sendCountCmd, this);
             skel.widgets.TestID.addTestId( this.m_binCountSlider, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_SLIDER);
-            this._add( this.m_binCountSlider );
-            //binContainer._add(this.m_binCountText);
-            //binContainer._add(this.m_binCountSlider);
-
-            //this._add(binContainer);
-
+            binCountContainer.add( this.m_binCountSlider, {row:1, column:1} );
+            var countLabel = new qx.ui.basic.Label( "Count:");
+            binCountContainer.add( countLabel, {row:0,column:0, rowSpan:2});
+            binContainer.add( binCountContainer );
+            
+            //Bin Width
+            var binWidthContainer = new qx.ui.container.Composite();
+            binWidthContainer.setLayout( new qx.ui.layout.HBox(1));
+            var widthLabel = new qx.ui.basic.Label( "Width:");
+            binWidthContainer.add( widthLabel);
+            this.m_widthText = new skel.widgets.CustomUI.NumericTextField(0,null);
+            this.m_widthText.setIntegerOnly( false );
+            this.m_widthListenerId = this.m_widthText.addListener( "textChanged", this._sendWidthCmd, this._errorBinWidthCB(this) );
+            this.m_widthText.setToolTipText( "Specify the width of the histogram bins.");
+            binWidthContainer.add( this.m_widthText );
+            binContainer.add( binWidthContainer );
+        },
+        
+        /**
+         * Send a bin count change to the server.
+         */
+        _sendCountCmd : function(){
+            if ( this.m_connector !== null ){
+                //Notify the server of the new value.
+                var value = this.m_binCountSlider.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramBin.CMD_SET_BIN_COUNT;
+                var params = "binCount:"+value;
+                this.m_connector.sendCommand( cmd, params, this._errorBinCountCB(this));
+            }
+        },
+        
+        /**
+         * Sends a bin width change to the server.
+         */
+        _sendWidthCmd : function(){
+            if ( this.m_connector !== null ){
+                var value = this.m_widthText.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND +"setBinWidth";
+                var params = "binWidth:"+value;
+                this.m_connector.sendCommand( cmd, params, this._errorBinWidthCB( this));
+            }
         },
         
         /**
@@ -91,6 +154,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
          */
         setBinCount : function( binCount ){
             var oldBinCount = this.m_binCountText.getValue();
+            this.m_binCountSlider.removeListenerById( this.m_binCountListenerId);
             if ( binCount != oldBinCount ){
                 this.m_binCountText.setValue( binCount );
             }
@@ -100,6 +164,20 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
                 if ( binCount != this.m_binCountSlider.getValue()){
                     this.m_binCountSlider.setValue( binCount );
                 }
+            }
+            this.m_binCountListenerId = this.m_binCountSlider.addListener( "changeValue", this._sendCountCmd, this);
+        },
+        
+        /**
+         * Sets a new histogram bin width.
+         * @param binWidth {Number} the new bin width.
+         */
+        setBinWidth : function( binWidth ){
+            var oldBinWidth = this.m_widthText.getValue();
+            if ( oldBinWidth !== null || Math.abs( binWidth - oldBinWidth > 0.000001 )){
+                this.m_widthText.removeListenerById( this.m_widthListenerId );
+                this.m_widthText.setValue( binWidth );
+                this.m_widthListenerId = this.m_widthText.addListener( "textChanged", this._sendWidthCmd, this );
             }
         },
         
@@ -113,9 +191,19 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
 
         m_binCountText : null,
         m_binCountSlider : null,
+        m_binCountListenerId : null,
         m_id : null,
         m_connector : null,
+        m_widthListenerId : null,
+        m_widthText: null,
         m_MAX_BINS : 100
         
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

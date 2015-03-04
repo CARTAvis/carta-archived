@@ -26,6 +26,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     var hist = JSON.parse( val );
                     if ( this.m_binSettings !== null ){
                         this.m_binSettings.setBinCount(hist.binCount );
+                        this.m_binSettings.setBinWidth(hist.binWidth );
                     }
                   
                     if ( this.m_rangeSettings !== null ){
@@ -48,7 +49,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_twoDSettings !== null ){
                         this.m_twoDSettings.setFootPrint( hist.twoDFootPrint );
                     }
-
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.clearErrors();
 
                 }
                 catch( err ){
@@ -62,13 +64,14 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
          * Initializes the UI.
          */
         _init : function( ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.Grow();
             this._setLayout(widgetLayout);
             this.setAllowGrowX( true );
             this.setAllowGrowY( true );
+            this.m_settingsVisible = false;
             this._initMain();
             this._initControls();
-            this.m_settingsVisible = false;
+            
         },
        
         /**
@@ -81,59 +84,25 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
 
             var layout = new qx.ui.layout.Flow();
             layout.setAlignX( "left" );
-            layout.setSpacingX(10);
-            layout.setSpacingY(10);
+            layout.setSpacingX(1);
+            layout.setSpacingY(1);
 
             this.m_settingsContainer = new qx.ui.container.Composite(layout);
-            this.m_settingsContainer.setPadding(10);
-
-            this.m_rangeContainer = new qx.ui.groupbox.GroupBox("Range Settings", "");
-            this.m_rangeContainer.setLayout( new qx.ui.layout.HBox(10));
+            this.m_settingsContainer.setPadding(1);
+            
             this.m_rangeSettings = new skel.widgets.Histogram.HistogramRange();
-            this.m_rangeContainer.add( this.m_rangeSettings );
-            //this.m_controlComposite.add(m_rangeContainer);
-            //this._add(m_rangeContainer);
-            // m_settingsContainer.add(m_rangeContainer);
-
-            this.m_binContainer = new qx.ui.groupbox.GroupBox("Bin Count Settings", "");
-            this.m_binContainer.setLayout( new qx.ui.layout.HBox(5));
             this.m_binSettings = new skel.widgets.Histogram.HistogramBin();
-            this.m_binContainer.add( this.m_binSettings );
-            //this._add(m_binContainer);
-            // m_settingsContainer.add(m_binContainer);
-            
-            this.m_displayContainer = new qx.ui.groupbox.GroupBox("Display Settings", "");
-            this.m_displayContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_displaySettings = new skel.widgets.Histogram.HistogramDisplay();
-            this.m_displayContainer.add( this.m_displaySettings );
-            //this._add(m_displayContainer);
-            // m_settingsContainer.add(m_displayContainer);
-            
-            this.m_zoomContainer = new qx.ui.groupbox.GroupBox("Zoom Settings", "");
-            this.m_zoomContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_zoomSettings = new skel.widgets.Histogram.HistogramZoom();
-            this.m_zoomContainer.add( this.m_zoomSettings );
-            // this._add(m_zoomContainer);
-            // m_settingsContainer.add(m_zoomContainer);
-
-            this.m_cubeContainer = new qx.ui.groupbox.GroupBox("Cube Settings", "");
-            this.m_cubeContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_cubeSettings = new skel.widgets.Histogram.HistogramCube();
-            this.m_cubeContainer.add( this.m_cubeSettings );
-            // this._add(m_cubeContainer);
-            // m_settingsContainer.add(m_cubeContainer);
-
-            this.m_twoDContainer = new qx.ui.groupbox.GroupBox("2D Settings", "");
-            this.m_twoDContainer.setLayout( new qx.ui.layout.HBox(10));
             this.m_twoDSettings = new skel.widgets.Histogram.Histogram2D();
-            this.m_twoDContainer.add( this.m_twoDSettings );
-            // this._add(m_twoDContainer);
-            // m_settingsContainer.add(m_twoDContainer);
 
-            this._add(this.m_settingsContainer);
-            //this._layoutControls();
-            //this._add( this.m_controlComposite );
-            
+            this.m_settingsContainer.add(this.m_rangeSettings);
+            this.m_settingsContainer.add(this.m_binSettings);
+            this.m_settingsContainer.add(this.m_displaySettings);
+            this.m_settingsContainer.add(this.m_twoDSettings);
+            this.m_settingsContainer.add(this.m_cubeSettings);
+            this.m_settingsContainer.add(this.m_zoomSettings);
         },
         
         
@@ -145,13 +114,11 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_mainComposite = new qx.ui.container.Composite();
             this.m_mainComposite.setLayout( new qx.ui.layout.VBox(2));
             this.m_mainComposite.set ({
-                minWidth : 200,
-                minHeight : 200,
+                minWidth : this.m_MIN_DIM,
+                minHeight : this.m_MIN_DIM,
                 allowGrowX: true,
                 allowGrowY: true
             });
-            
-           
             
             this._add(this.m_mainComposite);
         },
@@ -161,13 +128,13 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
          */
         _initView : function(){
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.View.SuffixedView(this.m_id);
-                this.m_view.setAllowGrowX( false );
-                this.m_view.setAllowGrowY( false );
-                this.m_view.setHeight(335);
-                this.m_view.setWidth(335);
+                this.m_view = new skel.boundWidgets.View.DragView(this.m_id);
+                this.m_view.setAllowGrowX( true );
+                this.m_view.setAllowGrowY( true );
+                this.m_view.setMinHeight(this.m_MIN_DIM);
+                this.m_view.setMinWidth(this.m_MIN_DIM);
                 if ( this.m_mainComposite.indexOf( this.m_view) < 0 ){
-                    this.m_mainComposite.add( this.m_view );
+                    this.m_mainComposite.add( this.m_view, {flex:1} );
 
                 }
             }
@@ -175,15 +142,14 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         
         layoutControls : function(){
             if(this.m_settingsVisible){
-                this.m_settingsContainer.add(this.m_rangeContainer);
-                this.m_settingsContainer.add(this.m_binContainer);
-                this.m_settingsContainer.add(this.m_displayContainer);
-                this.m_settingsContainer.add(this.m_twoDContainer);
-                this.m_settingsContainer.add(this.m_cubeContainer);
-                this.m_settingsContainer.add(this.m_zoomContainer);
+                if ( this.m_mainComposite.indexOf( this.m_settingsContainer) < 0 ){
+                    this.m_mainComposite.add( this.m_settingsContainer );
+                }
             }
             else{
-                this.m_settingsContainer.removeAll();
+                if ( this.m_mainComposite.indexOf( this.m_settingsContainer) >= 0 ){
+                    this.m_mainComposite.remove( this.m_settingsContainer );
+                }
             }
         },
         
@@ -236,15 +202,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_rangeSettings : null,
         m_displaySettings : null,
         m_zoomSettings : null,
+        m_MIN_DIM : 150,
       
-
-        m_rangeContainer : null,
-        m_binContainer : null,
-        m_displayContainer : null,
-        m_zoomContainer : null,
-        m_cubeContainer : null,
-        m_twoDContainer : null, 
-
         m_id : null,
         m_connector : null,
         m_sharedVar : null,

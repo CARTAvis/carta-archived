@@ -53,7 +53,6 @@ HEADERS += \
     Data/TransformsImage.h \
     Data/Util.h \
     GrayColormap.h \
-    ColormapsOptimization.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     GrayColormap.h \

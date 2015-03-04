@@ -32,10 +32,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             _initDisplaySpecific : function() {
                 if (this.m_histogram === null ) {
                     this.m_histogram = new skel.widgets.Histogram.Histogram();
-                    this.m_histogram.setHeight( 200 );
-                    this.m_histogram.setWidth( 200 );
                     this.m_histogram.setId( this.m_identifier);
-                    this.m_content.add( this.m_histogram);
+                    this.m_content.add( this.m_histogram, {flex:1});
                 }
             },
            

@@ -5,8 +5,7 @@
 #ifndef LINKABLEIMPL_H_
 #define LINKABLEIMPL_H_
 
-#include "Data/Controller.h"
-#include "Data/ILinkable.h"
+#include "State/ObjectManager.h"
 #include <QString>
 
 class StateInterface;
@@ -15,7 +14,7 @@ namespace Carta {
 
 namespace Data {
 
-class LinkableImpl : public ILinkable {
+class LinkableImpl {
 
 public:
     /**
@@ -34,6 +33,8 @@ public:
      */
     int getLinkCount() const;
 
+    CartaObject* getLink( int index ) const;
+
     /**
      * Returns the server-side id of the image view with the given index.
      * @param linkIndex a zero-based link index.
@@ -46,27 +47,16 @@ public:
      * Returns a list of server-side ids for all linked image views.
      * @return the server-side ids of linked views.
      */
-    QList<QString> getLinks() const;
+    QList<QString> getLinkIds() const;
 
-    /**
-     * Returns the largest image stack size of any of the controllers.
-     * @return a count of the maximum number of images loaded by any controller.
-     */
-    int getImageCount() const;
+    CartaObject* searchLinks(const QString& link);
 
-    /**
-     * Return the index of the image that has been selected.
-     * @return the selected image index.
-     */
-    int getSelectedImage() const;
-
-    Controller* searchLinks(const QString& link);
-
-    virtual bool removeLink( Controller*& controller ) Q_DECL_OVERRIDE;;
-    virtual bool addLink( Controller*& controller ) Q_DECL_OVERRIDE;;
+    bool removeLink( CartaObject* cartaObj );
+    bool addLink( CartaObject* cartaObj );
     virtual ~LinkableImpl();
+private:
 
-    static const QString LINK;
+    const static QString LINK;
 
     /**
      * Initialize default state.
@@ -76,21 +66,22 @@ public:
     /**
      * Update the state when links change.
      */
-    void _adjustStateController();
+    void _adjustState();
 
     /**
      * Returns the index of a specific linked image view.
-     * @param controller an image view.
+     * @param cartaObj an image view.
      * @return a nonnegative index if the image view is linked; -1 otherwise.
      */
-    int _getIndex( Controller*& controller );
-    /// List of controllers managed by this animator.
-    QList<Controller* > m_controllers;
+    int _getIndex( CartaObject* cartaObj );
+    /// List of cartaObjs managed by this animator.
+    QList<CartaObject* > m_cartaObjs;
     StateInterface* m_state; //Used
 
     LinkableImpl( const LinkableImpl& other);
     LinkableImpl operator=( const LinkableImpl& other );
 };
+
 }
 }
 

@@ -2,6 +2,7 @@
 #include "Globals.h"
 #include "PluginManager.h"
 #include "Animator.h"
+#include "Controller.h"
 #include "Statistics.h"
 #include "Histogram.h"
 #include "Colormap.h"

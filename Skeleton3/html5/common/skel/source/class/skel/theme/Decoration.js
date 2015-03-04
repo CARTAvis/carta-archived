@@ -79,27 +79,16 @@ qx.Theme.define( "skel.theme.Decoration", {
                 backgroundColor: "background"
             }
         },
+        
+        "redBorder" : {
+            include: "input-focused",
+            style : {
+                width : 2,
+                color : "red"
+            }    
+        },
 
-//        // window default
-//        "win": {
-//            style: {
-//                backgroundColor: "background",
-//                width: 5,
-////                widthTop          : 5,
-//                color          : "selection2"
-//            }
-//        },
-//
-//        // currently 'selected' window
-//        "window-pane-active": {
-//            style: {
-//                backgroundColor: "background",
-//                width: 5,
-////                widthTop          : 5,
-////                colorTop          : "selection"
-//                color          : "selection"
-//            }
-//        },
+
 
         "window" :
         {

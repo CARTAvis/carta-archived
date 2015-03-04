@@ -1,5 +1,7 @@
 #include "Data/Histogram.h"
 #include "Data/Clips.h"
+#include "Data/Colormap.h"
+#include "Data/LinkableImpl.h"
 #include "Data/Controller.h"
 #include "Data/Util.h"
 #include "Histogram/HistogramGenerator.h"
@@ -8,8 +10,10 @@
 #include "PluginManager.h"
 #include "ErrorManager.h"
 #include "CartaLib/Hooks/Histogram.h"
+#include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "Util.h"
 #include <set>
+#include <QtCore/qmath.h>
 #include <QDebug>
 
 namespace Carta {
@@ -23,6 +27,7 @@ const QString Histogram::CLIP_MIN = "clipMin";
 const QString Histogram::CLIP_MAX = "clipMax";
 const QString Histogram::CLIP_APPLY = "applyClipToImage";
 const QString Histogram::BIN_COUNT = "binCount";
+const QString Histogram::BIN_WIDTH = "binWidth";
 const QString Histogram::GRAPH_STYLE = "graphStyle";
 const QString Histogram::GRAPH_STYLE_LINE = "Line";
 const QString Histogram::GRAPH_STYLE_OUTLINE = "Outline";
@@ -51,31 +56,32 @@ const double Histogram::CLIP_ERROR_MARGIN = 0.000001;
 Clips*  Histogram::m_clips = nullptr;
 
 class Histogram::Factory : public CartaObjectFactory {
-    public:
+public:
 
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new Histogram (path, id);
-        }
-    };
+    CartaObject * create (const QString & path, const QString & id)
+    {
+        return new Histogram (path, id);
+    }
+};
 
 bool Histogram::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Histogram::Factory());
+        ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Histogram::Factory());
 
 
 
 Histogram::Histogram( const QString& path, const QString& id):
-    CartaObject( CLASS_NAME, path, id ),
-    m_view(nullptr),
-    m_linkImpl( new LinkableImpl( &m_state)),
-    m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
+            CartaObject( CLASS_NAME, path, id ),
+            m_view(nullptr),
+            m_linkImpl( new LinkableImpl( &m_state)),
+            m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     _initializeDefaultState();
     _initializeCallbacks();
     m_view.reset( new ImageView( path, QColor("yellow"), QImage(), &m_stateMouse));
+    connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_updateSize(const QSize&)));
     registerView(m_view.get());
     m_selectionEnabled = false;
     m_selectionEnded = false;
-    m_histogram = new HistogramGenerator();
+    m_histogram = new Carta::Histogram::HistogramGenerator();
 
     //Load the available clips.
     if ( m_clips == nullptr ){
@@ -85,10 +91,31 @@ Histogram::Histogram( const QString& path, const QString& id):
 
 }
 
-bool Histogram::addLink( Controller* & controller){
-    bool linkAdded = m_linkImpl->addLink( controller );
-    if ( linkAdded ){
-        connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram(const Controller*)));
+
+
+
+
+bool Histogram::addLink( CartaObject*  target){
+    Controller* controller = dynamic_cast<Controller*>(target);
+    bool linkAdded = false;
+    if ( controller != nullptr ){
+        linkAdded = m_linkImpl->addLink( controller );
+        if ( linkAdded ){
+            connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram(Controller*)));
+        }
+    }
+    else {
+        Colormap* map = dynamic_cast<Colormap*>(target);
+        if ( map != nullptr ){
+            linkAdded = m_linkImpl->addLink( map );
+            if ( linkAdded ){
+                connect( map, SIGNAL(colorMapChanged( Colormap*)), this, SLOT( _updateColorMap( Colormap*)));
+                _updateColorMap( map );
+            }
+        }
+        else {
+            qWarning() << "Histogram:  unsupported link type.";
+        }
     }
     return linkAdded;
 }
@@ -100,16 +127,89 @@ void Histogram::clear(){
     m_linkImpl->clear();
 }
 
+void Histogram::_createHistogram( Controller* controller){
+    double minIntensity = 0;
+    double maxIntensity = 0;
+
+    QString filename = controller->getImageName(0);
+    bool minValid = _getIntensity( filename, 0, 0, &minIntensity );
+    bool maxValid = _getIntensity( filename, 0, 1, &maxIntensity );
+
+    if(minValid && maxValid){
+        m_state.setValue<double>(CLIP_MIN, minIntensity);
+        m_state.setValue<double>(CLIP_MAX, maxIntensity);
+        m_state.flushState();
+    }
+    _generateHistogram( true, controller );
+}
+
+
+void Histogram::_endSelection(const QString& params ){
+    std::set<QString> keys = {X_COORDINATE};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString xstr = dataValues[X_COORDINATE];
+    m_selectionEnd = xstr.toDouble();
+    m_selectionEnded = true;
+    m_histogram->setSelectionMode( false );
+    _generateHistogram( false );
+    m_selectionEnabled = false;
+
+
+}
+
 NdArray::RawViewInterface* Histogram::_findRawData( const QString& fileName, int frameIndex ) const {
     NdArray::RawViewInterface * rawData = nullptr;
-    for( Controller* controller : m_linkImpl->m_controllers ){
-        rawData = controller->getRawData( fileName, frameIndex);
-        if ( rawData != nullptr ){
-            break;
+    int linkCount = m_linkImpl->getLinkCount();
+    for( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            rawData = controller->getRawData( fileName, frameIndex);
+            if ( rawData != nullptr ){
+                break;
+            }
         }
     }
     return rawData;
 }
+
+std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(Controller* controller){
+    std::vector<std::shared_ptr<Image::ImageInterface>> result;
+    if ( controller != nullptr ){
+        result = controller->getDataSources();
+    }
+    return result;
+}
+
+void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller ){
+    if ( newDataNeeded ){
+        _loadData( controller );
+    }
+    //Refresh the view
+    //User is not selecting a range
+    if ( !m_selectionEnabled ){
+        QString style = m_state.getValue<QString>(GRAPH_STYLE);
+        bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
+        bool colored = m_state.getValue<bool>(GRAPH_COLORED);
+        m_histogram->setStyle(style);
+        m_histogram->setLogScale(logCount);
+        m_histogram->setColored( colored );
+    }
+    //User is selecting a range.
+    else{
+        if ( m_selectionEnded ){
+            double minIntensity = m_state.getValue<double>(CLIP_MIN);
+            double maxIntensity = m_state.getValue<double>(CLIP_MAX);
+            m_histogram->setHistogramSelection(minIntensity, maxIntensity);
+        }
+        else {
+            m_histogram->setHistogramSelection( m_selectionStart, m_selectionEnd );
+        }
+    }
+    QImage * histogramImage = m_histogram->toImage();
+    m_view->resetImage( *histogramImage );
+    m_view->scheduleRedraw();
+}
+
 
 double Histogram::_getPercentile( const QString& fileName, int frameIndex, double intensity ) const {
     double percentile = 0;
@@ -145,11 +245,11 @@ bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double p
         // we need our own copy because we'll do quickselect on it...
         std::vector < double > allValues;
         view.forEach(
-            [& allValues] ( const double  val ) {
-                if ( std::isfinite( val ) ) {
-                    allValues.push_back( val );
-                }
+                [& allValues] ( const double  val ) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( val );
             }
+        }
         );
 
         // indicate bad clip if no finite numbers were found
@@ -168,9 +268,9 @@ bool Histogram::_getIntensity( const QString& fileName, int frameIndex, double p
 }
 
 int Histogram::_getLinkInfo( const QString& link, QString& name ) const {
-    Controller* controller = m_linkImpl->searchLinks(link);
+    Controller* controller = dynamic_cast<Controller*>(m_linkImpl->searchLinks(link));
     int index = -1;
-    if(controller){
+    if ( controller != nullptr ){
         index = controller->getSelectImageIndex();
         name = controller-> getImageName(index);
     }
@@ -182,7 +282,10 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<double>( CLIP_MIN, 0 );
     m_state.insertValue<double>(CLIP_MAX, 1);
     m_state.insertValue<bool>(CLIP_APPLY, false );
-    m_state.insertValue<int>(BIN_COUNT, 25 );
+    const int DEFAULT_BIN_COUNT = 25;
+    m_state.insertValue<int>(BIN_COUNT, DEFAULT_BIN_COUNT );
+    double binWidth = _toBinWidth(DEFAULT_BIN_COUNT);
+    m_state.insertValue<double>(BIN_WIDTH, binWidth );
     m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
     m_state.insertValue<bool>(GRAPH_LOG_COUNT, true );
     m_state.insertValue<bool>(GRAPH_COLORED, true );
@@ -193,7 +296,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_state.insertValue<double>(CLIP_MIN_PERCENT, 0);
     m_state.insertValue<double>(CLIP_MAX_PERCENT, 1);
-    
+
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -205,42 +308,65 @@ void Histogram::_initializeDefaultState(){
 
 void Histogram::_initializeCallbacks(){
     addCommandCallback( "mouseDown", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = params;
-            _startSelection(params);
-            return result;
-        });
-
-    addCommandCallback( "mouseDrag", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = params;
-            // _updateSelection(params);
-            return result;
-        });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = params;
+        _startSelection(params);
+        return result;
+    });
 
     addCommandCallback( "mouseUp", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = params;
-            return result;
-        });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = params;
+        return result;
+    });
 
     addCommandCallback( "setBinCount", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = _setBinCount( params );
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {BIN_COUNT};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        QString binCountStr = dataValues[*keys.begin()];
+        bool validInt = false;
+        int binCount = binCountStr.toInt( &validInt );
+        if ( validInt ){
+            result = setBinCount( binCount );
+        }
+        else {
+            result = "Invalid bin count: "+params+" must be a valid integer";
+            Util::commandPostProcess( result );
+        }
+        return result;
+    });
+
+    addCommandCallback( "setBinWidth", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {BIN_WIDTH};
+            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            QString binWidthStr = dataValues[*keys.begin()];
+            bool validDouble = false;
+            double binWidth = binWidthStr.toDouble( &validDouble );
+            if ( validDouble ){
+                result = setBinWidth( binWidth );
+            }
+            else {
+                result = "Invalid bin width: " + params+" must be a valid number";
+                Util::commandPostProcess( result );
+            }
             return result;
         });
 
     addCommandCallback( "setClipPercent", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = _setClipPercent( params );
-            return result;
-        });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setClipPercent( params );
+        return result;
+    });
 
     addCommandCallback( "setClipMax", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = _setClipMax( params );
-            return result;
-        });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setClipMax( params );
+        return result;
+    });
 
     // addCommandCallback( "setClipMaxPercent", [=] (const QString & /*cmd*/,
     //                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -250,11 +376,11 @@ void Histogram::_initializeCallbacks(){
     //     });
 
     addCommandCallback( "setClipMin", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = _setClipMin( params );
-            return result;
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setClipMin( params );
+        return result;
 
-        });
+    });
 
     // addCommandCallback( "setClipMinPercent", [=] (const QString & /*cmd*/,
     //                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -262,71 +388,70 @@ void Histogram::_initializeCallbacks(){
     //         QString result =_setClipMinPercent( params );
     //         return result;
     //     });
-    
+
     addCommandCallback( "setClipToImage", [=] (const QString & /*cmd*/,
-                            const QString & params, const QString & /*sessionId*/) -> QString {
-                    QString result = _setClipToImage( params );
-                    return result;
-                });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setClipToImage( params );
+        return result;
+    });
 
     addCommandCallback( "setGraphStyle", [=] (const QString & /*cmd*/,
-                            const QString & params, const QString & /*sessionId*/) -> QString {
-                    QString result = _setGraphStyle( params );
-                    return result;
-                });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setGraphStyle( params );
+        return result;
+    });
 
     addCommandCallback( "setLogCount", [=] (const QString & /*cmd*/,
-                                const QString & params, const QString & /*sessionId*/) -> QString {
-                        QString result = _setLogCount( params );
-                        return result;
-                    });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setLogCount( params );
+        return result;
+    });
 
     addCommandCallback( "setColored", [=] (const QString & /*cmd*/,
-                                    const QString & params, const QString & /*sessionId*/) -> QString {
-                            QString result = _setColored( params );
-                            return result;
-                        });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setColored( params );
+        return result;
+    });
 
     addCommandCallback( "setPlaneMode", [=] (const QString & /*cmd*/,
-                                        const QString & params, const QString & /*sessionId*/) -> QString {
-                                QString result = _setPlaneMode( params );
-                                return result;
-                            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setPlaneMode( params );
+        return result;
+    });
 
     addCommandCallback( "setPlaneSingle", [=] (const QString & /*cmd*/,
-                                        const QString & params, const QString & /*sessionId*/) -> QString {
-                                QString result = _setPlaneSingle( params );
-                                return result;
-                            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setPlaneSingle( params );
+        return result;
+    });
 
     addCommandCallback( "setPlaneRange", [=] (const QString & /*cmd*/,
-                                        const QString & params, const QString & /*sessionId*/) -> QString {
-                                QString result = _setPlaneRange( params );
-                                return result;
-                            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _setPlaneRange( params );
+        return result;
+    });
 
     addCommandCallback( "set2DFootPrint", [=] (const QString & /*cmd*/,
-                                            const QString & params, const QString & /*sessionId*/) -> QString {
-                                    QString result = _set2DFootPrint( params );
-                                    return result;
-                                });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = _set2DFootPrint( params );
+        return result;
+    });
 
     addCommandCallback( "zoomFull", [=] (const QString & /*cmd*/,
-                                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                                    qDebug() << "Need to implement histogram zoom full";
-                                    return "";
-                                });
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        qDebug() << "Need to implement histogram zoom full";
+        return "";
+    });
 
     addCommandCallback( "zoomRange", [=] (const QString & /*cmd*/,
-                                                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                                        qDebug() << "Need to implement histogram zoom range";
-                                        return "";
-                                    });
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        qDebug() << "Need to implement histogram zoom range";
+        return "";
+    });
 
     QString pointerPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW +
             StateInterface::DELIMITER + POINTER_MOVE;
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
-        qDebug()<<"mouse moved";
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
             bool validX = false;
@@ -337,6 +462,58 @@ void Histogram::_initializeCallbacks(){
         }
 
     });
+}
+
+void Histogram::_loadData( Controller* controller ){
+    int binCount = m_state.getValue<int>(BIN_COUNT);
+    int minChannel = m_state.getValue<int>(PLANE_MIN);
+    int maxChannel = m_state.getValue<int>(PLANE_MAX);
+    int spectralIndex = m_state.getValue<int>(PLANE_SINGLE);
+    double minIntensity = m_state.getValue<double>(CLIP_MIN);
+    double maxIntensity = m_state.getValue<double>(CLIP_MAX);
+    std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
+    if ( controller != nullptr ){
+        dataSources = _generateData( controller );
+    }
+    auto result = Globals::instance()-> pluginManager()
+                              -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
+                                      minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
+    auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
+        m_histogram->setData(data, minIntensity, maxIntensity);
+    };
+    try {
+
+        result.forEach( lam );
+    }
+    catch( char*& error ){
+        QString errorStr( error );
+        ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
+        hr->registerError( errorStr );
+    }
+}
+
+bool Histogram::removeLink( CartaObject* cartaObject){
+    bool removed = false;
+    Controller* controller = dynamic_cast<Controller*>( cartaObject );
+    if ( controller != nullptr ){
+        removed = m_linkImpl->removeLink( controller );
+        if ( removed ){
+            disconnect(controller);
+        }
+    }
+    else {
+        Colormap* map = dynamic_cast<Colormap*>(cartaObject);
+        if ( map != nullptr ){
+            removed = m_linkImpl->removeLink( map );
+            if ( removed ){
+                disconnect( map );
+            }
+        }
+        else {
+            qWarning() << "Histogram: unrecognized link to remove.";
+        }
+    }
+    return removed;
 }
 
 QString Histogram::_setClipMax( const QString& params ){
@@ -372,8 +549,7 @@ QString Histogram::_setClipMax( const QString& params ){
     else {
         result = "Invalid Histogram clip min parameters: "+ params;
     }
-    QString origValues = QString::number(oldMax);
-    result = Util::commandPostProcess( result, origValues );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -403,7 +579,7 @@ QString Histogram::_setClipMax( const QString& params ){
 //                     if(qAbs(oldClipMax - clipMax) > CLIP_ERROR_MARGIN)
 //                         m_state.setValue<double>(CLIP_MAX, clipMax);
 //                 }
-                    
+
 //             }
 //             m_state.flushState();
 //             if(clipMin<clipMax)
@@ -451,8 +627,7 @@ QString Histogram::_setClipMin( const QString& params ){
         result = "Invalid Histogram clip min parameters: "+ params;
 
     }
-    QString origValues = QString::number(oldMin);
-    result = Util::commandPostProcess( result, origValues );
+    Util::commandPostProcess( result);
     return result;
 
 }
@@ -484,7 +659,7 @@ QString Histogram::_setClipMin( const QString& params ){
 //                     if(qAbs(oldClipMin - clipMin) > CLIP_ERROR_MARGIN)
 //                         m_state.setValue<double>(CLIP_MIN, clipMin);
 //                 }
-                    
+
 //             }
 //             m_state.flushState();
 //             if(clipMin<clipMax)
@@ -515,7 +690,7 @@ QString Histogram::_setClipPercent( const QString& params ){
     double oldClipMaxPercent = m_state.getValue<double>(CLIP_MAX_PERCENT);
     double oldClipMin = m_state.getValue<double>(CLIP_MIN);
     double oldClipMax = m_state.getValue<double>(CLIP_MAX);
-    
+
 
     if (validRangePercentMin && validRangePercentMax){
         bool changedState = false;
@@ -526,7 +701,7 @@ QString Histogram::_setClipPercent( const QString& params ){
             m_state.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent );
             changedState = true;
             changedMinPercent = true;
-         }
+        }
 
         if( qAbs(oldClipMaxPercent -clipMaxPercent) > CLIP_ERROR_MARGIN ){
             m_state.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent );
@@ -544,7 +719,7 @@ QString Histogram::_setClipPercent( const QString& params ){
                     bool minIntensity = _getIntensity(filename, index, clipMinPercent, &clipMin);
                     if(minIntensity && qAbs(clipMin -oldClipMin)>CLIP_ERROR_MARGIN){
                         m_state.setValue<double>(CLIP_MIN, clipMin);
-		              }
+                    }
                 }
                 if(changedMaxPercent){
                     bool maxIntensity = _getIntensity(filename, index, clipMaxPercent, &clipMax);
@@ -560,14 +735,12 @@ QString Histogram::_setClipPercent( const QString& params ){
             }
             else {
                 result = "Invalid Histogram clip range parameters: "+ params + 
-                "clip min range has to be less than clip max range";
+                        "clip min range has to be less than clip max range";
 
             }
         }
     }
-
-    QString origValues = QString::number(oldClipMinPercent)+","+QString::number(oldClipMaxPercent);
-    result = Util::commandPostProcess( result, origValues);
+    Util::commandPostProcess( result);
     return result;
 }
 
@@ -590,30 +763,50 @@ QString Histogram::_setColored( const QString& params ){
     else {
         result = "Invalid Histogram colored parameter; must be a bool: "+ params;
     }
-    result = Util::commandPostProcess( result, Util::toString( oldColored ));
+    Util::commandPostProcess( result );
     return result;
 }
 
-QString Histogram::_setBinCount( const QString& params ){
+QString Histogram::setBinWidth( double binWidth ){
     QString result;
-    std::set<QString> keys = {BIN_COUNT};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString binCountStr = dataValues[*keys.begin()];
-    bool validInt = false;
-    int binCount = binCountStr.toInt( &validInt );
+    double oldBinWidth = m_state.getValue<double>(BIN_WIDTH);
+    if ( binWidth > 0 ){
+        const double ERROR_MARGIN = 0.00001;
+        if ( qAbs( oldBinWidth - binWidth) > ERROR_MARGIN ){
+            m_state.setValue<double>( BIN_WIDTH, binWidth );
+            int binCount = _toBinCount( binWidth );
+            m_state.setValue<int>(BIN_COUNT, binCount );
+            m_state.flushState();
+            _generateHistogram( true );
+        }
+
+    }
+    else {
+        if ( binWidth < 0 ){
+            result = "Bin width must be positive: "+QString::number(binWidth);
+        }
+    }
+    Util::commandPostProcess( result);
+    return result;
+}
+
+QString Histogram::setBinCount( int binCount ){
+    QString result;
     int oldBinCount = m_state.getValue<int>(BIN_COUNT );
-    if ( validInt ){
+    if ( binCount > 0  ){
         if ( binCount != oldBinCount ){
-           m_state.setValue<int>(BIN_COUNT, binCount );
-           m_state.flushState();
-           _generateHistogram( true );
+            m_state.setValue<int>(BIN_COUNT, binCount );
+            double binWidth = _toBinWidth( binCount );
+            m_state.setValue<double>(BIN_WIDTH, binWidth );
+            m_state.flushState();
+            _generateHistogram( true );
 
         }
     }
     else {
-        result = "Invalid Histogram bin count parameters: "+ params;
+        result = "Invalid Histogram bin count: "+QString::number( binCount);
     }
-    result = Util::commandPostProcess( result, QString::number( oldBinCount) );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -628,15 +821,15 @@ QString Histogram::_setLogCount( const QString& params ){
     bool oldLogCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
     if ( validBool ){
         if ( logCount != oldLogCount ){
-           m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
-           m_state.flushState();
-           _generateHistogram( false );
+            m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
+            m_state.flushState();
+            _generateHistogram( false );
         }
     }
     else {
         result = "Invalid Histogram log count must be a bool: "+ params;
     }
-    result = Util::commandPostProcess( result, Util::toString( oldLogCount ));
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -649,15 +842,15 @@ QString Histogram::_setPlaneMode( const QString& params ){
     if ( planeModeStr == PLANE_MODE_ALL || planeModeStr == PLANE_MODE_SINGLE ||
             planeModeStr == PLANE_MODE_RANGE ){
         if ( planeModeStr != oldPlaneMode ){
-           m_state.setValue<QString>(PLANE_MODE, planeModeStr );
-           m_state.flushState();
-           _generateHistogram( true );
+            m_state.setValue<QString>(PLANE_MODE, planeModeStr );
+            m_state.flushState();
+            _generateHistogram( true );
         }
     }
     else {
         result = "Unrecognized histogram cube mode params: "+ params;
     }
-    result = Util::commandPostProcess( result, oldPlaneMode );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -671,15 +864,15 @@ QString Histogram::_setPlaneSingle( const QString& params ){
     int oldPlane = m_state.getValue<int>(PLANE_SINGLE);
     if ( validInt ){
         if ( plane != oldPlane ){
-           m_state.setValue<int>(PLANE_SINGLE, plane );
-           m_state.flushState();
-           _generateHistogram( true );
+            m_state.setValue<int>(PLANE_SINGLE, plane );
+            m_state.flushState();
+            _generateHistogram( true );
         }
     }
     else {
         result = "Invalid Histogram single plane: "+ params;
     }
-    result = Util::commandPostProcess( result, QString::number(oldPlane) );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -700,7 +893,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
     else {
         result = "Unsupported Histogram footprint: "+ params;
     }
-    result = Util::commandPostProcess( result, oldFootPrint );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -740,8 +933,7 @@ QString Histogram::_setPlaneRange( const QString& params ){
     else {
         result = "Invalid Histogram plane range parameters: "+ params;
     }
-    QString oldVals = QString::number(storedMin)+","+QString::number( storedMax);
-    result = Util::commandPostProcess( result, oldVals );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -762,7 +954,7 @@ QString Histogram::_setGraphStyle( const QString& params ){
     else {
         result = "Unrecognized histogram graph style: "+ params;
     }
-    result = Util::commandPostProcess( result, oldStyle );
+    Util::commandPostProcess( result );
     return result;
 }
 
@@ -776,31 +968,19 @@ QString Histogram::_setClipToImage( const QString& params ){
     bool clipApply = Util::toBool( clipApplyStr, &validBool );
     bool oldClipApply = m_state.getValue<bool>(CLIP_APPLY);
     if ( validBool ){
-       if ( clipApply != oldClipApply ){
-          m_state.setValue<bool>(CLIP_APPLY, clipApply );
-          m_state.flushState();
-          _generateHistogram( false );
-       }
-    }
-    else {
-       result = "Invalid apply clip to image; must be true/false: " + clipApplyStr;
-    }
-    result = Util::commandPostProcess( result, Util::toString( oldClipApply ));
-    return result;
-}
-
-
-std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(){
-    std::vector<std::shared_ptr<Image::ImageInterface>> result;
-    for( Controller* controller : m_linkImpl->m_controllers ){
-        std::vector<std::shared_ptr<Image::ImageInterface>> images = controller->getDataSources();
-        int imageCount = images.size();
-        for( int j = 0; j < imageCount; j++){
-            result.push_back(images[j]);
+        if ( clipApply != oldClipApply ){
+            m_state.setValue<bool>(CLIP_APPLY, clipApply );
+            m_state.flushState();
+            _generateHistogram( false );
         }
     }
+    else {
+        result = "Invalid apply clip to image; must be true/false: " + clipApplyStr;
+    }
+    Util::commandPostProcess( result);
     return result;
 }
+
 
 void Histogram::_startSelection(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};
@@ -809,110 +989,56 @@ void Histogram::_startSelection(const QString& params ){
     // bool validRangePercentMax = false;
     // double clipMinPercent = clipMinPercentStr.toDouble( &validRangePercentMin );
     m_selectionEnabled = true;
+    m_selectionEnded = false;
     m_selectionStart = xstr.toDouble();
+    m_histogram->setSelectionMode( true );
+}
+
+double Histogram::_toBinWidth( int count ) const {
+    double minRange = m_state.getValue<double>( CLIP_MIN);
+    double maxRange = m_state.getValue<double>( CLIP_MAX);
+    double width = qAbs( maxRange - minRange) / count;
+    return width;
+}
+
+int Histogram::_toBinCount( double width ) const {
+    double minRange = m_state.getValue<double>(CLIP_MIN );
+    double maxRange = m_state.getValue<double>(CLIP_MAX);
+    int count = qFloor( qAbs( maxRange - minRange) ) / width;
+    return count;
 }
 
 // void Histogram::_updateSelection(const QString& params ){
- void Histogram::_updateSelection(int x){
+void Histogram::_updateSelection(int x){
     // std::set<QString> keys = {X_COORDINATE};
     // std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     // QString xstr = dataValues[X_COORDINATE];
     m_selectionEnd = x;
-    qDebug()<<"x: "<<x;
     m_selectionEnabled = true;
+
     _generateHistogram( false );
 }
 
-void Histogram::_endSelection(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
-    m_selectionEnd = xstr.toDouble();
-    m_selectionEnded = true;
+
+void Histogram::_updateColorMap( Colormap* map ){
+    if ( map != nullptr ){
+        std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap= map->getColorMap();
+        m_histogram->setColorMap( cMap );
+    }
     _generateHistogram( false );
-    m_selectionEnabled = false;
-
 }
 
-void Histogram::_createHistogram( const Controller* controller){
-    double minIntensity = 0;
-    double maxIntensity = 0;
-
-    QString filename = controller->getImageName(0);
-    bool minValid = _getIntensity( filename, 0, 0, &minIntensity );
-    bool maxValid = _getIntensity( filename, 0, 1, &maxIntensity );
-
-    if(minValid && maxValid){
-        m_state.setValue<double>(CLIP_MIN, minIntensity);
-        m_state.setValue<double>(CLIP_MAX, maxIntensity);
-        m_state.flushState();
-    }
-    _generateHistogram( true );
-}
-
-void Histogram::_loadData(){
-    int binCount = m_state.getValue<int>(BIN_COUNT);
-    int minChannel = m_state.getValue<int>(PLANE_MIN);
-    int maxChannel = m_state.getValue<int>(PLANE_MAX);
-    int spectralIndex = m_state.getValue<int>(PLANE_SINGLE);
-    double minIntensity = m_state.getValue<double>(CLIP_MIN);
-    double maxIntensity = m_state.getValue<double>(CLIP_MAX);
-    std::vector<std::shared_ptr<Image::ImageInterface>> dataSource = _generateData();
-    if(dataSource.size()>=1){
-        auto result = Globals::instance()-> pluginManager()
-                          -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSource, binCount,
-                            minChannel, maxChannel, spectralIndex, minIntensity, maxIntensity);
-        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-            m_histogram->setData(data, minIntensity, maxIntensity);
-        };
-        try {
-            result.forEach( lam );
-        }
-        catch( char*& error ){
-            QString errorStr( error );
-            ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
-            hr->registerError( errorStr );
-        }
-    }
-}
-
-void Histogram::_generateHistogram( bool newDataNeeded ){
-    if ( newDataNeeded ){
-        _loadData();
-    }
-    //Refresh the view
-    //User is not selecting a range
-    if ( !m_selectionEnabled ){
-        QString style = m_state.getValue<QString>(GRAPH_STYLE);
-        bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
-        // bool colored = m_state.getValue<bool>(GRAPH_COLORED);
-        m_histogram->setStyle(style);
-        m_histogram->setLogScale(logCount);
-
-    }
-    //User is selecting a range.
-    else{
-        m_histogram->setHistogramRange(m_selectionStart, m_selectionEnd);
-    }
-    QImage * histogramImage = m_histogram->toImage();
-    m_view->resetImage( *histogramImage );
-    m_view->scheduleRedraw();
-}
-
-bool Histogram::removeLink( Controller* & controller){
-    bool removed = m_linkImpl->removeLink( controller );
-    if ( removed ){
-        disconnect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram( const Controller*)));
-    }
-    return removed;
+void Histogram::_updateSize( const QSize& size ){
+    m_histogram->setSize( size.width(), size.height());
+    _generateHistogram( false );
 }
 
 QList<QString> Histogram::getLinks() const {
-    return m_linkImpl->getLinks();
+    return m_linkImpl->getLinkIds();
 }
 
 Histogram::~Histogram(){
-
+    delete m_histogram;
 }
 }
 }

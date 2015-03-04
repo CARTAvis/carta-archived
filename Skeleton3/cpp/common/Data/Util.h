@@ -63,7 +63,7 @@ public:
       * @param errorMsg {QString} an error message if one occurred; otherwise an empty string.
       * @param revertValue {QString} a string representation of the last valid value
       */
-     static QString commandPostProcess( const QString& errorMsg, const QString& revertValue );
+     static void commandPostProcess( const QString& errorMsg );
 
      /**
       * Converts a string containing doubles with a separator between them to a vector.

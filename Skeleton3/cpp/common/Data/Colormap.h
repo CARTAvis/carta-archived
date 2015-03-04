@@ -13,12 +13,19 @@
 class ImageView;
 
 namespace Carta {
+namespace Lib {
+namespace PixelPipeline {
+class IColormapNamed;
+}
+}
+}
+
+namespace Carta {
 
 namespace Data {
 
 class Colormaps;
 class IColoredView;
-class LinkableImpl;
 class Controller;
 class TransformsData;
 
@@ -29,8 +36,8 @@ class Colormap : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    virtual bool addLink( Controller*& controller ) Q_DECL_OVERRIDE;
-    virtual bool removeLink( Controller*& controller ) Q_DECL_OVERRIDE;
+    virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -49,7 +56,7 @@ public:
      * @param reverseStr Should be equal to either "true" or "false".
      * @return error information if the color map was not successfully reversed.
      */
-    QString reverseColorMap( const QString& reverseStr );
+    QString reverseColormap( const QString& reverseStr );
 
     /**
      * Set caching for the current colormap.
@@ -106,8 +113,13 @@ public:
      */
     QList<QString> getLinks() const;
 
+    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( ) const;
+
     virtual ~Colormap();
     const static QString CLASS_NAME;
+
+signals:
+    void colorMapChanged( Colormap* map );
 
 private slots:
     void _setColorProperties( Controller* target );

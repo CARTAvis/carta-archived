@@ -3,22 +3,26 @@ namespace Carta {
   namespace Lib {
     namespace Hooks {
 
-HistogramResult::HistogramResult( QString histogramName, 
+HistogramResult::HistogramResult( const QString histogramName, const QString units,
 	std::vector<std::pair<double,double>> histogramData ){
 
-	name = histogramName;
-	data = histogramData;
+	m_name = histogramName;
+	m_data = histogramData;
+	m_units = units;
 
 }
 
 QString HistogramResult::getName() const{
-	return name;
+	return m_name;
 }
 
 std::vector<std::pair<double,double>> HistogramResult::getData() const{
-	return data;
+	return m_data;
 }
 
+QString HistogramResult::getUnits() const {
+    return m_units;
+}
     }
   }
 

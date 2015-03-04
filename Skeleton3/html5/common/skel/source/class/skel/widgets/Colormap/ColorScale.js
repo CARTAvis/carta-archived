@@ -99,7 +99,8 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             }, this );
             
             var mapComposite = new qx.ui.groupbox.GroupBox( "Map");
-            mapComposite.setLayout(new qx.ui.layout.VBox(2));
+            mapComposite.setContentPadding(1,1,1,1);
+            mapComposite.setLayout(new qx.ui.layout.VBox(1));
             this.m_mapCombo = new qx.ui.form.ComboBox();
             this.m_mapCombo.setToolTipText( "Select a color map.");
             this.m_mapCombo.addListener( "changeValue", function(e){

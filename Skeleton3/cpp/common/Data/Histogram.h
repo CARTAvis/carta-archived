@@ -8,22 +8,37 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
-#include "Data/LinkableImpl.h"
+#include "CartaLib/IImage.h"
+
 #include <QObject>
+
+namespace Carta {
+namespace Lib {
+namespace PixelPipeline {
+class IColormapNamed;
+}
+}
+}
 
 namespace Image {
 class ImageInterface;
+
 }
 
 class ImageView;
-class HistogramGenerator;
+
 
 namespace Carta {
+namespace Histogram {
+class HistogramGenerator;
+}
 
 namespace Data {
 
 class Clips;
+class Colormap;
 class Controller;
+class LinkableImpl;
 
 class Histogram : public QObject, public CartaObject, public ILinkable {
 
@@ -32,8 +47,8 @@ class Histogram : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    bool addLink( Controller* & controller) Q_DECL_OVERRIDE;
-    bool removeLink( Controller*& controller) Q_DECL_OVERRIDE;
+    bool addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
+    bool removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
 
     /**
      * Clear the state of the histogram.
@@ -64,12 +79,31 @@ public:
      */
     QList<QString> getLinks() const;
 
+    /**
+     * Set the number of bins in the histogram.
+     * @param binCount the number of histogram bins.
+     * @return an error message if there was a problem setting the bin count; an empty string otherwise.
+     */
+    QString setBinCount( int binCount );
+
+    /**
+     * Set the width of the histogram bins.
+     * @param binWidth the histogram bin width.
+     * @return an error message if there was a problem setting the bin width; an empty string otherwise.
+     */
+    QString setBinWidth( double binWidth );
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
+    const static QString GRAPH_STYLE_LINE;
+    const static QString GRAPH_STYLE_OUTLINE;
+    const static QString GRAPH_STYLE_FILL;
 
 private slots:
-    void  _generateHistogram( bool newDataNeeded);
-    void _createHistogram( const Controller* );
+    void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
+    void _createHistogram( Controller* );
+    void _updateColorMap( Colormap* );
+    void _updateSize( const QSize& size );
     
 
 private:
@@ -77,7 +111,7 @@ private:
     double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
     bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
     int _getLinkInfo( const QString& link, QString& name ) const;
-    void _loadData();
+    void _loadData( Controller* controller);
     //Set the state from commands.
     QString _setBinCount( const QString& params );
     QString _setGraphStyle( const QString& params );
@@ -95,8 +129,11 @@ private:
     QString _setPlaneSingle( const QString& params );
     QString _setPlaneRange( const QString& params );
     QString _set2DFootPrint( const QString& params );
-    std::vector<std::shared_ptr<Image::ImageInterface>> _generateData();
+    std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
     
+    double _toBinWidth( int count ) const;
+    int _toBinCount( double width ) const;
+
     void _startSelection(const QString& params );
     // void _updateSelection(const QString& params );
     void _updateSelection(int x);
@@ -117,10 +154,9 @@ private:
     const static QString CLIP_MAX;
     const static QString CLIP_APPLY;
     const static QString BIN_COUNT;
+    const static QString BIN_WIDTH;
     const static QString GRAPH_STYLE;
-    const static QString GRAPH_STYLE_LINE;
-    const static QString GRAPH_STYLE_OUTLINE;
-    const static QString GRAPH_STYLE_FILL;
+
     const static QString GRAPH_LOG_COUNT;
     const static QString GRAPH_COLORED;
     const static QString PLANE_SINGLE;
@@ -153,7 +189,7 @@ private:
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
-    HistogramGenerator* m_histogram;
+    Carta::Histogram::HistogramGenerator* m_histogram;
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;

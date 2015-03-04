@@ -348,7 +348,7 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
     else {
         result = "Could not remove window, one or more invalid indices row="+ QString::number(rowIndex)+" column="+QString::number(colIndex);
     }
-    result = Util::commandPostProcess( result, "" );
+    Util::commandPostProcess( result);
     return result;
 }
 
@@ -361,12 +361,17 @@ void Layout::setLayoutAnalysis(){
 }
 
 void Layout::setLayoutDeveloper(){
-    setLayoutSize( 4, 2 );
+    /*setLayoutSize( 4, 2 );
     QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
             HIDDEN, Animator::CLASS_NAME,
             HIDDEN, Colormap::CLASS_NAME,
             HIDDEN, Histogram::CLASS_NAME};
-    _setPlugin( names );
+    _setPlugin( names );*/
+    setLayoutSize( 2, 2 );
+        QStringList names = {Controller::PLUGIN_NAME, Histogram::CLASS_NAME,
+                //HIDDEN, Colormap::CLASS_NAME,
+                HIDDEN, Colormap::CLASS_NAME};
+        _setPlugin( names );
 }
 
 void Layout::setLayoutImage(){
@@ -411,7 +416,7 @@ QString Layout::setLayoutSize( int rows, int cols ){
     else {
         errorMsg = "Invalid layout rows ="+QString::number(rows)+" and/or cols="+QString::number(cols);
     }
-    errorMsg = Util::commandPostProcess( errorMsg, "");
+    Util::commandPostProcess( errorMsg);
     return errorMsg;
 }
 
