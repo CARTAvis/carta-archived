@@ -3,8 +3,7 @@
 #include <QTcpSocket>
 #include <QDebug>
 #include <stdexcept>
-#include <iostream>
-#include <sstream>
+#include <netinet/in.h>
 
 const QString ScriptedCommandListener::SIZE_DELIMITER(":");
 
@@ -69,8 +68,11 @@ bool ScriptedCommandListener::sendNBytes( int n, QString data )
 bool ScriptedCommandListener::sendMessage( QString data )
 {
     //format: 4, 6, or 8 bytes: the size of the following message
-    int size = data.length();
-    bool result = sendNBytes( size, data );
+    int length = data.length();
+    uint32_t nlength = htonl(length);
+    qDebug() << "(JT) sendMessage nlength =" << nlength;
+    bool result = sendNBytes( length, data );
+    //bool result = sendNBytes( nlength, data );
     return result;
 }
 

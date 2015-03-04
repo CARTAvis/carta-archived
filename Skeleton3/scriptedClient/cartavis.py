@@ -378,6 +378,7 @@ def receiveNBytes(socket, n, data):
     # (The separator character needs to be the same as 
     # ScriptedCommandListener::SIZE_DELIMITER)
     lengthStr, ignored, stringData = stringData.partition(':')
+    print "receiveNBytes lengthStr = " + lengthStr
     goodDataLength = int(lengthStr)
     lengthSoFar = len(stringData)
     # If more data is needed, grab it before returning
