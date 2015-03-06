@@ -16,8 +16,6 @@ class ScriptedCommandListener : public QObject
 public:
     explicit ScriptedCommandListener(int port, QObject *parent = 0);
 
-    bool dataTransporter(QString input);
-
     bool sendNBytes( int n, QString data );
 
     bool sendMessage( QString data );

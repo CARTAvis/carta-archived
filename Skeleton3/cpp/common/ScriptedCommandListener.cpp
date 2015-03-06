@@ -51,12 +51,6 @@ void ScriptedCommandListener::socketDataCB()
     }
 }
 
-bool ScriptedCommandListener::dataTransporter( QString input )
-{
-    bool result = sendTypedMessage( "whatever", input );
-    return result;
-}
-
 bool ScriptedCommandListener::sendNBytes( int n, QString data )
 {
     //data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
