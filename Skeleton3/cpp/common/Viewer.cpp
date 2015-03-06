@@ -100,94 +100,94 @@ Viewer::scriptedCommandCB( QString command )
     if ( args.size() == 3 && args[0].toLower() == "loadfile" ) {
         qDebug() << "Trying to load" << args[2] << " into " << args[1];
         QString output = m_scriptFacade->loadFile( args[1], "/RootDirectory/" + args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: loadLocalFile
     if ( args.size() == 3 && args[0].toLower() == "loadlocalfile" ) {
         qDebug() << "Trying to load local file " << args[2] << " into " << args[1];
         QString output = m_scriptFacade->loadLocalFile( args[1], args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: addLink
     else if (args.size() == 3 && args[0].toLower() == "addlink") {
         QString output = m_scriptFacade->addLink( args[1], args[2] );
         qDebug() << "addLink result: " << output;
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: removeLink
     else if (args.size() == 3 && args[0].toLower() == "removelink") {
         QString output = m_scriptFacade->removeLink( args[1], args[2] );
         qDebug() << "removeLink result: " << output;
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: getImageViews
     else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
         QStringList imageViews = m_scriptFacade->getImageViews();
-        m_scl->sendTypedMessage( "1",  imageViews.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", imageViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getColorMapViews
     else if (args.size() == 1 && args[0].toLower() == "getcolormapviews") {
         QStringList colorMapViews = m_scriptFacade->getColorMapViews();
-        m_scl->sendTypedMessage( "1",  colorMapViews.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", colorMapViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getAnimatorViews
     else if (args.size() == 1 && args[0].toLower() == "getanimatorviews") {
         QStringList animatorViews = m_scriptFacade->getAnimatorViews();
-        m_scl->sendTypedMessage( "1",  animatorViews.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", animatorViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getHistogramViews
     else if (args.size() == 1 && args[0].toLower() == "gethistogramviews") {
         QStringList histogramViews = m_scriptFacade->getHistogramViews();
-        m_scl->sendTypedMessage( "1",  histogramViews.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", histogramViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getStatisticsViews
     else if (args.size() == 1 && args[0].toLower() == "getstatisticsviews") {
         QStringList statisticsViews = m_scriptFacade->getStatisticsViews();
-        m_scl->sendTypedMessage( "1",  statisticsViews.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", statisticsViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: setColorMap
     else if (args.size() == 3 && args[0].toLower() == "setcolormap") {
         QString output = m_scriptFacade->setColorMap( args[1], args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: reverseColorMap
     else if (args.size() == 3 && args[0].toLower() == "reversecolormap") {
         QString output = m_scriptFacade->reverseColorMap( args[1], args[2].toLower() );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setCacheColormap
     else if (args.size() == 3 && args[0].toLower() == "setcachecolormap") {
         QString output = m_scriptFacade->setCacheColormap( args[1], args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setCacheSize
     else if (args.size() == 3 && args[0].toLower() == "setcachesize") {
         QString output = m_scriptFacade->setCacheSize( args[1], args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setInterpolatedColorMap
     else if (args.size() == 3 && args[0].toLower() == "setinterpolatedcolormap") {
         QString output = m_scriptFacade->setInterpolatedColorMap( args[1], args[2].toLower() );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: invertColorMap
     else if (args.size() == 3 && args[0].toLower() == "invertcolormap") {
         QString output = m_scriptFacade->invertColorMap( args[1], args[2].toLower() );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setColorMix
@@ -195,13 +195,13 @@ Viewer::scriptedCommandCB( QString command )
         QString percentString;
         percentString = "redPercent:" + args[2] + ",greenPercent:" + args[3] + ",bluePercent:" + args[4];
         QString output = m_scriptFacade->setColorMix( args[1], percentString );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setGamma
     else if (args.size() == 3 && args[0].toLower() == "setgamma") {
         QString output = m_scriptFacade->setGamma( args[1], args[2].toDouble() );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setDataTransform
@@ -211,19 +211,19 @@ Viewer::scriptedCommandCB( QString command )
             transformString += args[i] + " ";
         }
         QString output = m_scriptFacade->setDataTransform( args[1], transformString.trimmed() );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
         QString output = m_scriptFacade->setFrame( args[1], args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setClipValue
     else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
         QString output = m_scriptFacade->setClipValue( args[1], args[2] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: getFileList
@@ -233,13 +233,13 @@ Viewer::scriptedCommandCB( QString command )
         fileListJson.Parse(fileList.toStdString().c_str());
         const Value& dir = fileListJson["dir"];
         QStringList fileListList = _parseDirectory( dir, "" );
-        m_scl->sendTypedMessage( "1",  fileListList.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", fileListList.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: setAnalysisLayout
     else if (args.size() == 1 && args[0].toLower() == "setanalysislayout") {
         QString output = m_scriptFacade->setAnalysisLayout();
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setCustomLayout
@@ -247,19 +247,19 @@ Viewer::scriptedCommandCB( QString command )
         int rows = args[1].toInt();
         int cols = args[2].toInt();
         QString output = m_scriptFacade->setCustomLayout( rows, cols );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setImageLayout
     else if (args.size() == 1 && args[0].toLower() == "setimagelayout") {
         QString output = m_scriptFacade->setImageLayout();
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: getColorMaps
     else if (args.size() > 0 && args[0].toLower() == "getcolormaps") {
         QStringList colormaps = m_scriptFacade->getColorMaps();
-        m_scl->sendTypedMessage( "1",  colormaps.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", colormaps.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: setPlugins
@@ -269,7 +269,7 @@ Viewer::scriptedCommandCB( QString command )
             names << args[i];
         }
         QString output = m_scriptFacade->setPlugins(names);
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
     
     // command: quit
@@ -281,31 +281,31 @@ Viewer::scriptedCommandCB( QString command )
     // command: saveState
     else if ( args.size() == 2 && args[0].toLower() == "savestate" ) {
         QString output = m_scriptFacade->saveState( args[1] );
-        m_scl->sendTypedMessage( "1",  output );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: getLinkedColorMaps
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedcolormaps" ) {
         QStringList linkedColorMaps = m_scriptFacade->getLinkedColorMaps( args[1] );
-        m_scl->sendTypedMessage( "1",  linkedColorMaps.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", linkedColorMaps.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getLinkedAnimators
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedanimators" ) {
         QStringList linkedAnimators = m_scriptFacade->getLinkedAnimators( args[1] );
-        m_scl->sendTypedMessage( "1",  linkedAnimators.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", linkedAnimators.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getLinkedHistograms
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedhistograms" ) {
         QStringList linkedHistograms = m_scriptFacade->getLinkedHistograms( args[1] );
-        m_scl->sendTypedMessage( "1",  linkedHistograms.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", linkedHistograms.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getLinkedStatistics
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedstatistics" ) {
         QStringList linkedStatistics = m_scriptFacade->getLinkedStatistics( args[1] );
-        m_scl->sendTypedMessage( "1",  linkedStatistics.join(Viewer::SOCKET_DELIMITER) );
+        m_scl->sendTypedMessage( "1", linkedStatistics.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     else {

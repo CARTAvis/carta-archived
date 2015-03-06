@@ -51,40 +51,47 @@ void ScriptedCommandListener::socketDataCB()
     }
 }
 
-bool ScriptedCommandListener::sendNBytes( int n, QString data )
+bool ScriptedCommandListener::sendNBytes( int n, const void * data )
 {
     //data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
+    const char * ptr = reinterpret_cast<const char *> ( data);
+    qDebug() << "sendNBytes ptr = "<< ptr;
     bool result;
     int bytesSent = 0;
     while (bytesSent < n) {
-        bytesSent += m_connection->write( data.toLocal8Bit() );
+        bytesSent += m_connection->write( ptr );
         if (bytesSent < 0) {
             result = false;
             break;
         }
-        data = data.right( n - bytesSent );
+        qDebug() << "(JT) sendNBytes bytesSent =" << bytesSent;
+        ptr += bytesSent;
     }
     return true;
 }
 
-bool ScriptedCommandListener::sendMessage( QString data )
+bool ScriptedCommandListener::sendMessage( const void * data )
 {
     // format: 4, 6, or 8 bytes: the size of the following message
-    int dataLength = data.length();
+    char * dataStr = (char *) data;
+    qDebug() << "(JT) sendMessage dataStr =" << dataStr;
+    int dataLength = strlen(dataStr);
+    qDebug() << "(JT) sendMessage dataLength =" << dataLength;
     // For now, just send the length as an 8 character string, padded with
     // zeros if necessary. This can be changed to a binary representation
     // later.
-    QString lengthStr = QString("%1").arg(dataLength, 8, 10, QChar('0'));
-    int totalMessageLength = (data + lengthStr).length();
-    qDebug() << "(JT) sendMessage() what's being sent: " << lengthStr + data;
-    qDebug() << "(JT) sendMessage() totalMessageLength =" << totalMessageLength;
-    bool result = sendNBytes( totalMessageLength, lengthStr + data );
+    char lengthStr[16];
+    sprintf (lengthStr, "%08d", dataLength);
+    qDebug() << "(JT) sendMessage lengthStr =" << lengthStr;
+    bool result = sendNBytes( 8, lengthStr );
+    result = sendNBytes( dataLength, data );
     //m_connection->write(lengthStr.toLocal8Bit());
     //m_connection->write(data.toLocal8Bit());
-    return result;
+    //return result;
+    return true;
 }
 
-bool ScriptedCommandListener::sendTypedMessage( QString messageType, QString data )
+bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void * data )
 {
     qDebug() << "(JT) sendTypedMessage() messageType =" << messageType;
     bool result = sendMessage( data );
