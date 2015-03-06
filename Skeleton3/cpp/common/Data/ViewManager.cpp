@@ -302,7 +302,6 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
     else {
         result = "Unrecognized add link destination: "+dId;
     }
-    qDebug() << "(JT) ViewManager::linkAdd result: " << result;
     return result;
 }
 
@@ -712,7 +711,6 @@ bool ViewManager::setColorMix( const QString& colormapId, const QString& percent
     bool colorMapFound = false;
     if ( colormapIndex >= 0 ){
         QString output = m_colormaps[colormapIndex]->setColorMix( percentString );
-        qDebug() << "(JT) ViewManager::setColorMix() output = " << output;
         colorMapFound = true;
     }
     return colorMapFound;
@@ -752,7 +750,6 @@ void ViewManager::setCustomView( int rows, int cols ){
         _makeLayout();
     }
     QString result = m_layout->setLayoutSize( rows, cols );
-    qDebug() << "(JT) ViewManager::setCustomView() result = " << result;
 }
 
 void ViewManager::setDeveloperView(){

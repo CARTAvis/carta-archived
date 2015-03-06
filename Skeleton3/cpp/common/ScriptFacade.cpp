@@ -116,32 +116,32 @@ QString ScriptFacade::removeLink( const QString& sourceId, const QString& destId
 
 QString ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
     m_viewManager->loadFile( objectId, fileName );
-    return "";
+    return "loadFile";
 }
 
 QString ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
     m_viewManager->loadLocalFile( objectId, fileName );
-    return "";
+    return "loadLocalFile";
 }
 
 QString ScriptFacade::setAnalysisLayout(){
     m_viewManager->setAnalysisView();
-    return "";
+    return "setAnalysisLayout";
 }
 
 QString ScriptFacade::setCustomLayout( int rows, int cols ){
     m_viewManager->setCustomView( rows, cols );
-    return "";
+    return "setCusomLayout";
 }
 
 QString ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
     m_viewManager->setColorMap( colormapId, colormapName );
-    return "";
+    return "setColorMap";
 }
 
 QString ScriptFacade::reverseColorMap( const QString& colormapId, const QString& trueOrFalse ){
     m_viewManager->reverseColorMap( colormapId, trueOrFalse );
-    return "";
+    return "reverseColorMap";
 }
 
 QString ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
@@ -161,12 +161,12 @@ QString ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const 
 
 QString ScriptFacade::invertColorMap( const QString& colormapId, const QString& trueOrFalse ){
     m_viewManager->invertColorMap( colormapId, trueOrFalse );
-    return "";
+    return "inverColorMap";
 }
 
 QString ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){
     m_viewManager->setColorMix( colormapId, percentString );
-    return "";
+    return "setColorMix";
 }
 
 QString ScriptFacade::setGamma( const QString& colormapId, double gamma ){
@@ -181,23 +181,23 @@ QString ScriptFacade::setDataTransform( const QString& colormapId, const QString
 
 QString ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
-    return "";
+    return "setImageLayout";
 }
 
 QString ScriptFacade::setPlugins( const QStringList& names ) {
     m_viewManager->setPlugins( names );
-    return "";
+    return "setPlugins";
 }
 
 QString ScriptFacade::setFrame( const QString& animatorId, const QString& index ) {
     m_viewManager->setFrame( animatorId, index );
-    return "";
+    return "setFrame";
 }
 
 QString ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
     const QString& param = "clipValue:" + clipValue;
     m_viewManager->setClipValue( controlId, param );
-    return "";
+    return "setClipValue";
 }
 
 QString ScriptFacade::saveState( const QString& saveName ) {

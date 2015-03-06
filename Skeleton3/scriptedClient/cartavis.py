@@ -210,13 +210,13 @@ class Application:
     def quit(self):
         self.kill()
 
-    def getColormaps(self, substring=""):
-        commandStr = "getColormaps " + substring
+    def getColormaps(self):
+        commandStr = "getColormaps"
         colormapsList = sendCommand(self.socket, commandStr)
         return colormapsList
 
-    def getFileList(self, substring=""):
-        commandStr = "getFileList " + substring
+    def getFileList(self):
+        commandStr = "getFileList"
         fileList = sendCommand(self.socket, commandStr)
         return fileList
 
@@ -313,12 +313,6 @@ def start(
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
         imageFile = "/home/jeff/Dropbox/Astronomy/m31_cropped.fits"
     ):
-    print "Starting with arguments:\n"
-    print "    executable: " + executable + "\n"
-    print "    configFile: " + configFile + "\n"
-    print "    port: " + str(port) + "\n"
-    print "    htmlFile: " + htmlFile + "\n"
-    print "    imageFile: " + imageFile + "\n"
     return Application(executable, configFile, port, htmlFile, imageFile)
 
 def makeImage(imageViewId, socket):
@@ -342,13 +336,17 @@ def makeHistogram(histogramId, socket):
     return histogram
 
 def sendCommand(socket, commandStr):
-    sendTypedMessage(socket, commandStr, 1)
-    data = []
-    #print "sendCommand data (before) = " + str(data)
-    output = receiveTypedMessage(socket, 1, data)
-    #print "sendCommand data (after) = " + str(data)
-    #return output
-    return data
+    result = sendTypedMessage(socket, commandStr, 1)
+    if (result):
+        data = []
+        output = []
+        typedMessageResult = receiveTypedMessage(socket, 1, data)
+        listData = data[0].splitlines()
+        for d in listData:
+            output.append(d)
+        return output
+    else:
+        return result
 
 def sendNBytes(socket, n, message):
     """the sendNBytes() method"""
@@ -356,14 +354,32 @@ def sendNBytes(socket, n, message):
     """     nothing else to send"""
     """     all bytes"""
     """needs to loop until all bytes have been sent"""
-    print "sendNBytes"
-    print "n = " + str(n)
-    while message:
+    bytesRemaining = n
+    while bytesRemaining > 0:
         bytesSent = socket.send(message)
-        print "Sent " + str(bytesSent) + " bytes"
         # If the entire message hasn't been sent, trim the message down to
         # the remaining portion. Keep looping until it has all been sent.
         message = message[bytesSent:]
+        bytesRemaining -= bytesSent
+    # Need some error checking here - what if not all data could be sent?
+    return True
+
+def sendMessage(socket, message):
+    """the sendMessage() method"""
+    # Encode the length of the message into 4 bytes by converting it into a C
+    # int in big-endian byte order.
+    packedLen = struct.pack('>i', len(message))
+    # Get the total length of the message we will be transmitting.
+    totalLength = len(packedLen + message)
+    # Prepend the message length to the message itself.
+    result = sendNBytes(socket, totalLength, packedLen + message)
+    return result
+
+def sendTypedMessage(socket, message, messageType):
+    """the sendTypedMessage() method"""
+    """For now, there is only one type of message."""
+    result = sendMessage(socket, message)
+    return result
 
 def receiveNBytes(socket, n, data):
     """the receiveNBytes() method"""
@@ -371,63 +387,28 @@ def receiveNBytes(socket, n, data):
     """     nothing else to read"""
     """     all bytes"""
     """needs to loop until all bytes have been read"""
-    # Get a small amount of data from the socket
-    bufferSize = 10
-    stringData = socket.recv(bufferSize)
-    # Figure out its length
-    # (The separator character needs to be the same as 
-    # ScriptedCommandListener::SIZE_DELIMITER)
-    lengthStr, ignored, stringData = stringData.partition(':')
-    print "receiveNBytes lengthStr = " + lengthStr
-    goodDataLength = int(lengthStr)
-    lengthSoFar = len(stringData)
-    # If more data is needed, grab it before returning
-    if (goodDataLength > bufferSize):
-        stringData = stringData + socket.recv(goodDataLength - lengthSoFar)
-    listData = stringData.splitlines()
-    for d in listData:
-        data.append(d)
-    print "receiveNBytes data = " + str(data)
+    dataStr = ""
+    while (len(dataStr) < n):
+        partialData = socket.recv(n)
+        dataStr += partialData
+    data.append(dataStr)
     return True
-    #return listData
-
-def sendMessage(socket, message):
-    """the sendMessage() method"""
-    # Encode the length of the message into 4 bytes by converting it into a C
-    # int in big-endian byte order.
-    packed_len = struct.pack('>i', len(message))
-    print "message = " + message
-    print "message length = " + str(len(message))
-    print "len(packed_len) = " + str(len(packed_len))
-    print "total length = " + str(len(message+packed_len))
-    print 'sending "%s"' % binascii.hexlify(packed_len)
-    for i in range(0,4):
-        print 'packed_len[%s] = "%s"' % (i, binascii.hexlify(packed_len[i]))
-    # Get the total length of the message we will be transmitting.
-    total_length = len(packed_len + message)
-    print "Total bytes to send = " + str(total_length)
-    # Prepend the message length to the message itself.
-    sendNBytes(socket, total_length, packed_len + message)
 
 def receiveMessage(socket, data):
     """the receiveMessage() method"""
     """format: 4, 6, or 8 bytes: the size of the following message"""
     """after receiving this, enter a loop to receive this number of bytes"""
-    #output = receiveNBytes(socket, 100000)
-    #print "receiveMessage data (before) = " + str(data)
-    output = receiveNBytes(socket, 100000, data)
-    #print "receiveMessage data (after) = " + str(data)
-    return output
-
-def sendTypedMessage(socket, message, messageType):
-    """the sendTypedMessage() method"""
-    sendMessage(socket, message)
+    # Get the size of the data from the socket
+    sizeBytes = 8
+    sizeList = []
+    sizeResult = receiveNBytes(socket, sizeBytes, sizeList)
+    size = int(sizeList[0])
+    # Now receive that many bytes
+    result = receiveNBytes(socket, size, data)
+    return result
 
 def receiveTypedMessage(socket, messageType, data):
     """the receiveTypedMessage() method"""
-    #output = receiveMessage(socket)
-    #print "receiveTypedMessage data (before) = " + str(data)
-    output = receiveMessage(socket, data)
-    #print "receiveTypedMessage data (after) = " + str(data)
-    #return output
-    return data
+    """For now, there is only one type of message."""
+    result = receiveMessage(socket, data)
+    return result

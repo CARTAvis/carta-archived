@@ -93,11 +93,8 @@ void
 Viewer::scriptedCommandCB( QString command )
 {
     command = command.simplified();
-    qDebug() << "Scripted command received:" << command;
 
     QStringList args = command.split( ' ', QString::SkipEmptyParts );
-    qDebug() << "args=" << args;
-    qDebug() << "args.size=" << args.size();
 
     // command: loadFile
     if ( args.size() == 3 && args[0].toLower() == "loadfile" ) {
@@ -130,35 +127,30 @@ Viewer::scriptedCommandCB( QString command )
     // command: getImageViews
     else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
         QStringList imageViews = m_scriptFacade->getImageViews();
-        //qDebug() << "(JT) imageViews: " << imageViews;
         m_scl->dataTransporter( imageViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getColorMapViews
     else if (args.size() == 1 && args[0].toLower() == "getcolormapviews") {
         QStringList colorMapViews = m_scriptFacade->getColorMapViews();
-        //qDebug() << "(JT) colorMapViews: " << colorMapViews;
         m_scl->dataTransporter( colorMapViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getAnimatorViews
     else if (args.size() == 1 && args[0].toLower() == "getanimatorviews") {
         QStringList animatorViews = m_scriptFacade->getAnimatorViews();
-        //qDebug() << "(JT) animatorViews: " << animatorViews;
         m_scl->dataTransporter( animatorViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getHistogramViews
     else if (args.size() == 1 && args[0].toLower() == "gethistogramviews") {
         QStringList histogramViews = m_scriptFacade->getHistogramViews();
-        //qDebug() << "(JT) histogramViews: " << histogramViews;
         m_scl->dataTransporter( histogramViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
     // command: getStatisticsViews
     else if (args.size() == 1 && args[0].toLower() == "getstatisticsviews") {
         QStringList statisticsViews = m_scriptFacade->getStatisticsViews();
-        //qDebug() << "(JT) statisticsViews: " << statisticsViews;
         m_scl->dataTransporter( statisticsViews.join(Viewer::SOCKET_DELIMITER) );
     }
 
@@ -224,14 +216,12 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: setFrame
     else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
-        //qDebug() << "(JT) setFrame of " << args[1] << " to " << args[2];
         QString output = m_scriptFacade->setFrame( args[1], args[2] );
         m_scl->dataTransporter( output );
     }
 
     // command: setClipValue
     else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
-        //qDebug() << "(JT) setClipValue " << args[1];
         QString output = m_scriptFacade->setClipValue( args[1], args[2] );
         m_scl->dataTransporter( output );
     }
@@ -239,12 +229,6 @@ Viewer::scriptedCommandCB( QString command )
     // command: getFileList
     else if (args.size() > 0 && args[0].toLower() == "getfilelist") {
         QString fileList = m_scriptFacade->getFileList();
-        //qDebug() << "(JT) raw file list: " << fileList;
-        QString substring = "";
-        if (args.size() > 1) {
-            substring = args[1];
-            //qDebug() << "substring: " << substring;
-        }
         Document fileListJson;
         fileListJson.Parse(fileList.toStdString().c_str());
         const Value& dir = fileListJson["dir"];
@@ -274,17 +258,7 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: getColorMaps
     else if (args.size() > 0 && args[0].toLower() == "getcolormaps") {
-        QString substring = "";
-        if (args.size() > 1) {
-            substring = args[1];
-        }
         QStringList colormaps = m_scriptFacade->getColorMaps();
-        if (substring != "") {
-            colormaps = colormaps.filter(substring, Qt::CaseInsensitive);
-        }
-//        for (int i = 0; i < colormaps.size(); ++i) {
-//            cout << colormaps.at(i).toLocal8Bit().constData() << endl;
-//        }
         m_scl->dataTransporter( colormaps.join(Viewer::SOCKET_DELIMITER) );
     }
 
@@ -294,7 +268,6 @@ Viewer::scriptedCommandCB( QString command )
         for (int i = 1; i < args.size(); i++) {
             names << args[i];
         }
-        //qDebug() << "(JT) setplugins: names = " << names;
         QString output = m_scriptFacade->setPlugins(names);
         m_scl->dataTransporter( output );
     }
@@ -309,7 +282,6 @@ Viewer::scriptedCommandCB( QString command )
     else if ( args.size() == 2 && args[0].toLower() == "savestate" ) {
         QString output = m_scriptFacade->saveState( args[1] );
         m_scl->dataTransporter( output );
-        //qDebug() << "(JT) saveState result = " << result;
     }
 
     // command: getLinkedColorMaps

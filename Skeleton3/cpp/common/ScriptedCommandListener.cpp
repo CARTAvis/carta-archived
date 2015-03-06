@@ -59,20 +59,34 @@ bool ScriptedCommandListener::dataTransporter( QString input )
 
 bool ScriptedCommandListener::sendNBytes( int n, QString data )
 {
-    data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
-    int bytesSent = m_connection->write( data.toLocal8Bit() );
-    qDebug() <<"(JT) sendNBytes() n =" << n;
+    //data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
+    bool result;
+    int bytesSent = 0;
+    while (bytesSent < n) {
+        bytesSent += m_connection->write( data.toLocal8Bit() );
+        if (bytesSent < 0) {
+            result = false;
+            break;
+        }
+        data = data.right( n - bytesSent );
+    }
     return true;
 }
 
 bool ScriptedCommandListener::sendMessage( QString data )
 {
-    //format: 4, 6, or 8 bytes: the size of the following message
-    int length = data.length();
-    uint32_t nlength = htonl(length);
-    qDebug() << "(JT) sendMessage nlength =" << nlength;
-    bool result = sendNBytes( length, data );
-    //bool result = sendNBytes( nlength, data );
+    // format: 4, 6, or 8 bytes: the size of the following message
+    int dataLength = data.length();
+    // For now, just send the length as an 8 character string, padded with
+    // zeros if necessary. This can be changed to a binary representation
+    // later.
+    QString lengthStr = QString("%1").arg(dataLength, 8, 10, QChar('0'));
+    int totalMessageLength = (data + lengthStr).length();
+    qDebug() << "(JT) sendMessage() what's being sent: " << lengthStr + data;
+    qDebug() << "(JT) sendMessage() totalMessageLength =" << totalMessageLength;
+    bool result = sendNBytes( totalMessageLength, lengthStr + data );
+    //m_connection->write(lengthStr.toLocal8Bit());
+    //m_connection->write(data.toLocal8Bit());
     return result;
 }
 
