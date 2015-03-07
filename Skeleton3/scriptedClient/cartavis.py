@@ -399,10 +399,12 @@ def receiveMessage(socket, data):
     """format: 4, 6, or 8 bytes: the size of the following message"""
     """after receiving this, enter a loop to receive this number of bytes"""
     # Get the size of the data from the socket
-    sizeBytes = 8
+    sizeBytes = 4
     sizeList = []
     sizeResult = receiveNBytes(socket, sizeBytes, sizeList)
-    size = int(sizeList[0])
+    print "sizeList = " + str(sizeList)
+    size, = struct.unpack('>L', sizeList[0])
+    print "size= " + str(size)
     # Now receive that many bytes
     result = receiveNBytes(socket, size, data)
     return result

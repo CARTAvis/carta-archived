@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <stdexcept>
 #include <netinet/in.h>
+#include <iostream>
 
 const QString ScriptedCommandListener::SIZE_DELIMITER(":");
 
@@ -55,17 +56,22 @@ bool ScriptedCommandListener::sendNBytes( int n, const void * data )
 {
     //data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
     const char * ptr = reinterpret_cast<const char *> ( data);
+    qDebug() << "sendNBytes n = "<< n;
     qDebug() << "sendNBytes ptr = "<< ptr;
+    //std::cout << "Sending " << std::hex << int( * (char *)(ptr)) << "\n";
     bool result;
     int bytesSent = 0;
     while (bytesSent < n) {
-        bytesSent += m_connection->write( ptr );
-        if (bytesSent < 0) {
+        int sent = m_connection->write( ptr, n-bytesSent );
+        qDebug() << "(JT) sendNBytes sent this time =" << sent;
+        if (sent < 0) {
             result = false;
             break;
         }
+        bytesSent += sent;
         qDebug() << "(JT) sendNBytes bytesSent =" << bytesSent;
-        ptr += bytesSent;
+        ptr += sent;
+        //qDebug() << "sendNBytes ptr in the loop = "<< ptr;
     }
     return true;
 }
@@ -74,21 +80,12 @@ bool ScriptedCommandListener::sendMessage( const void * data )
 {
     // format: 4, 6, or 8 bytes: the size of the following message
     char * dataStr = (char *) data;
-    qDebug() << "(JT) sendMessage dataStr =" << dataStr;
-    int dataLength = strlen(dataStr);
-    qDebug() << "(JT) sendMessage dataLength =" << dataLength;
-    // For now, just send the length as an 8 character string, padded with
-    // zeros if necessary. This can be changed to a binary representation
-    // later.
-    char lengthStr[16];
-    sprintf (lengthStr, "%08d", dataLength);
-    qDebug() << "(JT) sendMessage lengthStr =" << lengthStr;
-    bool result = sendNBytes( 8, lengthStr );
+    uint32_t dataLength = strlen(dataStr);
+    // Convert the length to network order
+    uint32_t dataLengthNet = htonl(dataLength);
+    bool result = sendNBytes( 4, &dataLengthNet );
     result = sendNBytes( dataLength, data );
-    //m_connection->write(lengthStr.toLocal8Bit());
-    //m_connection->write(data.toLocal8Bit());
-    //return result;
-    return true;
+    return result;
 }
 
 bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void * data )
