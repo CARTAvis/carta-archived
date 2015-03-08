@@ -301,11 +301,6 @@ class Application:
         result = sendCommand(self.socket, commandStr)
         return result
 
-    def fakeCommand(self):
-        commandStr = """fake command to send a huge amount of text"""
-        result = sendCommand(self.socket, commandStr)
-        return result;
-
 def start(
         executable = "/home/jeff/scratch/build/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
@@ -402,9 +397,7 @@ def receiveMessage(socket, data):
     sizeBytes = 4
     sizeList = []
     sizeResult = receiveNBytes(socket, sizeBytes, sizeList)
-    print "sizeList = " + str(sizeList)
     size, = struct.unpack('>L', sizeList[0])
-    print "size= " + str(size)
     # Now receive that many bytes
     result = receiveNBytes(socket, size, data)
     return result

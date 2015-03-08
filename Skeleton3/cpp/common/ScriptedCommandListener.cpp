@@ -38,11 +38,9 @@ void ScriptedCommandListener::newConnectionCB()
 
 void ScriptedCommandListener::socketDataCB()
 {
-    qDebug() << "scripted command listener: socket data ready";
     char* buffer;
-    bool result = receiveTypedMessage( "whatever", &buffer );
+    bool result = receiveTypedMessage( "1", &buffer );
     QString str = QString::fromUtf8(buffer);
-    qDebug() << "(JT) ScriptedCommandListener::socketDataCB str = " << str;
     if (result == true) {
         str = str.trimmed();
         emit command( str);
@@ -54,24 +52,17 @@ void ScriptedCommandListener::socketDataCB()
 
 bool ScriptedCommandListener::sendNBytes( int n, const void * data )
 {
-    //data = QString::number(n) + ScriptedCommandListener::SIZE_DELIMITER + data;
     const char * ptr = reinterpret_cast<const char *> ( data);
-    qDebug() << "sendNBytes n = "<< n;
-    qDebug() << "sendNBytes ptr = "<< ptr;
-    //std::cout << "Sending " << std::hex << int( * (char *)(ptr)) << "\n";
     bool result;
     int bytesSent = 0;
     while (bytesSent < n) {
         int sent = m_connection->write( ptr, n-bytesSent );
-        qDebug() << "(JT) sendNBytes sent this time =" << sent;
         if (sent < 0) {
             result = false;
             break;
         }
         bytesSent += sent;
-        qDebug() << "(JT) sendNBytes bytesSent =" << bytesSent;
         ptr += sent;
-        //qDebug() << "sendNBytes ptr in the loop = "<< ptr;
     }
     return true;
 }
@@ -90,7 +81,6 @@ bool ScriptedCommandListener::sendMessage( const void * data )
 
 bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void * data )
 {
-    qDebug() << "(JT) sendTypedMessage() messageType =" << messageType;
     bool result = sendMessage( data );
     return result;
 }
@@ -99,7 +89,7 @@ bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void 
 bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 {
     bool result = true;
-    char buff[n];
+    char buff[n+1];
     int buffIndex = 0;
     qint64 lineLength = 0;
     while (lineLength < n) {
@@ -118,7 +108,6 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
             buffIndex++;
         }
         lineLength += bytesRead;
-        qDebug() << "(JT) receiveNBytes() made " << futileReads << "futile attempts";
     }
     // Why should this be necessary? I sometimes get garbage data without it.
     buff[n] = NULL;
@@ -128,21 +117,17 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
     }
 
     if( lineLength == 0) {
-        qDebug() << "scripted command listener: not a full line yet...";
         result = false;
     }
 
     if ( lineLength < n ) {
-        qDebug() << "(JT) receiveNBytes() haven't received the full message yet.";
         result = false;
     }
 
     if ( lineLength > n ) {
-        qDebug() << "(JT) receiveNBytes() received too much data.";
         result = false;
     }
 
-    //qDebug() << "(JT) receiveNBytes() data before = " << *data;
     if (result == true) {
         *data = (char *) malloc( strlen(buff) + 1 ); 
         strcpy( *data, buff );
@@ -170,29 +155,19 @@ int ScriptedCommandListener::getMessageSize( )
                 futileReads += 1;
             }
         }
-        qDebug() << "(JT) getMessageSize() made " << futileReads << "futile attempts for byte " << i;
         lineLength += bytesRead;
         message[i] = buff[0];
     }
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
-        result = -1;
-    }
-
-    if( lineLength == 0) {
-        qDebug() << "scripted command listener: not a full line yet...";
-        result = -1;
+        result = 0;
     }
 
     if ( lineLength < 4 ) {
-        qDebug() << "(JT) getMessageSize() haven't received the full size yet.";
+        result = 0;
     }
 
-    if ( lineLength > 4 ) {
-        qDebug() << "(JT) getMessageSize() received too much data.";
-    }
-
-    if (lineLength >= 1) {
+    if (lineLength == 4) {
         result = (message[3]<<0) | (message[2]<<8) | (message[1]<<16) | (message[0]<<24);
     }
     return result;
@@ -202,14 +177,16 @@ bool ScriptedCommandListener::receiveMessage( char** data )
 {
     //format: 4, 6, or 8 bytes: the size of the following message
     //after receiving this, enter a loop to receive this number of bytes
+    bool result = 0;
     int size = getMessageSize();
-    bool result = receiveNBytes( size, data );
+    if ( size > 0 ) {
+        result = receiveNBytes( size, data );
+    }
     return result;
 }
 
 bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
 {
-    qDebug() << "(JT) receiveTypedMessage() messageType =" << messageType;
     bool result = receiveMessage( data );
     return result;
 }

@@ -98,14 +98,12 @@ Viewer::scriptedCommandCB( QString command )
 
     // command: loadFile
     if ( args.size() == 3 && args[0].toLower() == "loadfile" ) {
-        qDebug() << "Trying to load" << args[2] << " into " << args[1];
         QString output = m_scriptFacade->loadFile( args[1], "/RootDirectory/" + args[2] );
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: loadLocalFile
     if ( args.size() == 3 && args[0].toLower() == "loadlocalfile" ) {
-        qDebug() << "Trying to load local file " << args[2] << " into " << args[1];
         QString output = m_scriptFacade->loadLocalFile( args[1], args[2] );
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
@@ -113,14 +111,12 @@ Viewer::scriptedCommandCB( QString command )
     // command: addLink
     else if (args.size() == 3 && args[0].toLower() == "addlink") {
         QString output = m_scriptFacade->addLink( args[1], args[2] );
-        qDebug() << "addLink result: " << output;
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: removeLink
     else if (args.size() == 3 && args[0].toLower() == "removelink") {
         QString output = m_scriptFacade->removeLink( args[1], args[2] );
-        qDebug() << "removeLink result: " << output;
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
@@ -274,7 +270,6 @@ Viewer::scriptedCommandCB( QString command )
     
     // command: quit
     else if ( args.size() == 1 && args[0].toLower() == "quit" ) {
-        //qDebug() << "Quitting...";
         MyQApp::exit();
     }
 
