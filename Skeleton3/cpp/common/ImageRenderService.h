@@ -109,6 +109,14 @@ struct PixelPipelineCacheSettings {
 /// Implementation of the rendering service
 /// \warning this object could potentially live it a separate thread, so make all connections
 /// to it as explicitly queued
+/// \note All pixel coordinates are in "casa-pixel" coordinates, which happens to be
+/// the same as FITS standard, but numbering starts from 0 instead of 1.
+///
+/// For example:
+/// (0,0) is the _CENTER_ of the first pixel (bottom-left pixel!!!)
+/// (-1/2,-1/2) is the bottom left corner of the bottom left pixel
+/// (1/2,1/2) is the top right corner of the bottom left pixel
+
 /// \todo start refactoring the pure API of this to ready this for plugins...
 class Service : public QObject
 {
@@ -135,9 +143,7 @@ public:
     void
     setOutputSize( QSize size );
 
-    /// set coordinates of the data pixel to be centered in the generated
-    /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
-    /// (0,0), while (1,1) is it's right-top corner, and (1/2,1/2) is it's center
+    /// which part of the image should be centered, given in casa-pixel coordinate system
     void
     setPan( QPointF pt );
 

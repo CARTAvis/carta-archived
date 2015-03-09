@@ -1,13 +1,10 @@
-//#include "pointset.h"            /* Defines AST__BAD */
-
-//#include "memory.h"              /* Memory allocation facilities */
-//#include "error.h"               /* Error reporting facilities */
-
+#include "CartaLib/CartaLib.h"
 #include <float.h>
 #include <math.h>
 #include <string.h>
 #include <QPainter>
-#include "grfdriver.h"
+
+//#include "grfdriver.h"
 
 extern "C" {
 #include <ast.h>
@@ -15,63 +12,173 @@ extern "C" {
 #include <ast_err.h>             /* AST error codes */
 };
 
-static QImage * grfImage_ = 0;
-static QColor lineColor_( "#ffff00" );
-static QColor textColor_( "#ffffff" );
+static struct GrfDriverGlobals {
+    QImage * image = nullptr;
+    QColor lineColor = QColor( "#ffff00" );
+    QColor textColor = QColor( "#ffffff" );
+    QPainter * painter = nullptr;
+}
+globals;
+
+//static QImage * grfImage_ = 0;
+//static QColor lineColor_( "#ffff00" );
+//static QColor textColor_( "#ffffff" );
 
 void
 grfSetLineColor( QString color )
 {
-    lineColor_ = QColor( color );
+    globals.lineColor = QColor( color );
 }
 
 void
 grfSetTextColor( QString color )
 {
-    textColor_ = QColor( color );
+    globals.textColor = QColor( color );
 }
 
-QImage &
-grfImage()
-{
-    return * grfImage_;
-}
-
-static QPainter * painter_ = 0;
+//QImage &
+//grfImage()
+//{
+//    CARTA_ASSERT( globals.image);
+//    return * globals.image;
+//}
 
 static QPainter &
 p()
 {
-    return * painter_;
+    CARTA_ASSERT( globals.painter );
+    return * globals.painter;
 }
 
 void
 grfSetImage( QImage * img )
 {
-    grfImage_ = img;
-    if ( painter_ ) {
-//        painter_-> end();
-        delete painter_;
-        painter_ = 0;
+    globals.image = img;
+    if ( globals.painter ) {
+        delete globals.painter;
+        globals.painter = 0;
     }
     if ( img ) {
-        painter_ = new QPainter( img );
-        painter_-> setRenderHint( QPainter::Antialiasing, true );
-        painter_-> setFont( QFont( "Helvetica", 36 ) );
-
-//        painter_-> setPen( QPen( QColor( 255, 255, 0, 255), 0.5 ));
-        painter_-> setPen( QPen( lineColor_, 0.5 ) );
-        painter_-> setBrush( Qt::NoBrush );
-
-//        painter_-> save();
-//        QRectF tr( 30, 40, 300, 200);
-//        painter_-> setBrush( QColor("green"));
-//        painter_-> drawRect( tr);
-//        painter_-> drawText( tr, "This is wonderful.");
-//        painter_-> restore();
+        globals.painter = new QPainter( img );
+        globals.painter-> setRenderHint( QPainter::Antialiasing, true );
+        globals.painter-> setFont( QFont( "Helvetica", 10 ) );
+        globals.painter-> setPen( QPen( globals.lineColor, 0.5 ) );
+        globals.painter-> setBrush( Qt::NoBrush );
     }
-} // grfSetImage
+}
 
+/// helper to draw text
+static void
+drawText( const char * text, float x, float y, const char * just,
+          float upx, float upy, float * xb = 0, float * yb = 0 )
+{
+    QString jst = just ? QString( just ).toUpper() : "CC";
+
+    QFontMetricsF fm( p().font(), p().device() );
+    double tw = fm.width( text );
+    double asc = fm.ascent() * 0.8;
+
+//    double th = fm.height();
+    double th = fm.descent() + 1 + asc;
+
+    // normalize upx,upy
+    {
+        double d = sqrt( upx * upx + upy * upy );
+        if ( d > 1e-6 ) {
+            upx /= d;
+            upy /= d;
+        }
+    }
+
+    // create an offset tx,ty based on adjustments
+    double offx, offy;
+    if ( jst[0] == 'M' ) {
+        offy = 0;
+    }
+    else if ( jst[0] == 'B' ) {
+        offy = - fm.descent();
+    }
+    else if ( jst[0] == 'T' ) {
+        offy = asc + 1;
+    }
+    else {
+        offy = asc + 1 - th / 2.0;
+    }
+    if ( jst[1] == 'L' ) {
+        offx = 0;
+    }
+    else if ( jst[1] == 'R' ) {
+        offx = - tw;
+    }
+    else {
+        offx = - tw / 2.0;
+    }
+
+    // prepare the transform
+    QTransform tr;
+    tr.translate( x, y );
+    tr.rotate( atan2( upx, upy ) * 180 / M_PI );
+
+    if ( ! xb ) {
+        p().save();
+
+//        if( xb) p().setOpacity( 0.1);
+        p().setTransform( tr );
+        p().fillRect( offx, offy + fm.descent(), tw, - th, QColor( 0, 0, 0, 128 ) );
+
+//        p().save();
+//        p().setBrush( QColor(0,0,0,100));
+//        p().setPen( Qt::NoPen);
+//        p().drawRect(offx,offy+fm.descent(),tw,-th);
+//        p().setBrush( QColor(255,255,255,255));
+//        p().setPen( Qt::NoPen);
+//        p().drawEllipse( 0, 0, 3, 3);
+//        p().restore();
+
+        //        p().setPen( QColor(255,255,255));
+        p().setPen( globals.textColor );
+        p().drawText( offx, offy, text );
+        p().restore();
+    }
+
+    // compute the bounding rectangle...
+    if ( xb && yb ) {
+        QRectF rect( offx, offy + fm.descent(), tw, - th );
+        QPointF p1 = tr.map( rect.bottomLeft() );
+        QPointF p2 = tr.map( rect.bottomRight() );
+        QPointF p3 = tr.map( rect.topRight() );
+        QPointF p4 = tr.map( rect.topLeft() );
+        xb[0] = p1.x();
+        yb[0] = p1.y();
+        xb[1] = p2.x();
+        yb[1] = p2.y();
+        xb[2] = p3.x();
+        yb[2] = p3.y();
+        xb[3] = p4.x();
+        yb[3] = p4.y();
+        if ( 0 ) {
+            p().save();
+            p().setPen( QPen( QColor( 255, 255, 255, 100 ), 1 ) );
+            p().setBrush( Qt::NoBrush );
+            p().drawLine( p1, p2 );
+            p().drawLine( p2, p3 );
+            p().drawLine( p3, p4 );
+            p().drawLine( p4, p1 );
+            p().restore();
+        }
+    }
+} // drawText
+
+/* =====================================================================================
+ *
+ * The set of functions below is the actual implementation of the low level AST graphics
+ * driver. These functions are called by AST lib, in particular during the invocation of
+ * astGrid()
+ *
+ * ======================================================================================
+ */
+
+extern "C" {
 /* Externally visible functions. */
 /* ============================= */
 /* These implement the "grf" interface in terms of the local C interface
@@ -477,107 +584,6 @@ astGMark( int n, const float * x, const float * y, int type )
     return 1;
 }
 
-static void
-drawText( const char * text, float x, float y, const char * just,
-          float upx, float upy, float * xb = 0, float * yb = 0 )
-{
-    QString jst = just ? QString( just ).toUpper() : "CC";
-
-    QFontMetricsF fm( p().font(), p().device() );
-    double tw = fm.width( text );
-    double asc = fm.ascent() * 0.8;
-
-//    double th = fm.height();
-    double th = fm.descent() + 1 + asc;
-
-    // normalize upx,upy
-    {
-        double d = sqrt( upx * upx + upy * upy );
-        if ( d > 1e-6 ) {
-            upx /= d;
-            upy /= d;
-        }
-    }
-
-    // create an offset tx,ty based on adjustments
-    double offx, offy;
-    if ( jst[0] == 'M' ) {
-        offy = 0;
-    }
-    else if ( jst[0] == 'B' ) {
-        offy = - fm.descent();
-    }
-    else if ( jst[0] == 'T' ) {
-        offy = asc + 1;
-    }
-    else {
-        offy = asc + 1 - th / 2.0;
-    }
-    if ( jst[1] == 'L' ) {
-        offx = 0;
-    }
-    else if ( jst[1] == 'R' ) {
-        offx = - tw;
-    }
-    else {
-        offx = - tw / 2.0;
-    }
-
-    // prepare the transform
-    QTransform tr;
-    tr.translate( x, y );
-    tr.rotate( atan2( upx, upy ) * 180 / M_PI );
-
-    if ( ! xb ) {
-        p().save();
-
-//        if( xb) p().setOpacity( 0.1);
-        p().setTransform( tr );
-        p().fillRect( offx, offy + fm.descent(), tw, - th, QColor( 0, 0, 0, 128 ) );
-
-//        p().save();
-//        p().setBrush( QColor(0,0,0,100));
-//        p().setPen( Qt::NoPen);
-//        p().drawRect(offx,offy+fm.descent(),tw,-th);
-//        p().setBrush( QColor(255,255,255,255));
-//        p().setPen( Qt::NoPen);
-//        p().drawEllipse( 0, 0, 3, 3);
-//        p().restore();
-
-        //        p().setPen( QColor(255,255,255));
-        p().setPen( textColor_ );
-        p().drawText( offx, offy, text );
-        p().restore();
-    }
-
-    // compute the bounding rectangle...
-    if ( xb && yb ) {
-        QRectF rect( offx, offy + fm.descent(), tw, - th );
-        QPointF p1 = tr.map( rect.bottomLeft() );
-        QPointF p2 = tr.map( rect.bottomRight() );
-        QPointF p3 = tr.map( rect.topRight() );
-        QPointF p4 = tr.map( rect.topLeft() );
-        xb[0] = p1.x();
-        yb[0] = p1.y();
-        xb[1] = p2.x();
-        yb[1] = p2.y();
-        xb[2] = p3.x();
-        yb[2] = p3.y();
-        xb[3] = p4.x();
-        yb[3] = p4.y();
-        if ( 0 ) {
-            p().save();
-            p().setPen( QPen( QColor( 255, 255, 255, 100 ), 1 ) );
-            p().setBrush( Qt::NoBrush );
-            p().drawLine( p1, p2 );
-            p().drawLine( p2, p3 );
-            p().drawLine( p3, p4 );
-            p().drawLine( p4, p1 );
-            p().restore();
-        }
-    }
-} // drawText
-
 int
 astGText( const char * text, float x, float y, const char * just,
           float upx, float upy )
@@ -641,7 +647,7 @@ astGText( const char * text, float x, float y, const char * just,
 *-
 */
 
-    QString jst = just ? QString( just ).toUpper() : "CC";
+//    QString jst = just ? QString( just ).toUpper() : "CC";
 
 //    dbg(1) << "Trace astGText( " << text << " | " <<  jst << ")\n";
 
@@ -774,7 +780,7 @@ astGTxExt( const char * text, float x, float y, const char * just,
 *-
 */
 
-    QString jst = just ? QString( just ).toUpper() : "CC";
+//    QString jst = just ? QString( just ).toUpper() : "CC";
 
 //    dbg(1) << "Trace astGTxExt( " << text << " | " <<  jst << ")\n";
 
@@ -952,3 +958,4 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
 
     return 1;
 } // astGAttr
+}

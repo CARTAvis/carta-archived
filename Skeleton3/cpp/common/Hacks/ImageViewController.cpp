@@ -8,7 +8,6 @@
 #include "../PluginManager.h"
 #include "Algorithms/quantileAlgorithms.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "CartaLib/Hooks/DrawWcsGrid.h"
 #include "GrayColormap.h"
 #include <QPainter>
 #include <functional>
@@ -49,6 +48,29 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
     connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
              this, & ImageViewController::irsDoneSlot );
+
+    // create a new wcs grid renderer (take the first)
+    {
+        qDebug() << "Looking for wcs grid renderer";
+        auto res = Globals::instance()-> pluginManager()
+                       -> prepare < Carta::Lib::Hooks::GetWcsGridRendererHook > ().first();
+        if ( res.isNull() ) {
+            qWarning( "Could not find any WCS grid renderers" );
+            m_wcsGridRenderer = nullptr;
+        }
+        else {
+            m_wcsGridRenderer = res.val();
+            auto conn =
+            connect( m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderer::done,
+                     [=](QImage &) {
+                qDebug() << "wcs grid renderer done";
+            });
+            m_wcsGridRenderer-> startRendering();
+            if( ! conn) {
+                qWarning() << "wcs grid renderer Failed connect";
+            }
+        }
+    }
 
     // initialize pixel pipeline
     m_pixelPipeline = std::make_shared < Carta::Lib::PixelPipeline::CustomizablePixelPipeline > ();
@@ -236,7 +258,8 @@ ImageViewController::loadImage( QString fname )
 
     // reset zoom/pan
     m_renderService-> setZoom( 1.0 );
-    m_renderService-> setPan( { m_astroImage-> dims()[0] / 2.0, m_astroImage-> dims()[1] / 2.0 }
+    m_renderService-> setPan( { m_astroImage-> dims()[0] / 2.0 - 0.5,
+                                m_astroImage-> dims()[1] / 2.0 - 0.5 }
                               );
 
     // clear quantile cache
@@ -315,10 +338,11 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 
     if ( m_gridToggle ) {
         QPainter p( & m_imageBuffer );
+
 //        p.setPen( QPen( QColor( "red" ), 5 ) );
 //        p.drawLine( QPointF( 0, 0 ), QPointF( img.width(), img.height() ) );
 
-        Carta::Lib::Hooks::DrawWcsGrid::Params params( nullptr );
+        Carta::Lib::Hooks::DrawWcsGridHook::Params params( nullptr );
         params.m_astroImage = m_astroImage;
         params.outputSize = m_imageBuffer.size();
         {
@@ -328,23 +352,36 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
             int top = 10;
 
             QSize s = m_imageBuffer.size();
-            QPointF bl( left, m_imageBuffer.size().height() - bottom);
+            QPointF bl( left, m_imageBuffer.size().height() - bottom );
             bl = m_renderService-> screen2img( bl );
+            qDebug() << "bl=" << bl;
             QPointF tr( m_imageBuffer.size().width() - right, top );
             tr = m_renderService-> screen2img( tr );
-//            bl.ry() = m_astroImage->dims()[1] - bl.ry();
-//            tr.ry() = m_astroImage->dims()[1] - tr.ry();
+
+//            std::swap( bl.ry(), tr.ry());
+
             params.frameRect = QRectF( bl, tr );
-            params.outputRect = QRectF( left, top, s.width() - left - right, s.height() - top - bottom);
+            params.outputRect = QRectF( left, top, s.width() - left - right,
+                                        s.height() - top - bottom );
         }
 
         auto res =
             Globals::instance()-> pluginManager()
-                -> prepare < Carta::Lib::Hooks::DrawWcsGrid > ( params ).first();
+                -> prepare < Carta::Lib::Hooks::DrawWcsGridHook > ( params ).first();
         if ( res.isNull() ) {
             qWarning( "Grid failed" );
         }
         else {
+            p.setPen( Qt::NoPen );
+            p.setBrush( QBrush( QColor( 0, 0, 0, 128 ) ) );
+            double x1 = 0, x2 = params.outputRect.left(),
+                   x3 = params.outputRect.right(), x4 = m_imageBuffer.width();
+            double y1 = 0, y2 = params.outputRect.top(),
+                   y3 = params.outputRect.bottom(), y4 = m_imageBuffer.height();
+            p.drawRect( QRectF( QPointF( x1, y1 ), QPointF( x4, y2 ) ) );
+            p.drawRect( QRectF( QPointF( x1, y2 ), QPointF( x2, y3 ) ) );
+            p.drawRect( QRectF( QPointF( x1, y3 ), QPointF( x4, y4 ) ) );
+            p.drawRect( QRectF( QPointF( x3, y2 ), QPointF( x4, y3 ) ) );
             p.drawImage( QPoint( 0, 0 ), res.val() );
         }
     }

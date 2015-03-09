@@ -6,51 +6,57 @@ extern "C" {
 #include <ast.h>
 };
 
-SkyGridPlotter::SkyGridPlotter()
+namespace WcsPlotterPluginNS
+{
+
+AstLibSkyGridPlotter::AstLibSkyGridPlotter()
 {
 //    impl_ = new Impl;
     m_carLin = false;
     m_img = 0;
 }
 
-SkyGridPlotter::~SkyGridPlotter()
+AstLibSkyGridPlotter::~AstLibSkyGridPlotter()
 {
 //     delete impl_;
 }
 
-bool SkyGridPlotter::setFitsHeader(const QString & hdr)
+bool AstLibSkyGridPlotter::setFitsHeader(const QString & hdr)
 {
     m_fitsHeader = hdr;
 
     return true;
 }
 
-void SkyGridPlotter::setCarLin(bool flag)
+void AstLibSkyGridPlotter::setCarLin(bool flag)
 {
     m_carLin = flag;
 }
 
-void SkyGridPlotter::setSystem( const QString & system)
+void AstLibSkyGridPlotter::setSystem( const QString & system)
 {
     m_system = system;
 }
 
-void SkyGridPlotter::setOutputImage(QImage *img)
+void AstLibSkyGridPlotter::setOutputImage(QImage *img)
 {
     m_img = img;
 }
 
-void SkyGridPlotter::setOutputRect(const QRectF &rect)
+void AstLibSkyGridPlotter::setOutputRect(const QRectF &rect)
 {
     m_orect = rect;
 }
 
-void SkyGridPlotter::setInputRect(const QRectF & rect)
+void AstLibSkyGridPlotter::setInputRect(const QRectF & rect)
 {
-    m_irect = rect;
+    /// convert from casa coordinates to fits (add 1)
+    m_irect = QRectF( rect.left() + 1, rect.top() + 1, rect.width(), rect.height());
+
+    m_irect = QRectF( m_irect.left(), m_irect.bottom(), m_irect.width(), - m_irect.height());
 }
 
-void SkyGridPlotter::setPlotOption(const QString & option)
+void AstLibSkyGridPlotter::setPlotOption(const QString & option)
 {
     m_plotOptions.append( option);
 }
@@ -60,7 +66,7 @@ struct AstGuard {
     ~AstGuard() { astEnd; }
 };
 
-bool SkyGridPlotter::plot()
+bool AstLibSkyGridPlotter::plot()
 {
     astClearStatus;
     AstGuard astGuard;
@@ -102,8 +108,8 @@ bool SkyGridPlotter::plot()
 
     float gbox[] = { float(m_orect.left()), float(m_orect.bottom()),
                      float(m_orect.right()), float(m_orect.top()) };
-
-    double pbox[] = { m_irect.left(), m_irect.bottom(), m_irect.right(), m_irect.top() };
+    double pbox[] = { m_irect.left(), m_irect.bottom(),
+                      m_irect.right(), m_irect.top() };
 
     grfSetImage( m_img);
 
@@ -170,17 +176,19 @@ bool SkyGridPlotter::plot()
     return true;
 }
 
-QString SkyGridPlotter::getError()
+QString AstLibSkyGridPlotter::getError()
 {
     return m_errorString;
 }
 
-void SkyGridPlotter::setLineColor(QString color)
+void AstLibSkyGridPlotter::setLineColor(QString color)
 {
     grfSetLineColor( color);
 }
 
-void SkyGridPlotter::setTextColor(QString color)
+void AstLibSkyGridPlotter::setTextColor(QString color)
 {
     grfSetTextColor( color);
+}
+
 }

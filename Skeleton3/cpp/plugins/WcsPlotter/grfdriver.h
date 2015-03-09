@@ -1,23 +1,22 @@
-#ifndef GRFGLOBALS_H
-#define GRFGLOBALS_H
+
 
 #pragma once
 
 #include <QImage>
 
 // getter
-QImage &
-grfImage();
+//QImage &
+//grfImage();
 
-// setter
+/// set the destination image
+/// \note ownership remains with caller
 void
 grfSetImage( QImage * img );
 
-// set text/line colors
+/// set text color
 void
 grfSetLineColor( QString color );
 
+/// set line color
 void
 grfSetTextColor( QString color );
-
-#endif // GRFGLOBALS_H

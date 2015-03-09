@@ -24,7 +24,8 @@ SOURCES += \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
-    PWLinear.cpp
+    PWLinear.cpp \
+    Hooks/DrawWcsGrid.cpp
 
 HEADERS += \
     CartaLib.h\

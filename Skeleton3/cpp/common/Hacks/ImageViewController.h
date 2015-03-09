@@ -12,6 +12,7 @@
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
 #include "../IView.h"
+#include "CartaLib/Hooks/DrawWcsGrid.h"
 #include <QTimer>
 
 namespace Hacks
@@ -107,6 +108,9 @@ private:
 
     /// the loaded astro image
     Image::ImageInterface::SharedPtr m_astroImage = nullptr;
+
+    /// wcs grid renderer
+    Carta::Lib::IWcsGridRenderer::SharedPtr m_wcsGridRenderer = nullptr;
 
     /// clip cache, hard-coded to single quantile
     std::vector< std::vector<double> > m_quantileCache;

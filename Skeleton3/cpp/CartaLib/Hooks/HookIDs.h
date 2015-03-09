@@ -24,7 +24,8 @@ enum class UniqueHookIDs {
 
     LoadPlugin_ID,
 
-    DrawWcsGrid_ID,
+    DrawWcsGridHook_ID,
+    GetWcsGridRendererHook_ID,
 
     PreRender_ID,
     LoadImage_ID

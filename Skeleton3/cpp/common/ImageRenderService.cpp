@@ -83,12 +83,17 @@ Service::setOutputSize( QSize size )
 void
 Service::setPan( QPointF pt )
 {
-    if ( pt != m_pan ) {
-        m_pan = pt;
-    }
+    m_pan = pt;
+
+//    m_pan = QPointF( - 0.5, - 0.5 );
+
+//    if ( pt != m_pan ) {
+//        m_pan = pt;
+//    }
 }
 
-QPointF Service::pan()
+QPointF
+Service::pan()
 {
     return m_pan;
 }
@@ -96,7 +101,7 @@ QPointF Service::pan()
 void
 Service::setZoom( double zoom )
 {
-    double newZoom = clamp( zoom, 0.1, 64.0 );
+    double newZoom = clamp( zoom, 0.1, 256.0 );
     if ( newZoom != m_zoom ) {
         m_zoom = newZoom;
     }
@@ -156,7 +161,7 @@ Service::Service( QObject * parent ) : QObject( parent )
                          this, & Service::internalRenderSlot,
                          Qt::QueuedConnection );
 
-    m_frameCache.setMaxCost( 1 * 1024 * 1024 * 1024); // 1 gig
+    m_frameCache.setMaxCost( 1 * 1024 * 1024 * 1024 ); // 1 gig
 }
 
 Service::~Service()
@@ -169,8 +174,10 @@ Service::img2screen( const QPointF & p )
     double scx = m_outputSize.width() / 2.0;
     double icy = m_pan.y();
     double scy = m_outputSize.height() / 2.0;
+
+    /// \todo cache xmap/ymap, update with zoom/pan/resize
     LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
-    LinearMap1D ymap( scy, scy + m_zoom, icy, icy + 1 );
+    LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
     QPointF res;
     res.rx() = xmap.inv( p.x() );
     res.ry() = ymap.inv( p.y() );
@@ -184,8 +191,10 @@ Service::screen2img( const QPointF & p )
     double scx = m_outputSize.width() / 2.0;
     double icy = m_pan.y();
     double scy = m_outputSize.height() / 2.0;
+
+    /// \todo cache xmap/ymap, update with zoom/pan/resize
     LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
-    LinearMap1D ymap( scy, scy + m_zoom, icy, icy + 1 );
+    LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
     QPointF res;
     res.rx() = xmap.apply( p.x() );
     res.ry() = ymap.apply( p.y() );
@@ -196,7 +205,7 @@ void
 Service::internalRenderSlot( JobId jobId )
 {
     auto d2hex = [] (double x) -> QString {
-        return QByteArray( (char *)(& x), sizeof(x)).toBase64();
+        return QByteArray( (char *) ( & x ), sizeof( x ) ).toBase64();
     };
 
     // cache id will be concatenation of:
@@ -213,14 +222,14 @@ Service::internalRenderSlot( JobId jobId )
                           .arg( m_pixelPipelineCacheId )
                           .arg( m_outputSize.width() )
                           .arg( m_outputSize.height() )
-                          .arg( d2hex(m_pan.x()))
-                          .arg( d2hex(m_pan.y()))
-                          .arg( d2hex(m_zoom));
+                          .arg( d2hex( m_pan.x() ) )
+                          .arg( d2hex( m_pan.y() ) )
+                          .arg( d2hex( m_zoom ) );
 
     if ( m_pixelPipelineCacheSettings.enabled ) {
         cacheId += QString( "/1/%1/%2" )
-                   .arg( int(m_pixelPipelineCacheSettings.interpolated))
-                   .arg( m_pixelPipelineCacheSettings.size);
+                       .arg( int (m_pixelPipelineCacheSettings.interpolated) )
+                       .arg( m_pixelPipelineCacheSettings.size );
     }
     else {
         cacheId += "/0";
@@ -233,7 +242,6 @@ Service::internalRenderSlot( JobId jobId )
     struct Scope {
         ~Scope() { qDebug() << "internalRenderSlot done"; } }
     debugScopeGuard;
-
 
     auto cachedImage = m_frameCache.object( cacheId );
     if ( cachedImage ) {
@@ -283,15 +291,26 @@ Service::internalRenderSlot( JobId jobId )
 
     // prepare output
     QImage img( m_outputSize, QImage::Format_ARGB32 );
+
 //    img.fill( QColor( "blue" ) );
     img.fill( QColor( 50, 50, 50 ) );
     QPainter p( & img );
 
     // draw the frame image to satisfy zoom/pan
-    QPointF p1 = img2screen( QPointF( 0, 0 ) );
-    QPointF p2 = img2screen( QPointF( m_frameImage.width(), m_frameImage.height() ) );
+//    QPointF p1 = img2screen( QPointF( -0.5, -0.5 ) );
+//    QPointF p2 = img2screen( QPointF( m_frameImage.width()-0.5, m_frameImage.height()-0.5));
+
+    int imageHeight = m_frameImage.height();
+    QPointF p1 = img2screen( QPointF( -0.5, imageHeight - 0.5 ) );
+    QPointF p2 = img2screen( QPointF( m_frameImage.width() - 0.5, -0.5 ) );
+
     QRectF rectf( p1, p2 );
+    p.setRenderHint( QPainter::SmoothPixmapTransform, false );
+
+//    rectf = rectf.normalized();
     p.drawImage( rectf, m_frameImage );
+
+//    p.drawImage( rectf, m_frameImage.mirrored(false, true) );
 
     // debug code: redraw counter
 //    if ( CARTA_RUNTIME_CHECKS ) {
@@ -302,7 +321,7 @@ Service::internalRenderSlot( JobId jobId )
 //    }
 
     // report result
-    emit done( QImage(img), jobId );
+    emit done( QImage( img ), jobId );
 
 //    stamp the image about to be inserted with
     if ( CARTA_RUNTIME_CHECKS ) {
@@ -314,7 +333,7 @@ Service::internalRenderSlot( JobId jobId )
 
     // insert this image into frame cache
     qDebug() << "byteCount=" << img.byteCount();
-    m_frameCache.insert( cacheId, new QImage( img ), img.byteCount());
+    m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
 } // internalRenderSlot
 }
 }

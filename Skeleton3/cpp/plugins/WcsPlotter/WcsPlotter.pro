@@ -9,14 +9,18 @@ TEMPLATE = lib
 CONFIG += plugin
 
 SOURCES += \
-    WcsPlotter.cpp \
     grfdriver.cpp \
-    SkyGridPlotter.cpp
+    SkyGridPlotter.cpp \
+    FitsHeaderExtractor.cpp \
+    SimpleFitsParser.cpp \
+    WcsPlotterPlugin.cpp
 
 HEADERS += \
-    WcsPlotter.h \
     grfdriver.h \
-    SkyGridPlotter.h
+    SkyGridPlotter.h \
+    FitsHeaderExtractor.h \
+    SimpleFitsParser.h \
+    WcsPlotterPlugin.h
 
 CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
 WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared

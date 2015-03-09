@@ -8,6 +8,7 @@
 #include <QImage>
 #include <QPainter>
 #include <QSize>
+#include <unordered_set>
 
 #pragma once
 
@@ -162,7 +163,6 @@ protected:
 
 namespace Experimental
 {
-
 class VGList;
 
 /// interface representing the minimal APIs for rendering VGlist
@@ -171,9 +171,11 @@ class IRenderer
 public:
 
     virtual void
-    drawCircle( QPointF center, double radius ) = 0;
-};
+    drawCircle( const QPointF & center, double radius ) = 0;
 
+    virtual void
+    drawLine( const QPointF & p1, const QPointF & p2) = 0;
+};
 
 /// this class can render a VGList using QPainter APIs
 class RendererQPainter : public IRenderer
@@ -183,24 +185,33 @@ public:
     /// set the destination image
     /// ownership remains with the caller, but the image must exist while calling
     /// methods of this class
-    RendererQPainter( QPainter * painter) {
-        CARTA_ASSERT( painter);
+    RendererQPainter( QPainter * painter )
+    {
+        CARTA_ASSERT( painter );
         m_qpainter = painter;
     }
 
     void
-    virtual drawCircle( QPointF center, double radius ) override
+    virtual
+    drawCircle( const QPointF & center, double radius ) override
     {
         Q_UNUSED( center );
         Q_UNUSED( radius );
     }
 
+    virtual void drawLine(const QPointF & p1, const QPointF & p2) override
+    {
+        Q_UNUSED( p1);
+        Q_UNUSED( p2);
+    }
+
     void
-    rasterize( VGList & vg);
+    rasterize( VGList & vg );
 
 private:
 
     QPainter * m_qpainter = nullptr;
+
 };
 
 class IEntry
@@ -237,14 +248,36 @@ public:
     javascript()
     {
         return QStringList()
-               << QString("p.circle(%1,%2,%3)")
-                  .arg(m_center.x()).arg(m_center.y()).arg(m_radius);
+               << QString( "p.circle(%1,%2,%3)" )
+                   .arg( m_center.x() ).arg( m_center.y() ).arg( m_radius );
     }
 
 private:
 
     QPointF m_center;
     double m_radius;
+};
+
+class Line : public IEntry
+{
+public:
+    Line( const QPointF & p1, const QPointF & p2) {
+        m_p1 = p1;
+        m_p2 = p2;
+    }
+
+    virtual void cplusplus(RendererQPainter & painter)
+    {
+        painter.drawLine( m_p1, m_p2);
+    }
+    virtual QStringList javascript()
+    {
+        return QStringList()
+                << QString( "p.line(%1,%2,%3,%4)")
+                   .arg(m_p1.x()).arg(m_p1.y()).arg(m_p2.x()).arg(m_p2.y());
+    }
+private:
+    QPointF m_p1, m_p2;
 };
 
 /// class capable of creating / modifying a list of vector graphics commands
@@ -259,10 +292,10 @@ public:
 
     /// start recording changes
     void
-    startChanges();
+    resetChanges();
 
     /// get the recorded changes
-    const std::vector < int64_t > &
+    const std::unordered_set < u_int64_t > &
     getChanges();
 
     /// get an entry from position
@@ -301,38 +334,13 @@ public:
 
 private:
 
+    /// here we keep the actual entries
     std::vector < IEntry * > m_entries;
+
+    /// here we keep the list of changed things
+    std::unordered_set < u_int64_t > m_changes;
 };
 
-// something drawing a full scene
-VGList
-drawScene()
-{
-    VGList vg;
-    vg.reset();
-    return vg;
-}
-
-// the way we call it
-int
-apitest()
-{
-    // get the vector graphics
-    VGList vg = drawScene();
-
-    // rasterize it into image
-    QImage img( 100, 100, QImage::Format_ARGB32 );
-    QPainter painter( & img);
-    RendererQPainter renderer( & painter);
-    renderer.rasterize( vg);
-//    Rasterizer().rasterize( vg, img );
-
-    vg.add < Circle > ( QPointF( 1, 2 ), 10 );
-
-    return 0;
-}
-
-static int activator = apitest();
 
 // object that will report differences using vector graphics
 }
