@@ -88,12 +88,15 @@ bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void 
 //bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
 bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 {
+    qDebug() << "receiveNBytes";
     bool result = true;
-    char buff[n+1];
+    char* buff = new char[n+1];
+    qDebug() << "buff created";
     int buffIndex = 0;
     qint64 lineLength = 0;
     while (lineLength < n) {
-        char tempBuff[n];
+        //char tempBuff[n];
+        char* tempBuff = new char[n+1];
         qint64 bytesRead = -1;
         int futileReads = 0;
         while (bytesRead < 1) {
@@ -141,12 +144,12 @@ int ScriptedCommandListener::getMessageSize( )
     // A return value of 0 can be interpreted as an error.
     int result;
     int messageSize = sizeof(int);
-    char message[messageSize];
+    unsigned char size[messageSize+1];
     // This needs to be put into a loop in case the whole size cannot be read
     // all at once. Can I maybe just read one byte at a time?
     qint64 lineLength = 0;
     for (int i = 0; i < messageSize; i++) {
-        char buff[1];
+        char buff[2];
         int futileReads = 0;
         qint64 bytesRead = -1;
         while (bytesRead < 1) {
@@ -155,9 +158,12 @@ int ScriptedCommandListener::getMessageSize( )
                 futileReads += 1;
             }
         }
+        //int buffInt = int(*(unsigned char*)buff);
+        //std::cout << "buffInt " << std::hex << buffInt << "\n";
         lineLength += bytesRead;
-        message[i] = buff[0];
+        size[i] = buff[0];
     }
+    size[4] = NULL;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = 0;
@@ -168,7 +174,7 @@ int ScriptedCommandListener::getMessageSize( )
     }
 
     if (lineLength == 4) {
-        result = (message[3]<<0) | (message[2]<<8) | (message[1]<<16) | (message[0]<<24);
+        result = (size[3]<<0) | (size[2]<<8) | (size[1]<<16) | (size[0]<<24);
     }
     return result;
 }

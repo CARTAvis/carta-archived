@@ -303,6 +303,11 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->sendTypedMessage( "1", linkedStatistics.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
+    else if ( args[0].toLower() == "fakecommand" ) {
+        qDebug() << "fake command received.";
+        m_scl->sendTypedMessage( "1", "fake command received" );
+    }
+
     else {
         qWarning() << "Sorry, unknown command";
     }

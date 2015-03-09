@@ -301,6 +301,14 @@ class Application:
         result = sendCommand(self.socket, commandStr)
         return result
 
+    def fakeCommand(self, infile):
+        """Purely for the purpose of testing what happens when an arbitrarily
+        large command is sent."""
+        f = open(infile, 'r')
+        commandStr = "fakeCommand + " + f.read()
+        result = sendCommand(self.socket, commandStr)
+        return result
+
 def start(
         executable = "/home/jeff/scratch/build/cpp/desktop/desktop", 
         configFile = "/home/jeff/.cartavis/config.json", 
