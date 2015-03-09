@@ -26,7 +26,6 @@ Selection::Selection( const QString& prefix, const QString& identifier ):
 
 
 void Selection::_initializeStates(){
-    qDebug() << "(JT) Selection::_initializeStates()";
     m_state.insertValue<int>(LOW_KEY, 0);
     m_state.insertValue<int>( HIGH_KEY, 1);
     m_state.insertValue<int>( INDEX_KEY, 0);
@@ -73,12 +72,10 @@ void Selection::setIndex(int newIndex) {
 }
 
 void Selection::setUpperBound(int newUpperBound) {
-    qDebug() << "(JT) Selection::setUpperBound(" << newUpperBound << ")";
     _setFrameBoundsCheck(/*m_highKey*/HIGH_KEY, newUpperBound);
 }
 
 void Selection::setLowerBound(int newLowerBound) {
-    qDebug() << "(JT) Selection::setLowerBound(" << newLowerBound << ")";
     _setFrameBoundsCheck(/*m_lowKey*/LOW_KEY, newLowerBound);
 }
 
@@ -105,8 +102,6 @@ bool Selection::_setFrameBoundsCheck(const QString& key, int bound) {
 }
 
 int Selection::setIndex(const QString& params) {
-    qDebug() << "(JT) Selection::setIndex";
-    qDebug() << "(JT) params = " << params;
     bool validFrame = false;
     int frameValue = params.toInt(&validFrame);
     if (validFrame) {
@@ -116,7 +111,6 @@ int Selection::setIndex(const QString& params) {
 }
 
 bool Selection::_setIndexCheck(int frameValue) {
-    qDebug() << "(JT) Selection::_setIndexCheck(" << frameValue << ")";
     bool validFrame = false;
     int upperBound = getUpperBound();
     int lowerBound = getLowerBound();

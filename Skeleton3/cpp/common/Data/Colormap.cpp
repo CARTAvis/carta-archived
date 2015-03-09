@@ -161,7 +161,6 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "setScales", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        qDebug() << "(JT) setScales params = " << params;
         std::set<QString> keys = {SCALE_1, SCALE_2};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
         bool valid = false;

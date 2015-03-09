@@ -88,10 +88,8 @@ bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void 
 //bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
 bool ScriptedCommandListener::receiveNBytes( int n, char** data )
 {
-    qDebug() << "receiveNBytes";
     bool result = true;
     char* buff = new char[n+1];
-    qDebug() << "buff created";
     int buffIndex = 0;
     qint64 lineLength = 0;
     while (lineLength < n) {
