@@ -9,7 +9,8 @@
 
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent ),
-    m_histogram( nullptr)
+    m_histogram( nullptr),
+    m_cartaImage( nullptr )
 {
     }
 
@@ -67,24 +68,25 @@ bool Histogram1::handleHook( BaseHook & hookData ){
             }
         }
 
-        auto count = hook.paramsPtr->binCount;
-        m_histogram->setBinCount( count );
+        if ( m_histogram ){
 
-        auto minChannel = hook.paramsPtr->minChannel;
-        auto maxChannel = hook.paramsPtr->maxChannel;
-        auto spectralIndex = hook.paramsPtr->spectralIndex;
-        m_histogram->setChannelRange(minChannel, maxChannel, spectralIndex);
+            auto count = hook.paramsPtr->binCount;
+            m_histogram->setBinCount( count );
 
-        auto minIntensity = hook.paramsPtr->minIntensity;
-        auto maxIntensity = hook.paramsPtr->maxIntensity;
-        m_histogram->setIntensityRange(minIntensity, maxIntensity);
+            auto minChannel = hook.paramsPtr->minChannel;
+            auto maxChannel = hook.paramsPtr->maxChannel;
+            m_histogram->setChannelRange(minChannel, maxChannel);
 
-        hook.result = _computeHistogram();
-        if ( hook.result.getData().size() > 0 ){
+            auto minIntensity = hook.paramsPtr->minIntensity;
+            auto maxIntensity = hook.paramsPtr->maxIntensity;
+            m_histogram->setIntensityRange(minIntensity, maxIntensity);
+
+            hook.result = _computeHistogram();
             histSuccess = true;
         }
         else {
-            throw "Unimplemented data type";
+            hook.result = _computeHistogram();
+            histSuccess = false;
         }
         return histSuccess;
     }

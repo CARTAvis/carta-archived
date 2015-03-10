@@ -33,10 +33,8 @@ qx.Class.define( "skel.widgets.CustomUI.ErrorTextField",
                 this.m_inError = inError;
                 if ( this.m_inError ){
                     this.setAppearance ("errorTextField");
-                    console.log( "Set appearance error");
                 }
                 else {
-                    console.log( "No error");
                     this.setAppearance( "textfield");
                 }
             },

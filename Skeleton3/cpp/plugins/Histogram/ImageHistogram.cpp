@@ -35,10 +35,20 @@ void ImageHistogram<T>::setChannelRangeDefault(){
 }
 
 template <class T>
-void ImageHistogram<T>::setChannelRange( int minChannel, int maxChannel, int spectralIndex ){
-	m_channelMin = minChannel;
-	m_channelMax = maxChannel;
-	m_specIndex = spectralIndex;
+void ImageHistogram<T>::setChannelRange( int minChannel, int maxChannel ){
+    int oldMinChannel = m_channelMin;
+    int oldMaxChannel = m_channelMax;
+    if ( minChannel < 0 || maxChannel < 0 ){
+        m_channelMin = ALL_CHANNELS;
+        m_channelMax = ALL_CHANNELS;
+    }
+    else {
+        m_channelMin = minChannel;
+        m_channelMax = maxChannel;
+    }
+    if ( m_channelMin != oldMinChannel || m_channelMax != oldMaxChannel ){
+        _reset();
+    }
 }
 
 template <class T>
@@ -116,20 +126,27 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
 			if ( spectralIndex == -1 ){
 				spectralIndex = cSys.findCoordinate(casa::Coordinate::SPECTRAL);
 			}
-			casa::IPosition imShape = image->shape();
-			int shapeCount = imShape.nelements();
-			casa::IPosition startPos( shapeCount, 0);
-			casa::IPosition endPos(imShape - 1);
-			casa::IPosition stride( shapeCount, 1);
+			if ( spectralIndex >= 0 ){
+                casa::IPosition imShape = image->shape();
 
-			startPos[spectralIndex] = m_channelMin;
-			endPos[spectralIndex] = m_channelMax;
+                int shapeCount = imShape.nelements();
+                casa::IPosition startPos( shapeCount, 0);
+                casa::IPosition endPos(imShape - 1);
+                casa::IPosition stride( shapeCount, 1);
 
-			casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
-			casa::SubImage<T> subImage(*image, channelSlicer );
-			imageHistogram = new casa::LatticeHistograms<T>( subImage );
+                int endIndex = m_channelMax;
+                if ( m_channelMax >= imShape(spectralIndex) && m_channelMin < imShape(spectralIndex)){
+                    endIndex = imShape(spectralIndex) - 1;
+                }
+
+                startPos[spectralIndex] = m_channelMin;
+                endPos[spectralIndex] = endIndex;
+
+                casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
+                casa::SubImage<T> subImage(*image, channelSlicer );
+                imageHistogram = new casa::LatticeHistograms<T>( subImage );
+			}
 		}
-
 	}
 	else {
 		imageHistogram = new casa::LatticeHistograms<T>(*image );

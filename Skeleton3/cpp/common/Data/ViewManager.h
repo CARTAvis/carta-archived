@@ -126,8 +126,13 @@ private:
 
 
     void _removeView( const QString& plugin, int index );
-
-
+    /**
+     * Written because there is no guarantee what order the javascript side will use
+     * to create view objects.  When there are linked views, the links may not get
+     * recorded if one object is to be linked with one not yet created.  This flushes
+     * the state and gives the object a second chance to establish their links.
+     */
+    void _refreshState();
     bool _readState( const QString& fileName );
     bool _saveState( const QString& fileName );
 

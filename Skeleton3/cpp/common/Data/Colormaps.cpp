@@ -1,8 +1,6 @@
 #include "Data/Colormaps.h"
 #include "Data/Util.h"
-//#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
-//#include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "GrayColormap.h"
 
@@ -86,7 +84,6 @@ QStringList Colormaps::getColorMaps() const {
 }
 
 void Colormaps::_initializeDefaultState(){
-
     // get all colormaps provided by core
     m_colormaps.push_back( std::make_shared < Carta::Core::GrayColormap > () );
 

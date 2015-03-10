@@ -42,18 +42,13 @@ public:
      */
     int getUpperBound() const;
 
-    /**
-     * Sets the current index of the selection, provided it is in the selection range.
-     * @param newIndex the new selection index.
-     */
-    void setIndex(int newIndex);
 
     /**
      * Sets the current index of the selection, provided it is in the selection range.
-     * @param val a String representing the new selection index.
-     * @return the index as an integer.
+     * @param val the new selection index.
+     * @return an error message if the index was not set; otherwise and empty string.
      */
-    int setIndex(const QString& val);
+    QString setIndex( int val);
 
     /**
      * Sets the upper bound of the selection.
@@ -108,9 +103,6 @@ private:
 
     //Set initial values of the state if they do not already exist.
     void _initializeStates();
-
-    //Set the index, first checking that it is within bounds.
-    bool _setIndexCheck(int frameValue);
 
     //Returns the value of the passed in key as an integer.
     int _getValue(const QString& key) const;

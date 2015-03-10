@@ -3,7 +3,6 @@
  */
 #pragma once
 #include <qwt_plot_marker.h>
-//#include <QObject>
 
 class QPainter;
 

@@ -83,6 +83,16 @@ qx.Class
                         },
                         
                         /**
+                         * Remove the window with the given id from the list of links.
+                         * @param winId {String} a unique server-side id for a window.
+                         */
+                        clearLink : function( winId ){
+                            if ( this.m_window !== null ){
+                                this.m_window.clearLink( winId );
+                            }
+                        },
+                        
+                        /**
                          * Loads the data.
                          * 
                          * @param path {String} the location or lookup for the data.

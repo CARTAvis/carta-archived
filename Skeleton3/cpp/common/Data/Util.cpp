@@ -8,9 +8,9 @@ namespace Carta {
 
 namespace Data {
 
-QString Util::TRUE = "true";
-QString Util::FALSE = "false";
-
+const QString Util::TRUE = "true";
+const QString Util::FALSE = "false";
+const QString Util::STATE_FLUSH = "stateFlush";
 
 Util::Util( ) {
 

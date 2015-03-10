@@ -14,7 +14,7 @@
 #include <qwt_samples.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_histogram.h>
-#include "CartaLib/PixelPipeline/IPixelPipeline.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 
 namespace Carta {
 namespace Histogram {
@@ -27,9 +27,8 @@ HistogramGenerator::HistogramGenerator():
     m_font( "Helvetica", 10){
     m_plot = new QwtPlot();
     m_plot->setCanvasBackground( Qt::white );
-    QwtText yTitle("Count(pixels)");
-    yTitle.setFont( m_font );
-    m_plot->setAxisTitle(QwtPlot::yLeft, yTitle);
+    m_plot->setAxisAutoScale( QwtPlot::yLeft, false );
+
     QwtText xTitle( "Intensity()");
     xTitle.setFont( m_font );
     m_plot->setAxisTitle(QwtPlot::xBottom, xTitle );
@@ -42,6 +41,7 @@ HistogramGenerator::HistogramGenerator():
     QWidget* canvas = m_plot->canvas();
     canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    m_maxCount = 1;
 
     m_histogram = new HistogramPlot();
     m_histogram->attach(m_plot);
@@ -52,25 +52,17 @@ HistogramGenerator::HistogramGenerator():
     m_range = new HistogramSelection();
     m_range->attach(m_plot);
 
-    m_clipMin = 0;
-    m_clipMax = 0;
-
     setLogScale( true );
 }
 
-std::vector<double> HistogramGenerator::_getAxisRange(double minIntensity, double maxIntensity){
-    std::vector<double> result;
-    double difference = maxIntensity - minIntensity;
-    double percent = difference*EXTRA_RANGE_PERCENT;
-    result.push_back((minIntensity - percent));
-    result.push_back((maxIntensity + percent));
-    return result;
-}
-
-std::vector<double> HistogramGenerator::getHistogramClips(){
-    std::vector<double> result;
-    result.push_back(m_clipMin);
-    result.push_back(m_clipMax);
+std::pair<double,double> HistogramGenerator::getRange(bool* valid ) const {
+    std::pair<double,double> result;
+    *valid = false;
+    if ( m_range ){
+        result.first = m_range->getClipMin();
+        result.second = m_range->getClipMax();
+        *valid = true;
+    }
     return result;
 }
 
@@ -79,53 +71,73 @@ void HistogramGenerator::setColored( bool colored ){
     m_histogram->setColored( colored );
 }
 
-void HistogramGenerator::setColorMap(std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap){
-    m_histogram->setColorMap( cMap );
+void HistogramGenerator::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
+    m_histogram->setPipeline( pipeline );
 }
 
-void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data, double minIntensity, double maxIntensity){
+void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data){
     QwtText name = data.getName();
     name.setFont( m_font );
     m_plot->setTitle(name);
     QwtText xAxisTitle = "Intensity("+ data.getUnits()+")";
     xAxisTitle.setFont( m_font );
     m_plot->setAxisTitle(QwtPlot::xBottom, xAxisTitle );
+    m_logCount = true;
 
-    m_clipMin = minIntensity;
-    m_clipMax = maxIntensity; 
 
     std::vector<std::pair<double,double>> dataVector = data.getData();
 
     int dataCount = dataVector.size();
-    QVector<QwtIntervalSample> samples(dataCount);
+    m_maxCount = -1;
+    QVector<QwtIntervalSample> samples;
     for ( int i = 0; i < dataCount-1; i++ ){
-        QwtIntervalSample sample(dataVector[i].second, dataVector[i].first, dataVector[i+1].first);
-        samples[i]=sample;
+        //Only add in nonzero counts
+        if ( dataVector[i].second > 0 ){
+            QwtIntervalSample sample( dataVector[i].second, dataVector[i].first, dataVector[i+1].first );
+            samples.push_back( sample );
+            if ( dataVector[i].second > m_maxCount ){
+                m_maxCount = dataVector[i].second;
+            }
+        }
     }
 
     m_histogram->setData(samples);
-
-    std::vector<double> range =_getAxisRange(minIntensity, maxIntensity);
-    m_plot->setAxisScale(QwtPlot::xBottom, range[0], range[1]);
     m_plot->replot();
 
 }
 
-void HistogramGenerator::setHistogramSelection(double min, double max){
+void HistogramGenerator::_setVerticalAxisTitle(){
+    QwtText yTitle("Count(pixels)");
+    if ( m_logCount ){
+        yTitle.setText("Log Count( pixels");
+    }
+    yTitle.setFont( m_font );
+    m_plot->setAxisTitle(QwtPlot::yLeft, yTitle);
+}
+
+
+void HistogramGenerator::setRangePixels(double min, double max){
     m_range->setHeight(m_height);
     m_range->setBoundaryValues(min, max);
     m_plot->replot();
 }
 
+
+
 void HistogramGenerator::setLogScale(bool display){
-    if(display){
+    m_logCount = display;
+    if(m_logCount ){
         m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
         m_histogram->setBaseline(1.0);
+        m_plot->setAxisScale( QwtPlot::yLeft, 1, m_maxCount );
     }
     else{
         m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
         m_histogram->setBaseline(0.0);
+        m_plot->setAxisScale( QwtPlot::yLeft, 0, m_maxCount );
     }
+    _setVerticalAxisTitle();
+    m_plot->replot();
 }
 
 void HistogramGenerator::setSelectionMode(bool selection){
@@ -156,15 +168,6 @@ QImage * HistogramGenerator::toImage(){
 
 }
 
-void HistogramGenerator::updateHistogramClips(){
-    m_clipMin = m_range->getClipMin();
-    m_clipMax = m_range->getClipMax();
-    if(m_clipMin != m_clipMax){
-        std::vector<double> range =_getAxisRange(m_clipMin, m_clipMax);
-        m_plot->setAxisScale(QwtPlot::xBottom, range[0], range[1]);
-        m_plot->replot();
-    }
-}
 
 }
 }

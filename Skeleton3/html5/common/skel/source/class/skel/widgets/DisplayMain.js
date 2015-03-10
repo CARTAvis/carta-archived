@@ -152,6 +152,10 @@ qx.Class.define("skel.widgets.DisplayMain",
                     var data = ev.getData();
                     this.link( data.source, data.destination, true );
                 }, this );
+                qx.event.message.Bus.subscribe("clearLinks", function(ev){
+                    var data = ev.getData();
+                    this.m_pane.clearLink( data.link );
+                }, this );
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
                 qx.event.message.Bus.subscribe(
                                 "windowSelected",
@@ -267,6 +271,16 @@ qx.Class.define("skel.widgets.DisplayMain",
                     index++;
                 }
             }
+            
+            /*
+             * Because the new views are not created in any well-defined order, some
+             * links may not get initially established if the objects they link to have
+             * not been created.  Force a refresh of state now that all the views have
+             * been created so the links are correct.
+             */
+            var path = skel.widgets.Path.getInstance();
+            var cmd = path.getCommandRefreshState();
+            this.m_connector.sendCommand( cmd, "", function(){});
         },
         
         /**
@@ -333,23 +347,6 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
         },
         
-        /**
-         * Set the shared variables that store the plugins that will be displayed
-         * in each cell.
-         */
-        
-        _setPlugins : function(){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = path.getCommandSetPlugin();
-            var params = "names:";
-            for( var i = 0; i < arguments.length; i++ ){
-                params = params + arguments[i];
-                if ( i != arguments.length - 1 ){
-                    params = params + ".";
-                }
-            }
-            this.m_connector.sendCommand( cmd, params, function(){} );
-        },
         
         /**
          * Sends a command to the server letting it now that the displayed plugin
@@ -370,9 +367,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                     if ( win !== null ){
                         win.clean();
                     }
-                    else {
-                        console.log( "Missing window at "+row+" "+col);
-                    }
+
                     var index = row * this.m_gridColCount + col;
                     var cmd = path.getCommandSetPlugin();
                     var params = "names:";

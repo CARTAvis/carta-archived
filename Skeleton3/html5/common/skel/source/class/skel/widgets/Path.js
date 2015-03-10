@@ -109,6 +109,13 @@ qx.Class.define("skel.widgets.Path", {
         },
         
         /**
+         * Notify the server that state updates are needed.
+         */
+        getCommandRefreshState : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "refreshState";
+        },
+        
+        /**
          * Returns the command for restoring state.
          * @return {String} command for restoring state.
          */

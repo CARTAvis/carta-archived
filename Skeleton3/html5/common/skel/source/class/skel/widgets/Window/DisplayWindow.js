@@ -159,13 +159,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param sourceWinId
          *                {String} an identifier for the window displaying the
          *                plug-in that wants information about the links that
-         *                can emanate frome it.
+         *                can emanate from it.
          */
         getLinkInfo : function(pluginId, sourceWinId) {
             var linkInfo = new skel.widgets.Link.LinkInfo();
             if (this.m_identifier == sourceWinId) {
                 linkInfo.source = true;
             }
+           
             var midPoint = skel.widgets.Util.getCenter(this);
             linkInfo.locationX = midPoint[0];
             linkInfo.locationY = midPoint[1];
@@ -571,6 +572,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
         
         /**
+         * Remove the link with the given identifier from the list of links.
+         * @param winId {String} a unique identifier for the link to remove.
+         */
+        clearLink : function( winId ){
+            var linkIndex = this.m_links.indexOf(winId);
+            if ( linkIndex >= 0 ){
+                this.m_links.splice(linkIndex);
+            }
+        },
+        
+        /**
          * Callback for a data state change for this window.
          */
         _sharedVarCB : function( ){
@@ -580,7 +592,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     var winObj = JSON.parse( val );
                     var i = 0;
                     //Update the new links for this window.
-                    this.m_links = [];
+                    var data = {
+                       link: this.m_identifier
+                    };
+                    qx.event.message.Bus.dispatch( new qx.event.message.Message("clearLinks", data));
                     if ( winObj.links && winObj.links.length > 0 ){
                         for ( i = 0; i < winObj.links.length; i++ ){
                             var destId = winObj.links[i];

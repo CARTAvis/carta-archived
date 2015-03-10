@@ -1,6 +1,7 @@
 #include "Data/Animator.h"
 #include "Data/Selection.h"
 #include "Data/Controller.h"
+#include "Data/Histogram.h"
 #include "Data/Util.h"
 
 #include <QDebug>
@@ -43,11 +44,25 @@ bool Animator::addLink( CartaObject* cartaObject ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
             connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_adjustStateController(Controller*)) );
-            _resetAnimationParameters(-1);
         }
     }
     else {
-        qWarning() << "Animator:: unrecognized link type.";
+        Histogram* histogram = dynamic_cast<Histogram*>(cartaObject );
+        if ( histogram != nullptr){
+            linkAdded = m_linkImpl->addLink( histogram );
+            if ( linkAdded ){
+                if ( m_animators.contains( Selection::CHANNEL )){
+                    int channel = m_animators[Selection::CHANNEL]->getIndex();
+                    histogram->setCubeChannel( channel );
+                }
+            }
+        }
+        else {
+            qWarning() << "Animator:: unrecognized link type.";
+        }
+    }
+    if ( linkAdded ){
+        _resetAnimationParameters( -1);
     }
     return linkAdded;
 }
@@ -55,7 +70,6 @@ bool Animator::addLink( CartaObject* cartaObject ){
 void Animator::_adjustStateController( Controller* controller){
     int selectImageIndex = controller->getSelectImageIndex();
     _resetAnimationParameters(selectImageIndex);
-    //m_linkImpl->_adjustState();
 }
 
 void Animator::_adjustStateAnimatorTypes(){
@@ -74,11 +88,19 @@ void Animator::_adjustStateAnimatorTypes(){
 
 
 
-void Animator::_channelIndexChanged( const QString& params ){
+void Animator::_channelIndexChanged( int index ){
     int linkCount = m_linkImpl->getLinkCount();
     for( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        controller->setFrameChannel( params );
+        if ( controller != nullptr ){
+            controller->setFrameChannel( index );
+        }
+        else {
+            Histogram* histogram = dynamic_cast<Histogram*>(m_linkImpl->getLink(i));
+            if ( histogram != nullptr ){
+                histogram->setCubeChannel( index );
+            }
+        }
     }
 }
 
@@ -100,18 +122,26 @@ QString Animator::getLinkId( int linkIndex ) const {
     return m_linkImpl->getLinkId( linkIndex );
 }
 
-void Animator::_imageIndexChanged( const QString& params ){
-    int selectedImage = -1;
+int Animator::_getMaxImageCount() const {
+    int linkCount = m_linkImpl->getLinkCount();
+    int maxImages = 0;
+    for ( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        int imageCount = controller->getStackedImageCount();
+        if ( maxImages > imageCount ){
+            maxImages = imageCount;
+        }
+    }
+    return maxImages;
+}
+
+void Animator::_imageIndexChanged( int selectedImage){
     int linkCount = m_linkImpl->getLinkCount();
     for( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        controller->setFrameImage( params );
-    }
-
-    bool validInt = false;
-    selectedImage = params.toInt(&validInt );
-    if ( !validInt ){
-        selectedImage = -1;
+        if ( controller != nullptr ){
+            controller->setFrameImage( selectedImage );
+        }
     }
     _resetAnimationParameters(selectedImage);
 }
@@ -153,17 +183,23 @@ QString Animator::_initializeAnimator( const QString& type ){
     if ( !m_animators.contains( type )){
         if ( type == Selection::IMAGE ){
             animatorTypeId = _initAnimator( type );
-            connect( m_animators[Selection::IMAGE], SIGNAL(indexChanged( const QString&)), this, SLOT(_imageIndexChanged(const QString&)));
-            CartaObject* obj = m_linkImpl->getLink( 0 );
-            if ( obj != nullptr ){
+            connect( m_animators[Selection::IMAGE], SIGNAL(indexChanged( int)), this, SLOT(_imageIndexChanged(int)));
+            //Find a controller to use for setting up initial animation
+            //parameters.
+            int linkCount = m_linkImpl->getLinkCount();
+            for ( int i = 0; i < linkCount; i++ ){
+                CartaObject* obj = m_linkImpl->getLink( i );
                 Controller* controller = dynamic_cast<Controller*>(obj);
-                int selectImage = controller->getSelectImageIndex();
-                _resetAnimationParameters( selectImage );
+                if ( controller != nullptr ){
+                    int selectImage = controller->getSelectImageIndex();
+                    _resetAnimationParameters( selectImage );
+                    break;
+                }
             }
         }
         else if ( type == Selection::CHANNEL ){
             animatorTypeId = _initAnimator( type );
-            connect( m_animators[Selection::CHANNEL], SIGNAL(indexChanged( const QString&)), this, SLOT(_channelIndexChanged( const QString&)));
+            connect( m_animators[Selection::CHANNEL], SIGNAL(indexChanged(int)), this, SLOT(_channelIndexChanged( int)));
         }
         else {
             QString errorMsg = "Unrecognized animation initialization type=" +type;
@@ -180,8 +216,15 @@ QString Animator::_initializeAnimator( const QString& type ){
 
 void Animator::_initializeState(){
     m_state.insertObject( AnimatorType::ANIMATIONS);
+    m_state.insertValue<bool>( Util::STATE_FLUSH, false );
     m_state.flushState();
     _initializeAnimator( Selection::CHANNEL );
+}
+
+void Animator::refreshState(){
+    m_state.setValue<bool>(Util::STATE_FLUSH, true );
+    m_state.flushState();
+    m_state.setValue<bool>(Util::STATE_FLUSH, false );
 }
 
 QString Animator::_removeAnimator( const QString& type ){
@@ -213,18 +256,7 @@ bool Animator::removeLink( CartaObject* cartaObject ){
     return linkRemoved;
 }
 
-int Animator::_getMaxImageCount() const {
-    int linkCount = m_linkImpl->getLinkCount();
-    int maxImages = 0;
-    for ( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        int imageCount = controller->getStackedImageCount();
-        if ( maxImages > imageCount ){
-            maxImages = imageCount;
-        }
-    }
-    return maxImages;
-}
+
 
 void Animator::_resetAnimationParameters( int selectedImage ){
     if ( m_animators.contains( Selection::IMAGE) ){
@@ -239,12 +271,20 @@ void Animator::_resetAnimationParameters( int selectedImage ){
        int linkCount = m_linkImpl->getLinkCount();
        for ( int i = 0; i < linkCount; i++ ){
            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-           int highKey = controller->getState( Selection::CHANNEL, Selection::HIGH_KEY );
-           if ( highKey > maxChannel ){
-              maxChannel = highKey;
+           if ( controller != nullptr ){
+               int highKey = controller->getState( Selection::CHANNEL, Selection::HIGH_KEY );
+               if ( highKey > maxChannel ){
+                  maxChannel = highKey;
+               }
            }
        }
        m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
+       for ( int i = 0; i < linkCount; i++ ){
+           Histogram* hist = dynamic_cast<Histogram*>( m_linkImpl->getLink(i));
+           if ( hist != nullptr ){
+               hist->setPlaneRangeUpperBound( maxChannel );
+           }
+       }
    }
 }
 
@@ -254,7 +294,6 @@ Animator::~Animator(){
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
         QString id = m_animators[keys[i]]->getId();
-        qDebug() << "Destroying animator "<<id;
         if ( id.size() > 0 ){
             objMan->destroyObject( id );
         }

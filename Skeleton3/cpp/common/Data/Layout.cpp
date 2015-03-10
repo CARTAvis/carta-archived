@@ -367,10 +367,10 @@ void Layout::setLayoutDeveloper(){
             HIDDEN, Colormap::CLASS_NAME,
             HIDDEN, Histogram::CLASS_NAME};
     _setPlugin( names );*/
-    setLayoutSize( 2, 2 );
+    setLayoutSize( 3, 2 );
         QStringList names = {Controller::PLUGIN_NAME, Histogram::CLASS_NAME,
-                //HIDDEN, Colormap::CLASS_NAME,
-                HIDDEN, Colormap::CLASS_NAME};
+                HIDDEN, Colormap::CLASS_NAME,
+                HIDDEN, Animator::CLASS_NAME};
         _setPlugin( names );
 }
 

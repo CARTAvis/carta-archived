@@ -11,13 +11,12 @@
 #include <memory>
 
 namespace Carta {
-namespace Lib {
-namespace PixelPipeline {
-class IColormapNamed;
+    namespace Lib {
+        namespace PixelPipeline {
+            class CustomizablePixelPipeline;
+        }
+    }
 }
-}
-}
-
 class QPainter;
 
 namespace Carta {
@@ -47,7 +46,7 @@ class HistogramPlot : public QwtPlotHistogram {
          * Store the color map capable of mapping intensities to colors.
          * @param CMap an object capable of intensity to color mapping.
          */
-        void setColorMap( std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap );
+        void setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline);
 
         /**
          * Set whether the histogram should be drawn in a single color or whether it should be
@@ -68,7 +67,7 @@ class HistogramPlot : public QwtPlotHistogram {
                     const QRectF& canvasRect, int from, int to ) const;
 
      private:
-       std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> m_colorMap;
+       std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pipeline;
 	   QString m_drawStyle;
 	   QColor m_defaultColor;
 	   QBrush m_brush;

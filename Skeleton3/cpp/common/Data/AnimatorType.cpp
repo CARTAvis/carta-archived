@@ -45,9 +45,83 @@ AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType
         _initializeCommands();
 }
 
+QString AnimatorType::getStateString() const{
+    StateInterface writeState( m_state );
+    writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
+    return writeState.toString();
+}
+
+
+int AnimatorType::getIndex() const {
+    return m_select->getIndex();
+}
+
+void AnimatorType::_initializeState( ){
+    m_state.insertValue<int>( STEP, 1 );
+    m_state.insertValue<int>( RATE, 20 );
+    m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
+    m_state.flushState();
+}
+
+void AnimatorType::_initializeCommands(){
+
+	//A new image frame is being selected.
+	addCommandCallback( COMMAND_SET_FRAME, [=] (const QString & /*cmd*/,
+					 const QString & params, const QString & /*sessionId*/) -> QString {
+	    QString result;
+	    bool validInt = false;
+	    int index = params.toInt( &validInt );
+	    if ( validInt ){
+	        //Set our state to reflect the new image.
+	        result = m_select->setIndex( index );
+	        if ( result.isEmpty()){
+	            //Tell the children about the new image.
+	            emit indexChanged( index );
+	        }
+	    }
+	    else {
+	        result = "Animator index must be a valid integer "+params;
+	    }
+	    Util::commandPostProcess( result );
+	    return result;
+	});
+
+	addCommandCallback( "getSelection", [=] (const QString & /*cmd*/,
+	                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+	    QString selectId;
+	    if ( m_select != nullptr){
+	        selectId = m_select->getPath();
+	    }
+	    else {
+	        selectId = _makeSelection();
+	    }
+	    return selectId;
+	});
+
+	addCommandCallback( "setEndBehavior", [=] (const QString & /*cmd*/,
+	                                    const QString & params, const QString & /*sessionId*/) -> QString {
+	                            QString result = _setEndBehavior( params );
+	                            return result;
+	                        });
+
+
+    addCommandCallback( "setFrameRate", [=] (const QString & /*cmd*/,
+                                        const QString & params, const QString & /*sessionId*/) -> QString {
+                                QString result = _setFrameRate( params );
+                                return result;
+                            });
+
+    addCommandCallback( "setFrameStep", [=] (const QString & /*cmd*/,
+                                            const QString & params, const QString & /*sessionId*/) -> QString {
+                                    QString result = _setFrameStep( params );
+                                    return result;
+                                });
+}
+
 bool AnimatorType::isRemoved() const {
     return m_removed;
 }
+
 
 QString AnimatorType::_makeSelection(){
     ObjectManager* objManager = ObjectManager::objectManager();
@@ -57,21 +131,6 @@ QString AnimatorType::_makeSelection(){
     QString selId = objManager->createObject( Selection::CLASS_NAME );
     m_select = dynamic_cast<Selection*>(objManager->getObject( selId ));
     return m_select->getPath();
-}
-
-QString AnimatorType::getStateString() const{
-    StateInterface writeState( m_state );
-    writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
-    return writeState.toString();
-}
-
-
-void AnimatorType::setUpperBound( int value ){
-    m_select->setUpperBound( value );
-}
-
-void AnimatorType::setIndex( int value ){
-    m_select->setIndex( value );
 }
 
 QString AnimatorType::_setEndBehavior( const QString& params ){
@@ -144,64 +203,16 @@ QString AnimatorType::_setFrameStep( const QString& params ){
     return result;
 }
 
-
-void AnimatorType::_initializeState( ){
-    m_state.insertValue<int>( STEP, 1 );
-    m_state.insertValue<int>( RATE, 20 );
-    m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
-    m_state.flushState();
-}
-
-
-void AnimatorType::_initializeCommands(){
-
-	//A new image frame is being selected.
-	addCommandCallback( COMMAND_SET_FRAME, [=] (const QString & /*cmd*/,
-					 const QString & params, const QString & /*sessionId*/) -> QString {
-
-        //Set our state to reflect the new image.
-        int index = m_select->setIndex( params );
-
-		//Tell the children about the new image.
-		emit indexChanged( params );
-
-	    return QString("%1=%2").arg(m_animationType).arg(index);
-	});
-
-	addCommandCallback( "getSelection", [=] (const QString & /*cmd*/,
-	                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-	    QString selectId;
-	    if ( m_select != nullptr){
-	        selectId = m_select->getPath();
-	    }
-	    else {
-	        selectId = _makeSelection();
-	    }
-	    return selectId;
-	});
-
-	addCommandCallback( "setEndBehavior", [=] (const QString & /*cmd*/,
-	                                    const QString & params, const QString & /*sessionId*/) -> QString {
-	                            QString result = _setEndBehavior( params );
-	                            return result;
-	                        });
-
-
-    addCommandCallback( "setFrameRate", [=] (const QString & /*cmd*/,
-                                        const QString & params, const QString & /*sessionId*/) -> QString {
-                                QString result = _setFrameRate( params );
-                                return result;
-                            });
-
-    addCommandCallback( "setFrameStep", [=] (const QString & /*cmd*/,
-                                            const QString & params, const QString & /*sessionId*/) -> QString {
-                                    QString result = _setFrameStep( params );
-                                    return result;
-                                });
-}
-
 void AnimatorType::setRemoved( bool removed ){
     m_removed = removed;
+}
+
+void AnimatorType::setUpperBound( int value ){
+    m_select->setUpperBound( value );
+}
+
+void AnimatorType::setIndex( int value ){
+    m_select->setIndex( value );
 }
 
 AnimatorType::~AnimatorType(){

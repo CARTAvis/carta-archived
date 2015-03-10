@@ -38,13 +38,16 @@ void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
 
     double lowerBound = m_lowerBound;
     double upperBound = m_upperBound;
+    //User is not selecting anything, use stored values for the bounds.
     if(!m_selection){
-        lowerBound = xMap.transform(lowerBound);
-        upperBound = xMap.transform(upperBound);
+        lowerBound = xMap.transform( m_clipMin );
+        upperBound = xMap.transform( m_clipMax );
     }
-
-    m_clipMin= xMap.invTransform( lowerBound );
-    m_clipMax = xMap.invTransform( upperBound );
+    else {
+        //Store the clip min and max from pixel values.
+        m_clipMin= xMap.invTransform( lowerBound );
+        m_clipMax = xMap.invTransform( upperBound );
+    }
 
     if ( lowerBound != upperBound ){
 

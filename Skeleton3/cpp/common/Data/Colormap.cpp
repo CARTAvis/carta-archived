@@ -96,6 +96,7 @@ void Colormap::_initializeDefaultState(){
 
     m_state.insertValue<QString>(TRANSFORM_IMAGE, "Gamma");
     m_state.insertValue<QString>(TRANSFORM_DATA, "None");
+    m_state.insertValue<bool>(Util::STATE_FLUSH, false );
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -396,12 +397,27 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     return result;
 }
 
-std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> Colormap::getColorMap( ) const {
+/*std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> Colormap::getColorMap( ) const {
 
     QString colorMapName = m_state.getValue<QString>(COLOR_MAP_NAME);
     std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap = m_colors->getColorMap( colorMapName );
 
     return cMap;
+}*/
+
+Controller* Colormap::getControllerSelected() const {
+    //TODO:  Add sophistication.
+    Controller* target = nullptr;
+    int linkCount = m_linkImpl->getLinkCount();
+    for ( int i = 0; i < linkCount; i++ ){
+        CartaObject* obj = m_linkImpl->getLink(i);
+        Controller* control = dynamic_cast<Controller*>(obj);
+        if ( control != nullptr ){
+            target = control;
+            break;
+        }
+    }
+    return target;
 }
 
 bool Colormap::_processColorStr( const QString key, const QString colorStr, bool* valid ){
@@ -418,6 +434,12 @@ bool Colormap::_processColorStr( const QString key, const QString colorStr, bool
         qWarning() << "colorStr="<<colorStr<<" is not a valid color percent for key="<<key;
     }
     return colorChanged;
+}
+
+void Colormap::refreshState(){
+    m_state.setValue<bool>(Util::STATE_FLUSH, true );
+    m_state.flushState();
+    m_state.setValue<bool>(Util::STATE_FLUSH, false );
 }
 
 bool Colormap::removeLink( CartaObject* cartaObject ){
