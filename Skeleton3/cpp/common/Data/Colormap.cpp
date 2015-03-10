@@ -425,7 +425,7 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
     std::set<QString> keys = {REVERSE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString reverseStr = dataValues[*keys.begin()];
-    result = reverseColormap( params );
+    result = reverseColormap( reverseStr );
     return result;
 }
 

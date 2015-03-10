@@ -223,8 +223,8 @@ void Controller::setClipValue( const QString& params ) {
     QString clipWithoutPercent = dataValues[clipKey].remove("%");
     double clipVal = dataValues[clipKey].toDouble(&validClip);
     // Make sure the clip value is within a valid range.
-    // I'm not sure if [0,1] is the proper, accepted range, but it seems to work.
-    if ( clipVal > 1 || clipVal < 0 ) {
+    // I'm not sure if this is the proper, accepted range, but it seems to work.
+    if ( clipVal > 1 || clipVal < 0.026 ) {
         validClip = false;
     }
     if ( validClip ){
