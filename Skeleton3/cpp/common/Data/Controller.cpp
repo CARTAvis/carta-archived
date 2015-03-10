@@ -644,6 +644,7 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
 
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
 
+    qDebug() << "(JT) Controller::updateZoom(" << centerX << "," << centerY << "," << zoomFactor << ")";
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
         //Remember where the user clicked
@@ -682,6 +683,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
 }
 
 void Controller::updatePan( double centerX , double centerY){
+    qDebug() << "(JT) Controller::updatePan(" << centerX << "," << centerY << ")";
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         bool validImage = false;

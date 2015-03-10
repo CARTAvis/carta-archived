@@ -879,6 +879,32 @@ QStringList ViewManager::getLinkedStatistics( const QString& controlId ) {
     return linkedStatistics;
 }
 
+QString ViewManager::updatePan( const QString& controlId, double x, double y ) {
+    QString result = "";
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           m_controllers[i]->updatePan( x, y );
+           break;
+        }
+    }
+    return result;
+}
+
+QString ViewManager::updateZoom( const QString& controlId, double x, double y, double z ) {
+    QString result = "";
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           m_controllers[i]->updateZoom( x, y, z );
+           break;
+        }
+    }
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

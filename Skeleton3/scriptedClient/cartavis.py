@@ -149,6 +149,17 @@ class Image(CartaView):
         result = sendCommand(self.socket, commandStr)
         return result
 
+    def updatePan(self, x, y):
+        commandStr = "updatePan " + self.getId() + " " + str(x) + " " + str(y)
+        print "commandStr = " + commandStr
+        result = sendCommand(self.socket, commandStr)
+        return result
+
+    def updateZoom(self, x, y, z):
+        commandStr = "updateZoom " + self.getId() + " " + str(x) + " " + str(y) + " " + str(z)
+        result = sendCommand(self.socket, commandStr)
+        return result
+
     def addLink(self, destView):
         """ Note that this method needs to override the base class method
             because the source and destination are flipped."""

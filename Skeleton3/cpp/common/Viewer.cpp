@@ -309,12 +309,24 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->sendTypedMessage( "1", linkedStatistics.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
     }
 
+    // command: updatePan
+    else if ( args.size() == 4 && args[0].toLower() == "updatepan" ) {
+        QString result = m_scriptFacade->updatePan( args[1], args[2].toDouble(), args[3].toDouble() );
+        m_scl->sendTypedMessage( "1", result.toLocal8Bit() );
+    }
+
+    // command: updateZoom
+    else if ( args.size() == 5 && args[0].toLower() == "updatezoom" ) {
+        QString result = m_scriptFacade->updateZoom( args[1], args[2].toDouble(), args[3].toDouble(), args[4].toDouble() );
+        m_scl->sendTypedMessage( "1", result.toLocal8Bit() );
+    }
+
     else if ( args[0].toLower() == "fakecommand" ) {
         m_scl->sendTypedMessage( "1", "fake command received" );
     }
 
     else {
-        qWarning() << "Sorry, unknown command";
+        qWarning() << "Sorry, unknown command: " << args;
     }
 } // scriptedCommandCB
 

@@ -221,6 +221,21 @@ public:
     QStringList getLinkedStatistics( const QString& controlId );
 
     /**
+     * Change the pan of the current image.
+     * @param x the x-coordinate for the center of the pan.
+     * @param y the y-coordinate for the center of the pan.
+     */
+    QString updatePan( const QString& controlId, double x, double y );
+
+    /**
+     * Update the zoom settings.
+     * @param x the screen x-coordinate where the zoom was centered.
+     * @param y the screen y-coordinate where the zoom was centered.
+     * @param z either positive or negative depending on the desired zoom direction.
+     */
+    QString updateZoom( const QString& controlId, double x, double y, double z );
+
+    /**
      * Set the list of plugins to be displayed.
      * @param names a list of identifiers for the plugins.
      */

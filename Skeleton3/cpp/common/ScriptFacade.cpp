@@ -229,3 +229,13 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
     QStringList linkedStatistics = m_viewManager->getLinkedStatistics( controlId );
     return linkedStatistics;
 }
+
+QString ScriptFacade::updatePan( const QString& controlId, double x, double y ) {
+    QString result = m_viewManager->updatePan( controlId, x, y );
+    return result;
+}
+
+QString ScriptFacade::updateZoom( const QString& controlId, double x, double y, double z ) {
+    QString result = m_viewManager->updateZoom( controlId, x, y, z );
+    return result;
+}
