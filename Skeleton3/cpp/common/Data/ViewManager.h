@@ -186,6 +186,13 @@ public:
     bool setFrame( const QString& animatorId, const QString& index );
 
     /**
+     * Set the image to the specified value.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @param index the image number.
+     */
+    bool setImage( const QString& animatorId, const QString& index );
+
+    /**
      * Reset the layout to a predefined view displaying only a single image.
      */
     void setImageView();

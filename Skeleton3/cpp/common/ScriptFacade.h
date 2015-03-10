@@ -185,6 +185,13 @@ public:
     QString setFrame( const QString& animatorId, const QString& index );
 
     /**
+     * Set the image to the specified value.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @param index the image number.
+     */
+    QString setImage( const QString& animatorId, const QString& index );
+
+    /**
      * Set the histogram to show the specified percentage of the data.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param clipValue the percentage of data to be shown.

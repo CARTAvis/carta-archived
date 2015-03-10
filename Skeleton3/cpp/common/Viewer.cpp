@@ -216,6 +216,12 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
+    // command: setImage
+    else if ( args.size() == 3 && args[0].toLower() == "setimage" ) {
+        QString output = m_scriptFacade->setImage( args[1], args[2] );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
+    }
+
     // command: setClipValue
     else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
         QString output = m_scriptFacade->setClipValue( args[1], args[2] );
@@ -304,7 +310,6 @@ Viewer::scriptedCommandCB( QString command )
     }
 
     else if ( args[0].toLower() == "fakecommand" ) {
-        qDebug() << "fake command received.";
         m_scl->sendTypedMessage( "1", "fake command received" );
     }
 

@@ -194,6 +194,11 @@ QString ScriptFacade::setFrame( const QString& animatorId, const QString& index 
     return "setFrame";
 }
 
+QString ScriptFacade::setImage( const QString& animatorId, const QString& index ) {
+    m_viewManager->setImage( animatorId, index );
+    return "setImage";
+}
+
 QString ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
     const QString& param = "clipValue:" + clipValue;
     m_viewManager->setClipValue( controlId, param );

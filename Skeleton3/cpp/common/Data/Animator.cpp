@@ -102,7 +102,7 @@ QString Animator::getLinkId( int linkIndex ) const {
     return m_linkImpl->getLinkId( linkIndex );
 }
 
-void Animator::_imageIndexChanged( const QString& params ){
+void Animator::changeImageIndex( const QString& params ){
     int selectedImage = -1;
     int linkCount = m_linkImpl->getLinkCount();
     for( int i = 0; i < linkCount; i++ ){
@@ -116,6 +116,10 @@ void Animator::_imageIndexChanged( const QString& params ){
         selectedImage = -1;
     }
     _resetAnimationParameters(selectedImage);
+}
+
+void Animator::_imageIndexChanged( const QString& params ){
+    changeImageIndex( params );
 }
 
 

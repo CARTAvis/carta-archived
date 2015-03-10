@@ -68,6 +68,8 @@ public:
 
     void changeChannelIndex( const QString& params );
 
+    void changeImageIndex( const QString& params );
+
     virtual ~Animator();
 
 private slots:

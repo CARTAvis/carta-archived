@@ -744,6 +744,16 @@ bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
     return animatorFound;
 }
 
+bool ViewManager::setImage( const QString& animatorId, const QString& index ){
+    int animatorIndex = _findAnimator( animatorId );
+    bool animatorFound = false;
+    if ( animatorIndex >= 0 ){
+        m_animators[animatorIndex]->changeImageIndex( index );
+        animatorFound = true;
+    }
+    return animatorFound;
+}
+
 void ViewManager::setCustomView( int rows, int cols ){
     _clear();
     if ( m_layout == nullptr ){

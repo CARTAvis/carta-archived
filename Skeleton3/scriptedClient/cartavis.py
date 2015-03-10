@@ -171,6 +171,11 @@ class Animator(CartaView):
         result = sendCommand(self.socket, commandStr)
         return result
 
+    def setImage(self, index):
+        commandStr = "setImage " + self.getId() + " " + str(index)
+        result = sendCommand(self.socket, commandStr)
+        return result
+
 class Statistics(CartaView):
     """Represents a statistics view"""
 
