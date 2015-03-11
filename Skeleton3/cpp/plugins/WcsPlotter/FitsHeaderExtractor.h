@@ -1,5 +1,5 @@
 /**
- * Class encapsulating an algorithm for extracting/computing a fits header from
+ * Class encapsulating algorithms for extracting/computing a fits header from
  * a carta image.
  **/
 
