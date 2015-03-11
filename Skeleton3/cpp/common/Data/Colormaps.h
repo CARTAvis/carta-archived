@@ -37,7 +37,7 @@ public:
      * @param index a integer representing a valid color map index.
      * @return the color map associated with the index.
      */
-    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( const QString& name ) const;
+     std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( const QString& name ) const;
 
     /**
      * Returns a list of available color maps.
@@ -50,6 +50,7 @@ public:
     const static QString COLOR_LIST;
     const static QString CLASS_NAME;
 private:
+
     void _initializeDefaultState();
     void _initializeCallbacks();
     QString _commandGetColorStops( const QString& params );

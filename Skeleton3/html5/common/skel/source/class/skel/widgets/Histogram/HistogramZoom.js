@@ -35,6 +35,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramZoom", {
             this._add( zoomContainer );
             
             this.m_fullRange = new qx.ui.form.Button( "Full" );
+            this.m_fullRange.setToolTipText( "Zoom out to full histogram range.");
             this.m_fullRange.addListener( "execute", function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramZoom.CMD_ZOOM_FULL;
@@ -42,6 +43,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramZoom", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this );
             this.m_selectedRange = new qx.ui.form.Button( "Selected");
+            this.m_selectedRange.setToolTipText( "Zoom to the graphically selected range.");
             this.m_selectedRange.addListener( "execute", function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramZoom.CMD_ZOOM_RANGE;

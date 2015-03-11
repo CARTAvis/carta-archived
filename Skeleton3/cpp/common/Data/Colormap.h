@@ -45,6 +45,11 @@ public:
     void clear();
 
     /**
+     * Force a flush of state to the client.
+     */
+    void refreshState();
+
+    /**
      * Set the name of the current color map.
      * @param colorMapName a unique identifier for the color map.
      * @return error information if the color map was not successfully set.
@@ -115,6 +120,11 @@ public:
 
     std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( ) const;
 
+    /**
+     * Returns the selected controller for this colormap.
+     * @return the map's selected controller.
+     */
+    Controller* getControllerSelected() const;
     virtual ~Colormap();
     const static QString CLASS_NAME;
 

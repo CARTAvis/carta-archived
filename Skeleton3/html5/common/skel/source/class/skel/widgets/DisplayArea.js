@@ -193,6 +193,15 @@ qx.Class
                             this.m_areaSecond.changeLink(sourceWinId, destWinId, addLink);
                         },
                         
+                        /**
+                         * Clear the link with the given id.
+                         * @param id {String} a unique identifier for a linked window.
+                         */
+                        clearLink : function( winId ){
+                            this.m_areaFirst.clearLink( winId );
+                            this.m_areaSecond.clearLink( winId );
+                        },
+                        
 
                         /**
                          * Notifies children that data has been loaded.

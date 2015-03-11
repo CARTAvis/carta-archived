@@ -213,12 +213,7 @@ public:
      */
     QString getImageViewName() const;
 
-    /**
-     * Returns the raw data as an array.
-     * @param channel the index of the channel needed.
-     * @return the raw data or nullptr if there is none.
-     */
-    NdArray::RawViewInterface *  getRawData( int channel ) const;
+
 
     /**
      * Returns information about the image at the current location of the cursor.
@@ -230,6 +225,31 @@ public:
      */
     QString getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight );
 
+    /**
+     * Return the percentile corresponding to the given intensity.
+     * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
+     * @param intensity a value for which a percentile is needed.
+     * @return the percentile corresponding to the intensity.
+     */
+    double getPercentile( int frameLow, int frameHigh, double intensity ) const;
+    
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
+    
+    /**
+     * Returns the pipeline responsible for rendering the image.
+     * @retun the pipeline responsible for rendering the image.
+     */
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
+    
     /**
      * Resize the view of the image.
      */
@@ -264,6 +284,14 @@ private:
     DataSource(const QString& path, const QString& id );
 
     class Factory;
+    
+        /**
+     * Returns the raw data as an array.
+     * @param frameLow the lower bound for the channel range or -1 for the whole image.
+     * @param frameHigh the upper bound for the channel range or -1 for the whole image.
+     * @return the raw data or nullptr if there is none.
+     */
+    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
 
     void _initializeState();
 

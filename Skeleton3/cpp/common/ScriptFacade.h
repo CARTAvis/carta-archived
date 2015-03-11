@@ -178,18 +178,18 @@ public:
     QString setPlugins( const QStringList& names );
 
     /**
-     * Set the image frame to the specified value.
+     * Set the image channel to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
-     * @param index the frame number.
+     * @param index the channel number.
      */
-    QString setFrame( const QString& animatorId, const QString& index );
+    QString setChannel( const QString& animatorId, int index );
 
     /**
      * Set the image to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the image number.
      */
-    QString setImage( const QString& animatorId, const QString& index );
+    QString setImage( const QString& animatorId, int index );
 
     /**
      * Set the histogram to show the specified percentage of the data.

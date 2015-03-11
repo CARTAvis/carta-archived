@@ -47,6 +47,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              */
             isLinkable : function(pluginId) {
                 var linkable = false;
+                var path = skel.widgets.Path.getInstance();
+                if (pluginId == path.ANIMATOR ){
+                    linkable = true;
+                }
                 return linkable;
             },
             

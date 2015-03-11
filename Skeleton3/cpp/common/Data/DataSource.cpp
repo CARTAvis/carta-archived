@@ -184,15 +184,90 @@ QString DataSource::getImageViewName() const {
     return shortName;
 }
 
-NdArray::RawViewInterface * DataSource::getRawData( int channel ) const {
+std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> DataSource::getPipeline() const {
+    return m_pixelPipeline;
+
+}
+
+bool DataSource::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
+    bool intensityFound = false;
+    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
+    if ( rawData != nullptr ){
+        NdArray::TypedView<double> view( rawData, false );
+        // read in all values from the view into an array
+        // we need our own copy because we'll do quickselect on it...
+        std::vector < double > allValues;
+        view.forEach(
+                [& allValues] ( const double  val ) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( val );
+            }
+        }
+        );
+
+        // indicate bad clip if no finite numbers were found
+        if ( allValues.size() > 0 ) {
+            int locationIndex = allValues.size() * percentile - 1;
+
+            if ( locationIndex < 0 ){
+                locationIndex = 0;
+            }
+            std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
+            *intensity = allValues[locationIndex];
+            intensityFound = true;
+        }
+    }
+    return intensityFound;
+}
+
+double DataSource::getPercentile( int frameLow, int frameHigh, double intensity ) const {
+    double percentile = 0;
+    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
+    if ( rawData != nullptr ){
+        u_int64_t totalCount = 0;
+        u_int64_t countBelow = 0;
+        NdArray::TypedView<double> view( rawData, false );
+        view.forEach([&](const double& val) {
+            if( Q_UNLIKELY( std::isnan(val))){
+                return;
+            }
+            totalCount ++;
+            if( val <= intensity){
+                countBelow++;
+            }
+            return;
+        });
+
+        if ( totalCount > 0 ){
+            percentile = double(countBelow) / totalCount;
+        }
+    }
+    return percentile;
+}
+
+NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int channelEnd ) const {
     NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         auto frameSlice = SliceND().next();
-        for( size_t i = 2 ; i < m_image->dims().size() ; i ++) {
-            frameSlice.next().index( i == 2 ? channel : 0);
+        for( size_t i=2; i < m_image->dims().size(); i++ ){
+            if ( i == 2 ){
+                SliceND& slice = frameSlice.next();
+                if (channelStart>=0 && channelEnd >= 0 ){
+                    slice.start( channelStart );
+                    slice.end( channelEnd + 1);
+                    
+                 }
+                 else {
+                    slice.start( 0 );
+                    slice.end( m_image->dims()[2] );
+                 }
+                 slice.step( 1 );
+            }
+            else {
+                frameSlice.next().index(0);
+            }
         }
-
-        rawData = m_image->getDataSlice( frameSlice);
+        rawData = m_image->getDataSlice( frameSlice );
     }
     return rawData;
 }

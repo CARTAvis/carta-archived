@@ -190,6 +190,15 @@ void ViewManager::_initCallbacks(){
         });
 
 
+        //Callback for updating links after all objects have been created.
+        addCommandCallback( "refreshState", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                    qDebug() << "ViewManager refreshing state";
+                    _refreshState();
+                    return "";
+                });
+
+
     //Callback for saving state.
     addCommandCallback( "saveState", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -625,6 +634,18 @@ bool ViewManager::_readState( const QString& saveName ){
     return successfulRead;
 }
 
+void ViewManager::_refreshState(){
+    for ( Animator* anim : m_animators ){
+        anim->refreshState();
+    }
+    for ( Histogram* hist : m_histograms ){
+        hist->refreshState();
+    }
+    for ( Colormap* map : m_colormaps ){
+        map->refreshState();
+    }
+}
+
 void ViewManager::setAnalysisView(){
     _clearControllers( 1 );
     _clearAnimators( 1 );
@@ -734,7 +755,7 @@ QString ViewManager::setDataTransform( const QString& colormapId, const QString&
     return output;
 }
 
-bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
+bool ViewManager::setChannel( const QString& animatorId, int index ){
     int animatorIndex = _findAnimator( animatorId );
     bool animatorFound = false;
     if ( animatorIndex >= 0 ){
@@ -744,7 +765,7 @@ bool ViewManager::setFrame( const QString& animatorId, const QString& index ){
     return animatorFound;
 }
 
-bool ViewManager::setImage( const QString& animatorId, const QString& index ){
+bool ViewManager::setImage( const QString& animatorId, int index ){
     int animatorIndex = _findAnimator( animatorId );
     bool animatorFound = false;
     if ( animatorIndex >= 0 ){
@@ -788,6 +809,7 @@ void ViewManager::setDeveloperView(){
     m_colormaps[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_colormaps[0]);
+    m_animators[0]->addLink( m_histograms[0]);
 }
 
 void ViewManager::setImageView(){

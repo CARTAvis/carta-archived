@@ -210,15 +210,15 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
-    // command: setFrame
-    else if ( args.size() == 3 && args[0].toLower() == "setframe" ) {
-        QString output = m_scriptFacade->setFrame( args[1], args[2] );
+    // command: setChannel
+    else if ( args.size() == 3 && args[0].toLower() == "setchannel" ) {
+        QString output = m_scriptFacade->setChannel( args[1], args[2].toInt() );
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
     // command: setImage
     else if ( args.size() == 3 && args[0].toLower() == "setimage" ) {
-        QString output = m_scriptFacade->setImage( args[1], args[2] );
+        QString output = m_scriptFacade->setImage( args[1], args[2].toInt() );
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 

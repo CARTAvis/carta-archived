@@ -28,19 +28,20 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                         this.m_binSettings.setBinCount(hist.binCount );
                         this.m_binSettings.setBinWidth(hist.binWidth );
                     }
-                  
+                    
                     if ( this.m_rangeSettings !== null ){
                         this.m_rangeSettings.setClipBounds( hist.clipMin, hist.clipMax );
-                        //this.m_rangeSettings.setClipIndex( hist.clipIndex );
                         this.m_rangeSettings.setApplyClipToImage( hist.applyClipToImage );
                         this.m_rangeSettings.setClipPercents( hist.clipMinPercent, hist.clipMaxPercent);
-                        this.m_rangeSettings.setLinks(hist.links);
+                        this.m_rangeSettings.setBuffer( hist.useClipBuffer );
+                        this.m_rangeSettings.setBufferAmount( hist.clipBuffer );
                     }
                     if ( this.m_cubeSettings !== null ){
                         this.m_cubeSettings.setPlaneMode( hist.planeMode );
-                        this.m_cubeSettings.setSelectedPlane( hist.selectedPlane );
+                        this.m_cubeSettings.setPlaneRangeMax( hist.planeRangeMax );
                         this.m_cubeSettings.setPlaneBounds( hist.planeMin, hist.planeMax );
                     }
+                   
                     if ( this.m_displaySettings !== null ){
                         this.m_displaySettings.setStyle(hist.graphStyle);
                         this.m_displaySettings.setLogCount( hist.logCount );
@@ -76,12 +77,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
        
         /**
          * Initializes the histogram settings.
-    
          */
         _initControls : function(){
-            //this.m_controlComposite = new qx.ui.container.Composite();
-            //this.m_controlComposite.setLayout( new qx.ui.layout.HBox(10));
-
             var layout = new qx.ui.layout.Flow();
             layout.setAlignX( "left" );
             layout.setSpacingX(1);
@@ -89,7 +86,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
 
             this.m_settingsContainer = new qx.ui.container.Composite(layout);
             this.m_settingsContainer.setPadding(1);
-            
             this.m_rangeSettings = new skel.widgets.Histogram.HistogramRange();
             this.m_binSettings = new skel.widgets.Histogram.HistogramBin();
             this.m_displaySettings = new skel.widgets.Histogram.HistogramDisplay();

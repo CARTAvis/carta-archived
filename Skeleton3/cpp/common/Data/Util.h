@@ -72,11 +72,13 @@ public:
       * @return a vector of doubles.
       */
      static std::vector < double > string2VectorDouble( QString s, QString sep = " " );
+
+     static const QString STATE_FLUSH;
 private:
     Util();
     virtual ~Util();
-    static QString TRUE;
-    static QString FALSE;
+    static const QString TRUE;
+    static const QString FALSE;
 
 };
 }

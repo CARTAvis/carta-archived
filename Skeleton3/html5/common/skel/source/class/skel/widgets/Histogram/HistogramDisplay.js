@@ -24,43 +24,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
 
     members : {
         
-        /**
-         * Callback for a server error when setting the log count flag.
-         * @param anObject {skel.widgets.Histogram.HistogramDisplay}.
-         */
-        _errorLogCountCB : function( anObject ){
-            return function( logCount ){
-                if ( logCount ){
-                    var logCountBool = skel.widgets.Util.toBool( logCount );
-                    anObject.setLogCount( logCountBool );
-                }
-            };
-        },
         
-        /**
-         * Callback for a server error when setting the colored flag.
-         * @param anObject {skel.widgets.Histogram.HistogramDisplay}.
-         */
-        _errorColoredCB : function( anObject ){
-            return function( colored ){
-                if ( colored ){
-                    var coloredBool = skel.widgets.Util.toBool( colored );
-                    anObject.setColored( coloredBool );
-                }
-            };
-        },
-        
-        /**
-         * Callback for a server error when setting the line style.
-         * @param anObject {skel.widgets.ColorMap.ColorScale}.
-         */
-        _errorStyleCB :function( anObject ){
-            return function( style ){
-                if ( style ){
-                    anObject.setStyle( style );
-                }
-            };
-        },
         
         /**
          * Initializes the UI.
@@ -81,18 +45,20 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
          */
         _initOptions : function(){
             this.m_logCheck = new qx.ui.form.CheckBox( "Log(Count)");
+            this.m_logCheck.setToolTipText( "Use a log scale for the vertical axis.");
             this.m_logCheck.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_LOG_COUNT;
                 var params = "logCount:"+this.m_logCheck.getValue();
-                this.m_connector.sendCommand( cmd, params, this._errorLogCountCB(this));
+                this.m_connector.sendCommand( cmd, params, function(){});
             }, this);
             this.m_coloredCheck = new qx.ui.form.CheckBox( "Colored");
+            this.m_coloredCheck.setToolTipText("Color the histogram based on intensity.");
             this.m_coloredCheck.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_COLORED;
                 var params = "colored:"+this.m_coloredCheck.getValue();
-                this.m_connector.sendCommand( cmd, params, this._errorColoredCB(this));
+                this.m_connector.sendCommand( cmd, params, function(){});
             }, this);
             this.m_displayContainer.add( this.m_logCheck );
             this.m_displayContainer.add( this.m_coloredCheck );
@@ -104,18 +70,21 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
         _initStyle : function(){
             
             this.m_lineRadio = new qx.ui.form.RadioButton( "Line");
+            this.m_lineRadio.setToolTipText( "Draw using vertical lines.");
             this.m_lineRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
                 if ( this.m_lineRadio.getValue() ){
                     this._sendStyleChangedCmd( this.m_lineRadio.getLabel());
                 }
             }, this );
             this.m_barRadio = new qx.ui.form.RadioButton( "Outline");
+            this.m_barRadio.setToolTipText( "Draw using an outline.");
             this.m_barRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
                 if ( this.m_barRadio.getValue() ){
                     this._sendStyleChangedCmd( this.m_barRadio.getLabel());
                 }
             }, this );
             this.m_fillRadio = new qx.ui.form.RadioButton( "Fill");
+            this.m_fillRadio.setToolTipText( "Draw using solid bars.");
             this.m_fillRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
                 if ( this.m_fillRadio.getValue() ){
                     this._sendStyleChangedCmd( this.m_fillRadio.getLabel());
@@ -139,7 +108,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_GRAPH_STYLE;
                 var params = "graphStyle:"+style;
-                this.m_connector.sendCommand( cmd, params, this._errorStyleCB(this));
+                this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
         

@@ -45,9 +45,28 @@ AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType
         _initializeCommands();
 }
 
+QString AnimatorType::getStateString() const{
+    StateInterface writeState( m_state );
+    writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
+    return writeState.toString();
+}
+
+
+int AnimatorType::getIndex() const {
+    return m_select->getIndex();
+}
+
+void AnimatorType::_initializeState( ){
+    m_state.insertValue<int>( STEP, 1 );
+    m_state.insertValue<int>( RATE, 20 );
+    m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
+    m_state.flushState();
+}
+
 bool AnimatorType::isRemoved() const {
     return m_removed;
 }
+
 
 QString AnimatorType::_makeSelection(){
     ObjectManager* objManager = ObjectManager::objectManager();
@@ -57,21 +76,6 @@ QString AnimatorType::_makeSelection(){
     QString selId = objManager->createObject( Selection::CLASS_NAME );
     m_select = dynamic_cast<Selection*>(objManager->getObject( selId ));
     return m_select->getPath();
-}
-
-QString AnimatorType::getStateString() const{
-    StateInterface writeState( m_state );
-    writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
-    return writeState.toString();
-}
-
-
-void AnimatorType::setUpperBound( int value ){
-    m_select->setUpperBound( value );
-}
-
-void AnimatorType::setIndex( int value ){
-    m_select->setIndex( value );
 }
 
 QString AnimatorType::_setEndBehavior( const QString& params ){
@@ -144,23 +148,27 @@ QString AnimatorType::_setFrameStep( const QString& params ){
     return result;
 }
 
-
-void AnimatorType::_initializeState( ){
-    m_state.insertValue<int>( STEP, 1 );
-    m_state.insertValue<int>( RATE, 20 );
-    m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
-    m_state.flushState();
+void AnimatorType::setRemoved( bool removed ){
+    m_removed = removed;
 }
 
-int AnimatorType::changeIndex( const QString & params )
+QString AnimatorType::changeIndex( const QString & params )
 {
+    QString result;
+    bool validInt = false;
+    int index = params.toInt( &validInt );
+    if ( validInt ){
     //Set our state to reflect the new image.
-    int index = m_select->setIndex( params );
-
-	//Tell the children about the new image.
-	emit indexChanged( params );
-
-    return index;
+        result = m_select->setIndex( index );
+        if ( result.isEmpty()){
+            //Tell the children about the new image.
+            emit indexChanged( index );
+        }
+    }
+    else {
+        result = "Animator index must be a valid integer "+params;
+    }
+    return result;
 }
 
 void AnimatorType::_initializeCommands(){
@@ -169,10 +177,9 @@ void AnimatorType::_initializeCommands(){
 	addCommandCallback( COMMAND_SET_FRAME, [=] (const QString & /*cmd*/,
 					 const QString & params, const QString & /*sessionId*/) -> QString {
 
-        int index = changeIndex( params );
-
-	    QString returnString = QString("%1=%2").arg(m_animationType).arg(index);
-        return returnString;
+        QString result = changeIndex( params );
+        Util::commandPostProcess( result );
+        return result;
 	});
 
 	addCommandCallback( "getSelection", [=] (const QString & /*cmd*/,
@@ -207,8 +214,12 @@ void AnimatorType::_initializeCommands(){
                                 });
 }
 
-void AnimatorType::setRemoved( bool removed ){
-    m_removed = removed;
+void AnimatorType::setUpperBound( int value ){
+    m_select->setUpperBound( value );
+}
+
+void AnimatorType::setIndex( int value ){
+    m_select->setIndex( value );
 }
 
 AnimatorType::~AnimatorType(){

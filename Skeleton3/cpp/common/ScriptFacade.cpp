@@ -189,12 +189,12 @@ QString ScriptFacade::setPlugins( const QStringList& names ) {
     return "setPlugins";
 }
 
-QString ScriptFacade::setFrame( const QString& animatorId, const QString& index ) {
-    m_viewManager->setFrame( animatorId, index );
-    return "setFrame";
+QString ScriptFacade::setChannel( const QString& animatorId, int index ) {
+    m_viewManager->setChannel( animatorId, index );
+    return "setChannel";
 }
 
-QString ScriptFacade::setImage( const QString& animatorId, const QString& index ) {
+QString ScriptFacade::setImage( const QString& animatorId, int index ) {
     m_viewManager->setImage( animatorId, index );
     return "setImage";
 }

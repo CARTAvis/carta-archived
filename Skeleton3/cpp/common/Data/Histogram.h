@@ -56,13 +56,83 @@ public:
     void clear();
 
     /**
-     * Set the clip min and max percent of the histogram.
-     * @param clipMinPercent percentage to clip from the left.
-     * @param clipMaxPercent percentage to clip from the right.
-     * @param link the server-side id of the controller whose data was used to generate the histogram.
-     * @return an error message if there was a problem setting the percentages; an empty QString otherwise.
+     * Send a new state update to the client.
      */
-    QString setClipPercent( double clipMinPercent, double clipMaxPercent, const QString& link );
+    void refreshState();
+
+    /**
+     * Set the amount of extra space on each side of the clip bounds.
+     * @param bufferAmount a percentage in [0,100) representing the amount of extra space.
+     * @return an error message if the clip buffer was not successfully set; an empty string otherwise.
+     */
+    QString setClipBuffer( int bufferAmount );
+
+    /**
+     * Set whether or not to show extra space on each side of the clip bounds.
+     * @param useBuffer true if extra space should be shown; false otherwise.
+     * @return an error message if there was a problem; an empty string if the flag was set successfully.
+     */
+    QString setUseClipBuffer( bool useBuffer );
+
+    /**
+     * Set the maximum clip value.
+     * @param clipMax the upper bound for the histogram.
+     * @param complete true if the change should propagate to the client and redraw the histogram;
+     *      false otherwise.
+     * @return an error message if there was a problem setting the upper bound; an empty string otherwise.
+     */
+    QString setClipMax( double clipMax, bool complete = true );
+
+    /**
+     * Set the minimum clip value.
+     * @param clipMin the lower bound for the histogram.
+     * @param complete true if the change should propagate to the client and redraw the histogram;
+     *      false otherwise.
+     * @return an error message if there was a problem setting the lower bound; an empty string otherwise.
+    */
+    QString setClipMin( double clipMin, bool complete = true );
+
+    /**
+      * Set the percent to clip from the left side of the histogram.
+      * @param clipMinPercent  a number in [0,100) representing the amount to clip from the left side.
+      * @param complete true if the change should propagate to the client and redraw the histogram;
+      *      false otherwise.
+      * @return an error message if there was a problem setting the minimum percent; an empty string otherwise.
+    */
+    QString setClipMinPercent( double clipMinPercent, bool complete = true );
+
+    /**
+     * Set the percent to clip from the right side of the histogram.
+     * @param clipMaxPercent  a number in [0,100) representing the amount to clip from the right side.
+     * @param complete true if the change should propagate to the client and redraw the histogram;
+     *      false otherwise.
+     * @return an error message if there was a problem setting the maximum percent; an empty string otherwise.
+     */
+    QString setClipMaxPercent( double clipMaxPercent, bool complete = true );
+
+    /**
+     * Set the lower and upper bounds for the histogram horizontal axis.
+     * @param minRange a lower bound for the histogram horizontal axis.
+     * @param maxRange an upper bound for the histogram horizontal axis.
+     * @return an error message if there was a problem setting the range; an empty string otherwise.
+     */
+    QString setClipRange( double minRange, double maxRange );
+
+    /**
+     * Set the lower and upper bounds for the histogram as percentages of the entire range.
+     * @param minPercent a number in [0,100) representing the amount to leave off on the left.
+     * @param maxPercent a number in [0,100) representing the amount to leave off on the right.
+     * @return an error message if there was a problem setting the range; an empty string otherwise.
+     */
+    QString setClipRangePercent( int minPercent, int maxPercent );
+
+    /**
+     * Set whether or not to apply histogram clips to linked images.
+     * @param clipApply true if histogram clip settings should be applied to linked images; false
+     *          otherwise.
+     * @return an error message if there was a problem setting the flag; an empty string otherwise.
+     */
+    QString setClipToImage( bool clipApply );
 
     /**
      * Set the clip min and max of the histogram.
@@ -71,7 +141,7 @@ public:
      * @param link the server-side id of the controller whose data was used to generate the histogram.
      * @return an error message if there was a problem setting the range; an empty QString otherwise.
      */
-    QString setClipRange( double clipMin, double clipMax, const QString& link );
+    //QString setClipRange( double clipMin, double clipMax, const QString& link );
 
     /**
      * Return a list of identifiers for all objects that are controlled by this histogram.
@@ -93,6 +163,57 @@ public:
      */
     QString setBinWidth( double binWidth );
 
+    /**
+     * Set where or not the histogram should be colored by intensity.
+     * @param colored true if the histogram should be colored by intensity; false otherwise.
+     * @return an error message if there was a problem setting the flag; an empty string otherwise.
+     */
+    QString setColored( bool colored );
+
+    /**
+     * Set the drawing style for the histogram (outline, filled, etc).
+     * @param style a unique identifier for a histogram drawing style.
+     * @return an error message if there was a problem setting the draw style; an empty string otherwise.
+     */
+    QString setGraphStyle( const QString& style );
+
+    /**
+     * Set whether or not the vertical axis should use a log scale.
+     * @param logCount true if the vertical axis should be logarithmic; false otherwise.
+     * @return an error message if there was a problem setting the flag; an empty string otherwise.
+     */
+    QString setLogCount( bool logCount );
+
+    /**
+     * Set whether the histogram should be based on a single plane, a range of planes, or the entire cube.
+     * @param planeMode a unique identifier for the 3D data range.
+     * @return an error message if there was a problem setting the 3D data range; an empty string otherwise.
+     */
+    QString setPlaneMode( const QString& planeMode );
+
+    /**
+     * Set the range of channels to include as data in generating the histogram.
+     * @param minPlane the minimum channel to include or -1 if there is no minimum.
+     * @param maxPlane the maximum channel to include or -1 if there is no maximum
+     * @return an error message if there was a problem setting the frame range; an empty string otherwise.
+     */
+    QString setPlaneRange( int minPlane, int maxPlane );
+
+    /**
+     * Set the largest plane value that the user should be allowed to set in the GUI.
+     * @param bound an upper bound for the planes that can be included in the histogram.
+     * @return an error message if there was a problem setting the plane range upper bound;
+     *          an empty string otherwise.
+     */
+    QString setPlaneRangeUpperBound( int bound );
+
+    /**
+     * Set the single plane that should be used for data when the histogram is in single plane mode.
+     * @param channel the single frame to use for histogram data.
+     * @return an error message if there was a problem setting the channel; an empty string otherwise.
+     */
+    QString setCubeChannel( int channel );
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
     const static QString GRAPH_STYLE_LINE;
@@ -107,48 +228,42 @@ private slots:
     
 
 private:
-    NdArray::RawViewInterface* _findRawData( const QString& fileName, int frameIndex ) const;
+    void _applyClips() const;
+    void _finishClips();
+
+    double _getBufferedIntensity( const QString& clipKey, const QString& percentKey );
+    std::pair<int,int> _getFrameBounds() const;
     double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
     bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
-    int _getLinkInfo( const QString& link, QString& name ) const;
+    Controller* _getControllerSelected() const;
     void _loadData( Controller* controller);
-    //Set the state from commands.
-    QString _setBinCount( const QString& params );
-    QString _setGraphStyle( const QString& params );
 
-    QString _setClipMin( const QString& params );
-    QString _setClipMax( const QString& params );
-    QString _setClipPercent( const QString& params );
-    // QString _setClipMaxPercent( const QString& params );
-    // QString _setClipMinPercent( const QString& params );
-
-    QString _setClipToImage( const QString& params );
-    QString _setColored( const QString& params );
-    QString _setLogCount( const QString& params );
-    QString _setPlaneMode( const QString& params );
-    QString _setPlaneSingle( const QString& params );
-    QString _setPlaneRange( const QString& params );
     QString _set2DFootPrint( const QString& params );
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
     
+    //Bin count <-> Bin width conversion.
     double _toBinWidth( int count ) const;
     int _toBinCount( double width ) const;
 
+    //User range selection
     void _startSelection(const QString& params );
-    // void _updateSelection(const QString& params );
     void _updateSelection(int x);
     void _endSelection(const QString& params );
 
     void _initializeDefaultState();
     void _initializeCallbacks();
 
+    void _refreshView();
+    void _zoomToSelection();
+
     static bool m_registered;
 
     bool m_selectionEnabled;
     double m_selectionStart;
     double m_selectionEnd;
-    bool m_selectionEnded;
 
+    const static QString CLIP_BUFFER;
+    const static QString CLIP_BUFFER_SIZE;
     const static QString CLIP_INDEX;
     const static QString CLIP_MIN;
     const static QString CLIP_MAX;
@@ -159,13 +274,13 @@ private:
 
     const static QString GRAPH_LOG_COUNT;
     const static QString GRAPH_COLORED;
-    const static QString PLANE_SINGLE;
     const static QString PLANE_MODE;
     const static QString PLANE_MODE_SINGLE;
     const static QString PLANE_MODE_RANGE;
     const static QString PLANE_MODE_ALL;
     const static QString PLANE_MIN;
     const static QString PLANE_MAX;
+    const static QString PLANE_RANGE_UPPER_BOUND;
     const static QString FOOT_PRINT;
     const static QString FOOT_PRINT_IMAGE;
     const static QString FOOT_PRINT_REGION;
@@ -181,6 +296,7 @@ private:
     Histogram( const QString& path, const QString& id );
     class Factory;
 
+    int m_cubeChannel;
     //Data View
     std::shared_ptr<ImageView> m_view;
 

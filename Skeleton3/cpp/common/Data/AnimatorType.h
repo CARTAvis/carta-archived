@@ -40,6 +40,12 @@ public:
     void setIndex( int index );
 
     /**
+     * Return the current selection index.
+     * @return the current selection index.
+     */
+    int getIndex() const;
+
+    /**
      * Returns a json string representing the state of this AnimatorType.
      * @return a Json string representing the state of this AnimatorType.
      */
@@ -53,12 +59,12 @@ public:
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
-    int changeIndex( const QString & params );
+    QString changeIndex( const QString & params );
 
     virtual ~AnimatorType();
 
 signals:
-    void indexChanged(const QString& params);
+    void indexChanged(int);
 
 private:
 

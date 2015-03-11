@@ -49,12 +49,12 @@ public:
 	virtual ~ImageHistogram();
 
 	//common to all histograms
-	void setBinCount( int count );
+	void setBinCount( int count )  Q_DECL_OVERRIDE;
 	void setChannelRangeDefault();
 	void setIntensityRangeDefault();
-	void setChannelRange( int minChannel, int maxChannel, int spectralIndex=-1 );
+	void setChannelRange( int minChannel, int maxChannel )  Q_DECL_OVERRIDE;
 
-	void setIntensityRange( double minimumIntensity, double maximumIntensity );
+	void setIntensityRange( double minimumIntensity, double maximumIntensity )  Q_DECL_OVERRIDE;
 
 	void setImage(casa::ImageInterface<T> *  val);
 	static double computeYValue( double value, bool useLog );

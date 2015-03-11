@@ -8,12 +8,13 @@
 #include <QString>
 #include <memory>
 
+
 namespace Carta {
-namespace Lib {
-namespace PixelPipeline {
-class IColormapNamed;
-}
-}
+    namespace Lib {
+        namespace PixelPipeline {
+            class CustomizablePixelPipeline;
+        }
+    }
 }
 
 class QwtPlot;
@@ -35,9 +36,10 @@ public:
   HistogramGenerator();
 
   /**
-   * Gets the m_minClip and m_maxClip.
+   * Return the minimum and maximum value of the user's selection.
+   * @param valid true if there is a selection with a minimum/maximum value; false otherwise.
    */
-  std::vector<double> getHistogramClips();
+  std::pair<double,double> getRange(bool* valid ) const;
 
   /**
    * Gets new clips calculated in histogram selection and updates them on the plot
@@ -47,7 +49,7 @@ public:
    * Sets the data for the histogram.
    * @param data the histogram (intensity,count) pairs and additional information for plotting.
    */
-  void setData( Carta::Lib::Hooks::HistogramResult data, double minIntensity, double maxIntensity);
+  void setData( Carta::Lib::Hooks::HistogramResult data);
 
   /**
    * Set the size of the image that will be generated.
@@ -68,12 +70,14 @@ public:
    */
   void setLogScale(bool logScale);
 
+
+
   /**
    * Set the min and max intensity range for the histogram.
    * @param min the minimum intensity value.
    * @param max the maximum intensity value.
    */
-  void setHistogramSelection(double min, double max);
+  void setRangePixels(double min, double max);
   
   /**
    * Set whether or not the user is selecting a range on the histogram.
@@ -88,10 +92,10 @@ public:
   void setColored( bool colored );
 
   /**
-   * Set the name of the color map that can be used as a look-up for mapping intensity to color.
-   * @param cMap the object which maps intensity to color.
+   * Set the pipeline used to map intensity to color.
+   * @param pipeline the mapping from intensity to color.
    */
-  void setColorMap( std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap );
+  void setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline);
 
   /**
    * Returns the QImage reflection the current state of the histogram.
@@ -99,6 +103,7 @@ public:
    */
   QImage * toImage();
 private:
+  void _setVerticalAxisTitle();
   const static double EXTRA_RANGE_PERCENT;
   QwtPlot *m_plot;
   HistogramPlot* m_histogram;
@@ -106,11 +111,9 @@ private:
   QwtPlotPicker* m_dragLine;
   int m_height;
   int m_width;
+  bool m_logCount;
+  int m_maxCount;
   QFont m_font;
-  double m_clipMin;
-  double m_clipMax;
-  std::vector<double> _getAxisRange(double minIntensity, double maxIntensity);
-  // void updateHistogramRange( double minClip, double maxClip );
 };
 }
 }

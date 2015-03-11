@@ -50,7 +50,13 @@ public:
      * @param count the number of histogram bins.
      */
     virtual void setBinCount( int count ) = 0;
-    virtual void setChannelRange( int minChannel, int maxChannel, int spectralIndex=-1 )=0;
+
+    /**
+     * Set the range of channels to include in the histogram.
+     * @param minChannel a lower bound for the range of channels to include or -1 for no minimum.
+     * @param maxChannel an upper bound for the range of channels to include or -1 for no maximum.
+     */
+    virtual void setChannelRange( int minChannel, int maxChannel )=0;
 
     /**
      * Sets the minimum and maximum intensity for the histogram.

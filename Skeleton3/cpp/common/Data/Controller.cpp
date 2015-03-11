@@ -124,6 +124,42 @@ void Controller::addData(const QString& fileName) {
     }
 }
 
+QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
+    QString result;
+    bool clipsChanged = false;
+    if ( minIntensityPercentile <= maxIntensityPercentile ){
+        const double ERROR_MARGIN = 0.0001;
+        if ( 0 <= minIntensityPercentile && minIntensityPercentile <= 1 ){
+            double oldMin = m_state.getValue<double>(CLIP_VALUE_MIN );
+            if ( qAbs(minIntensityPercentile - oldMin) > ERROR_MARGIN ){
+                m_state.setValue<double>(CLIP_VALUE_MIN, minIntensityPercentile );
+                clipsChanged = true;
+            }
+        }
+        else {
+            result = "Minimum intensity percentile invalid [0,1]: "+ QString::number( minIntensityPercentile);
+        }
+        if ( 0 <= maxIntensityPercentile && maxIntensityPercentile <= 1 ){
+            double oldMax = m_state.getValue<double>(CLIP_VALUE_MAX);
+            if ( qAbs(maxIntensityPercentile - oldMax) > ERROR_MARGIN ){
+                m_state.setValue<double>(CLIP_VALUE_MAX, maxIntensityPercentile );
+                clipsChanged = true;
+            }
+        }
+        else {
+            result = "Maximum intensity percentile invalid [0,1]: "+ QString::number( maxIntensityPercentile);
+        }
+        if( clipsChanged ){
+            m_state.flushState();
+            if ( m_view ){
+                _scheduleFrameReload();
+            }
+        }
+    }
+    return result;
+}
+
+
 void Controller::clear(){
     unregisterView();
 }
@@ -147,17 +183,23 @@ QString Controller::closeImage( const QString& name ){
     return result;
 }
 
-NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
-    NdArray::RawViewInterface * rawData = nullptr;
-    for ( DataSource* data : m_datas ){
-        if ( data->contains( fileName )){
-            rawData = data->getRawData( channel );
-            break;
-        }
+bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
+    bool validIntensity = false;
+    int imageIndex = m_selectImage->getIndex();
+    if ( 0 <= imageIndex && imageIndex < m_datas.size()){
+        validIntensity = m_datas[imageIndex]->getIntensity( frameLow, frameHigh, percentile, intensity );
     }
-    return rawData;
+    return validIntensity;
 }
 
+double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
+    double percentile = -1;
+    int imageIndex = m_selectImage->getIndex();
+    if ( 0 <= imageIndex && imageIndex < m_datas.size()){
+        percentile = m_datas[imageIndex]->getPercentile( frameLow, frameHigh, intensity );
+    }
+    return percentile;
+}
 
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
@@ -185,6 +227,15 @@ QString Controller::getImageName(int index) const{
         name = data->getFileName();
     }
     return name;
+}
+
+std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller::getPipeline() const {
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline(nullptr);
+    int selectImageIndex = m_selectImage->getIndex();
+    if ( 0 <= selectImageIndex && selectImageIndex < m_datas.size() ){
+        pipeline = m_datas[selectImageIndex]->getPipeline();
+    }
+    return pipeline;
 }
 
 int Controller::getStackedImageCount() const {
@@ -215,7 +266,8 @@ QString Controller::getStateString() const{
     return writeState.toString();
 }
 
-void Controller::setClipValue( const QString& params ) {
+QString Controller::setClipValue( const QString& params ) {
+    QString result;
     std::set<QString> keys = {"clipValue"};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     bool validClip = false;
@@ -247,6 +299,7 @@ void Controller::setClipValue( const QString& params ) {
     else {
         qDebug() << "Invalid clip value: "<<params;
     }
+    return result;
 }
 
 void Controller::_initializeCallbacks(){
@@ -254,8 +307,9 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        setClipValue( params );
-        return "";
+        QString result = setClipValue( params );
+        Util::commandPostProcess( result );
+        return result;
     });
 
     addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
@@ -587,13 +641,13 @@ void Controller::setCacheSize( int size ){
 }
 
 
-void Controller::setFrameChannel(const QString& val) {
+void Controller::setFrameChannel(int value) {
     if (m_selectChannel != nullptr) {
-        m_selectChannel->setIndex(val);
+        m_selectChannel->setIndex(value);
     }
 }
 
-void Controller::setFrameImage(const QString& val) {
+void Controller::setFrameImage( int val) {
     if (m_selectImage != nullptr) {
         m_selectImage->setIndex(val);
     }

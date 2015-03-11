@@ -177,8 +177,8 @@ class Image(CartaView):
 class Animator(CartaView):
     """Represents an animator view"""
 
-    def setFrame(self, index):
-        commandStr = "setFrame " + self.getId() + " " + str(index)
+    def setChannel(self, index):
+        commandStr = "setChannel " + self.getId() + " " + str(index)
         result = sendCommand(self.socket, commandStr)
         return result
 

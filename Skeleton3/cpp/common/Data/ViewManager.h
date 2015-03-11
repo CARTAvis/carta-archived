@@ -183,14 +183,14 @@ public:
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the frame number.
      */
-    bool setFrame( const QString& animatorId, const QString& index );
+    bool setChannel( const QString& animatorId, int index );
 
     /**
      * Set the image to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the image number.
      */
-    bool setImage( const QString& animatorId, const QString& index );
+    bool setImage( const QString& animatorId, int index );
 
     /**
      * Reset the layout to a predefined view displaying only a single image.
@@ -281,8 +281,13 @@ private:
 
 
     void _removeView( const QString& plugin, int index );
-
-
+    /**
+     * Written because there is no guarantee what order the javascript side will use
+     * to create view objects.  When there are linked views, the links may not get
+     * recorded if one object is to be linked with one not yet created.  This flushes
+     * the state and gives the object a second chance to establish their links.
+     */
+    void _refreshState();
     bool _readState( const QString& fileName );
     bool _saveState( const QString& fileName );
 

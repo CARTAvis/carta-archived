@@ -36,13 +36,12 @@ public:
      struct Params {
 
             Params( std::vector<std::shared_ptr<Image::ImageInterface>> p_dataSource, int p_binCount, int p_minChannel, int p_maxChannel,
-                int p_spectralIndex, double p_minIntensity, double p_maxIntensity)
+                double p_minIntensity, double p_maxIntensity)
             {
                 dataSource = p_dataSource;
                 binCount = p_binCount;
                 minChannel = p_minChannel;
                 maxChannel = p_maxChannel;
-                spectralIndex = p_spectralIndex;
                 minIntensity = p_minIntensity;
                 maxIntensity = p_maxIntensity;
             }
@@ -51,7 +50,6 @@ public:
             int binCount;
             int minChannel;
             int maxChannel;
-            int spectralIndex;
             double minIntensity;
             double maxIntensity;
 
@@ -66,8 +64,6 @@ public:
      */
     HistogramHook( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
     {
-        qDebug() << "Histogram hook Made";
-        qDebug() << "static id ="<<staticId;
         CARTA_ASSERT( is < Me > () );
     }
 

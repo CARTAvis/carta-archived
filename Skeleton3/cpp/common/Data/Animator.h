@@ -46,6 +46,11 @@ public:
     void clear();
 
     /**
+     * Force the connector to flush the state to the view.
+     */
+    void refreshState();
+
+    /**
      * Returns the number of controllees linked to this Animator.
      * @return a count of objects controlled by the animator.
      */
@@ -66,17 +71,19 @@ public:
 
     static const QString CLASS_NAME;
 
-    void changeChannelIndex( const QString& params );
+    void changeChannelIndex( int index );
 
-    void changeImageIndex( const QString& params );
+    void changeImageIndex( int selectedImage );
 
     virtual ~Animator();
+
+
 
 private slots:
     //Adjusts internal state based on the state in the child controllers.
     void _adjustStateController( Controller* controller);
-    void _imageIndexChanged( const QString& params );
-    void _channelIndexChanged( const QString& params );
+    void _imageIndexChanged( int index );
+    void _channelIndexChanged( int index );
 
 private:
     /**

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "CartaLib/ICoordinateFormatter.h"
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <Data/IColoredView.h>
@@ -22,10 +21,15 @@ namespace NdArray {
     class RawViewInterface;
 }
 
-
+namespace Carta {
+    namespace Lib {
+        namespace PixelPipeline {
+            class CustomizablePixelPipeline;
+        }
+    }
+}
 
 namespace Carta {
-
 namespace Data {
 
 class DataSource;
@@ -52,18 +56,45 @@ public:
     void addData(const QString& fileName);
 
     /**
+     * Apply the indicated clips to managed images.
+     * @param minIntensityPercentile the minimum clip percentile [0,1].
+     * @param maxIntensityPercentile the maximum clip percentile [0,1].
+     * @return a QString indicating if there was an error applying the clips or an empty
+     *      string if there was not an error.
+     */
+    QString applyClips( double minIntensityPercentile, double maxIntensityPercentile );
+
+    /**
      * Close the given image.
      * @param name an identifier for the image to close.
      */
     QString closeImage( const QString& name );
 
     /**
-     * Returns the raw data.
-     * @param fileName a full path to the data.
-     * @param channel a channel frame specifying a subset of the data.
-     * @return the raw data if it exists; otherwise, a nullptr.
+     * Return the percentile corresponding to the given intensity.
+     * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
+     * @param intensity a value for which a percentile is needed.
+     * @return the percentile corresponding to the intensity.
      */
-    NdArray::RawViewInterface *  getRawData( const QString& fileName, int channel ) const;
+    double getPercentile( int frameLow, int frameHigh, double intensity ) const;
+
+    /**
+     * Return the pipeline being used to draw the image.
+     * @return a Carta::Lib::PixelPipeline::CustomizablePixelPipeline being used to draw the
+     *      image.
+     */
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
 
     //IColoredView interface.
     virtual void setColorMap( const QString& colorMapName ) Q_DECL_OVERRIDE;
@@ -108,16 +139,16 @@ public:
 
     /**
      * Make a channel selection.
-     * @param val a String representing a channel selection.
+     * @param val  a channel selection.
      */
 
-    void setFrameChannel(const QString& val);
+    void setFrameChannel(int val);
 
     /**
      *  Make a data selection.
      *  @param val a String representing the index of a specific data selection.
      */
-    void setFrameImage(const QString& val);
+    void setFrameImage(int imageIndex);
 
 
     /**
@@ -143,7 +174,7 @@ public:
      */
     virtual QString getStateString() const;
 
-    void setClipValue( const QString& params );
+    QString setClipValue( const QString& params );
 
     /**
      * Change the pan of the current image.

@@ -1,7 +1,8 @@
 #include "Histogram/HistogramPlot.h"
 #include "../Data/Histogram.h"
 #include <qwt_painter.h>
-#include "CartaLib/PixelPipeline/IPixelPipeline.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include <QDebug>
 
 namespace Carta {
 namespace Histogram {
@@ -12,25 +13,8 @@ HistogramPlot::HistogramPlot():
     m_brush( m_defaultColor ){
     setStyle(QwtPlotHistogram::Columns);
     m_drawStyle = Carta::Data::Histogram::GRAPH_STYLE_LINE;
-    m_colored = true;
+    m_colored = false;
 }
-void HistogramPlot::setColorMap( std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> cMap ){
-    m_colorMap = cMap;
-}
-
-void HistogramPlot::setColored( bool colored ){
-    m_colored = colored;
-}
-
-void HistogramPlot::setData (const QVector< QwtIntervalSample > & data ){
-    QwtPlotHistogram::setSamples( data );
-    m_data = data;
-}
-
-void HistogramPlot::setDrawStyle( const QString& style ){
-    m_drawStyle = style;
-}
-
 
 void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
         const QwtIntervalSample & sample) const{
@@ -39,13 +23,15 @@ void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
         painter->setPen( m_defaultColor);
     }
     else {
-        QwtInterval xRange = sample.interval;
-        double midPt = (xRange.minValue() + xRange.maxValue()) / 2;
-        std::array<double,3> normRGB;
-        m_colorMap->convert( midPt, normRGB );
-        QColor sampleColor;
-        if ( normRGB[0] >= 0 && normRGB[1] >= 0 && normRGB[2] >= 0 ){
-            sampleColor.setRgbF(normRGB[0], normRGB[1], normRGB[2]);
+        QColor sampleColor(m_defaultColor);
+        if ( m_pipeline ){
+            QwtInterval xRange = sample.interval;
+            double midPt = (xRange.minValue() + xRange.maxValue()) / 2;
+            std::array<double,3> normRGB;
+            m_pipeline->convert( midPt, normRGB );
+            if ( normRGB[0] >= 0 && normRGB[1] >= 0 && normRGB[2] >= 0 ){
+                sampleColor.setRgbF(normRGB[0], normRGB[1], normRGB[2]);
+            }
         }
         painter->setPen( sampleColor );
         brush.setColor( sampleColor );
@@ -84,6 +70,8 @@ void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
         qCritical() << "Unrecognized draw style="<< m_drawStyle;
     }
 }
+
+
 void HistogramPlot::drawSeries( QPainter *painter, const QwtScaleMap &xMap,
                 const QwtScaleMap &yMap, const QRectF & rect, int from, int to ) const {
     if ( !painter || m_data.size() <= 0 ){
@@ -98,6 +86,23 @@ void HistogramPlot::drawSeries( QPainter *painter, const QwtScaleMap &xMap,
     if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ){
         QwtPainter::drawLine( painter, m_lastX, m_lastY, m_lastX, rect.bottom());
     }
+}
+
+void HistogramPlot::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
+    m_pipeline = pipeline;
+}
+
+void HistogramPlot::setColored( bool colored ){
+    m_colored = colored;
+}
+
+void HistogramPlot::setData (const QVector< QwtIntervalSample > & data ){
+    QwtPlotHistogram::setSamples( data );
+    m_data = data;
+}
+
+void HistogramPlot::setDrawStyle( const QString& style ){
+    m_drawStyle = style;
 }
 
 
