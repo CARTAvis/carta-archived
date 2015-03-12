@@ -18,8 +18,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
     statics : {
         CMD_SET_GRAPH_STYLE : "setGraphStyle",
         CMD_SET_LOG_COUNT : "setLogCount",
-        CMD_SET_COLORED : "setColored",
-        CHANGE_VALUE : "changeValue"
+        CMD_SET_COLORED : "setColored"
     },
 
     members : {
@@ -46,7 +45,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
         _initOptions : function(){
             this.m_logCheck = new qx.ui.form.CheckBox( "Log(Count)");
             this.m_logCheck.setToolTipText( "Use a log scale for the vertical axis.");
-            this.m_logCheck.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
+            this.m_logCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_LOG_COUNT;
                 var params = "logCount:"+this.m_logCheck.getValue();
@@ -54,7 +53,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
             }, this);
             this.m_coloredCheck = new qx.ui.form.CheckBox( "Colored");
             this.m_coloredCheck.setToolTipText("Color the histogram based on intensity.");
-            this.m_coloredCheck.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
+            this.m_coloredCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramDisplay.CMD_SET_COLORED;
                 var params = "colored:"+this.m_coloredCheck.getValue();
@@ -71,21 +70,21 @@ qx.Class.define("skel.widgets.Histogram.HistogramDisplay", {
             
             this.m_lineRadio = new qx.ui.form.RadioButton( "Line");
             this.m_lineRadio.setToolTipText( "Draw using vertical lines.");
-            this.m_lineRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
+            this.m_lineRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_lineRadio.getValue() ){
                     this._sendStyleChangedCmd( this.m_lineRadio.getLabel());
                 }
             }, this );
             this.m_barRadio = new qx.ui.form.RadioButton( "Outline");
             this.m_barRadio.setToolTipText( "Draw using an outline.");
-            this.m_barRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
+            this.m_barRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_barRadio.getValue() ){
                     this._sendStyleChangedCmd( this.m_barRadio.getLabel());
                 }
             }, this );
             this.m_fillRadio = new qx.ui.form.RadioButton( "Fill");
             this.m_fillRadio.setToolTipText( "Draw using solid bars.");
-            this.m_fillRadio.addListener( skel.widgets.Histogram.HistogramDisplay.CHANGE_VALUE, function(){
+            this.m_fillRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_fillRadio.getValue() ){
                     this._sendStyleChangedCmd( this.m_fillRadio.getLabel());
                 }

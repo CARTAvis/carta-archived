@@ -21,6 +21,11 @@ qx.Class.define("skel.widgets.Path", {
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
     },
+    
+    statics : {
+        CHANGE_VALUE : "changeValue"
+    },
+    
     members : {
         ANIMATOR : "Animator",
         AUTO_CLIP : "setAutoClip",
@@ -43,7 +48,9 @@ qx.Class.define("skel.widgets.Path", {
         LAYOUT_PLUGIN : "",
         MOUSE : "mouse",
         MOUSE_DOWN : "mouseDown",
+        MOUSE_DOWN_SHIFT : "mouseDownShift",
         MOUSE_UP : "mouseUp",
+        MOUSE_UP_SHIFT : "mouseUpShift",
         MOUSE_X : "",
         MOUSE_Y : "",
         PLUGINS : "ViewPlugins",

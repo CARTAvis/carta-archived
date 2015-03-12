@@ -17,6 +17,7 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             this.m_minValue = minValue;
             this.m_maxValue = maxValue;
             this.m_text = new skel.widgets.CustomUI.ErrorTextField();
+            this.m_textChangedValue = false;
             this.setIntegerOnly( true );
             //Only set the value in the textfield if it passes numeric validation.
 
@@ -32,12 +33,25 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                     }
                 }
             }, this );
-            this.m_text.addListener( "input", function( evt){
-                this.setValue( this.m_text.getValue());
+            this.m_text.addListener( "keypress", function( evt){
+                var enterKey = false;
+                if ( evt.getKeyIdentifier().toLowerCase() =="enter"){
+                    enterKey = true;
+                }
+                var textVal = this.m_text.getValue();
+                this.setValueFire( textVal, enterKey );
+            }, this );
+            
+            this.m_text.addListener( "focusout", function( evt ){
+                if ( this.m_textChangedValue ){
+                    var textVal = this.m_text.getValue();
+                    this.fireDataEvent( "textChanged", textVal );
+                    this.m_textChangedValue = false;
+                }
             }, this );
 
-            //Range validation when field loses focus
-            this.m_text.addListener( "changeValue", function( evt ){
+            //Range validation when field changes value
+            this.m_text.addListener( skel.widgets.Path.CHANGE_VALUE, function( evt ){
                 var numValue = this.getValue();
                 this._checkValue( numValue );
             }, this );
@@ -239,9 +253,23 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                 this._setValidValue( val );
             },
             
+            setValueFire : function( val, fireEvent ){
+                if ( this._isValidValue( val )){
+                    this.m_text.setValue( val.toString());
+                    if ( fireEvent ){
+                        this.fireDataEvent( "textChanged", val);
+                        this.m_textChangedValue = false;
+                    }
+                    else {
+                        this.m_textChangedValue = true;
+                    }
+                }
+            },
+            
             m_minValue : null,
             m_maxValue : null,
             m_text : null,
+            m_textChangedValue : null,
             m_acceptFloat : false,
             m_warning : null
         }

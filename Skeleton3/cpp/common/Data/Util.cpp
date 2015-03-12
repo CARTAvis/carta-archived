@@ -99,6 +99,12 @@ void Util::commandPostProcess( const QString& errorMsg){
     }
 }
 
+double Util::roundToDigits(double value, int digits)
+{
+    double factor = pow(10.0, digits - ceil(log10(fabs(value))));
+    return round(value * factor) / factor;
+}
+
 /// convert string to array of doubles
 std::vector < double > Util::string2VectorDouble( QString s, QString sep){
     QStringList lst = s.split( sep );

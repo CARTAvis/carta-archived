@@ -28,7 +28,7 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
             minimum : this.m_GRID_MIN,
             value : rows
         });
-        this.m_rowCountSpin.addListener("changeValue", function() {
+        this.m_rowCountSpin.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
             this.fireDataEvent("rowCount", this.m_rowCountSpin.getValue());
         }, this);
 
@@ -39,7 +39,7 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
             minimum : this.m_GRID_MIN,
             value : cols
         });
-        this.m_colCountSpin.addListener("changeValue", function() {
+        this.m_colCountSpin.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
             this.fireDataEvent("colCount", this.m_colCountSpin.getValue());
         }, this);
         var gridContainer = new qx.ui.container.Composite();

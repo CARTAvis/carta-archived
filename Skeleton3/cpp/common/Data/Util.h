@@ -66,6 +66,14 @@ public:
      static void commandPostProcess( const QString& errorMsg );
 
      /**
+      * Round the value to the given number of significant digits.
+      * @param value the value to round.
+      * @param digits the number of significant digits.
+      * @return the rounded value.
+      */
+     static double roundToDigits(double value, int digits);
+
+     /**
       * Converts a string containing doubles with a separator between them to a vector.
       * @param sep {QString} the separator.
       * @param s {QString} a string containing doubles separated by a delimiter.

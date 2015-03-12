@@ -170,7 +170,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             var midPoint = skel.widgets.Util.getCenter(this);
             linkInfo.locationX = midPoint[0];
             linkInfo.locationY = midPoint[1];
-            if (this.m_links.indexOf(sourceWinId) >= 0) {
+            var index = this.m_links.indexOf( sourceWinId );
+            if ( index >= 0) {
                 linkInfo.linked = true;
             }
 
@@ -577,6 +578,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         clearLink : function( winId ){
             var linkIndex = this.m_links.indexOf(winId);
+            
             if ( linkIndex >= 0 ){
                 this.m_links.splice(linkIndex);
             }

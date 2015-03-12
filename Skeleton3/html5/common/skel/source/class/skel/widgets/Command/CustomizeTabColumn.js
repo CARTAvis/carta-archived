@@ -46,7 +46,7 @@ qx.Class.define("skel.widgets.Command.CustomizeTabColumn", {
             this.addLabel( "");
             this.bind( "checked", checkbox, "value");
             checkbox.bind( "value", this, "checked");
-            checkbox.addListener( "changeValue", function(ev){
+            checkbox.addListener( skel.widgets.Path.CHANGE_VALUE, function(ev){
                 var data = {
                     name : this.getLabel(),
                     checked : ev.getTarget().getValue()

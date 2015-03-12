@@ -15,6 +15,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
         var cmd = path.SEP_COMMAND + path.CLIP_VALUE;
         this.base( arguments, "Clips", null );
         this.m_clips = [];
+        
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
             var pathDict = skel.widgets.Path.getInstance();
@@ -26,46 +27,15 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
     
     members : {
         
-        getType : function(){
-            return skel.widgets.Command.Command.TYPE_GROUP;
-        },
-        
-        isVisibleMenu : function(){
-            var menuVisible = true;
+        /**
+         * Add the server-side id of a window that has become active.
+         * @param winId {String} the server-side id of an active window.
+         */
+        addActiveWindow : function( winId ){
             for ( var i = 0; i < this.m_clips.length; i++ ){
-                menuVisible = this.m_clips[i].isVisibleMenu();
-                if ( !menuVisible ){
-                    break;
-                }
-            }
-            return menuVisible;
-        },
-        
-        isVisibleToolbar : function(){
-            var toolVisible = true;
-            for ( var i = 0; i < this.m_clips.length; i++ ){
-                toolVisible = this.m_clips[i].isVisibleToolbar();
-                if ( !toolVisible ){
-                    break;
-                }
-            }
-            return toolVisible;
-        },
-        
-       
-        setVisibleMenu : function( visible){
-            for ( var i = 0; i < this.m_clips.length; i++ ){
-                this.m_clips[i].setVisibleMenu( visible);
+                this.m_clips[i].addActiveWindow( winId );
             }
         },
-        
-        setVisibleToolbar : function( visible){
-            for ( var i = 0; i < this.m_clips.length; i++ ){
-                this.m_clips[i].setVisibleToolbar( visible);
-            }
-        },
-        
-       
         
         _clipPercentsChangedCB : function() {
             var val = this.m_sharedVarClips.get();
@@ -90,6 +60,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
             }
         },
         
+
         getCommand : function( cmdName ){
             var cmd = null;
             if ( this.isMatch( cmdName )){
@@ -117,7 +88,55 @@ qx.Class.define("skel.widgets.Command.CommandClipValues", {
             return clipCmds;
         },
         
-
+        
+        getType : function(){
+            return skel.widgets.Command.Command.TYPE_GROUP;
+        },
+                
+        isVisibleMenu : function(){
+            var menuVisible = true;
+            for ( var i = 0; i < this.m_clips.length; i++ ){
+                menuVisible = this.m_clips[i].isVisibleMenu();
+                if ( !menuVisible ){
+                    break;
+                }
+            }
+            return menuVisible;
+        },
+        
+        isVisibleToolbar : function(){
+            var toolVisible = true;
+            for ( var i = 0; i < this.m_clips.length; i++ ){
+                toolVisible = this.m_clips[i].isVisibleToolbar();
+                if ( !toolVisible ){
+                    break;
+                }
+            }
+            return toolVisible;
+        },
+        
+        /**
+         * Remove the server-side id of a window that is no longer active.
+         * @param winId {String} the server-side id of a window that is no longer active.
+         */
+        removePassiveWindow : function( winId ){
+            for ( var i = 0; i < this.m_clips.length; i++ ){
+                this.m_clips[i].removePassiveWindow( winId );
+            }
+        },
+       
+        setVisibleMenu : function( visible){
+            for ( var i = 0; i < this.m_clips.length; i++ ){
+                this.m_clips[i].setVisibleMenu( visible);
+            }
+        },
+        
+        setVisibleToolbar : function( visible){
+            for ( var i = 0; i < this.m_clips.length; i++ ){
+                this.m_clips[i].setVisibleToolbar( visible);
+            }
+        },
+       
         m_sharedVarClips : null,
         m_clips : null
     }

@@ -291,10 +291,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
-            this.m_indexText = new qx.ui.form.TextField();
+            
+            this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
+            this.m_indexText.setIntegerOnly( true );
             this.m_indexText.setToolTipText( "Set the current value.");
             this.m_indexText.setValue( "0");
-            this.m_indexText.addListener("input", function(e) {
+            this.m_indexText.addListener("textChanged", function(e) {
                 var value = this.m_indexText.getValue();
                 var valueInt = parseInt(value);
                 if (!isNaN(valueInt)) {
@@ -319,7 +321,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             });
             var settingsCheck = new qx.ui.form.CheckBox("Settings...");
             settingsCheck.setToolTipText( "Show additional animator settings.");
-            settingsCheck.addListener("changeValue", function() {
+            settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 this._minMaxSettings(settingsCheck.getValue());
             }, this);
             locationComposite.add(settingsCheck);
@@ -332,7 +334,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _initSettings : function() {
             this.m_endWrapRadio = new qx.ui.form.RadioButton("Wrap");
             this.m_endWrapRadio.setToolTipText( "Wrap around when reaching an end value.");
-            this.m_endWrapRadio.addListener("changeValue", function() {
+            this.m_endWrapRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endWrapRadio.getValue()) {
                     this._sendEndBehavior(this.m_endWrapRadio.getLabel());
                 }
@@ -340,7 +342,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
             this.m_endReverseRadio.setToolTipText( "Change direction when reaching an end value.");
-            this.m_endReverseRadio.addListener("changeValue", function() {
+            this.m_endReverseRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endReverseRadio.getValue()) {
                     this._sendEndBehavior(this.m_endReverseRadio.getLabel());
                 }
@@ -348,7 +350,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
             this.m_endJumpRadio.setToolTipText( "Move from one end to the other end.");
-            this.m_endJumpRadio.addListener("changeValue", function() {
+            this.m_endJumpRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endJumpRadio.getValue()) {
                     this._sendEndBehavior(this.m_endJumpRadio.getLabel());
                 }
@@ -361,16 +363,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_speedSpinBox = new qx.ui.form.Spinner(1, 10, 100);
             this.m_speedSpinBox.setToolTipText( "Set the speed of the animation.");
 
-            this.m_speedSpinBox.addListener("changeValue", function() {
+            this.m_speedSpinBox.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 this._setTimerSpeed();
                 this._sendFrameRate();
             }, this);
             var stepLabel = new qx.ui.basic.Label("Step:");
             this.m_stepSpin = new qx.ui.form.Spinner(1, 1, 100);
             this.m_stepSpin.setToolTipText( "Set the step increment.");
-            //this.bind("frameUpperBound", this.m_stepSpin, "maximum");
             this.m_stepSpin.bind("value", this, "frameStep");
-            this.m_stepSpin.addListener( "changeValue", function(){
+            this.m_stepSpin.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 this._sendFrameStep();
             });
 
@@ -436,7 +437,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_lowBoundsSpinner = new qx.ui.form.Spinner(0, 0, 100);
             this.m_lowBoundsSpinner.setToolTipText( "Set a lower bound for valid values.");
             this.m_slider = new qx.ui.form.Slider();
-            this.m_slider.addListener("changeValue", function() {
+            this.m_slider.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_inUpdateState) {
                     return;
                 }

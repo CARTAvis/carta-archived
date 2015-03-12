@@ -14,6 +14,7 @@ qx.Class.define("skel.widgets.Command.CommandClipValue", {
         var cmd = path.SEP_COMMAND + path.CLIP_VALUE;
         this.base( arguments, label, cmd);
         this.m_toolBarVisible = true;
+        this.m_winIds = [];
     },
     
     members : {
@@ -27,20 +28,19 @@ qx.Class.define("skel.widgets.Command.CommandClipValue", {
             label = label / 100;
             var params = this.m_params + label;
             var errMan = skel.widgets.ErrorHandler.getInstance();
-            if ( objectIDs.length > 0 ){
-                for ( var i = 0; i < objectIDs.length; i++ ){
-                    this.sendCommand( objectIDs[i], params, undoCB );
+            if ( this.m_winIds.length > 0 ){
+                for ( var i = 0; i < this.m_winIds.length; i++ ){
+                    this.sendCommand( this.m_winIds[i], params, undoCB );
                 }
                 errMan.clearErrors();
             }
             else {
-                errMan.updateErrors( "Please select an image to clip.");
+                errMan.updateErrors( "Selected window does not support clipping.");
             }
         },
         
         getToolTip : function(){
-            return "Set histogram to show " + this.getLabel() + " of the data.<br>" +
-                        "Right click also automatically zooms in to the data.";
+            return "Show " + this.getLabel() + " of the data.";
         },
         
         getType : function(){

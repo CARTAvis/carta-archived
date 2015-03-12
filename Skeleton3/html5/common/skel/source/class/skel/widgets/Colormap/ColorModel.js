@@ -35,7 +35,7 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
             this.m_gammaContainer.setLayout( new qx.ui.layout.VBox(2));
             
             this.m_gammaGrid = new skel.widgets.Colormap.TwoDSlider();
-            this.m_gammaGrid.addListener( "changeValue", function(evt){
+            this.m_gammaGrid.addListener( skel.widgets.Path.CHANGE_VALUE, function(evt){
                 var data = evt.getData();
                this._sendScaledChangedCmd( data.x, data.y );
             }, this );

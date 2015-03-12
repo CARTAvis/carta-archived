@@ -809,7 +809,6 @@ void ViewManager::setDeveloperView(){
     m_colormaps[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_colormaps[0]);
-    m_animators[0]->addLink( m_histograms[0]);
 }
 
 void ViewManager::setImageView(){

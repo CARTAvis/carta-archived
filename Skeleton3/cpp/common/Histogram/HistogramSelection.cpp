@@ -7,11 +7,14 @@ namespace Carta {
 namespace Histogram {
 
 
-HistogramSelection::HistogramSelection(){
+HistogramSelection::HistogramSelection():
+        m_shadeColor( 200,200,200 )
+    {
 	reset();
 	m_clipMin = 0;
 	m_clipMax = 0;
 	m_selection = false;
+	m_shadeColor.setAlpha( 100 );
 }
 
 void HistogramSelection::boundaryLineMoved( const QPoint& pos ){
@@ -52,9 +55,6 @@ void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
     if ( lowerBound != upperBound ){
 
         //Draw the rectangle
-        QColor shadeColor( 200,200,200 );
-        shadeColor.setAlpha( 100 );
-
         int startX = lowerBound;
         if ( upperBound < lowerBound ){
             startX = upperBound;
@@ -62,7 +62,7 @@ void HistogramSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
         int rectHeight = m_height;
         int rectWidth = qAbs( lowerBound - upperBound );
         QRect rect( startX, 0, rectWidth, rectHeight );
-        painter->fillRect( rect , shadeColor );
+        painter->fillRect( rect , m_shadeColor );
 
         //Mark the vertical boundary lines of the rectangle
         QPen oldPen = painter->pen();
@@ -103,6 +103,10 @@ void HistogramSelection::reset(){
     rangeSet = false;
     m_lowerBound = 0;
     m_upperBound = 0;
+}
+
+void HistogramSelection::setColoredShade( QColor color ){
+    m_shadeColor = color;
 }
 
 void HistogramSelection::setHeight( int h ){

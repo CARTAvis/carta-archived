@@ -52,6 +52,12 @@ HistogramGenerator::HistogramGenerator():
     m_range = new HistogramSelection();
     m_range->attach(m_plot);
 
+    m_rangeColor = new HistogramSelection();
+    QColor shadeColor( "#CCCC99");
+    shadeColor.setAlpha( 100 );
+    m_rangeColor->setColoredShade( shadeColor );
+    m_rangeColor->attach( m_plot );
+
     setLogScale( true );
 }
 
@@ -61,6 +67,17 @@ std::pair<double,double> HistogramGenerator::getRange(bool* valid ) const {
     if ( m_range ){
         result.first = m_range->getClipMin();
         result.second = m_range->getClipMax();
+        *valid = true;
+    }
+    return result;
+}
+
+std::pair<double,double> HistogramGenerator::getRangeColor(bool* valid ) const {
+    std::pair<double,double> result;
+    *valid = false;
+    if ( m_rangeColor ){
+        result.first = m_rangeColor->getClipMin();
+        result.second = m_rangeColor->getClipMax();
         *valid = true;
     }
     return result;
@@ -109,7 +126,7 @@ void HistogramGenerator::setData(Carta::Lib::Hooks::HistogramResult data){
 void HistogramGenerator::_setVerticalAxisTitle(){
     QwtText yTitle("Count(pixels)");
     if ( m_logCount ){
-        yTitle.setText("Log Count( pixels");
+        yTitle.setText("Log Count(pixels)");
     }
     yTitle.setFont( m_font );
     m_plot->setAxisTitle(QwtPlot::yLeft, yTitle);
@@ -122,7 +139,11 @@ void HistogramGenerator::setRangePixels(double min, double max){
     m_plot->replot();
 }
 
-
+void HistogramGenerator::setRangePixelsColor(double min, double max){
+    m_rangeColor->setHeight(m_height);
+    m_rangeColor->setBoundaryValues(min, max);
+    m_plot->replot();
+}
 
 void HistogramGenerator::setLogScale(bool display){
     m_logCount = display;
@@ -144,12 +165,17 @@ void HistogramGenerator::setSelectionMode(bool selection){
     m_range->setSelectionMode( selection );
 }
 
+void HistogramGenerator::setSelectionModeColor( bool selection ){
+    m_rangeColor->setSelectionMode( selection );
+}
+
 void HistogramGenerator::setSize( int width, int height ){
     int minLength = qMin( width, height );
     if ( minLength > 0 ){
         m_width = width;
         m_height = height;
         m_range->setHeight( m_height );
+        m_rangeColor->setHeight( m_height );
     }
     else {
         qWarning() << "Invalid histogram dimensions: "<<width<<" x "<< height;
