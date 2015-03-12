@@ -21,8 +21,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
     statics : {
         CMD_SET_PLANE_MODE : "setPlaneMode",
         CMD_SET_RANGE : "setPlaneRange",
-        CMD_SET_PLANE : "setPlaneSingle",
-        CHANGE_VALUE : "changeValue"
+        CMD_SET_PLANE : "setPlaneSingle"
     },
 
     members : {
@@ -92,7 +91,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             
             this.m_planeAll = new qx.ui.form.RadioButton( "All");
             this.m_planeAll.setToolTipText( "Compute based on the entire image.");
-            this.m_planeAll.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, 
+            this.m_planeAll.addListener( skel.widgets.Path.CHANGE_VALUE, 
             function(){
                 if ( this.m_planeAll.getValue() ){
                     this._planeModeChanged( this.m_planeAll.getLabel());
@@ -104,7 +103,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             singleComposite.setLayout(new qx.ui.layout.HBox(2));
             this.m_planeSingle = new qx.ui.form.RadioButton( "Current");
             this.m_planeSingle.setToolTipText( "Compute based on the current channel (Animator must be linked).");
-            this.m_planeSingle.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, 
+            this.m_planeSingle.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     function(){
                         if ( this.m_planeSingle.getValue() ){
                             this._planeModeChanged( this.m_planeSingle.getLabel());
@@ -116,7 +115,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             rangeComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_planeRange = new qx.ui.form.RadioButton( "Range");
             this.m_planeRange.setToolTipText( "Compute based on a range of channels.");
-            this.m_planeRange.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, 
+            this.m_planeRange.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     function(){
                         if ( this.m_planeRange.getValue() ){
                             this._planeModeChanged( this.m_planeRange.getLabel());
@@ -127,7 +126,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             this.m_rangeMinSpin.setToolTipText( "Smallest channel for range computation.");
             this.m_rangeMinSpin.setMinimum( 0 );
             this.m_rangeMinSpin.setMaximum( 1000000 );
-            this.m_rangeMinSpin.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, 
+            this.m_minSpinListenerId =this.m_rangeMinSpin.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     this._minRangeChanged, this);
             rangeComposite.add( this.m_rangeMinSpin );
             var rangeLabel = new qx.ui.basic.Label( "<->");
@@ -136,7 +135,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             this.m_rangeMaxSpin.setToolTipText( "Largest channel for range computation.");
             this.m_rangeMaxSpin.setMinimum( 0 );
             this.m_rangeMaxSpin.setMaximum( 1000000 );
-            this.m_rangeMaxSpin.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, 
+            this.m_maxSpinListenerId = this.m_rangeMaxSpin.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     this._maxRangeChanged, this);
             rangeComposite.add( this.m_rangeMaxSpin );
                 
@@ -227,12 +226,18 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          */
         setPlaneBounds : function( planeMin, planeMax ){
             if ( 0<=planeMin && planeMin<= planeMax ){
+                this.m_rangeMinSpin.removeListenerById( this.m_minSpinListenerId );
+                this.m_rangeMaxSpin.removeListenerById( this.m_maxSpinListenerId );
                 if ( this.m_rangeMinSpin.getValue() != planeMin ){
                     this.m_rangeMinSpin.setValue( planeMin );
                 }
                 if ( this.m_rangeMaxSpin.getValue() != planeMax ){
                     this.m_rangeMaxSpin.setValue( planeMax );
                 }
+                this.m_minSpinListenerId =this.m_rangeMinSpin.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._minRangeChanged, this);
+                this.m_maxSpinListenerId =this.m_rangeMaxSpin.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._maxRangeChanged, this);
             }
         },
         
@@ -284,6 +289,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
         
         m_id : null,
         m_connector : null,
+        m_minSpinListenerId : null,
+        m_maxSpinListenerId : null,
         m_planeAll : null,
         m_planeSingle : null,
         m_planeRange : null,

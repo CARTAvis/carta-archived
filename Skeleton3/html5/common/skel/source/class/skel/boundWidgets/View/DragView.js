@@ -58,7 +58,13 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
             var box = this.overlayWidget().getContentLocation( "box" );
             var x = ev.getDocumentLeft() - box.left;
             var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_viewId + path.SEP_COMMAND + path.MOUSE_DOWN;
+            var cmd;
+            if ( !ev.isShiftPressed() ){
+                cmd = this.m_viewId + path.SEP_COMMAND + path.MOUSE_DOWN;
+            }
+            else {
+                cmd = this.m_viewId + path.SEP_COMMAND + path.MOUSE_DOWN_SHIFT;
+            }
             this.m_connector.sendCommand( cmd, "x:" + x );
         },
         
@@ -72,7 +78,13 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                 var box = this.overlayWidget().getContentLocation( "box" );
                 var x = ev.getDocumentLeft() - box.left;
                 var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_viewId + path.SEP_COMMAND + path.MOUSE_UP;
+                var cmd;
+                if ( ! ev.isShiftPressed() ){
+                    cmd = this.m_viewId + path.SEP_COMMAND + path.MOUSE_UP;
+                }
+                else {
+                    cmd = this.m_viewId + path.SEP_COMMAND + path.MOUSE_UP_SHIFT;
+                }
                 this.m_connector.sendCommand( cmd, "x:" + x );
             }
         },

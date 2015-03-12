@@ -1,5 +1,5 @@
 /**
- * Controls for setting the zoom for the histogram, either as a [min,max] range
+ * Controls for setting the clip for the histogram, either as a [min,max] range
  * or as a percentage.
  */
 /*global mImport */
@@ -7,7 +7,7 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Histogram.HistogramRange", {
+qx.Class.define("skel.widgets.Histogram.HistogramClip", {
     extend : qx.ui.core.Widget,
 
     construct : function( ) {
@@ -21,13 +21,10 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
     },
     
     statics : {
-        CMD_SET_CLIP_MIN : "setClipMin",
-        CMD_SET_CLIP_MIN_PERCENT: "setClipMinPercent",
-        CMD_SET_CLIP_MAX : "setClipMax",
-        CMD_SET_CLIP_MAX_PERCENT: "setClipMaxPercent",
-        CMD_APPLY_CLIP_IMAGE : "setClipToImage",
-        CMD_ZOOM_FULL : "zoomFull",
-        CMD_ZOOM_RANGE : "zoomRange"
+        CMD_SET_CLIP_MIN : "setColorMin",
+        CMD_SET_CLIP_MIN_PERCENT: "setColorMinPercent",
+        CMD_SET_CLIP_MAX : "setColorMax",
+        CMD_SET_CLIP_MAX_PERCENT: "setColorMaxPercent"
     },
 
     members : {
@@ -87,21 +84,13 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         },
         
         /**
-         * Callback for a server error when setting the clip buffer size.
-         * @return {function} which displays/clears the error.
-         */
-        _errorBufferCB : function(){
-            return this._errorCB( this.m_bufferText );
-        },
-
-        /**
          * Initializes the UI.
          */
         _init : function( ) {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
             
-            var overallContainer = new qx.ui.groupbox.GroupBox( "Zoom (mouse left drag)", "");
+            var overallContainer = new qx.ui.groupbox.GroupBox( "Clip (shift + mouse left drag)", "");
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
             overallContainer.setContentPadding(1,1,1,1);
             this._add( overallContainer );
@@ -127,7 +116,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             var valueLabel = new qx.ui.basic.Label( "Value:");
             valueLabel.setTextAlign( "right");
             this.m_percentMinClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
-            this.m_percentMinClipText.setToolTipText( "Percentage to zoom from the left on the horizontal axis; 0 is no left zoom.");
+            this.m_percentMinClipText.setToolTipText( "Percentage to clip from the left on the horizontal axis; 0 is no clipping.");
             this.m_percentMinClipText.setIntegerOnly( false );
             this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged", 
                     this._sendClipMinPercentCmd, this );
@@ -149,7 +138,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             var percentLabel = new qx.ui.basic.Label( "Percent:");
             percentLabel.setTextAlign( "right");
             this.m_percentMaxClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
-            this.m_percentMaxClipText.setToolTipText( "Percentage to zoom in from the right on the horizontal axis; 100 is no right zoom.");
+            this.m_percentMaxClipText.setToolTipText( "Percentage to clip from the right on the horizontal axis; 0 is no clipping.");
             this.m_percentMaxClipText.setIntegerOnly( false );
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", 
                     this._sendClipMaxPercentCmd, this );
@@ -159,67 +148,32 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             rangeContainer.add( this.m_percentMaxClipText, {row:2, column:2});
             rangeContainer.add( percentLabel, {row:2, column:0});
             
-            //Buffer
-            this.m_buffer = new qx.ui.form.CheckBox( "Buffer");
-            this.m_buffer.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
-                var useBuffer = this.m_buffer.getValue();
+            //Apply to image
+            this.m_applyImageClip = new qx.ui.form.CheckBox( "Auto apply");
+            this.m_applyImageClip.setToolTipText( "Clip all linked images by minimum and maximum range values.");
+            this.m_applyImageClip.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 if ( this.m_connector !== null ){
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + "setUseClipBuffer";
-                    var params = "useClipBuffer:"+useBuffer;
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_APPLY_CLIP_IMAGE;
+                    var params = "applyClipToImage:"+this.m_applyImageClip.getValue();
                     this.m_connector.sendCommand( cmd, params, function(){});
                 }
-                this.m_bufferText.setEnabled( useBuffer );
             }, this );
-           
-            this.m_bufferText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
-            this.m_bufferText.setIntegerOnly( true );
-            this.m_bufferText.setToolTipText( "Provide extra space at each end of the histogram; specify as a percentage [0,100).");
-            this.m_bufferText.setEnabled( false );
-            this.m_bufferText.addListener( "textChanged", function(){
-                if ( this.m_connector !== null ){
-                    var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + "setClipBuffer";
-                    var params = "clipBuffer:"+this.m_bufferText.getValue();
-                    this.m_connector.sendCommand( cmd, params, this._errorBufferCB());
-                }
-            }, this );
-            var perLabel = new qx.ui.basic.Label( "%");
+            var horContainer = new qx.ui.container.Composite();
+            horContainer.setLayout( new qx.ui.layout.HBox(2));
+            horContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            horContainer.add( this.m_applyImageClip );
+            horContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            overallContainer.add( horContainer );
             
-            var bufContainer = new qx.ui.container.Composite();
-            bufContainer.setLayout( new qx.ui.layout.HBox(2));
-            bufContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            bufContainer.add( this.m_buffer );
-            bufContainer.add( this.m_bufferText );
-            bufContainer.add( perLabel );
-            bufContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            overallContainer.add( bufContainer );
-            
-            //Zoom and Selected Buttons
-            this.m_fullRange = new qx.ui.form.Button( "Full" );
-            this.m_fullRange.setToolTipText( "Zoom out to full histogram range.");
-            this.m_fullRange.addListener( "execute", function(){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_ZOOM_FULL;
-                var params = "";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }, this );
-            this.m_selectedRange = new qx.ui.form.Button( "Selected");
-            this.m_selectedRange.setToolTipText( "Zoom to the graphically selected range.");
-            this.m_selectedRange.addListener( "execute", function(){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_ZOOM_RANGE;
-                var params = "";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }, this );
-            
-            var butContainer = new qx.ui.container.Composite();
-            butContainer.setLayout( new qx.ui.layout.HBox(2));
-            butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            butContainer.add( this.m_selectedRange );
-            butContainer.add( this.m_fullRange );
-            butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            overallContainer.add( butContainer );
+            //Synchronize
+            this.m_syncCheck = new qx.ui.form.CheckBox( "Synchronize with Zoom");
+            var horContainer2 = new qx.ui.container.Composite();
+            horContainer2.setLayout( new qx.ui.layout.HBox(1));
+            horContainer2.add( new qx.ui.core.Spacer(), {flex:1} );
+            horContainer2.add( this.m_syncCheck );
+            horContainer2.add( new qx.ui.core.Spacer(), {flex:1} );
+            overallContainer.add(horContainer2 );
         },
         
         /**
@@ -283,24 +237,14 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          },
          
          /**
-          * Set whether or not to buffer the clips.
-          * @param val {boolean} true if the clip should be buffered; false otherwise.
+          * Set whether or not to apply the clip to the image as well
+          * as the histogram based on server settings.
+          * @param apply {boolean} true if the clip should be applied to both
+          *      the histogram and the image; false if it applies only to the histogram.
           */
-         setBuffer : function( val ){
-             var oldBuffer = this.m_buffer.getValue();
-             if ( oldBuffer != val ){
-                 this.m_buffer.setValue( val );
-             }
-         },
-         
-         /**
-          * Set the amount of the clip buffer.
-          * @param amount {Number} an integer indicating the total amount of buffering.
-          */
-         setBufferAmount : function( amount ){
-             var oldAmount = this.m_bufferText.getValue();
-             if ( oldAmount === null || amount != oldAmount ){
-                 this.m_bufferText.setValue( amount );
+         setApplyClipToImage : function( apply ){
+             if ( this.m_applyImageClip.getValue() !== apply ){
+                 this.m_applyImageClip.setValue( apply );
              }
          },
 
@@ -309,7 +253,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          * @param min {Number} a lower (inclusive) bound.
          * @param max {Number} an upper (inclusive) bound.
          */
-        setClipBounds : function( min, max ){
+        setColorRange : function( min, max ){
             this.m_minClipText.removeListenerById( this.m_minClipListenerId );
             this.m_maxClipText.removeListenerById( this.m_maxClipListenerId );
             var oldClipMin = this.m_minClipText.getValue();
@@ -329,7 +273,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          * @param min {Number} a decimal [0,1] representing the left amount to clip.
          * @param max {Number} a decimal [0,1] representing the right amount to clip.
          */
-        setClipPercents : function( min, max ){
+        setColorRangePercent : function( min, max ){
             this.m_percentMinClipText.removeListenerById( this.m_percentMinClipListenerId );
             this.m_percentMaxClipText.removeListenerById( this.m_percentMaxClipListenerId );
             var newMin = min;
@@ -346,8 +290,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", this._sendClipMaxPercentCmd, this );
         },
         
-
-        
+       
        
         
         /**
@@ -358,8 +301,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             this.m_id = id;
         },
         
-        m_buffer : null,
-        m_bufferText : null,
+
         m_id : null,
         m_connector : null,
         
@@ -371,8 +313,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         m_percentMaxClipText : null,
         m_percentMinClipListenerId : null,
         m_percentMaxClipListenerId : null,
-        m_fullRange : null,
-        m_selectedRange : null
+        m_applyImageClip : null
     },
     
     properties : {

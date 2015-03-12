@@ -55,6 +55,8 @@ public:
      */
     void clear();
 
+    void resetImage();
+
     /**
      * Send a new state update to the client.
      */
@@ -124,7 +126,7 @@ public:
      * @param maxPercent a number in [0,100) representing the amount to leave off on the right.
      * @return an error message if there was a problem setting the range; an empty string otherwise.
      */
-    QString setClipRangePercent( int minPercent, int maxPercent );
+    QString setClipRangePercent( double minPercent, double maxPercent );
 
     /**
      * Set whether or not to apply histogram clips to linked images.
@@ -201,12 +203,11 @@ public:
      */
     QString setPlaneRangeUpperBound( int bound );
 
-    /**
-     * Set the single plane that should be used for data when the histogram is in single plane mode.
-     * @param channel the single frame to use for histogram data.
-     * @return an error message if there was a problem setting the channel; an empty string otherwise.
-     */
-    QString setCubeChannel( int channel );
+
+
+    QString setRangeColor( double colorMin, double colorMax );
+    QString setColorMin( double colorMin, bool finish );
+    QString setColorMax( double colorMax, bool finish );
 
     virtual ~Histogram();
     const static QString CLASS_NAME;
@@ -219,10 +220,12 @@ private slots:
     void _createHistogram( Controller* );
     void _updateColorMap( Colormap* );
     void _updateSize( const QSize& size );
+    void _updateChannel( Controller* controller );
     
 
 private:
     void _applyClips() const;
+
     void _finishClips();
 
     double _getBufferedIntensity( const QString& clipKey, const QString& percentKey );
@@ -233,6 +236,15 @@ private:
     void _loadData( Controller* controller);
 
     QString _set2DFootPrint( const QString& params );
+
+    /**
+        * Set the single plane that should be used for data when the histogram is in single plane mode.
+        * @param channel the single frame to use for histogram data.
+        * @return an error message if there was a problem setting the channel; an empty string otherwise.
+        */
+       QString setCubeChannel( int channel );
+
+
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
     
     //Bin count <-> Bin width conversion.
@@ -241,13 +253,18 @@ private:
 
     //User range selection
     void _startSelection(const QString& params );
-    void _updateSelection(int x);
+    void _startSelectionColor( const QString& params );
+    void _updateSelection(int x );
+    void  _updateColorSelection();
     void _endSelection(const QString& params );
+    void _endSelectionColor(const QString& params );
 
     void _initializeDefaultState();
     void _initializeCallbacks();
 
     void _refreshView();
+    void _resetBinCountBasedOnWidth();
+
     void _zoomToSelection();
 
     static bool m_registered;
@@ -255,15 +272,19 @@ private:
     bool m_selectionEnabled;
     double m_selectionStart;
     double m_selectionEnd;
+    bool m_selectionEnabledColor;
 
     const static QString CLIP_BUFFER;
     const static QString CLIP_BUFFER_SIZE;
-    const static QString CLIP_INDEX;
     const static QString CLIP_MIN;
     const static QString CLIP_MAX;
     const static QString CLIP_APPLY;
     const static QString BIN_COUNT;
     const static QString BIN_WIDTH;
+    const static QString COLOR_MIN;
+    const static QString COLOR_MAX;
+    const static QString COLOR_MIN_PERCENT;
+    const static QString COLOR_MAX_PERCENT;
     const static QString GRAPH_STYLE;
 
     const static QString GRAPH_LOG_COUNT;
@@ -285,7 +306,11 @@ private:
     const static QString X_COORDINATE;
     const static QString POINTER_MOVE;
     
-    const static double CLIP_ERROR_MARGIN;
+    int m_significantDigits;
+    double m_errorMargin;
+
+    //For right now we are supporting only one linked controller.
+    bool m_controllerLinked;
 
     Histogram( const QString& path, const QString& id );
     class Factory;

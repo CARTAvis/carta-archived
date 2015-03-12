@@ -164,7 +164,7 @@ qx.Class
                                         var check = new qx.ui.menu.CheckBox( animId);
                                         check.setValue( false );
                                         this.m_checks.push( check );
-                                        this.m_checks[i].listener = this.m_checks[i].addListener("changeValue", this._addRemoveAnimators, this);
+                                        this.m_checks[i].listener = this.m_checks[i].addListener(skel.widgets.Path.CHANGE_VALUE, this._addRemoveAnimators, this);
                                     }
                                 }
                             }

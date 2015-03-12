@@ -131,6 +131,12 @@ public:
     int getSelectImageIndex() const ;
 
     /**
+     * Return the channel upper bound.
+     * @return the largest channel in the image.
+     */
+    int getChannelUpperBound() const;
+
+    /**
      * Returns an identifier for the data source at the given index.
      * @param index the index of a data source.
      * @return an identifier for the image.
@@ -141,8 +147,13 @@ public:
      * Make a channel selection.
      * @param val  a channel selection.
      */
-
     void setFrameChannel(int val);
+
+    /**
+     * Return the current channel selection.
+     * @return the current channel selection.
+     */
+    int getFrameChannel() const;
 
     /**
      *  Make a data selection.
@@ -203,11 +214,18 @@ public:
 
 signals:
     /**
-     *  Notification that the data/selection managed by this controller has
+     *  Notification that the image/selection managed by this controller has
      *  changed.
      *  @param controller this Controller.
      */
     void dataChanged( Controller* controller );
+
+    /**
+     * Notification that the channel/selection managed by this controller has
+     * changed.
+     * @param controller this Controller.
+     */
+    void channelChanged( Controller* controller );
 
 private slots:
     //Refresh the view based on the latest data selection information.

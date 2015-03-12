@@ -1,7 +1,6 @@
 #include "Data/Animator.h"
 #include "Data/Selection.h"
 #include "Data/Controller.h"
-#include "Data/Histogram.h"
 #include "Data/Util.h"
 
 #include <QDebug>
@@ -46,21 +45,7 @@ bool Animator::addLink( CartaObject* cartaObject ){
             connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_adjustStateController(Controller*)) );
         }
     }
-    else {
-        Histogram* histogram = dynamic_cast<Histogram*>(cartaObject );
-        if ( histogram != nullptr){
-            linkAdded = m_linkImpl->addLink( histogram );
-            if ( linkAdded ){
-                if ( m_animators.contains( Selection::CHANNEL )){
-                    int channel = m_animators[Selection::CHANNEL]->getIndex();
-                    histogram->setCubeChannel( channel );
-                }
-            }
-        }
-        else {
-            qWarning() << "Animator:: unrecognized link type.";
-        }
-    }
+
     if ( linkAdded ){
         _resetAnimationParameters( -1);
     }
@@ -95,12 +80,6 @@ void Animator::_channelIndexChanged( int index ){
         if ( controller != nullptr ){
             controller->setFrameChannel( index );
         }
-        else {
-            Histogram* histogram = dynamic_cast<Histogram*>(m_linkImpl->getLink(i));
-            if ( histogram != nullptr ){
-                histogram->setCubeChannel( index );
-            }
-        }
     }
 }
 
@@ -127,9 +106,11 @@ int Animator::_getMaxImageCount() const {
     int maxImages = 0;
     for ( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        int imageCount = controller->getStackedImageCount();
-        if ( maxImages > imageCount ){
-            maxImages = imageCount;
+        if ( controller != nullptr ){
+            int imageCount = controller->getStackedImageCount();
+            if ( maxImages < imageCount ){
+                maxImages = imageCount;
+            }
         }
     }
     return maxImages;
@@ -279,12 +260,7 @@ void Animator::_resetAnimationParameters( int selectedImage ){
            }
        }
        m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
-       for ( int i = 0; i < linkCount; i++ ){
-           Histogram* hist = dynamic_cast<Histogram*>( m_linkImpl->getLink(i));
-           if ( hist != nullptr ){
-               hist->setPlaneRangeUpperBound( maxChannel );
-           }
-       }
+
    }
 }
 

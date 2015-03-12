@@ -18,24 +18,20 @@ public:
 	HistogramSelection();
 
 	/**
-	 * Draw the range.
-	 * @param painter
-	 * @param xMap
-	 * @param yMap
-	 * @param canvasRect
-	 */
-	virtual void draw ( QPainter* painter, const QwtScaleMap& xMap,
-		const QwtScaleMap& yMap, const QRectF& canvasRect) const;
-
-	/**
-	 * Set the height of the range.
-	 */
-	void setHeight( int h );
-
-	/**
 	 * Set the new position of the boundary line.
 	 */
 	void boundaryLineMoved( const QPoint& pos );
+
+	/**
+     * Draw the range.
+     * @param painter
+     * @param xMap
+     * @param yMap
+     * @param canvasRect
+     */
+    virtual void draw ( QPainter* painter, const QwtScaleMap& xMap,
+        const QwtScaleMap& yMap, const QRectF& canvasRect) const;
+
 
 	/**
 	 * Returns the lower bound of the range.
@@ -58,6 +54,11 @@ public:
 	double getClipMax() const;
 
 	/**
+     * Set the range back to a single line.
+     */
+    void reset();
+
+	/**
 	 * Set the min and max values of the range.
 	 * @param minX the minimum value of the range.
 	 * @param maxX the maximum value of the range.
@@ -65,15 +66,21 @@ public:
 	void setBoundaryValues( double minX, double maxX );
 
 	/**
+	 * Set the color used to shade the clip region.
+	 * @param color the shade color for the clip region.
+	 */
+	void setColoredShade( QColor color );
+
+	/**
+     * Set the height of the range.
+     */
+    void setHeight( int h );
+
+	/**
 	 * Set whether or not the user is currently selecting a range.
 	 * @param drawing true if the user is selecting a range; false otherwise.
 	 */
 	void setSelectionMode(bool drawing);
-
-	/**
-	 * Set the range back to a single line.
-	 */
-	void reset();
 
 	/**
 	 * Destructor.
@@ -88,6 +95,7 @@ private:
 	double m_upperBound;
 	bool rangeSet;
 	bool m_selection;
+	QColor m_shadeColor;
 	mutable double m_clipMin;
 	mutable double m_clipMax;
 

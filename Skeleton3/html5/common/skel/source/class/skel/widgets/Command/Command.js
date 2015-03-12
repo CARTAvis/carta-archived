@@ -42,6 +42,15 @@ qx.Class.define("skel.widgets.Command.Command", {
     
    
     members : {
+        /**
+         * Add the server-side id of a user selected window to the list of active windows.
+         * @param winId {String} the unique server-side id of a window.
+         */
+        addActiveWindow : function( winId ){
+            if ( this.m_winIds.indexOf( winId) < 0 ){
+                this.m_winIds.push( winId );
+            }
+        },
         
         /**
          * Execute this command.
@@ -153,6 +162,17 @@ qx.Class.define("skel.widgets.Command.Command", {
         },
         
         /**
+         * Remove the server-side if of a window that is no longer active.
+         * @param winId {String} the server side of the window that is no longer active.
+         */
+        removePassiveWindow : function( winId ){
+            var winIndex = this.m_winIds.indexOf( winId );
+            if ( winIndex >= 0 ){
+                this.m_winIds.splice( winIndex );
+            }
+        },
+        
+        /**
          * Tell the server to perform the command.
          * @param id {String} the server-side id of the object that should receive the command.
          * @param params {String} the parameters to send with the command.
@@ -226,6 +246,7 @@ qx.Class.define("skel.widgets.Command.Command", {
         m_value : null,
         m_cmd : null,
         m_title : null,
+        m_winIds : null,
         m_menuVisible : null,
         m_toolBarVisible : null
     }

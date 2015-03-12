@@ -102,7 +102,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         _initSlider : function( slider, sliderGroup ){
             slider.setMinimum( skel.widgets.Colormap.ColorMix.SLIDER_MIN );
             slider.setMaximum( skel.widgets.Colormap.ColorMix.SLIDER_MAX );
-            var sliderId = slider.addListener( "changeValue",this._sliderChangedValue, this );
+            var sliderId = slider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
             slider.setValue( 0 );
             slider.setSingleStep( 1 );
             slider.setPageStep( 10 );
@@ -131,9 +131,9 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
                 if ( this.m_blueSlider.getValue() != newValue ){
                     this.m_blueSlider.setValue( newValue );
                 }
-                this.m_redSliderListenerId = this.m_redSlider.addListener( "changeValue",this._sliderChangedValue, this );
-                this.m_greenSliderListenerId = this.m_greenSlider.addListener( "changeValue",this._sliderChangedValue, this );
-                this.m_blueSliderListenerId = this.m_blueSlider.addListener( "changeValue",this._sliderChangedValue, this );
+                this.m_redSliderListenerId = this.m_redSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+                this.m_greenSliderListenerId = this.m_greenSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+                this.m_blueSliderListenerId = this.m_blueSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
                 this._sendColorMixChangedCommand();
             }
             else {
@@ -201,9 +201,9 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             if ( this.m_greenSlider.getValue() != green ){
                 this.m_greenSlider.setValue( green );
             }
-            this.m_redSliderListenerId = this.m_redSlider.addListener( "changeValue",this._sliderChangedValue, this );
-            this.m_greenSliderListenerId = this.m_greenSlider.addListener( "changeValue",this._sliderChangedValue, this );
-            this.m_blueSliderListenerId = this.m_blueSlider.addListener( "changeValue",this._sliderChangedValue, this );
+            this.m_redSliderListenerId = this.m_redSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+            this.m_greenSliderListenerId = this.m_greenSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+            this.m_blueSliderListenerId = this.m_blueSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
         },
         
         /**

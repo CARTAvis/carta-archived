@@ -28,10 +28,14 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                         this.m_binSettings.setBinCount(hist.binCount );
                         this.m_binSettings.setBinWidth(hist.binWidth );
                     }
+                    if ( this.m_clipSettings !== null ){
+                        this.m_clipSettings.setColorRange( hist.colorMin, hist.colorMax );
+                        this.m_clipSettings.setColorRangePercent( hist.colorMinPercent, hist.colorMaxPercent);
+                        this.m_clipSettings.setApplyClipToImage( hist.applyClipToImage );
+                    }
                     
                     if ( this.m_rangeSettings !== null ){
                         this.m_rangeSettings.setClipBounds( hist.clipMin, hist.clipMax );
-                        this.m_rangeSettings.setApplyClipToImage( hist.applyClipToImage );
                         this.m_rangeSettings.setClipPercents( hist.clipMinPercent, hist.clipMaxPercent);
                         this.m_rangeSettings.setBuffer( hist.useClipBuffer );
                         this.m_rangeSettings.setBufferAmount( hist.clipBuffer );
@@ -88,8 +92,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_settingsContainer.setPadding(1);
             this.m_rangeSettings = new skel.widgets.Histogram.HistogramRange();
             this.m_binSettings = new skel.widgets.Histogram.HistogramBin();
+            this.m_clipSettings = new skel.widgets.Histogram.HistogramClip();
             this.m_displaySettings = new skel.widgets.Histogram.HistogramDisplay();
-            this.m_zoomSettings = new skel.widgets.Histogram.HistogramZoom();
             this.m_cubeSettings = new skel.widgets.Histogram.HistogramCube();
             this.m_twoDSettings = new skel.widgets.Histogram.Histogram2D();
 
@@ -98,7 +102,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_settingsContainer.add(this.m_displaySettings);
             this.m_settingsContainer.add(this.m_twoDSettings);
             this.m_settingsContainer.add(this.m_cubeSettings);
-            this.m_settingsContainer.add(this.m_zoomSettings);
+            this.m_settingsContainer.add( this.m_clipSettings);
         },
         
         
@@ -171,11 +175,11 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_id = controlId;
             
             this.m_binSettings.setId( this.m_id );
+            this.m_clipSettings.setId( this.m_id );
             this.m_cubeSettings.setId( this.m_id );
             this.m_twoDSettings.setId( this.m_id );
             this.m_rangeSettings.setId( this.m_id );
             this.m_displaySettings.setId( this.m_id );
-            this.m_zoomSettings.setId( this.m_id );
             this._registerHistogram();
         },
         
@@ -193,11 +197,11 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_settingsVisible : null,
         
         m_binSettings : null,
+        m_clipSettings : null,
         m_cubeSettings : null,
         m_twoDSettings : null,
         m_rangeSettings : null,
         m_displaySettings : null,
-        m_zoomSettings : null,
         m_MIN_DIM : 150,
       
         m_id : null,

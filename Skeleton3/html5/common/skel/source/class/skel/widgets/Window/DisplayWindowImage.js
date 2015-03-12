@@ -238,7 +238,21 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
         },
         
-       
+        /**
+         * Overriden from base class to notify clips that this window has been selected/unselected.
+         * @param selected {boolean} true if the window is selected; false, otherwise.
+         * @param multiple {boolean} true if multiple windows are selected; false for single selection.
+         */
+        setSelected : function(selected, multiple) {
+            arguments.callee.base.apply(this, arguments);
+            var cmd = skel.widgets.Command.CommandClipValues.getInstance();
+            if( selected) {
+                cmd.addActiveWindow( this.m_identifier );
+            }
+            else {
+                cmd.removePassiveWindow( this.m_identifier );
+            }
+        },
 
         /**
          * Implemented to initialize the context menu.

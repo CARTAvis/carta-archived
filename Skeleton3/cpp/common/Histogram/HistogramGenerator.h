@@ -18,7 +18,6 @@ namespace Carta {
 }
 
 class QwtPlot;
-class QwtPlotPicker;
 class QImage;
 
 namespace Carta {
@@ -36,10 +35,18 @@ public:
   HistogramGenerator();
 
   /**
-   * Return the minimum and maximum value of the user's selection.
-   * @param valid true if there is a selection with a minimum/maximum value; false otherwise.
+   * Return the minimum and maximum value of the user's zoom selection.
+   * @param valid true if there is a zoom selection with a minimum/maximum value; false otherwise.
+   * @return the zoom selection range.
    */
   std::pair<double,double> getRange(bool* valid ) const;
+
+  /**
+   * Return the minimum and maximum value of the user's clip selection.
+   * @param valid true if there is a clip selection with a minimum/maximum value; false otherwise.
+   * @return the clip selection range.
+   */
+  std::pair<double,double> getRangeColor(bool* valid ) const;
 
   /**
    * Gets new clips calculated in histogram selection and updates them on the plot
@@ -70,20 +77,31 @@ public:
    */
   void setLogScale(bool logScale);
 
-
-
   /**
-   * Set the min and max intensity range for the histogram.
-   * @param min the minimum intensity value.
-   * @param max the maximum intensity value.
+   * Set the min and max zoom intensity range for the histogram.
+   * @param min the minimum zoom intensity value.
+   * @param max the maximum zoom intensity value.
    */
   void setRangePixels(double min, double max);
+
+  /**
+   * Set the min and max clip intensity range.
+   * @param min the minimum clip intensity value.
+   * @param max the maximum clip intensity value.
+   */
+  void setRangePixelsColor( double min, double max );
   
   /**
-   * Set whether or not the user is selecting a range on the histogram.
-   * @param selecting true if a range is currently being selected; false otherwsie.
+   * Set whether or not the user is selecting a zoom range on the histogram.
+   * @param selecting true if a zoom range is currently being selected; false otherwsie.
    */
   void setSelectionMode(bool selecting);
+
+  /**
+   * Set whether or not the user is selection a clip range on the histogram.
+   * @param selection true if a clip range is being selected; false otherwise.
+   */
+  void setSelectionModeColor( bool selection );
 
   /**
    * Set whether or not the histogram should be colored based on intensity values.
@@ -108,7 +126,7 @@ private:
   QwtPlot *m_plot;
   HistogramPlot* m_histogram;
   HistogramSelection *m_range;
-  QwtPlotPicker* m_dragLine;
+  HistogramSelection * m_rangeColor;
   int m_height;
   int m_width;
   bool m_logCount;

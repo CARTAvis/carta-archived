@@ -183,6 +183,14 @@ QString Controller::closeImage( const QString& name ){
     return result;
 }
 
+int Controller::getChannelUpperBound() const {
+    return m_selectChannel->getUpperBound();
+}
+
+int Controller::getFrameChannel() const {
+    return m_selectChannel->getIndex();
+}
+
 bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
     bool validIntensity = false;
     int imageIndex = m_selectImage->getIndex();
@@ -203,9 +211,14 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
 
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
-    std::vector<std::shared_ptr<Image::ImageInterface>> images(m_datas.count());
-    for( int i=0; i<m_datas.count(); ++i ){ 
-        images[i] = m_datas[i]->getImage();
+    //For right now, we are only going to do a histogram of a single image.
+    std::vector<std::shared_ptr<Image::ImageInterface>> images;
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        int imageIndex = m_selectImage->getIndex();
+        if ( 0 <= imageIndex && imageIndex < dataCount ){
+            images.push_back( m_datas[imageIndex]->getImage());
+        }
     }
     return images;
 }
@@ -429,7 +442,6 @@ void Controller::_initializeState(){
     m_stateMouse.flushState();
 }
 
-
 void Controller::_loadView( ) {
     m_reloadFrameQueued = false;
     //Determine the index of the data to load.
@@ -630,18 +642,21 @@ void Controller::setCacheSize( int size ){
 void Controller::setFrameChannel(int value) {
     if (m_selectChannel != nullptr) {
         m_selectChannel->setIndex(value);
+        emit channelChanged( this );
     }
 }
 
 void Controller::setFrameImage( int val) {
     if (m_selectImage != nullptr) {
         m_selectImage->setIndex(val);
+
     }
     int imageIndex = m_selectImage->getIndex();
     if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
         int upperBound = m_datas[imageIndex]->getFrameCount();
         m_selectChannel->setUpperBound( upperBound );
     }
+    emit dataChanged( this );
 }
 
 void Controller::setGamma( double gamma ){
