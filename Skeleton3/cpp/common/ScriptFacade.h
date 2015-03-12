@@ -11,12 +11,18 @@ class ObjectManager;
 namespace Carta {
     namespace Data {
         class ViewManager;
+        class Animator;
     }
 }
 
 class ScriptFacade {
 
 public:
+    /**
+     * Return the first container containing animators.
+     * @return the first animator container.
+     */
+    Carta::Data::Animator* getAnimator();
 
     /**
      * Return the unique server-side id of the object responsible for displaying an
@@ -58,6 +64,11 @@ public:
     void loadFile( const QString& objectId, const QString& fileName);
 
     /**
+     * Show the image animator.
+     */
+    void showImageAnimator();
+
+    /**
      * Set the layout to a predefined analysis layout.
      */
     void setAnalysisLayout();
@@ -66,6 +77,12 @@ public:
      * Set the layout to a predefined layout displaying a single image.
      */
     void setImageLayout();
+
+    /**
+     * Set an animator channel.
+     * @param channel the channel to set.
+     */
+    void setChannel( int channel );
 
     /**
      * Set the color map that is being displayed.

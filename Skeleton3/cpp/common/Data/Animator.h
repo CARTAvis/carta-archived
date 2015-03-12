@@ -29,16 +29,19 @@ class Animator : public QObject, public CartaObject, public ILinkable {
 public:
 
     /**
+     * Add an animator of the given type.
+     * @param type an identifier for the type of animator to add (channel, image, etc).
+     * @param animId a return parameter which gets initialized with the id of the animator that
+     *          was added.
+     * @return an error message if there was an error; otherwise, false.
+     */
+    QString addAnimator( const QString& type, QString& animId );
+
+    /**
      * Adds a link to this animator.
      * @param cartaObject the link that will be managed.
      */
     virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-
-    /**
-     * Adds a link to this animator.
-     * @param cartaObject the link to remove.
-     */
-    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear current state..
@@ -46,9 +49,11 @@ public:
     void clear();
 
     /**
-     * Force the connector to flush the state to the view.
+     * Returns the animator of the indicated type.
+     * @param an identifier for the animation type.
+     * @return the specified animator or a nullptr if no such animator exists.
      */
-    void refreshState();
+    AnimatorType* getAnimator( const QString& type );
 
     /**
      * Returns the number of controllees linked to this Animator.
@@ -69,11 +74,27 @@ public:
      */
     QList<QString> getLinks() const;
 
+    /**
+     * Force the connector to flush the state to the view.
+     */
+    void refreshState();
+
+    /**
+     * Adds a link to this animator.
+     * @param cartaObject the link to remove.
+     */
+    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+
+    /**
+     * Remove the animator of the indicated type.
+     * @param type an identifier for the type of animator to remove.
+     * @return an error message if the animator was not removed; otherwise, an empty string.
+     */
+    QString removeAnimator( const QString& type );
+
     static const QString CLASS_NAME;
 
     virtual ~Animator();
-
-
 
 private slots:
     //Adjusts internal state based on the state in the child controllers.
@@ -95,10 +116,8 @@ private:
     void _initializeState();
     void _initializeAnimators();
     void _initializeCallbacks();
-    QString _initAnimator( const QString& type );
-    QString _initializeAnimator( const QString& type );
+    QString _initAnimator( const QString& type, bool* newAnimator );
 
-    QString _removeAnimator( const QString& type );
     void _resetAnimationParameters( int selectedImage );
 
     //Link management

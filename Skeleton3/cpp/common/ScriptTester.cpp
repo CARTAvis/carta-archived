@@ -9,8 +9,8 @@ ScriptTester::ScriptTester(){
 
 void ScriptTester::runTest(){
     //Please comment out these calls as appropriate.
-    _runSingleImage();
-    //_runAnalysisImage();
+    //_runSingleImage();
+    _runAnalysisImage();
 }
 
 void ScriptTester::_runAnalysisImage() {
@@ -28,16 +28,16 @@ void ScriptTester::_runAnalysisImage() {
     //However we need the color map object if we are going to change the color.  We use an index
     //of 0 to obtain an existing color map.
     QString colormapId = m_scriptFacade->getColorMapId( 0 );
-
     //Set the color map
     QStringList colormaps = m_scriptFacade->getColorMaps();
     int mapCount = colormaps.size();
-    qDebug() << "Script tester found "<< mapCount << " colormaps";
     if ( mapCount > 1 ){
         QString mapName = colormaps[1];
-        qDebug() << "Script tester setting map to "<<mapName;
         m_scriptFacade->setColorMap( colormapId, mapName);
     }
+
+    m_scriptFacade->setChannel( 5 );
+    m_scriptFacade->showImageAnimator();
 
     //Save the image
     qDebug() << "Save image not implemented";

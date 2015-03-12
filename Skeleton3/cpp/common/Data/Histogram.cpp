@@ -1379,6 +1379,7 @@ void Histogram::_zoomToSelection(){
 
 
 Histogram::~Histogram(){
+    unregisterView();
     delete m_histogram;
 }
 }
