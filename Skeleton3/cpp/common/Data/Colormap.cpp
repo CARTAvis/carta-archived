@@ -271,6 +271,10 @@ QString Colormap::reverseColormap( const QString& reverseStr )
     bool validBool = false;
     bool reverse = Util::toBool(reverseStr, &validBool);
     bool oldReverse = m_state.getValue<bool>(REVERSE);
+    if ( reverseStr.toLower() == "toggle") {
+        reverse = !oldReverse;
+        validBool = true;
+    }
     if ( validBool ){
         if ( reverse != oldReverse ){
             m_state.setValue<bool>(REVERSE, reverse );
@@ -296,6 +300,10 @@ QString Colormap::setCacheColormap( const QString& cacheStr )
     bool validBool = false;
     bool cache = Util::toBool(cacheStr, &validBool);
     bool oldCache = m_state.getValue<bool>(CACHE);
+    if ( cacheStr.toLower() == "toggle") {
+        cache = !oldCache;
+        validBool = true;
+    }
     if ( validBool ){
         if ( cache != oldCache){
             m_state.setValue<bool>(CACHE, cache );
@@ -344,6 +352,10 @@ QString Colormap::setInterpolatedColorMap( const QString& interpolateStr )
     bool validBool = false;
     bool interpolated = Util::toBool(interpolateStr, &validBool);
     bool currentInterpolated = m_state.getValue<bool>(INTERPOLATED);
+    if ( interpolateStr.toLower() == "toggle") {
+        interpolated = !currentInterpolated;
+        validBool = true;
+    }
     if ( validBool ){
         if ( interpolated != currentInterpolated ){
             m_state.setValue<bool>(INTERPOLATED, interpolated );
@@ -368,6 +380,10 @@ QString Colormap::invertColorMap( const QString& invertStr )
     bool validBool = false;
     bool invert = Util::toBool(invertStr, &validBool);
     bool oldInvert = m_state.getValue<bool>(INVERT );
+    if ( invertStr.toLower() == "toggle") {
+        invert = !oldInvert;
+        validBool = true;
+    }
     if ( validBool ){
         if ( invert != oldInvert ){
             m_state.setValue<bool>(INVERT, invert );

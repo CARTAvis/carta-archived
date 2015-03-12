@@ -55,13 +55,13 @@ class Colormap(CartaView):
         result = sendCommand(self.socket, commandStr)
         return result
 
-    def reverseColormap(self, trueOrFalse):
-        commandStr = "reverseColormap " + self.getId() + " " + trueOrFalse
+    def reverseColormap(self, reverseStr='toggle'):
+        commandStr = "reverseColormap " + self.getId() + " " + str(reverseStr)
         result = sendCommand(self.socket, commandStr)
         return result
 
-    def setCacheColormap(self, cacheStr):
-        commandStr = "setCacheColormap " + self.getId() + " " + cacheStr
+    def setCacheColormap(self, cacheStr='toggle'):
+        commandStr = "setCacheColormap " + self.getId() + " " + str(cacheStr)
         result = sendCommand(self.socket, commandStr)
         return result
 
@@ -70,13 +70,13 @@ class Colormap(CartaView):
         result = sendCommand(self.socket, commandStr)
         return result
 
-    def setInterpolatedColormap(self, trueOrFalse):
-        commandStr = "setInterpolatedColormap " + self.getId() + " " + trueOrFalse
+    def setInterpolatedColormap(self, interpolatedStr='toggle'):
+        commandStr = "setInterpolatedColormap " + self.getId() + " " + str(interpolatedStr)
         result = sendCommand(self.socket, commandStr)
         return result
 
-    def invertColormap(self, trueOrFalse):
-        commandStr = "invertColormap " + self.getId() + " " + trueOrFalse
+    def invertColormap(self, invertStr='toggle'):
+        commandStr = "invertColormap " + self.getId() + " " + str(invertStr)
         result = sendCommand(self.socket, commandStr)
         return result
 
@@ -211,7 +211,7 @@ class Application:
         lastPort = lastPort + 1;
         return
 
-    # It would be nice if this function could actually tun the GUI on and off
+    # It would be nice if this function could actually turn the GUI on and off
     # with whatever the current state is.
     def setGuiVisible(self,flag):
         self.visible = flag

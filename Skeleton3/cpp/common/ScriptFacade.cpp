@@ -139,8 +139,8 @@ QString ScriptFacade::setColorMap( const QString& colormapId, const QString& col
     return "setColorMap";
 }
 
-QString ScriptFacade::reverseColorMap( const QString& colormapId, const QString& trueOrFalse ){
-    m_viewManager->reverseColorMap( colormapId, trueOrFalse );
+QString ScriptFacade::reverseColorMap( const QString& colormapId, const QString& reverseStr ){
+    m_viewManager->reverseColorMap( colormapId, reverseStr );
     return "reverseColorMap";
 }
 
@@ -154,14 +154,14 @@ QString ScriptFacade::setCacheSize( const QString& colormapId, const QString& ca
     return output;
 }
 
-QString ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& trueOrFalse ){
-    QString output = m_viewManager->setInterpolatedColorMap( colormapId, trueOrFalse );
+QString ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
+    QString output = m_viewManager->setInterpolatedColorMap( colormapId, interpolateStr );
     return output;
 }
 
-QString ScriptFacade::invertColorMap( const QString& colormapId, const QString& trueOrFalse ){
-    m_viewManager->invertColorMap( colormapId, trueOrFalse );
-    return "inverColorMap";
+QString ScriptFacade::invertColorMap( const QString& colormapId, const QString& invertStr ){
+    m_viewManager->invertColorMap( colormapId, invertStr );
+    return "invertColorMap";
 }
 
 QString ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){

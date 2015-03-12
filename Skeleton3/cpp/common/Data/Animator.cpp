@@ -71,16 +71,6 @@ void Animator::_adjustStateAnimatorTypes(){
     m_state.flushState();
 }
 
-void Animator::changeChannelIndex( int index ){
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            controller->setFrameChannel( index );
-        }
-    }
-}
-
 void Animator::_channelIndexChanged( int index ){
     changeChannelIndex( index );
 }
@@ -101,6 +91,16 @@ QList<QString> Animator::getLinks() const {
 
 QString Animator::getLinkId( int linkIndex ) const {
     return m_linkImpl->getLinkId( linkIndex );
+}
+
+void Animator::changeChannelIndex( int index ){
+    int linkCount = m_linkImpl->getLinkCount();
+    for( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            controller->setFrameChannel( index );
+        }
+    }
 }
 
 void Animator::changeImageIndex( int selectedImage ){

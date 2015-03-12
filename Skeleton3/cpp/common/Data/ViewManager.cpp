@@ -680,11 +680,11 @@ bool ViewManager::setColorMap( const QString& colormapId, const QString& colorma
     return colorMapFound;
 }
 
-bool ViewManager::reverseColorMap( const QString& colormapId, const QString& trueOrFalse ){
+bool ViewManager::reverseColorMap( const QString& colormapId, const QString& reverseStr ){
     int colormapIndex = _findColorMap( colormapId );
     bool colorMapFound = false;
     if ( colormapIndex >= 0 ){
-        m_colormaps[colormapIndex]->reverseColormap( trueOrFalse );
+        m_colormaps[colormapIndex]->reverseColormap( reverseStr );
         colorMapFound = true;
     }
     return colorMapFound;
@@ -708,20 +708,20 @@ QString ViewManager::setCacheSize( const QString& colormapId, const QString& cac
     return output;
 }
 
-QString ViewManager::setInterpolatedColorMap( const QString& colormapId, const QString& trueOrFalse ){
+QString ViewManager::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
     QString output = "";
     int colormapIndex = _findColorMap( colormapId );
     if ( colormapIndex >= 0 ){
-        output = m_colormaps[colormapIndex]->setInterpolatedColorMap( trueOrFalse );
+        output = m_colormaps[colormapIndex]->setInterpolatedColorMap( interpolateStr );
     }
     return output;
 }
 
-bool ViewManager::invertColorMap( const QString& colormapId, const QString& trueOrFalse ){
+bool ViewManager::invertColorMap( const QString& colormapId, const QString& invertStr ){
     int colormapIndex = _findColorMap( colormapId );
     bool colorMapFound = false;
     if ( colormapIndex >= 0 ){
-        m_colormaps[colormapIndex]->invertColorMap( trueOrFalse );
+        m_colormaps[colormapIndex]->invertColorMap( invertStr );
         colorMapFound = true;
     }
     return colorMapFound;

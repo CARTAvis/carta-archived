@@ -116,9 +116,9 @@ public:
     /**
      * Reverse the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
-     * @param trueOrFalse should be equal to either "true" or "false".
+     * @param reverseStr should be equal to either "true" or "false".
      */
-    QString reverseColorMap( const QString& colormapId, const QString& trueOrFalse );
+    QString reverseColorMap( const QString& colormapId, const QString& reverseStr );
 
     /**
      * Set caching for the current colormap
@@ -137,16 +137,16 @@ public:
     /**
      * Interpolate the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
-     * @param trueOrFalse should be equal to either "true" or "false".
+     * @param interpolateStr should be equal to either "true" or "false".
      */
-    QString setInterpolatedColorMap( const QString& colormapId, const QString& trueOrFalse );
+    QString setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
 
     /**
      * Invert the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
-     * @param trueOrFalse should be equal to either "true" or "false".
+     * @param invertStr should be equal to either "true" or "false".
      */
-    QString invertColorMap( const QString& colormapId, const QString& trueOrFalse );
+    QString invertColorMap( const QString& colormapId, const QString& invertStr );
 
     /**
      * Set a color mix.
