@@ -1,5 +1,7 @@
 #include "ScriptFacade.h"
 #include "Data/ViewManager.h"
+#include "Data/Animator.h"
+#include "Data/AnimatorType.h"
 #include "Data/Controller.h"
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
@@ -132,6 +134,39 @@ QString ScriptFacade::setAnalysisLayout(){
 QString ScriptFacade::setCustomLayout( int rows, int cols ){
     m_viewManager->setCustomView( rows, cols );
     return "setCusomLayout";
+}
+
+Carta::Data::Animator* ScriptFacade::getAnimator(){
+    QString animId = m_viewManager->getObjectId( Carta::Data::Animator::CLASS_NAME, 0 );
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( animId );
+    CartaObject* obj = objMan->getObject( id );
+    Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+    return animator;
+}
+
+void ScriptFacade::showImageAnimator(){
+    Carta::Data::Animator* animator = getAnimator();
+    if ( animator ){
+        QString animId;
+        animator->addAnimator( "Image", animId);
+    }
+}
+
+void ScriptFacade::setChannel( int channel ){
+    Carta::Data::Animator* animator = getAnimator();
+    if ( animator ){
+        Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
+        if ( animType != nullptr ){
+            animType->setFrame( channel );
+        }
+        else {
+            qDebug()<<"Could not get channel animator";
+        }
+    }
+    else {
+        qDebug() << "Could not find animator";
+    }
 }
 
 QString ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){

@@ -21,29 +21,12 @@ class AnimatorType : public QObject, public CartaObject {
     Q_OBJECT
 
 public:
-    /**
-     * Returns true if the animator is no longer visually available; false otherwise.
-     * @return true if the animator is hidden; false otherwise.
-     */
-    bool isRemoved() const;
-
-    /**
-     * Sets the upper bound for the selection.
-     * @param a nonnegative upper bound for the selection.
-     */
-    void setUpperBound( int value );
-
-    /**
-     * Set the current index of the selection.
-     * @param index the current selection index.
-     */
-    void setIndex( int index );
 
     /**
      * Return the current selection index.
      * @return the current selection index.
      */
-    int getIndex() const;
+    int getFrame() const;
 
     /**
      * Returns a json string representing the state of this AnimatorType.
@@ -52,10 +35,49 @@ public:
     virtual QString getStateString() const;
 
     /**
+     * Returns true if the animator is no longer visually available; false otherwise.
+     * @return true if the animator is hidden; false otherwise.
+     */
+    bool isRemoved() const;
+
+    /**
+     * Set whether the animator should wrap, reverse, etc when it gets to the start
+     * or end channel.
+     * @param an identifier for the animation behavior at the ends of the range.
+     */
+    QString setEndBehavior( const QString& endBehavior );
+
+    /**
+     * Set the current index of the selection.
+     * @param frameIndex the current selection index.
+     * @return an error message if there is one; otherwise an empty string;
+     */
+    QString setFrame( int frameIndex );
+
+    /**
+     * Set the animation speed.
+     * @param rate a positive rate indicator.
+     */
+    QString setFrameRate( int rate );
+
+    /**
+     * Set the number of frames to increment/decrement each time.
+     * @param stepSize a positive integer( normally 1) indicating the number of steps to increment.
+     */
+    QString setFrameStep( int stepSize );
+
+    /**
      * Set the animator visible/invisible.
      * @param removed true if the animator should be hidden; false otherwise.
      */
     void setRemoved( bool removed );
+
+    /**
+     * Sets the upper bound for the selection.
+     * @param a nonnegative upper bound for the selection.
+     */
+    void setUpperBound( int value );
+
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
@@ -76,26 +98,20 @@ private:
     class Factory;
 
     //Initialize an individual animator's state (image, channel, etc).
-    void _initializeState( /*StateKey keyStep, StateKey keyRate,
-                                                          StateKey keyEnd, IConnector* connector*/ );
+    void _initializeState( );
 
     //Add callbacks for commands.
     void _initializeCommands();
 
     QString _makeSelection();
 
-    QString _setEndBehavior( const QString& params );
-    QString _setFrameRate( const QString& params );
-    QString _setFrameStep( const QString& params );
-
     //Set state variables involving the animator
     void _saveState();
 
-    QString m_animationType;
     bool m_removed;
     static bool m_registered;
 
-    //Animator's channel selection.
+    //Animator's selection.
     Selection* m_select;
     const static QString COMMAND_SET_FRAME;
     const static QString END_BEHAVIOR;

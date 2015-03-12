@@ -79,6 +79,57 @@ void Animator::clear(){
     m_linkImpl->clear();
 }
 
+QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
+    QString result;
+    if ( !m_animators.contains( type )){
+        if ( type == Selection::IMAGE ){
+            bool animatorAdded = false;
+            animatorTypeId = _initAnimator( type, &animatorAdded );
+            if ( animatorAdded ){
+                connect( m_animators[Selection::IMAGE], SIGNAL(indexChanged( int)), this, SLOT(_imageIndexChanged(int)));
+                //Find a controller to use for setting up initial animation
+                //parameters.
+                int linkCount = m_linkImpl->getLinkCount();
+                for ( int i = 0; i < linkCount; i++ ){
+                    CartaObject* obj = m_linkImpl->getLink( i );
+                    Controller* controller = dynamic_cast<Controller*>(obj);
+                    if ( controller != nullptr ){
+                        int selectImage = controller->getSelectImageIndex();
+                        _resetAnimationParameters( selectImage );
+                        break;
+                    }
+                }
+            }
+        }
+        else if ( type == Selection::CHANNEL ){
+            bool animatorAdded = false;
+            animatorTypeId = _initAnimator( type, &animatorAdded );
+            if ( animatorAdded ){
+                connect( m_animators[Selection::CHANNEL], SIGNAL(indexChanged(int)), this, SLOT(_channelIndexChanged( int)));
+            }
+        }
+        else {
+            result = "Unrecognized animation initialization type=" +type;
+        }
+    }
+    else {
+        m_animators[type]->setRemoved( false );
+        _adjustStateAnimatorTypes();
+        animatorTypeId= m_animators[type]->getPath();
+    }
+    return result;
+}
+
+AnimatorType* Animator::getAnimator( const QString& type ){
+    AnimatorType* animator = nullptr;
+    if ( m_animators.contains(type ) ){
+        animator = m_animators[type];
+    }
+    else {
+        qWarning() << "Unrecognized or non-constructed animation type: "+type;
+    }
+    return animator;
+}
 
 int Animator::getLinkCount() const {
     return m_linkImpl->getLinkCount();
@@ -133,78 +184,48 @@ void Animator::_imageIndexChanged( int selectedImage){
     changeImageIndex( selectedImage );
 }
 
+QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
+    QString animId;
+    if ( !m_animators.contains( type ) ){
+        CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
+        m_animators.insert(type, dynamic_cast<AnimatorType*>(animObj) );
+        _adjustStateAnimatorTypes();
+        *newAnimator = true;
+    }
+    else {
+        animId = m_animators[type]->getPath();
+        *newAnimator = false;
+    }
+    return animId;
+}
+
 void Animator::_initializeCallbacks(){
     addCommandCallback( "addAnimator", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"type"};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QString animatorId = _initializeAnimator( dataValues[*keys.begin()] );
-        return animatorId;
+        QString animId = "-1";
+        QString result = addAnimator( dataValues[*keys.begin()], animId );
+        Util::commandPostProcess( result );
+        return animId;
     });
 
     addCommandCallback( "removeAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {"type"};
             std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-            QString animatorId = _removeAnimator( dataValues[*keys.begin()] );
+            QString animatorId = removeAnimator( dataValues[*keys.begin()] );
             return animatorId;
         });
 }
 
-QString Animator::_initAnimator( const QString& type ){
-    QString animId;
-    if ( !m_animators.contains( type ) ){
-        CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
-        m_animators.insert(type, dynamic_cast<AnimatorType*>(animObj) );
-        _adjustStateAnimatorTypes();
-    }
-    else {
-        animId = m_animators[type]->getPath();
-    }
-    return animId;
-}
-
-QString Animator::_initializeAnimator( const QString& type ){
-    QString animatorTypeId = "-1";
-    if ( !m_animators.contains( type )){
-        if ( type == Selection::IMAGE ){
-            animatorTypeId = _initAnimator( type );
-            connect( m_animators[Selection::IMAGE], SIGNAL(indexChanged( int)), this, SLOT(_imageIndexChanged(int)));
-            //Find a controller to use for setting up initial animation
-            //parameters.
-            int linkCount = m_linkImpl->getLinkCount();
-            for ( int i = 0; i < linkCount; i++ ){
-                CartaObject* obj = m_linkImpl->getLink( i );
-                Controller* controller = dynamic_cast<Controller*>(obj);
-                if ( controller != nullptr ){
-                    int selectImage = controller->getSelectImageIndex();
-                    _resetAnimationParameters( selectImage );
-                    break;
-                }
-            }
-        }
-        else if ( type == Selection::CHANNEL ){
-            animatorTypeId = _initAnimator( type );
-            connect( m_animators[Selection::CHANNEL], SIGNAL(indexChanged(int)), this, SLOT(_channelIndexChanged( int)));
-        }
-        else {
-            QString errorMsg = "Unrecognized animation initialization type=" +type;
-            Util::commandPostProcess( errorMsg);
-        }
-    }
-    else {
-        m_animators[type]->setRemoved( false );
-        _adjustStateAnimatorTypes();
-        animatorTypeId= m_animators[type]->getPath();
-    }
-    return animatorTypeId;
-}
 
 void Animator::_initializeState(){
     m_state.insertObject( AnimatorType::ANIMATIONS);
     m_state.insertValue<bool>( Util::STATE_FLUSH, false );
     m_state.flushState();
-    _initializeAnimator( Selection::CHANNEL );
+    QString animId;
+    addAnimator( Selection::CHANNEL, animId);
 }
 
 void Animator::refreshState(){
@@ -213,12 +234,9 @@ void Animator::refreshState(){
     m_state.setValue<bool>(Util::STATE_FLUSH, false );
 }
 
-QString Animator::_removeAnimator( const QString& type ){
+QString Animator::removeAnimator( const QString& type ){
     QString result;
     if ( m_animators.contains( type )){
-        //m_animators[type] ->getPath();
-        //disconnect( m_animators[type].get() );
-        //m_animators.remove( type );
         m_animators[type]->setRemoved( true );
         _adjustStateAnimatorTypes();
     }
@@ -249,7 +267,7 @@ void Animator::_resetAnimationParameters( int selectedImage ){
         int maxImages = _getMaxImageCount();
         m_animators[Selection::IMAGE]->setUpperBound(maxImages);
         if ( selectedImage >= 0 ){
-            m_animators[Selection::IMAGE]->setIndex( selectedImage );
+            m_animators[Selection::IMAGE]->setFrame( selectedImage );
         }
     }
     if ( m_animators.contains( Selection::CHANNEL)){
