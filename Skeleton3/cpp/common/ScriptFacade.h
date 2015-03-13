@@ -19,10 +19,11 @@ class ScriptFacade {
 
 public:
     /**
-     * Return the first container containing animators.
-     * @return the first animator container.
+     * Return a container containing animators.
+     * @param index the ID of the desired animator.
+     * @return the first animator container at the given index.
      */
-    Carta::Data::Animator* getAnimator();
+    Carta::Data::Animator* getAnimator( const QString& index );
 
     /**
      * Return a list of the image views defined by the layout.
@@ -99,8 +100,9 @@ public:
 
     /**
      * Show the image animator.
+     * @param animatorId the unique server-side id of an object managing an animator.
      */
-    void showImageAnimator();
+    QString showImageAnimator( const QString& animatorId );
 
     /**
      * Set the layout to a predefined analysis layout.
@@ -117,11 +119,11 @@ public:
      */
     QString setImageLayout();
 
-    /**
-     * Set an animator channel.
-     * @param channel the channel to set.
-     */
-    void setChannel( int channel );
+//    /**
+//     * Set an animator channel.
+//     * @param channel the channel to set.
+//     */
+//    void setChannel( int channel );
 
     /**
      * Set the color map that is being displayed.

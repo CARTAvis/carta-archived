@@ -222,6 +222,12 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
     }
 
+    // command: showImageAnimator
+    else if ( args.size() == 2 && args[0].toLower() == "showimageanimator" ) {
+        QString output = m_scriptFacade->showImageAnimator( args[1] );
+        m_scl->sendTypedMessage( "1", output.toLocal8Bit() );
+    }
+
     // command: setClipValue
     else if ( args.size() == 3 && args[0].toLower() == "setclipvalue" ) {
         QString output = m_scriptFacade->setClipValue( args[1], args[2] );

@@ -42,6 +42,9 @@ void ScriptTester::_runAnalysisImage() {
         m_scriptFacade->setColorMap( colormapId, mapName);
     }
 
+    m_scriptFacade->setChannel( 5 );
+    m_scriptFacade->showImageAnimator();
+
     //Save the image
     qDebug() << "Save image not implemented";
 }

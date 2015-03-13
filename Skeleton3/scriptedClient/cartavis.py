@@ -187,6 +187,11 @@ class Animator(CartaView):
         result = sendCommand(self.socket, commandStr)
         return result
 
+    def showImageAnimator(self):
+        commandStr = "showImageAnimator " + self.getId()
+        result = sendCommand(self.socket, commandStr)
+        return result
+
 class Statistics(CartaView):
     """Represents a statistics view"""
 
@@ -330,7 +335,7 @@ def start(
         configFile = "/home/jeff/.cartavis/config.json", 
         port = 9999, 
         htmlFile = "/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
-        imageFile = "/home/jeff/Dropbox/Astronomy/m31_cropped.fits"
+        imageFile = "/scratch/Images/m42_40min_ir.fits"
     ):
     return Application(executable, configFile, port, htmlFile, imageFile)
 
