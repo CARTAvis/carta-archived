@@ -9,22 +9,6 @@ import struct
 import binascii
 import random
 
-"""
-Sample run:
-
-import cartavis
-v = cartavis.start()
-v.setResolution( 1000, 1000)
-v.openFile("1.fits")
-v.applyAutoClip( 95)
-v.applyColormap( "helix1")
-v.showCoordinates()
-v.saveScreenshot( "/scratch/1.png")
-"""
-
-#lastPort = 12345
-lastPort = 9999
-
 class CartaView:
     """Base class for Carta objects"""
     def __init__(self, idStr, socket):
@@ -202,18 +186,14 @@ class Application:
     """Represents an application"""
 
     def __init__(self, executable, configFile, port, htmlFile, imageFile):
-        global lastPort
-        print "lastPort = ", lastPort
         args = [executable, "--scriptPort", 
                 str(port), "--html", htmlFile, imageFile]
         print args
         self.popen = subprocess.Popen( args)
         print "Started process with pid=", self.popen.pid
-        time.sleep( 3)
         self.visible = False
         self.socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(("localhost", lastPort))
-        lastPort = lastPort + 1;
+        self.socket.connect(("localhost", port))
         return
 
     # It would be nice if this function could actually turn the GUI on and off
