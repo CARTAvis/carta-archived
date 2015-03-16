@@ -308,7 +308,9 @@ class Application:
         large command is sent."""
         f = open(infile, 'r')
         commandStr = "fakeCommand + " + f.read()
+        print "Start time: " + time.asctime()
         result = sendCommand(self.socket, commandStr)
+        print "Finish time: " + time.asctime()
         return result
 
 def start(
@@ -373,7 +375,7 @@ def sendMessage(socket, message):
     """the sendMessage() method"""
     # Encode the length of the message into 4 bytes by converting it into a C
     # int in big-endian byte order.
-    packedLen = struct.pack('>i', len(message))
+    packedLen = struct.pack('>q', len(message))
     # Get the total length of the message we will be transmitting.
     totalLength = len(packedLen + message)
     # Prepend the message length to the message itself.

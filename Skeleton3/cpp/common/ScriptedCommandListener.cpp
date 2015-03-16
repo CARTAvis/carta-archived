@@ -124,8 +124,8 @@ int ScriptedCommandListener::getMessageSize( )
 {
     // Instead of bool, this method will return an int.
     // A return value of 0 can be interpreted as an error.
-    int result;
-    int messageSize = sizeof(int);
+    long long result;
+    int messageSize = sizeof(long long);
     unsigned char size[messageSize+1];
     // This needs to be put into a loop in case the whole size cannot be read
     // all at once. Can I maybe just read one byte at a time?
@@ -143,18 +143,18 @@ int ScriptedCommandListener::getMessageSize( )
         lineLength += bytesRead;
         size[i] = buff[0];
     }
-    size[4] = NULL;
+    size[8] = NULL;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = 0;
     }
 
-    if ( lineLength < 4 ) {
+    if ( lineLength < 8 ) {
         result = 0;
     }
 
-    if (lineLength == 4) {
-        result = (size[3]<<0) | (size[2]<<8) | (size[1]<<16) | (size[0]<<24);
+    if (lineLength == 8) {
+        result = (size[7]<<0) | (size[6]<<8) | (size[5]<<16) | (size[4]<<24) | (size[3]<<32) | (size[2]<<40) | (size[1]<<48) | (size[0]<<56);
     }
     return result;
 }
