@@ -22,13 +22,13 @@ public:
 
     bool sendTypedMessage( QString messageType, const void * data );
 
-    bool receiveNBytes( int n, char** data );
+    bool receiveNBytes( int n, QByteArray* data );
 
-    bool receiveMessage( char** data );
+    bool receiveMessage( QByteArray* data );
 
     int getMessageSize( );
 
-    bool receiveTypedMessage( QString messageType, char** data );
+    bool receiveTypedMessage( QString messageType, QByteArray* data );
 
     static const QString SIZE_DELIMITER;
 

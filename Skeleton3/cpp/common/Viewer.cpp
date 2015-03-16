@@ -327,8 +327,22 @@ Viewer::scriptedCommandCB( QString command )
         m_scl->sendTypedMessage( "1", result.toLocal8Bit() );
     }
 
+    // command: fakeCommand
     else if ( args[0].toLower() == "fakecommand" ) {
-        m_scl->sendTypedMessage( "1", "fake command received" );
+        QString result;
+        int start;
+        if ( args.size() > 10 ) {
+            start = args.size() - 10;
+        }
+        else {
+            start = 1;
+        }
+        for ( int i = start ; i < args.size() ; i++ ) {
+            result += args[i];
+        }
+        // Send the last little bit of the transmitted file as "proof" that it
+        // was received.
+        m_scl->sendTypedMessage( "1", "end of fake command: " + result.toLocal8Bit() );
     }
 
     else {

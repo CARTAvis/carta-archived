@@ -191,6 +191,7 @@ class Application:
         print args
         self.popen = subprocess.Popen( args)
         print "Started process with pid=", self.popen.pid
+        time.sleep(3)
         self.visible = False
         self.socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(("localhost", port))

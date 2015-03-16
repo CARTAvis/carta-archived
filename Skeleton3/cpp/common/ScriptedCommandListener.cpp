@@ -38,9 +38,9 @@ void ScriptedCommandListener::newConnectionCB()
 
 void ScriptedCommandListener::socketDataCB()
 {
-    char* buffer;
+    QByteArray buffer;
     bool result = receiveTypedMessage( "1", &buffer );
-    QString str = QString::fromUtf8(buffer);
+    QString str( buffer );
     if (result == true) {
         str = str.trimmed();
         emit command( str);
@@ -85,33 +85,21 @@ bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void 
     return result;
 }
 
-//bool ScriptedCommandListener::receiveNBytes( int n, QString& data )
-bool ScriptedCommandListener::receiveNBytes( int n, char** data )
+bool ScriptedCommandListener::receiveNBytes( int n, QByteArray* data )
 {
     bool result = true;
-    char* buff = new char[n+1];
     int buffIndex = 0;
     qint64 lineLength = 0;
     while (lineLength < n) {
-        //char tempBuff[n];
-        char* tempBuff = new char[n+1];
+        QByteArray tempBuff;
         qint64 bytesRead = -1;
-        int futileReads = 0;
         while (bytesRead < 1) {
-            bytesRead = m_connection-> readLine( tempBuff, n+1 );
-            if (bytesRead == 0) {
-                futileReads += 1;
-            }
+            tempBuff = m_connection->readLine( n );
+            bytesRead = tempBuff.size();
         }
-        // Now copy what was read into buff[]
-        for (int i = 0; i < bytesRead && buffIndex < n; i++) {
-            buff[buffIndex] = tempBuff[i];
-            buffIndex++;
-        }
+        data->append( tempBuff );
         lineLength += bytesRead;
     }
-    // Why should this be necessary? I sometimes get garbage data without it.
-    buff[n] = NULL;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = false;
@@ -129,10 +117,6 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
         result = false;
     }
 
-    if (result == true) {
-        *data = (char *) malloc( strlen(buff) + 1 ); 
-        strcpy( *data, buff );
-    }
     return result;
 }
 
@@ -156,8 +140,6 @@ int ScriptedCommandListener::getMessageSize( )
                 futileReads += 1;
             }
         }
-        //int buffInt = int(*(unsigned char*)buff);
-        //std::cout << "buffInt " << std::hex << buffInt << "\n";
         lineLength += bytesRead;
         size[i] = buff[0];
     }
@@ -177,7 +159,7 @@ int ScriptedCommandListener::getMessageSize( )
     return result;
 }
 
-bool ScriptedCommandListener::receiveMessage( char** data )
+bool ScriptedCommandListener::receiveMessage( QByteArray* data )
 {
     //format: 4, 6, or 8 bytes: the size of the following message
     //after receiving this, enter a loop to receive this number of bytes
@@ -189,8 +171,13 @@ bool ScriptedCommandListener::receiveMessage( char** data )
     return result;
 }
 
-bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
+bool ScriptedCommandListener::receiveTypedMessage( QString messageType, QByteArray* data )
 {
-    bool result = receiveMessage( data );
-    return result;
+    if ( messageType == "1") {
+        bool result = receiveMessage( data );
+        return result;
+    }
+    else {
+        return false;
+    }
 }
