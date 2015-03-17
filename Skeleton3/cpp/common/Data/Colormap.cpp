@@ -57,6 +57,7 @@ Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_linkImpl( new LinkableImpl( &m_state ) ),
     m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
+    m_significantDigits = 6;
     _initializeDefaultState();
     _initializeCallbacks();
     _initializeStatics();
@@ -490,9 +491,9 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
 QString Colormap::setGamma( double gamma ){
     QString result;
     double oldGamma = m_state.getValue<double>( GAMMA );
-    const double ERROR_MARGIN = 0.000001;
+    const double ERROR_MARGIN = 1 / m_significantDigits;
     if ( qAbs( gamma - oldGamma) > ERROR_MARGIN ){
-        m_state.setValue<double>(GAMMA, gamma );
+        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, m_significantDigits ));
         m_state.flushState();
         //Let the controllers know gamma has changed.
         int linkCount = m_linkImpl->getLinkCount();

@@ -138,6 +138,7 @@ private:
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;
+    int m_significantDigits;
 
 	Colormap( const Colormap& other);
 	Colormap operator=( const Colormap& other );
