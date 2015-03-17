@@ -37,10 +37,9 @@ Statistics::Statistics( const QString& path, const QString& id ) :
 
 QString Statistics::addLink( CartaObject* cartaObject ){
     Controller* target = dynamic_cast<Controller*>( cartaObject);
-    bool objAdded = false;
     QString result;
     if ( target != nullptr){
-        objAdded = m_linkImpl->addLink( target );
+        m_linkImpl->addLink( target );
     }
     else {
         result = "Statistics only supports linking to images";

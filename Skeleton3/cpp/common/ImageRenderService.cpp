@@ -307,8 +307,8 @@ Service::internalRenderSlot( JobId jobId )
     if ( CARTA_RUNTIME_CHECKS ) {
         static int counter = 0;
         counter++;
-        p.setPen( QColor( "yellow" ) );
-        p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
+        //p.setPen( QColor( "yellow" ) );
+        //p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
     }
 
     // insert this image into frame cache

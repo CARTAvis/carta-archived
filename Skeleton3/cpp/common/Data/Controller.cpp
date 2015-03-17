@@ -641,22 +641,29 @@ void Controller::setCacheSize( int size ){
 
 void Controller::setFrameChannel(int value) {
     if (m_selectChannel != nullptr) {
-        m_selectChannel->setIndex(value);
-        emit channelChanged( this );
+        int oldIndex = m_selectChannel->getIndex();
+        if ( value != oldIndex ){
+            m_selectChannel->setIndex(value);
+            _updateCursorText( true );
+            emit channelChanged( this );
+        }
     }
 }
 
 void Controller::setFrameImage( int val) {
     if (m_selectImage != nullptr) {
-        m_selectImage->setIndex(val);
-
+        int oldIndex = m_selectImage->getIndex();
+        if ( oldIndex != val ){
+            m_selectImage->setIndex(val);
+            int imageIndex = m_selectImage->getIndex();
+            if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
+                int upperBound = m_datas[imageIndex]->getFrameCount();
+                m_selectChannel->setUpperBound( upperBound );
+            }
+            _updateCursorText( true );
+            emit dataChanged( this );
+        }
     }
-    int imageIndex = m_selectImage->getIndex();
-    if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
-        int upperBound = m_datas[imageIndex]->getFrameCount();
-        m_selectChannel->setUpperBound( upperBound );
-    }
-    emit dataChanged( this );
 }
 
 void Controller::setGamma( double gamma ){
@@ -681,17 +688,26 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
     int oldMouseX = m_stateMouse.getValue<int>( ImageView::MOUSE_X );
     int oldMouseY = m_stateMouse.getValue<int>( ImageView::MOUSE_Y );
     if ( oldMouseX != mouseX || oldMouseY != mouseY ){
-        QSize imageSize = m_view->size();
-        int pictureWidth = imageSize.width();
-        int pictureHeight = imageSize.height();
-        QString formattedCursor;
-        int imageIndex = m_selectImage->getIndex();
-        int frameIndex = m_selectChannel->getIndex();
-        QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
-        if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
-            m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
-            m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
-            m_stateMouse.setValue<QString>( CURSOR, cursorText );
+        m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
+        m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
+        _updateCursorText( false );
+        m_stateMouse.flushState();
+    }
+}
+
+void Controller::_updateCursorText(bool notifyClients ){
+    QSize imageSize = m_view->size();
+    int pictureWidth = imageSize.width();
+    int pictureHeight = imageSize.height();
+    QString formattedCursor;
+    int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
+    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
+    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
+    QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
+    if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
+        m_stateMouse.setValue<QString>( CURSOR, cursorText );
+        if ( notifyClients ){
             m_stateMouse.flushState();
         }
     }
