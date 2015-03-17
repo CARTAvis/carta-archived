@@ -15,3 +15,9 @@
 
 # git mergetool byproducts
 *.orig
+
+# emacs backup files
+*~
+
+# python byporducts
+*.pyc

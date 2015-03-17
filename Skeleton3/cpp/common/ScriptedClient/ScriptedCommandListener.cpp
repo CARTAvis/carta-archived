@@ -6,18 +6,16 @@
 #include <netinet/in.h>
 #include <iostream>
 
-const QString ScriptedCommandListener::SIZE_DELIMITER(":");
-
 ScriptedCommandListener::ScriptedCommandListener(int port, QObject * parent)
     : QObject(parent)
 {
     m_tcpServer = new QTcpServer( this);
 
-    /// make sure we know when new connection is established
+    // when new connection is established, call newConnectionCB()
     connect( m_tcpServer, & QTcpServer::newConnection,
              this, & ScriptedCommandListener::newConnectionCB);
 
-    /// now listen to the port
+    // start listening for new connections on the port
     if( ! m_tcpServer-> listen( QHostAddress::AnyIPv4, port)) {
         throw std::runtime_error("Coud not listen for scripted commands on given port");
     }
@@ -27,7 +25,11 @@ void ScriptedCommandListener::newConnectionCB()
 {
     qDebug() << "New scripted client connection...";
     if( m_connection != nullptr) {
-        qWarning() << "Another client trying to connect? Ignoring...";
+        qWarning() << "Another client trying to connect? Ignoring & closing.";
+        auto socket = m_tcpServer->nextPendingConnection();
+        socket->write( "Bye." );
+        socket->waitForBytesWritten();
+        delete socket;
         return;
     }
     m_connection = m_tcpServer->nextPendingConnection();
@@ -53,12 +55,10 @@ void ScriptedCommandListener::socketDataCB()
 bool ScriptedCommandListener::sendNBytes( int n, const void * data )
 {
     const char * ptr = reinterpret_cast<const char *> ( data);
-    bool result;
     int bytesSent = 0;
     while (bytesSent < n) {
         int sent = m_connection->write( ptr, n-bytesSent );
         if (sent < 0) {
-            result = false;
             break;
         }
         bytesSent += sent;
@@ -79,7 +79,7 @@ bool ScriptedCommandListener::sendMessage( const void * data )
     return result;
 }
 
-bool ScriptedCommandListener::sendTypedMessage( QString messageType, const void * data )
+bool ScriptedCommandListener::sendTypedMessage( QString /*messageType*/, const void * data )
 {
     bool result = sendMessage( data );
     return result;
@@ -111,7 +111,7 @@ bool ScriptedCommandListener::receiveNBytes( int n, char** data )
         lineLength += bytesRead;
     }
     // Why should this be necessary? I sometimes get garbage data without it.
-    buff[n] = NULL;
+    buff[n] = 0;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = false;
@@ -161,7 +161,7 @@ int ScriptedCommandListener::getMessageSize( )
         lineLength += bytesRead;
         size[i] = buff[0];
     }
-    size[4] = NULL;
+    size[4] = 0;
     if( lineLength == -1) {
         qWarning() << "scripted command listener: something wrong with socket";
         result = 0;
@@ -189,7 +189,7 @@ bool ScriptedCommandListener::receiveMessage( char** data )
     return result;
 }
 
-bool ScriptedCommandListener::receiveTypedMessage( QString messageType, char** data )
+bool ScriptedCommandListener::receiveTypedMessage( QString /*messageType*/, char** data )
 {
     bool result = receiveMessage( data );
     return result;
