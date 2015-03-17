@@ -149,14 +149,12 @@ qx.Class.define( "skel.Application",
          * Initialize message callbacks.
          */
         _initSubscriptions : function(){
-            qx.event.message.Bus.subscribe( "showLinks", function( message )
-                    {
-                        this._showLinks( message );
-                    }, this );
-            
+            qx.event.message.Bus.subscribe( "showLinks", function( message ){
+                this._showLinks( message );
+            }, this );
             qx.event.message.Bus.subscribe( "showPopupWindow", function( message ){
-                        this._showPopup( message );
-                    }, this );
+                this._showPopup( message );
+            }, this );
 
 
             qx.event.message.Bus.subscribe( "showFileBrowser", function( message )
@@ -284,7 +282,7 @@ qx.Class.define( "skel.Application",
         restoreWindow : function( row, col){
             this.m_desktop.restoreWindow( row, col );
         },
-
+        
         /**
          * Show an overlay window displaying linkage between windows that allows
          * the user to edit links.
@@ -295,7 +293,7 @@ qx.Class.define( "skel.Application",
             var winId = linkSource.window;
             var linkInfo = this.m_desktop.getLinkInfo( pluginId, winId );
             if ( this.m_windowLink === null ){
-                this.m_windowLink = new skel.widgets.Link.LinkCanvas();
+                this.m_windowLink = skel.widgets.Link.LinkCanvas.getInstance();
                 var resizeLinkWindow = function( anObject, linkWindow ){
                     var left = 0;
                     var top = anObject._getLinkTopOffset();
@@ -316,6 +314,7 @@ qx.Class.define( "skel.Application",
                     this._hideWindows();
                 }, this );
             }
+           
             this.m_windowLink.setDrawInfo( linkInfo );
             this.m_statusBar.showInformation( this.m_windowLink.getHelp());
             var topPos = this._getLinkTopOffset();

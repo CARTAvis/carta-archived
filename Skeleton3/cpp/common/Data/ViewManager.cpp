@@ -4,6 +4,7 @@
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
 #include "Data/Controller.h"
+#include "Data/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/TransformsData.h"
 #include "Data/TransformsImage.h"
@@ -55,6 +56,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject( TransformsImage::CLASS_NAME);
     Util::findSingletonObject( ErrorManager::CLASS_NAME );
     Util::findSingletonObject( Preferences::CLASS_NAME );
+    Util::findSingletonObject( ChannelUnits::CLASS_NAME );
     _initCallbacks();
 
     bool stateRead = this->_readState( "DefaultState" );
@@ -299,10 +301,7 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
         CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
-            bool linked = linkSource->addLink( destObj );
-            if ( !linked ){
-                result = "Could not link source to destination.";
-            }
+            result = linkSource->addLink( destObj );
         }
         else {
             result = "Unrecognized add link source: "+sourceId;
@@ -324,10 +323,7 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
         CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
-            bool unlinked = linkSource->removeLink( destObj );
-            if ( !unlinked ){
-                result = "Could not remove link between source and destination.";
-            }
+            result = linkSource->removeLink( destObj );
         }
         else {
             result = "Could not remove link, unrecognized source: "+sourceId;

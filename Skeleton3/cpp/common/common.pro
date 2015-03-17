@@ -30,6 +30,7 @@ HEADERS += \
     ImageView.h \
     Data/Animator.h \
     Data/AnimatorType.h \
+    Data/ChannelUnits.h \
     Data/Clips.h \
     Data/Colormap.h \
     Data/Colormaps.h \
@@ -85,6 +86,7 @@ SOURCES += \
     ImageView.cpp \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \
+    Data/ChannelUnits.cpp \
     Data/Clips.cpp \
     Data/Colormap.cpp \
     Data/Colormaps.cpp \

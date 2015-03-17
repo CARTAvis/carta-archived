@@ -36,20 +36,24 @@ Animator::Animator(const QString& path, const QString& id):
 
 
 
-bool Animator::addLink( CartaObject* cartaObject ){
+QString Animator::addLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
     bool linkAdded = false;
+    QString result;
     if ( controller != nullptr ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
             connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_adjustStateController(Controller*)) );
         }
     }
+    else {
+        result = "Animator only supports linking to images";
+    }
 
     if ( linkAdded ){
         _resetAnimationParameters( -1);
     }
-    return linkAdded;
+    return result;
 }
 
 void Animator::_adjustStateController( Controller* controller){
@@ -242,9 +246,10 @@ QString Animator::removeAnimator( const QString& type ){
     return result;
 }
 
-bool Animator::removeLink( CartaObject* cartaObject ){
+QString Animator::removeLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
     bool linkRemoved = false;
+    QString result;
     if ( controller != nullptr ){
         linkRemoved = m_linkImpl->removeLink( controller );
         if ( linkRemoved  ){
@@ -252,7 +257,10 @@ bool Animator::removeLink( CartaObject* cartaObject ){
             _resetAnimationParameters(-1);
         }
     }
-    return linkRemoved;
+    else {
+        result = "Animator only supports links to images; link could not be removed.";
+    }
+    return result;
 }
 
 

@@ -31,7 +31,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_clipSettings !== null ){
                         this.m_clipSettings.setColorRange( hist.colorMin, hist.colorMax );
                         this.m_clipSettings.setColorRangePercent( hist.colorMinPercent, hist.colorMaxPercent);
-                        this.m_clipSettings.setApplyClipToImage( hist.applyClipToImage );
+                        this.m_clipSettings.setCustomClip( hist.customClip );
                     }
                     
                     if ( this.m_rangeSettings !== null ){
@@ -42,7 +42,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     }
                     if ( this.m_cubeSettings !== null ){
                         this.m_cubeSettings.setPlaneMode( hist.planeMode );
-                        this.m_cubeSettings.setPlaneRangeMax( hist.planeRangeMax );
+                        this.m_cubeSettings.setUnit( hist.rangeUnit );
                         this.m_cubeSettings.setPlaneBounds( hist.planeMin, hist.planeMax );
                     }
                    
@@ -100,9 +100,9 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_settingsContainer.add(this.m_rangeSettings);
             this.m_settingsContainer.add(this.m_binSettings);
             this.m_settingsContainer.add(this.m_displaySettings);
-            this.m_settingsContainer.add(this.m_twoDSettings);
             this.m_settingsContainer.add(this.m_cubeSettings);
             this.m_settingsContainer.add( this.m_clipSettings);
+            this.m_settingsContainer.add(this.m_twoDSettings);
         },
         
         
@@ -140,6 +140,9 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             }
         },
         
+        /**
+         * Add or remove the control settings.
+         */
         layoutControls : function(){
             if(this.m_settingsVisible){
                 if ( this.m_mainComposite.indexOf( this.m_settingsContainer) < 0 ){

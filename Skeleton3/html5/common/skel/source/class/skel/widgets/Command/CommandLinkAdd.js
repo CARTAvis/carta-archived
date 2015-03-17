@@ -31,9 +31,9 @@ qx.Class.define("skel.widgets.Command.CommandLinkAdd", {
          * @param sourceId {String} server-side id of the link source.
          * @param destinationId {String} server-side id of the link destination.
          */
-        link : function( sourceId, destinationId ){
+        link : function( sourceId, destinationId, undoCB ){
             var params = "sourceId:"+sourceId+",destId:"+destinationId;
-            this.doAction( params, null, null );
+            this.doAction( params, null, undoCB );
         }
     }
 });

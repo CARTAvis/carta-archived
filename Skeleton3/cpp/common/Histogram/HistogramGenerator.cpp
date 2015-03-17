@@ -132,6 +132,15 @@ void HistogramGenerator::_setVerticalAxisTitle(){
     m_plot->setAxisTitle(QwtPlot::yLeft, yTitle);
 }
 
+void HistogramGenerator::setRangeIntensity(double min, double max){
+    m_range->setClipValues(min, max);
+    m_plot->replot();
+}
+
+void HistogramGenerator::setRangeIntensityColor(double min, double max){
+    m_rangeColor->setClipValues(min, max);
+    m_plot->replot();
+}
 
 void HistogramGenerator::setRangePixels(double min, double max){
     m_range->setHeight(m_height);

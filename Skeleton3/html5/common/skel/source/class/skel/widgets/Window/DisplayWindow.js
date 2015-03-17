@@ -126,7 +126,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             //console.log( "No cleaning on this window");
         },
         
-        
+        /**
+         * Remove the link with the given identifier from the list of links.
+         * @param winId {String} a unique identifier for the link to remove.
+         */
+        clearLink : function( winId ){
+            var linkIndex = this.m_links.indexOf(winId);
+            
+            if ( linkIndex >= 0 ){
+                this.m_links.splice(linkIndex);
+            }
+        },
 
         /**
          * Implemented by subclasses that display particular types of data.
@@ -238,23 +248,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 this.setSelected(true, ev.isCtrlPressed());
             });
         },
-
+        
+        
         /**
          * Initializes a generic window context menu.
          */
         _initContextMenu : function() {
             if ( ! this.isDetached() ){
                 this.m_linkButton = new qx.ui.menu.Button("Links");
-                this.m_linkButton.addListener("execute", function() {
-                    if ( this.m_identifier ){
-                        var linkData = {
-                                "plugin" : this.m_pluginId,
-                                "window" : this.m_identifier
-                        };
-                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                            "showLinks", linkData));
-                    }
-                }, this);
+                this.m_linkButton.addListener("execute", this._showLinkWindow, this);
                 this.m_contextMenu.add(this.m_linkButton);
                
                 this.m_windowMenu = this._initWindowMenu();
@@ -494,6 +496,27 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         isTwoWay : function(pluginId) {
             return false;
         },
+        
+        /**
+         * Callback for removing a link that was incorrectly established.
+         * @param anObject {skel.widgets.Window.DisplayWindow} this window.
+         * @param sourceWinId {String} an identifier for the link source window.
+         */
+        //Written for the case of the histogram, which currently supports linking to
+        //only one controller.  If the user draws in a link to a second controller,
+        //we remove it and post an error message.
+        _linkUndoCmd : function( anObject, sourceWinId ){
+            return function( msg ){
+                if ( msg !== null && msg.length > 0 ){
+                    var linkIndex = anObject.m_links.indexOf( sourceWinId );
+                    if ( linkIndex >= 0 ){
+                        anObject.m_links.splice(linkIndex);
+                        var linkCanvas = skel.widgets.Link.LinkCanvas.getInstance();
+                        linkCanvas.removeLink( sourceWinId, anObject.m_identifier );
+                    }
+                }
+            };
+        },
 
         /**
          * Maximizes the window
@@ -561,28 +584,33 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param addLink {boolean} true if the link should be added; false if it should be removed.
          */
         _sendLinkCommand : function(sourceWinId, addLink) {
-            //Send a command to link the source window (right now an animator) to us.
+            //Send a command to link the source window this window.
             var linkCmd;
+            var linkUndo = null;
             if ( addLink ){
                 linkCmd = skel.widgets.Command.CommandLinkAdd.getInstance();
+                linkUndo = this._linkUndoCmd( this, sourceWinId );
             }
             else {
                 linkCmd = skel.widgets.Command.CommandLinkRemove.getInstance();
             }
-            linkCmd.link( sourceWinId, this.m_identifier );
+            linkCmd.link( sourceWinId, this.m_identifier, linkUndo );
         },
         
         /**
-         * Remove the link with the given identifier from the list of links.
-         * @param winId {String} a unique identifier for the link to remove.
+         * Show the link window having this window as a source.
          */
-        clearLink : function( winId ){
-            var linkIndex = this.m_links.indexOf(winId);
-            
-            if ( linkIndex >= 0 ){
-                this.m_links.splice(linkIndex);
+        _showLinkWindow : function(){
+            if ( this.m_identifier ){
+                var linkData = {
+                        "plugin" : this.m_pluginId,
+                        "window" : this.m_identifier
+                };
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                    "showLinks", linkData));
             }
         },
+        
         
         /**
          * Callback for a data state change for this window.

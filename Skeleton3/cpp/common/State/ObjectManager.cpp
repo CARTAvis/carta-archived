@@ -12,7 +12,7 @@
 
 using namespace std;
 
-QList<QString> CartaObjectFactory::globalIds = {"Clips", "Colormaps",
+QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits", "Clips", "Colormaps",
         "DataLoader","TransformsImage","TransformsData","ErrorManager","Layout",
         "Preferences","ViewManager"};
 

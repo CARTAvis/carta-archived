@@ -8,6 +8,7 @@ qx.Class.define("skel.widgets.Path", {
 
     construct : function() {
         this.BASE_PATH = this.SEP + this.CARTA + this.SEP;
+        this.CHANNEL_UNITS = this.BASE_PATH + "ChannelUnits";
         this.CLIPS = this.BASE_PATH + "Clips";
         this.COLORMAPS = this.BASE_PATH + "Colormaps";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
@@ -32,6 +33,7 @@ qx.Class.define("skel.widgets.Path", {
         BASE_PATH : "",
         CARTA : "CartaObjects",
         CASA_LOADER : "CasaImageLoader",
+        CHANNEL_UNITS : "",
         CENTER : "center",
         CLIP_VALUE : "setClipValue",
         CLIPS : "",

@@ -62,9 +62,10 @@ Colormap::Colormap( const QString& path, const QString& id):
     _initializeStatics();
 }
 
-bool Colormap::addLink( CartaObject*  cartaObject ){
+QString Colormap::addLink( CartaObject*  cartaObject ){
     Controller* target = dynamic_cast<Controller*>(cartaObject);
     bool objAdded = false;
+    QString result;
     if ( target != nullptr ){
         objAdded = m_linkImpl->addLink( target );
         if ( objAdded ){
@@ -72,7 +73,10 @@ bool Colormap::addLink( CartaObject*  cartaObject ){
             connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(_setColorProperties(Controller*)));
         }
     }
-    return objAdded;
+    else {
+        result = "Color map only supports linking to images.";
+    }
+    return result;
 }
 
 
@@ -442,16 +446,20 @@ void Colormap::refreshState(){
     m_state.setValue<bool>(Util::STATE_FLUSH, false );
 }
 
-bool Colormap::removeLink( CartaObject* cartaObject ){
+QString Colormap::removeLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
     bool objRemoved = false;
+    QString result;
     if ( controller != nullptr ){
         objRemoved = m_linkImpl->removeLink( controller );
         if ( objRemoved ){
             disconnect( controller );
         }
     }
-    return objRemoved;
+    else {
+        result = "Color map could not remove link; only links to images supported.";
+    }
+    return result;
 }
 
 QString Colormap::setColorMap( const QString& colorMapStr ){

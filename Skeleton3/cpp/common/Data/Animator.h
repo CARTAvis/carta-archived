@@ -40,8 +40,9 @@ public:
     /**
      * Adds a link to this animator.
      * @param cartaObject the link that will be managed.
+     * @return an error message if there was a problem adding the link; otherwise an empty string.
      */
-    virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear current state..
@@ -82,8 +83,9 @@ public:
     /**
      * Adds a link to this animator.
      * @param cartaObject the link to remove.
+     * @return an error message if the link could not be removed; an empty string otherwise.
      */
-    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Remove the animator of the indicated type.

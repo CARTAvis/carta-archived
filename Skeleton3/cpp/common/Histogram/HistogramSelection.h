@@ -59,11 +59,18 @@ public:
     void reset();
 
 	/**
-	 * Set the min and max values of the range.
-	 * @param minX the minimum value of the range.
-	 * @param maxX the maximum value of the range.
+	 * Set the min and max values (pixels) of the range.
+	 * @param minX the minimum pixel value of the range.
+	 * @param maxX the maximum pixel value of the range.
 	 */
 	void setBoundaryValues( double minX, double maxX );
+
+	/**
+	 * Set the minimum and maximum (intensity) of the range.
+	 * @param minX the minimum intensity value of the range.
+	 * @param maxX the maximum intensity value of the range.
+	 */
+	void setClipValues( double minX, double maxX );
 
 	/**
 	 * Set the color used to shade the clip region.

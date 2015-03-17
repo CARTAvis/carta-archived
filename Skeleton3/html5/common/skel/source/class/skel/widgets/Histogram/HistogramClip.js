@@ -24,7 +24,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
         CMD_SET_CLIP_MIN : "setColorMin",
         CMD_SET_CLIP_MIN_PERCENT: "setColorMinPercent",
         CMD_SET_CLIP_MAX : "setColorMax",
-        CMD_SET_CLIP_MAX_PERCENT: "setColorMaxPercent"
+        CMD_SET_CLIP_MAX_PERCENT: "setColorMaxPercent",
+        CMD_APPLY_CLIP_IMAGE : "setClipToImage"
     },
 
     members : {
@@ -90,12 +91,27 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
             
-            var overallContainer = new qx.ui.groupbox.GroupBox( "Clip (shift + mouse left drag)", "");
+            var overallContainer = new qx.ui.groupbox.GroupBox( "Linked Image Clip (shift + mouse left drag)", "");
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
             overallContainer.setContentPadding(1,1,1,1);
             this._add( overallContainer );
             
+            //Custom clip
             var rangeContainer = new qx.ui.container.Composite();
+            this.m_customCheck = new qx.ui.form.CheckBox( "Custom Image Clip");
+            this.m_customCheck.setValue( true );
+            this.m_customCheck.addListener(skel.widgets.Path.CHANGE_VALUE, function(){
+                var customValue = this.m_customCheck.getValue();
+                rangeContainer.setEnabled( customValue );
+                this._sendCustomClipCmd();
+            }, this );
+            var horContainer2 = new qx.ui.container.Composite();
+            horContainer2.setLayout( new qx.ui.layout.HBox(1));
+            horContainer2.add( new qx.ui.core.Spacer(), {flex:1} );
+            horContainer2.add( this.m_customCheck );
+            horContainer2.add( new qx.ui.core.Spacer(), {flex:1} );
+            overallContainer.add(horContainer2 );
+            
             var gridLayout = new qx.ui.layout.Grid();
             gridLayout.setColumnAlign(0, "right","middle");
             gridLayout.setRowAlign( 0, "center", "middle");
@@ -149,13 +165,13 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
             rangeContainer.add( percentLabel, {row:2, column:0});
             
             //Apply to image
-            this.m_applyImageClip = new qx.ui.form.CheckBox( "Auto apply");
+            this.m_applyImageClip = new qx.ui.form.Button( "Apply to Image");
             this.m_applyImageClip.setToolTipText( "Clip all linked images by minimum and maximum range values.");
-            this.m_applyImageClip.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
+            this.m_applyImageClip.addListener( "execute", function(e){
                 if ( this.m_connector !== null ){
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramRange.CMD_APPLY_CLIP_IMAGE;
-                    var params = "applyClipToImage:"+this.m_applyImageClip.getValue();
+                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramClip.CMD_APPLY_CLIP_IMAGE;
+                    var params = "";
                     this.m_connector.sendCommand( cmd, params, function(){});
                 }
             }, this );
@@ -165,15 +181,6 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
             horContainer.add( this.m_applyImageClip );
             horContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             overallContainer.add( horContainer );
-            
-            //Synchronize
-            this.m_syncCheck = new qx.ui.form.CheckBox( "Synchronize with Zoom");
-            var horContainer2 = new qx.ui.container.Composite();
-            horContainer2.setLayout( new qx.ui.layout.HBox(1));
-            horContainer2.add( new qx.ui.core.Spacer(), {flex:1} );
-            horContainer2.add( this.m_syncCheck );
-            horContainer2.add( new qx.ui.core.Spacer(), {flex:1} );
-            overallContainer.add(horContainer2 );
         },
         
         /**
@@ -184,13 +191,13 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
                 var minClip = this.m_minClipText.getValue();
                 if( !isNaN(minClip) ){
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_MIN;
-                    var params = "clipMin:"+minClip;
+                    var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramClip.CMD_SET_CLIP_MIN;
+                    var params = "colorMin:"+minClip;
                     this.m_connector.sendCommand( cmd, params, this._errorClipMinCB( ));
                 }
             }
-
         },
+        
         /**
          * Notify the server of the upper clip amount.
          */
@@ -199,8 +206,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
                 var maxClip = this.m_maxClipText.getValue();
                 if( !isNaN(maxClip) ){
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_MAX;
-                    var params = "clipMax:"+maxClip;
+                    var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramClip.CMD_SET_CLIP_MAX;
+                    var params = "colorMax:"+maxClip;
                     this.m_connector.sendCommand( cmd, params, this._errorClipMaxCB());
                 }
             }
@@ -214,8 +221,8 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
                  var minPercentClip = this.m_percentMinClipText.getValue();
                  if( !isNaN(minPercentClip) ){
                      var path = skel.widgets.Path.getInstance();
-                     var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_MIN_PERCENT;
-                     var params = "clipMinPercent:"+minPercentClip;
+                     var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramClip.CMD_SET_CLIP_MIN_PERCENT;
+                     var params = "colorMinPercent:"+minPercentClip;
                      this.m_connector.sendCommand( cmd, params, this._errorClipMinPercentCB());
                  }
              }
@@ -229,22 +236,24 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
                  var maxPercentClip = this.m_percentMaxClipText.getValue();
                  if( !isNaN(maxPercentClip) ){
                      var path = skel.widgets.Path.getInstance();
-                     var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramRange.CMD_SET_CLIP_MAX_PERCENT;
-                     var params = "clipMaxPercent:"+maxPercentClip;
+                     var cmd = this.m_id+path.SEP_COMMAND+skel.widgets.Histogram.HistogramClip.CMD_SET_CLIP_MAX_PERCENT;
+                     var params = "colorMaxPercent:"+maxPercentClip;
                      this.m_connector.sendCommand( cmd, params, this._errorClipMaxPercentCB( ));
                  }
              }
          },
          
          /**
-          * Set whether or not to apply the clip to the image as well
-          * as the histogram based on server settings.
-          * @param apply {boolean} true if the clip should be applied to both
-          *      the histogram and the image; false if it applies only to the histogram.
+          * Send a command to the server indicating whether or not to use clips
+          * separate from zoom.
           */
-         setApplyClipToImage : function( apply ){
-             if ( this.m_applyImageClip.getValue() !== apply ){
-                 this.m_applyImageClip.setValue( apply );
+         _sendCustomClipCmd : function(){
+             if ( this.m_connector !== null ){
+                 var customClip = this.m_customCheck.getValue();
+                 var path = skel.widgets.Path.getInstance();
+                 var cmd = this.m_id + path.SEP_COMMAND + "setCustomClip";
+                 var params = "customClip:"+customClip;
+                 this.m_connector.sendCommand( cmd, params, function(){});
              }
          },
 
@@ -290,7 +299,16 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", this._sendClipMaxPercentCmd, this );
         },
         
-       
+        /**
+         * Set whether or not to enable custom clip settings.
+         * @param val {boolean} true to enable custom clip settings; false otherwise.
+         */
+        setCustomClip : function( val ){
+            var oldValue = this.m_customCheck.getValue();
+            if ( val != oldValue ){
+                this.m_customCheck.setValue( val );
+            }
+        },
        
         
         /**
@@ -313,7 +331,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
         m_percentMaxClipText : null,
         m_percentMinClipListenerId : null,
         m_percentMaxClipListenerId : null,
-        m_applyImageClip : null
+        m_customCheck : null
     },
     
     properties : {

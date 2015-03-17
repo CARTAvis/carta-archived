@@ -35,6 +35,7 @@ class HistogramGenerator;
 
 namespace Data {
 
+class ChannelUnits;
 class Clips;
 class Colormap;
 class Controller;
@@ -47,15 +48,18 @@ class Histogram : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    bool addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
-    bool removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
+    QString addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
+    QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
+
+    /**
+     * Applies clips to image.
+     */
+    void applyClips();
 
     /**
      * Clear the state of the histogram.
      */
     void clear();
-
-    void resetImage();
 
     /**
      * Send a new state update to the client.
@@ -128,13 +132,7 @@ public:
      */
     QString setClipRangePercent( double minPercent, double maxPercent );
 
-    /**
-     * Set whether or not to apply histogram clips to linked images.
-     * @param clipApply true if histogram clip settings should be applied to linked images; false
-     *          otherwise.
-     * @return an error message if there was a problem setting the flag; an empty string otherwise.
-     */
-    QString setClipToImage( bool clipApply );
+
 
     /**
      * Set the clip min and max of the histogram.
@@ -189,25 +187,75 @@ public:
 
     /**
      * Set the range of channels to include as data in generating the histogram.
-     * @param minPlane the minimum channel to include or -1 if there is no minimum.
-     * @param maxPlane the maximum channel to include or -1 if there is no maximum
+     * @param minPlane the minimum frequency (GHz) to include.
+     * @param maxPlane the maximum frequency (GHz) to include.
      * @return an error message if there was a problem setting the frame range; an empty string otherwise.
      */
-    QString setPlaneRange( int minPlane, int maxPlane );
+    QString setPlaneRange( double minPlane, double maxPlane);
 
     /**
-     * Set the largest plane value that the user should be allowed to set in the GUI.
-     * @param bound an upper bound for the planes that can be included in the histogram.
-     * @return an error message if there was a problem setting the plane range upper bound;
-     *          an empty string otherwise.
+     * Set whether or not to use a custom clip or just clip based on zoom.
+     * @param customClip true to use a seperate clip from the zoom; false otherwise.
+     * @return an error message if there was a problem; an empty string otherwise.
      */
-    QString setPlaneRangeUpperBound( int bound );
+    QString setCustomClip( bool customClip );
 
-
-
+    /**
+     * Set the range in intensity units for the custom clip.
+     * @param colorMin a lower bound for the custom clip in real units.
+     * @param colorMax an upper bound for the dustom clip in real units.
+     * @return an error message if there was a problem setting the custom clip range;
+     *      false otherwise.
+     */
     QString setRangeColor( double colorMin, double colorMax );
+
+    /**
+     * Set the unit used to specify a channel range, for example, "GHz".
+     * @param units the channel units used to specify a range.
+     * @return an error message if there was a problem setting the channel units;
+     *      otherwise and empty string.
+     */
+    QString setChannelUnit( const QString& units );
+
+    /**
+     * Set the lower boundary in intensity units of the custom clip.
+     * @param colorMin the lower boundary of a custom clip.
+     * @param finish true if a state change should be applied; false if other
+     *      state parameters will be set first before propagating the change.
+     * @return an error message if there was a problem setting the minimum custom clip value;
+     *      an empty string otherwise.
+     */
     QString setColorMin( double colorMin, bool finish );
+
+    /**
+      * Set the upper boundary in intensity units of the custom clip.
+      * @param colorMax the upper boundary of a custom clip.
+      * @param finish true if a state change should be applied; false if other
+      *      state parameters will be set first before propagating the change.
+      * @return an error message if there was a problem setting the maximum custom clip value;
+      *      an empty string otherwise.
+      */
     QString setColorMax( double colorMax, bool finish );
+
+    /**
+      * Set the upper boundary of the custom clip as a percentage.
+      * @param colorMaxPercent the upper boundary of a custom clip (100=no clip).
+      * @param finish true if a state change should be applied; false if other
+      *      state parameters will be set first before propagating the change.
+      * @return an error message if there was a problem setting the maximum clip percentage;
+      *      an empty string otherwise.
+      */
+    QString setColorMaxPercent( double colorMaxPercent, bool complete );
+
+    /**
+      * Set the lower boundary of the custom clip as a percentage.
+      * @param colorMinPercent the lower boundary of a custom clip (0=no clip).
+      * @param finish true if a state change should be applied; false if other
+      *      state parameters will be set first before propagating the change.
+      * @return an error message if there was a problem setting the minimum clip percentage;
+      *      an empty string otherwise.
+      */
+    QString setColorMinPercent( double colorMinPercent, bool complete );
 
     virtual ~Histogram();
     const static QString CLASS_NAME;
@@ -224,9 +272,9 @@ private slots:
     
 
 private:
-    void _applyClips() const;
 
     void _finishClips();
+    void _finishColor();
 
     double _getBufferedIntensity( const QString& clipKey, const QString& percentKey );
     std::pair<int,int> _getFrameBounds() const;
@@ -238,11 +286,13 @@ private:
     QString _set2DFootPrint( const QString& params );
 
     /**
-        * Set the single plane that should be used for data when the histogram is in single plane mode.
-        * @param channel the single frame to use for histogram data.
-        * @return an error message if there was a problem setting the channel; an empty string otherwise.
-        */
-       QString setCubeChannel( int channel );
+    * Set the single plane that should be used for data when the histogram is in single plane mode.
+    * @param channel the single frame to use for histogram data.
+    * @return an error message if there was a problem setting the channel; an empty string otherwise.
+    */
+   QString setCubeChannel( int channel );
+
+
 
 
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
@@ -261,6 +311,7 @@ private:
 
     void _initializeDefaultState();
     void _initializeCallbacks();
+    void _initializeStatics();
 
     void _refreshView();
     void _resetBinCountBasedOnWidth();
@@ -279,14 +330,15 @@ private:
     const static QString CLIP_MIN;
     const static QString CLIP_MAX;
     const static QString CLIP_APPLY;
+    const static QString CUSTOM_CLIP;
     const static QString BIN_COUNT;
     const static QString BIN_WIDTH;
     const static QString COLOR_MIN;
     const static QString COLOR_MAX;
     const static QString COLOR_MIN_PERCENT;
     const static QString COLOR_MAX_PERCENT;
+    const static QString FREQUENCY_UNIT;
     const static QString GRAPH_STYLE;
-
     const static QString GRAPH_LOG_COUNT;
     const static QString GRAPH_COLORED;
     const static QString PLANE_MODE;
@@ -295,7 +347,6 @@ private:
     const static QString PLANE_MODE_ALL;
     const static QString PLANE_MIN;
     const static QString PLANE_MAX;
-    const static QString PLANE_RANGE_UPPER_BOUND;
     const static QString FOOT_PRINT;
     const static QString FOOT_PRINT_IMAGE;
     const static QString FOOT_PRINT_REGION;
@@ -306,6 +357,8 @@ private:
     const static QString X_COORDINATE;
     const static QString POINTER_MOVE;
     
+    static ChannelUnits* m_channelUnits;
+
     int m_significantDigits;
     double m_errorMargin;
 

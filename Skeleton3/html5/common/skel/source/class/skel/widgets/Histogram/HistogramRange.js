@@ -25,7 +25,6 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
         CMD_SET_CLIP_MIN_PERCENT: "setClipMinPercent",
         CMD_SET_CLIP_MAX : "setClipMax",
         CMD_SET_CLIP_MAX_PERCENT: "setClipMaxPercent",
-        CMD_APPLY_CLIP_IMAGE : "setClipToImage",
         CMD_ZOOM_FULL : "zoomFull",
         CMD_ZOOM_RANGE : "zoomRange"
     },
