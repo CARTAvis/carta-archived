@@ -23,12 +23,10 @@ HEADERS += \
     Histogram1.h 
 
 
-#CASACOREDIR=/usr/local
-#WCSLIBDIR=/usr/include/wcslib
-#CASACOREDIR=/usr/local
-#WCSLIBDIR=/usr/include/wcslib
-CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
+CASACOREDIR=/usr/local
+WCSLIBDIR=/usr/include/wcslib
+#CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
+#WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
 CASACOREDIR=$$absolute_path($${CASACOREDIR})
 WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
 

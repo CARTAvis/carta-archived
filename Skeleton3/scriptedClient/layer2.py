@@ -11,9 +11,14 @@ class TagMessage:
         self.data = data
     def toVarLenMessage(self):
         """converts itself to VarLenMessage"""
+        print "toVarLenMessage tag = " + self.tag
+        print "toVarLenMessage data = " + self.data
         binData = bytearray(self.tag)
+        print "toVarLenMessage binData = " + binData
         binData.append(0)
+        print "toVarLenMessage binData = " + binData
         binData.extend(self.data)
+        print "toVarLenMessage binData = " + binData
         return VarLenMessage(binData)
     @staticmethod
     def fromVarLenMessage(vlm):

@@ -25,15 +25,12 @@ HEADERS += \
     CCRawView.h \
     CCCoordinateFormatter.h
 
-#CASACOREDIR=/usr/local
-#WCSLIBDIR=/usr/include/wcslib
-#CFITSIODIR=/usr/local/src/cfitsio
-#CASACOREDIR=/usr/local
-#WCSLIBDIR=/usr/include/wcslib
-#CFITSIODIR=/usr/local/src/cfitsio
-CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
-CFITSIODIR=../../../../ThirdParty/cfitsio-3360-shared
+CASACOREDIR=/usr/local
+WCSLIBDIR=/usr/include/wcslib
+CFITSIODIR=/usr/local/src/cfitsio
+#CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
+#WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
+#CFITSIODIR=../../../../ThirdParty/cfitsio-3360-shared
 
 CASACOREDIR=$$absolute_path($${CASACOREDIR})
 WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
