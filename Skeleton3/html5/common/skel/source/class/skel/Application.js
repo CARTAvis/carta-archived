@@ -363,17 +363,22 @@ qx.Class.define( "skel.Application",
         },
         
         /**
-         * Show a window as a popup dialog.
-         * @param message {Object} information about thee window that will be shown.
+         * Show a window as a pop-up dialog.
+         * @param message {Object} information about the window that will be shown.
          */
         _showPopup : function( message ){
             var data = message.getData();
             var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
+            win.addListener( "registered", function(){
+                var sourceId = win.getIdentifier();
+                var addLinkCmd = skel.widgets.Command.CommandLinkAdd.getInstance();
+                addLinkCmd.link( sourceId, data.winId, null );
+            }, this);
             this._setPopupWinProperties( win );
         },
             
         /**
-         * Set uniform look and feel for a popup window.
+         * Set uniform look and feel for a pop-up window.
          * @param win {skel.widgets.Window.MoveResizeWindow}.
          */
         _setPopupWinProperties : function( win ){
@@ -386,8 +391,8 @@ qx.Class.define( "skel.Application",
             win.setResizable( true );
             win.setAlwaysOnTop( true );
             var center = skel.widgets.Util.getCenter( this.m_mainContainer );
-            var halfWidth = 250;
-            var halfHeight = 100;
+            var halfWidth = 200;
+            var halfHeight = 200;
             var leftPt = center[0] - halfWidth;
             var topPt = center[1] - halfHeight;
             var widthVal = 2 * halfWidth;

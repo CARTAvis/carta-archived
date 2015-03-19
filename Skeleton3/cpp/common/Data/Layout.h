@@ -81,7 +81,7 @@ private:
     void _initializeDefaultState();
     void _moveCell( int sourceRow, int sourceCol, int destRow, int destCol );
     bool _setPlugin( const QStringList& name );
-    bool _setPlugin( int rowIndex, int colIndex, const QString& name );
+    bool _setPlugin( int rowIndex, int colIndex, const QString& name, bool insert = false );
 
 
     static bool m_registered;

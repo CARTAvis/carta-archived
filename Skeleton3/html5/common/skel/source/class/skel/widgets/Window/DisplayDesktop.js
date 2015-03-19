@@ -412,17 +412,16 @@ qx.Class
                             else {
                                 this._makeWindow(pluginId, index);
                             }
-
+                       
                             if ( this.m_window !== null ){
                                 this.add(this.m_window);
-                                this._resetWindowSize();
-
                                 this.m_window.open();
                                 if ( existingWindow ){
                                     this.m_window.initID( index );
                                 }
                                 //In case the window is excluded
                                 this.show();
+                                this._resetWindowSize();
                             }
                             return true;
                         },
@@ -440,14 +439,20 @@ qx.Class
                             if (rowIndex != this.m_row || colIndex != this.m_col) {
                                 return false;
                             }
-                            
+
                             if ( this.m_window === null ||this.m_window.getPlugin() != window.getPlugin() ){
                                 if ( this.m_window !== null ){
                                     this.removeAll();
                                 }
                                 this.m_window = window;
+                                this.m_window.setLocation( rowIndex, colIndex );
                                 this.add( this.m_window );
                                 this._resetWindowSize();
+                            }
+                            else {
+                                if ( this.isExcluded() ){
+                                    this.show();
+                                }
                             }
                             return true;
                         },

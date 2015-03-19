@@ -66,7 +66,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
 
     events : {
         "iconify" : "qx.event.type.Data",
-        "maximizeWindow" : "qx.event.type.Data"
+        "maximizeWindow" : "qx.event.type.Data",
+        "registered" : "qx.event.type.Data"
     },
 
     statics : {
@@ -132,7 +133,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         clearLink : function( winId ){
             var linkIndex = this.m_links.indexOf(winId);
-            
             if ( linkIndex >= 0 ){
                 this.m_links.splice(linkIndex);
             }
@@ -182,6 +182,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             linkInfo.locationY = midPoint[1];
             var index = this.m_links.indexOf( sourceWinId );
             if ( index >= 0) {
+               
                 linkInfo.linked = true;
             }
 
@@ -358,7 +359,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( val ){
                 try {
                     var plugins = JSON.parse( val );
-                    
                     var buttonFunction = function( ){
                         var pluginName = this.getLabel();
                         var data = {
@@ -368,17 +368,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                         };
                         qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
                     };
-                    
+                    this.m_viewNameButtons = [];
                     for (var i = 0; i < plugins.pluginCount; i++) {
                         var name = plugins.pluginList[i].name;
                         var errors = plugins.pluginList[i].loadErrors;
                         var loaded = (errors === "");
                         if ( loaded ){
-                            var nameButton = new qx.ui.menu.Button(name);
-                            nameButton.row = this.m_row;
-                            nameButton.col = this.m_col;
-                            nameButton.addListener("execute", buttonFunction, nameButton);
-                            pluginMenu.add(nameButton);
+                            this.m_viewNameButtons[i] = new qx.ui.menu.Button(name);
+                            this.m_viewNameButtons[i].row = this.m_row;
+                            this.m_viewNameButtons[i].col = this.m_col;
+                            this.m_viewNameButtons[i].addListener("execute", buttonFunction, this.m_viewNameButtons[i]);
+                            pluginMenu.add(this.m_viewNameButtons[i]);
                         }
                     }
                     
@@ -546,6 +546,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                         anObject.m_identifier = id;
                         anObject._initSharedVar();
                         anObject.windowIdInitialized();
+                        anObject.fireDataEvent( "registered", "" );
                     }
                 }
             };
@@ -645,6 +646,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         setDrawMode : function(drawInfo) {
 
         },
+        
+        /**
+         * Update the location of this window.
+         * @param row {Number} the grid row index.
+         * @param col {Number} the grid column index.
+         */
+        setLocation : function (row, col ){
+            this.m_row = row;
+            this.m_col = col;
+            if ( this.m_viewNameButtons !== null ){
+                for ( var i = 0; i < this.m_viewNameButtons.length; i++ ){
+                    this.m_viewNameButtons[i].row = this.m_row;
+                    this.m_viewNameButtons[i].col = this.m_col;
+                }
+            }
+        },
 
         /**
          * Set the appearance of this window based on whether or not it is selected.
@@ -726,10 +743,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         m_infoHolder : null,
         m_settingsButton : null,
         m_infoLabel : null,
-        
+        m_viewNameButtons : null,
 
         m_links : null,
-
 
         //Identifies the plugin we are displaying.
         m_pluginId : "",

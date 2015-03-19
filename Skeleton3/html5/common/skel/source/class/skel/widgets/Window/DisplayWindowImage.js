@@ -165,7 +165,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         "showPopupWindow", data));
             }, this );
             showMenu.add( colormapButton );
-            /*var histogramButton = new qx.ui.menu.Button( path.HISTOGRAM_PLUGIN );
+            var histogramButton = new qx.ui.menu.Button( path.HISTOGRAM_PLUGIN );
             skel.widgets.TestID.addTestId( histogramButton, skel.widgets.TestID.HISTOGRAM_BUTTON);
             histogramButton.addListener( "execute", function(){
                 var data = {
@@ -175,7 +175,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "showPopupWindow", data));
             }, this );
-            showMenu.add( histogramButton );*/
+            showMenu.add( histogramButton );
             return showMenu;
         },
 

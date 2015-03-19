@@ -114,6 +114,7 @@ QString Histogram::addLink( CartaObject*  target){
                 connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram(Controller*)));
                 connect( controller,SIGNAL(channelChanged(Controller*)), this, SLOT(_updateChannel(Controller*)));
                 m_controllerLinked = true;
+                _createHistogram( controller );
             }
         }
         else {

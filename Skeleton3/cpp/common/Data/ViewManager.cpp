@@ -195,7 +195,6 @@ void ViewManager::_initCallbacks(){
         //Callback for updating links after all objects have been created.
         addCommandCallback( "refreshState", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                    qDebug() << "ViewManager refreshing state";
                     _refreshState();
                     return "";
                 });
@@ -265,30 +264,6 @@ int ViewManager::_findColorMap( const QString& id ) const {
     return colorIndex;
 }
 
-int ViewManager::_findController( const QString& id ) const {
-    int controlCount = m_controllers.size();
-    int controlIndex = -1;
-    for ( int i = 0; i < controlCount; i++ ){
-        if ( m_controllers[i]->getPath() == id ){
-            controlIndex = i;
-            break;
-        }
-    }
-    return controlIndex;
-}
-
-int ViewManager::_findAnimator( const QString& id ) const {
-    int animCount = m_animators.size();
-    int animIndex = -1;
-    for ( int i = 0; i < animCount; i++ ){
-        if ( m_animators[i]->getPath() == id ){
-            animIndex = i;
-            break;
-        }
-    }
-    return animIndex;
-}
-
 
 
 QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
@@ -336,8 +311,12 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
 }
 
 void ViewManager::_removeView( const QString& plugin, int index ){
+
     ObjectManager* objMan = ObjectManager::objectManager();
-    if ( plugin == Controller::PLUGIN_NAME ){
+    if ( plugin == Layout::HIDDEN ){
+        return;
+    }
+    else if ( plugin == Controller::PLUGIN_NAME ){
         //First remove all links to the controller.
         QString destId = m_controllers[index]->getPath();
         for ( Animator* animator : m_animators ){
@@ -380,62 +359,61 @@ void ViewManager::_removeView( const QString& plugin, int index ){
     }
 }
 
-QString ViewManager::getObjectId( const QString& plugin, int index ){
+QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCreate ){
     QString viewId("");
     if ( plugin == Controller::PLUGIN_NAME ){
-        if ( 0 <= index && index < m_controllers.size()){
+        if ( 0 <= index && index < m_controllers.size()&&!forceCreate){
             viewId = m_controllers[index]->getPath();
         }
         else {
             if ( index == -1 ){
-                index = m_controllers.size() - 1;
+                index = m_controllers.size();
             }
-            viewId = _makeController(index+1);
+            viewId = _makeController(index);
         }
     }
     else if ( plugin == Animator::CLASS_NAME ){
-        if ( 0 <= index && index < m_animators.size()){
+        if ( 0 <= index && index < m_animators.size() && !forceCreate ){
             viewId = m_animators[index]->getPath();
         }
         else {
             if ( index == -1 ){
-                index = m_animators.size() - 1;
+                index = m_animators.size();
             }
-            viewId = _makeAnimator(index+1);
+            viewId = _makeAnimator(index);
         }
     }
     else if ( plugin == Colormap::CLASS_NAME ){
-        if ( 0 <= index && index < m_colormaps.size()){
+        if ( 0 <= index && index < m_colormaps.size() && !forceCreate){
             viewId = m_colormaps[index]->getPath();
         }
         else {
             if ( index == -1 ){
-                index = m_colormaps.size() - 1;
+                index = m_colormaps.size();
             }
-            int newIndex = index + 1;
-            viewId = _makeColorMap(newIndex);
+            viewId = _makeColorMap( index );
         }
     }
     else if ( plugin == Histogram::CLASS_NAME ){
-        if ( 0 <= index && index < m_histograms.size()){
+        if ( 0 <= index && index < m_histograms.size() && !forceCreate){
             viewId = m_histograms[index]->getPath();
         }
         else {
             if ( index == -1 ){
-                index = m_histograms.size() - 1;
+                index = m_histograms.size();
             }
-            viewId = _makeHistogram(index+1);
+            viewId = _makeHistogram(index);
         }
     }
     else if ( plugin == Statistics::CLASS_NAME ){
-        if ( 0 <= index && index < m_statistics.size()){
+        if ( 0 <= index && index < m_statistics.size() && !forceCreate ){
             viewId = m_statistics[index]->getPath();
         }
         else {
             if ( index == -1 ){
-                index = m_statistics.size() - 1;
+                index = m_statistics.size();
             }
-            viewId = _makeStatistics(index+1);
+            viewId = _makeStatistics(index);
         }
     }
     else if ( plugin == ViewPlugins::CLASS_NAME ){
@@ -461,39 +439,31 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
     }
 }
 
-QString ViewManager::_makeAnimator( int maxCount ){
+QString ViewManager::_makeAnimator( int index ){
     int currentCount = m_animators.size();
-    if ( currentCount < maxCount ){
-        for ( int i = currentCount; i < maxCount; i++ ){
-            CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
-            m_animators.append( dynamic_cast<Animator*>(animObj));
-        }
-    }
-    QString path = m_animators[maxCount-1] ->getPath();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
+    m_animators.insert( index, dynamic_cast<Animator*>(animObj));
+    QString path = m_animators[index] ->getPath();
     return path;
 }
 
-QString ViewManager::_makeColorMap( int maxCount ){
+QString ViewManager::_makeColorMap( int index ){
     int currentCount = m_colormaps.size();
-    if ( currentCount < maxCount ){
-        for ( int i = currentCount; i < maxCount; i++  ){
-            CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
-            m_colormaps.append( dynamic_cast<Colormap*>(controlObj) );
-        }
-    }
-    QString path = m_colormaps[maxCount-1]->getPath();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
+    m_colormaps.insert( index, dynamic_cast<Colormap*>(controlObj) );
+    QString path = m_colormaps[index]->getPath();
    return path;
 }
 
-QString ViewManager::_makeController( int maxCount ){
+QString ViewManager::_makeController( int index ){
     int currentCount = m_controllers.size();
-    if ( currentCount < maxCount ){
-        for ( int i = currentCount; i < maxCount; i++ ){
-            CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
-            m_controllers.append( dynamic_cast<Controller*>(controlObj) );
-        }
-    }
-    return m_controllers[maxCount-1]->getPath();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
+    m_controllers.insert( index, dynamic_cast<Controller*>(controlObj) );
+    QString path = m_controllers[index]->getPath();
+    return path;
 }
 
 void ViewManager::_makeDataLoader(){
@@ -503,15 +473,12 @@ void ViewManager::_makeDataLoader(){
     }
 }
 
-QString ViewManager::_makeHistogram( int maxCount ){
+QString ViewManager::_makeHistogram( int index ){
     int currentCount = m_histograms.size();
-    if ( currentCount < maxCount ){
-        for ( int i = currentCount; i < maxCount; i++ ){
-            CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
-            m_histograms.append( dynamic_cast<Histogram*>(controlObj) );
-        }
-    }
-    return m_histograms[maxCount - 1]->getPath();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
+    m_histograms.insert( index, dynamic_cast<Histogram*>(controlObj) );
+    return m_histograms[index]->getPath();
 }
 
 QString ViewManager::_makeLayout(){
@@ -533,15 +500,12 @@ QString ViewManager::_makePluginList(){
     return pluginsPath;
 }
 
-QString ViewManager::_makeStatistics( int maxCount ){
+QString ViewManager::_makeStatistics( int index ){
     int currentCount = m_statistics.size();
-    if (currentCount < maxCount ){
-        for ( int i = currentCount; i < maxCount; i++ ){
-            CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
-            m_statistics.append( dynamic_cast<Statistics*>(controlObj) );
-        }
-    }
-    return m_statistics[maxCount-1]->getPath();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
+    m_statistics.append( dynamic_cast<Statistics*>(controlObj) );
+    return m_statistics[index]->getPath();
 }
 
 bool ViewManager::_readState( const QString& saveName ){
@@ -603,7 +567,7 @@ void ViewManager::setAnalysisView(){
     _clearControllers( 1 );
     _clearAnimators( 1 );
      _clearColormaps( 1 );
-    _clearHistograms( 0 );
+    _clearHistograms( 1 );
     _clearStatistics( 1 );
 
     if ( m_layout == nullptr ){
@@ -612,15 +576,29 @@ void ViewManager::setAnalysisView(){
     m_layout->setLayoutAnalysis();
 
     //Create the view objects
-    _makeAnimator(1);
-    _makeController(1);
-    _makeColorMap(1);
-    _makeStatistics(1);
+    if ( m_animators.size() == 0 ){
+        _makeAnimator(0);
+    }
+    if ( m_controllers.size() == 0 ){
+        _makeController(0);
+    }
+    if ( m_colormaps.size() == 0 ){
+        _makeColorMap(0);
+    }
+    if ( m_statistics.size() == 0 ){
+        _makeStatistics(0);
+    }
+    if ( m_histograms.size() == 0 ){
+        _makeHistogram(0);
+    }
 
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
+    m_histograms[0]->addLink( m_controllers[0]);
+    m_histograms[0]->addLink( m_colormaps[0]);
+    _refreshState();
 }
 
 bool ViewManager::setColorMap( const QString& colormapId, const QString& colormapName ){
@@ -642,11 +620,22 @@ void ViewManager::setDeveloperView(){
     _clearStatistics( 1 );
 
     //Create the view objects
-    _makeAnimator(1);
-    _makeController(1);
-    _makeColorMap(1);
-    _makeHistogram(1);
-    _makeStatistics(1);
+    if ( m_animators.size() == 0 ){
+        _makeAnimator(0);
+    }
+    if ( m_controllers.size() == 0 ){
+        _makeController(0);
+    }
+
+    if ( m_colormaps.size() == 0 ){
+        _makeColorMap(0);
+    }
+    if ( m_histograms.size() == 0 ){
+        _makeHistogram(0);
+    }
+    if ( m_statistics.size() == 0 ){
+        _makeStatistics(0);
+    }
 
     if ( m_layout == nullptr ){
         _makeLayout();
@@ -659,6 +648,7 @@ void ViewManager::setDeveloperView(){
     m_colormaps[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_colormaps[0]);
+    _refreshState();
 }
 
 void ViewManager::setImageView(){
@@ -671,7 +661,9 @@ void ViewManager::setImageView(){
         _makeLayout();
     }
     m_layout->setLayoutImage();
-    _makeController(1);
+    if ( m_controllers.size() == 0 ){
+        _makeController(0);
+    }
 }
 
 
@@ -702,10 +694,18 @@ bool ViewManager::setPlugins( const QStringList& names ){
             for ( int i = 0; i < oldNames.size(); i++ ){
                 pluginMap[oldNames[i]] = -1;
             }
+            //Remove any views that are no longer needed and add additional
+            //views that are needed.
             for ( int i = 0; i < names.size(); i++ ){
                 pluginMap[oldNames[i]] = pluginMap[oldNames[i]] + 1;
                 if ( names[i] != oldNames[i]){
                     _removeView( oldNames[i], pluginMap[oldNames[i]]);
+                    int index = 0;
+                    if ( pluginMap.contains( names[i])){
+                        pluginMap[names[i]] = pluginMap[names[i]] + 1;
+                        index = pluginMap[names[i]];
+                    }
+                    getObjectId( names[i], index, true);
                 }
             }
             pluginsSet = true;

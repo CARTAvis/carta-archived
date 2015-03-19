@@ -63,6 +63,7 @@ QString Layout::addWindow( int rowIndex, int colIndex ){
                 if ( pluginSet ){
                     m_state.flushState();
                 }
+
             }
             //Move existing plugins up to make space at the given index.
             else if ( 0 <= hiddenRow && hiddenRow < rowIndex ){
@@ -83,31 +84,32 @@ QString Layout::addWindow( int rowIndex, int colIndex ){
                 int newSize = newRowCount * oldColCount;
                 m_state.setValue<int>( LAYOUT_ROWS, newRowCount );
                 m_state.resizeArray ( LAYOUT_PLUGINS, newSize, StateInterface::PreserveAll );
+
+                //Adjust cells in the affected column by moving ones below the
+                //new cell down one and setting the new cell empty.
                 for ( int i = newRowCount - 2; i>= 0; i-- ){
-                    if ( i > rowIndex ){
-                        for ( int j = 0; j < oldColCount; j++ ){
-                            _moveCell( i, j, i+1, j);
-                        }
+                    //Move cells in the specific column down one.
+                    if ( i >= rowIndex ){
+                        _moveCell( i, colIndex, i+1, colIndex);
                     }
-                    else if ( i == rowIndex ){
-                        QString pluginName = HIDDEN;
-                        for ( int j = 0; j < oldColCount; j++ ){
-                            if ( j == colIndex ){
-                                pluginName = EMPTY;
-                            }
-                            _setPlugin( i, j, pluginName );
-                        }
+                    //Fill in the new cell as empty.
+                    if ( i == rowIndex ){
+                        _setPlugin( rowIndex, colIndex, EMPTY );
                     }
                     //We are not changing the beginning rows.
                     else if ( i < rowIndex ){
                        break;
                     }
                 }
-                //Fill in the new row with empty windows.
+
+                //Fill in the new row with empty windows for all columns
+                //but the affected one.
                 for ( int i = oldRowCount; i < newRowCount; i++ ){
                     for ( int j = 0; j < oldColCount; j++ ){
-                        _setPlugin( i, j, EMPTY );
-                    }
+                        if ( j != colIndex ){
+                            _setPlugin( i, j, EMPTY, true );
+                         }
+                     }
                 }
                 m_state.flushState();
             }
@@ -353,10 +355,11 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
 }
 
 void Layout::setLayoutAnalysis(){
-    setLayoutSize( 3, 2 );
+    setLayoutSize( 4, 2 );
     QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
             HIDDEN, Animator::CLASS_NAME,
-            HIDDEN, Colormap::CLASS_NAME};
+            HIDDEN, Colormap::CLASS_NAME,
+            HIDDEN, Histogram::CLASS_NAME};
     _setPlugin( names );
 }
 
@@ -367,10 +370,11 @@ void Layout::setLayoutDeveloper(){
             HIDDEN, Colormap::CLASS_NAME,
             HIDDEN, Histogram::CLASS_NAME};
     _setPlugin( names );*/
-    setLayoutSize( 2, 3 );
-        QStringList names = {Controller::PLUGIN_NAME, Colormap::CLASS_NAME,
-                Histogram::CLASS_NAME,
-                HIDDEN, Animator::CLASS_NAME, HIDDEN};
+    setLayoutSize( 3, 2 );
+        QStringList names = {Controller::PLUGIN_NAME, /*Statistics::CLASS_NAME,*/
+                Animator::CLASS_NAME,
+                HIDDEN, Colormap::CLASS_NAME,
+                HIDDEN, Histogram::CLASS_NAME};
         _setPlugin( names );
 }
 
@@ -417,17 +421,25 @@ QString Layout::setLayoutSize( int rows, int cols ){
     return errorMsg;
 }
 
-bool Layout::_setPlugin( int rowIndex, int colIndex, const QString& name ){
+bool Layout::_setPlugin( int rowIndex, int colIndex, const QString& name, bool insert ){
     int arrayIndex = _getArrayIndex( rowIndex, colIndex );
     int rows = m_state.getValue<int>( LAYOUT_ROWS );
     int cols = m_state.getValue<int>( LAYOUT_COLS );
     bool pluginSet = false;
     if ( arrayIndex < rows*cols && arrayIndex >= 0 ){
         QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number( arrayIndex) );
-        QString oldValue = m_state.getValue<QString>( lookup );
-        if ( name != oldValue ){
-            m_state.setValue<QString>(lookup, name );
+        if ( !insert ){
+            QString oldValue = m_state.getValue<QString>( lookup );
+            if ( name != oldValue ){
+
+                pluginSet = true;
+            }
+        }
+        else {
             pluginSet = true;
+        }
+        if ( pluginSet ){
+            m_state.setValue<QString>(lookup, name );
         }
     }
     return pluginSet;

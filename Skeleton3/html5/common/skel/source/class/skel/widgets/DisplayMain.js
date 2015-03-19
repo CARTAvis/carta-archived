@@ -254,9 +254,11 @@ qx.Class.define("skel.widgets.DisplayMain",
                             pluginMap[name] = pluginMap[name] + 1;
                             var window = this._findWindow ( name, windows );
                             var origWin = this.m_pane.getWindow( row, col );
-                            if ( window === null || (origWin !== null && origWin.getPlugin() !== name)){
+                            //If there is no existing plugin with that name then we create one.
+                            if ( window === null ){
                                 this.m_pane.setView(name, pluginMap[name], row, col);
                             }
+                            //Otherwise, use the existing one.
                             else {
                                 this.m_pane.setWindow( window, row, col );
                             }
@@ -349,11 +351,11 @@ qx.Class.define("skel.widgets.DisplayMain",
         
         
         /**
-         * Sends a command to the server letting it now that the displayed plugin
+         * Sends a command to the server letting it know that the displayed plug-in
          * has changed.
-         * @param plugin {String} the name of the new plugin.
-         * @param row {Number} the row index of the window containing the plugin.
-         * @param col {Number} the column index of the window containing the plugin.
+         * @param plugin {String} the name of the new plug-in.
+         * @param row {Number} the row index of the window containing the plug-in.
+         * @param col {Number} the column index of the window containing the plug-in.
          */
         _setView : function( plugin, row, col ){
             var path = skel.widgets.Path.getInstance();

@@ -22,7 +22,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, row, col, index, detached );
             this.m_content.setLayout( new qx.ui.layout.HBox(0));
             this.m_links = [];
-            this.m_index = index;
+            //this.m_index = index;
         },
 
         members : {
@@ -50,32 +50,32 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                     this.m_colormap.setId( this.m_identifier );
                     this.m_content.add( this.m_colormap, {flex:1});
                 }
-                if ( this.m_showHistogram === null ){
+                /*if ( this.m_showHistogram === null ){
                     this.m_showHistogram = new qx.ui.menu.CheckBox( "Show Histogram");
                     this.m_showHistogram.setValue( false );
                     this.m_showHistogram.addListener( "execute", this._layoutHistogram, this );
                     this.m_contextMenu.add( this.m_showHistogram );
-                }
+                }*/
             },
             
             /**
              * Instantiate the associated histogram and retrieve its id.
              */
-            _initHistogram : function(){
+            /*_initHistogram : function(){
                 //Get the id of this histogram.
                 this.m_histogram = new skel.widgets.Histogram.Histogram();
                 var pathDict = skel.widgets.Path.getInstance();
                 var paramMap = "pluginId:" + pathDict.HISTOGRAM_PLUGIN + ",index:"+this.m_index;
                 var regCmd = pathDict.getCommandRegisterView();
                 this.m_connector.sendCommand( regCmd, paramMap, this._regHistogramCB(this));
-            },
+            },*/
             
 
             
             /**
              * Add/remove the associated histogram from the color map.
              */
-            _layoutHistogram : function(){
+            /*_layoutHistogram : function(){
                 if ( this.m_showHistogram.getValue() ){
                     if ( this.m_histogram === null ){
                         this._initHistogram();
@@ -93,7 +93,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                         this.m_content.remove( this.m_histogram);
                     }
                 }
-            },
+            },*/
 
             /**
              * Returns whether or not this window can be linked to a window
@@ -116,13 +116,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
              * Callback for setting the id of the histogram.
              * @param anObject {skel.widgets.Window.DisplayWindowColormap}.
              */
-            _regHistogramCB : function( anObject ){
+            /*_regHistogramCB : function( anObject ){
                 return function( id ){
                     if ( id && id.length > 0 ){
                         anObject.m_histogram.setId( id );
                     }
                 };
-            },
+            },*/
             
             /**
              * Called when the window's setting's button has been toggled; subclasses
@@ -140,11 +140,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                 this._initDisplaySpecific();
                 arguments.callee.base.apply(this, arguments);
             },
-
             
-            m_colormap : null,
-            m_showHistogram : null,
-            m_histogram : null,
-            m_index : null
+            m_colormap : null
+            //m_showHistogram : null,
+            //m_histogram : null,
+            //m_index : null
         }
 });
