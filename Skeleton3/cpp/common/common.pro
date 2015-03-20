@@ -22,7 +22,6 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
-    ScriptedCommandListener.h \
     State/ObjectManager.h \
     State/StateInterface.h \
     State/StateReader.h \
@@ -61,12 +60,16 @@ HEADERS += \
     Histogram/HistogramGenerator.h \
     Histogram/HistogramSelection.h \
     Histogram/HistogramPlot.h \
-    ScriptTester.h \
-    ScriptFacade.h \
+    ScriptedClient/ScriptedCommandListener.h \
+    ScriptedClient/ScriptFacade.h \
     Hacks/ImageViewController.h \
     Hacks/MainModel.h \
     Algorithms/quantileAlgorithms.h \
-    ILayeredView.h
+    ILayeredView.h \
+    ScriptedClient/Listener.h \
+    ScriptedClient/VarLengthMessage.h \
+    ScriptedClient/TagMessage.h \
+    ScriptedClient/JsonMessage.h
 
 SOURCES += \
     Viewer.cpp \
@@ -106,19 +109,23 @@ SOURCES += \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
-    ScriptedCommandListener.cpp \
     GrayColormap.cpp \
     HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
     Histogram/HistogramGenerator.cpp \
     Histogram/HistogramSelection.cpp \
     Histogram/HistogramPlot.cpp \
-    ScriptFacade.cpp \
+    ScriptedClient/ScriptedCommandListener.cpp \
+    ScriptedClient/ScriptFacade.cpp \
     ImageRenderService.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
     Algorithms/quantileAlgorithms.cpp \
-    ILayeredView.cpp
+    ILayeredView.cpp \
+    ScriptedClient/Listener.cpp \
+    ScriptedClient/VarLengthMessage.cpp \
+    ScriptedClient/TagMessage.cpp \
+    ScriptedClient/JsonMessage.cpp
 
 
 #message( "common            PWD=$$PWD")

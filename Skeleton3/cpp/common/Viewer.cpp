@@ -11,8 +11,8 @@
 #include "MainConfig.h"
 #include "MyQApp.h"
 #include "CmdLine.h"
-#include "ScriptedCommandListener.h"
-#include "ScriptFacade.h"
+#include "ScriptedClient/ScriptedCommandListener.h"
+#include "ScriptedClient/Listener.h"
 
 #include <QImage>
 #include <QColor>
@@ -20,6 +20,9 @@
 #include <QDebug>
 #include <QCache>
 #include <QCoreApplication>
+#include <QJsonObject>
+#include <QDir>
+#include <QJsonArray>
 
 #include <cmath>
 #include <iostream>
@@ -29,7 +32,36 @@
 
 using namespace rapidjson;
 
-const QString Viewer::SOCKET_DELIMITER("\n");
+// Pavol: what is this? Temporary delimiter for debugging purposes?
+// it used to be part of the Viewer class
+static const QString SOCKET_DELIMITER("\n");
+
+/// Recursively parse through a directory structure contained in a json value
+static QStringList _parseDirectory( const Value& dir, QString prefix )
+{
+    QStringList fileList;
+    for (rapidjson::SizeType i = 0; i < dir.Size(); i++)
+    {
+        const Value& name = dir[i];
+        QString filename = QString::fromStdString(name["name"].GetString());
+        if (name.HasMember("dir")) {
+            const Value& subdir = name["dir"];
+            QStringList subFileList = _parseDirectory( subdir, prefix + "/" + filename );
+            fileList.append( subFileList );
+        }
+        else {
+            if (prefix != "")
+            {
+                filename = prefix + "/" + filename;
+            }
+            fileList.append(filename);
+            //const char *printableName = filename.toLocal8Bit().constData();
+            //printf("%s \n", printableName);
+        }
+    }
+    //return fileList.join(',');
+    return fileList;
+}
 
 Viewer::Viewer() :
     QObject( nullptr ),
@@ -45,6 +77,9 @@ Viewer::Viewer() :
         qDebug() << "Listening to scripted commands on port " << port;
         connect( m_scl, & ScriptedCommandListener::command,
                  this, & Viewer::scriptedCommandCB );
+
+        // create Pavol's testing controller on port+1
+        new Carta::Core::ScriptedClient::PavolCommandController( port+1, this);
     }
     m_devView = false;
 }
@@ -123,31 +158,31 @@ Viewer::scriptedCommandCB( QString command )
     // command: getImageViews
     else if (args.size() == 1 && args[0].toLower() == "getimageviews") {
         QStringList imageViews = m_scriptFacade->getImageViews();
-        m_scl->sendTypedMessage( "1", imageViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", imageViews.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getColorMapViews
     else if (args.size() == 1 && args[0].toLower() == "getcolormapviews") {
         QStringList colorMapViews = m_scriptFacade->getColorMapViews();
-        m_scl->sendTypedMessage( "1", colorMapViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", colorMapViews.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getAnimatorViews
     else if (args.size() == 1 && args[0].toLower() == "getanimatorviews") {
         QStringList animatorViews = m_scriptFacade->getAnimatorViews();
-        m_scl->sendTypedMessage( "1", animatorViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", animatorViews.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getHistogramViews
     else if (args.size() == 1 && args[0].toLower() == "gethistogramviews") {
         QStringList histogramViews = m_scriptFacade->getHistogramViews();
-        m_scl->sendTypedMessage( "1", histogramViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", histogramViews.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getStatisticsViews
     else if (args.size() == 1 && args[0].toLower() == "getstatisticsviews") {
         QStringList statisticsViews = m_scriptFacade->getStatisticsViews();
-        m_scl->sendTypedMessage( "1", statisticsViews.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", statisticsViews.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: setColorMap
@@ -241,7 +276,7 @@ Viewer::scriptedCommandCB( QString command )
         fileListJson.Parse(fileList.toStdString().c_str());
         const Value& dir = fileListJson["dir"];
         QStringList fileListList = _parseDirectory( dir, "" );
-        m_scl->sendTypedMessage( "1", fileListList.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", fileListList.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: setAnalysisLayout
@@ -267,7 +302,7 @@ Viewer::scriptedCommandCB( QString command )
     // command: getColorMaps
     else if (args.size() > 0 && args[0].toLower() == "getcolormaps") {
         QStringList colormaps = m_scriptFacade->getColorMaps();
-        m_scl->sendTypedMessage( "1", colormaps.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", colormaps.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: setPlugins
@@ -294,25 +329,25 @@ Viewer::scriptedCommandCB( QString command )
     // command: getLinkedColorMaps
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedcolormaps" ) {
         QStringList linkedColorMaps = m_scriptFacade->getLinkedColorMaps( args[1] );
-        m_scl->sendTypedMessage( "1", linkedColorMaps.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", linkedColorMaps.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getLinkedAnimators
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedanimators" ) {
         QStringList linkedAnimators = m_scriptFacade->getLinkedAnimators( args[1] );
-        m_scl->sendTypedMessage( "1", linkedAnimators.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", linkedAnimators.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getLinkedHistograms
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedhistograms" ) {
         QStringList linkedHistograms = m_scriptFacade->getLinkedHistograms( args[1] );
-        m_scl->sendTypedMessage( "1", linkedHistograms.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", linkedHistograms.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: getLinkedStatistics
     else if ( args.size() == 2 && args[0].toLower() == "getlinkedstatistics" ) {
         QStringList linkedStatistics = m_scriptFacade->getLinkedStatistics( args[1] );
-        m_scl->sendTypedMessage( "1", linkedStatistics.join(Viewer::SOCKET_DELIMITER).toLocal8Bit() );
+        m_scl->sendTypedMessage( "1", linkedStatistics.join(SOCKET_DELIMITER).toLocal8Bit() );
     }
 
     // command: updatePan
@@ -350,28 +385,3 @@ Viewer::scriptedCommandCB( QString command )
     }
 } // scriptedCommandCB
 
-QStringList Viewer::_parseDirectory( const Value& dir, QString prefix )
-{
-    QStringList fileList;
-    for (rapidjson::SizeType i = 0; i < dir.Size(); i++)
-    {
-        const Value& name = dir[i];
-        QString filename = QString::fromStdString(name["name"].GetString());
-        if (name.HasMember("dir")) {
-            const Value& subdir = name["dir"];
-            QStringList subFileList = _parseDirectory( subdir, prefix + "/" + filename );
-            fileList.append( subFileList );
-        }
-        else {
-            if (prefix != "")
-            {
-                filename = prefix + "/" + filename;
-            }
-            fileList.append(filename);
-            //const char *printableName = filename.toLocal8Bit().constData();
-            //printf("%s \n", printableName);
-        }
-    }
-    //return fileList.join(',');
-    return fileList;
-}

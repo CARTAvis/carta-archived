@@ -19,6 +19,8 @@ SOURCES += \
 
 RESOURCES = resources.qrc
 
+INCLUDEPATH += ../../../ThirdParty/rapidjson/include
+
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.so
 DEPENDPATH += $$PROJECT_ROOT/common

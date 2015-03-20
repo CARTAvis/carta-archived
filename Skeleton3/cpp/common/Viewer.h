@@ -6,10 +6,8 @@
 
 #include <QObject>
 #include <memory>
-#include "ScriptFacade.h"
+#include "ScriptedClient/ScriptFacade.h"
 #include <rapidjson/document.h>
-
-using namespace rapidjson;
 
 class ScriptedCommandListener;
 namespace Carta {
@@ -36,12 +34,8 @@ public:
     /// safe to start setting/getting state)
     void start();
 
-    /**
-     * Show areas under active development.
-     */
+    /// Show areas under active development.
     void setDeveloperView( );
-
-    static const QString SOCKET_DELIMITER;
 
 signals:
 
@@ -58,7 +52,7 @@ protected:
     /// @todo make it unique ptr for auto-delete niceness
     ScriptedCommandListener * m_scl = nullptr;
 
-    ScriptFacade* m_scriptFacade;
+    ScriptFacade* m_scriptFacade = nullptr;
 
 private:
 
@@ -66,8 +60,6 @@ private:
 
     std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
 
-private:
-    /// Recursively parse through a directory structure contained in a json value
-    QStringList _parseDirectory( const Value& dir, QString prefix );
 };
+
 

@@ -322,6 +322,15 @@ def start(
     ):
     return Application(executable, configFile, port, htmlFile, imageFile)
 
+def startPavol(
+        executable = "/scratch/builds/Skeleton3/Dev/cpp/desktop/desktop", 
+        configFile = "/home/pfederl/.cartavis/config.json", 
+        port = 9999, 
+        htmlFile = "/home/pfederl/Work/ALMAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html", 
+        imageFile = "/scratch/Images/smallcube.fits"
+    ):
+    return Application(executable, configFile, port, htmlFile, imageFile)
+
 def makeImage(imageViewId, socket):
     image = Image(imageViewId, socket)
     return image
