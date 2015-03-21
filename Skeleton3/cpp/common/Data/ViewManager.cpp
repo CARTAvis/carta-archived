@@ -66,6 +66,41 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     _makeDataLoader();
 }
 
+
+void ViewManager::_adjustSize( int count, const QString& name, const QVector<int> & insertionIndices ){
+    int existingCount = 0;
+    if ( name == Colormap::CLASS_NAME ){
+        existingCount = m_colormaps.size();
+       _clearColormaps(count);
+    }
+    else if ( name == Histogram::CLASS_NAME ){
+        existingCount = m_histograms.size();
+        _clearHistograms(count);
+    }
+    else if ( name == Animator::CLASS_NAME ){
+        existingCount = m_animators.size();
+        _clearAnimators(count);
+    }
+    else if ( name == Controller::PLUGIN_NAME ){
+        existingCount = m_controllers.size();
+        _clearControllers(count);
+    }
+    else if ( name == Statistics::CLASS_NAME ){
+        existingCount = m_statistics.size();
+        _clearStatistics(count);
+    }
+
+    //Add some at the inserting indices.
+    if ( existingCount < count ){
+        int index = 0;
+        for ( int i = existingCount; i < count; i++ ){
+            this->getObjectId( name, insertionIndices[index], true );
+            index++;
+        }
+    }
+
+}
+
 void ViewManager::_clear(){
     _clearControllers( 0 );
     _clearAnimators( 0 );
@@ -81,6 +116,18 @@ void ViewManager::_clearControllers( int startIndex ){
     ObjectManager* objMan = ObjectManager::objectManager();
     int controlCount = m_controllers.size();
     for ( int i = controlCount-1; i >= startIndex; i-- ){
+        for ( Animator* anim : m_animators ){
+            anim->removeLink( m_controllers[i]);
+        }
+        for ( Histogram* hist : m_histograms ){
+            hist->removeLink( m_controllers[i]);
+        }
+        for ( Colormap* map : m_colormaps ){
+            map->removeLink( m_controllers[i]);
+        }
+        for ( Statistics* stat : m_statistics ){
+            stat->removeLink( m_controllers[i]);
+        }
         objMan->destroyObject( m_controllers[i]->getId());
         m_controllers.pop_back();
     }
@@ -99,6 +146,9 @@ void ViewManager::_clearColormaps( int startIndex ){
     int colorCount = m_colormaps.size();
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = colorCount-1; i >= startIndex; i-- ){
+        for (Histogram* hist : m_histograms ){
+            hist->removeLink( m_colormaps[i]);
+        }
         objMan->destroyObject( m_colormaps[i]->getId());
         m_colormaps.pop_back();
     }
@@ -108,6 +158,7 @@ void ViewManager::_clearHistograms( int startIndex ){
     int histCount = m_histograms.size();
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = histCount-1; i >= startIndex; i-- ){
+
         objMan->destroyObject( m_histograms[i]->getId());
         m_histograms.pop_back();
     }
@@ -231,6 +282,8 @@ void ViewManager::_initCallbacks(){
         }
         return returnVal;
     });
+
+
 
     addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -419,6 +472,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     else if ( plugin == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
     }
+    else if ( plugin == Layout::EMPTY || plugin == Layout::HIDDEN ){
+        //Do nothing
+    }
     else {
         qDebug() << "Unrecognized top level window type: "<<plugin;
     }
@@ -485,6 +541,8 @@ QString ViewManager::_makeLayout(){
     if ( !m_layout ){
         CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
         m_layout = dynamic_cast<Layout*>(layoutObj );
+        connect( m_layout, SIGNAL(pluginListChanged(const QStringList&, const QStringList&)),
+                this, SLOT( _pluginsChanged( const QStringList&, const QStringList&)));
     }
     QString layoutPath = m_layout->getPath();
     return layoutPath;
@@ -507,6 +565,48 @@ QString ViewManager::_makeStatistics( int index ){
     m_statistics.append( dynamic_cast<Statistics*>(controlObj) );
     return m_statistics[index]->getPath();
 }
+
+void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& oldNames ){
+    QMap<QString, int> pluginMap;
+    QMap<QString, QVector<int>> insertionIndices;
+    int oldNameCount = oldNames.size();
+    for ( int i = 0; i < names.size(); i++ ){
+        if ( !insertionIndices.contains( names[i]) ){
+            insertionIndices[names[i]] = QVector<int>();
+        }
+        //Store the accumulated count for this plugin.
+        if ( pluginMap.contains( names[i]) ){
+            pluginMap[names[i]] = pluginMap[names[i]]+1;
+        }
+        else {
+            pluginMap[names[i]] = 1;
+        }
+
+        //If there is an existing plugin of this type at i,
+        //then we don't need to do an insertion, otherwise, we may need to
+        //if the new plugin count ends up being more than the old one.
+        if ( i >= oldNameCount || oldNames[i] != names[i] ){
+            QVector<int> & indices = insertionIndices[names[i]];
+            indices.append( pluginMap[names[i]] - 1);
+        }
+    }
+
+    //Add counts of zero for old ones that no longer exist.
+    for ( int i = 0; i < oldNameCount; i++ ){
+        if ( !names.contains( oldNames[i] ) ){
+            pluginMap[oldNames[i]] = 0;
+            insertionIndices[oldNames[i]] = QVector<int>(0);
+        }
+    }
+
+    //Remove any views that are no longer needed
+    QList<QString> keys = pluginMap.keys();
+    for ( QString key : keys ){
+        _adjustSize( pluginMap[key], key, insertionIndices[key]);
+    }
+
+}
+
 
 bool ViewManager::_readState( const QString& saveName ){
     _clear();
@@ -564,33 +664,10 @@ void ViewManager::_refreshState(){
 }
 
 void ViewManager::setAnalysisView(){
-    _clearControllers( 1 );
-    _clearAnimators( 1 );
-     _clearColormaps( 1 );
-    _clearHistograms( 1 );
-    _clearStatistics( 1 );
-
     if ( m_layout == nullptr ){
         _makeLayout();
     }
     m_layout->setLayoutAnalysis();
-
-    //Create the view objects
-    if ( m_animators.size() == 0 ){
-        _makeAnimator(0);
-    }
-    if ( m_controllers.size() == 0 ){
-        _makeController(0);
-    }
-    if ( m_colormaps.size() == 0 ){
-        _makeColorMap(0);
-    }
-    if ( m_statistics.size() == 0 ){
-        _makeStatistics(0);
-    }
-    if ( m_histograms.size() == 0 ){
-        _makeHistogram(0);
-    }
 
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
@@ -612,58 +689,25 @@ bool ViewManager::setColorMap( const QString& colormapId, const QString& colorma
 }
 
 void ViewManager::setDeveloperView(){
-
-    _clearControllers( 1 );
-    _clearAnimators( 1 );
-    _clearColormaps( 1 );
-    _clearHistograms( 1 );
-    _clearStatistics( 1 );
-
-    //Create the view objects
-    if ( m_animators.size() == 0 ){
-        _makeAnimator(0);
-    }
-    if ( m_controllers.size() == 0 ){
-        _makeController(0);
-    }
-
-    if ( m_colormaps.size() == 0 ){
-        _makeColorMap(0);
-    }
-    if ( m_histograms.size() == 0 ){
-        _makeHistogram(0);
-    }
-    if ( m_statistics.size() == 0 ){
-        _makeStatistics(0);
-    }
-
     if ( m_layout == nullptr ){
         _makeLayout();
     }
+
     m_layout->setLayoutDeveloper();
 
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
-    m_statistics[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_colormaps[0]);
     _refreshState();
 }
 
 void ViewManager::setImageView(){
-    _clearControllers( 1 );
-     _clearAnimators( 0 );
-     _clearColormaps( 0 );
-     _clearHistograms( 0 );
-    _clearStatistics( 0 );
     if ( m_layout == nullptr ){
         _makeLayout();
     }
     m_layout->setLayoutImage();
-    if ( m_controllers.size() == 0 ){
-        _makeController(0);
-    }
 }
 
 
@@ -690,32 +734,18 @@ bool ViewManager::setPlugins( const QStringList& names ){
             qDebug() << "Invalid plugins for layout size";
         }
         else {
-            QMap<QString, int> pluginMap;
-            for ( int i = 0; i < oldNames.size(); i++ ){
-                pluginMap[oldNames[i]] = -1;
-            }
-            //Remove any views that are no longer needed and add additional
-            //views that are needed.
-            for ( int i = 0; i < names.size(); i++ ){
-                pluginMap[oldNames[i]] = pluginMap[oldNames[i]] + 1;
-                if ( names[i] != oldNames[i]){
-                    _removeView( oldNames[i], pluginMap[oldNames[i]]);
-                    int index = 0;
-                    if ( pluginMap.contains( names[i])){
-                        pluginMap[names[i]] = pluginMap[names[i]] + 1;
-                        index = pluginMap[names[i]];
-                    }
-                    getObjectId( names[i], index, true);
-                }
-            }
+            _pluginsChanged( names, oldNames );
             pluginsSet = true;
         }
     }
+
     else {
         qWarning() << "A layout for the plugins is missing";
     }
     return pluginsSet;
 }
+
+
 
 ViewManager::~ViewManager(){
     ObjectManager* objMan = ObjectManager::objectManager();

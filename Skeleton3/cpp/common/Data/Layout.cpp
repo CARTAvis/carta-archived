@@ -213,31 +213,32 @@ QStringList Layout::getPluginList() const {
 }
 
 void Layout::_initializeCommands(){
+
     addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {LAYOUT_ROWS, LAYOUT_COLS};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QString rowStr = dataValues[LAYOUT_ROWS];
-        QString colStr = dataValues[LAYOUT_COLS];
-        bool valid = false;
-        int rows = rowStr.toInt( &valid );
-        QString result;
-        if ( valid ){
-            int cols = colStr.toInt( &valid );
-            if ( valid ){
-                result = setLayoutSize( rows, cols);
-            }
-            else {
-                result = "Invalid layout cols: "+params;
-            }
-        }
-        else {
-            result =  "Invalid layout rows: " +params;
-        }
-        return result;
-    });
-
-
+                   const QString & params, const QString & /*sessionId*/) -> QString {
+           std::set<QString> keys = {LAYOUT_ROWS, LAYOUT_COLS};
+           std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+           QString rowStr = dataValues[LAYOUT_ROWS];
+           QString colStr = dataValues[LAYOUT_COLS];
+           bool valid = false;
+           int rows = rowStr.toInt( &valid );
+           QString result;
+           if ( valid ){
+               int cols = colStr.toInt( &valid );
+               if ( valid ){
+                   //If we are going to remove plugins with this new layout we will need
+                   //to remove them from the model.
+                   result = setLayoutSize( rows, cols);
+               }
+               else {
+                   result = "Invalid layout cols: "+params;
+               }
+           }
+           else {
+               result =  "Invalid layout rows: " +params;
+           }
+           return result;
+       });
 
     addCommandCallback( "addWindow", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -356,32 +357,31 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
 
 void Layout::setLayoutAnalysis(){
     setLayoutSize( 4, 2 );
+    QStringList oldNames = getPluginList();
     QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
             HIDDEN, Animator::CLASS_NAME,
             HIDDEN, Colormap::CLASS_NAME,
             HIDDEN, Histogram::CLASS_NAME};
     _setPlugin( names );
+    emit pluginListChanged( names, oldNames );
 }
 
 void Layout::setLayoutDeveloper(){
-    /*setLayoutSize( 4, 2 );
-    QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
-            HIDDEN, Animator::CLASS_NAME,
+    setLayoutSize( 3, 2 );
+    QStringList oldNames = getPluginList();
+    QStringList names = {Controller::PLUGIN_NAME, Animator::CLASS_NAME,
             HIDDEN, Colormap::CLASS_NAME,
             HIDDEN, Histogram::CLASS_NAME};
-    _setPlugin( names );*/
-    setLayoutSize( 3, 2 );
-        QStringList names = {Controller::PLUGIN_NAME, /*Statistics::CLASS_NAME,*/
-                Animator::CLASS_NAME,
-                HIDDEN, Colormap::CLASS_NAME,
-                HIDDEN, Histogram::CLASS_NAME};
-        _setPlugin( names );
+    _setPlugin( names );
+    emit pluginListChanged( names, oldNames );
 }
 
 void Layout::setLayoutImage(){
     setLayoutSize( 2,1);
+    QStringList oldNames = getPluginList();
     QStringList name = {Controller::PLUGIN_NAME, HIDDEN};
     _setPlugin( name );
+    emit pluginListChanged( name, oldNames );
 }
 
 
@@ -391,6 +391,7 @@ QString Layout::setLayoutSize( int rows, int cols ){
         int oldRows = m_state.getValue<int>( LAYOUT_ROWS );
         int oldCols = m_state.getValue<int>( LAYOUT_COLS );
         if ( rows != oldRows || cols != oldCols ){
+            QStringList oldNames = getPluginList();
             //If any of the windows are hidden, show them as empty.
             for ( int i = 0; i < oldRows; i++ ){
                 for ( int j = 0; j < oldCols; j++ ){
@@ -411,6 +412,8 @@ QString Layout::setLayoutSize( int rows, int cols ){
                  QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number( i) );
                  m_state.setValue( lookup, EMPTY );
             }
+            QStringList newNames = getPluginList();
+            emit pluginListChanged( newNames, oldNames );
             m_state.flushState();
         }
     }

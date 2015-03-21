@@ -242,25 +242,70 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         _resetDisplayedPlugins : function( layoutObj, windows ) {
             var index = 0;
+            var row = 0;
+            var col = 0;
+            var name = "";
+            var origWin = null;
+            
+            //First go through and process any windows that have not changed
+            //location or plugin.
+            for (row = 0; row < this.m_gridRowCount; row++) {
+                for (col = 0; col < this.m_gridColCount; col++) {
+                    name = layoutObj.plugins[index];
+                    if ( name && typeof(name) == "string" && name.length > 0 ){
+                        if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
+                            origWin = this.m_pane.getWindow( row, col );
+                            if ( origWin !== null && origWin.getPlugin() == name ){
+                                //Don't need to do anything but remove the window from
+                                //the list of unassigned windows and make sure it is not excluded.
+                                var winIndex = -1;
+                                for ( var i = 0; i < windows.length; i++ ){
+                                    var winRow = windows[i].getRow();
+                                    var winCol = windows[i].getCol();
+                                    if ( winRow == row && winCol == col ){
+                                        winIndex = i;
+                                        break;
+                                    }
+                                }
+                                if ( winIndex >= 0 ){
+                                    windows.splice( winIndex, 1 );
+                                }
+                                //Make sure empty window is not excluded.
+                                if ( name === skel.widgets.Window.DisplayWindow.EMPTY ){
+                                    this.m_pane.setWindow( origWin, row, col );
+                                }
+                            }
+                        }
+                    }
+                    index++;
+                }
+            }
+            
+            //Any remaining windows have moved or are new.
             var pluginMap = {};
-            for (var row = 0; row < this.m_gridRowCount; row++) {
-                for (var col = 0; col < this.m_gridColCount; col++) {
-                    var name = layoutObj.plugins[index];
+            index = 0;
+            for (row = 0; row < this.m_gridRowCount; row++) {
+                for (col = 0; col < this.m_gridColCount; col++) {
+                    name = layoutObj.plugins[index];
                     if ( name && typeof(name) == "string" && name.length > 0 ){
                         if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
                             if ( pluginMap[name] ===undefined ){
                                 pluginMap[name] = -1;
                             }
                             pluginMap[name] = pluginMap[name] + 1;
-                            var window = this._findWindow ( name, windows );
-                            var origWin = this.m_pane.getWindow( row, col );
-                            //If there is no existing plugin with that name then we create one.
-                            if ( window === null ){
-                                this.m_pane.setView(name, pluginMap[name], row, col);
-                            }
-                            //Otherwise, use the existing one.
-                            else {
-                                this.m_pane.setWindow( window, row, col );
+                            origWin = this.m_pane.getWindow( row, col );
+                            //Window never existed or has moved.
+                            if ( origWin === null || origWin.getPlugin() !== name ){
+                                //See if there is an extra window with the correct plugin
+                                var window = this._findWindow ( name, windows );
+                                //Use the existing one.
+                                if ( window !== null ){
+                                    this.m_pane.setWindow( window, row, col );
+                                }
+                                //Have to make a new window for the plugin.
+                                else {
+                                    this.m_pane.setView( name, pluginMap[name], row, col );
+                                }
                             }
                         }
                         else {

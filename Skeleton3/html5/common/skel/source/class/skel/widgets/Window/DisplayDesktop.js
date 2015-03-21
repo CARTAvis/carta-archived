@@ -25,6 +25,7 @@ qx.Class
                         this.set({
                             decorator : "desktop"
                         });
+                        this.addListener("resize", this._resetWindowSize, this);
                     },
 
                     events : {
@@ -37,7 +38,7 @@ qx.Class
                          * Adds listeners.
                          */
                         _addWindowListeners : function(){
-                            this.m_window.addListener("iconify", function() {
+                            this.m_iconifyListenerId = this.m_window.addListener("iconify", function() {
                                 if (this.m_window !== null && !this.m_window.isClosed()) {
                                     var data = {
                                         row : this.m_row,
@@ -47,16 +48,12 @@ qx.Class
                                     this.fireDataEvent("iconifyWindow", data);
                                 }
                             }, this);
-                           
-                            this.m_window.addListener("maximizeWindow",
+                           this.m_maxListenerId = this.m_window.addListener("maximizeWindow",
                                             function() {
                                                 var appRoot = this
                                                         .getApplicationRoot();
                                                 appRoot.add(this.m_window);
                                             }, this);
-
-                            this.addListener("resize", this._resetWindowSize, this);
-                            
                         },
                         
                         /**
@@ -264,8 +261,11 @@ qx.Class
                          */
                         removeWindows : function() {
                             if (this.m_window !== null) {
-                                qx.event.Registration
+                                /*qx.event.Registration
                                         .removeAllListeners(this.m_window);
+                                        */
+                                this.m_window.removeListenerById( this.m_iconifyListenerId );
+                                this.m_window.removeListenerById( this.m_maxListenerId );
                                 this.removeAll();
                             }
                         },
@@ -276,7 +276,7 @@ qx.Class
                          */
                         _resetWindowSize : function() {
                             var bounds = this.getBounds();
-                            if (bounds !== null) {
+                            if (bounds !== null && this.m_window !== null ) {
                                 this.m_window.setWidth(bounds.width );
                                 this.m_window.setHeight(bounds.height);
                             }
@@ -402,7 +402,7 @@ qx.Class
                                 //elsewhere so we will remake the window.
                                 if( this.m_window.getPlugin() != pluginId) {
                                     this.removeWindows();
-                                    this.m_window = null;
+                                    //this.m_window = null;
                                     this._makeWindow( pluginId, index);
                                 }
                                 else {
@@ -445,6 +445,7 @@ qx.Class
                                     this.removeAll();
                                 }
                                 this.m_window = window;
+                                this._addWindowListeners();
                                 this.m_window.setLocation( rowIndex, colIndex );
                                 this.add( this.m_window );
                                 this._resetWindowSize();
@@ -472,6 +473,8 @@ qx.Class
 
 
                         m_window : null,
+                        m_iconifyListenerId : null,
+                        m_maxListenerId : null,
                         m_row : null,
                         m_col : null
                     }

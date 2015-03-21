@@ -7,6 +7,8 @@
 
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
+#include <QVector>
+#include <QObject>
 
 namespace Carta {
 
@@ -21,7 +23,9 @@ class Layout;
 class Statistics;
 class ViewPlugins;
 
-class ViewManager : public CartaObject {
+class ViewManager : public QObject, public CartaObject {
+
+    Q_OBJECT
 
 public:
     /**
@@ -92,11 +96,12 @@ public:
      * Destructor.
      */
     virtual ~ViewManager();
-
+private slots:
+    void _pluginsChanged( const QStringList& names, const QStringList& oldNames );
 private:
     ViewManager( const QString& path, const QString& id);
     class Factory;
-
+    void _adjustSize( int count, const QString& name, const QVector<int>& insertionIndices);
     void _clear();
     void _clearAnimators( int startIndex );
     void _clearColormaps( int startIndex );

@@ -71,7 +71,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     },
 
     statics : {
-        EXCLUDED : "Hidden"
+        EXCLUDED : "Hidden",
+        EMPTY : "Empty"
     },
 
     members : {
@@ -192,6 +193,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
 
             return linkInfo;
 
+        },
+        
+        getCol : function(){
+            return this.m_col;
+        },
+        
+        getRow : function(){
+            return this.m_row;
         },
 
         /**

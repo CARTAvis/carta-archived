@@ -49,87 +49,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
 
     members : {
 
-
-
-        /**
-         * Ends the menu bar animation.
-         * 
-         * @param show
-         *                {Boolean} true if the menu bar should
-         *                be shown; false otherwise.
-         */
-        animateEnd : function(show) {
-           /* if (show) {
-                if (this.isTop()) {
-                    var heightPercent = this.m_animationSize + "%";
-                    this.setLayoutProperties({
-                        bottom : heightPercent
-                    });
-                } else {
-                    this.setWidth(this.m_animationSize);
-                    this.setMinWidth(this.m_animationSize);
-                    this.setMaxWidth(this.m_animationSize);
-                }
-            } else {
-                if (this.isTop()) {
-
-                    this.setLayoutProperties({
-                        bottom : "100%"
-                    });
-                } else {
-                    this.setWidth(0);
-                    this.setMinWidth(0);
-                    this.setMaxWidth(0);
-                }
-            }*/
-        },
-
-        /**
-         * Resets the size of the menu bar based on the
-         * percentage of the animation that has been completed
-         * and whether the animation is proceeding to show or
-         * hide the menu bar.
-         * 
-         * @param percent {Number} the progress of the animation.
-         * @param show {Boolean} whether or not the menu bar is in the process of being shown.
-         */
-        animateSize : function(percent, show) {
-            /*var calc = 0;
-            var calcStr = "";
-            var newSize = 0;
-            if (show) {
-                if (this.isTop()) {
-                    calc = Math.round((1 - percent) * (100 - this.m_animationSize) + this.m_animationSize);
-                    calcStr = calc + "%";
-                    this.setLayoutProperties({
-                        bottom : calcStr
-                    });
-                } 
-                else {
-                    newSize = Math.round(percent * this.m_animationSize);
-                    this.setWidth(newSize);
-                    this.setMinWidth(newSize);
-                    this.setMaxWidth(newSize);
-                }
-            } 
-            else {
-                if (this.isTop()) {
-                    var leftOverSize = 100 - this.m_animationSize;
-                    var calcNum = percent * leftOverSize + this.m_animationSize;
-                    calc = Math.round(calcNum);
-                    calcStr = calc + "%";
-                    this.setLayoutProperties({
-                        bottom : calcStr
-                    });
-                } 
-                else {
-                    newSize = Math.round((1 - percent) * this.m_animationSize);
-                    this.setWidth(newSize);
-                    this.setMinWidth(newSize);
-                    this.setMaxWidth(newSize);
-                }
-            }*/
-        },
         
         /**
          * If the list of available clip values on the server changes, update the GUI.
@@ -186,13 +105,15 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             var sessionButton = new qx.ui.menu.Button("Snapshot");
             sessionButton.setEnabled( false );
             fileMenu.add(sessionButton);
-            fileMenu.add(new qx.ui.menu.Separator());
-            var shareButton = new qx.ui.menu.CheckBox("Shared");
-            shareButton.setValue(false);
-            shareButton.addListener("execute", function() {
-                this.fireDataEvent("shareSession", shareButton.getValue());
-            }, this);
-            fileMenu.add(shareButton);
+            if ( this.m_connector.canShareSession() ){
+                fileMenu.add(new qx.ui.menu.Separator());
+                var shareButton = new qx.ui.menu.CheckBox("Shared");
+                shareButton.setValue(false);
+                shareButton.addListener("execute", function() {
+                    this.fireDataEvent("shareSession", shareButton.getValue());
+                }, this);
+                fileMenu.add(shareButton);
+            }
             this.m_fileButton.setMenu(fileMenu);
             var sessionMenu = new qx.ui.menu.Menu();
             var saveSessionButton = new qx.ui.menu.Button("Save...");
@@ -427,25 +348,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             }
         },*/
 
-        /**
-         * Sets the initial size information of the menu bar.
-         */
-        /*_setAnimationSize : function() {
-            this.removeListener("appear",
-                    this._setAnimationSize, this);
-            if (this.isTop()) {
-                var bounds = this.getBounds();
-                var statusHeight = bounds.height;
-                var appBounds = this.getApplicationRoot().getBounds();
-                var appHeight = appBounds.height;
-                this.m_animationSize = 100 - Math
-                        .round(statusHeight / appHeight * 100);
-                this.m_mouseMargin = 40;
-            } else {
-                this.m_animationSize = this.getWidth();
-                this.m_mouseMargin = 100;
-            }
-        },*/
 
         /**
          * Removes widgets from the menu bar in preparation for hiding.

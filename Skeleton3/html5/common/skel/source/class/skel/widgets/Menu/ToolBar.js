@@ -20,18 +20,6 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
         this._initSubscriptions();
     },
 
-    events : {
-        "layoutRowCount" : "qx.event.type.Data",
-        "layoutColCount" : "qx.event.type.Data",
-        "menuAlwaysVisible" : "qx.event.type.Data",
-        "menuMoved" : "qx.event.type.Data",
-        "newWindow" : "qx.event.type.Data",
-        "shareSession" : "qx.event.type.Data",
-        "statusAlwaysVisible" : "qx.event.type.Data",
-        /// emitted when cursor window toggle is clicked
-        "showCursorWindow" : "qx.event.type.Data"
-    },
-
     members : {
 
         _buildToolBar : function ( cmds ){

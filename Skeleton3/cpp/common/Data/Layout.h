@@ -9,13 +9,16 @@
 #include "State/StateInterface.h"
 
 #include <QStringList>
+#include <QObject>
 
 namespace Carta {
 
 namespace Data {
 
-class Layout : public CartaObject {
+class Layout : public QObject, public CartaObject {
     friend class ViewManager;
+
+    Q_OBJECT
 
 public:
     /**
@@ -70,6 +73,14 @@ public:
     virtual ~Layout();
     const static QString CLASS_NAME;
     static const QString LAYOUT;
+
+signals:
+    /**
+     * Notify that the plugins have changed.
+     * @param newPlugins a list of the new plugins.
+     * @param oldPlugins a list of the old plugins.
+     */
+    void pluginListChanged( const QStringList& newPlugins, const QStringList& oldPlugins );
 
 private:
     int _getArrayIndex( int rowIndex, int colIndex ) const;
