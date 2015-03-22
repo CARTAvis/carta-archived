@@ -41,7 +41,7 @@ class Circle : public Node
 
 public:
 
-    static Circle::SharedPtr
+    static SharedPtr
     create()
     {
         return std::make_shared < Circle > ();
@@ -68,8 +68,9 @@ namespace Carta
 {
 namespace Core
 {
-class IRasterLayer
+class IRasterLayer : QObject
 {
+    Q_OBJECT
     CLASS_BOILERPLATE( IRasterLayer );
 
 public:
@@ -82,11 +83,16 @@ public:
 
     virtual const QImage &
     getBuffer() = 0;
+
+signals:
+
+    void
+    repaintNeeded();
 };
 
 class IVectorLayer
 {
-    CLASS_BOILERPLATE( IRasterLayer );
+    CLASS_BOILERPLATE( IVectorLayer );
 
 public:
 
@@ -163,7 +169,32 @@ protected:
 
 namespace Experimental
 {
-class VGList;
+/// something that can be rendered to QPainter synchronously
+class IRenderableQPainterSync
+{
+public:
+
+    virtual void
+    renderSync( QPainter * p ) = 0;
+};
+
+/// something that can be rendered to QPainter asynchronously
+class IRenderableQPainterASync
+    : public QObject
+{
+    Q_OBJECT
+
+public slots:
+
+    virtual void
+    renderASync( QPainter * p ) = 0;
+
+signals:
+
+    void
+    done();
+};
+
 
 /// interface representing the minimal APIs for rendering VGlist
 class IRenderer
@@ -174,8 +205,11 @@ public:
     drawCircle( const QPointF & center, double radius ) = 0;
 
     virtual void
-    drawLine( const QPointF & p1, const QPointF & p2) = 0;
+    drawLine( const QPointF & p1, const QPointF & p2 ) = 0;
 };
+
+// forward ref.
+class VGList;
 
 /// this class can render a VGList using QPainter APIs
 class RendererQPainter : public IRenderer
@@ -199,10 +233,11 @@ public:
         Q_UNUSED( radius );
     }
 
-    virtual void drawLine(const QPointF & p1, const QPointF & p2) override
+    virtual void
+    drawLine( const QPointF & p1, const QPointF & p2 ) override
     {
-        Q_UNUSED( p1);
-        Q_UNUSED( p2);
+        Q_UNUSED( p1 );
+        Q_UNUSED( p2 );
     }
 
     void
@@ -211,7 +246,6 @@ public:
 private:
 
     QPainter * m_qpainter = nullptr;
-
 };
 
 class IEntry
@@ -261,22 +295,29 @@ private:
 class Line : public IEntry
 {
 public:
-    Line( const QPointF & p1, const QPointF & p2) {
+
+    Line( const QPointF & p1, const QPointF & p2 )
+    {
         m_p1 = p1;
         m_p2 = p2;
     }
 
-    virtual void cplusplus(RendererQPainter & painter)
+    virtual void
+    cplusplus( RendererQPainter & painter )
     {
-        painter.drawLine( m_p1, m_p2);
+        painter.drawLine( m_p1, m_p2 );
     }
-    virtual QStringList javascript()
+
+    virtual QStringList
+    javascript()
     {
         return QStringList()
-                << QString( "p.line(%1,%2,%3,%4)")
-                   .arg(m_p1.x()).arg(m_p1.y()).arg(m_p2.x()).arg(m_p2.y());
+               << QString( "p.line(%1,%2,%3,%4)" )
+                   .arg( m_p1.x() ).arg( m_p1.y() ).arg( m_p2.x() ).arg( m_p2.y() );
     }
+
 private:
+
     QPointF m_p1, m_p2;
 };
 
@@ -298,7 +339,7 @@ public:
     const std::unordered_set < u_int64_t > &
     getChanges();
 
-    /// get an entry from position
+    /// get an entry at given index
     IEntry *
     getEntry( int64_t ind );
 
@@ -340,7 +381,4 @@ private:
     /// here we keep the list of changed things
     std::unordered_set < u_int64_t > m_changes;
 };
-
-
-// object that will report differences using vector graphics
 }
