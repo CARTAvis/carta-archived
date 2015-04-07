@@ -94,20 +94,15 @@ qx.Class.define( "skel.Application",
 
                 this.m_desktop = new skel.widgets.DisplayMain();
                 this.m_statusBar = new skel.widgets.Menu.StatusBar();
-                this._initMenuBar();
+                this.m_menuBar = new skel.widgets.Menu.MenuBar();
                 this.m_toolBar = new skel.widgets.Menu.ToolBar();
                 
                 var errorHandler = skel.widgets.ErrorHandler.getInstance();
                 errorHandler.setStatusBar( this.m_statusBar );
                 
                 this._initDesktop();
-
                 this._initSubscriptions();
-                
-                var path = skel.widgets.Path.getInstance();
-                this.m_sharedVarPreferences = connector.getSharedVar( path.PREFERENCES );
-                this.m_sharedVarPreferences.addCB(this._preferencesCB.bind(this));
-                this._preferencesCB();
+                this._layout();
         },
         
         /**
@@ -120,29 +115,84 @@ qx.Class.define( "skel.Application",
                 this.m_menuBar.addWindowMenu( ev );
             }, this );
         },
-
-        /**
-         * Initialize the menu bar.
-         */
-            _initMenuBar: function(){
-                this.m_menuBar = new skel.widgets.Menu.MenuBar();
-                this.m_menuBar.addListener( "layoutRowCount", function( ev )
-                {
-                    this._hideWindows();
-                    this.m_desktop.setRowCount( ev.getData() );
+        
+        _showCustomizeDialog : function( message ){
+            if( this.m_customizeDialog === null ) {
+                this.m_customizeDialog = new skel.Command.Customize.CustomizeDialog();
+            }
+            var data = message.getData();
+            this.m_customizeDialog.setMenuPage( data.menu );
+            this._setPopupWinProperties( this.m_customizeDialog );
+        },
+        
+        _showLayoutPopup : function( message ){
+            if( this.m_layoutPopup === null ) {
+                this.m_layoutPopup = new skel.widgets.CustomLayoutPopup();
+                this.m_layoutPopup.addListener( "layoutRowCount", function( message )
+                        {
+                            this._hideWindows();
+                            this.m_desktop.setRowCount( message.getData() );
+                        }, this );
+                this.m_layoutPopup.addListener( "layoutColCount", function( message )
+                        {
+                            this._hideWindows();
+                            this.m_desktop.setColCount( message.getData() );
+                        }, this );
+                this.m_layoutPopup.addListener("closeCustomLayout", function(ev){
+                    this._hideWidget( this.m_layoutPopup );
                 }, this );
-
-                this.m_menuBar.addListener( "layoutColCount", function( ev )
-                {
-                    this._hideWindows();
-                    this.m_desktop.setColCount( ev.getData() );
+            }
+            this.m_layoutPopup.setGridSize( this.m_desktop.getRowCount(), this.m_desktop.getColCount());
+            var layoutObj = {
+                    left  : "0%",
+                    right : "90%",
+                    top   : "0%",
+                    bottom: "90%"
+            };
+            this._showWidget( this.m_layoutPopup, layoutObj );
+        },
+        
+        _showFileBrowser : function( message ){
+            if( this.m_fileBrowser === null ) {
+                this.m_fileBrowser = new skel.widgets.FileBrowser();
+            }
+            this.m_fileBrowser.setTarget( message.getData() );
+            var layoutObj = {
+                    left  : "0%",
+                    right : "50%",
+                    top   : "0%",
+                    bottom: "50%"
+            };
+            this._showWidget( this.m_fileBrowser, layoutObj );
+        },
+        
+        _showHistogramPreferences : function( message ){
+            if( this.m_histogramPreferences === null ) {
+                this.m_histogramPreferences = new skel.widgets.Histogram.Preferences( message.getData());
+                this.m_histogramPreferences.addListener("closeHistogramPreferences", function(ev){
+                    this._hideWidget( this.m_histogramPreferences );
                 }, this );
-
-                this.m_menuBar.addListener( "shareSession", function( ev )
-                {
-                    this.m_statusBar.updateSessionSharing( ev.getData() );
-                }, this );
-               
+            }
+            var layoutObj = {
+                    left  : "0%",
+                    right : "75%",
+                    top   : "0%",
+                    bottom: "75%"
+            };
+            this._showWidget( this.m_histogramPreferences, layoutObj );
+        },
+        
+        _showWidget : function( widget, layoutObj ){
+            if( this.m_mainContainer.indexOf( widget ) < 0 ) {
+                this.getRoot().add( widget, layoutObj );
+            }
+        },
+        
+        _hideWidget : function( widget ){
+            var root = this.getRoot();
+            if( widget !== null && root.indexOf( widget ) >= 0 ) {
+                root.remove( widget );
+            }
         },
         
         /**
@@ -152,41 +202,33 @@ qx.Class.define( "skel.Application",
             qx.event.message.Bus.subscribe( "showLinks", function( message ){
                 this._showLinks( message );
             }, this );
-            qx.event.message.Bus.subscribe( "showPopupWindow", function( message ){
+            qx.event.message.Bus.subscribe( "linkingFinished", function( ev ){
+                this._hideWindows();
+            }, this );
+            qx.event.message.Bus.subscribe( "showPopupWindow", function(message){
                 this._showPopup( message );
             }, this );
-
-
-            qx.event.message.Bus.subscribe( "showFileBrowser", function( message )
-            {
-                if( this.m_fileBrowser === null ) {
-                    this.m_fileBrowser = new skel.widgets.FileBrowser();
-                }
-                this.m_fileBrowser.setTarget( message.getData() );
-                if( this.m_mainContainer.indexOf( this.m_fileBrowser ) < 0 ) {
-                    this.getRoot().add( this.m_fileBrowser, {
-                        left  : "0%",
-                        right : "50%",
-                        top   : "0%",
-                        bottom: "50%"
-                    } );
-                }
+            qx.event.message.Bus.subscribe( "showCustomizeDialog", function(message){
+                this._showCustomizeDialog( message );
             }, this );
-
-            qx.event.message.Bus.subscribe( "closeFileBrowser", function( message )
-            {
-                var root = this.getRoot();
-                if( this.m_fileBrowser !== null && root.indexOf( this.m_fileBrowser ) >= 0 ) {
-                    root.remove( this.m_fileBrowser );
-                }
+            qx.event.message.Bus.subscribe( "showHistogramPreferences", function(message){
+                this._showHistogramPreferences( message );
             }, this );
-            
-            qx.event.message.Bus.subscribe( "showCustomizeMenuDialog", function( message ){
-                if( this.m_customizeMenuDialog === null ) {
-                        this.m_customizeMenuDialog = new skel.widgets.Command.CustomizeDialog();
-                    }
-                    this._setPopupWinProperties( this.m_customizeMenuDialog );
-                }, this );
+            qx.event.message.Bus.subscribe( "showLayoutPopup", function(message){
+                this._showLayoutPopup( message);
+            }, this );
+            qx.event.message.Bus.subscribe( "showFileBrowser", function(message){
+                this._showFileBrowser(message);
+            }, this );
+            qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
+                this._hideWidget( this.m_fileBrowser );
+            }, this );
+            qx.event.message.Bus.subscribe( "shareSession", function( ev ){
+                this.m_statusBar.updateSessionSharing( ev.getData() );
+            }, this );
+            qx.event.message.Bus.subscribe( "layoutChanged", function( ev ){
+                this._layout();
+            }, this );
         },
         
         /**
@@ -196,53 +238,32 @@ qx.Class.define( "skel.Application",
         _layout : function(){
             this._hideWindows();
             this.m_mainContainer.removeAll();
-            var showMenuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+            var showMenuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
             if ( showMenuCmd.getValue() ){
                 this.m_mainContainer.add( this.m_menuBar );
             }
-            var showToolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
+            var showToolCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
             if ( showToolCmd.getValue( )){
                 this.m_mainContainer.add( this.m_toolBar );
             }
             this.m_mainContainer.add( this.m_desktop, {flex : 1});
-            var showStatusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
+            var showStatusCmd = skel.Command.Preferences.Show.CommandShowStatus.getInstance();
             if ( showStatusCmd.getValue()){
                 this.m_mainContainer.add( this.m_statusBar);
             }
         },
         
-        /**
-         * Callback for when user preferences change.
-         */
-        _preferencesCB : function(){
-            var prefVal = this.m_sharedVarPreferences.get();
-            if ( prefVal ){
-                try {
-                    var prefObj = JSON.parse( prefVal );
-                    var showMenuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
-                    showMenuCmd.setValue( prefObj.menuVisible );
-                    var showToolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
-                    showToolCmd.setValue( prefObj.toolBarVisible );
-                    var showStatusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
-                    showStatusCmd.setValue( prefObj.statusVisible );
-                    this._layout();
-                }
-                catch( err ){
-                    console.log( "Could not parse preferences: "+prefVal );
-                }
-            }
-        },
+        
 
         /**
          * Remove an overlay window.
          */
-            _hideWindow: function( window )
-            {
-                if( window !== null ) {
-                    if( this.getRoot().indexOf( window ) >= 0 ) {
-                        this.getRoot().remove( window );
-                    }
+        _hideWindow: function( window ){
+            if( window !== null ) {
+                if( this.getRoot().indexOf( window ) >= 0 ) {
+                    this.getRoot().remove( window );
                 }
+            }
         },
 
         /**
@@ -310,9 +331,7 @@ qx.Class.define( "skel.Application",
                 this.m_windowLink.addListener( "linkRemove", function( ev ){
                     this._linksChanged( false, ev );
                 }, this );
-                this.m_windowLink.addListener( "linkingFinished", function( ev ){
-                    this._hideWindows();
-                }, this );
+               
             }
            
             this.m_windowLink.setDrawInfo( linkInfo );
@@ -330,13 +349,13 @@ qx.Class.define( "skel.Application",
          */
         _getLinkTopOffset : function(){
             var topPos = 0;
-            var menuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
+            var menuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
             if ( menuCmd.getValue() ){
                 var menuBounds = this.m_menuBar.getBounds();
                 var height = menuBounds.height;
                 topPos = topPos + height;
             }
-            var toolCmd = skel.widgets.Command.CommandShowToolBar.getInstance();
+            var toolCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
             if ( toolCmd.getValue()){
                 var toolBounds = this.m_toolBar.getBounds();
                 var toolHeight = toolBounds.height;
@@ -353,7 +372,7 @@ qx.Class.define( "skel.Application",
          */
         _getLinkBottomOffset : function(){
             var bottomPos = 0;
-            var statusCmd = skel.widgets.Command.CommandShowStatus.getInstance();
+            var statusCmd = skel.Command.Preferences.Show.CommandShowStatus.getInstance();
             if ( statusCmd.getValue()){
                 var statusBounds = this.m_statusBar.getBounds();
                 var height = statusBounds.height;
@@ -371,7 +390,7 @@ qx.Class.define( "skel.Application",
             var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
             win.addListener( "registered", function(){
                 var sourceId = win.getIdentifier();
-                var addLinkCmd = skel.widgets.Command.CommandLinkAdd.getInstance();
+                var addLinkCmd = skel.Command.Link.CommandLinkAdd.getInstance();
                 addLinkCmd.link( sourceId, data.winId, null );
             }, this);
             this._setPopupWinProperties( win );
@@ -404,13 +423,15 @@ qx.Class.define( "skel.Application",
 
 
         m_desktop       : null,
+        m_histogramPreferences : null,
         m_menuBar       : null,
         m_toolBar : null,
         m_statusBar     : null,
         m_mainContainer : null,
         m_windowLink    : null,
         m_fileBrowser   : null,
-        m_customizeMenuDialog : null,
+        m_customizeDialog : null,
+        m_layoutPopup : null,
         m_sharedVarPreferences : null
     }
 } );

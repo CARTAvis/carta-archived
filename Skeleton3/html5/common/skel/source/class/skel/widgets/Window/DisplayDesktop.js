@@ -49,11 +49,14 @@ qx.Class
                                 }
                             }, this);
                            this.m_maxListenerId = this.m_window.addListener("maximizeWindow",
-                                            function() {
-                                                var appRoot = this
-                                                        .getApplicationRoot();
-                                                appRoot.add(this.m_window);
-                                            }, this);
+                               function() {
+                                   var appRoot = this.getApplicationRoot();
+                                   appRoot.add(this.m_window);
+                               }, this);
+                           this.m_restoreListenerId = this.m_window.addListener( "restoreWindow",
+                               function(){
+                                   this.restoreWindow( this.m_row, this.m_col );
+                               }, this );
                         },
                         
                         /**
@@ -261,11 +264,9 @@ qx.Class
                          */
                         removeWindows : function() {
                             if (this.m_window !== null) {
-                                /*qx.event.Registration
-                                        .removeAllListeners(this.m_window);
-                                        */
                                 this.m_window.removeListenerById( this.m_iconifyListenerId );
                                 this.m_window.removeListenerById( this.m_maxListenerId );
+                                this.m_window.removeListenerById( this.m_restoreListenerId );
                                 this.removeAll();
                             }
                         },
@@ -300,7 +301,7 @@ qx.Class
                                 if (appRoot.indexOf(this.m_window) != -1) {
                                     appRoot.remove(this.m_window);
                                     this.add(this.m_window);
-                                    this.m_window._restore();
+                                    this.m_window.restoreWindow();
                                 }
                                 this.m_window.open();
                                 this.show();
@@ -475,6 +476,7 @@ qx.Class
                         m_window : null,
                         m_iconifyListenerId : null,
                         m_maxListenerId : null,
+                        m_restoreListenerId : null,
                         m_row : null,
                         m_col : null
                     }

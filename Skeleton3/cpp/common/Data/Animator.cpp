@@ -63,13 +63,14 @@ void Animator::_adjustStateController( Controller* controller){
 
 void Animator::_adjustStateAnimatorTypes(){
     int animationCount = m_animators.size();
-    m_state.setObject( AnimatorType::ANIMATIONS );
+    m_state.resizeArray( AnimatorType::ANIMATIONS, animationCount );
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
         if ( !m_animators[keys[i]]->isRemoved()){
-            QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + keys[i];
-            QString val(m_animators[keys[i]]->getStateString());
-            m_state.insertObject( objPath, val );
+            QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + QString::number(i);
+            //m_animators[keys[i]]->setPurpose( keys[i]);
+            //QString val(m_animators[keys[i]]->getStateString());
+            m_state.setValue<QString>( objPath, keys[i] );
         }
     }
     m_state.flushState();
@@ -220,9 +221,8 @@ void Animator::_initializeCallbacks(){
 
 
 void Animator::_initializeState(){
-    m_state.insertObject( AnimatorType::ANIMATIONS);
+    m_state.insertArray( AnimatorType::ANIMATIONS, 0);
     m_state.insertValue<bool>( Util::STATE_FLUSH, false );
-    m_state.flushState();
     QString animId;
     addAnimator( Selection::CHANNEL, animId);
 }

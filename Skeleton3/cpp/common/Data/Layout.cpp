@@ -320,10 +320,10 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
         }
         //Some other column has the maximum number of rows.
         else {
-            int colCount = _getColumnCount( colIndex );
+            int colCountIndex = _getColumnCount( colIndex );
             //Just exclude the widget as long as there is at least one other visible
             //widget in the column.
-            if ( colCount > 1 ){
+            if ( colCountIndex > 1 ){
                 bool removed = _setPlugin( rowIndex, colIndex, HIDDEN );
                 if ( removed ){
                     m_state.flushState();
@@ -335,9 +335,9 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
             //Remove the entire column after making sure the last column is empty after shifting
             //everything to the right of colIndex left.
             else {
-                for ( int i = 1; i < rowCount; i++ ){
+                for ( int i = 0; i < rowCount; i++ ){
                     for ( int j = colIndex+1; j < colCount; j++ ){
-                        //Move row i -> i-1
+                        //Move column j -> j-1
                         _moveCell( i, j, i, j-1 );
                     }
                 }

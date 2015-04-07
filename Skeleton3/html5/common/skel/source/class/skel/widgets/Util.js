@@ -106,6 +106,169 @@ qx.Class.define("skel.widgets.Util", {
         },
         
         /**
+         * Construct a button for the given command and callback.
+         * @param cmd {skel.Command.Command}
+         * @param cb {Function} a callback for the command.
+         * @param tool {boolean} true if it should be a tool bar button; false for a menu button.
+         * @param value {Object} the command's value for its action.
+         */
+        makeButton : function( cmd, cb, tool, value){
+            var label = cmd.getLabel();
+            var button = new qx.ui.menu.Button( label );
+            if ( tool ){
+                button = new qx.ui.toolbar.MenuButton( label );
+            }
+            button.addListener( "execute", function(){
+                this.doAction( value, cb );
+            }, cmd );
+            cmd.addListener( "cmdEnabledChanged", function( evt ){
+                var data = evt.getData();
+                this.setEnabled( data.enabled );
+            }, button);
+            var buttonEnabled = cmd.isEnabled();
+            button.setEnabled( buttonEnabled );
+            return button;
+        },
+        
+        
+        /**
+         * Make a checkable menu item for the cmd.
+         * @param cmd {skel.Command.Command}
+         * @param cb {Function} a callback for the command.
+         */
+        makeCheck : function( cmd, cb ){
+            var label = cmd.getLabel();
+            var checkBox = new qx.ui.menu.CheckBox( label );
+            checkBox.setValue( cmd.getValue());
+            //Updates from the GUI to server
+            checkBox.addListener("execute", function() {
+                cmd.doAction( this.getValue(),  cb);
+            }, checkBox);
+            //Updates from the server to GUI
+            cmd.addListener( "cmdValueChanged", function(evt){
+                var data = evt.getData();
+                if ( data.value !== this.getValue()){
+                    this.setValue( data.value );
+                }
+            }, checkBox);
+            cmd.addListener( "cmdEnabledChanged", function( evt){
+                var data = evt.getData();
+                this.setEnabled( data.enabled );
+            }, checkBox);
+            var cmdEnabled = cmd.isEnabled();
+            checkBox.setEnabled( cmdEnabled );
+            return checkBox;
+        },
+        
+        /**
+         * Return a menu consisting of the children of the command.
+         * @param cmds {skel.Command.Command}.
+         */
+        makeMenu : function( cmds ){
+            var cmdMenu = new qx.ui.menu.Menu();
+            var vals = cmds.getValue();
+            var emptyCB = function(){};
+            for ( var i = 0; i < vals.length; i++ ){
+                var cmdType = vals[i].getType();
+                if ( cmdType === skel.Command.Command.TYPE_COMPOSITE ){
+                    var menuButton = new qx.ui.menu.Button( vals[i].getLabel());
+                    var enabled = vals[i].isEnabled();
+                    menuButton.setEnabled( vals[i].isEnabled() );
+                    cmdMenu.add( menuButton );
+                    var subMenu = skel.widgets.Util.makeMenu( vals[i]);
+                    menuButton.setMenu( subMenu );
+                }
+                else if ( cmdType === skel.Command.Command.TYPE_GROUP ){
+                    var radioItems = skel.widgets.Util.makeRadioGroup( vals[i]);
+                    for ( var j = 0; j < radioItems.length; j++ ){
+                        cmdMenu.add( radioItems[j]);
+                    }
+                }
+                else if ( cmdType === skel.Command.Command.TYPE_BOOL ){
+                    var checkItem = skel.widgets.Util.makeCheck( vals[i], emptyCB );
+                    cmdMenu.add( checkItem );
+                }
+                else if ( cmdType == skel.Command.Command.TYPE_BUTTON ){
+                    var button = skel.widgets.Util.makeButton( vals[i], emptyCB );
+                    cmdMenu.add( button );
+                }
+                else {
+                    console.log( "Menu unsupported command type="+ cmdType );
+                }
+            }
+            return cmdMenu;
+        },
+        
+        /**
+         * Returns a group of radio menu items representing the children of the command.
+         * @param cmd {skel.Command.CommandGroup} a command with the property that only one of
+         *      its children can be active at a time.
+         */
+        makeRadioGroup : function( cmd ){
+            var vals = [];
+            var radioGroup = new qx.ui.form.RadioGroup();
+            radioGroup.setAllowEmptySelection(true);
+            var values = cmd.getValue();
+            var labelFunction = function( cmd, button){
+                return function(){
+                    cmd.doAction( button.getLabel(), null );
+                };
+            };
+            var enableFunction = function( cmd ){
+                return function(){
+                    this.setEnabled( cmd.isEnabled() );
+                };
+            };
+            var enabled = cmd.isEnabled();
+            for ( var i = 0; i < values.length; i++ ){
+                if ( values[i].isVisibleMenu() ){
+                    var label = values[i].getLabel();
+                    var button = new qx.ui.menu.RadioButton(label).set({
+                        toolTipText: values[i].getToolTip()
+                    });
+                    vals[i] = button;
+                    button.addListener("execute", labelFunction(values[i], button), button );
+                    button.addListener("mouseup", labelFunction( values[i], button ), button );
+                    values[i].addListener( "cmdEnabledChanged", enableFunction(values[i]), button);
+                    radioGroup.add(button);
+                    button.setFocusable(false);
+                    button.setEnabled( enabled );
+                }
+            }
+            return vals;
+        },
+        
+        /**
+         * Returns a check box representing the command.
+         * @param cmd {skel.Command.Command} a command with a true/false value.
+         */
+        makeToggle : function( cmd ){
+            var label = cmd.getLabel();
+            
+            //Send values to the server
+            var toggle = new skel.boundWidgets.Toggle( label, "");
+            toggle.setValue( cmd.getValue());
+            toggle.addListener( "toggleChanged", function( val ){
+                cmd.doAction( val.getData(), null );
+            }, cmd);
+            
+            //Updates from the server
+            cmd.addListener( "cmdValueChanged", function( evt ){
+                var data = evt.getData();
+                if ( this.getValue() != data.value ){
+                    this.setValue( data.value );
+                }
+            }, toggle);
+            cmd.addListener( "cmdEnabledChanged", function( evt ){
+                var data = evt.getData();
+                this.setEnabled( data.enabled );
+            }, toggle);
+            var enabled = cmd.isEnabled();
+            toggle.setEnabled( enabled );
+            return toggle;
+        },
+        
+        /**
          * Converts a string containing 'true' or 'false' to a boolean.
          * @param valStr {String} the string to translate.
          * @return {boolean} true if the string contains 'true'; false otherwise.

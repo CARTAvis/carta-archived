@@ -45,13 +45,11 @@ qx.Class.define("skel.widgets.DisplayMain",
             var data = message.getData();
             this._setView(data.plugin, data.row, data.col);
         }, this);
-
     },
 
     events : {
         "iconifyWindow" : "qx.event.type.Data",
-        "addWindowMenu" : "qx.event.type.Data",
-        "layoutGrid" : "qx.event.type.Data"
+        "addWindowMenu" : "qx.event.type.Data"
     },
 
     members : {
@@ -91,6 +89,22 @@ qx.Class.define("skel.widgets.DisplayMain",
             if (this.m_pane !== null) {
                 this.m_pane.setDrawMode(ev.getData());
             }
+        },
+        
+        /**
+         * Returns the number of columns in the grid.
+         * @return {Number} the number of grid columns.
+         */
+        getColCount : function(){
+            return this.m_gridColCount;
+        },
+        
+        /**
+         * Returns the number of rows in the grid.
+         * @return {Number} the number of grid rows.
+         */
+        getRowCount : function(){
+            return this.m_gridRowCount;
         },
         
         /**
@@ -162,8 +176,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                                 function(message) {
                                     var selectedWindow = message.getData();
                                     this.m_pane.windowSelected(selectedWindow);
-                                    var menuButtons = selectedWindow.getWindowMenu();
-                                    this.fireDataEvent("addWindowMenu",menuButtons);
                                 }, this);
 
                 var displayArea = this.m_pane.getDisplayArea();
@@ -351,8 +363,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                                     "rows" : this.m_gridRowCount,
                                     "cols" : this.m_gridColCount
                                 };
-                            qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                                    "layoutGrid", gridData));
                             this.layout(this.m_gridRowCount, this.m_gridColCount);
                         }
                         this._resetDisplayedPlugins( layout, windows );

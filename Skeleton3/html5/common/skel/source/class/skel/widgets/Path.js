@@ -8,6 +8,7 @@ qx.Class.define("skel.widgets.Path", {
 
     construct : function() {
         this.BASE_PATH = this.SEP + this.CARTA + this.SEP;
+        this.ANIMATOR_TYPES = this.BASE_PATH +"AnimationTypes";
         this.CHANNEL_UNITS = this.BASE_PATH + "ChannelUnits";
         this.CLIPS = this.BASE_PATH + "Clips";
         this.COLORMAPS = this.BASE_PATH + "Colormaps";
@@ -29,6 +30,7 @@ qx.Class.define("skel.widgets.Path", {
     
     members : {
         ANIMATOR : "Animator",
+        ANIMATOR_TYPES : "",
         AUTO_CLIP : "setAutoClip",
         BASE_PATH : "",
         CARTA : "CartaObjects",

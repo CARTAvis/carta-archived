@@ -1,5 +1,6 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator.h"
+#include "Data/AnimationTypes.h"
 #include "Data/Clips.h"
 #include "Data/Colormap.h"
 #include "Data/Colormaps.h"
@@ -50,6 +51,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_layout( nullptr ),
       m_dataLoader( nullptr ),
       m_pluginsLoaded( nullptr ){
+    Util::findSingletonObject( AnimationTypes::CLASS_NAME );
     Util::findSingletonObject( Clips::CLASS_NAME );
     Util::findSingletonObject( Colormaps::CLASS_NAME );
     Util::findSingletonObject( TransformsData::CLASS_NAME);

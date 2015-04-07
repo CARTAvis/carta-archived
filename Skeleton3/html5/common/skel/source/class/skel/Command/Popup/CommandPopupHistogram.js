@@ -1,0 +1,44 @@
+/**
+ * Command to display a histogram of the data in a selected window.
+ */
+
+qx.Class.define("skel.Command.Popup.CommandPopupHistogram", {
+    extend : skel.Command.Command,
+    type : "singleton",
+
+    /**
+     * Constructor.
+     */
+    construct : function() {
+        this.base( arguments, "Histogram", null );
+        this.m_toolBarVisible = false;
+        this.m_global = false;
+    },
+    
+    members : {
+        
+        doAction : function( vals, undoCB ){
+            var activeWins = skel.Command.Command.m_activeWins;
+            if ( activeWins !== null && activeWins.length > 0 ){
+                //Use the first one in the list that supports this cmd.
+                var cmdPopup = skel.Command.Popup.CommandPopup.getInstance();
+                var path = skel.widgets.Path.getInstance();
+                for ( var i = 0; i < activeWins.length; i++ ){
+                    if ( activeWins[i].isCmdSupported( cmdPopup ) ){
+                        var data = {
+                            winId : activeWins[i].getIdentifier(),
+                            pluginId : path.HISTOGRAM_PLUGIN
+                        };
+                        qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                                "showPopupWindow", data));
+                        break;
+                    }
+                }
+            }
+        },
+        
+        getToolTip : function(){
+            return "Show a histogram of this data set as a popup window.";
+        }
+    }
+});

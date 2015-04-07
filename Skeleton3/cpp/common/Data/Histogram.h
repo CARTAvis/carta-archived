@@ -257,6 +257,14 @@ public:
       */
     QString setColorMinPercent( double colorMinPercent, bool complete );
 
+    /**
+     * Set the number of significant digits to use in calculations.
+     * @param digits a positive number indicating the number of significant digits to use in calculations.
+     * @return an error message if there was a problem setting the number of significant digits;
+     *      an empty string otherwise.
+     */
+    QString setSignificantDigits( int digits );
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
     const static QString GRAPH_STYLE_LINE;
@@ -284,6 +292,7 @@ private:
     void _loadData( Controller* controller);
 
     QString _set2DFootPrint( const QString& params );
+    void _setErrorMargin();
 
     /**
     * Set the single plane that should be used for data when the histogram is in single plane mode.
@@ -356,10 +365,10 @@ private:
     const static QString LINK;
     const static QString X_COORDINATE;
     const static QString POINTER_MOVE;
+    const static QString SIGNIFICANT_DIGITS;
     
     static ChannelUnits* m_channelUnits;
 
-    int m_significantDigits;
     double m_errorMargin;
 
     //For right now we are supporting only one linked controller.

@@ -31,8 +31,7 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
 
         events : {
             "link" : "qx.event.type.Data",
-            "linkRemove" : "qx.event.type.Data",
-            "linkingFinished" : "qx.event.type.Data"
+            "linkRemove" : "qx.event.type.Data"
         },
 
         members : {
@@ -210,6 +209,14 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
                             this.m_linkEnd.y, ctx);
                 }
             },
+            
+            /**
+             * Exit the link canvas.
+             */
+            _quit : function(){
+                var linkCmd = skel.Command.Link.CommandLink.getInstance();
+                linkCmd.doAction( false, function(){});
+            },
 
             /**
              * Returns the link source or destination that matches
@@ -244,14 +251,12 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
              * Event callback when the users types a key on the
              * keyboard.
              * 
-             * @param event
-             *                {qx.event} a keyboard event.
+             * @param event {qx.event} a keyboard event.
              */
             _keyDownCB : function(event) {
                 // Escape key
                 if (event.getKeyCode() == 27) {
-                    this.fireDataEvent("linkingFinished", "");
-                    return;
+                    this._quit();
                 }
             },
 
@@ -351,9 +356,7 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
                         this.m_contextMenu = new qx.ui.menu.Menu();
                         this.setContextMenu(this.m_contextMenu);
                         var exitButton = new qx.ui.menu.Button( "Exit Links");
-                        exitButton.addListener( "execute", function(){
-                            this.fireDataEvent("linkingFinished", "");
-                        }, this );
+                        exitButton.addListener( "execute", this._quit, this );
                         this.m_contextMenu.add( exitButton );
                     }
                     pt = skel.widgets.Util.localPos(this, ev);

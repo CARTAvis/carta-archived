@@ -25,6 +25,7 @@ const QString AnimatorType::END_BEHAVIOR = "endBehavior";
 const QString AnimatorType::END_BEHAVIOR_WRAP = "Wrap";
 const QString AnimatorType::END_BEHAVIOR_JUMP = "Jump";
 const QString AnimatorType::END_BEHAVIOR_REVERSE = "Reverse";
+const QString AnimatorType::LABEL = "purpose";
 const QString AnimatorType::RATE = "frameRate";
 const QString AnimatorType::STEP = "frameStep";
 
@@ -45,11 +46,11 @@ AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType
         _initializeCommands();
 }
 
-QString AnimatorType::getStateString() const{
+/*QString AnimatorType::getStateString() const{
     StateInterface writeState( m_state );
     writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
     return writeState.toString();
-}
+}*/
 
 
 int AnimatorType::getFrame() const {
@@ -59,6 +60,7 @@ int AnimatorType::getFrame() const {
 void AnimatorType::_initializeState( ){
     m_state.insertValue<int>( STEP, 1 );
     m_state.insertValue<int>( RATE, 20 );
+    m_state.insertValue<QString>( LABEL, "Undefined");
     m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
     m_state.flushState();
 }
@@ -216,6 +218,14 @@ QString AnimatorType::setFrame( int frameIndex ){
         result="Frame index must be nonnegative: "+QString::number(frameIndex);
     }
     return result;
+}
+
+void AnimatorType::setPurpose( const QString& name ){
+    QString oldPurpose = m_state.getValue<QString>(LABEL);
+    if ( oldPurpose != name ){
+        m_state.setValue<QString>(LABEL, name );
+        m_state.flushState();
+    }
 }
 
 void AnimatorType::setRemoved( bool removed ){

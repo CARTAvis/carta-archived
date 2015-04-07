@@ -22,25 +22,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, row, col, index, detached );
             this.m_content.setLayout( new qx.ui.layout.HBox(0));
             this.m_links = [];
-            //this.m_index = index;
         },
 
         members : {
             
-
-            
-            /**
-             * Returns plug-in context menu items that should be displayed
-             * on the main menu when this window is selected.
-             * @return {Array}.
-             */
-            getWindowSubMenu : function() {
-                var windowMenuList = [];
-                return windowMenuList;
-            },
-            
-            
-
             /**
              * Display specific UI initialization.
              */

@@ -9,6 +9,9 @@
 qx.Class.define("skel.widgets.Histogram.Histogram", {
     extend : qx.ui.core.Widget, 
 
+    /**
+     * Constructor.
+     */
     construct : function(  ) {
         this.base(arguments);
         this.m_connector = mImport("connector");
@@ -16,6 +19,15 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
     },
 
     members : {
+        
+        /**
+         * Return the number of significant digits used in the histogram display fields.
+         * @return {Number} the significant digits to display.
+         */
+        getSignificantDigits : function(){
+            return this.m_significantDigits;
+        },
+        
         /**
          * Callback for a change in histogram settings.
          */
@@ -54,6 +66,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_twoDSettings !== null ){
                         this.m_twoDSettings.setFootPrint( hist.twoDFootPrint );
                     }
+                    this.m_significantDigits = hist.significantDigits;
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
 
@@ -187,6 +200,20 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         },
         
         /**
+         * Set the number of significant digits to use for display purposes.
+         * @param digits {Number} a positive integer indicating significant digits.
+         */
+        setSignificantDigits : function( digits ){
+            if ( this.m_connector !== null ){
+                //Notify the server of the new value.
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setSignificantDigits";
+                var params = "significantDigits:"+digits;
+                this.m_connector.sendCommand( cmd, params, null);
+            }
+        },
+        
+        /**
          * Set whether or not the user settings should be visible.
          * @param visible {boolean} true if the settings should be visible; false otherwise.
          */
@@ -205,6 +232,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_twoDSettings : null,
         m_rangeSettings : null,
         m_displaySettings : null,
+        m_significantDigits : null,
         m_MIN_DIM : 150,
       
         m_id : null,

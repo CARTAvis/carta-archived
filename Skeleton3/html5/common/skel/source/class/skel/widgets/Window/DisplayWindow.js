@@ -21,7 +21,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     construct : function(pluginId, row, col, index, detached ) {
         this.base(arguments, detached );
         this.m_pluginId = pluginId;
-        
+        this.m_supportedCmds = [];
         this.m_row = row;
         this.m_col = col;
         var pathDict = skel.widgets.Path.getInstance();
@@ -29,6 +29,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         this._init();
         this._initWindowBar();
         
+        this._initSupportedCommands();
         this._initContextMenu();
         
         if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
@@ -39,9 +40,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         //we can display the view options in the context menu.
         this.m_connector = mImport("connector");
         
-        var paramMap = "pluginId:" + pathDict.PLUGINS +",index:0";
-        var regViewCmd = pathDict.getCommandRegisterView();
-        this.m_connector.sendCommand( regViewCmd, paramMap, this._viewPluginsCB( this ) );
         if ( this.m_pluginId && this.m_plugInd != pathDict.HIDDEN ){
             var regNeeded = skel.widgets.Window.WindowFactory.isRegistrationNeeded( this.m_pluginId );
             if ( regNeeded ){
@@ -67,6 +65,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     events : {
         "iconify" : "qx.event.type.Data",
         "maximizeWindow" : "qx.event.type.Data",
+        "restoreWindow" : "qx.event.type,Data",
         "registered" : "qx.event.type.Data"
     },
 
@@ -89,6 +88,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             button.setFocusable(false);
             this.m_toolHolder.add(button);
             return button;
+        },
+        
+        /**
+         * Overriden by subclasses to add window specific preferences.
+         */
+        addWindowSpecificCommands : function(){
+            var prefCmd = skel.Command.Preferences.CommandPreferences.getInstance();
+            prefCmd.clearWindowSpecific();
         },
 
         
@@ -152,6 +159,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         dataUnloaded : function(path) {
 
         },
+        
+        /**
+         * Overriden by subclasses to return a list of data that can be closed.
+         * @return {Array} a list of data that could be closed.
+         */
+        getCloses : function(){
+            return [];
+        },
 
         /**
          * Return the window title.
@@ -192,13 +207,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             linkInfo.twoWay = this.isTwoWay(pluginId);
 
             return linkInfo;
-
         },
         
+        /**
+         * Return this window's row location in the grid.
+         * @return {Number} the window's row location.
+         */
         getCol : function(){
             return this.m_col;
         },
         
+        /**
+         * Return this window's column location in the grid.
+         * @return {Number} the window's column location.
+         */
         getRow : function(){
             return this.m_row;
         },
@@ -208,22 +230,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         getPlugin : function() {
             return this.m_pluginId;
-        },
-
-        /**
-         * Return specialized menu items for this window.
-         */
-        getWindowMenu : function() {
-            var specializedMenu = this.getWindowSubMenu();
-            return specializedMenu;
-        },
-
-        /**
-         * Implemented by subclasses having context menu items that should be
-         * displayed on the main menu when they are selected.
-         */
-        getWindowSubMenu : function() {
-            return [];
         },
 
         /**
@@ -240,7 +246,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.setAllowStretchY(true);
             this.setMovable(false);
             this.maximize();
-            //this.setCaption( "win"+Math.random());
 
             this.setLayout(new qx.ui.layout.VBox(0));
             this.m_scrollArea = new qx.ui.container.Scroll();
@@ -253,6 +258,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             });
             this.m_contextMenu = new qx.ui.menu.Menu();
             this.m_contextMenu.addListener( "appear", this._contextMenuEvent, this);
+            this.setContextMenu(this.m_contextMenu);
 
             this.addListener("mousedown", function(ev) {
                 this.setSelected(true, ev.isCtrlPressed());
@@ -265,41 +271,34 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         _initContextMenu : function() {
             if ( ! this.isDetached() ){
-                this.m_linkButton = new qx.ui.menu.Button("Links");
-                this.m_linkButton.addListener("execute", this._showLinkWindow, this);
-                this.m_contextMenu.add(this.m_linkButton);
-               
-                this.m_windowMenu = this._initWindowMenu();
-                var windowButton = new qx.ui.menu.Button("Window");
-                windowButton.setMenu(this.m_windowMenu);
-                this.m_contextMenu.add(windowButton);
-                this.m_pluginButton = new qx.ui.menu.Button( "View");
-                this.m_contextMenu.add(this.m_pluginButton);
+                this.m_contextMenu.removeAll();
+                var cmds = skel.Command.CommandAll.getInstance();
+                var vals = cmds.getValue();
+                var emptyFunc = function(){};
+                for ( var i = 0; i < vals.length; i++ ){
+                    var cmdType = vals[i].getType();
+                    if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
+                            cmdType === skel.Command.Command.TYPE_GROUP ){
+                        //Only add top-level commands specific to this window.
+                        var supported = this.isCmdSupported( vals[i] );
+                        if ( supported ){
+                            var menu = skel.widgets.Util.makeMenu( vals[i]);
+                            var menuButton = new qx.ui.menu.Button( vals[i].getLabel() );
+                            this.m_contextMenu.add( menuButton );
+                            menuButton.setMenu( menu);
+                        }
+                    }
+                    else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
+                        var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, false, true );
+                        this.m_contextMenu.add( button );
+                    }
+                    else {
+                        console.log( "Menu unsupported top level command type="+ cmdType );
+                    }
+                }
             }
-            this.setContextMenu(this.m_contextMenu);
         },
 
-        /**
-         * Initializes the 'data' context menu.
-         */
-        _initDataMenu : function() {
-            var dataMenu = new qx.ui.menu.Menu();
-            var openButton = new qx.ui.menu.Button("Open...");
-            openButton.addListener("execute", function() {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "showFileBrowser", this));
-            }, this);
-            dataMenu.add(openButton);
-            
-            if ( this.m_closeDataMenu === null ){
-                this.m_closeDataMenu = new qx.ui.menu.Menu();
-            }
-            var closeButton = new qx.ui.menu.Button("Close");
-            dataMenu.add(closeButton);
-            
-            closeButton.setMenu(this.m_closeDataMenu);
-            return dataMenu;
-        },
         
         
         /**
@@ -323,6 +322,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_identifier );
             this.m_sharedVar.addCB( this._sharedVarCB.bind( this ));
             this._sharedVarCB( this.m_sharedVar.get());
+        },
+        
+        /**
+         * Initialize the list of commands supported by a generic window.
+         */
+        _initSupportedCommands : function(){
+            var windowCmd = skel.Command.Window.CommandWindow.getInstance();
+            this.m_supportedCmds.push( windowCmd.getLabel() );
+            var viewsCmd = skel.Command.View.CommandViews.getInstance();
+            this.m_supportedCmds.push( viewsCmd.getLabel() );
+            var linksCmd = skel.Command.Link.CommandLink.getInstance();
+            this.m_supportedCmds.push( linksCmd.getLabel() );
         },
         
         /**
@@ -356,124 +367,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 this.toggleSettings();
             }, this );
         },
-
-
-        /**
-         * Initialize the View menu displaying other plug-ins that have views
-         * available.
-         */
-        _initViewMenu : function() {
-            var pluginMenu = new qx.ui.menu.Menu();
-            var val = this.m_sharedVarPlugin.get();
-            if ( val ){
-                try {
-                    var plugins = JSON.parse( val );
-                    var buttonFunction = function( ){
-                        var pluginName = this.getLabel();
-                        var data = {
-                            row : this.row,
-                            col : this.col,
-                            plugin : pluginName
-                        };
-                        qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
-                    };
-                    this.m_viewNameButtons = [];
-                    for (var i = 0; i < plugins.pluginCount; i++) {
-                        var name = plugins.pluginList[i].name;
-                        var errors = plugins.pluginList[i].loadErrors;
-                        var loaded = (errors === "");
-                        if ( loaded ){
-                            this.m_viewNameButtons[i] = new qx.ui.menu.Button(name);
-                            this.m_viewNameButtons[i].row = this.m_row;
-                            this.m_viewNameButtons[i].col = this.m_col;
-                            this.m_viewNameButtons[i].addListener("execute", buttonFunction, this.m_viewNameButtons[i]);
-                            pluginMenu.add(this.m_viewNameButtons[i]);
-                        }
-                    }
-                    
-                    //So the user does not permanently lose the menu bar.
-                    var showMenuCmd = skel.widgets.Command.CommandShowMenu.getInstance();
-                    var label = showMenuCmd.getLabel();
-                    var checkBox = new qx.ui.menu.CheckBox( label );
-                    checkBox.setValue( showMenuCmd.getValue());
-
-                    //Updates from the GUI to server
-                    checkBox.addListener("execute", function() {
-                        showMenuCmd.doAction( this.getValue(), null, null);
-                    }, checkBox);
-                   
-                    //Updates from the server to GUI
-                    showMenuCmd.addListener( "cmdValueChanged", function(evt){
-                        var data = evt.getData();
-                        if ( data.value !== this.getValue()){
-                            this.setValue( data.value );
-                        }
-                    }, checkBox);
-                    pluginMenu.add( checkBox );
-                }
-                catch( err ){
-                    console.log( "Could not parse: "+val );
-                }
-            }
-            return pluginMenu;
-        },
         
         /**
-         * Initialize the submenu displaying alternative plug-ins to view in
-         * this window.
+         * Returns true if this window supports the passed in command.
+         * @param cmd {String} an identifier for a command.
+         * @return {boolean} true if the command is appropriate for this window; false otherwise.
          */
-        _initViewMenuContext : function() {
-            if ( ! this.isDetached() ){
-                var pluginMenu = this._initViewMenu();
-                this.m_pluginButton.setMenu(pluginMenu);
+        isCmdSupported : function(cmd){
+            var supported = false;
+            if ( this.m_supportedCmds !== null ){
+                var cmdName = cmd.getLabel();
+                for ( var i = 0; i < this.m_supportedCmds.length; i++ ){
+                    if ( this.m_supportedCmds[i] == cmdName ){
+                        supported = true;
+                    }
+                }
             }
+            return supported;
         },
-        /**
-         * Initialize standard window menu items.
-         */
-        _initWindowMenu : function() {
-            if ( ! this.isDetached() ){
-                this.m_windowMenu = new qx.ui.menu.Menu();
-                this.m_minimizeButton = new qx.ui.menu.Button("Minimize");
-                this.m_minimizeButton.addListener("execute", function() {
-                    this.fireDataEvent( "iconify", this );
-                    this.hide();
-                }, this);
-                this.m_maximizeButton = new qx.ui.menu.Button("Maximize");
-                this.m_maximizeButton.addListener("execute", function() {
-                    this._maximize();
-                }, this);
-                this.m_restoreButton = new qx.ui.menu.Button("Restore");
-                this.m_restoreButton.addListener("execute", function() {
-                    this._restore();
-                }, this);
-                var closeButton = new qx.ui.menu.Button("Close");
-                closeButton.addListener("execute", function() {
-                    this.m_closed = true;
-                    var removeWindowCmd = skel.widgets.Command.CommandWindowRemove.getInstance();
-                    var data = {
-                            row : this.m_row,
-                            col : this.m_col
-                    };
-                    removeWindowCmd .doAction( data, null, null );
-                }, this);
-                var openButton = new qx.ui.menu.Button( "New");
-                openButton.addListener( "execute", function(){
-                    var data = {
-                        row : this.m_row,
-                        col : this.m_col
-                    };
-                    var newWindowCmd = skel.widgets.Command.CommandWindowAdd.getInstance();
-                    newWindowCmd.doAction( data, null, null );
-                }, this );
-                this.m_windowMenu.add(this.m_maximizeButton);
-                this.m_windowMenu.add(this.m_minimizeButton);
-                this.m_windowMenu.add( closeButton);
-                this.m_windowMenu.add( openButton );
-            }
-            return this.m_windowMenu;
-        },
-
 
         /**
          * Returns whether or not this window can be linked to a window
@@ -527,21 +438,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             };
         },
 
-        /**
-         * Maximizes the window
-         */
-        _maximize : function() {
-            var maxIndex = this.m_windowMenu.indexOf(this.m_maximizeButton);
-            if (maxIndex >= 0) {
-                this.m_windowMenu.remove(this.m_maximizeButton);
-            }
-            var restoreIndex = this.m_windowMenu.indexOf( this.m_restoreButton );
-            if ( restoreIndex < 0 ){
-                this.m_windowMenu.addAt(this.m_restoreButton, 0);
-            }
-            this.fireDataEvent("maximizeWindow", this);
-            this.maximize();
-        },
+        
         
         /**
          * Callback for when the id of the object containing information about the
@@ -573,15 +470,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         /**
          * Restores the window to its location in the main display.
          */
-        _restore : function() {
-            var restoreIndex = this.m_windowMenu.indexOf(this.m_restoreButton);
-            var maxIndex = this.m_windowMenu.indexOf(this.m_maximizeButton);
-            if (maxIndex == -1) {
-                this.m_windowMenu.addAt(this.m_maximizeButton, 0);
-            }
-            if (restoreIndex >= 0) {
-                this.m_windowMenu.remove(this.m_restoreButton);
-            }
+        restoreWindow : function() {
             this.open();
             this.m_closed = false;
             this.restore();
@@ -598,11 +487,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             var linkCmd;
             var linkUndo = null;
             if ( addLink ){
-                linkCmd = skel.widgets.Command.CommandLinkAdd.getInstance();
+                linkCmd = skel.Command.Link.CommandLinkAdd.getInstance();
                 linkUndo = this._linkUndoCmd( this, sourceWinId );
             }
             else {
-                linkCmd = skel.widgets.Command.CommandLinkRemove.getInstance();
+                linkCmd = skel.Command.Link.CommandLinkRemove.getInstance();
             }
             linkCmd.link( sourceWinId, this.m_identifier, linkUndo );
         },
@@ -664,12 +553,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         setLocation : function (row, col ){
             this.m_row = row;
             this.m_col = col;
-            if ( this.m_viewNameButtons !== null ){
-                for ( var i = 0; i < this.m_viewNameButtons.length; i++ ){
-                    this.m_viewNameButtons[i].row = this.m_row;
-                    this.m_viewNameButtons[i].col = this.m_col;
-                }
-            }
         },
 
         /**
@@ -678,17 +561,29 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            var console = mImport("console");
             this.setActive( false);
             if( selected) {
+                this.addWindowSpecificCommands();
                 this.getChildControl("captionbar" ).addState( "winsel");
             }
             else {
                 this.getChildControl("captionbar" ).removeState( "winsel");
             }
-            if (selected &&  !multiple) {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                    "windowSelected", this));
+            if ( !multiple ){
+                if (selected ) {
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "windowSelected", this));
+                    skel.Command.Command.addActiveWindow( this );
+                    
+                }
+                else {
+                    skel.Command.Command.clearActiveWindows();
+                }
+            }
+            //Reset the context menu based on functionality specific to this window.
+            if ( selected ){
+                
+                this._initContextMenu();
             }
         },
 
@@ -714,17 +609,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             console.log( "Toggling settings not implemented");
         },
         
-        /**
-         * Callback for when the shared variable that represents loaded plugins changes;
-         * updates the view menu.
-         */
-        _viewPluginsCB : function( anObject ){
-            return function( id ){
-                anObject.m_sharedVarPlugin = anObject.m_connector.getSharedVar(id);
-                anObject.m_sharedVarPlugin.addCB(anObject._initViewMenuContext.bind(anObject));
-                anObject._initViewMenuContext();
-            };
-        },
+        
         
         /**
          * Place holder for subclasses to override for code to be executed once the shared
@@ -742,8 +627,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
 
         m_closed : false,
         m_contextMenu : null,
-        m_closeDataMenu : null,
-        m_windowMenu : null,
         m_scrollArea : null,
         m_content : null,
         
@@ -752,17 +635,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         m_infoHolder : null,
         m_settingsButton : null,
         m_infoLabel : null,
-        m_viewNameButtons : null,
 
         m_links : null,
+        m_supportedCmds : null,
 
         //Identifies the plugin we are displaying.
         m_pluginId : "",
-        m_pluginButton : null,
         
         //Connected variables 
         m_connector : null,
-        m_sharedVarPlugin : null,
         m_sharedVar : null,
         
         //Server side object id
