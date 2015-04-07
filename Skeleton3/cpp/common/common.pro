@@ -57,12 +57,13 @@ HEADERS += \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     GrayColormap.h \
-    HackViewer.h \
     ImageRenderService.h \
+    Algorithms/quantileAlgorithms.h \
+    Hacks/HackViewer.h \
     Hacks/ImageViewController.h \
     Hacks/MainModel.h \
-    Algorithms/quantileAlgorithms.h \
-    ILayeredView.h
+    Hacks/ILayeredView.h \
+    Hacks/IVectorGraphicsView.h
 
 SOURCES += \
     Viewer.cpp \
@@ -104,16 +105,17 @@ SOURCES += \
     Data/ViewPlugins.cpp \
     ScriptedCommandListener.cpp \
     GrayColormap.cpp \
-    HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
     HistogramGenerator.cpp \
     ScriptFacade.cpp \
     ScriptTester.cpp \
     ImageRenderService.cpp \
+    Algorithms/quantileAlgorithms.cpp \
+    Hacks/HackViewer.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
-    Algorithms/quantileAlgorithms.cpp \
-    ILayeredView.cpp
+    Hacks/ILayeredView.cpp \
+    Hacks/IVectorGraphicsView.cpp
 
 
 #message( "common            PWD=$$PWD")

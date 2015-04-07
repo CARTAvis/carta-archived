@@ -17,13 +17,13 @@
 
 namespace Hacks
 {
-namespace StateKey
-{
-QString MOUSE_X = "mouse_x";
-QString MOUSE_Y = "mouse_y";
-QString HACKS = "hacks";
-QString AUTO_CLIP = "auto_clip";
-}
+//namespace StateKey
+//{
+//QString MOUSE_X = "mouse_x";
+//QString MOUSE_Y = "mouse_y";
+//QString HACKS = "hacks";
+//QString AUTO_CLIP = "auto_clip";
+//}
 
 TestView2::TestView2( QString prefix,
                       QString viewName,
@@ -143,41 +143,12 @@ TestView2::handleMouseEvent( const QMouseEvent & ev )
 void
 TestView2::redrawBuffer()
 {
-//    QPointF center = m_imageBuffer.rect().center();
-//    QPointF diff = m_lastMouse - center;
-//    double angle = atan2( diff.x(), diff.y() );
-//    angle *= - 180 / M_PI;
-
-//    m_imageBuffer = m_qImageToRender.scaled( m_imageBuffer.size(), Qt::IgnoreAspectRatio,
-//                                             Qt::SmoothTransformation );
-
-//    ////                                                 Qt::FastTransformation );
-
-//    {
-//        QPainter p( & m_imageBuffer );
-
-//        p.setPen( Qt::NoPen );
-//        p.setBrush( QColor( 255, 255, 0, 128 ) );
-//        p.drawEllipse( QPoint( m_lastMouse.x(), m_lastMouse.y() ), 10, 10 );
-//        p.setPen( QColor( 255, 255, 255 ) );
-//        p.drawLine( 0, m_lastMouse.y(), m_imageBuffer.width() - 1, m_lastMouse.y() );
-//        p.drawLine( m_lastMouse.x(), 0, m_lastMouse.x(), m_imageBuffer.height() - 1 );
-
-//        p.translate( m_imageBuffer.rect().center() );
-//        p.rotate( angle );
-//        p.translate( - m_imageBuffer.rect().center() );
-//        p.setFont( QFont( "Arial", 20 ) );
-//        p.setPen( QColor( "white" ) );
-//        p.drawText( m_imageBuffer.rect(), Qt::AlignCenter, m_viewName );
-//    }
-
     // execute the pre-render hook
     Globals::instance()-> pluginManager()
         -> prepare < PreRender > ( m_viewName, & m_imageBuffer )
         .executeAll();
 } // redrawBuffer
-}
-using namespace Hacks;
+
 
 //static TestView2 * m_testView2 = nullptr;
 
@@ -666,6 +637,9 @@ HackViewer::_repaintFrameNow()
     // schedule a redraw for the client
     m_testView2-> scheduleRedraw();
 } // _repaintFrame
+
+
+}
 
 /// experiment, currently unused
 ///

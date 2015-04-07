@@ -232,13 +232,6 @@ public:
         CSI::ByteArray bits = target.RenderTargetImage().ImageBytes();
 
         const QImage & qimage = m_iview->getBuffer();
-//        if( qimage.format() != QImage::Format_RGB888) {
-//            QImage tmpImage = qimage.convertToFormat( QImage::Format_RGB888);
-//            CSI::ByteArray::Copy(tmpImage.scanLine(0), bits, 0, bits.Count());
-//        }
-//        else {
-//            CSI::ByteArray::Copy(qimage.scanLine(0), bits, 0, bits.Count());
-//        }
         if( qimage.format() != QImage::Format_ARGB32_Premultiplied) {
             // @todo could we do SSSE3 byte shuffle here as we are copying?
             // e.g. __m128i _mm_shuffle_epi8

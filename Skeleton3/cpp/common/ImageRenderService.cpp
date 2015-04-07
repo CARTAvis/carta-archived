@@ -7,7 +7,7 @@
 #include <QColor>
 #include <QPainter>
 
-/// algorithm for converting an instance of image interface to qimage
+/// internal algorithm for converting an instance of image interface to qimage
 /// using the pixel pipeline
 ///
 /// \tparam Pipeline
@@ -16,15 +16,15 @@
 /// \param m_qImage
 template < class Pipeline >
 static void
-rawView2QImage2( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
+iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
     qDebug() << "rv2qi2" << rawView-> dims();
     typedef double Scalar;
     QSize size( rawView->dims()[0], rawView->dims()[1] );
 
-    if ( qImage.format() != QImage::Format_ARGB32 ||
+    if ( qImage.format() != QImage::Format_ARGB32_Premultiplied ||
          qImage.size() != size ) {
-        qImage = QImage( size, QImage::Format_ARGB32 );
+        qImage = QImage( size, QImage::Format_ARGB32_Premultiplied );
     }
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
@@ -37,8 +37,8 @@ rawView2QImage2( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & 
     // make a double view
     NdArray::TypedView < Scalar > typedView( rawView, false );
 
-    /// @todo for more efficiency we should switch to the higher performance view apis
-    /// and apply some basic openmp/cilk
+    /// @todo for more efficiency, instead of forEach() we should switch to one of the
+    /// higher performance APIs and maybe even sprinkle it with some openmp/cilk magic :)
     int64_t counter = 0;
     QRgb nanColor = qRgb( 255, 0, 0 );
     auto lambda = [&] ( const Scalar & ival )
@@ -273,7 +273,7 @@ Service::internalRenderSlot( JobId jobId )
                     m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
                                               pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::rawView2QImage2( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
+                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
             }
             else {
                 if ( ! m_cachedPP ) {
@@ -281,16 +281,16 @@ Service::internalRenderSlot( JobId jobId )
                     m_cachedPP-> cache( * m_pixelPipelineRaw,
                                         pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::rawView2QImage2( m_inputView.get(), * m_cachedPP, m_frameImage );
+                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage );
             }
         }
         else {
-            ::rawView2QImage2( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
+            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
         }
     }
 
     // prepare output
-    QImage img( m_outputSize, QImage::Format_ARGB32 );
+    QImage img( m_outputSize, QImage::Format_ARGB32_Premultiplied );
 
 //    img.fill( QColor( "blue" ) );
     img.fill( QColor( 50, 50, 50 ) );

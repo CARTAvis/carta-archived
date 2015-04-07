@@ -2,6 +2,8 @@
  *
  **/
 
+#pragma once
+
 #include "CartaLib/CartaLib.h"
 #include "IView.h"
 
@@ -9,8 +11,6 @@
 #include <QPainter>
 #include <QSize>
 #include <unordered_set>
-
-#pragma once
 
 namespace Carta
 {

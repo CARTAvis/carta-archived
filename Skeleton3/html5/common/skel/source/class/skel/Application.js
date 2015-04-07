@@ -39,16 +39,8 @@ qx.Class.define( "skel.Application",
                 // Call super class
                 this.base( arguments );
 
-                // Enable logging in debug variant
                 if( qx.core.Environment.get( "qx.debug" ) )
                 {
-                    // everything inside the curlies gets compiled out in release mode
-
-                    // support native logging capabilities, e.g. Firebug for Firefox
-//        qx.log.appender.Native;
-                    // support additional cross-browser console. Press F7 to toggle visibility
-//        qx.log.appender.Console;
-
                     console.warn( "You are running debug version" );
                 }
                 else {
@@ -73,17 +65,9 @@ qx.Class.define( "skel.Application",
                 }
 
                 // activate experimental code
-                var hacksVar = connector.getSharedVar( "/hacks/enabled" );
-                var initHacks = function() {
-                    if( hacksVar.get() !== "1") return;
-                    this.m_hacks = new skel.hacks.Hacks( this);
-                    this.getRoot().add( this.m_hacks, {left: 20, top: 220} );
-                    this.m_hacks.open();
-                }.bind(this);
-                hacksVar.addCB( initHacks);
-                initHacks();
+                this._pavolHacks = new skel.hacks.Hacks();
 
-                this.m_mainContainer = new qx.ui.container.Composite( /*new qx.ui.layout.Canvas()*/new qx.ui.layout.VBox(0) );
+                this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.VBox(0) );
                 this.m_mainContainer.setAppearance( "display-main" );
                 this.getRoot().add( this.m_mainContainer, {
                     left  : "0%",
@@ -124,37 +108,36 @@ qx.Class.define( "skel.Application",
         /**
          * Initialize the menu bar.
          */
-            _initMenuBar: function(){
-                this.m_menuBar = new skel.widgets.Menu.MenuBar();
-                this.m_menuBar.addListener( "layoutImage", function()
-                {
-                    this._hideWindows();
-                    this.m_desktop.layoutImage();
-                }, this );
+        _initMenuBar: function(){
+            this.m_menuBar = new skel.widgets.Menu.MenuBar();
+            this.m_menuBar.addListener( "layoutImage", function()
+            {
+                this._hideWindows();
+                this.m_desktop.layoutImage();
+            }, this );
 
-                this.m_menuBar.addListener( "layoutAnalysis", function()
-                {
-                    this._hideWindows();
-                    this.m_desktop.layoutAnalysis();
-                }, this );
+            this.m_menuBar.addListener( "layoutAnalysis", function()
+            {
+                this._hideWindows();
+                this.m_desktop.layoutAnalysis();
+            }, this );
 
-                this.m_menuBar.addListener( "layoutRowCount", function( ev )
-                {
-                    this._hideWindows();
-                    this.m_desktop.setRowCount( ev.getData() );
-                }, this );
+            this.m_menuBar.addListener( "layoutRowCount", function( ev )
+            {
+                this._hideWindows();
+                this.m_desktop.setRowCount( ev.getData() );
+            }, this );
 
-                this.m_menuBar.addListener( "layoutColCount", function( ev )
-                {
-                    this._hideWindows();
-                    this.m_desktop.setColCount( ev.getData() );
-                }, this );
+            this.m_menuBar.addListener( "layoutColCount", function( ev )
+            {
+                this._hideWindows();
+                this.m_desktop.setColCount( ev.getData() );
+            }, this );
 
-                this.m_menuBar.addListener( "shareSession", function( ev )
-                {
-                    this.m_statusBar.updateSessionSharing( ev.getData() );
-                }, this );
-               
+            this.m_menuBar.addListener( "shareSession", function( ev )
+            {
+                this.m_statusBar.updateSessionSharing( ev.getData() );
+            }, this );
         },
         
         /**

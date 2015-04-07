@@ -4,7 +4,7 @@
 
 #include "DesktopPlatform.h"
 #include "common/Viewer.h"
-#include "common/HackViewer.h"
+#include "common/Hacks/HackViewer.h"
 #include "common/MyQApp.h"
 #include "common/CmdLine.h"
 #include "common/MainConfig.h"
@@ -84,9 +84,9 @@ int main(int argc, char ** argv)
     // create the viewer
     // =================
     Viewer viewer;
-    HackViewer::UniquePtr hackViewer = nullptr;
+    Hacks::HackViewer::UniquePtr hackViewer = nullptr;
     if( globals.mainConfig()-> hacksEnabled()) {
-        hackViewer.reset( new HackViewer);
+        hackViewer.reset( new Hacks::HackViewer);
     }
     // prepare closure to execute when connector is initialized
     IConnector::InitializeCallback initCB = [&](bool valid) -> void {

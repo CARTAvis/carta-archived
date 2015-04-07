@@ -9,7 +9,6 @@
 
 namespace WcsPlotterPluginNS
 {
-
 class AstGridRenderer : public Carta::Lib::IWcsGridRenderer
 {
     Q_OBJECT
@@ -20,33 +19,34 @@ public:
     AstGridRenderer();
 
     virtual void
-    setInputImage( Image::ImageInterface::SharedPtr image )
-    { }
+    setInputImage( Image::ImageInterface::SharedPtr image ) override
+    { Q_UNUSED( image ); }
 
     virtual void
-    setOutputSize( const QSize & size )
-    { }
+    setOutputSize( const QSize & size ) override
+    { Q_UNUSED( size ); }
 
     virtual void
-    setImageRect( const QRectF & rect )
-    { }
+    setImageRect( const QRectF & rect ) override
+    { Q_UNUSED( rect ); }
 
     virtual void
-    setOutputRect( const QRectF & rect )
-    { }
+    setOutputRect( const QRectF & rect ) override
+    { Q_UNUSED( rect ); }
 
     virtual void
-    setLineColor( QColor color )
-    { }
+    setLineColor( QColor color ) override
+    { Q_UNUSED( color ); }
 
     virtual void
-    startRendering()
+    startRendering() override
     {
-        emit done( m_img);
+        emit done( m_img );
     }
-private:
-    QImage m_img;
 
+private:
+
+    QImage m_img;
 };
 
 class WcsPlotterPlugin : public QObject, public IPlugin
@@ -54,15 +54,16 @@ class WcsPlotterPlugin : public QObject, public IPlugin
     Q_OBJECT
     Q_PLUGIN_METADATA( IID "org.cartaviewer.IPlugin" )
     Q_INTERFACES( IPlugin )
+    ;
 
-public :
-        WcsPlotterPlugin( QObject * parent = 0 );
+public:
+
+    WcsPlotterPlugin( QObject * parent = 0 );
+
     virtual bool
     handleHook( BaseHook & hookData ) override;
 
     virtual std::vector < HookId >
     getInitialHookList() override;
-
-private:
 };
 }

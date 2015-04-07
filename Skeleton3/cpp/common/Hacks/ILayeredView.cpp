@@ -159,7 +159,7 @@ apitest()
     VGList vg = drawScene();
 
     // rasterize it into image
-    QImage img( 100, 100, QImage::Format_ARGB32 );
+    QImage img( 100, 100, QImage::Format_ARGB32_Premultiplied );
     QPainter painter( & img );
     RendererQPainter renderer( & painter );
     renderer.rasterize( vg );

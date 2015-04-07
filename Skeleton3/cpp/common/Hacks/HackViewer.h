@@ -4,35 +4,18 @@
 
 #pragma once
 
+#include "../Algorithms/RawView2QImageConverter.h"
+#include "../IConnector.h"
+#include "../PluginManager.h"
+#include "../IPlatform.h"
 #include "CartaLib/IImage.h"
-#include "Algorithms/RawView2QImageConverter.h"
-#include "IConnector.h"
-#include "PluginManager.h"
-#include "IPlatform.h"
-#include "Hacks/ImageViewController.h"
+#include "ImageViewController.h"
 
 #include <QPixmap>
 #include <QObject>
 
 namespace Hacks
 {
-
-//class CustomRenderer : public QObject
-//{
-//    Q_OBJECT
-//public:
-//    CustomRenderer() : QObject() {}
-//    virtual ~CustomRenderer() {}
-
-//    void setResolution( QSize);
-
-//signals:
-
-//    void progress( QImage);
-//    void done( QImage);
-//    void error( QString);
-
-//};
 
 class TestView2 : public QObject, public IView
 {
@@ -91,12 +74,11 @@ protected:
 
     QColor m_bgColor;
     Image::ImageInterface::SharedPtr m_astroImage;
-    IConnector * m_connector;
+    IConnector * m_connector = nullptr;
     QImage m_imageBuffer;
     QString m_viewName, m_prefix;
     QPointF m_lastMouse;
 };
-}
 
 ///
 /// \brief The HackView class contains Pavol's experiments.
@@ -198,3 +180,4 @@ protected:
     std::vector < Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr > m_allColormaps;
 
 };
+}

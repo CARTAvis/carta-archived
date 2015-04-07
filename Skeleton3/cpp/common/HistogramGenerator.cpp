@@ -43,7 +43,7 @@ void HistogramGenerator::setData(Carta::Lib::HistogramResult data){
 QImage * HistogramGenerator::toImage(){
 	QwtPlotRenderer * renderer = new QwtPlotRenderer();
 	QSize size(335,335);
-    QImage * histogramImage =new QImage(size, QImage::Format_RGB32);
+    QImage * histogramImage =new QImage(size, QImage::Format_ARGB32_Premultiplied);
     renderer->renderTo(m_plot,*histogramImage);
     return histogramImage;
 
