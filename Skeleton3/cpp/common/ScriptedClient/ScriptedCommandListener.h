@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ScriptFacade.h"
+#include "TagMessage.h"
 #include <QObject>
 
 class QTcpServer;
@@ -37,9 +38,9 @@ private:
 
     bool receiveNBytes( int n, QByteArray* data );
 
-    bool receiveMessage( QByteArray* data );
+    void readNBytes( qint64 n, void * dest );
 
-    int getMessageSize( );
+    bool receiveMessage( QByteArray* data );
 
     bool receiveTypedMessage( QString messageType, QByteArray* data );
 

@@ -73,13 +73,14 @@ Viewer::Viewer() :
         qDebug() << "Not listening to scripted commands.";
     }
     else {
-        m_scl = new ScriptedCommandListener( port, this );
+//        m_scl = new ScriptedCommandListener( port, this );
         qDebug() << "Listening to scripted commands on port " << port;
-        connect( m_scl, & ScriptedCommandListener::command,
-                 this, & Viewer::scriptedCommandCB );
+//        connect( m_scl, & ScriptedCommandListener::command,
+//                 this, & Viewer::scriptedCommandCB );
 
         // create Pavol's testing controller on port+1
-        new Carta::Core::ScriptedClient::PavolCommandController( port+1, this);
+        //new Carta::Core::ScriptedClient::PavolCommandController( port+1, this);
+        new Carta::Core::ScriptedClient::PavolCommandController( port, this);
     }
     m_devView = false;
 }

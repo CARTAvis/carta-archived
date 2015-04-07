@@ -59,6 +59,7 @@ def test(con, cmd, ** kw):
 def runTests(con):
     """Run some tests on the given connector"""
     test(con, "ls")
+    test(con, "getcolormapviews")
     test(con, "ls", dir="/home")
     test(con, "add", a=1, b=0.1)
     test(con, "xyz")

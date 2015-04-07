@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
+#include "ScriptedClient/ScriptFacade.h"
 #include "TagMessage.h"
 #include "JsonMessage.h"
 #include <QTcpServer>
@@ -91,6 +92,10 @@ class PavolCommandController : public QObject
 public:
 
     PavolCommandController( int port, QObject * parent = nullptr );
+
+protected:
+
+    ScriptFacade* m_scriptFacade = nullptr;
 
 private slots:
 

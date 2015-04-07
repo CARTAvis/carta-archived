@@ -8,16 +8,59 @@ import os.path
 import struct
 import binascii
 import random
+import json
+
+from layer2 import TagMessage, TagMessageSocket
+from layer3 import JsonMessage
+
+class TagConnector:
+    """
+    Can connect to a port, then exposes the cmd() method to send commands
+    and retrieve results. The commands and results are in JsonMessage format.
+    Uses TagMessageSocket, which gives us freedom to later send/receive raw
+    tag messages
+    """
+    def __init__(self,port):
+        self.port = port
+        self.socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect(("localhost", self.port))
+        self.tagMessageSocket = TagMessageSocket( self.socket)
+
+    def cmd( self, cmd, ** kwargs):
+        self.tagMessageSocket.send( JsonMessage.fromKW( cmd=cmd, args=kwargs).toTagMessage())
+        tm = self.tagMessageSocket.receive()
+        result = JsonMessage.fromTagMessage(tm)
+        return result.jsonString
+
+    def cmdTagList( self, cmd, ** kwargs):
+        """
+        Send a tag messge, return a list
+        """
+        self.tagMessageSocket.send( JsonMessage.fromKW( cmd=cmd, args=kwargs).toTagMessage())
+        tm = self.tagMessageSocket.receive()
+        result = JsonMessage.fromTagMessage(tm)
+        print "Tag message result = " + str(result)
+        print "Tag message result.jsonString = " + str(result.jsonString)
+        print "json.loads(str(result.jsonString)) = " + str(json.loads(str(result.jsonString)))
+        #j = json.loads(result.jsonString.decode("utf-8"))
+        #j = json.loads(result.jsonString.decode())
+        j = json.loads(str(result.jsonString))
+        print "j = " + str(j)
+        print "j['result'] = " + str(j['result'])
+        return j['result']
 
 class CartaView:
     """Base class for Carta objects"""
-    def __init__(self, idStr, socket):
+    #def __init__(self, idStr, socket, tagSocket=''):
+    def __init__(self, idStr, connection):
+        print "CartaView __init__() idStr = " + str(idStr)
         self.__id = idStr
-        self.socket = socket
+        self.con = connection
         return
 
     def getId(self):
         """This is mainly for testing/debugging/sanity purposes"""
+        print "CartaView getId() self.__id = " + self.__id
         return self.__id
 
     def addLink(self, imageView):
@@ -35,48 +78,39 @@ class Colormap(CartaView):
 
     def setColormap(self, colormap):
         """Set the specified colormap"""
-        commandStr = "setColormap " + self.getId() + " " + colormap
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("setColormap", colormapId=self.getId(), colormapName=colormap)
         return result
 
     def reverseColormap(self, reverseStr='toggle'):
-        commandStr = "reverseColormap " + self.getId() + " " + str(reverseStr)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("reverseColormap", colormapId=self.getId(), reverseString=reverseStr)
         return result
 
     def setCacheColormap(self, cacheStr='toggle'):
-        commandStr = "setCacheColormap " + self.getId() + " " + str(cacheStr)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("setCacheColormap", colormapId=self.getId(), cacheString=cacheStr)
         return result
 
     def setCacheSize(self, cacheSize):
-        commandStr = "setCacheSize " + self.getId() + " " + str(cacheSize)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("setCacheSize", colormapId=self.getId(), size=str(cacheSize))
         return result
 
     def setInterpolatedColormap(self, interpolatedStr='toggle'):
-        commandStr = "setInterpolatedColormap " + self.getId() + " " + str(interpolatedStr)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("setInterpolatedColormap", colormapId=self.getId(), interpolatedString=interpolatedStr)
         return result
 
     def invertColormap(self, invertStr='toggle'):
-        commandStr = "invertColormap " + self.getId() + " " + str(invertStr)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("invertColormap", colormapId=self.getId(), invertString=invertStr)
         return result
 
     def setColorMix(self, redPercent, greenPercent, bluePercent):
-        commandStr = "setColorMix " + self.getId() + " " + str(redPercent) + " " + str(greenPercent) + " " + str(bluePercent)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("setColorMix", colormapId=self.getId(), red=str(redPercent), green=str(greenPercent), blue=str(bluePercent))
         return result
 
     def setGamma(self, gamma):
-        commandStr = "setGamma " + self.getId() + " " + str(gamma)
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("setGamma", colormapId=self.getId(), gammaValue=gamma)
         return result
 
-    def setDataTransform(self, transformString):
-        commandStr = "setDataTransform " + self.getId() + " " + transformString
-        result = sendCommand(self.socket, commandStr)
+    def setDataTransform(self, transformStr):
+        result = self.con.cmdTagList("setDataTransform", colormapId=self.getId(), transform=transformStr)
         return result
 
 class Image(CartaView):
@@ -189,12 +223,14 @@ class Application:
         args = [executable, "--scriptPort", 
                 str(port), "--html", htmlFile, imageFile]
         print args
-        self.popen = subprocess.Popen( args)
+        self.popen = subprocess.Popen(args)
         print "Started process with pid=", self.popen.pid
         time.sleep(3)
         self.visible = False
-        self.socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(("localhost", port))
+        #self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #self.socket.connect(("localhost", port))
+        #self.tagMessageSocket = TagMessageSocket(self.socket)
+        self.con = TagConnector(port)
         return
 
     # It would be nice if this function could actually turn the GUI on and off
@@ -222,21 +258,35 @@ class Application:
         fileList = sendCommand(self.socket, commandStr)
         return fileList
 
+#    def getImageViews(self):
+#        commandStr = "getImageViews"
+#        imageViewsList = sendCommand(self.tagMessageSocket, commandStr, sendType="tag")
+#        print "imageViewsList = " + str(imageViewsList)
+#        imageViews = []
+#        for iv in imageViewsList:
+#            imageView = makeImage(iv, self.socket)
+#            imageViews.append(imageView)
+#        return imageViews
+
     def getImageViews(self):
         commandStr = "getImageViews"
-        imageViewsList = sendCommand(self.socket, commandStr)
+        imageViewsList = self.con.cmdTagList(commandStr)
+        print "imageViewsList = " + str(imageViewsList)
         imageViews = []
         for iv in imageViewsList:
-            imageView = makeImage(iv, self.socket)
+            imageView = makeImage(iv, self.con)
             imageViews.append(imageView)
         return imageViews
 
     def getColormapViews(self):
         commandStr = "getColormapViews"
-        colormapViewsList = sendCommand(self.socket, commandStr)
+        colormapViewsList = self.con.cmdTagList(commandStr)
+        print "colormapViewsList = " + str(colormapViewsList)
         colormapViews = []
         for cmv in colormapViewsList:
-            colormapView = makeColormap(cmv, self.socket)
+            print "cmv = " + str(cmv)
+            #colormapView = makeColormap(cmv, self.socket, self.tagMessageSocket)
+            colormapView = makeColormap(cmv, self.con)
             colormapViews.append(colormapView)
         return colormapViews
 
@@ -274,7 +324,8 @@ class Application:
 
     def setCustomLayout(self, rows, cols):
         commandStr = "setCustomLayout " + str(rows) + " " + str(cols)
-        result = sendCommand(self.socket, commandStr)
+        #result = sendCommand(self.tagMessageSocket, commandStr, sendType="tag")
+        result = sendCommand(self.tagMessageSocket, "setCustomLayout", nrows=rows, ncols=cols, sendType="tag")
         return result
 
     def setImageLayout(self):
@@ -331,12 +382,13 @@ def startPavol(
     ):
     return Application(executable, configFile, port, htmlFile, imageFile)
 
-def makeImage(imageViewId, socket):
-    image = Image(imageViewId, socket)
+def makeImage(imageViewId, connection):
+    image = Image(imageViewId, connection)
     return image
 
-def makeColormap(colormapId, socket):
-    colormap = Colormap(colormapId, socket)
+def makeColormap(colormapId, connection):
+    print "makeColormap() colormapId = " + colormapId
+    colormap = Colormap(colormapId, connection)
     return colormap
 
 def makeStatistics(statisticsId, socket):
@@ -351,18 +403,39 @@ def makeHistogram(histogramId, socket):
     histogram = Histogram(histogramId, socket)
     return histogram
 
-def sendCommand(socket, commandStr):
-    result = sendTypedMessage(socket, commandStr, 1)
-    if (result):
-        data = []
-        output = []
-        typedMessageResult = receiveTypedMessage(socket, 1, data)
-        listData = data[0].splitlines()
-        for d in listData:
-            output.append(d)
-        return output
+def sendCommand(socket, commandStr, sendType="", recvType="", ** kwargs):
+    print "sendCommand()"
+    print "commandStr = " + commandStr
+    print "sendType = " + sendType
+    print "recvType = " + recvType
+    print "kwargs = " + str(kwargs)
+    if (sendType.lower() == "tag"):
+        print "Sending a tag message"
+        #result = socket.send(JsonMessage.fromKW(cmd=commandStr, args=kwargs).toTagMessage())
+        socket.send(JsonMessage.fromKW(cmd=commandStr, args=kwargs).toTagMessage())
+        tm = socket.receive()
+        result = JsonMessage.fromTagMessage(tm)
+        print "Tag message result = " + str(result)
+        print "Tag message result.jsonString = " + str(result.jsonString)
+        print "json.loads(str(result.jsonString)) = " + str(json.loads(str(result.jsonString)))
+        #j = json.loads(result.jsonString.decode("utf-8"))
+        #j = json.loads(result.jsonString.decode())
+        j = json.loads(str(result.jsonString))
+        print "j = " + str(j)
+        print "j['result'] = " + str(j['result'])
+        return j['result']
     else:
-        return result
+        result = sendTypedMessage(socket, commandStr, 1)
+        if (result):
+            data = []
+            output = []
+            typedMessageResult = receiveTypedMessage(socket, 1, data)
+            listData = data[0].splitlines()
+            for d in listData:
+                output.append(d)
+            return output
+        else:
+            return result
 
 def sendNBytes(socket, n, message):
     """the sendNBytes() method"""

@@ -94,6 +94,7 @@ PavolCommandController::PavolCommandController( int port, QObject * parent )
 void
 PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 {
+    m_scriptFacade = ScriptFacade::getInstance();
     if ( tm.tag() != "json" ) {
         qWarning() << "I don't handle tag" << tm.tag();
         return;
@@ -105,7 +106,9 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         return;
     }
     QJsonObject jo = jm.doc().object();
-    QString cmd = jo["cmd"].toString();
+    QString cmd = jo["cmd"].toString().toLower();
+    qDebug() << "(JT) tagMessageReceivedCB() cmd =" << cmd;
+
     if ( cmd == "ls" ) {
         auto args = jo["args"].toObject();
         QString dir = args["dir"].toString();
@@ -118,6 +121,7 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
         m_messageListener->send( rjm.toTagMessage() );
     }
+
     else if ( cmd == "add" ) {
         auto args = jo["args"].toObject();
         double a = args["a"].toDouble();
@@ -127,6 +131,129 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
         m_messageListener->send( rjm.toTagMessage() );
     }
+
+    else if ( cmd == "getcolormapviews" ) {
+        QStringList colormapViews = m_scriptFacade->getColorMapViews();
+        qDebug() << "(JT) colormapViews =" << colormapViews;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( colormapViews ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "getimageviews" ) {
+        QStringList imageViews = m_scriptFacade->getImageViews();
+        qDebug() << "(JT) imageViews =" << imageViews;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( imageViews ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setcolormap" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString colormapName = args["colormapName"].toString();
+        QString result = m_scriptFacade->setColorMap( colormapId, colormapName );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "reversecolormap" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString reverseString = args["reverseString"].toString();
+        QString result = m_scriptFacade->reverseColorMap( colormapId, reverseString );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setcachecolormap" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString cacheString = args["cacheString"].toString();
+        QString result = m_scriptFacade->setCacheColormap( colormapId, cacheString );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setcachesize" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString size = args["size"].toString();
+        QString result = m_scriptFacade->setCacheSize( colormapId, size );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setinterpolatedcolormap" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString interpolatedString = args["interpolatedString"].toString();
+        QString result = m_scriptFacade->setInterpolatedColorMap( colormapId, interpolatedString );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "invertcolormap" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString invertString = args["invertString"].toString();
+        QString result = m_scriptFacade->invertColorMap( colormapId, invertString );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setcolormix" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString red = args["red"].toString();
+        QString green = args["green"].toString();
+        QString blue = args["blue"].toString();
+        QString percentString;
+        percentString = "redPercent:" + red + ",greenPercent:" + green + ",bluePercent:" + blue;
+        qDebug() << "(JT) percentString =" << percentString;
+        QString result = m_scriptFacade->setColorMix( colormapId, percentString );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setgamma" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        double gamma = args["gammaValue"].toDouble();
+        QString result = m_scriptFacade->setGamma( colormapId, gamma );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setdatatransform" ) {
+        auto args = jo["args"].toObject();
+        QString colormapId = args["colormapId"].toString();
+        QString transform = args["transform"].toString();
+        QString result = m_scriptFacade->setDataTransform( colormapId, transform );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
     else {
         qDebug() << "Unknown command, sending error back";
         m_messageListener->send( TagMessage( "json", "{ 'error':'Uknown command'}" ) );

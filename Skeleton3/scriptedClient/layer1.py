@@ -17,6 +17,7 @@ class VarLenSocket:
         # encode and send the length of the message as 64bit, little endian
         self.rawSocket.sendall( struct.pack('<Q', len( varLenMessage.data)))
         # send the actual raw data
+        print "send varLenMessage.data = " + varLenMessage.data
         self.rawSocket.sendall( varLenMessage.data)
     def receiveN(self,n):
         """helper method that receives n raw bytes and returns them as bytearray"""

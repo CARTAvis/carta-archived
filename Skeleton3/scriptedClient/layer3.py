@@ -21,6 +21,7 @@ class JsonMessage:
     @staticmethod
     def fromKW( ** kwargs):
         """converts kwargs to json, and returns the corresponding JsonMessage"""
+        print "kwargs (before dumps): " + str(kwargs)
         return JsonMessage( json.dumps(kwargs))
 
 class JsonSocket:

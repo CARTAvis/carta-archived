@@ -34,8 +34,10 @@ VarLengthSocket::socketCB()
     qint64 size;
     readNBytes( 8, & size );
     size = qFromLittleEndian( size );
+    qDebug() << "(JT) socketCB size =" << size;
     buff.resize( size );
     readNBytes( size, buff.data() );
+    qDebug() << "(JT) socketCB buff.data() =" << buff.data();
 
     emit received( buff );
 }

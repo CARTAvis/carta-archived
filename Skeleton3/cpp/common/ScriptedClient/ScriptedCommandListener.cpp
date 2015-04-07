@@ -1,6 +1,7 @@
 #include "ScriptedCommandListener.h"
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QtEndian>
 #include <QDebug>
 #include <stdexcept>
 #include <netinet/in.h>
@@ -42,10 +43,18 @@ void ScriptedCommandListener::socketDataCB()
 {
     QByteArray buffer;
     bool result = receiveTypedMessage( "1", &buffer );
-    QString str( buffer );
+    qDebug() << "(JT) socketDataCB() &buffer =" << &buffer;
+    qDebug() << "(JT) socketDataCB() buffer.data() =" << buffer.data();
+    QString tag = buffer.constData();
+    qDebug() << "(JT) socketDataCB tag =" << tag;
+    QByteArray ba = buffer.right( buffer.size() - tag.size() - 1 );
+    qDebug() << "(JT) socketDataCB() ba =" << ba;
+    //QString str( buffer );
     if (result == true) {
-        str = str.trimmed();
-        emit command( str);
+        //str = str.trimmed();
+        //emit command( str);
+        emit command( ba.data() );
+        qDebug() << "(JT) Whatever...";
     }
     else {
         qDebug() << "something went wrong in ScriptedCommandListener::socketDataCB()";
@@ -120,61 +129,46 @@ bool ScriptedCommandListener::receiveNBytes( int n, QByteArray* data )
     return result;
 }
 
-int ScriptedCommandListener::getMessageSize( )
+void ScriptedCommandListener::readNBytes( qint64 n, void * dest )
 {
-    // Instead of bool, this method will return an int.
-    // A return value of 0 can be interpreted as an error.
-    long long result;
-    int messageSize = sizeof(long long);
-    unsigned char size[messageSize+1];
-    // This needs to be put into a loop in case the whole size cannot be read
-    // all at once. Can I maybe just read one byte at a time?
-    qint64 lineLength = 0;
-    for (int i = 0; i < messageSize; i++) {
-        char buff[2];
-        int futileReads = 0;
-        qint64 bytesRead = -1;
-        while (bytesRead < 1) {
-            bytesRead = m_connection-> readLine( buff, 2 );
-            if (bytesRead == 0) {
-                futileReads += 1;
-            }
+    qint64 remaining = n;
+    char * ptr = reinterpret_cast < char * > ( dest );
+    while ( remaining > 0 ) {
+        auto n = m_connection->read( ptr, remaining );
+        if ( n < 0 ) {
+            throw std::runtime_error( "closed socket?" );
         }
-        lineLength += bytesRead;
-        size[i] = buff[0];
+        remaining -= n;
+        ptr += n;
     }
-    size[8] = NULL;
-    if( lineLength == -1) {
-        qWarning() << "scripted command listener: something wrong with socket";
-        result = 0;
-    }
-
-    if ( lineLength < 8 ) {
-        result = 0;
-    }
-
-    if (lineLength == 8) {
-        result = (size[7]<<0) | (size[6]<<8) | (size[5]<<16) | (size[4]<<24) | (size[3]<<32) | (size[2]<<40) | (size[1]<<48) | (size[0]<<56);
-    }
-    return result;
 }
 
 bool ScriptedCommandListener::receiveMessage( QByteArray* data )
 {
     //format: 4, 6, or 8 bytes: the size of the following message
     //after receiving this, enter a loop to receive this number of bytes
-    bool result = 0;
-    int size = getMessageSize();
+    bool result = true;
+    qint64 size;
+    readNBytes( 8, &size );
+    size = qFromLittleEndian( size );
+    data->resize( size );
+    qDebug() << "(JT) receiveMessage() size =" << size;
     if ( size > 0 ) {
-        result = receiveNBytes( size, data );
+        readNBytes( size, data->data() );
     }
+    qDebug() << "(JT) receiveMessage() data =" << data;
+    qDebug() << "(JT) receiveMessage() data->data() =" << data->data();
     return result;
 }
 
 bool ScriptedCommandListener::receiveTypedMessage( QString messageType, QByteArray* data )
 {
     if ( messageType == "1") {
+        qDebug() << "(JT) receiveTypedMessage() data (before) =" << data;
+        qDebug() << "(JT) receiveTypedMessage() data->data() (before) =" << data->data();
         bool result = receiveMessage( data );
+        qDebug() << "(JT) receiveTypedMessage() data =" << data;
+        qDebug() << "(JT) receiveTypedMessage() data->data() =" << data->data();
         return result;
     }
     else {

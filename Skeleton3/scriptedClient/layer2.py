@@ -40,6 +40,7 @@ class TagMessageSocket:
     def __init__(self,rawSocket):
         self.varLenSocket = VarLenSocket(rawSocket)
     def send(self,tagMessage):
+        print "send tagMessage"
         self.varLenSocket.send( tagMessage.toVarLenMessage())
     def receive(self):
         """receive a TagMessage"""
