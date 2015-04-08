@@ -386,6 +386,22 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
         }
     }
 
+    // update colormap preview.
+    // this does not really belong here, but since we are just hacking...
+    QStringList list;
+    double clipMin, clipMax;
+    m_pixelPipeline-> getClips( clipMin, clipMax );
+    int n = 300;
+    for ( int i = 0 ; i <= n ; i++ ) {
+        double x = ( clipMax - clipMin ) / n * i + clipMin;
+        QRgb col;
+        m_pixelPipeline-> convertq( x, col );
+        list << QColor( col ).name().mid( 1 );
+    }
+    m_connector-> setState( "/hacks/frame", list.join( "," ) );
+
+    // schedule a repaint with the connector
     m_connector-> refreshView( this );
+
 } // irsDoneSlot
 }
