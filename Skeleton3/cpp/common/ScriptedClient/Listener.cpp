@@ -150,6 +150,110 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         m_messageListener->send( rjm.toTagMessage() );
     }
 
+    else if ( cmd == "getanimatorviews" ) {
+        QStringList animatorViews = m_scriptFacade->getAnimatorViews();
+        qDebug() << "(JT) animatorViews =" << animatorViews;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( animatorViews ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "gethistogramviews" ) {
+        QStringList histogramViews = m_scriptFacade->getHistogramViews();
+        qDebug() << "(JT) histogramViews =" << histogramViews;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( histogramViews ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "getstatisticsviews" ) {
+        QStringList statisticsViews = m_scriptFacade->getStatisticsViews();
+        qDebug() << "(JT) statisticsViews =" << statisticsViews;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( statisticsViews ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setanalysislayout" ) {
+        QString result = m_scriptFacade->setAnalysisLayout();
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setimagelayout" ) {
+        QString result = m_scriptFacade->setImageLayout();
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setcustomlayout" ) {
+        auto args = jo["args"].toObject();
+        int rows = args["nrows"].toInt();
+        int columns = args["ncols"].toInt();
+        QString result = m_scriptFacade->setCustomLayout(rows, columns);
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setplugins" ) {
+        auto args = jo["args"].toObject();
+        QString plugins = args["plugins"].toString();
+        QStringList pluginsList = plugins.split(' ');
+        QString result = m_scriptFacade->setPlugins(pluginsList);
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "addlink" ) {
+        auto args = jo["args"].toObject();
+        QString source = args["sourceView"].toString();
+        QString dest = args["destView"].toString();
+        QString result = m_scriptFacade->addLink(source, dest);
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "removelink" ) {
+        auto args = jo["args"].toObject();
+        QString source = args["sourceView"].toString();
+        QString dest = args["destView"].toString();
+        QString result = m_scriptFacade->removeLink(source, dest);
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "savestate" ) {
+        auto args = jo["args"].toObject();
+        QString name = args["name"].toString();
+        QString result = m_scriptFacade->saveState(name);
+        qDebug() << "(JT) result =" << result;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
     else if ( cmd == "setcolormap" ) {
         auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
@@ -250,6 +354,129 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         QString result = m_scriptFacade->setDataTransform( colormapId, transform );
         QJsonObject rjo;
         rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "loadfile" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QString fileName = args["fname"].toString();
+        QString result = m_scriptFacade->loadFile( imageView, fileName );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "loadlocalfile" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QString fileName = args["fname"].toString();
+        QString result = m_scriptFacade->loadLocalFile( imageView, fileName );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "getlinkedcolormaps" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QStringList result = m_scriptFacade->getLinkedColorMaps( imageView );
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "getlinkedanimators" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QStringList result = m_scriptFacade->getLinkedAnimators( imageView );
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "getlinkedhistograms" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QStringList result = m_scriptFacade->getLinkedHistograms( imageView );
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "getlinkedstatistics" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QStringList result = m_scriptFacade->getLinkedStatistics( imageView );
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( result ) );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setclipvalue" ) {
+        auto args = jo["args"].toObject();
+        QString imageView = args["imageView"].toString();
+        QString clipValue = args["clipValue"].toString();
+        QString result = m_scriptFacade->setClipValue( imageView, clipValue );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setchannel" ) {
+        auto args = jo["args"].toObject();
+        QString animatorView = args["animatorView"].toString();
+        int channel = args["channel"].toInt();
+        QString result = m_scriptFacade->setChannel( animatorView, channel );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "setimage" ) {
+        auto args = jo["args"].toObject();
+        QString animatorView = args["animatorView"].toString();
+        int image = args["image"].toInt();
+        QString result = m_scriptFacade->setImage( animatorView, image );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+    else if ( cmd == "showimageanimator" ) {
+        auto args = jo["args"].toObject();
+        QString animatorView = args["animatorView"].toString();
+        QString result = m_scriptFacade->showImageAnimator( animatorView );
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
+//    else if ( cmd == "getfilelist" ) {
+//        QString fileList = m_scriptFacade->getFileList();
+//        qDebug() << "(JT) fileList =" << fileList;
+//        QJsonObject rjo;
+//        rjo.insert( "result", QJsonValue::fromVariant( fileList ) );
+//        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+//        m_messageListener->send( rjm.toTagMessage() );
+//    }
+
+    else if ( cmd == "getcolormaps" ) {
+        QStringList colorMaps = m_scriptFacade->getColorMaps();
+        qDebug() << "(JT) colorMaps =" << colorMaps;
+        QJsonObject rjo;
+        rjo.insert( "result", QJsonValue::fromVariant( colorMaps ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
         m_messageListener->send( rjm.toTagMessage() );
     }

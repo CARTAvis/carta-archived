@@ -64,13 +64,13 @@ class CartaView:
         return self.__id
 
     def addLink(self, imageView):
-        commandStr = "addLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "addLink " + self.getId() + " " + imageView.getId()
+        result = self.con.cmdTagList("addLink", sourceView=self.getId(), destView=imageView.getId())
         return result
 
     def removeLink(self, imageView):
-        commandStr = "removeLink " + self.getId() + " " + imageView.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "removeLink " + self.getId() + " " + imageView.getId()
+        result = self.con.cmdTagList("removeLink", sourceView=self.getId(), destView=imageView.getId())
         return result
 
 class Colormap(CartaView):
@@ -117,54 +117,54 @@ class Image(CartaView):
     """Represents an image view"""
 
     def loadFile(self, fileName):
-        commandStr = "loadFile " + self.getId() + " " + fileName
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "loadFile " + self.getId() + " " + fileName
+        result = self.con.cmdTagList("loadFile", imageView=self.getId(), fname="/RootDirectory/"+fileName)
         return result
 
     def loadLocalFile(self, fileName):
-        commandStr = "loadLocalFile " + self.getId() + " " + fileName
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "loadLocalFile " + self.getId() + " " + fileName
+        result = self.con.cmdTagList("loadLocalFile", imageView=self.getId(), fname=fileName)
         return result
 
     def getLinkedColormaps(self):
-        commandStr = "getLinkedColormaps " + self.getId()
-        linkedColormapViewsList = sendCommand(self.socket, commandStr)
+        #commandStr = "getLinkedColormaps " + self.getId()
+        linkedColormapViewsList = self.con.cmdTagList("getLinkedColormaps", imageView=self.getId())
         linkedColormapViews = []
         for colomap in linkedColormapViewsList:
-            linkedColormapView = makeColormap(colomap, self.socket)
+            linkedColormapView = makeColormap(colomap, self.con)
             linkedColormapViews.append(linkedColormapView)
         return linkedColormapViews
 
     def getLinkedAnimators(self):
-        commandStr = "getLinkedAnimators " + self.getId()
-        linkedAnimatorViewsList = sendCommand(self.socket, commandStr)
+        #commandStr = "getLinkedAnimators " + self.getId()
+        linkedAnimatorViewsList = self.con.cmdTagList("getLinkedAnimators", imageView=self.getId())
         linkedAnimatorViews = []
         for animator in linkedAnimatorViewsList:
-            linkedAnimatorView = makeAnimator(animator, self.socket)
+            linkedAnimatorView = makeAnimator(animator, self.con)
             linkedAnimatorViews.append(linkedAnimatorView)
         return linkedAnimatorViews
 
     def getLinkedHistograms(self):
-        commandStr = "getLinkedHistograms " + self.getId()
-        linkedHistogramViewsList = sendCommand(self.socket, commandStr)
+        #commandStr = "getLinkedHistograms " + self.getId()
+        linkedHistogramViewsList = self.con.cmdTagList("getLinkedHistograms", imageView=self.getId())
         linkedHistogramViews = []
         for histogram in linkedHistogramViewsList:
-            linkedHistogramView = makeHistogram(histogram, self.socket)
+            linkedHistogramView = makeHistogram(histogram, self.con)
             linkedHistogramViews.append(linkedHistogramView)
         return linkedHistogramViews
 
     def getLinkedStatistics(self):
-        commandStr = "getLinkedStatistics " + self.getId()
-        linkedStatisticsViewsList = sendCommand(self.socket, commandStr)
+        #commandStr = "getLinkedStatistics " + self.getId()
+        linkedStatisticsViewsList = self.con.cmdTagList("getLinkedStatistics", imageView=self.getId())
         linkedStatisticsViews = []
         for statistics in linkedStatisticsViewsList:
-            linkedStatisticsView = makeStatistics(statistics, self.socket)
+            linkedStatisticsView = makeStatistics(statistics, self.con)
             linkedStatisticsViews.append(linkedStatisticsView)
         return linkedStatisticsViews
 
     def setClipValue(self, index):
-        commandStr = "setClipValue " + self.getId() + " " + str(index)
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "setClipValue " + self.getId() + " " + str(index)
+        result = self.con.cmdTagList("setClipValue", imageView=self.getId(), clipValue=str(index))
         return result
 
     def updatePan(self, x, y):
@@ -178,36 +178,36 @@ class Image(CartaView):
         result = sendCommand(self.socket, commandStr)
         return result
 
-    def addLink(self, destView):
+    def addLink(self, dest):
         """ Note that this method needs to override the base class method
             because the source and destination are flipped."""
-        commandStr = "addLink " + destView.getId() + " " + self.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "addLink " + destView.getId() + " " + self.getId()
+        result = self.con.cmdTagList("addLink", sourceView=dest.getId(), destView=self.getId())
         return result
 
-    def removeLink(self, destView):
+    def removeLink(self, dest):
         """ Note that this method needs to override the base class method
             because the source and destination are flipped."""
-        commandStr = "removeLink " + destView.getId() + " " + self.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "removeLink " + destView.getId() + " " + self.getId()
+        result = self.con.cmdTagList("removeLink", sourceView=dest.getId(), destView=self.getId())
         return result
 
 class Animator(CartaView):
     """Represents an animator view"""
 
     def setChannel(self, index):
-        commandStr = "setChannel " + self.getId() + " " + str(index)
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "setChannel " + self.getId() + " " + str(index)
+        result = self.con.cmdTagList("setChannel", animatorView=self.getId(), channel=index)
         return result
 
     def setImage(self, index):
-        commandStr = "setImage " + self.getId() + " " + str(index)
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "setImage " + self.getId() + " " + str(index)
+        result = self.con.cmdTagList("setImage", animatorView=self.getId(), image=index)
         return result
 
     def showImageAnimator(self):
-        commandStr = "showImageAnimator " + self.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "showImageAnimator " + self.getId()
+        result = self.con.cmdTagList("showImageAnimator", animatorView=self.getId())
         return result
 
 class Statistics(CartaView):
@@ -250,23 +250,17 @@ class Application:
 
     def getColormaps(self):
         commandStr = "getColormaps"
-        colormapsList = sendCommand(self.socket, commandStr)
+        colormapsList = self.con.cmdTagList(commandStr)
         return colormapsList
 
     def getFileList(self):
         commandStr = "getFileList"
-        fileList = sendCommand(self.socket, commandStr)
+        fileListJson = self.con.cmdTagList(commandStr)
+        j = json.loads(fileListJson)
+        #fileList = parseDirectory(fileListJson, "")
+        # Start parsing from the first occurrence of 'dir'
+        fileList = parseDirectory(j['dir'], "")
         return fileList
-
-#    def getImageViews(self):
-#        commandStr = "getImageViews"
-#        imageViewsList = sendCommand(self.tagMessageSocket, commandStr, sendType="tag")
-#        print "imageViewsList = " + str(imageViewsList)
-#        imageViews = []
-#        for iv in imageViewsList:
-#            imageView = makeImage(iv, self.socket)
-#            imageViews.append(imageView)
-#        return imageViews
 
     def getImageViews(self):
         commandStr = "getImageViews"
@@ -292,75 +286,74 @@ class Application:
 
     def getAnimatorViews(self):
         commandStr = "getAnimatorViews"
-        animatorViewsList = sendCommand(self.socket, commandStr)
+        animatorViewsList = self.con.cmdTagList(commandStr)
         animatorViews = []
         for av in animatorViewsList:
-            animatorView = makeAnimator(av, self.socket)
+            animatorView = makeAnimator(av, self.con)
             animatorViews.append(animatorView)
         return animatorViews
 
     def getHistogramViews(self):
         commandStr = "getHistogramViews"
-        histogramViewsList = sendCommand(self.socket, commandStr)
+        histogramViewsList = self.con.cmdTagList(commandStr)
         histogramViews = []
         for hv in histogramViewsList:
-            histogramView = makeHistogram(hv, self.socket)
+            histogramView = makeHistogram(hv, self.con)
             histogramViews.append(histogramView)
         return histogramViews
 
     def getStatisticsViews(self):
         commandStr = "getStatisticsViews"
-        statisticsViewsList = sendCommand(self.socket, commandStr)
+        statisticsViewsList = self.con.cmdTagList(commandStr)
         statisticsViews = []
         for sv in statisticsViewsList:
-            statisticsView = makeStatistics(sv, self.socket)
+            statisticsView = makeStatistics(sv, self.con)
             statisticsViews.append(statisticsView)
         return statisticsViews
 
     def setAnalysisLayout(self):
         commandStr = "setAnalysisLayout"
-        result = sendCommand(self.socket, commandStr)
-        return result
-
-    def setCustomLayout(self, rows, cols):
-        commandStr = "setCustomLayout " + str(rows) + " " + str(cols)
-        #result = sendCommand(self.tagMessageSocket, commandStr, sendType="tag")
-        result = sendCommand(self.tagMessageSocket, "setCustomLayout", nrows=rows, ncols=cols, sendType="tag")
+        result = self.con.cmdTagList(commandStr)
         return result
 
     def setImageLayout(self):
         commandStr = "setImageLayout"
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList(commandStr)
+        return result
+
+    def setCustomLayout(self, rows, cols):
+        #commandStr = "setCustomLayout " + str(rows) + " " + str(cols)
+        result = self.con.cmdTagList("setCustomLayout", nrows=rows, ncols=cols)
         return result
 
     def setPlugins(self, pluginList):
         pluginString = ' '.join(pluginList)
-        commandStr = "setPlugins " + pluginString
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "setPlugins " + pluginString
+        result = self.con.cmdTagList("setPlugins", plugins=pluginString)
         return result
 
     def addLink(self, source, dest):
-        commandStr = "addLink " + source.getId() + " " + dest.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "addLink " + source.getId() + " " + dest.getId()
+        result = self.con.cmdTagList("addLink", sourceView=source.getId(), destView=dest.getId())
         return result
 
     def removeLink(self, source, dest):
-        commandStr = "removeLink " + source.getId() + " " + dest.getId()
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "removeLink " + source.getId() + " " + dest.getId()
+        result = self.con.cmdTagList("removeLink", sourceView=source.getId(), destView=dest.getId())
         return result
 
     def saveState(self, saveName):
-        commandStr = "saveState " + saveName
-        result = sendCommand(self.socket, commandStr)
+        #commandStr = "saveState " + saveName
+        result = self.con.cmdTagList("saveState", name=saveName)
         return result
 
     def fakeCommand(self, infile):
         """Purely for the purpose of testing what happens when an arbitrarily
         large command is sent."""
         f = open(infile, 'r')
-        commandStr = "fakeCommand + " + f.read()
+        #commandStr = "fakeCommand + " + f.read()
         print "Start time: " + time.asctime()
-        result = sendCommand(self.socket, commandStr)
+        result = self.con.cmdTagList("fakeCommand", inFile=f.read())
         print "Finish time: " + time.asctime()
         return result
 
@@ -501,3 +494,34 @@ def receiveTypedMessage(socket, messageType, data):
     """For now, there is only one type of message."""
     result = receiveMessage(socket, data)
     return result
+
+def parseDirectory(directory, prefix):
+    """ This is not working the way I want it to yet.
+        Since it is only used for getFileList(), which in turn only lists the
+        files in /scratch/Images, perhaps getFileList() can just be scrapped?
+        The scripted client can load files from anywhere using
+        loadLocalFile().
+    """
+    print "prefix = " + prefix
+    fileList = []
+    for i in range (0, len(directory)):
+        print "directory[" + str(i) + "] = " + str(directory[i])
+        name = directory[i]['name']
+        print "name = " + name
+        try:
+            if directory[i]['dir'] != "":
+                print "     This should be a subdirectory"
+                subdirectory = directory[i]['dir']
+                print "subdirectory = " + str(subdirectory)
+                subFileList = parseDirectory(subdirectory, prefix + "/" + name)
+                print "subFileList = " + str(subFileList)
+                fileList.append(subFileList)
+                print "fileList = " + str(fileList)
+        except (KeyError):
+            "KeyError"
+            if prefix != "":
+                name = prefix + "/" + name
+            print "Appending " + name
+            fileList.append(name)
+            print "fileList = " + str(fileList)
+    return fileList
