@@ -43,9 +43,6 @@ public slots:
 
 protected slots:
 
-    /// internal callback for scripted commands
-    void scriptedCommandCB(QString command);
-
 protected:
 
     /// pointer to scripted command listener
