@@ -36,7 +36,6 @@ TagMessage
 TagMessage::fromVarLengthMessage( const QByteArray & data )
 {
     QString tag = data.constData();
-    qDebug() << "(JT) fromVarLengthMessage() tag =" << tag;
     VarLengthMessage ba = data.right( data.size() - tag.size() - 1 );
     return TagMessage( tag, ba );
 }

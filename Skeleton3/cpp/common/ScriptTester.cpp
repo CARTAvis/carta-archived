@@ -8,7 +8,6 @@ ScriptTester::ScriptTester(){
 }
 
 void ScriptTester::runTest(){
-    qDebug() << "(JT) ScriptTester::runTest()";
     //Please comment out these calls as appropriate.
     //_runSingleImage();
     _runCustomImage();
@@ -16,7 +15,6 @@ void ScriptTester::runTest(){
 }
 
 void ScriptTester::_runAnalysisImage() {
-    qDebug() << "(JT) ScriptTester::runAnalysisImage()";
     //Set the layout
     m_scriptFacade->setAnalysisLayout();
 
@@ -50,7 +48,6 @@ void ScriptTester::_runAnalysisImage() {
 }
 
 void ScriptTester::_runCustomImage() {
-    qDebug() << "(JT) ScriptTester::runCustomImage()";
     //Set the layout
     m_scriptFacade->setCustomLayout( 2, 2 );
 
@@ -62,7 +59,6 @@ void ScriptTester::_runCustomImage() {
 }
 
 void ScriptTester::_runSingleImage(){
-    qDebug() << "(JT) ScriptTester::runSingleImage()";
     //Set the layout
     m_scriptFacade->setImageLayout();
 
@@ -71,14 +67,12 @@ void ScriptTester::_runSingleImage(){
     //The path will need to be changed appropriately to refer to an actual image on the machine where
     //this test is being run.
     QString controlId = m_scriptFacade->getImageViewId( 0 );
-    qDebug() << "(JT) controlId: " << controlId;
     m_scriptFacade->loadFile( controlId, "/RootDirectory/m31_cropped.fits" );
 
     //Create a colormap, even though there is not one being displayed.  Note that here we are using a
     //default color map index of -1 to indicate that the server should create a color map for us since
     //the layout does not automatically create one.
     QString colormapId = m_scriptFacade->getColorMapId();
-    qDebug() << "(JT) colormapId: " << colormapId;
 
     //We also have to do more work here to link the color map to the object displaying the image.
     m_scriptFacade->linkAdd( colormapId, controlId );
@@ -86,10 +80,8 @@ void ScriptTester::_runSingleImage(){
     //Get a list of the color maps available on the server and set one.
     QStringList colormaps = m_scriptFacade->getColorMaps();
     int mapCount = colormaps.size();
-    qDebug() << "(JT) There are " << mapCount << " colormaps.";
     if ( mapCount > 0 ){
         QString mapName = colormaps[mapCount-1];
-        qDebug() << "(JT) mapName: " << mapName;
         m_scriptFacade->setColorMap( colormapId, mapName);
     }
 

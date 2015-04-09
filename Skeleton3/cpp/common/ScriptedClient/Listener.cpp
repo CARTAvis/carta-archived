@@ -100,14 +100,12 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         return;
     }
     JsonMessage jm = JsonMessage::fromTagMessage( tm );
-    qDebug() << "json message=" << jm.doc().toJson();
     if ( ! jm.doc().isObject() ) {
         qWarning() << "Received json is not object...";
         return;
     }
     QJsonObject jo = jm.doc().object();
     QString cmd = jo["cmd"].toString().toLower();
-    qDebug() << "(JT) tagMessageReceivedCB() cmd =" << cmd;
 
     if ( cmd == "ls" ) {
         auto args = jo["args"].toObject();
@@ -134,7 +132,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getcolormapviews" ) {
         QStringList colormapViews = m_scriptFacade->getColorMapViews();
-        qDebug() << "(JT) colormapViews =" << colormapViews;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( colormapViews ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -143,7 +140,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getimageviews" ) {
         QStringList imageViews = m_scriptFacade->getImageViews();
-        qDebug() << "(JT) imageViews =" << imageViews;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( imageViews ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -152,7 +148,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getanimatorviews" ) {
         QStringList animatorViews = m_scriptFacade->getAnimatorViews();
-        qDebug() << "(JT) animatorViews =" << animatorViews;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( animatorViews ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -161,7 +156,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "gethistogramviews" ) {
         QStringList histogramViews = m_scriptFacade->getHistogramViews();
-        qDebug() << "(JT) histogramViews =" << histogramViews;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( histogramViews ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -170,7 +164,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getstatisticsviews" ) {
         QStringList statisticsViews = m_scriptFacade->getStatisticsViews();
-        qDebug() << "(JT) statisticsViews =" << statisticsViews;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( statisticsViews ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -179,7 +172,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "setanalysislayout" ) {
         QString result = m_scriptFacade->setAnalysisLayout();
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -188,7 +180,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "setimagelayout" ) {
         QString result = m_scriptFacade->setImageLayout();
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -200,7 +191,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         int rows = args["nrows"].toInt();
         int columns = args["ncols"].toInt();
         QString result = m_scriptFacade->setCustomLayout(rows, columns);
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -212,7 +202,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         QString plugins = args["plugins"].toString();
         QStringList pluginsList = plugins.split(' ');
         QString result = m_scriptFacade->setPlugins(pluginsList);
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -224,7 +213,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         QString source = args["sourceView"].toString();
         QString dest = args["destView"].toString();
         QString result = m_scriptFacade->addLink(source, dest);
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -236,7 +224,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         QString source = args["sourceView"].toString();
         QString dest = args["destView"].toString();
         QString result = m_scriptFacade->removeLink(source, dest);
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -247,7 +234,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         auto args = jo["args"].toObject();
         QString name = args["name"].toString();
         QString result = m_scriptFacade->saveState(name);
-        qDebug() << "(JT) result =" << result;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -328,7 +314,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         QString blue = args["blue"].toString();
         QString percentString;
         percentString = "redPercent:" + red + ",greenPercent:" + green + ",bluePercent:" + blue;
-        qDebug() << "(JT) percentString =" << percentString;
         QString result = m_scriptFacade->setColorMix( colormapId, percentString );
         QJsonObject rjo;
         rjo.insert( "result", result );
@@ -465,7 +450,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
 //    else if ( cmd == "getfilelist" ) {
 //        QString fileList = m_scriptFacade->getFileList();
-//        qDebug() << "(JT) fileList =" << fileList;
 //        QJsonObject rjo;
 //        rjo.insert( "result", QJsonValue::fromVariant( fileList ) );
 //        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
@@ -474,7 +458,6 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getcolormaps" ) {
         QStringList colorMaps = m_scriptFacade->getColorMaps();
-        qDebug() << "(JT) colorMaps =" << colorMaps;
         QJsonObject rjo;
         rjo.insert( "result", QJsonValue::fromVariant( colorMaps ) );
         JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
