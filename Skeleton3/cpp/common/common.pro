@@ -67,6 +67,7 @@ HEADERS += \
     Algorithms/quantileAlgorithms.h \
     ILayeredView.h \
     ScriptedClient/Listener.h \
+    ScriptedClient/ScriptedCommandInterpreter.h \
     ScriptedClient/VarLengthMessage.h \
     ScriptedClient/TagMessage.h \
     ScriptedClient/JsonMessage.h
@@ -123,6 +124,7 @@ SOURCES += \
     Algorithms/quantileAlgorithms.cpp \
     ILayeredView.cpp \
     ScriptedClient/Listener.cpp \
+    ScriptedClient/ScriptedCommandInterpreter.cpp \
     ScriptedClient/VarLengthMessage.cpp \
     ScriptedClient/TagMessage.cpp \
     ScriptedClient/JsonMessage.cpp

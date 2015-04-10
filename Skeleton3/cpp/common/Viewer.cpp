@@ -12,6 +12,7 @@
 #include "MyQApp.h"
 #include "CmdLine.h"
 #include "ScriptedClient/Listener.h"
+#include "ScriptedClient/ScriptedCommandInterpreter.h"
 
 #include <QImage>
 #include <QColor>
@@ -76,8 +77,8 @@ Viewer::Viewer() :
         qDebug() << "Listening to scripted commands on port " << port;
 
         // create Pavol's testing controller on port+1
-        //new Carta::Core::ScriptedClient::PavolCommandController( port+1, this);
-        new Carta::Core::ScriptedClient::PavolCommandController( port, this);
+        //new Carta::Core::ScriptedClient::ScriptedCommandInterpreter( port+1, this);
+        new Carta::Core::ScriptedClient::ScriptedCommandInterpreter( port, this);
     }
     m_devView = false;
 }

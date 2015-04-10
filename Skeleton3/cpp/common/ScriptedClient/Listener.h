@@ -75,38 +75,6 @@ private:
     std::unique_ptr < TagMessageSocket > m_tmSocket = nullptr;
 };
 
-///
-/// testing class, self sufficient
-/// listens for some json commands, interprets them and sends results back
-///
-/// to be useful at all, it would probably need at least a pointer to the Facade
-///
-/// to be really useful, it just needs a pointer to the Model, which we don't have :)
-///
-/// If you decide to use this, please rename it to something more useful and put it into
-/// a separate file.
-class PavolCommandController : public QObject
-{
-    Q_OBJECT
-
-public:
-
-    PavolCommandController( int port, QObject * parent = nullptr );
-
-protected:
-
-    ScriptFacade* m_scriptFacade = nullptr;
-
-private slots:
-
-    /// interpret commands, send results back
-    void
-    tagMessageReceivedCB( TagMessage tm );
-
-private:
-
-    std::unique_ptr < MessageListener > m_messageListener = nullptr;
-};
 }
 }
 }
