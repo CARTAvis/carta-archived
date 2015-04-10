@@ -132,6 +132,14 @@ class Application:
         large command is sent."""
         f = open(infile, 'r')
         print "Start time: " + time.asctime()
-        result = self.con.cmdTagList("fakeCommand", inFile=f.read())
+        result = self.con.cmdTagList("fakeCommand", data=f.read())
         print "Finish time: " + time.asctime()
+        return result
+
+    def uc(self):
+        """
+        A command that is not implemented on the C++ side.
+        For testing purposes only.
+        """
+        result = self.con.cmdTagList("unknownCommand")
         return result

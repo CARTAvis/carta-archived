@@ -34,4 +34,8 @@ class TagConnector:
         tm = self.tagMessageSocket.receive()
         result = JsonMessage.fromTagMessage(tm)
         j = json.loads(str(result.jsonString))
-        return j['result']
+        try:
+            returnValue = j['result']
+        except KeyError:
+            returnValue = j['error']
+        return returnValue

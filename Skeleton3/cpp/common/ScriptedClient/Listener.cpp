@@ -464,9 +464,23 @@ PavolCommandController::tagMessageReceivedCB( TagMessage tm )
         m_messageListener->send( rjm.toTagMessage() );
     }
 
+    else if ( cmd == "fakecommand" ) {
+        auto args = jo["args"].toObject();
+        QString data = args["data"].toString();
+        QString result = "Fake command received";
+        QJsonObject rjo;
+        rjo.insert( "result", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
+    }
+
     else {
         qDebug() << "Unknown command, sending error back";
-        m_messageListener->send( TagMessage( "json", "{ 'error':'Uknown command'}" ) );
+        QJsonObject rjo;
+        QString result = "Unknown command";
+        rjo.insert( "error", result );
+        JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+        m_messageListener->send( rjm.toTagMessage() );
     }
 } // tagMessageReceivedCB
 }
