@@ -10,7 +10,10 @@ qx.Class.define("skel.Command.Animate.CommandAnimate", {
      */
     construct : function( label ) {
         this.base( arguments, label, null );
-        this.m_toolBarVisible = false;
+        this.m_toolBarVisible = true;
+        this.setEnabled( false );
+        this.setValue(false);
+        this.setToolTipText( "Show/hide the " + this.getLabel() + " animator.");
     },
     
     members : {
@@ -35,10 +38,6 @@ qx.Class.define("skel.Command.Animate.CommandAnimate", {
                     }
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Show/hide the " + this.getLabel() + " animator.";
         },
         
         getType : function(){

@@ -17,11 +17,12 @@ qx.Class.define("skel.Command.Window.CommandWindow", {
         this.base( arguments, "Window", null );
         this.m_cmds = [];
         this.m_global = false;
-        this.m_enabled = false;
+        this.setEnabled( false );
         this.m_cmds[0] = skel.Command.Window.CommandWindowMaximize.getInstance();
         this.m_cmds[1] = skel.Command.Window.CommandWindowMinimize.getInstance();
         this.m_cmds[2] = skel.Command.Window.CommandWindowRemove.getInstance();
         this.m_cmds[3] = skel.Command.Window.CommandWindowAdd.getInstance();
+        this.setValue( this.m_cmds );
         
         this.m_cmds[0].addListener( "windowMaximized", this._windowMaximized, this );
         var restoreCmd = skel.Command.Window.CommandWindowRestore.getInstance();

@@ -16,9 +16,8 @@ qx.Class.define("skel.Command.Render.CommandRender", {
     construct : function( ) {
         this.base( arguments, "Render" );
         this.m_global = false;
-        this.m_enabled = false;
+        this.setEnabled( false );
         this.m_cmds = [];
-        this.m_cmds[0] = skel.Command.Render.CommandDataOpen.getInstance();
-        this.m_cmds[1] = skel.Command.Render.CommandDataClose.getInstance();
+        this.setValue( this.m_cmds );
     }
 });

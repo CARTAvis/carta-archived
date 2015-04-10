@@ -37,6 +37,12 @@ const QString Layout::LAYOUT_COLS = "cols";
 const QString Layout::LAYOUT_PLUGINS = "plugins";
 const QString Layout::ROW = "row";
 const QString Layout::CLASS_NAME = "Layout";
+const QString Layout::TYPE_IMAGE = "Image";
+const QString Layout::TYPE_ANALYSIS = "Analysis";
+const QString Layout::TYPE_CUSTOM = "Custom";
+const QString Layout::TYPE_SELECTED = "layoutType";
+
+
 bool Layout::m_registered =
     ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Layout::Factory());
@@ -277,6 +283,7 @@ void Layout::_initializeDefaultState(){
     m_state.insertArray( LAYOUT_PLUGINS, 0 );
     m_state.insertValue<int>( LAYOUT_ROWS, 0 );
     m_state.insertValue<int>( LAYOUT_COLS, 0 );
+    m_state.insertValue<QString>(TYPE_SELECTED, TYPE_ANALYSIS );
 }
 
 void Layout::_moveCell( int sourceRow, int sourceCol, int destRow, int destCol ){
@@ -356,7 +363,7 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
 }
 
 void Layout::setLayoutAnalysis(){
-    setLayoutSize( 4, 2 );
+    setLayoutSize( 4, 2, TYPE_ANALYSIS );
     QStringList oldNames = getPluginList();
     QStringList names = {Controller::PLUGIN_NAME, Statistics::CLASS_NAME,
             HIDDEN, Animator::CLASS_NAME,
@@ -377,7 +384,7 @@ void Layout::setLayoutDeveloper(){
 }
 
 void Layout::setLayoutImage(){
-    setLayoutSize( 2,1);
+    setLayoutSize( 2,1, TYPE_IMAGE);
     QStringList oldNames = getPluginList();
     QStringList name = {Controller::PLUGIN_NAME, HIDDEN};
     _setPlugin( name );
@@ -385,7 +392,7 @@ void Layout::setLayoutImage(){
 }
 
 
-QString Layout::setLayoutSize( int rows, int cols ){
+QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
     QString errorMsg;
     if ( rows >= 0 && cols >= 0 ){
         int oldRows = m_state.getValue<int>( LAYOUT_ROWS );
@@ -403,6 +410,8 @@ QString Layout::setLayoutSize( int rows, int cols ){
             }
             m_state.setValue<int>( LAYOUT_ROWS, rows );
             m_state.setValue<int>( LAYOUT_COLS, cols );
+            m_state.setValue<QString>(TYPE_SELECTED, layoutType );
+
             m_state.resizeArray( LAYOUT_PLUGINS, rows * cols, StateInterface::PreserveAll );
 
             //Resize always puts things at the end so we set extra cells empty.

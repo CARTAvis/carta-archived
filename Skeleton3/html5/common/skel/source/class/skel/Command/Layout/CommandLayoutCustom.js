@@ -12,16 +12,16 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
     construct : function() {
         this.base( arguments, "Custom Layout", null );
         this.m_toolBarVisible = false;
+        this.setValue( false );
+        this.setToolTipText("Specify a layout consisting of a specified number of rows and columns.");
     },
     
     members : {
         
-        doAction : function( vals, undoCB ){
-            qx.event.message.Bus.dispatch(new qx.event.message.Message( "showLayoutPopup", vals));
-        },
-        
-        getToolTip : function(){
-            return "Specify a layout consisting of a specified number of rows and columns.";
+        doAction : function( vals ){
+            if ( vals ){
+                qx.event.message.Bus.dispatch(new qx.event.message.Message( "showLayoutPopup", vals));
+            }
         },
         
         getType : function(){

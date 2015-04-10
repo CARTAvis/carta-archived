@@ -14,6 +14,14 @@ qx.Class.define("skel.Command.CommandComposite", {
      */
     construct : function( label ) {
         this.base( arguments, label, null );
+        this.addListener( "changeEnabled", function(){
+                if ( ! this.isGlobal() && this.m_cmds !== null ){
+                    var enabled = this.getEnabled();
+                    for ( var i = 0; i < this.m_cmds.length; i++ ){
+                        this.m_cmds[i].setEnabled( enabled );
+                    }
+                }
+            }, this );
     },
     
     members : {
@@ -38,15 +46,7 @@ qx.Class.define("skel.Command.CommandComposite", {
             return cmd;
         },
 
-        /**
-         * Returns the child commands of this composite.
-         * @return {Array} an array containing the immediate children of this command.
-         */
-        getValue : function(){
-            return this.m_cmds;
-        },
-        
-        
+       
         
         /**
          * Returns a string identifying this command as a composite.
@@ -75,30 +75,12 @@ qx.Class.define("skel.Command.CommandComposite", {
                 for ( var i = 0; i < this.m_cmds.length; i++ ){
                     toolVisible = this.m_cmds[i].isVisibleToolbar();
                     if ( toolVisible ){
+                        
                         break;
                     }
                 }
             }
             return toolVisible;
-        },
-        
-        _resetEnabled : function( ){
-            arguments.callee.base.apply(this, arguments);
-            //Maybe one of the children should be enabled.
-            if ( !this.isEnabled() ){
-                for ( var i = 0; i < this.m_cmds.length; i++ ){
-                    this.m_cmds[i]._resetEnabled();
-                }
-            }
-        },
-        
-        setEnabled : function( enabled ){
-            if ( ! this.isGlobal() ){
-                this.m_enabled = enabled;
-                for ( var i = 0; i < this.m_cmds.length; i++ ){
-                    this.m_cmds[i].setEnabled( enabled );
-                }
-            }
         },
        
         setVisibleMenu : function( visible){
@@ -113,17 +95,6 @@ qx.Class.define("skel.Command.CommandComposite", {
             }
         },
         
-        /**
-         * Sets the value in each of the children.
-         * @param val {Object}.
-         */
-        setValue : function( val ){
-            for ( var i = 0; i < this.m_cmds.length; i++ ){
-                this.m_cmds[i].setValue( val );
-            }
-        },
-        
         m_cmds : null
-        
     }
 });

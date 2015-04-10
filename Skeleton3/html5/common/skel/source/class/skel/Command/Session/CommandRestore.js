@@ -23,9 +23,7 @@ qx.Class.define("skel.Command.Session.CommandRestore", {
             this.sendCommand( "", this.m_SAVE_STATE, function(val){} );
         },
         
-        getType : function(){
-            return skel.Command.Command.TYPE_BOOL;
-        },
+
         m_SAVE_STATE: "statename:firstSave"
     }
 });

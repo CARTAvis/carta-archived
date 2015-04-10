@@ -7,19 +7,23 @@
  ******************************************************************************/
 
 qx.Class.define("skel.Command.Animate.CommandAnimations", {
-    extend : skel.Command.CommandGroup,
+    extend : skel.Command.CommandComposite,
     type : "singleton",
 
     /**
      * Constructor.
      */
     construct : function() {
-        this.base( arguments, "Animate", null );
+        this.base( arguments, "Animate" );
         this.m_cmds = [];
+        this.setValue( this.m_cmds );
         this.m_global = false;
-        this.m_enabled = false;
+        this.setEnabled( false );
+        this.m_toolBarVisible = true;
         this._initAnimations();
+        this.setToolTipText("Show/hide animators.");
     },
+    
     
     members : {
         
@@ -40,10 +44,6 @@ qx.Class.define("skel.Command.Animate.CommandAnimations", {
                 console.log( "Unrecognized animation cmd for "+label );
             }
             return cmd;
-        },
-        
-        getToolTip : function(){
-            return "Show/hide animators.";
         },
         
         /**
@@ -71,6 +71,7 @@ qx.Class.define("skel.Command.Animate.CommandAnimations", {
                         for ( var j = 0; j < animObj.animators.length; j++ ){
                             this.m_cmds[j] = new skel.Command.Animate.CommandAnimate(animObj.animators[j]);
                         }
+                        this.setValue( this.m_cmds );
                     }
                     catch( err ){
                         console.log( "Could not parse: "+val );

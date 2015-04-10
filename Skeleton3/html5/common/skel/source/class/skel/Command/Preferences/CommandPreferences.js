@@ -16,9 +16,10 @@ qx.Class.define("skel.Command.Preferences.CommandPreferences", {
     construct : function( ) {
         this.base( arguments, "Preferences" );
         this.m_global = true;
-        this.m_enabled = true;
         this.m_cmds = [];
         this.m_cmds[0] = skel.Command.Preferences.Show.CommandShow.getInstance();
+        this.setValue( this.m_cmds );
+        
         var path = skel.widgets.Path.getInstance();
         var connector = mImport( "connector" );
         this.m_sharedVar = connector.getSharedVar( path.PREFERENCES );
@@ -53,7 +54,7 @@ qx.Class.define("skel.Command.Preferences.CommandPreferences", {
                 try {
                     var prefObj = JSON.parse( prefVal );
                     for ( var i = 0; i < this.m_cmds.length; i++ ){
-                        this.m_cmds[i].setValue( prefObj );
+                        this.m_cmds[i].setPrefs( prefObj );
                     }
                 }
                 catch( err ){

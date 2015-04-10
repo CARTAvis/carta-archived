@@ -13,6 +13,7 @@ qx.Class.define("skel.Command.Preferences.CommandPreferencesHistogram", {
         this.base( arguments, "Histogram...", null );
         this.m_toolBarVisible = false;
         this.m_global = false;
+        this.setToolTipText( "Show histogram preferences.");
     },
     
     members : {
@@ -31,8 +32,8 @@ qx.Class.define("skel.Command.Preferences.CommandPreferencesHistogram", {
             }
         },
         
-        getToolTip : function(){
-            return "Show histogram preferences.";
+        setPrefs : function( val ){
+            
         }
     }
 });

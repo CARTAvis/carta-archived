@@ -13,6 +13,7 @@ qx.Class.define("skel.Command.Window.CommandWindowAdd", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "addWindow";
         this.base( arguments, "Add", cmd );
+        this.setToolTipText( "Add an additional window.");
     },
     
     members : {
@@ -28,10 +29,6 @@ qx.Class.define("skel.Command.Window.CommandWindowAdd", {
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Add an additional window.";
         }
     }
 });

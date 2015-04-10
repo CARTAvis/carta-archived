@@ -14,10 +14,11 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
      * Constructor.
      */
     construct : function() {
-        var path = skel.widgets.Path.getInstance();
-        var cmd = path.SEP_COMMAND + path.CLIP_VALUE;
         this.base( arguments, "Clips", null );
         this.m_cmds = [];
+        this.setValue( this.m_cmds );
+        this.setEnabled( false );
+        this.m_global = false;
         
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
@@ -47,6 +48,7 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
                         var cmd = new skel.Command.Clip.CommandClipValue( clipLabel );
                         this.m_cmds[i] = cmd;
                     }
+                    this.setValue( this.m_cmds );
                     qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "commandsChanged", null));
                 }
@@ -55,7 +57,6 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
                 }
             }
         },
-        
        
         m_sharedVarClips : null
     }

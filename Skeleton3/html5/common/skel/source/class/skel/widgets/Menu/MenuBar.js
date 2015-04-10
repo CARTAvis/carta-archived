@@ -67,26 +67,27 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 var vals = cmds.getValue();
                 var emptyFunc = function(){};
                 for ( var i = 0; i < vals.length; i++ ){
-                   
-                    var cmdType = vals[i].getType();
-                    if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
+                    //Only add top-level commands to the menu that are supported by 
+                    //the selected window(s).
+                    var enabled = vals[i].isEnabled();
+                    if ( enabled ){
+                        var cmdType = vals[i].getType();
+                        if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
                             cmdType === skel.Command.Command.TYPE_GROUP ){
-                        //Only add top-level commands to the menu that are supported by 
-                        //the selected window(s).
-                        var enabled = vals[i].isEnabled();
-                        if ( enabled ){
+                       
                             var menu = skel.widgets.Util.makeMenu( vals[i]);
                             var menuButton = new qx.ui.toolbar.MenuButton( vals[i].getLabel() );
                             this.m_menuPart.add( menuButton );
                             menuButton.setMenu( menu);
+                        
                         }
-                    }
-                    else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
-                        var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, true, true );
-                        this.m_menuPart.add( button );
-                    }
-                    else {
-                        console.log( "Menu unsupported top level command type="+ cmdType );
+                        else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
+                            var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, true, true );
+                            this.m_menuPart.add( button );
+                        }
+                        else {
+                            console.log( "Menu unsupported top level command type="+ cmdType );
+                        }
                     }
                 }
             }
@@ -96,17 +97,19 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
          * Initialize a context menu.
          */
         _initContextMenu : function() {
-            //Disabled for now
             this.m_contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
+            var showDialog = skel.Command.Customize.CommandShowCustomizeDialog.getInstance();
             customizeButton.addListener("execute", function() {
-                var data = {
-                        menu: true
-                };
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "showCustomizeDialog", data));
+                showDialog.doAction( true, null );
             }, this);
+            var removeButton = new qx.ui.menu.Button( "Hide Menu Bar");
+            removeButton.addListener( "execute", function(){
+                var toolVisibleCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
+                toolVisibleCmd.doAction( false, null);
+            }, this );
             this.m_contextMenu.add(customizeButton);
+            this.m_contextMenu.add( removeButton );
             this.setContextMenu(this.m_contextMenu);
         },
         

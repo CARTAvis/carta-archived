@@ -67,9 +67,10 @@ public:
      * Set the number of rows and columns in the layout grid.
      * @param rows the number of rows in the grid.
      * @param cols the number of columns in the grid.
+     * @param layoutType the name of one of the predefined layouts or a custom layout as the default.
      * @return a possible error message or an empty QString if there is no error.
      */
-    QString setLayoutSize( int rows, int cols );
+    QString setLayoutSize( int rows, int cols, const QString& layoutType = TYPE_CUSTOM );
     virtual ~Layout();
     const static QString CLASS_NAME;
     static const QString LAYOUT;
@@ -107,6 +108,10 @@ private:
     static const QString LAYOUT_COLS;
     static const QString LAYOUT_PLUGINS;
     static const QString ROW;
+    static const QString TYPE_SELECTED;
+    static const QString TYPE_IMAGE;
+    static const QString TYPE_ANALYSIS;
+    static const QString TYPE_CUSTOM;
     Layout( const Layout& other);
     Layout operator=( const Layout& other );
 };

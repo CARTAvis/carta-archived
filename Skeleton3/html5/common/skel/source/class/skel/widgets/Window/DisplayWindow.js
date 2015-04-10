@@ -45,17 +45,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( regNeeded ){
                 this.initID( index );
             }
-            var id = this.addListener("appear", function() {
-                var container = this.getContentElement().getDomElement();
-                if ( this.m_identifier !==""){
-                    container.id = this.m_identifier;
-                }
-                else {
-                    container.id = this.m_pluginId;
-                    this.m_identifier = this.m_pluginId;
-                }
-                this.removeListenerById(id);
-            }, this);
+            skel.widgets.TestID.addTestId( this, this.m_pluginId );
         }
         else {
             console.log( "Not initializing m_pluginId="+this.m_pluginId );
@@ -363,6 +353,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 show: "icon",
                 toolTipText: "Settings..."
             } );
+            skel.widgets.TestID.addTestId( this.m_settingsButton, "SettingsButton");
             this.m_settingsButton.addListener( "click", function () {
                 this.toggleSettings();
             }, this );
@@ -380,6 +371,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 for ( var i = 0; i < this.m_supportedCmds.length; i++ ){
                     if ( this.m_supportedCmds[i] == cmdName ){
                         supported = true;
+                        break;
                     }
                 }
             }
@@ -569,21 +561,23 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             else {
                 this.getChildControl("captionbar" ).removeState( "winsel");
             }
-            if ( !multiple ){
-                if (selected ) {
-                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "windowSelected", this));
-                    skel.Command.Command.addActiveWindow( this );
-                    
-                }
-                else {
-                    skel.Command.Command.clearActiveWindows();
-                }
+            
+            //Notify window has been selected.
+            if ( !multiple && selected ) {
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                    "windowSelected", this));
             }
+            
             //Reset the context menu based on functionality specific to this window.
             if ( selected ){
-                
+                if ( !multiple ){
+                    skel.Command.Command.clearActiveWindows();
+                }
+                skel.Command.Command.addActiveWindow( this );
                 this._initContextMenu();
+            }
+            else {
+                skel.Command.Command.clearActiveWindows();
             }
         },
 

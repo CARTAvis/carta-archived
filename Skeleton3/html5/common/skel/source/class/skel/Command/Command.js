@@ -9,7 +9,7 @@
 
 
 qx.Class.define("skel.Command.Command", {
-    extend : qx.core.Object,
+    extend : qx.ui.core.Command,
 
     /**
      * Constructor.
@@ -18,18 +18,13 @@ qx.Class.define("skel.Command.Command", {
      *          when the command is executed.
      */
     construct : function( label, cmd ) {
-        this.base( arguments );
-        this.m_title = label;
+        //No shortcut at this time
+        this.base( arguments, "" );
+        this.setLabel(label);
         this.m_cmd = cmd;
         this.m_menuVisible = true;
         this.m_toolBarVisible = false;
         this.m_connector = mImport("connector");
-       
-    },
-    
-    events : {
-      "cmdValueChanged" : "qx.event.type.Data",
-      "cmdEnabledChanged" : "qx.event.type.Data"
     },
     
     statics : {
@@ -42,6 +37,8 @@ qx.Class.define("skel.Command.Command", {
             if ( skel.Command.Command.m_activeWins.indexOf( win) < 0 ){
                 skel.Command.Command.m_activeWins.push( win );
                 skel.Command.Command._resetEnabledCmds();
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "commandsChanged", null));
             }
         },
         
@@ -49,8 +46,12 @@ qx.Class.define("skel.Command.Command", {
          * Remove all windows for the selected window list.
          */
         clearActiveWindows : function(){
-            skel.Command.Command.m_activeWins = [];
-            skel.Command.Command._resetEnabledCmds();
+            if ( skel.Command.Command.m_activeWins.length > 0 ){
+                skel.Command.Command.m_activeWins = [];
+                skel.Command.Command._resetEnabledCmds();
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "commandsChanged", null));
+            }
         },
         
         /**
@@ -59,8 +60,6 @@ qx.Class.define("skel.Command.Command", {
         _resetEnabledCmds : function(){
             var allCmd = skel.Command.CommandAll.getInstance();
             allCmd._resetEnabled();
-            qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                    "commandsChanged", null));
         },
         
         /**
@@ -72,6 +71,8 @@ qx.Class.define("skel.Command.Command", {
             if ( winIndex >= 0 ){
                 skel.Command.Command.m_activeWins.splice( winIndex );
                 skel.Command.Command._resetEnabledCmds();
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "commandsChanged", null));
             }
         },
         
@@ -94,7 +95,7 @@ qx.Class.define("skel.Command.Command", {
          * @param undoCB {Function} possible undo command, currently not implemented.
          */
         doAction : function( valMap, undoCB ){
-            console.log( "doAction not implemented for "+this.m_title);
+            console.log( "doAction not implemented for "+this.getLabel());
         },
         
         /**
@@ -110,21 +111,7 @@ qx.Class.define("skel.Command.Command", {
             return cmd;
         },
         
-        /**
-         * Returns the user-friendly label for the command.
-         * @return {String} the user-friendly label for the command.
-         */
-        getLabel : function(){
-            return this.m_title;
-        },
         
-        /**
-         * Returns a tool tip for the command.
-         * @return {String} a tool tip for the command.
-         */
-        getToolTip : function(){
-            return "";
-        },
         
         /**
          * Returns the type of the command; for example, some commands are composite in that they
@@ -133,22 +120,6 @@ qx.Class.define("skel.Command.Command", {
          */
         getType : function(){
             return skel.Command.Command.TYPE_BUTTON;
-        },
-        
-        /**
-         * Returns the current value of this command.
-         * @return {Object} the current command value.
-         */
-        getValue : function(){
-            return this.m_value;
-        },
-        
-        /**
-         * Returns true if the command can be executed; false if it is disabled.
-         * @return {boolean} true if the command can be executed; false otherwise.
-         */
-        isEnabled : function(){
-            return this.m_enabled;
         },
         
         /**
@@ -169,7 +140,7 @@ qx.Class.define("skel.Command.Command", {
          */
         isMatch : function( cmdName ){
             var match = false;
-            if ( cmdName === this.m_title ){
+            if ( cmdName === this.getLabel() ){
                 match = true;
             }
             return match;
@@ -241,7 +212,8 @@ qx.Class.define("skel.Command.Command", {
                 var enable = false;
                 if ( wins !== null ){
                     for ( var i = 0; i < wins.length; i++ ){
-                        if ( wins[i].isCmdSupported( this ) ){
+                        var supported = wins[i].isCmdSupported( this );
+                        if ( supported ){
                             enable = true;
                             break;
                         }
@@ -251,31 +223,6 @@ qx.Class.define("skel.Command.Command", {
                 else {
                     console.log( "No active windows");
                 }
-            }
-        },
-        
-        /**
-         * Set whether or not the command is enabled.
-         * @param enable {boolean} true if the command can be executed; false otherwise.
-         */
-        setEnabled : function( enable ){
-            if ( this.m_enabled != enable ){
-                this.m_enabled = enable;
-                var data = { enabled : enable };
-                this.fireDataEvent( "cmdEnabledChanged", data);
-            }
-        },
-        
-        /**
-         * Sets the current command value and notifies listeners that the value
-         * has changed.
-         * @param value {Object} the new command value.
-         */
-        setValue : function( value ){
-            if ( this.m_value != value ){
-                this.m_value = value;
-                var data = {value: this.m_value};
-                this.fireDataEvent( "cmdValueChanged", data );
             }
         },
         
@@ -303,6 +250,8 @@ qx.Class.define("skel.Command.Command", {
         setVisibleMenu : function( visible){
             if ( this.m_menuVisible != visible ){
                 this.m_menuVisible = visible;
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "commandVisibilityMenuChanged", ""));
             }
         },
         
@@ -313,18 +262,17 @@ qx.Class.define("skel.Command.Command", {
         setVisibleToolbar : function( visible ){
             if ( this.m_toolBarVisible != visible ){
                 this.m_toolBarVisible = visible;
+                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "commandVisibilityToolChanged", ""));
             }
         },
         
        
         
         m_connector : null,
-        m_value : null,
         m_cmd : null,
         //Whether the commands acts globally across all windows or is window specific.
         m_global : true,
-        m_enabled : true,
-        m_title : null,
         
         m_menuVisible : null,
         m_toolBarVisible : null

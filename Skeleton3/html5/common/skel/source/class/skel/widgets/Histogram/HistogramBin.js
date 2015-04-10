@@ -93,7 +93,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
                             this.m_binCountSlider.setValue( binCount );
                         }
                 }, this);
-            this.m_binCountText.setTextId( skel.widgets.TestID.HISTOGRAM_BIN_COUNT_INPUT );
+            this.m_binCountText.setTextId( "histogramBinCountTextField" );
             binCountContainer.add( this.m_binCountText, {row:0, column:1} );
             
             this.m_binCountSlider = new qx.ui.form.Slider();
@@ -102,7 +102,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             this.m_binCountSlider.setValue( 25 );
             this.m_binCountSlider.setToolTipText( "Slide to set the number of histogram bins.");
             this.m_binCountListenerId = this.m_binCountSlider.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendCountCmd, this);
-            skel.widgets.TestID.addTestId( this.m_binCountSlider, skel.widgets.TestID.HISTOGRAM_BIN_COUNT_SLIDER);
+            skel.widgets.TestID.addTestId( this.m_binCountSlider, "histogramBinCountSlider");
             binCountContainer.add( this.m_binCountSlider, {row:1, column:1} );
             var countLabel = new qx.ui.basic.Label( "Count:");
             binCountContainer.add( countLabel, {row:0,column:0, rowSpan:2});

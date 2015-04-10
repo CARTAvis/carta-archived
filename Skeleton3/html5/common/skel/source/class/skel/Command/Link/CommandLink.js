@@ -13,7 +13,8 @@ qx.Class.define("skel.Command.Link.CommandLink", {
         this.base( arguments, "Links...", null );
         this.m_cmds = [];
         this.m_global = false;
-        this.m_enabled = true;
+        this.setEnabled( false );
+        this.setToolTipText( "Show an overlay indicating windows linked to this one.");
     },
     
     members : {
@@ -43,10 +44,6 @@ qx.Class.define("skel.Command.Link.CommandLink", {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "linkingFinished", ""));
             }
-        },
-        
-        getToolTip : function(){
-            return "Show an overlay indicating windows linked to this one.";
         }
     }
 });

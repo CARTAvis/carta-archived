@@ -16,5 +16,6 @@ qx.Class.define("skel.Command.Help.CommandHelp", {
     construct : function() {
         this.base( arguments, "Help", null );
         this.m_cmds = [];
+        this.setValue( this.m_cmds );
     }
 });

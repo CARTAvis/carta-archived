@@ -18,10 +18,11 @@ qx.Class.define("skel.Command.Popup.CommandPopup", {
     construct : function( ) {
         this.base( arguments, "Popup" );
         this.m_global = false;
-        this.m_enabled = true;
+        this.setEnabled( false );
         this.m_cmds = [];
         this.m_cmds[0] = skel.Command.Popup.CommandPopupColormap.getInstance();
         this.m_cmds[1] = skel.Command.Popup.CommandPopupHistogram.getInstance();
+        this.setValue( this.m_cmds );
     }
     
    

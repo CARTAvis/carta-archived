@@ -16,12 +16,17 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
     construct : function( ) {
         this.base( arguments, "Close" );
         this.m_cmds = [];
+        this.setEnabled( false );
+        this.m_global = false;
+        this.setToolTipText("Close data...");
+        this.setValue( this.m_cmds );
     },
     
     members : {
-        //Overriden to dynamically create close image commands based on the
-        //active window.
-        getValue : function(){
+        
+        _resetEnabled : function( ){
+            arguments.callee.base.apply( this, arguments );
+            //Dynamically create close image commands based on the active windows.
             this.m_cmds = [];
             var activeWins = skel.Command.Command.m_activeWins;
             if ( activeWins !== null && activeWins.length > 0 ){
@@ -38,11 +43,7 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                     }
                 }
             }
-            return this.m_cmds;
-        },
-        
-        getToolTip : function(){
-            return "Close data...";
+            this.setValue( this.m_cmds );
         }
     }
 

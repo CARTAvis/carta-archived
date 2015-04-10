@@ -11,6 +11,7 @@ qx.Class.define("skel.Command.Window.CommandWindowRestore", {
      */
     construct : function() {
         this.base( arguments, "Restore", null );
+        this.setToolTipText( "Restore the window to its previous in-line position.");
     },
     
     events : {
@@ -27,10 +28,6 @@ qx.Class.define("skel.Command.Window.CommandWindowRestore", {
                     window.fireDataEvent( "restoreWindow", "");
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Restore the window to its previous in-line position.";
         }
     }
 });

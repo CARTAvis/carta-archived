@@ -11,7 +11,9 @@ qx.Class.define("skel.Command.Data.CommandDataOpen", {
      */
     construct : function() {
         this.base( arguments, "Open...", null );
-        this.m_enabled = true;
+        this.setEnabled( false );
+        this.m_global = false;
+        this.setToolTipText( "Open a data set.");
     },
     
     members : {
@@ -29,10 +31,6 @@ qx.Class.define("skel.Command.Data.CommandDataOpen", {
                     }
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Open a data set.";
         }
     }
 });

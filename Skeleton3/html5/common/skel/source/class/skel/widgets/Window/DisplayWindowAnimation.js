@@ -58,6 +58,7 @@ qx.Class
                                            var cmd = this.m_identifier + path.SEP_COMMAND + addRemVal;
                                            var params = "type:"+this.m_checks[i].getLabel();
                                            this.m_connector.sendCommand( cmd, params, emptyFunction);
+                                           this.updateCmds();
                                         }
                                     }
                                 }
@@ -146,6 +147,18 @@ qx.Class
                                 }
                             }
                         },
+                        
+                        /**
+                         * Update the commands about which animation is visible based on the checks.
+                         */
+                        updateCmds : function(){
+                            var animAllCmd = skel.Command.Animate.CommandAnimations.getInstance();
+                            for (var i = 0; i < this.m_checks.length; i++) {
+                                var animId = this.m_checks[i].getLabel();
+                                var animCmd = animAllCmd.getCmd( animId );
+                                animCmd.setValue( this.m_checks[i].getValue());
+                            }
+                        },
 
                         
                         /**
@@ -155,12 +168,7 @@ qx.Class
                          */
                         setSelected : function(selected, multiple) {
                             arguments.callee.base.apply(this, arguments, selected, multiple );
-                            var animAllCmd = skel.Command.Animate.CommandAnimations.getInstance();
-                            for (var i = 0; i < this.m_checks.length; i++) {
-                                var animId = this.m_checks[i].getLabel();
-                                var animCmd = animAllCmd.getCmd( animId );
-                                animCmd.setValue( this.m_checks[i].getValue());
-                            }
+                            this.updateCmds();
                         },
                         
                         

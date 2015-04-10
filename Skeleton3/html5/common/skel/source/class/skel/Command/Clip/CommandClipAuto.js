@@ -14,6 +14,9 @@ qx.Class.define("skel.Command.Clip.CommandClipAuto", {
         var cmd = path.SEP_COMMAND + path.AUTO_CLIP;
         this.base( arguments, "Recompute Clips on New Frame", cmd);
         this.m_toolBarVisible = false;
+        this.setEnabled( false );
+        this.m_global = false;
+        this.setValue( false );
     },
     
     members : {
@@ -31,6 +34,16 @@ qx.Class.define("skel.Command.Clip.CommandClipAuto", {
                     this.sendCommand( id, params, undoCB );
                 }
             }
+        },
+        
+        /**
+         * Reset whether or not the command is enabled based on the windows that
+         * are selected.
+         */
+        _resetEnabled : function( ){
+            var parentCmd = skel.Command.Clip.CommandClip.getInstance();
+            var enabled = parentCmd.isEnabled();
+            this.setEnabled( enabled );
         },
         
         m_params : "autoClip:"

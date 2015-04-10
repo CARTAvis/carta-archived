@@ -13,6 +13,7 @@ qx.Class.define("skel.Command.Popup.CommandPopupHistogram", {
         this.base( arguments, "Histogram", null );
         this.m_toolBarVisible = false;
         this.m_global = false;
+        this.setToolTipText( "Show a histogram of this data set as a popup window.");
     },
     
     members : {
@@ -35,10 +36,6 @@ qx.Class.define("skel.Command.Popup.CommandPopupHistogram", {
                     }
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Show a histogram of this data set as a popup window.";
         }
     }
 });

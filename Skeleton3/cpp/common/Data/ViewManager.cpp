@@ -100,15 +100,14 @@ void ViewManager::_adjustSize( int count, const QString& name, const QVector<int
             index++;
         }
     }
-
 }
 
 void ViewManager::_clear(){
-    _clearControllers( 0 );
-    _clearAnimators( 0 );
-    _clearColormaps( 0 );
     _clearHistograms( 0 );
     _clearStatistics( 0 );
+    _clearAnimators( 0 );
+    _clearColormaps( 0 );
+    _clearControllers( 0 );
     if ( m_layout != nullptr ){
         m_layout->clear();
     }
@@ -669,6 +668,13 @@ void ViewManager::setAnalysisView(){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
+    else {
+        _clearHistograms( 1 );
+        _clearAnimators( 1 );
+        _clearColormaps( 1 );
+        _clearStatistics( 1 );
+        _clearControllers( 1 );
+    }
     m_layout->setLayoutAnalysis();
 
     //Add the links to establish reasonable defaults.
@@ -708,6 +714,13 @@ void ViewManager::setDeveloperView(){
 void ViewManager::setImageView(){
     if ( m_layout == nullptr ){
         _makeLayout();
+    }
+    else {
+        _clearHistograms( 0 );
+        _clearAnimators( 0 );
+        _clearColormaps( 0 );
+        _clearStatistics( 0 );
+        _clearControllers( 1 );
     }
     m_layout->setLayoutImage();
 }

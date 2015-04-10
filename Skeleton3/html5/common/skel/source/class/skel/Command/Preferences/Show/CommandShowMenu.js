@@ -13,8 +13,9 @@ qx.Class.define("skel.Command.Preferences.Show.CommandShowMenu", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setMenuVisible";
         this.base( arguments, "Show Menu", cmd );
-        this.m_value = true;
+        this.setValue( true );
         this.m_global = true;
+        this.setToolTipText( "Show/hide the menu bar.");
     },
     
     members : {
@@ -25,17 +26,13 @@ qx.Class.define("skel.Command.Preferences.Show.CommandShowMenu", {
             this.sendCommand( path.PREFERENCES, params, undoCB );
         },
         
-        setValue : function ( prefObj ){
+        setPrefs : function ( prefObj ){
             var oldValue = this.getValue();
             if ( oldValue !== prefObj.menuVisible ){
-                this.m_value = prefObj.menuVisible;
+                this.setValue( prefObj.menuVisible );
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "layoutChanged", null));
             }
-        },
-        
-        getToolTip : function(){
-            return "Show/hide the menu bar.";
         },
         
         getType : function(){

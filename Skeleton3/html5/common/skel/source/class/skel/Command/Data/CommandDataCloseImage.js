@@ -18,13 +18,16 @@ qx.Class.define("skel.Command.Data.CommandDataCloseImage", {
         var cmd = path.SEP_COMMAND + path.CLOSE_IMAGE;
         this.base( arguments, label, cmd);
         this.m_toolBarVisible = false;
+        this.setEnabled( false );
+        this.m_global = false;
+        this.setToolTipText("Remove the image " + this.getLabel() + ".");
     },
     
     members : {
 
         doAction : function( vals, undoCB ){
             var path = skel.widgets.Path.getInstance();
-            var label = this.m_title;
+            var label = this.getLabel();
             var params = this.m_params + label;
             var errMan = skel.widgets.ErrorHandler.getInstance();
             if ( skel.Command.Command.m_activeWins.length > 0 ){
@@ -38,10 +41,6 @@ qx.Class.define("skel.Command.Data.CommandDataCloseImage", {
             else {
                 errMan.updateErrors( "Error closing image.");
             }
-        },
-        
-        getToolTip : function(){
-            return "Remove the image " + this.getLabel() + ".";
         },
         
         m_params : "image:"

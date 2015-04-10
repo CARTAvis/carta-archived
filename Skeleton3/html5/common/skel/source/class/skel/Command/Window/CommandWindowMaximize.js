@@ -11,6 +11,7 @@ qx.Class.define("skel.Command.Window.CommandWindowMaximize", {
      */
     construct : function() {
         this.base( arguments, "Maximize", null );
+        this.setToolTipText( "Maximize the selected window.");
     },
     
     events : {
@@ -28,10 +29,6 @@ qx.Class.define("skel.Command.Window.CommandWindowMaximize", {
                     window.maximize();
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Maximize the selected window.";
         }
     }
 });

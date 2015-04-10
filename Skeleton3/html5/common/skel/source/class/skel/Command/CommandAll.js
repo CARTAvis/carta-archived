@@ -15,8 +15,8 @@ qx.Class.define("skel.Command.CommandAll", {
      */
     construct : function( ) {
         this.base( arguments, "All");
-        this.m_global = true;
-        this.m_enabled = false;
+        this.m_global = false;
+        this.setEnabled( false );
         this.m_cmds = [];
         
         //First the globals
@@ -36,5 +36,16 @@ qx.Class.define("skel.Command.CommandAll", {
         
         //Except that global help always comes last
         this.m_cmds[10] = skel.Command.Help.CommandHelp.getInstance();
+        this.setValue( this.m_cmds );
+    },
+    
+    members : {
+        _resetEnabled : function( ){
+            //Maybe one of the children should be enabled.
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                this.m_cmds[i]._resetEnabled();
+            }
+        }
     }
+
 });

@@ -17,6 +17,7 @@ qx.Class.define("skel.Command.View.CommandView", {
         var path = skel.widgets.Path.getInstance();
         var cmd = null;
         this.base( arguments, label, cmd);
+        this.setToolTipText( "Change the plugin view to " + this.getLabel()+".");
     },
     
     members : {
@@ -33,10 +34,6 @@ qx.Class.define("skel.Command.View.CommandView", {
                 };
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
             }
-        },
-        
-        getToolTip : function(){
-            return "Change the plugin view to " + this.getLabel()+".";
         }
     }
 });

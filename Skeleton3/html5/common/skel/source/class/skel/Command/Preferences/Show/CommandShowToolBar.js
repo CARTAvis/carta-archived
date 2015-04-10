@@ -12,9 +12,10 @@ qx.Class.define("skel.Command.Preferences.Show.CommandShowToolBar", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setToolBarVisible";
-        this.base( arguments, "Show Toolbar", cmd);
-        this.m_value = true;
+        this.base( arguments, "Show Tool Bar", cmd);
+        this.setValue( true );
         this.m_global = true;
+        this.setToolTipText( "Show/hide the toolbar.");
     },
     
     members : {
@@ -25,18 +26,13 @@ qx.Class.define("skel.Command.Preferences.Show.CommandShowToolBar", {
             this.sendCommand( path.PREFERENCES, params, undoCB );
         },
         
-        getToolTip : function(){
-            return "Show/hide the toolbar.";
-        },
-        
         getType : function(){
             return skel.Command.Command.TYPE_BOOL;
         },
         
-        setValue : function ( prefObj ){
-            var oldValue = this.getValue();
-            if ( oldValue !== prefObj.toolBarVisible ){
-                this.m_value = prefObj.toolBarVisible;
+        setPrefs : function ( prefObj ){
+            if ( this.getValue() !== prefObj.toolBarVisible ){
+                this.setValue( prefObj.toolBarVisible);
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "layoutChanged", null));
             }

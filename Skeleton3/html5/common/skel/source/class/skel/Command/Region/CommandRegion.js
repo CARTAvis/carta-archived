@@ -16,8 +16,8 @@ qx.Class.define("skel.Command.Data.CommandRegion", {
     construct : function( ) {
         this.base( arguments, "Region" );
         this.m_global = false;
-        this.m_enabled = false;
+        this.setEnabled(false);
         this.m_cmds = [];
-        
+        this.setValue( this.m_cmds );
     }
 });

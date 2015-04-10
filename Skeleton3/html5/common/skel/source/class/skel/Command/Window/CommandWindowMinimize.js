@@ -11,6 +11,7 @@ qx.Class.define("skel.Command.Window.CommandWindowMinimize", {
      */
     construct : function() {
         this.base( arguments, "Minimize", null );
+        this.setToolTipText( "Minimize the selected window.");
     },
     
     members : {
@@ -22,10 +23,6 @@ qx.Class.define("skel.Command.Window.CommandWindowMinimize", {
                     window.fireDataEvent( "iconify", "");
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Minimize the selected window.";
         }
     }
 });

@@ -13,6 +13,7 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "removeWindow";
         this.base( arguments, "Remove", cmd );
+        this.setToolTipText( "Close the selected window.");
     },
     
     members : {
@@ -28,10 +29,6 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Close the selected window.";
         }
     }
 });

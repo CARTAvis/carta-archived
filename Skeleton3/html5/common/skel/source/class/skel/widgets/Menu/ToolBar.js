@@ -57,10 +57,12 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
                     this._makeTool( cmds );
                 }
                 else if ( cmds.getType() == skel.Command.Command.TYPE_BOOL ){
-                    this._makeToggle( cmds );
+                    var check = skel.widgets.Util.makeCheck( cmds, null, true );
+                    this.add( check );
                 }
                 else if ( cmds.getType() == skel.Command.Command.TYPE_BUTTON ){
-                    this._makeButton( cmds );
+                    var button = skel.widgets.Util.makeButton( cmds, null, true, true );
+                    this.add( button );
                 }
                 else {
                     console.log( "Tool bar unsupported command type="+ cmds.getType() );
@@ -80,17 +82,19 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
          * Initialize a context menu.
          */
         _initContextMenu : function() {
-            //Disabled for now
             this.m_contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
+            var showDialog = skel.Command.Customize.CommandShowCustomizeDialog.getInstance();
             customizeButton.addListener("execute", function() {
-                var data = {
-                        menu: false
-                };
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                        "showCustomizeDialog", data));
+                showDialog.doAction( false, null );
             }, this);
+            var removeButton = new qx.ui.menu.Button( "Hide Tool Bar");
+            removeButton.addListener( "execute", function(){
+                var toolVisibleCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
+                toolVisibleCmd.doAction( false, null);
+            }, this );
             this.m_contextMenu.add(customizeButton);
+            this.m_contextMenu.add( removeButton );
             this.setContextMenu(this.m_contextMenu);
         },
         
@@ -120,88 +124,28 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             cmd.doAction( val, undo );
         },
         
-        /**
-         * Make a group of radio buttons out of the command's children.
-         * @param cmd {skel.Command.CommandGroup} a group of commands, only one of which
-         *      can be selected at a time.
-         */
-        _makeRadioGroup : function( cmd ){
-            var radioGroup = new qx.ui.form.RadioGroup();
-            radioGroup.setAllowEmptySelection(true);
-            var values = cmd.getValue();
-            var labelFunction = function( anObject, button){
-                return function(){
-                    anObject._invokeCmd( button.getLabel(), "", null );
-                };
-            };
-            var enableFunction = function( cmd  ){
-                return function(){
-                    this.setEnabled( cmd.isEnabled());
-                };
-            };
-            var enabled = cmd.isEnabled();
-            for ( var i = 0; i < values.length; i++ ){
-                if ( values[i].isVisibleToolbar() ){
-                    var label = values[i].getLabel();
-                    var button = new qx.ui.toolbar.RadioButton(label).set({
-                        toolTipText: values[i].getToolTip()
-                    });
-                    button.addListener("execute", labelFunction(this, button), button );
-                    button.addListener("mouseup", labelFunction( this, button ), button );
-                    values[i].addListener( "cmdEnabledChanged", enableFunction( values[i]), button);
-                    radioGroup.add(button);
-                    button.setFocusable(false);
-                    button.setEnabled( enabled );
-                    this.add(button);
-                }
-            }
-        },
-        
-        /**
-         * Make a check box out of the command.
-         * @param cmd {skel.Command.Command} a command that can either be true/false.
-         */
-        _makeToggle : function( cmd ){
-            var toggle = skel.widgets.Util.makeToggle( cmd );
-            this.add( toggle );
-        },
-        
-        /**
-         * Make a button that can be executed ou of the command.
-         * @param cmd {skel.Command.Command} a command that can be executed.
-         */
-        _makeButton : function( cmd ){
-            var label = cmd.getLabel();
-            var button = new qx.ui.toolbar.Button( cmd.getLabel());
-            //Send values to the server
-            button.addListener( "clicked", function( ){
-                this._invokeCmd( label, null, null );
-            }, this);
-            cmd.addListener( "cmdEnabledChanged", function( evt ){
-                var data = evt.getData();
-                this.setEnabled( data.enabled );
-            }, button);
-            var cmdEnabled = cmd.isEnabled();
-            button.setEnabled( cmdEnabled );
-            this.add( button );
-        },
+       
         
         /**
          * Make a widget for the tool bar out of the command.
          * @param cmd {skel.Command.Command}.
          */
         _makeTool : function( cmd ){
-            
             if ( cmd.isVisibleToolbar()){
                 var cmdType = cmd.getType();
                 if ( cmdType === skel.Command.Command.TYPE_GROUP){
-                    this._makeRadioGroup( cmd );
+                    var radios = skel.widgets.Util.makeRadioGroup( cmd, true );
+                    for ( var i = 0; i < radios.length; i++ ){
+                        this.add( radios[i] );
+                    }
                 }
                 else if ( cmdType === skel.Command.Command.TYPE_BOOL){
-                    this._makeToggle( cmd );
+                    var check = skel.widgets.Util.makeCheck( cmd, null, true );
+                    this.add( check );
                 }
                 else if ( cmdType == skel.Command.Command.TYPE_BUTTON ){
-                    this._makeButton( cmd );
+                    var button = skel.widgets.Util.makeButton( cmd, null, true, true );
+                    this.add( button );
                 }
                 else {
                     console.log( "Toolbar unrecognized type "+cmdType );

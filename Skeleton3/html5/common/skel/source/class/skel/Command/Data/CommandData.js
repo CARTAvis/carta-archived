@@ -16,9 +16,10 @@ qx.Class.define("skel.Command.Data.CommandData", {
     construct : function( ) {
         this.base( arguments, "Data" );
         this.m_global = false;
-        this.m_enabled = true;
+        this.setEnabled( false );
         this.m_cmds = [];
         this.m_cmds[0] = skel.Command.Data.CommandDataOpen.getInstance();
         this.m_cmds[1] = skel.Command.Data.CommandDataClose.getInstance();
+        this.setValue( this.m_cmds );
     }
 });

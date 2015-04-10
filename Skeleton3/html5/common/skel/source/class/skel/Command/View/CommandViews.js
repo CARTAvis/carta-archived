@@ -19,8 +19,9 @@ qx.Class.define("skel.Command.View.CommandViews", {
         var cmd = null;
         this.base( arguments, "View", null );
         this.m_global = false;
-        this.m_enabled = false;
+        this.setEnabled( false );
         this.m_cmds = [];
+        this.setValue( this.m_cmds );
         
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
@@ -67,6 +68,7 @@ qx.Class.define("skel.Command.View.CommandViews", {
                             this.m_cmds[i] = cmd;
                         }
                     }
+                    this.setValue( this.m_cmds );
                     qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "commandsChanged", null));
                 }

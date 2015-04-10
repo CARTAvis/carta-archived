@@ -13,6 +13,7 @@ qx.Class.define("skel.Command.Popup.CommandPopupColormap", {
         this.base( arguments, "Colormap", null );
         this.m_toolBarVisible = false;
         this.m_global = false;
+        this.setToolTipText( "Show the colormap associated with this data set as a popup window.");
     },
     
     members : {
@@ -35,10 +36,6 @@ qx.Class.define("skel.Command.Popup.CommandPopupColormap", {
                     }
                 }
             }
-        },
-        
-        getToolTip : function(){
-            return "Show the colormap associated with this data set as a popup window.";
         }
     }
 });
