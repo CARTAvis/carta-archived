@@ -14,11 +14,13 @@ qx.Class.define("skel.widgets.ErrorHandler", {
      */
     construct : function() {
         this.base(arguments);
-        this.m_connector = mImport( "connector");
-        var path = skel.widgets.Path.getInstance();
-        this.m_sharedVar = this.m_connector.getSharedVar( path.ERROR_HANDLER );
-        this.m_sharedVar.addCB( this._errorStatusCB.bind( this ));
-        this._errorStatusCB();
+        if ( typeof mImport !== "undefined"){
+            this.m_connector = mImport( "connector");
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVar = this.m_connector.getSharedVar( path.ERROR_HANDLER );
+            this.m_sharedVar.addCB( this._errorStatusCB.bind( this ));
+            this._errorStatusCB();
+        }
     },
 
     members : {

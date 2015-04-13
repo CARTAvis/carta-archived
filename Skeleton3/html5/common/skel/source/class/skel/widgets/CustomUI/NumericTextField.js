@@ -74,12 +74,21 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             _checkValue: function ( num ) {
                 var valid = false;
                 var validRange = this._isValidRange( num );
-                if ( validRange ){
+                if ( validRange && !this.m_text.isError()){
                    this.clearWarning();
                    valid = true;
                 }
-                else {
-                    var warningText = "Range error:"+num +" is not in ["+this.m_minValue+","+this.m_maxValue+"]";
+                else if (!validRange ){
+                    var warningText = "Range error:"+num;
+                    if ( this.m_minValue !== null ){
+                        warningText = warningText +" is not at least "+this.m_minValue;
+                    }
+                    if ( this.m_maxValue !== null ){
+                        if ( this.m_minValue !== null ){
+                            warningText = warningText + " and ";
+                        }
+                        warningText = warningText + " at most "+this.m_maxValue;
+                    }
                     this.postWarning(warningText);
                 }
                 return valid;

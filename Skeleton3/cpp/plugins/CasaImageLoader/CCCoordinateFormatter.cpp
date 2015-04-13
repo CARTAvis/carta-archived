@@ -422,11 +422,13 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic longitude" ) )
-                        .setShortLabel( HtmlString( "ELon", "l" ) );
+                        //.setShortLabel( HtmlString( "ELon", "l" ) );
+                        .setShortLabel( HtmlString( "ELon", "&lambda;"));
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Galactic longitude" ) )
-                        .setShortLabel( HtmlString( "GLon", "&lambda;" ) );
+                        //.setShortLabel( HtmlString( "GLon", "&lambda;" ) );
+                        .setShortLabel( HtmlString( "GLon", "l"));
                 }
                 else {
                     CARTA_ASSERT( false );
@@ -445,11 +447,13 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic latitude" ) )
-                        .setShortLabel( HtmlString( "ELat", "b" ) );
+                        //.setShortLabel( HtmlString( "ELat", "b" ) );
+                        .setShortLabel( HtmlString( "Elat", "&beta;"));
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Galactic latitude" ) )
-                        .setShortLabel( HtmlString( "GLat", "&beta;" ) );
+                        //.setShortLabel( HtmlString( "GLat", "&beta;" ) );
+                        .setShortLabel( HtmlString( "GLat", "b"));
                 }
                 else {
                     CARTA_ASSERT( false );
@@ -461,7 +465,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             aInfo.setKnownType( aInfo.KnownType::SPECTRAL )
                 .setLongLabel( HtmlString::fromPlain( "Frequency" ) )
                 .setShortLabel( HtmlString( "Freq", "Freq" ) );
-            m_precisions[pixelAxis] = - 6;
+            m_precisions[pixelAxis] = 6;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
             aInfo.setKnownType( aInfo.KnownType::STOKES )
@@ -543,9 +547,37 @@ CCCoordinateFormatter::formatWorldValue( int whichAxis, double worldValue )
     }
 
     // for stokes we convert to a string using casacore's Stokes class
-    if ( ai.knownType() == ai.KnownType::STOKES ) {
+    else if ( ai.knownType() == ai.KnownType::STOKES ) {
         return casa::Stokes::name( static_cast < casa::Stokes::StokesTypes > ( round( worldValue ) ) )
                    .c_str();
+    }
+    else if ( ai.knownType() == ai.KnownType::SPECTRAL ){
+        int exp = 1;
+        QStringList availUnits={"Hz","KHz","MHz","GHz"};
+        int unitCount = availUnits.size();
+        for ( ; exp < unitCount; exp++ ){
+            if ( worldValue < pow(10, 3*exp) ){
+                break;
+            }
+        }
+        exp = exp - 1;
+        QString oldUnit = ai.unit();
+        int diff = 0;
+        QString unit = oldUnit;
+        if ( exp >= 1 ){
+          for ( int i = 0; i < availUnits.size(); i++  ){
+              if ( availUnits[i] == oldUnit ){
+                  if ( i < exp ){
+                      diff = exp - i;
+                      break;
+                  }
+              }
+          }
+        }
+        unit = availUnits[exp];
+        worldValue = worldValue / pow(10,3*diff);
+        int precision = axisPrecision( whichAxis);
+        return QString::number(worldValue, 'g', precision) +" "+ unit;
     }
 
     // for other types we do verbatim formatting

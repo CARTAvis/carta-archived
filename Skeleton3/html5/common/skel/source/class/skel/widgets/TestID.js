@@ -15,28 +15,23 @@ qx.Class.define("skel.widgets.TestID", {
         addTestId : function( widget, testId ){
             //Ids must be unique in the app so only use the id if we
             //have not already done so.
-            if ( skel.widgets.TestID.widgetIds.indexOf( testId ) < 0 ){
-                //Testing Id
-                widget.addListener("appear", function() {
-                    var container = this.getContentElement().getDomElement();
-                    container.id = testId;
-                }, widget );
-                skel.widgets.TestID.widgetIds.push( testId );
+            var actualId = testId;
+            if ( skel.widgets.TestID.widgetIds[testId] ){
+                skel.widgets.TestID.widgetIds[testId] = skel.widgets.TestID.widgetIds[testId] + 1;
+                actualId = actualId + skel.widgets.TestID.widgetIds[testId];
             }
+            else {
+                skel.widgets.TestID.widgetIds[testId] = 1;
+            }
+
+            //Testing Id
+            widget.addListener("appear", function() {
+                var container = this.getContentElement().getDomElement();
+                container.id = actualId;
+            }, widget );
         },
         
-        widgetIds : [],
-        
-        //Only ids used for uniquely identifying html elements should go between
-        //the TESTIDS_START and TESTIDS_END tags.
-        TESTIDS_START : null,
-        COLOR_MAP_BUTTON : "showColorMapDialog",
-        HISTOGRAM_BUTTON : "showHistogramDialog",
-        HISTOGRAM_BIN_COUNT_CHECK : "showHistogramBinCount",
-        HISTOGRAM_BIN_COUNT_INPUT : "histogramBinCountTextField",
-        HISTOGRAM_BIN_COUNT_SLIDER : "histogramBinCountSlider",
-        SHOW_POPUP_BUTTON : "popupDisplayWindow",
-        TESTIDS_END : null
+        widgetIds : {}
     }
 
 });

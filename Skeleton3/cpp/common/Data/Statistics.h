@@ -27,8 +27,8 @@ class Statistics : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.

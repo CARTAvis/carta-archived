@@ -35,15 +35,18 @@ public:
      */
      struct Params {
 
-            Params( std::vector<std::shared_ptr<Image::ImageInterface>> p_dataSource, int p_binCount, int p_minChannel, int p_maxChannel,
-                double p_minIntensity, double p_maxIntensity)
-            {
+            Params( std::vector<std::shared_ptr<Image::ImageInterface>> p_dataSource,
+                    int p_binCount, int p_minChannel, int p_maxChannel, double p_minFrequency, double p_maxFrequency,
+                    const QString& p_rangeUnits, double p_minIntensity, double p_maxIntensity){
                 dataSource = p_dataSource;
                 binCount = p_binCount;
                 minChannel = p_minChannel;
                 maxChannel = p_maxChannel;
                 minIntensity = p_minIntensity;
                 maxIntensity = p_maxIntensity;
+                minFrequency = p_minFrequency;
+                maxFrequency = p_maxFrequency;
+                rangeUnits = p_rangeUnits;
             }
 
             std::vector<std::shared_ptr<Image::ImageInterface>> dataSource;
@@ -52,8 +55,9 @@ public:
             int maxChannel;
             double minIntensity;
             double maxIntensity;
-
-
+            double minFrequency;
+            double maxFrequency;
+            QString rangeUnits;
         };
 
     /**

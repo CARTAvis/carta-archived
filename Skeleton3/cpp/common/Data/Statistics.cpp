@@ -23,8 +23,6 @@ public:
     }
 };
 
-
-
 const QString Statistics::CLASS_NAME = "Statistics";
 bool Statistics::m_registered =
     ObjectManager::objectManager()->registerClass (CLASS_NAME,
@@ -37,21 +35,25 @@ Statistics::Statistics( const QString& path, const QString& id ) :
      _initializeState();
 }
 
-bool Statistics::addLink( CartaObject* cartaObject ){
+QString Statistics::addLink( CartaObject* cartaObject ){
     Controller* target = dynamic_cast<Controller*>( cartaObject);
-    bool objAdded = false;
+    QString result;
     if ( target != nullptr){
-        objAdded = m_linkImpl->addLink( target );
+        m_linkImpl->addLink( target );
     }
     else {
-        qWarning() << "Statistics: unrecognized link type";
+        result = "Statistics only supports linking to images";
     }
-    return objAdded;
+    return result;
 }
 
-bool Statistics::removeLink( CartaObject* cartaObject ){
+QString Statistics::removeLink( CartaObject* cartaObject ){
+    QString result;
     bool objRemoved = m_linkImpl->removeLink( cartaObject );
-    return objRemoved;
+    if ( !objRemoved ){
+        result = "Link did not exist.";
+    }
+    return result;
 }
 
 QList<QString> Statistics::getLinks() const {

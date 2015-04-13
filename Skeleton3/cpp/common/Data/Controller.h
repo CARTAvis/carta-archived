@@ -273,6 +273,7 @@ private:
     void _saveRegions();
     void _scheduleFrameRepaint( const QImage& img );
     void _updateCursor( int mouseX, int mouseY );
+    void _updateCursorText(bool notifyClients );
 
     static bool m_registered;
 

@@ -111,16 +111,16 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             if ( this.m_colorMixSettings === null ){
                 this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
             }
-         
+            //Caching for the map.
+            /*if ( this.m_cacheSettings === null ){
+                this.m_cacheSettings = new skel.widgets.Colormap.ColorCache();
+                this.m_settingsComposite.add( this.m_cacheSettings);
+            }*/
             /*if ( this.m_view !== null ){
                 this.m_view.setGradientOnly( !this.m_colorMixVisible.getValue());
             }*/
             
-            //Caching for the map.
-            if ( this.m_cacheSettings === null ){
-                this.m_cacheSettings = new skel.widgets.Colormap.ColorCache();
-                this.m_settingsComposite.add( this.m_cacheSettings);
-            }
+            
         },
         
         
@@ -144,11 +144,11 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                         if ( this.m_colorMixSettings !== null ){
                             this.m_colorMixSettings.setMix( cMap.colorMix.redPercent, cMap.colorMix.greenPercent, cMap.colorMix.bluePercent );
                         }
-                        if ( this.m_cacheSettings !== null ){
+                        /*if ( this.m_cacheSettings !== null ){
                             this.m_cacheSettings.setCache( cMap.cacheMap );
                             this.m_cacheSettings.setInterpolate( cMap.interpolatedCaching );
                             this.m_cacheSettings.setCacheSize( cMap.cacheSize );
-                        }
+                        }*/
                         if ( this.m_view !== null ){
                             this.m_view.setColorName( cMap.colorMapName );
                             this.m_view.setInvert( cMap.invert );
@@ -185,7 +185,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                     this.m_colorMixSettings.setId( this.m_id );
                     this.m_modelSettings.setId( this.m_id );
                     this.m_scaleSettings.setId( this.m_id );
-                    this.m_cacheSettings.setId( this.m_id );
+                    //this.m_cacheSettings.setId( this.m_id );
                     this.m_transformSettings.setId( this.m_id );
                     this._registerMapCB();
                 }
@@ -203,7 +203,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         m_view : null,
         
         //Settings
-        m_cacheSettings: null,
+        //m_cacheSettings: null,
         m_colorMixSettings : null,
         m_transformSettings : null,
         m_modelSettings : null,

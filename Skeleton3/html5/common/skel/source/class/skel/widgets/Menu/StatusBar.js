@@ -42,6 +42,51 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
     },
 
     members : {
+        
+        /**
+         * Adds a button to the status bar for restoring a minimized window.
+         * @param ev {qx.event.type.Data} the data identifying the window
+         *                being minimized.
+         * @param restoreListener {skel.Application} the listener to be notified when
+         *                the minimized window needs to be restored to its
+         *                original location.
+         */
+        addIconifiedWindow : function(ev, restoreListener) {
+            var data = ev.getData();
+            var restoreTitle = data.title;
+            if ( data.title === null ){
+                restoreTitle = "Empty Window";
+            }
+            var menuButton = new qx.ui.toolbar.MenuButton("Restore: " + restoreTitle);
+            menuButton.setAlignX("right");
+            menuButton.setShowArrow(false);
+            this.m_iconifiedWindows.add(menuButton);
+            menuButton.addListener("execute", function() {
+                this.restoreWindow(data.row, data.col);
+            }, restoreListener);
+            menuButton.addListener("execute", function() {
+                this._removeIconifiedWindow(menuButton);
+            }, this);
+        },
+        
+        /**
+         * Add status bar widgets.
+         */
+        addWidgets : function() {
+            if (!this.hasLayoutChildren()) {
+                this._add(this.m_statusMessage, {
+                    flex : 1
+                });
+                this._add(this.m_iconifiedWindows);
+                var url = this.m_sharedUrl.getValue();
+                if (url && url.length > 0) {
+                    this._add(this.m_sharedContainer, {
+                        flex : 1
+                    });
+                }
+            }
+        },
+        
         /**
          * Clear any messages posted on the status bar.
          */
@@ -49,22 +94,34 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
             this.m_statusMessage.setValue( "");
         },
         
+
+
+        
         /**
-         * Add information to the status bar indicating the url of the shared
-         * session.
+         * Removes the button representing an iconfied window from the status
+         * bar.
+         * 
+         * @param removeButton {qx.ui.toolbar.MenuButton} the button to remove.
          */
-        setSharedUrl : function(value) {
-            this.m_sharedUrl.setValue(value);
-            if (this.isVisible()) {
-                if (value.length > 0) {
-                    this.removeWidgets();
-                    this.addWidgets();
-                } else if (this._indexOf(this.m_sharedContainer) >= 0) {
+        _removeIconifiedWindow : function(removeButton) {
+            if (removeButton !== null) {
+                this.m_iconifiedWindows.remove(removeButton);
+            }
+        },
+        
+        /**
+         * Remove all widgets from the status bar.
+         */
+        removeWidgets : function() {
+            if (this.hasLayoutChildren()) {
+                this._remove(this.m_statusMessage);
+                this._remove(this.m_iconifiedWindows);
+                if (this._indexOf(this.m_sharedContainer) >= 0) {
                     this._remove(this.m_sharedContainer);
                 }
             }
         },
-
+        
         /**
          * Display error messages on the status bar.
          * @param errorMessages {String} error messages.
@@ -88,47 +145,23 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
                 this.show(this, true);
             }
         },
-
+        
         /**
-         * Removes the button representing an iconfied window from the status
-         * bar.
-         * 
-         * @param removeButton {qx.ui.toolbar.MenuButton} the button to remove.
+         * Add information to the status bar indicating the url of the shared
+         * session.
          */
-        _removeIconifiedWindow : function(removeButton) {
-            if (removeButton !== null) {
-                this.m_iconifiedWindows.remove(removeButton);
+        setSharedUrl : function(value) {
+            this.m_sharedUrl.setValue(value);
+            if (this.isVisible()) {
+                if (value.length > 0) {
+                    this.removeWidgets();
+                    this.addWidgets();
+                } else if (this._indexOf(this.m_sharedContainer) >= 0) {
+                    this._remove(this.m_sharedContainer);
+                }
             }
         },
 
-        /**
-         * Adds a button to the status bar for restoring a minimized window.
-         * 
-         * @param ev
-         *                {qx.event.type.Data} the data identifying the window
-         *                being minimized.
-         * @param restoreListener
-         *                {skel.Application} the listener to be notified when
-         *                the minimized window needs to be restored to its
-         *                original location.
-         */
-        addIconifiedWindow : function(ev, restoreListener) {
-            var data = ev.getData();
-            var restoreTitle = data.title;
-            if ( data.title === null ){
-                restoreTitle = "Empty Window";
-            }
-            var menuButton = new qx.ui.toolbar.MenuButton("Restore: " + restoreTitle);
-            menuButton.setAlignX("right");
-            menuButton.setShowArrow(false);
-            this.m_iconifiedWindows.add(menuButton);
-            menuButton.addListener("execute", function() {
-                this.restoreWindow(data.row, data.col);
-            }, restoreListener);
-            menuButton.addListener("execute", function() {
-                this._removeIconifiedWindow(menuButton);
-            }, this);
-        },
         
         /**
          * Set whether or not the status bar should always be visible or whether
@@ -155,60 +188,11 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
 */
         },
 
-        animateSize : function(percent, show) {
-            var newSize;
-            if (show) {
-                newSize = Math.round(percent * this.m_animationSize);
-                this.setHeight(newSize);
-            } 
-            else {
-                newSize = Math.round((1 - percent) * this.m_animationSize);
-                this.setHeight(newSize);
-            }
-        },
-
-        animateEnd : function(show) {
-            if (show) {
-                this.setHeight(this.m_animationSize);
-            } else {
-                this.setHeight(0);
-            }
-        },
-
-        removeWidgets : function() {
-            if (this.hasLayoutChildren()) {
-                this._remove(this.m_statusMessage);
-                this._remove(this.m_iconifiedWindows);
-                if (this._indexOf(this.m_sharedContainer) >= 0) {
-                    this._remove(this.m_sharedContainer);
-                }
-            }
-        },
-
-        addWidgets : function() {
-            if (!this.hasLayoutChildren()) {
-                this._add(this.m_statusMessage, {
-                    flex : 1
-                });
-                this._add(this.m_iconifiedWindows);
-                var url = this.m_sharedUrl.getValue();
-                if (url && url.length > 0) {
-                    this._add(this.m_sharedContainer, {
-                        flex : 1
-                    });
-                }
-            }
-        },
-
-        getAnimationHeight : function() {
-            return this.m_animationSize;
-        },
-
         _shareSessionCB : function(url, error) {
             if (url !== null) {
                 this.setSharedUrl(url);
             } else if (error) {
-                this.showError(error);
+                this.showErrors(error);
             }
         },
 
@@ -222,10 +206,10 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
             if (sessionShared) {
                 con.shareSession(function(url, error) {
                     statusCopy._shareSessionCB(url, error);
-                }, "a", null, 60 * 60 * 1000000000);
+                }, "a", null, 60*60*1000000000);
             } else {
                 con.unShareSession(function(error) {
-                    statusCopy.showError(error);
+                    statusCopy.showErrors(error);
                 });
                 this.setSharedUrl("");
             }

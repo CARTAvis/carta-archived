@@ -24,6 +24,28 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
         },
 
         members : {
+            /**
+             * Add commands specific to this window.
+             */
+            addWindowSpecificCommands : function(){
+                arguments.callee.base.apply(this, arguments);
+                var prefCmd = skel.Command.Preferences.CommandPreferences.getInstance();
+                var winSpecific = [];
+                winSpecific[0] = skel.Command.Preferences.CommandPreferencesHistogram.getInstance();
+                prefCmd.addWindowSpecific( winSpecific );
+            },
+            
+            /**
+             * Return the number of significant digits to display.
+             * @return {Number} the number of significant digits the user wants to see.
+             */
+            getSignificantDigits : function(){
+                var digits = 6;
+                if ( this.m_histogram !== null ){
+                    digits = this.m_histogram.getSignificantDigits();
+                }
+                return digits;
+            },
 
             
             /**
@@ -35,6 +57,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                     this.m_histogram.setId( this.m_identifier);
                     this.m_content.add( this.m_histogram, {flex:1});
                 }
+            },
+            
+            /**
+             * Initialize the list of commands this window supports.
+             */
+            _initSupportedCommands : function(){
+                arguments.callee.base.apply(this, arguments);
+                var clipCmd = skel.Command.Clip.CommandClip.getInstance();
+                this.m_supportedCmds.push( clipCmd.getLabel() );
+                var histPrefCmd = skel.Command.Preferences.CommandPreferencesHistogram.getInstance();
+                this.m_supportedCmds.push( histPrefCmd.getLabel() );
             },
            
             /**
@@ -51,20 +84,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             },
             
             /**
-             * Overriden from base class to notify commands that this window has been selected/unselected.
-             * @param selected {boolean} true if the window is selected; false, otherwise.
-             * @param multiple {boolean} true if multiple windows are selected; false for single selection.
+             * Set the number of significant digits to display.
+             * @param digits {Number} the number of significant digits to display.
              */
-            setSelected : function(selected, multiple) {
-                arguments.callee.base.apply(this, arguments);
-                var cmd = skel.widgets.Command.CommandClipValues.getInstance();
-                if( selected) {
-                    cmd.addActiveWindow( this.m_identifier );
-                }
-                else {
-                    cmd.removePassiveWindow( this.m_identifier );
+            setSignificantDigits : function( digits ){
+                if ( this.m_histogram !== null ){
+                    this.m_histogram.setSignificantDigits( digits );
                 }
             },
+            
             
             /**
              * Toggle the visibility of histogram control settings.

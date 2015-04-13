@@ -17,16 +17,18 @@ public:
     /**
      * Remove the link to the CartaObject.
      * @param cartaObj the CartaObject that should no longer be linked.
-     * @return true if the link was successfully removed; false otherwise.
+     * @return an error message if there was a problem removing the link;
+     *      an empty string otherwise..
      */
-    virtual bool removeLink( CartaObject * cartaObj ) = 0;
+    virtual QString removeLink( CartaObject * cartaObj ) = 0;
 
     /**
      * Add a link to the CartaObject.
      * @param artaObj the CartaObject that should be linked.
-     * @return true if the CartaObject is linked; false otherwise.
+     * @return an error message if there was a problem adding the link;
+     *      an empty string otherwise.
      */
-    virtual bool addLink( CartaObject* cartaObj ) = 0;
+    virtual QString addLink( CartaObject* cartaObj ) = 0;
 
 };
 }

@@ -36,8 +36,8 @@ class Colormap : public QObject, public CartaObject, public ILinkable {
 public:
 
     //ILinkable
-    virtual bool addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-    virtual bool removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -187,6 +187,7 @@ private:
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;
+    int m_significantDigits;
 
 	Colormap( const Colormap& other);
 	Colormap operator=( const Colormap& other );

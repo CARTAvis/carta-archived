@@ -105,6 +105,12 @@ void HistogramSelection::reset(){
     m_upperBound = 0;
 }
 
+void HistogramSelection::setClipValues( double minX, double maxX ){
+    m_clipMin = minX;
+    m_clipMax = maxX;
+}
+
+
 void HistogramSelection::setColoredShade( QColor color ){
     m_shadeColor = color;
 }

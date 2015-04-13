@@ -37,11 +37,13 @@ qx.Class.define("skel.widgets.FileBrowser", {
             this.m_tree.setHeight(300);
 
             var closeButton = new qx.ui.form.Button("Close");
+            skel.widgets.TestID.addTestId( closeButton, "closeFileLoadButton");
             closeButton.addListener("execute", function() {
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "closeFileBrowser", ""));
             });
             var loadButton = new qx.ui.form.Button("Load");
+            skel.widgets.TestID.addTestId( loadButton, "loadFileButton");
             loadButton.addListener("execute", function() {
                 var selectArray = this.m_tree.getSelection();
                 var pathDict = skel.widgets.Path.getInstance();

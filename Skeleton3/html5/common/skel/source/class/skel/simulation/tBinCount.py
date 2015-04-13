@@ -1,5 +1,4 @@
 import unittest
-from parseTestIds import Parser
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -15,9 +14,6 @@ class tBinCount(unittest.TestCase):
         driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
         driver.implicitly_wait(10)
         
-        idParser = Parser()
-        idMap = idParser.parseFile( "../widgets/TestID.js");
-        
         # First see if there is a histogram window already there.
         histWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
         if histWindow is None:
@@ -30,56 +26,58 @@ class tBinCount(unittest.TestCase):
             
             # Show the context menu
             ActionChains(driver).context_click(imageWindow).perform()
-    
-            # Click on the show popup menu
-            popupButton = driver.find_element_by_id( idMap["SHOW_POPUP_BUTTON"])
-            self.assertIsNotNone( popupButton, "Could not find button to show popup")
-            ActionChains( driver).click( popupButton).perform()
-    
-            # Click the histogram button
-            histogramButton = driver.find_element_by_id( idMap["HISTOGRAM_BUTTON"])
-            self.assertIsNotNone( histogramButton, "Could not find histogram button")
+            
+            # Click the popup button
+            popupButton = driver.find_element_by_xpath("//div[text()='Popup']/..")
+            self.assertIsNotNone( popupButton, "Could not click popup button in the context menu")
+            ActionChains(driver).click(popupButton).perform()
+            
+            # Look for the histogram button and click it to open the histogram dialog.
+            histogramButton = driver.find_element_by_xpath("//div/div[text()='Histogram']/..")
+            self.assertIsNotNone(histogramButton, "Could not click histogram button on popup subcontext menu.")
             ActionChains(driver).click(histogramButton).perform()
     
             # We should now see a histogram popup window
             histWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
             self.assertIsNotNone( histWindow, "Could not popup a histogram")
-            
-        # Make sure the bin count is visible.
-        binCountCheck = driver.find_element_by_id( idMap["HISTOGRAM_BIN_COUNT_CHECK"] )
-        self.assertIsNotNone( binCountCheck, "Could not find bin count check")
-        binSelected = binCountCheck.is_selected()
-        print 'Bin selected', binSelected
-        if not binSelected:
-            print 'clicking bin count'
-            binCountCheck.click()
+        
+        ActionChains( driver).click( histWindow ).perform()
+        
+        # Click the settings button to expose the settings.
+        settingsButton = driver.find_element_by_xpath( "//div[starts-with(@id,'Histogram')]//div[starts-with(@id,'SettingsButton')]")
+        self.assertIsNotNone( settingsButton, "Could not find histogram settings button")
+        ActionChains( driver).click( settingsButton).perform()
         
         # Look for the binCountText field.
-        #binCountText = driver.find_element_by_xpath( "//div[@id=histogramBinCountTextField]//input" )
-        binCountText = driver.find_element_by_id( idMap["HISTOGRAM_BIN_COUNT_INPUT"] )
+        binCountText = driver.find_element_by_xpath( "//input[starts-with(@id,'histogramBinCountTextField')]" )
         self.assertIsNotNone( binCountText, "Could not find bin count text field")
         # Scroll the histogram window so the bin count at the bottom is visible.
         driver.execute_script( "arguments[0].scrollIntoView(true);", binCountText)
         textValue = binCountText.get_attribute("value")
         print "value of text field=", textValue
-        textScrollPercent = (50 - int(float(textValue))) / 100.0
+        
+        #Calculate percent difference from center.  Note this will fail if the upper
+        #bound of the slider changes.
+        textScrollPercent = (500 - int(float(textValue))) / 1000.0
         print "scrollPercent=",textScrollPercent
        
         
         # Look for the bin count slider.
-        print 'key=', idMap["HISTOGRAM_BIN_COUNT_SLIDER"]
-        binCountSlider = driver.find_element_by_id( idMap["HISTOGRAM_BIN_COUNT_SLIDER"] )
-        self.assertIsNotNone( binCountSlider, "Could not find bin count slider");
-        sliderScroll = binCountSlider.find_element_by_xpath( ".//div")
-        self.assertIsNotNone( sliderScroll, "Could not find bin count slider scroll")
-        
-        #Scroll the slider to the middle
-        
-        scrollSize = sliderScroll.size
-        print 'Scroll width=', scrollSize['width']
+        binCountSlider = driver.find_element_by_xpath( "//div[starts-with(@id, 'histogramBinCountSlider')]" )
+        self.assertIsNotNone( binCountSlider, "Could not find bin count slider")
+        #Width of the slider
         sliderSize = binCountSlider.size
+        #Amount we need to move in order to get to the center
         sliderScrollAmount = sliderSize['width'] * textScrollPercent
         print 'Slider scroll=',sliderScrollAmount
+        
+        
+        #Look for the scroll bar in the slider and get its size
+        sliderScroll = binCountSlider.find_element_by_xpath( ".//div")
+        self.assertIsNotNone( sliderScroll, "Could not find bin count slider scroll")
+        scrollSize = sliderScroll.size
+        print 'Scroll width=', scrollSize['width']
+        
         #Subtract half the width of the slider scroll.
         sliderScrollAmount = sliderScrollAmount - scrollSize['width'] / 2
         print 'Slider scroll adjusted=',sliderScrollAmount
@@ -88,7 +86,7 @@ class tBinCount(unittest.TestCase):
         # Check that the value goes to the server and gets set in the text field.
         newText = binCountText.get_attribute( "value")
         print 'Text=',newText
-        self.assertAlmostEqual( int(float(newText)), 50,None,"Failed to scroll halfway",3)
+        self.assertAlmostEqual( int(float(newText)), 500 ,None,"Failed to scroll halfway",25)
         
         driver.close()
         

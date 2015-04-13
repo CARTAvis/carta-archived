@@ -7,6 +7,8 @@
 
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
+#include <QVector>
+#include <QObject>
 
 namespace Carta {
 
@@ -21,7 +23,9 @@ class Layout;
 class Statistics;
 class ViewPlugins;
 
-class ViewManager : public CartaObject {
+class ViewManager : public QObject, public CartaObject {
+
+    Q_OBJECT
 
 public:
     /**
@@ -31,7 +35,7 @@ public:
      * @param index an index in the case where there is more than one object of the given kind
      *      in the layout.
      */
-    QString getObjectId( const QString& pluginName, int index );
+    QString getObjectId( const QString& pluginName, int index, bool forceCreate = false );
 
     /**
      * Link a source plugin to a destination plugin.
@@ -247,11 +251,12 @@ public:
      * Destructor.
      */
     virtual ~ViewManager();
-
+private slots:
+    void _pluginsChanged( const QStringList& names, const QStringList& oldNames );
 private:
     ViewManager( const QString& path, const QString& id);
     class Factory;
-
+    void _adjustSize( int count, const QString& name, const QVector<int>& insertionIndices);
     void _clear();
     void _clearAnimators( int startIndex );
     void _clearColormaps( int startIndex );
@@ -259,10 +264,8 @@ private:
     void _clearHistograms( int startIndex );
     void _clearStatistics( int startIndex );
 
-    int _findAnimator( const QString& id ) const;
     int _findColorMap( const QString& id ) const;
-    int _findController( const QString& id ) const;
-
+    int _findAnimator( const QString& id ) const;
 
     void _initCallbacks();
 
@@ -270,13 +273,13 @@ private:
     //has not saved one.
     void _initializeDefaultState();
 
-    QString _makeAnimator( int maxCount );
+    QString _makeAnimator( int index );
     QString _makeLayout();
     QString _makePluginList();
-    QString _makeController( int maxCount );
-    QString _makeHistogram( int maxCount );
-    QString _makeColorMap( int maxCount );
-    QString _makeStatistics( int maxCount );
+    QString _makeController( int index );
+    QString _makeHistogram( int index );
+    QString _makeColorMap( int index );
+    QString _makeStatistics( int index );
     void _makeDataLoader();
 
 

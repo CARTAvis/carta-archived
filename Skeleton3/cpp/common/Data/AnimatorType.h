@@ -32,7 +32,7 @@ public:
      * Returns a json string representing the state of this AnimatorType.
      * @return a Json string representing the state of this AnimatorType.
      */
-    virtual QString getStateString() const;
+    //virtual QString getStateString() const;
 
     /**
      * Returns true if the animator is no longer visually available; false otherwise.
@@ -78,6 +78,11 @@ public:
      */
     void setUpperBound( int value );
 
+    /**
+     * Set the purpose of the animator - whether it is animating channels, images, etc.
+     */
+    void setPurpose( const QString& name );
+
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
@@ -118,6 +123,7 @@ private:
     const static QString END_BEHAVIOR_WRAP;
     const static QString END_BEHAVIOR_JUMP;
     const static QString END_BEHAVIOR_REVERSE;
+    const static QString LABEL;
     const static QString RATE;
     const static QString STEP;
     AnimatorType( const AnimatorType& other);

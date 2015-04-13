@@ -116,6 +116,20 @@ public:
   void setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline);
 
   /**
+   * Sets the zoom selection range in world coordinates.
+   * @param min the minimum zoom range in intensity units.
+   * @param max the maximum zoom range in intensity units.
+   */
+  void setRangeIntensity(double min, double max);
+
+  /**
+   * Sets the clip selection range in world coordinates.
+   * @param min the minimum clip range value in intensity units.
+   * @param max the maximum clip range value in intensity units.
+   */
+  void setRangeIntensityColor(double min, double max);
+
+  /**
    * Returns the QImage reflection the current state of the histogram.
    * @return QImage the histogram image.
    */
