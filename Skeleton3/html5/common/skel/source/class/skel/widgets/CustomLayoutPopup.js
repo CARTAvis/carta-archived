@@ -21,6 +21,7 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
 
         var rowLabel = new qx.ui.basic.Label("Row Count:");
         this.m_rowCountSpin = new qx.ui.form.Spinner();
+        skel.widgets.TestID.addTestId( this.m_rowCountSpin, "customLayoutRows");
         this.m_rowCountSpin.set({
             maximum : this.m_GRID_MAX,
             minimum : this.m_GRID_MIN
@@ -29,6 +30,7 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
 
         var colLabel = new qx.ui.basic.Label("Column Count:");
         this.m_colCountSpin = new qx.ui.form.Spinner();
+        skel.widgets.TestID.addTestId( this.m_colCountSpin, "customLayoutCols");
         this.m_colCountSpin.set({
             maximum : this.m_GRID_MAX,
             minimum : this.m_GRID_MIN
@@ -60,6 +62,7 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
         butContainer.setLayout( new qx.ui.layout.HBox());
         butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
         var closeButton = new qx.ui.form.Button( "Close");
+        skel.widgets.TestID.addTestId( closeButton, "customLayoutClose");
         closeButton.addListener( "execute", function(){
             this.fireDataEvent("closeCustomLayout", "");
         }, this);

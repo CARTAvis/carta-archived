@@ -70,11 +70,12 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                     //Only add top-level commands to the menu that are supported by 
                     //the selected window(s).
                     var enabled = vals[i].isEnabled();
-                    if ( enabled ){
+                    var menuVisible = vals[i].isVisibleMenu();
+                    if ( enabled && menuVisible ){
                         var cmdType = vals[i].getType();
                         if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
                             cmdType === skel.Command.Command.TYPE_GROUP ){
-                       
+                            
                             var menu = skel.widgets.Util.makeMenu( vals[i]);
                             var menuButton = new qx.ui.toolbar.MenuButton( vals[i].getLabel() );
                             this.m_menuPart.add( menuButton );

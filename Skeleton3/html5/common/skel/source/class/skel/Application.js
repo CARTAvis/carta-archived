@@ -119,10 +119,19 @@ qx.Class.define( "skel.Application",
         _showCustomizeDialog : function( message ){
             if( this.m_customizeDialog === null ) {
                 this.m_customizeDialog = new skel.Command.Customize.CustomizeDialog();
+                this.m_customizeDialog.addListener("closeCustomizeDialog", function(ev){
+                    this._hideWidget( this.m_customizeDialog );
+                }, this );
             }
             var data = message.getData();
             this.m_customizeDialog.setMenuPage( data.menu );
-            this._setPopupWinProperties( this.m_customizeDialog );
+            var layoutObj = {
+                    left  : "0%",
+                    right : "70%",
+                    top   : "10%",
+                    bottom: "10%"
+            };
+            this._showWidget( this.m_customizeDialog, layoutObj );
         },
         
         _showLayoutPopup : function( message ){
@@ -183,11 +192,16 @@ qx.Class.define( "skel.Application",
         },
         
         _showWidget : function( widget, layoutObj ){
-            if( this.m_mainContainer.indexOf( widget ) < 0 ) {
-                this.getRoot().add( widget, layoutObj );
+            var root = this.getRoot();
+            if( root.indexOf( widget ) < 0 ) {
+                root.add( widget, layoutObj );
             }
         },
         
+        /**
+         * Remove the widget from the main display.
+         * @param widget {qx.ui.core.Widget} the widget to remove.
+         */
         _hideWidget : function( widget ){
             var root = this.getRoot();
             if( widget !== null && root.indexOf( widget ) >= 0 ) {

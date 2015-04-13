@@ -225,7 +225,6 @@ qx.Class.define("skel.widgets.Util", {
             var labelFunction = function( cmd, button){
                 return function(){
                     if ( button.getValue()){
-                        console.log( "Doing action for "+cmd.getLabel());
                         cmd.doAction( true, null);
                     }
                 };

@@ -14,7 +14,7 @@ qx.Class.define("skel.Command.Layout.CommandLayoutAnalysis", {
         var cmd = path.SEP_COMMAND + "setAnalysisLayout";
         this.base( arguments, "Analysis Layout", cmd);
         this.m_toolBarVisible = false;
-        this.setValue( true );
+        this.setValue( false );
         this.setToolTipText("Set a predefined layout optimized for analyzing an image.");
     },
     
