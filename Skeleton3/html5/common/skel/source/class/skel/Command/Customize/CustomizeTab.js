@@ -34,7 +34,11 @@ qx.Class.define("skel.Command.Customize.CustomizeTab", {
             this.m_tree = new qx.ui.tree.Tree();
             this.m_tree.setWidth(300);
             this.m_tree.setHeight(300);
+            
             this._add( this.m_tree );
+            this.m_treeController = new qx.data.controller.Tree(null,
+                    this.m_tree, "value", "name");
+            this.m_treeController.setDelegate( this );
         },
         
         /**
@@ -94,10 +98,7 @@ qx.Class.define("skel.Command.Customize.CustomizeTab", {
             var node = {};
             var treeData = this._buildTreeData( node, cmds );
             var jsonModel = qx.data.marshal.Json.createModel(treeData);
-            var treeController = new qx.data.controller.Tree(null,
-                    this.m_tree, "value", "name");
-            treeController.setDelegate( this );
-            treeController.setModel( jsonModel );
+            this.m_treeController.setModel( jsonModel );
             this.m_tree.getRoot().setOpen(true);
         },
         
@@ -130,6 +131,7 @@ qx.Class.define("skel.Command.Customize.CustomizeTab", {
         },
         
         m_tree : null,
+        m_treeController : null,
         m_commandMap : null
     }
 
