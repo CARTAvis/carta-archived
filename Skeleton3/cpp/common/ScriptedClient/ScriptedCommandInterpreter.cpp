@@ -42,9 +42,9 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     QJsonObject jo = jm.doc().object();
     QString cmd = jo["cmd"].toString().toLower();
     QJsonObject rjo;
+    auto args = jo["args"].toObject();
 
     if ( cmd == "ls" ) {
-        auto args = jo["args"].toObject();
         QString dir = args["dir"].toString();
         if ( dir.isEmpty() ) {
             dir = "/";
@@ -54,7 +54,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "add" ) {
-        auto args = jo["args"].toObject();
         double a = args["a"].toDouble();
         double b = args["b"].toDouble();
         rjo.insert( "result", a + b );
@@ -96,7 +95,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setcustomlayout" ) {
-        auto args = jo["args"].toObject();
         int rows = args["nrows"].toInt();
         int columns = args["ncols"].toInt();
         QString result = m_scriptFacade->setCustomLayout(rows, columns);
@@ -104,7 +102,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setplugins" ) {
-        auto args = jo["args"].toObject();
         QString plugins = args["plugins"].toString();
         QStringList pluginsList = plugins.split(' ');
         QString result = m_scriptFacade->setPlugins(pluginsList);
@@ -112,7 +109,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "addlink" ) {
-        auto args = jo["args"].toObject();
         QString source = args["sourceView"].toString();
         QString dest = args["destView"].toString();
         QString result = m_scriptFacade->addLink(source, dest);
@@ -120,7 +116,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "removelink" ) {
-        auto args = jo["args"].toObject();
         QString source = args["sourceView"].toString();
         QString dest = args["destView"].toString();
         QString result = m_scriptFacade->removeLink(source, dest);
@@ -128,14 +123,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "savestate" ) {
-        auto args = jo["args"].toObject();
         QString name = args["name"].toString();
         QString result = m_scriptFacade->saveState(name);
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
     }
 
     else if ( cmd == "setcolormap" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString colormapName = args["colormapName"].toString();
         QString result = m_scriptFacade->setColorMap( colormapId, colormapName );
@@ -143,7 +136,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "reversecolormap" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString reverseString = args["reverseString"].toString();
         QString result = m_scriptFacade->reverseColorMap( colormapId, reverseString );
@@ -151,7 +143,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setcachecolormap" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString cacheString = args["cacheString"].toString();
         QString result = m_scriptFacade->setCacheColormap( colormapId, cacheString );
@@ -159,7 +150,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setcachesize" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString size = args["size"].toString();
         QString result = m_scriptFacade->setCacheSize( colormapId, size );
@@ -167,7 +157,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setinterpolatedcolormap" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString interpolatedString = args["interpolatedString"].toString();
         QString result = m_scriptFacade->setInterpolatedColorMap( colormapId, interpolatedString );
@@ -175,7 +164,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "invertcolormap" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString invertString = args["invertString"].toString();
         QString result = m_scriptFacade->invertColorMap( colormapId, invertString );
@@ -183,7 +171,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setcolormix" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString red = args["red"].toString();
         QString green = args["green"].toString();
@@ -195,7 +182,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setgamma" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         double gamma = args["gammaValue"].toDouble();
         QString result = m_scriptFacade->setGamma( colormapId, gamma );
@@ -203,7 +189,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setdatatransform" ) {
-        auto args = jo["args"].toObject();
         QString colormapId = args["colormapId"].toString();
         QString transform = args["transform"].toString();
         QString result = m_scriptFacade->setDataTransform( colormapId, transform );
@@ -211,7 +196,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "loadfile" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QString fileName = args["fname"].toString();
         QString result = m_scriptFacade->loadFile( imageView, fileName );
@@ -219,7 +203,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "loadlocalfile" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QString fileName = args["fname"].toString();
         QString result = m_scriptFacade->loadLocalFile( imageView, fileName );
@@ -227,35 +210,30 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "getlinkedcolormaps" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QStringList result = m_scriptFacade->getLinkedColorMaps( imageView );
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
     }
 
     else if ( cmd == "getlinkedanimators" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QStringList result = m_scriptFacade->getLinkedAnimators( imageView );
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
     }
 
     else if ( cmd == "getlinkedhistograms" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QStringList result = m_scriptFacade->getLinkedHistograms( imageView );
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
     }
 
     else if ( cmd == "getlinkedstatistics" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QStringList result = m_scriptFacade->getLinkedStatistics( imageView );
         rjo.insert( "result", QJsonValue::fromVariant( result ) );
     }
 
     else if ( cmd == "setclipvalue" ) {
-        auto args = jo["args"].toObject();
         QString imageView = args["imageView"].toString();
         QString clipValue = args["clipValue"].toString();
         QString result = m_scriptFacade->setClipValue( imageView, clipValue );
@@ -263,7 +241,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setchannel" ) {
-        auto args = jo["args"].toObject();
         QString animatorView = args["animatorView"].toString();
         int channel = args["channel"].toInt();
         QString result = m_scriptFacade->setChannel( animatorView, channel );
@@ -271,7 +248,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "setimage" ) {
-        auto args = jo["args"].toObject();
         QString animatorView = args["animatorView"].toString();
         int image = args["image"].toInt();
         QString result = m_scriptFacade->setImage( animatorView, image );
@@ -279,7 +255,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "showimageanimator" ) {
-        auto args = jo["args"].toObject();
         QString animatorView = args["animatorView"].toString();
         QString result = m_scriptFacade->showImageAnimator( animatorView );
         rjo.insert( "result", result );
@@ -296,7 +271,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else if ( cmd == "fakecommand" ) {
-        auto args = jo["args"].toObject();
         QString data = args["data"].toString();
         QString result = "Fake command received";
         rjo.insert( "result", result );
