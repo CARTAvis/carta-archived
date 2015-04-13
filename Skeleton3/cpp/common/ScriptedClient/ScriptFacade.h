@@ -65,14 +65,14 @@ public:
      * Return a list of filenames that can be loaded.
      * @return a QStringList containing the names of available files.
      */
-    QString getFileList() const;
+    QStringList getFileList() const;
 
     /**
      * Establish a link between a source and destination.
      * @param sourceId the unique server side id of the link source.
      * @param destId the unique server side id of an object responsible for an image view.
      */
-    QString addLink( const QString& sourceId, const QString& destId );
+    QStringList addLink( const QString& sourceId, const QString& destId );
 
     /**
      * Remove a link from a source to a destination.
@@ -80,7 +80,7 @@ public:
      * @param destId the unique server side id for the plugin that is the destination of the link.
      * @return an error message if the link does not succeed.
      */
-    QString removeLink( const QString& sourceId, const QString& destId );
+    QStringList removeLink( const QString& sourceId, const QString& destId );
 
     /**
      * Load a file from /scratch/Images into an image view.
@@ -89,35 +89,35 @@ public:
      * @param fileName a path, relative to /scratch/Images, identifying the
      * file containing an image.
      */
-    QString loadFile( const QString& objectId, const QString& fileName);
+    QStringList loadFile( const QString& objectId, const QString& fileName);
 
     /**
      * Load a file into an image view.
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      */
-    QString loadLocalFile( const QString& objectId, const QString& fileName);
+    QStringList loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
      * Show the image animator.
      * @param animatorId the unique server-side id of an object managing an animator.
      */
-    QString showImageAnimator( const QString& animatorId );
+    QStringList showImageAnimator( const QString& animatorId );
 
     /**
      * Set the layout to a predefined analysis layout.
      */
-    QString setAnalysisLayout();
+    QStringList setAnalysisLayout();
 
     /**
      * Set the layout to a custom layout.
      */
-    QString setCustomLayout( int rows, int cols );
+    QStringList setCustomLayout( int rows, int cols );
 
     /**
      * Set the layout to a predefined layout displaying a single image.
      */
-    QString setImageLayout();
+    QStringList setImageLayout();
 
 //    /**
 //     * Set an animator channel.
@@ -130,49 +130,49 @@ public:
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param colormapName the name of the color map.
      */
-    QString setColorMap( const QString& colormapId, const QString& colormapName );
+    QStringList setColorMap( const QString& colormapId, const QString& colormapName );
 
     /**
      * Reverse the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param reverseStr should be equal to either "true" or "false".
      */
-    QString reverseColorMap( const QString& colormapId, const QString& reverseStr );
+    QStringList reverseColorMap( const QString& colormapId, const QString& reverseStr );
 
     /**
      * Set caching for the current colormap
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param cacheStr should be equal to either "true" or "false"
      */
-    QString setCacheColormap( const QString& colormapId, const QString& cacheStr );
+    QStringList setCacheColormap( const QString& colormapId, const QString& cacheStr );
 
     /**
      * Set the cache size of the colormap
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param cacheSize the desired cache size.
      */
-    QString setCacheSize( const QString& colormapId, const QString& cacheSize );
+    QStringList setCacheSize( const QString& colormapId, const QString& cacheSize );
 
     /**
      * Interpolate the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param interpolateStr should be equal to either "true" or "false".
      */
-    QString setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
+    QStringList setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
 
     /**
      * Invert the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param invertStr should be equal to either "true" or "false".
      */
-    QString invertColorMap( const QString& colormapId, const QString& invertStr );
+    QStringList invertColorMap( const QString& colormapId, const QString& invertStr );
 
     /**
      * Set a color mix.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param percentString a formatted string specifying the blue, green, and red percentanges.
      */
-    QString setColorMix( const QString& colormapId, const QString& percentString );
+    QStringList setColorMix( const QString& colormapId, const QString& percentString );
 
     /**
      * Set the gamma color map parameter.
@@ -180,7 +180,7 @@ public:
      * @param gamma a parameter for color mapping.
      * @return error information if gamma could not be set.
      */
-    QString setGamma( const QString& colormapId, double gamma );
+    QStringList setGamma( const QString& colormapId, double gamma );
 
     /**
      * Set the name of the data transform.
@@ -188,34 +188,34 @@ public:
      * @param transformString a unique identifier for a data transform.
      * @return error information if the data transfrom was not set.
      */
-    QString setDataTransform( const QString& colormapId, const QString& transformString );
+    QStringList setDataTransform( const QString& colormapId, const QString& transformString );
 
     /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
      */
-    QString setPlugins( const QStringList& names );
+    QStringList setPlugins( const QStringList& names );
 
     /**
      * Set the image channel to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the channel number.
      */
-    QString setChannel( const QString& animatorId, int index );
+    QStringList setChannel( const QString& animatorId, int index );
 
     /**
      * Set the image to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the image number.
      */
-    QString setImage( const QString& animatorId, int index );
+    QStringList setImage( const QString& animatorId, int index );
 
     /**
      * Set the histogram to show the specified percentage of the data.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param clipValue the percentage of data to be shown.
      */
-    QString setClipValue( const QString& controlId, const QString& clipValue );
+    QStringList setClipValue( const QString& controlId, const QString& clipValue );
 
     /**
      * Save the current layout to a .json file in the /tmp directory.
@@ -223,7 +223,7 @@ public:
      * /tmp/fileName.json.
      * @return whether the operation was a success or not.
      */
-    QString saveState( const QString& saveName );
+    QStringList saveState( const QString& saveName );
 
     /**
      * Get the animators that are linked to the given image view.
@@ -254,7 +254,7 @@ public:
      * @param x the x-coordinate for the center of the pan.
      * @param y the y-coordinate for the center of the pan.
      */
-    QString updatePan( const QString& controlId, double x, double y );
+    QStringList updatePan( const QString& controlId, double x, double y );
 
     /**
      * Update the zoom settings.
@@ -262,7 +262,7 @@ public:
      * @param y the screen y-coordinate where the zoom was centered.
      * @param z either positive or negative depending on the desired zoom direction.
      */
-    QString updateZoom( const QString& controlId, double x, double y, double z );
+    QStringList updateZoom( const QString& controlId, double x, double y, double z );
 
     /*
      * Singleton accessor.

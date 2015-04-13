@@ -35,9 +35,10 @@ QStringList ScriptFacade::getColorMaps() const {
     return maps->getColorMaps();
 }
 
-QString ScriptFacade::getFileList() const {
+QStringList ScriptFacade::getFileList() const {
     QString fileList = m_viewManager->getFileList();
-    return fileList;
+    QStringList result(fileList);
+    return result;
 }
 
 QString ScriptFacade::getImageViewId( int index ) const {
@@ -106,34 +107,48 @@ QStringList ScriptFacade::getStatisticsViews() {
     return statisticsViewList;
 }
 
-QString ScriptFacade::addLink( const QString& sourceId, const QString& destId ){
-    QString result = m_viewManager->linkAdd( sourceId, destId );
+QStringList ScriptFacade::addLink( const QString& sourceId, const QString& destId ){
+    QString la = m_viewManager->linkAdd( sourceId, destId );
+    QStringList result(la);
+    result.append(sourceId);
+    result.append(destId);
     return result;
 }
 
-QString ScriptFacade::removeLink( const QString& sourceId, const QString& destId ){
-    QString result = m_viewManager->linkRemove( sourceId, destId );
+QStringList ScriptFacade::removeLink( const QString& sourceId, const QString& destId ){
+    QString lr = m_viewManager->linkRemove( sourceId, destId );
+    QStringList result(lr);
+    result.append(sourceId);
+    result.append(destId);
     return result;
 }
 
-QString ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
+QStringList ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
     m_viewManager->loadFile( objectId, fileName );
-    return "loadFile";
+    QStringList result("loadFile");
+    result.append(fileName);
+    return result;
 }
 
-QString ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
+QStringList ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
     m_viewManager->loadLocalFile( objectId, fileName );
-    return "loadLocalFile";
+    QStringList result("loadLocalFile");
+    result.append(fileName);
+    return result;
 }
 
-QString ScriptFacade::setAnalysisLayout(){
+QStringList ScriptFacade::setAnalysisLayout(){
     m_viewManager->setAnalysisView();
-    return "setAnalysisLayout";
+    QStringList result("setAnalysisLayout");
+    return result;
 }
 
-QString ScriptFacade::setCustomLayout( int rows, int cols ){
+QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
     m_viewManager->setCustomView( rows, cols );
-    return "setCusomLayout";
+    QStringList result("setAnalysisLayout");
+    result.append("rows=" + QString::number(rows));
+    result.append("cols=" + QString::number(cols));
+    return result;
 }
 
 Carta::Data::Animator* ScriptFacade::getAnimator( const QString& index ){
@@ -156,7 +171,7 @@ Carta::Data::Animator* ScriptFacade::getAnimator( const QString& index ){
     return animator;
 }
 
-QString ScriptFacade::showImageAnimator( const QString& index ){
+QStringList ScriptFacade::showImageAnimator( const QString& index ){
     QString result = "failure";
     Carta::Data::Animator* animator = getAnimator( index );
     if ( animator ){
@@ -164,65 +179,82 @@ QString ScriptFacade::showImageAnimator( const QString& index ){
         QString animId;
         animator->addAnimator( "Image", animId );
     }
+    QStringList resultList(result);
+    return resultList;
+}
+
+QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
+    m_viewManager->setColorMap( colormapId, colormapName );
+    QStringList result("setColorMap");
+    result.append(colormapName);
     return result;
 }
 
-QString ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
-    m_viewManager->setColorMap( colormapId, colormapName );
-    return "setColorMap";
-}
-
-QString ScriptFacade::reverseColorMap( const QString& colormapId, const QString& reverseStr ){
+QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QString& reverseStr ){
     m_viewManager->reverseColorMap( colormapId, reverseStr );
-    return "reverseColorMap";
+    QStringList result("reverseColorMap");
+    result.append(reverseStr);
+    return result;
 }
 
-QString ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
+QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
     QString output = m_viewManager->setCacheColormap( colormapId, cacheStr );
-    return output;
+    QStringList result(output);
+    return result;
 }
 
-QString ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
+QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
     QString output = m_viewManager->setCacheSize( colormapId, cacheSize );
-    return output;
+    QStringList result(output);
+    return result;
 }
 
-QString ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
+QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
     QString output = m_viewManager->setInterpolatedColorMap( colormapId, interpolateStr );
-    return output;
+    QStringList result(output);
+    return result;
 }
 
-QString ScriptFacade::invertColorMap( const QString& colormapId, const QString& invertStr ){
+QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QString& invertStr ){
     m_viewManager->invertColorMap( colormapId, invertStr );
-    return "invertColorMap";
+    QStringList result("invertColorMap");
+    result.append(invertStr);
+    return result;
 }
 
-QString ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){
+QStringList ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){
     m_viewManager->setColorMix( colormapId, percentString );
-    return "setColorMix";
+    QStringList result("setColorMix");
+    result.append(percentString);
+    return result;
 }
 
-QString ScriptFacade::setGamma( const QString& colormapId, double gamma ){
+QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
     QString output = m_viewManager->setGamma( colormapId, gamma );
-    return output;
+    QStringList result(output);
+    return result;
 }
 
-QString ScriptFacade::setDataTransform( const QString& colormapId, const QString& transformString ){
+QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QString& transformString ){
     QString output = m_viewManager->setDataTransform( colormapId, transformString );
-    return output;
+    QStringList result(output);
+    return result;
 }
 
-QString ScriptFacade::setImageLayout(){
+QStringList ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
-    return "setImageLayout";
+    QStringList result("setImageLayout");
+    return result;
 }
 
-QString ScriptFacade::setPlugins( const QStringList& names ) {
+QStringList ScriptFacade::setPlugins( const QStringList& names ) {
     m_viewManager->setPlugins( names );
-    return "setPlugins";
+    QStringList result("setPlugins");
+    result.append(names);
+    return result;
 }
 
-QString ScriptFacade::setChannel( const QString& animatorId, int index ) {
+QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
     Carta::Data::Animator* animator = getAnimator( animatorId );
     if ( animator ){
         Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
@@ -236,23 +268,29 @@ QString ScriptFacade::setChannel( const QString& animatorId, int index ) {
     else {
         qDebug() << "Could not find animator";
     }
-    return "setChannel";
+    QStringList result("setChannel");
+    return result;
 }
 
-QString ScriptFacade::setImage( const QString& animatorId, int index ) {
+QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
     m_viewManager->setImage( animatorId, index );
-    return "setImage";
+    QStringList result("setImage");
+    result.append(QString::number(index));
+    return result;
 }
 
-QString ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
+QStringList ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
     const QString& param = "clipValue:" + clipValue;
     m_viewManager->setClipValue( controlId, param );
-    return "setClipValue";
+    QStringList result("setClipValue");
+    result.append(clipValue);
+    return result;
 }
 
-QString ScriptFacade::saveState( const QString& saveName ) {
+QStringList ScriptFacade::saveState( const QString& saveName ) {
     QString result = m_viewManager->saveState( saveName );
-    return result;
+    QStringList resultList(result);
+    return resultList;
 }
 
 QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
@@ -275,12 +313,14 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
     return linkedStatistics;
 }
 
-QString ScriptFacade::updatePan( const QString& controlId, double x, double y ) {
+QStringList ScriptFacade::updatePan( const QString& controlId, double x, double y ) {
     QString result = m_viewManager->updatePan( controlId, x, y );
-    return result;
+    QStringList resultList(result);
+    return resultList;
 }
 
-QString ScriptFacade::updateZoom( const QString& controlId, double x, double y, double z ) {
+QStringList ScriptFacade::updateZoom( const QString& controlId, double x, double y, double z ) {
     QString result = m_viewManager->updateZoom( controlId, x, y, z );
-    return result;
+    QStringList resultList(result);
+    return resultList;
 }
