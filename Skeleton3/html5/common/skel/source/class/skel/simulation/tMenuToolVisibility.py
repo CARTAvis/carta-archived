@@ -24,7 +24,7 @@ class tMenuToolVisibility(unittest.TestCase):
         
         # Right click on the toolbar to bring up the context menu.
         toolBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.ToolBar']")
-        self.assertIsNotNone( toolBar, "Could not find an image window")
+        self.assertIsNotNone( toolBar, "Could not find the tool bar")
         actionChains = ActionChains(driver)
         actionChains.context_click(toolBar).perform()
         

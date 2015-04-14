@@ -3,6 +3,7 @@ import tBinCount
 import tLayout
 import tLoadImage
 import tMenuToolVisibility
+import tAnimatorAddRemove
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -10,6 +11,7 @@ def suite():
     test_suite.addTest( unittest.makeSuite(tLayout.tLayout))
     test_suite.addTest( unittest.makeSuite(tLoadImage.tLoadImage))
     test_suite.addTest( unittest.makeSuite(tMenuToolVisibility.tMenuToolVisibility))
+    test_suite.addTest( unittest.makeSuite(tAnimatorAddRemove.tAnimatorAddRemove))
     return test_suite
 
 mySuite = suite()
