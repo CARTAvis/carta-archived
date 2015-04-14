@@ -10,7 +10,7 @@ qx.Class.define("skel.Command.Animate.CommandAnimate", {
      */
     construct : function( label ) {
         this.base( arguments, label, null );
-        this.m_toolBarVisible = true;
+        this.m_toolBarVisible = false;
         this.setEnabled( false );
         this.setValue(false);
         this.setToolTipText( "Show/hide the " + this.getLabel() + " animator.");

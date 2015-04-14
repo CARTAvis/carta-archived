@@ -25,7 +25,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         this.m_row = row;
         this.m_col = col;
         var pathDict = skel.widgets.Path.getInstance();
-        
         this._init();
         this._initWindowBar();
         
@@ -241,7 +240,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_scrollArea = new qx.ui.container.Scroll();
             this.m_content = new qx.ui.container.Composite();
             this.m_content.setLayout(new qx.ui.layout.VBox(0));
-            // this.m_content.setLayout( new qx.ui.layout.Canvas());
             this.m_scrollArea.add(this.m_content);
             this.add(this.m_scrollArea, {
                 flex : 1
@@ -249,7 +247,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_contextMenu = new qx.ui.menu.Menu();
             this.m_contextMenu.addListener( "appear", this._contextMenuEvent, this);
             this.setContextMenu(this.m_contextMenu);
-
             this.addListener("mousedown", function(ev) {
                 this.setSelected(true, ev.isCtrlPressed());
             });
