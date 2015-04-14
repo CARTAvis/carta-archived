@@ -4,7 +4,6 @@
 /// the cached pixel transfer function case.
 
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
-#include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
 #include "CartaLib/CartaLib.h"
 #include "GrayColormap.h"
 #include "RawView2QImageConverter.h"

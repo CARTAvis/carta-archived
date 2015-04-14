@@ -71,6 +71,9 @@ private slots:
     /// slot for receiving updates from the rendering service
     void irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId);
 
+    /// slot for grid
+    void wcsGridSlot( Carta::Lib::VectorGraphics::VGList &);
+
 private:
     /// when client changes zoom, this gets called
     QString zoomCB(const QString &, const QString & params, const QString &);

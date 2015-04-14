@@ -1,4 +1,11 @@
+/// \file
+///
+/// This is just some branstorming ideas I had. Nothing from this file is currently used
+/// anywhere.
+
 #pragma once
+
+#ifdef DONT_COMPILE
 
 #include "CartaLib/CartaLib.h"
 
@@ -321,3 +328,5 @@ test4()
 }
 }
 }
+
+#endif

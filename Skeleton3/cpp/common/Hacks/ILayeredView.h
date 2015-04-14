@@ -179,6 +179,8 @@ public:
 };
 
 /// something that can be rendered to QPainter asynchronously
+///
+/// part of my brainstorming (Pavol)
 class IRenderableQPainterASync
     : public QObject
 {

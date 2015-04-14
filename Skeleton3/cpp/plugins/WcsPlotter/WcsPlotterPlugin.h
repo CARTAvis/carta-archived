@@ -46,7 +46,7 @@ public:
 
 private:
 
-    QImage m_img;
+    VGList m_img;
 };
 
 class WcsPlotterPlugin : public QObject, public IPlugin

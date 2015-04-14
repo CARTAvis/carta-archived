@@ -143,6 +143,7 @@ RendererQPainter::rasterize( VGList & vg )
 using namespace Experimental;
 
 // something drawing a full scene
+static
 VGList
 drawScene()
 {

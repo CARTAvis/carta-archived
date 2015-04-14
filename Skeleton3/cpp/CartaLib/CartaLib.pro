@@ -25,7 +25,8 @@ SOURCES += \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
     PWLinear.cpp \
-    Hooks/DrawWcsGrid.cpp
+    Hooks/DrawWcsGrid.cpp \
+    VectorGraphics/VGList.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -49,7 +50,8 @@ HEADERS += \
     PixelPipeline/IPixelPipeline.h \
     PixelPipeline/CustomizablePixelPipeline.h \
     PWLinear.h \
-    Hooks/DrawWcsGrid.h
+    Hooks/DrawWcsGrid.h \
+    VectorGraphics/VGList.h
 
 unix {
     target.path = /usr/lib
@@ -58,3 +60,6 @@ unix {
 
 OTHER_FILES += \
     readme.txt
+
+DISTFILES += \
+    VectorGraphics/vg.txt

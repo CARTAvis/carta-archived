@@ -36,6 +36,9 @@ HackViewer::start()
 
     auto pm = globals.pluginManager();
 
+    // ================================================================================
+    // colormap controller
+    // ================================================================================
     // prepare a list of known colormaps
     // - built in colormap
     // - plugin colormaps
@@ -57,7 +60,6 @@ HackViewer::start()
             qDebug() << "    " << cmap-> name();
         }
     }
-
     // tell clients about available colormaps
     for ( size_t i = 0 ; i < m_allColormaps.size() ; i++ ) {
         prefixedSetState( QString( "cm-names-%1" ).arg( i ), m_allColormaps[i]-> name() );
@@ -74,8 +76,9 @@ HackViewer::start()
     // initialize hack globals
     Hacks::GlobalsH::instance().setPluginManager( pm );
 
-    // new experiment with asynchronous renderer
-    m_imageViewController.reset( new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
+    // initialize asynchronous renderer
+    m_imageViewController.reset(
+                new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
 
     // tell the view controller to load the image specified on the command line/url
     m_imageViewController-> loadImage( fname );

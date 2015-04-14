@@ -7,6 +7,8 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
+#include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/ICoordinateGridPlotter.h"
 #include <QImage>
 #include <QColor>
 #include <vector>
@@ -17,13 +19,15 @@ namespace Carta
 {
 namespace Lib
 {
-typedef QImage VectorGraphics;
 
+/*
 /// Synchronous API for world coordinate renderer
 class IWcsGridRenderer : public QObject
 {
     Q_OBJECT
     CLASS_BOILERPLATE( IWcsGridRenderer );
+
+    typedef VectorGraphics::VGList VGList;
 
 public:
 
@@ -45,25 +49,19 @@ public:
     virtual void
     startRendering() = 0;
 
+    // looks like this needs to be defined out of line, otherwise dlopen() fails
+    // to load any classes inherited from this...
     virtual
     ~IWcsGridRenderer();
 
 signals:
 
     void
-    done( VectorGraphics & vg );
+    done( VGList & vg );
 
-//    virtual void
-//    startDrawing();
-
-//    typedef std::shared_ptr < VectorGraphics > VGSharedPtr;
-
-//    /// \brief callback type
-//    ///
-//    typedef std::function < void ( bool, VGSharedPtr ) > Callback;
-//    virtual void
-//    setCallback( Callback cb ) = 0;
 };
+
+*/
 
 namespace Hooks
 {

@@ -24,7 +24,7 @@
 #include "Nullable.h"
 #include "Slice.h"
 #include "ICoordinateFormatter.h"
-#include "ICoordinateGridPlotter.h"
+//#include "ICoordinateGridPlotter.h"
 #include "IPlotLabelGenerator.h"
 #include <QObject>
 #include <functional>
@@ -258,8 +258,9 @@ public:
     coordinateFormatter() = 0;
 
     /// get a grid plotter algorithm
-    virtual CoordinateGridPlotterInterface::SharedPtr
-    coordinateGridPlotter() = 0;
+    /// \warning this is probably going to get removed for a plugin-based solution
+//    virtual CoordinateGridPlotterInterface::SharedPtr
+//    coordinateGridPlotter() = 0;
 
     /// get a labeler algorithm
     virtual PlotLabelGeneratorInterface::SharedPtr

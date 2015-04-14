@@ -49,7 +49,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
              this, & ImageViewController::irsDoneSlot );
 
-    // create a new wcs grid renderer (take the first)
+    // create a new wcs grid renderer (take the first one)
     {
         qDebug() << "Looking for wcs grid renderer";
         auto res = Globals::instance()-> pluginManager()
@@ -62,7 +62,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             m_wcsGridRenderer = res.val();
             auto conn =
             connect( m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderer::done,
-                     [=](QImage &) {
+                     [=](Carta::Lib::VectorGraphics::VGList &) {
                 qDebug() << "wcs grid renderer done";
             });
             m_wcsGridRenderer-> startRendering();
@@ -402,6 +402,11 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 
     // schedule a repaint with the connector
     m_connector-> refreshView( this );
+
+}
+
+void ImageViewController::wcsGridSlot(Carta::Lib::VectorGraphics::VGList &)
+{
 
 } // irsDoneSlot
 }

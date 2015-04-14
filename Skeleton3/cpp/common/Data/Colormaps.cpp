@@ -1,8 +1,6 @@
 #include "Data/Colormaps.h"
 #include "Data/Util.h"
-//#include "CartaLib/IColormapScalar.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
-//#include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "GrayColormap.h"
 

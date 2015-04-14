@@ -20,6 +20,12 @@
 
 class QSize;
 
+namespace Carta {
+namespace Lib {
+
+}
+}
+
 namespace Hacks {
 
 // placeholder
