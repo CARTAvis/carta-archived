@@ -128,7 +128,7 @@ qx.Class
                          * Returns true if the animator widget with the given identifier is visible;
                          *      false otherwise.
                          * @param animId {String} an identifier for an animator.
-                         * @return true if the animator is visible; false otherwise.
+                         * @return {boolean} true if the animator is visible; false otherwise.
                          */
                         isVisible : function( animId ){
                             var visible = false;

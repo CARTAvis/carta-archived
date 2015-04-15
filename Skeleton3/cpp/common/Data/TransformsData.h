@@ -23,9 +23,10 @@ public:
     /**
      * Returns true if the name represents a valid data transform; false, otherwise.
      * @param name a QString identifying a data transform.
+     * @param actualName the actual name of the transform in case of a case mismatch
      * @return true if the name represents a valid data tranform; false, otherwise.
      */
-    bool isTransform( const QString& name ) const;
+    bool isTransform( const QString& name, QString& actualName ) const;
 
     /**
      * Returns a list of available data transforms.
