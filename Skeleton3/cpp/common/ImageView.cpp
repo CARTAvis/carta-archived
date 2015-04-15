@@ -44,6 +44,11 @@ QSize ImageView::size() {
     return m_qimage.size();
 }
 
+bool ImageView::saveImage(const QString& filename) {
+    bool result = m_qimage.save( filename );
+    return result;
+}
+
 const QImage & ImageView::getBuffer() {
     redrawBuffer();
     return m_qimage;

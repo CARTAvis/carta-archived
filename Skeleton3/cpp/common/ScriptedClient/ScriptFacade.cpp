@@ -287,6 +287,19 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, const QString&
     return result;
 }
 
+QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename ) {
+    bool result = m_viewManager->saveImage( controlId, filename );
+    QStringList resultList("saveImage");
+    resultList.append(filename);
+    if (result == true) {
+        resultList.append("success");
+    }
+    else {
+        resultList.append("failure");
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::saveState( const QString& saveName ) {
     QString result = m_viewManager->saveState( saveName );
     QStringList resultList(result);

@@ -21,6 +21,7 @@ public:
     virtual void registration(IConnector *connector);
     virtual const QString & name() const;
     virtual QSize size();
+    bool saveImage(const QString& filename);
     virtual const QImage & getBuffer();
     virtual void handleResizeRequest(const QSize & size);
     virtual void handleMouseEvent(const QMouseEvent & ev);

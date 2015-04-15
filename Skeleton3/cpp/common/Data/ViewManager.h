@@ -216,6 +216,8 @@ public:
      */
     QString saveState( const QString& fileName );
 
+    bool saveImage( const QString& controlId, const QString& filename );
+
     QStringList getLinkedColorMaps( const QString& controlId );
 
     QStringList getLinkedAnimators( const QString& controlId );

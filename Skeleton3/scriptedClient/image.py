@@ -73,3 +73,7 @@ class Image(CartaView):
             because the source and destination are flipped."""
         result = self.con.cmdTagList("removeLink", sourceView=dest.getId(), destView=self.getId())
         return result
+
+    def saveImage(self, dest):
+        result = self.con.cmdTagList("saveImage", imageView=self.getId(), filename=dest)
+        return result

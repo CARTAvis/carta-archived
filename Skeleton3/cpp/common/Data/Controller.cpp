@@ -563,6 +563,11 @@ void Controller::saveState() {
     }
 }
 
+bool Controller::saveImage( const QString& filename ) {
+    bool result = m_view->saveImage( filename );
+    return result;
+}
+
 void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){

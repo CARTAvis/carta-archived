@@ -218,6 +218,13 @@ public:
     QStringList setClipValue( const QString& controlId, const QString& clipValue );
 
     /**
+     * Save a screenshot of the current image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param fileName the full path where the file is to be saved.
+     */
+    QStringList saveImage( const QString& controlId, const QString& fileName );
+
+    /**
      * Save the current layout to a .json file in the /tmp directory.
      * @param fileName the base name of the file. The layout will be saved to
      * /tmp/fileName.json.

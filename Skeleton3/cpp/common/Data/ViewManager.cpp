@@ -905,6 +905,19 @@ QString ViewManager::saveState( const QString& saveName ){
     return resultStr;
 }
 
+bool ViewManager::saveImage( const QString& controlId, const QString& filename ){
+    int controlCount = getControllerCount();
+    bool result = false;
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           result = m_controllers[i]->saveImage( filename );
+           break;
+        }
+    }
+    return result;
+}
+
 QStringList ViewManager::getLinkedColorMaps( const QString& controlId ) {
     QStringList linkedColorMaps;
     int colormapCount = m_colormaps.size();
