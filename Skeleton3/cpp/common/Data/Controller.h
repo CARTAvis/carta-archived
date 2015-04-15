@@ -181,6 +181,8 @@ public:
 
     bool saveImage( const QString& filename );
 
+    bool saveFullImage( const QString& filename );
+
     /**
      * Returns a json string representing the state of this controller.
      * @return a string representing the state of this controller.

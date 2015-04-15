@@ -218,6 +218,8 @@ public:
 
     bool saveImage( const QString& controlId, const QString& filename );
 
+    bool saveFullImage( const QString& controlId, const QString& filename );
+
     QStringList getLinkedColorMaps( const QString& controlId );
 
     QStringList getLinkedAnimators( const QString& controlId );

@@ -204,6 +204,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->saveImage( imageView, filename );
     }
 
+    else if ( cmd == "savefullimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString filename = args["filename"].toString();
+        result = m_scriptFacade->saveFullImage( imageView, filename );
+    }
+
     else if ( cmd == "setchannel" ) {
         QString animatorView = args["animatorView"].toString();
         int channel = args["channel"].toInt();

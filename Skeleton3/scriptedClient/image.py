@@ -77,3 +77,7 @@ class Image(CartaView):
     def saveImage(self, dest):
         result = self.con.cmdTagList("saveImage", imageView=self.getId(), filename=dest)
         return result
+
+    def saveFullImage(self, dest):
+        result = self.con.cmdTagList("saveFullImage", imageView=self.getId(), filename=dest)
+        return result

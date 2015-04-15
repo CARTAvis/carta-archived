@@ -192,6 +192,13 @@ Service::screen2img( const QPointF & p )
     return res;
 }
 
+bool
+Service::saveFullImage( const QString& filename)
+{
+    bool result = m_frameImage.save( filename );
+    return result;
+}
+
 void
 Service::internalRenderSlot( JobId jobId )
 {

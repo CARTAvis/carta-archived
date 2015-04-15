@@ -260,6 +260,8 @@ public:
      */
     void render();
 
+    bool saveFullImage( const QString& filename );
+
     virtual ~DataSource();
 
     const static QString CLASS_NAME;

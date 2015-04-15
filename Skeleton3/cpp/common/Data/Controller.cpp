@@ -568,6 +568,13 @@ bool Controller::saveImage( const QString& filename ) {
     return result;
 }
 
+bool Controller::saveFullImage( const QString& filename ) {
+    //bool result = m_view->saveImage( filename );
+    int imageIndex = m_selectImage->getIndex();
+    bool result = m_datas[imageIndex]->saveFullImage( filename );
+    return result;
+}
+
 void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){

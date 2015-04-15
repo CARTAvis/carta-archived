@@ -211,6 +211,10 @@ public:
     QPointF
     screen2img( const QPointF & p );
 
+    /// save a copy of the full image, not just what is currently being displayed.
+    bool
+    saveFullImage( const QString& filename );
+
 protected slots:
 
     /// internal helper, this will execute in our own thread

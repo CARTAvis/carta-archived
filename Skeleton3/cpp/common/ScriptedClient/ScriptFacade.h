@@ -225,6 +225,13 @@ public:
     QStringList saveImage( const QString& controlId, const QString& fileName );
 
     /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param fileName the full path where the file is to be saved.
+     */
+    QStringList saveFullImage( const QString& controlId, const QString& fileName );
+
+    /**
      * Save the current layout to a .json file in the /tmp directory.
      * @param fileName the base name of the file. The layout will be saved to
      * /tmp/fileName.json.
