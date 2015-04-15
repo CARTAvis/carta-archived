@@ -44,6 +44,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     auto args = jo["args"].toObject();
     QJsonObject rjo;
     QStringList result;
+    QString key = "result";
 
     if ( cmd == "getcolormapviews" ) {
         result = m_scriptFacade->getColorMapViews();
@@ -208,6 +209,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
         result = m_scriptFacade->saveFullImage( imageView, filename );
+        qDebug() << "(JT) saveFullImage result =" << result;
+        if (result[0] == "false") {
+            key = "error";
+            result[0] = "Could not save image to " + filename;
+        }
     }
 
     else if ( cmd == "setchannel" ) {
@@ -242,18 +248,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else {
         qDebug() << "Unknown command, sending error back";
+        key = "error";
         result.append("Unknown command");
     }
 
-    if (result[0] == "Unknown command") {
-        qDebug() << "(JT) this was an unknown command.";
-        rjo.insert( "error", QJsonValue::fromVariant( result ) );
-    }
-
-    else {
-        rjo.insert( "result", QJsonValue::fromVariant( result ) );
-    }
-
+    rjo.insert( key, QJsonValue::fromVariant( result ) );
     JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
     m_messageListener->send( rjm.toTagMessage() );
 } // tagMessageReceivedCB

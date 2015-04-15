@@ -302,14 +302,15 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
 
 QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename ) {
     bool result = m_viewManager->saveFullImage( controlId, filename );
-    QStringList resultList("saveFullImage");
-    resultList.append(filename);
-    if (result == true) {
-        resultList.append("success");
-    }
-    else {
-        resultList.append("failure");
-    }
+    QStringList resultList(Carta::Data::Util::toString(result));
+//    QStringList resultList("saveFullImage");
+//    resultList.append(filename);
+//    if (result == true) {
+//        resultList.append("success");
+//    }
+//    else {
+//        resultList.append("failure");
+//    }
     return resultList;
 }
 
