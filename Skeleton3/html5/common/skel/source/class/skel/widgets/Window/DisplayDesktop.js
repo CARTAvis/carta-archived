@@ -53,6 +53,13 @@ qx.Class
                                    var appRoot = this.getApplicationRoot();
                                    appRoot.add(this.m_window);
                                }, this);
+                           this.m_closeListenerId = this.m_window.addListener( "closeWindow",
+                               function(){
+                                   var appRoot = this.getApplicationRoot();
+                                   if ( appRoot.indexOf( this.m_window) >= 0 ){
+                                       appRoot.remove( this.m_window );
+                                   }
+                           }, this );
                            this.m_restoreListenerId = this.m_window.addListener( "restoreWindow",
                                function(){
                                    this.restoreWindow( this.m_row, this.m_col );
@@ -267,6 +274,7 @@ qx.Class
                                 this.m_window.removeListenerById( this.m_iconifyListenerId );
                                 this.m_window.removeListenerById( this.m_maxListenerId );
                                 this.m_window.removeListenerById( this.m_restoreListenerId );
+                                this.m_window.removeListenerById( this.m_closeListenerId );
                                 this.removeAll();
                             }
                         },
@@ -477,6 +485,7 @@ qx.Class
                         m_iconifyListenerId : null,
                         m_maxListenerId : null,
                         m_restoreListenerId : null,
+                        m_closeListenerId : null,
                         m_row : null,
                         m_col : null
                     }

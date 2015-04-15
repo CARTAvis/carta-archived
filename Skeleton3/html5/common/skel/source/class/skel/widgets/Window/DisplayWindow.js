@@ -54,6 +54,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     events : {
         "iconify" : "qx.event.type.Data",
         "maximizeWindow" : "qx.event.type.Data",
+        "closeWindow" : "qx.event.type.Data",
         "restoreWindow" : "qx.event.type,Data",
         "registered" : "qx.event.type.Data"
     },
@@ -64,6 +65,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     },
 
     members : {
+        
+        
         
         /**
          * Adds a button to the window's caption bar.
@@ -133,6 +136,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( linkIndex >= 0 ){
                 this.m_links.splice(linkIndex);
             }
+        },
+        
+        /**
+         * Send notification that this window should be closed.
+         */
+        closeWindow : function(){
+            this.m_closed = true;
+            this.fireDataEvent( "closeWindow", "");
         },
 
         /**

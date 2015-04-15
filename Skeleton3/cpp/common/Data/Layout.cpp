@@ -307,13 +307,13 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
         //Decide if this is the column with the maximum number of rows.
         if ( maxRowColumn == colIndex ){
             //Move everything up one row so the last row is empty.
-            for ( int i = 1; i < rowCount; i++ ){
+            for ( int i = rowIndex+1; i < rowCount; i++ ){
                 for ( int j = 0; j < colCount; j++ ){
                     //Check to see if i-1 is excluded.
                     QString plugin = _getPlugin( i -1, j );
-                    if ( plugin == HIDDEN ){
+                    if ( plugin == HIDDEN || j == colIndex){
                         //Move row i -> i-1
-                        _moveCell( i-1, j, i, j );
+                        _moveCell( i, j, i-1, j );
                         //Set row i empty for next pass.
                         _setPlugin( i, j, HIDDEN );
                     }

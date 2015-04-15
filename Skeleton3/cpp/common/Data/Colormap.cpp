@@ -510,9 +510,11 @@ QString Colormap::setDataTransform( const QString& transformString ){
     QString transformName = m_state.getValue<QString>(TRANSFORM_DATA);
     QString result;
     if ( m_dataTransforms != nullptr ){
-        if( m_dataTransforms->isTransform( transformString ) ){
-            if ( transformString != transformName ){
-                m_state.setValue<QString>(TRANSFORM_DATA, transformString );
+        QString actualTransform;
+        bool recognizedTransform = m_dataTransforms->isTransform( transformString, actualTransform );
+        if( recognizedTransform ){
+            if ( actualTransform != transformName ){
+                m_state.setValue<QString>(TRANSFORM_DATA, actualTransform );
                 m_state.flushState();
                 int linkCount = m_linkImpl->getLinkCount();
                 for( int i = 0; i < linkCount; i++ ){

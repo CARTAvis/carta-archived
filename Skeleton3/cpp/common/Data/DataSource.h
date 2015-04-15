@@ -163,6 +163,14 @@ public:
      * @return the corresponding location on the image.
      */
     QPointF getImagePt( QPointF screenPt, bool* valid ) const;
+    
+    /**
+     * Returns the location on the screen corresponding to a location in image coordinates.
+     * @param imagePt an (x,y) pair of image coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding pixel coordinates.
+     */
+    QPointF getScreenPt( QPointF imagePt, bool* valid ) const;
 
     /**
      * Return the current pan center.

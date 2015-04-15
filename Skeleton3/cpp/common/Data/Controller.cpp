@@ -756,12 +756,26 @@ void Controller::updatePan( double centerX , double centerY){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         bool validImage = false;
-        QPointF newCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
+        QPointF oldImageCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
             for ( DataSource* data : m_datas ){
-                data->setPan( newCenter.x(), newCenter.y() );
+                data->setPan( oldImageCenter.x(), oldImageCenter.y() );
             }
             _render();
+
+            //The position location on the image under the mouse cursor will have
+            //moved.  Calculate the new cursor position and update the statistics.
+            QPointF newImageCenter = m_datas[imageIndex]->getImagePt( {centerX,centerY}, &validImage);
+            if ( validImage ){
+                //How much did the pan move an image pt?
+                QPointF delta = oldImageCenter - newImageCenter;
+                //Image point now under the cursor.
+                QPointF newLocation = oldImageCenter + delta;
+                //Get the pixel point under the cursor
+                QPointF pixelCenter = m_datas[imageIndex]->getScreenPt( {newLocation.x(),newLocation.y()}, &validImage);
+                //Update the statistics with this new point.
+                _updateCursor( pixelCenter.x(), pixelCenter.y());
+            }
         }
     }
 }

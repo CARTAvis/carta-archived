@@ -16,8 +16,8 @@ class tLoadImage(unittest.TestCase):
         # Find a window capable of loading an image.
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
                
-        # Show the context menu
-        ActionChains(driver).context_click(imageWindow).perform()
+        # Select the window
+        ActionChains(driver).click(imageWindow).perform()
         
         # Click the data button
         dataButton = driver.find_element_by_xpath("//div[text()='Data']/..")

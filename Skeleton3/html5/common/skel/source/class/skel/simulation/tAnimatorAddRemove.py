@@ -85,8 +85,6 @@ class tAnimatorAddRemove(unittest.TestCase):
         
         #Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
-        #imageAnimator = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Image']")
-        #self.assertIsNotNone( imageAnimator, "Image animator did not appear")
         channelAnimator = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Channel']")
         self.assertIsNotNone( channelAnimator, "Channel animator did not appear")
         self._verifyAnimationCount( animationWindow, 2 )

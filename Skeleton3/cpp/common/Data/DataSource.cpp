@@ -137,6 +137,18 @@ QPointF DataSource::getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
+QPointF DataSource::getScreenPt( QPointF imagePt, bool* valid ) const {
+    QPointF screenPt;
+    if ( m_image != nullptr ){
+        screenPt = m_renderService->img2screen( imagePt );
+        *valid = true;
+    }
+    else {
+        *valid = false;
+    }
+    return screenPt;
+}
+
 int DataSource::getFrameCount() const {
     int frameCount = 1;
     if ( m_image ){
