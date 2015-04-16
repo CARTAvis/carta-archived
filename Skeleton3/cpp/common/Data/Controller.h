@@ -198,6 +198,8 @@ public:
      */
     void updatePan( double imgX , double imgY);
 
+    void centerOnPixel( double imgX , double imgY);
+
     /**
      * Update the zoom settings.
      * @param centerX the screen x-coordinate where the zoom was centered.

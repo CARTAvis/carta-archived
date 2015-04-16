@@ -19,5 +19,8 @@
 # emacs backup files
 *~
 
-# python byporducts
+# python byproducts
 *.pyc
+
+# vi backup files
+*.swp

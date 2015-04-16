@@ -54,8 +54,10 @@ class Image(CartaView):
         result = self.con.cmdTagList("setClipValue", imageView=self.getId(), clipValue=str(index))
         return result
 
-    def updatePan(self, x, y):
-        result = self.con.cmdTagList("updatePan", imageView=self.getId(), xval=x, yval=y)
+    def centerOnPixel(self, x, y, z=0):
+        result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(), xval=x, yval=y, zval=z)
+        animator = self.getLinkedAnimators()[0]
+        animator.setChannel(z)
         return result
 
     def updateZoom(self, x, y, z):

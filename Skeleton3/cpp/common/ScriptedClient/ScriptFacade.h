@@ -264,11 +264,11 @@ public:
     QStringList getLinkedStatistics( const QString& controlId );
 
     /**
-     * Change the pan of the current image.
+     * Center the image on the pixel with coordinates (x, y).
      * @param x the x-coordinate for the center of the pan.
      * @param y the y-coordinate for the center of the pan.
      */
-    QStringList updatePan( const QString& controlId, double x, double y );
+    QStringList centerOnPixel( const QString& controlId, double x, double y );
 
     /**
      * Update the zoom settings.

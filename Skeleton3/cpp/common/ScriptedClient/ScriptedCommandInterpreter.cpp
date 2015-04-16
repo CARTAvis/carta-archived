@@ -209,11 +209,17 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
         result = m_scriptFacade->saveFullImage( imageView, filename );
-        qDebug() << "(JT) saveFullImage result =" << result;
         if (result[0] == "false") {
             key = "error";
             result[0] = "Could not save image to " + filename;
         }
+    }
+
+    else if ( cmd == "centeronpixel" ) {
+        QString imageView = args["imageView"].toString();
+        double x = args["xval"].toDouble();
+        double y = args["yval"].toDouble();
+        result = m_scriptFacade->centerOnPixel( imageView, x, y );
     }
 
     else if ( cmd == "setchannel" ) {

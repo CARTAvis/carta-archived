@@ -806,6 +806,14 @@ void Controller::updatePan( double centerX , double centerY){
     }
 }
 
+void Controller::centerOnPixel( double centerX, double centerY ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        m_datas[imageIndex]->setPan( centerX, centerY );
+        _render();
+    }
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );

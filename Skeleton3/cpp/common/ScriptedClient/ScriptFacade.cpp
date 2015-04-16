@@ -303,14 +303,6 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
 QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename ) {
     bool result = m_viewManager->saveFullImage( controlId, filename );
     QStringList resultList(Carta::Data::Util::toString(result));
-//    QStringList resultList("saveFullImage");
-//    resultList.append(filename);
-//    if (result == true) {
-//        resultList.append("success");
-//    }
-//    else {
-//        resultList.append("failure");
-//    }
     return resultList;
 }
 
@@ -340,8 +332,8 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
     return linkedStatistics;
 }
 
-QStringList ScriptFacade::updatePan( const QString& controlId, double x, double y ) {
-    QString result = m_viewManager->updatePan( controlId, x, y );
+QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, double y ) {
+    QString result = m_viewManager->centerOnPixel( controlId, x, y );
     QStringList resultList(result);
     return resultList;
 }
