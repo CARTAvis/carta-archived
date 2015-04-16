@@ -222,6 +222,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->centerOnPixel( imageView, x, y );
     }
 
+    else if ( cmd == "setzoomlevel" ) {
+        QString imageView = args["imageView"].toString();
+        double zoomLevel = args["zoomLevel"].toDouble();
+        result = m_scriptFacade->setZoomLevel( imageView, zoomLevel );
+    }
+
     else if ( cmd == "setchannel" ) {
         QString animatorView = args["animatorView"].toString();
         int channel = args["channel"].toInt();

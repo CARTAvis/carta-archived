@@ -209,6 +209,12 @@ public:
     void updateZoom( double centerX, double centerY, double z );
 
     /**
+     * Set the zoom level
+     * @param zoomLevel either positive or negative depending on the desired zoom direction.
+     */
+    void setZoomLevel( double zoomLevel );
+
+    /**
      * Return a count of the number of images in the stack.
      * @return the number of images in the stack.
      */

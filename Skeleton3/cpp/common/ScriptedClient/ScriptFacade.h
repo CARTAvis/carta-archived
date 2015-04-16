@@ -271,12 +271,10 @@ public:
     QStringList centerOnPixel( const QString& controlId, double x, double y );
 
     /**
-     * Update the zoom settings.
-     * @param x the screen x-coordinate where the zoom was centered.
-     * @param y the screen y-coordinate where the zoom was centered.
-     * @param z either positive or negative depending on the desired zoom direction.
+     * Set the zoom level
+     * @param zoomLevel either positive or negative depending on the desired zoom direction.
      */
-    QStringList updateZoom( const QString& controlId, double x, double y, double z );
+    QStringList setZoomLevel( const QString& controlId, double zoomLevel );
 
     /*
      * Singleton accessor.

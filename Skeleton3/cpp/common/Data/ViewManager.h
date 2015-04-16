@@ -236,12 +236,10 @@ public:
     QString centerOnPixel( const QString& controlId, double x, double y );
 
     /**
-     * Update the zoom settings.
-     * @param x the screen x-coordinate where the zoom was centered.
-     * @param y the screen y-coordinate where the zoom was centered.
-     * @param z either positive or negative depending on the desired zoom direction.
+     * Set the zoom level.
+     * @param zoomLevel either positive or negative depending on the desired zoom direction.
      */
-    QString updateZoom( const QString& controlId, double x, double y, double z );
+    QString setZoomLevel( const QString& controlId, double zoomLevel );
 
     /**
      * Set the list of plugins to be displayed.

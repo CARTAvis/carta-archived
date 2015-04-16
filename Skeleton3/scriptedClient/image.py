@@ -55,6 +55,10 @@ class Image(CartaView):
         return result
 
     def centerOnPixel(self, x, y, z=0):
+        """
+        Centers the viewer on the pixel at (x, y).
+        z is used to select the dimension in a data cube.
+        """
         result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(), xval=x, yval=y, zval=z)
         animator = self.getLinkedAnimators()[0]
         animator.setChannel(z)
@@ -62,6 +66,10 @@ class Image(CartaView):
 
     def updateZoom(self, x, y, z):
         result = self.con.cmdTagList("updateZoom", imageView=self.getId(), xval=x, yval=y)
+        return result
+
+    def setZoomLevel(self, zoom):
+        result = self.con.cmdTagList("setZoomLevel", imageView=self.getId(), zoomLevel=zoom)
         return result
 
     def addLink(self, dest):

@@ -338,8 +338,8 @@ QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, dou
     return resultList;
 }
 
-QStringList ScriptFacade::updateZoom( const QString& controlId, double x, double y, double z ) {
-    QString result = m_viewManager->updateZoom( controlId, x, y, z );
+QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLevel ) {
+    QString result = m_viewManager->setZoomLevel( controlId, zoomLevel );
     QStringList resultList(result);
     return resultList;
 }

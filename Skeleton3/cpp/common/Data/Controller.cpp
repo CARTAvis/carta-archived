@@ -814,6 +814,15 @@ void Controller::centerOnPixel( double centerX, double centerY ){
     }
 }
 
+void Controller::setZoomLevel( double zoomFactor ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        //Set the zoom
+        m_datas[imageIndex]->setZoom( zoomFactor );
+        _render();
+    }
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );

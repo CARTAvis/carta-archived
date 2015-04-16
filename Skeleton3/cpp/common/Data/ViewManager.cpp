@@ -989,21 +989,21 @@ QString ViewManager::centerOnPixel( const QString& controlId, double x, double y
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
-           m_controllers[i]->centerOnPixel( x, y );
-           break;
+            m_controllers[i]->centerOnPixel( x, y );
+            break;
         }
     }
     return result;
 }
 
-QString ViewManager::updateZoom( const QString& controlId, double x, double y, double z ) {
+QString ViewManager::setZoomLevel( const QString& controlId, double zoomLevel ) {
     QString result = "";
     int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
-           m_controllers[i]->updateZoom( x, y, z );
-           break;
+            m_controllers[i]->setZoomLevel( zoomLevel );
+            break;
         }
     }
     return result;
