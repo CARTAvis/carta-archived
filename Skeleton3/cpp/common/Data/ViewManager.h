@@ -136,7 +136,18 @@ private:
      */
     void _refreshState();
     bool _readState( const QString& fileName );
-    bool _saveState( const QString& fileName );
+
+    /**
+     * Save the current state.
+     * @param fileName - an identifier for the state to be saved.
+     * @param layoutSave - true if the layout should be saved; false otherwise.
+     * @param preferencesSave -true if the preferences should be saved; false otherwise.
+     * @param dataSave - true if the data should be saved; false otherwise.
+     * @return an error message if there was a problem saving state; an empty string otherwise.
+     */
+    QString saveState( const QString& fileName, bool layoutSave, bool preferencesSave, bool dataSave );
+    QString getStateString( SnapshotType stateType ) const;
+
 
     //A list of Controllers requested by the client.
     QList <Controller* > m_controllers;

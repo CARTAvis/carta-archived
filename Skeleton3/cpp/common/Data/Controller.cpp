@@ -271,12 +271,22 @@ int Controller::getState( const QString& type, const QString& key ){
 }
 
 
-QString Controller::getStateString() const{
-    StateInterface writeState( m_state );
+QString Controller::getStateString( SnapshotType type ) const{
+    if ( type == SNAPSHOT_PREFERENCES ){
+        qDebug() << "getting state for preferences needs to be implemented";
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        qDebug() << "getting state for data needs to be implemented";
+    }
+    else {
+        qDebug()<<"Unsupported type "<<type<<" for controller get state";
+    }
+    /*StateInterface writeState( m_state );
     writeState.insertObject( Selection::SELECTIONS );
     writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::CHANNEL, m_selectChannel->getStateString());
     writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::IMAGE, m_selectImage->getStateString());
-    return writeState.toString();
+    return writeState.toString();*/
+    return "";
 }
 
 
@@ -696,15 +706,12 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
 }
 
 void Controller::_updateCursorText(bool notifyClients ){
-    QSize imageSize = m_view->size();
-    int pictureWidth = imageSize.width();
-    int pictureHeight = imageSize.height();
     QString formattedCursor;
     int imageIndex = m_selectImage->getIndex();
     int frameIndex = m_selectChannel->getIndex();
     int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
     int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-    QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
+    QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex);
     if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
         m_stateMouse.setValue<QString>( CURSOR, cursorText );
         if ( notifyClients ){
@@ -762,20 +769,7 @@ void Controller::updatePan( double centerX , double centerY){
                 data->setPan( oldImageCenter.x(), oldImageCenter.y() );
             }
             _render();
-
-            //The position location on the image under the mouse cursor will have
-            //moved.  Calculate the new cursor position and update the statistics.
-            QPointF newImageCenter = m_datas[imageIndex]->getImagePt( {centerX,centerY}, &validImage);
-            if ( validImage ){
-                //How much did the pan move an image pt?
-                QPointF delta = oldImageCenter - newImageCenter;
-                //Image point now under the cursor.
-                QPointF newLocation = oldImageCenter + delta;
-                //Get the pixel point under the cursor
-                QPointF pixelCenter = m_datas[imageIndex]->getScreenPt( {newLocation.x(),newLocation.y()}, &validImage);
-                //Update the statistics with this new point.
-                _updateCursor( pixelCenter.x(), pixelCenter.y());
-            }
+            _updateCursorText( true );
         }
     }
 }

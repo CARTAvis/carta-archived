@@ -228,10 +228,9 @@ public:
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
      * @param frameIndex the current channel index.
-     * @param pictureWidth the width of the QImage displaying the source.
-     * @param pictureHeight the height of the QImage displaying the source.
+     * @return a QString containing cursor text.
      */
-    QString getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight );
+    QString getCursorText( int mouseX, int mouseY, int frameIndex);
 
     /**
      * Return the percentile corresponding to the given intensity.

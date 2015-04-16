@@ -115,8 +115,7 @@ qx.Class
                                     }
                                     //Update which animators should appear based on the state of this animator
                                     this._animationCB();
-                                    //Show/hide individual animations based on the checked status.
-                                    this._showHideAnimation();
+                                    
                                 }
                                 catch( err ){
                                     console.log( "Could not parse: "+val );

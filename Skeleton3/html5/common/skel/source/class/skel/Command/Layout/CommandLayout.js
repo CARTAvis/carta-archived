@@ -54,6 +54,18 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
             }
         },
         
+        /**
+         * Set the children of this command active/inactive.
+         * @param active {boolean} true if the command should be active; false otherwise.
+         */
+        //Written so that when a window is added or removed, the server-side update of
+        //the value will not trigger a relayout.
+        setActive : function( active ){
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                this.m_cmds[i].setActive( active );
+            }
+        },
+        
         setValues : function( image, analysis, custom ){
             var imageCmd = skel.Command.Layout.CommandLayoutImage.getInstance();
             imageCmd.setValue( image );

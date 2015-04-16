@@ -22,14 +22,18 @@ public:
     virtual ~CartaObject () {}
 
     QString addIdToCommand (const QString & commandName) const;
+    //Snapshots of state that can be saved.
+    typedef enum SnapshotType { SNAPSHOT_DATA, SNAPSHOT_PREFERENCES, SNAPSHOT_LAYOUT } SnapshotType;
+
+    /**
+     * Returns a json representation of this object's state.
+     * @param type an identifier for the type of state to be returned.
+     * @return a QString representing this object's state.
+     */
+    virtual QString getStateString( SnapshotType type ) const;
     QString getClassName () const;
     QString getId () const;
     QString getPath () const;
-    /**
-     * Returns a json representation of this object's state.
-     * @return a QString representing this object's state.
-     */
-    virtual QString getStateString() const;
 
     /**
      * Reset the state of this object.

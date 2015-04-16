@@ -14,7 +14,7 @@ using namespace std;
 
 QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits", "Clips", "Colormaps",
         "DataLoader","TransformsImage","TransformsData","ErrorManager","Layout",
-        "Preferences","ViewManager"};
+        "Preferences","Snapshots","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -22,6 +22,10 @@ QString CartaObject::addIdToCommand (const QString & command) const {
         fullCommand = fullCommand + m_Delimiter + command;
     }
     return fullCommand;
+}
+
+QString CartaObject::getStateString( SnapshotType /*type*/ ) const {
+    return "";
 }
 
 QString
@@ -52,9 +56,7 @@ CartaObject::CartaObject (const QString & className,
   m_path (path){
     }
 
-QString CartaObject::getStateString() const {
-    return m_state.toString();
-}
+
 
 void CartaObject::resetState( const QString& state ){
     m_state.setState( state );

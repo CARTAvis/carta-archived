@@ -73,50 +73,54 @@ bool DataSource::contains(const QString& fileName) const {
     return representsData;
 }
 
-QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight ){
+QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
-    int imgX = mouseX * m_image-> dims()[0] / pictureWidth;
-    int imgY = mouseY * m_image-> dims()[1] / pictureHeight;
-    imgY = m_image-> dims()[1] - imgY - 1;
-
-    CoordinateFormatterInterface::SharedPtr cf(
-            m_image-> metaData()-> coordinateFormatter()-> clone() );
-
-    std::vector < QString > knownSCS2str {
-            "Unknown", "J2000", "B1950", "ICRS", "Galactic",
-            "Ecliptic"
-        };
-    std::vector < KnownSkyCS > css {
-            KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-            KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
-        };
-     out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
-     out << "Image cursor:" << imgX << "," << imgY << "\n";
-
-     for ( auto cs : css ) {
-        cf-> setSkyCS( cs );
-        out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
-        std::vector < Carta::Lib::AxisInfo > ais;
-        for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
-            const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
-            ais.push_back( ai );
+    
+    bool valid = false;
+    QPointF imgPt = getImagePt( lastMouse, &valid );
+    if ( valid ){
+        int imgX = imgPt.x();
+        int imgY = imgPt.y();
+    
+        CoordinateFormatterInterface::SharedPtr cf(
+                m_image-> metaData()-> coordinateFormatter()-> clone() );
+    
+        std::vector < QString > knownSCS2str {
+                "Unknown", "J2000", "B1950", "ICRS", "Galactic",
+                "Ecliptic"
+            };
+        std::vector < KnownSkyCS > css {
+                KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
+                KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
+            };
+         out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
+         out << "Image cursor:" << imgX << "," << imgY << "\n";
+    
+         for ( auto cs : css ) {
+            cf-> setSkyCS( cs );
+            out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+            std::vector < Carta::Lib::AxisInfo > ais;
+            for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
+                const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
+                ais.push_back( ai );
+            }
+            std::vector < double > pixel( m_image-> dims().size(), 0.0 );
+            pixel[0] = imgX;
+            pixel[1] = imgY;
+            if( pixel.size() > 2) {
+               pixel[2] = frameIndex;
+            }
+            auto list = cf-> formatFromPixelCoordinate( pixel );
+            for ( size_t i = 0 ; i < ais.size() ; i++ ) {
+                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+            }
+            out << "\n";
         }
-        std::vector < double > pixel( m_image-> dims().size(), 0.0 );
-        pixel[0] = imgX;
-        pixel[1] = imgY;
-        if( pixel.size() > 2) {
-           pixel[2] = frameIndex;
-        }
-        auto list = cf-> formatFromPixelCoordinate( pixel );
-        for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-            out << ais[i].shortLabel().html() << ":" << list[i] << " ";
-        }
-        out << "\n";
+
+        str.replace( "\n", "<br />" );
     }
-
-    str.replace( "\n", "<br />" );
     return str;
 }
 

@@ -47,6 +47,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 this.m_content.add(this.m_view, overlayMap );
             }
             this.m_view.setVisibility( "visible" );
+            
         },
         
         /**
@@ -195,6 +196,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     this.m_view.setVisibility( "hidden" );
                 }
             }
+            var closeCmd = skel.Command.Data.CommandDataClose.getInstance();
+            closeCmd.closeChanged();
         },
 
 

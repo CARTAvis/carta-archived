@@ -59,6 +59,7 @@ QString Layout::addWindow( int rowIndex, int colIndex ){
     //Adding a row to an existing column.
     QString result;
     if ( 0 <= colIndex && colIndex < oldColCount ){
+        m_state.setValue<QString>(TYPE_SELECTED,TYPE_CUSTOM);
         //Adding a window to an existing row.
         if ( 0 <= rowIndex && rowIndex < oldRowCount ){
             //See if there is an unused row somewhere in the column; find the closest one.
@@ -303,6 +304,7 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
     int colCount = m_state.getValue<int>(LAYOUT_COLS);
     if ( 0 <= rowIndex && rowIndex < rowCount &&
          0 <= colIndex && colIndex < colCount ){
+        m_state.setValue<QString>(TYPE_SELECTED, TYPE_CUSTOM );
         int maxRowColumn = _getMaxRowColumn();
         //Decide if this is the column with the maximum number of rows.
         if ( maxRowColumn == colIndex ){

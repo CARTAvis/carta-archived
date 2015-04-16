@@ -32,6 +32,22 @@ void StateWriter::addPathData( const QString& path, const QString& value ){
 	}
 }
 
+QString StateWriter::saveLayout(const QString& /*layoutStr*/) const {
+    QString result;
+    return result;
+}
+
+QString StateWriter::savePreferences(const QString& /*prefStr*/) const {
+    QString result;
+    return result;
+}
+
+QString StateWriter::saveData(const QString& /*dataStr*/) const {
+    QString result;
+    return result;
+}
+
+
 bool StateWriter::saveState(){
 	QFile file( m_fileLocation );
 	bool fileSaved = true;

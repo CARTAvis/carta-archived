@@ -12,7 +12,7 @@ qx.Class.define("skel.Command.Session.CommandSave", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.getCommandSaveState();
-        this.base( arguments, "Save Session", cmd );
+        this.base( arguments, "Save...", cmd );
         this.m_toolBarVisible = false;
     },
     

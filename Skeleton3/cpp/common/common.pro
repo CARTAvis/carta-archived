@@ -50,6 +50,7 @@ HEADERS += \
     Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
+    Data/Snapshots.h \
     Data/Statistics.h \
     Data/TransformsData.h \
     Data/TransformsImage.h \
@@ -104,6 +105,7 @@ SOURCES += \
     Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
+    Data/Snapshots.cpp \
     Data/Statistics.cpp \
     Data/TransformsData.cpp \
     Data/TransformsImage.cpp \

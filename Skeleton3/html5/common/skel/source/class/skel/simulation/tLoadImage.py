@@ -44,11 +44,15 @@ class tLoadImage(unittest.TestCase):
         self.assertIsNotNone(loadButton, "Could not find button to close the file browser")
         closeButton.click()
         
-        # Check that the window is not displaying an image.
+        # Check that the window is displaying an image.
         viewElement = driver.find_element_by_xpath("//div[@qxclass='skel.boundWidgets.View.View']")
         self.assertIsNotNone(viewElement, "Could not find view element on page.")
         imageElement = driver.find_element_by_id("pwUID0")
         self.assertIsNotNone(imageElement, "Could not find image on the page")
+        
+        # Click on the Data->Close->Image button to close the image.
+        ActionChains(driver).context_click(imageWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+        
         
     def tearDown(self):
         self.driver.close()

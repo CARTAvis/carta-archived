@@ -181,9 +181,10 @@ public:
 
     /**
      * Returns a json string representing the state of this controller.
+     * @param type - the type of snapshot to return.
      * @return a string representing the state of this controller.
      */
-    virtual QString getStateString() const;
+    virtual QString getStateString( SnapshotType type) const;
 
     /**
      * Change the pan of the current image.

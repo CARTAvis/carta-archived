@@ -14,6 +14,7 @@
 #include "Data/ILinkable.h"
 #include "Data/Layout.h"
 #include "Data/Preferences.h"
+#include "Data/Snapshots.h"
 #include "Data/Statistics.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
@@ -59,6 +60,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject( ErrorManager::CLASS_NAME );
     Util::findSingletonObject( Preferences::CLASS_NAME );
     Util::findSingletonObject( ChannelUnits::CLASS_NAME );
+    Util::findSingletonObject( Snapshots::CLASS_NAME );
     _initCallbacks();
 
     bool stateRead = this->_readState( "DefaultState" );
@@ -189,7 +191,7 @@ void ViewManager::_initCallbacks(){
 
     addCommandCallback( "setImageLayout", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                setImageView();
+        setImageView();
                 return "";
             });
 
@@ -255,17 +257,36 @@ void ViewManager::_initCallbacks(){
     //Callback for saving state.
     addCommandCallback( "saveState", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Snapshots::FILE_NAME,Snapshots::SAVE_LAYOUT,
+                Snapshots::SAVE_PREFERENCES,Snapshots::SAVE_DATA};
+        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
         QStringList paramList = params.split( ":");
-        QString saveName="DefaultState";
-        if ( paramList.length() == 2 ){
-           saveName = paramList[1];
+        QString result;
+        bool validLayout = false;
+        bool saveLayout = Util::toBool( Snapshots::SAVE_LAYOUT, &validLayout );
+        if ( !validLayout ){
+            result = "Error saving state; save layout should be true/false:"+params;
         }
-        bool result = _saveState(saveName);
-        QString returnVal = "State was successfully saved.";
-        if ( !result ){
-            returnVal = "There was an error saving state.";
+        else {
+            bool validPrefs = false;
+            bool savePrefs = Util::toBool( Snapshots::SAVE_PREFERENCES, & validPrefs );
+            if ( !validPrefs ){
+                result = "Error saving state; preferences should be true/false:"+params;
+            }
+            else {
+                bool validData = false;
+                bool saveData = Util::toBool( Snapshots::SAVE_DATA, &validData );
+                if ( !validData ){
+                    result = "Error saving state: save data should be true/false:"+params;
+                }
+                else {
+                    result = saveState(dataValues[Snapshots::FILE_NAME],
+                           saveLayout, savePrefs, saveData );
+                }
+            }
         }
-        return returnVal;
+        Util::commandPostProcess(result);
+        return result;
     });
 
     //Callback for restoring state.
@@ -725,19 +746,37 @@ void ViewManager::setImageView(){
     m_layout->setLayoutImage();
 }
 
+QString ViewManager::getStateString( SnapshotType stateType ) const {
+    QString stateStr;
+   for ( int i = 0; i < m_controllers.size(); i++ ){
+       stateStr = stateStr + m_controllers[i]->getStateString( stateType );
+   }
+   for ( int i = 0; i < m_animators.size(); i++ ){
+       stateStr = stateStr + m_animators[i]->getStateString( stateType );
+   }
+   for ( int i = 0; i < m_colormaps.size(); i++ ){
+       stateStr = stateStr + m_colormaps[i]->getStateString( stateType );
+   }
+   for ( int i = 0; i < m_histograms.size(); i++ ){
+       stateStr = stateStr + m_histograms[i]->getStateString( stateType );
+   }
+   return stateStr;
+}
 
-bool ViewManager::_saveState( const QString& saveName ){
-    QString filePath = getStateLocation( saveName );
-    StateWriter writer( filePath );
-    writer.addPathData( m_layout->getPath(), m_layout->getStateString());
-    for ( int i = 0; i < m_controllers.size(); i++ ){
-        writer.addPathData( m_controllers[i]->getPath(), m_controllers[i]->getStateString() );
+
+QString ViewManager::saveState( const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
+    QString result;
+    StateWriter writer( saveName );
+    if ( saveLayout ){
+        result = writer.saveLayout( m_layout->getStateString(SNAPSHOT_LAYOUT) );
     }
-    for ( int i = 0; i < m_animators.size(); i++ ){
-        writer.addPathData( m_animators[i]->getPath(), m_animators[i]->getStateString() );
+    if ( savePreferences ){
+       result = writer.savePreferences( getStateString( SNAPSHOT_PREFERENCES ));
     }
-    bool stateSaved = writer.saveState();
-    return stateSaved;
+    if ( saveData ){
+        result = writer.saveData( getStateString( SNAPSHOT_DATA ));
+    }
+    return result;
 }
 
 bool ViewManager::setPlugins( const QStringList& names ){

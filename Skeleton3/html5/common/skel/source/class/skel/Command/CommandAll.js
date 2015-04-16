@@ -41,7 +41,7 @@ qx.Class.define("skel.Command.CommandAll", {
     
     members : {
         _resetEnabled : function( ){
-            //Maybe one of the children should be enabled.
+            //Just tell the children to reset their enabled status
             for ( var i = 0; i < this.m_cmds.length; i++ ){
                 this.m_cmds[i]._resetEnabled();
             }
