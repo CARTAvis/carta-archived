@@ -208,7 +208,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     else if ( cmd == "savefullimage" ) {
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
-        result = m_scriptFacade->saveFullImage( imageView, filename );
+        double scale = args["scale"].toDouble();
+        result = m_scriptFacade->saveFullImage( imageView, filename, scale );
         if (result[0] == "false") {
             key = "error";
             result[0] = "Could not save image to " + filename;

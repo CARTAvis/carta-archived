@@ -211,9 +211,9 @@ public:
     QPointF
     screen2img( const QPointF & p );
 
-    /// save a copy of the full image, not just what is currently being displayed.
+    /// save a copy of the full image at the desired scale (zoom level).
     bool
-    saveFullImage( const QString& filename );
+    saveFullImage( const QString& filename, double scale );
 
 protected slots:
 

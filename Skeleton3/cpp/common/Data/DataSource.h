@@ -268,7 +268,7 @@ public:
      */
     void render();
 
-    bool saveFullImage( const QString& filename );
+    bool saveFullImage( const QString& filename, double scale );
 
     virtual ~DataSource();
 

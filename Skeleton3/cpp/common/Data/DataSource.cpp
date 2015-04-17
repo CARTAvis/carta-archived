@@ -481,8 +481,8 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-bool DataSource::saveFullImage( const QString& filename ){
-    bool result = m_renderService->saveFullImage( filename );
+bool DataSource::saveFullImage( const QString& filename, double scale ){
+    bool result = m_renderService->saveFullImage( filename, scale );
     return result;
 }
 

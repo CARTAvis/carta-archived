@@ -918,13 +918,13 @@ bool ViewManager::saveImage( const QString& controlId, const QString& filename )
     return result;
 }
 
-bool ViewManager::saveFullImage( const QString& controlId, const QString& filename ){
+bool ViewManager::saveFullImage( const QString& controlId, const QString& filename, double scale ){
     int controlCount = getControllerCount();
     bool result = false;
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
-           result = m_controllers[i]->saveFullImage( filename );
+           result = m_controllers[i]->saveFullImage( filename, scale );
            break;
         }
     }

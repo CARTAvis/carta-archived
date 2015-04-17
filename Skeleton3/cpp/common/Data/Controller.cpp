@@ -568,10 +568,10 @@ bool Controller::saveImage( const QString& filename ) {
     return result;
 }
 
-bool Controller::saveFullImage( const QString& filename ) {
+bool Controller::saveFullImage( const QString& filename, double scale ) {
     //bool result = m_view->saveImage( filename );
     int imageIndex = m_selectImage->getIndex();
-    bool result = m_datas[imageIndex]->saveFullImage( filename );
+    bool result = m_datas[imageIndex]->saveFullImage( filename, scale );
     return result;
 }
 

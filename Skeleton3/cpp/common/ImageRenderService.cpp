@@ -193,9 +193,9 @@ Service::screen2img( const QPointF & p )
 }
 
 bool
-Service::saveFullImage( const QString& filename)
+Service::saveFullImage( const QString& filename, double scale )
 {
-    bool result = m_frameImage.save( filename );
+    bool result = m_frameImage.scaled(m_frameImage.size() * scale).save( filename );
     return result;
 }
 

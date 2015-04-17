@@ -300,8 +300,8 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     return resultList;
 }
 
-QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename ) {
-    bool result = m_viewManager->saveFullImage( controlId, filename );
+QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, double scale ) {
+    bool result = m_viewManager->saveFullImage( controlId, filename, scale );
     QStringList resultList(Carta::Data::Util::toString(result));
     return resultList;
 }
