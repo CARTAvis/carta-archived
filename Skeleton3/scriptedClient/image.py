@@ -91,3 +91,8 @@ class Image(CartaView):
     def saveFullImage(self, dest):
         result = self.con.cmdTagList("saveFullImage", imageView=self.getId(), filename=dest)
         return result
+
+    def getImageDimensions(self):
+        result = self.con.cmdTagList("getImageDimensions", imageView=self.getId())
+        result = [int(i) for i in result]
+        return result

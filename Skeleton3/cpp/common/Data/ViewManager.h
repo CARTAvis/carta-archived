@@ -242,6 +242,11 @@ public:
     QString setZoomLevel( const QString& controlId, double zoomLevel );
 
     /**
+     * Get the image dimensions.
+     */
+    QStringList getImageDimensions( const QString& controlId );
+
+    /**
      * Set the list of plugins to be displayed.
      * @param names a list of identifiers for the plugins.
      */

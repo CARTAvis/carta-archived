@@ -228,6 +228,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setZoomLevel( imageView, zoomLevel );
     }
 
+    else if ( cmd == "getimagedimensions" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getImageDimensions( imageView );
+    }
+
     else if ( cmd == "setchannel" ) {
         QString animatorView = args["animatorView"].toString();
         int channel = args["channel"].toInt();

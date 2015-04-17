@@ -215,6 +215,11 @@ public:
     void setZoomLevel( double zoomLevel );
 
     /**
+     * Get the image dimensions.
+     */
+    QStringList getImageDimensions( );
+
+    /**
      * Return a count of the number of images in the stack.
      * @return the number of images in the stack.
      */

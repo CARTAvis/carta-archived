@@ -343,3 +343,8 @@ QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLev
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
+    QStringList result = m_viewManager->getImageDimensions( controlId );
+    return result;
+}

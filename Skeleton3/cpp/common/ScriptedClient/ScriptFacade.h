@@ -276,6 +276,11 @@ public:
      */
     QStringList setZoomLevel( const QString& controlId, double zoomLevel );
 
+    /**
+     * Get the image dimensions.
+     */
+    QStringList getImageDimensions( const QString& controlId );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

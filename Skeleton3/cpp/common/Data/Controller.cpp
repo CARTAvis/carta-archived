@@ -823,6 +823,19 @@ void Controller::setZoomLevel( double zoomFactor ){
     }
 }
 
+QStringList Controller::getImageDimensions( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        int dimensions = m_datas[imageIndex]->getDimensions();
+        for ( int i = 0; i < dimensions; i++ ) {
+            int d = m_datas[imageIndex]->getDimension( i );
+            result.append( QString::number( d ) );
+        }
+    }
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );
