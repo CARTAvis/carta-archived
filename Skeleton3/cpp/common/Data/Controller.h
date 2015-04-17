@@ -215,6 +215,11 @@ public:
     void setZoomLevel( double zoomLevel );
 
     /**
+     * Get the current zoom level
+     */
+    double getZoomLevel( );
+
+    /**
      * Get the image dimensions.
      */
     QStringList getImageDimensions( );

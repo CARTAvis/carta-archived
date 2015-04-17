@@ -271,13 +271,21 @@ public:
     QStringList centerOnPixel( const QString& controlId, double x, double y );
 
     /**
-     * Set the zoom level
+     * Set the zoom level.
+     * @param controlId the unique server-side id of an object managing a controller.
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
      */
     QStringList setZoomLevel( const QString& controlId, double zoomLevel );
 
     /**
+     * Get the current zoom level.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getZoomLevel( const QString& controlId );
+
+    /**
      * Get the image dimensions.
+     * @param controlId the unique server-side id of an object managing a controller.
      */
     QStringList getImageDimensions( const QString& controlId );
 

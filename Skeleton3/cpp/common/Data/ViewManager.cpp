@@ -1009,6 +1009,19 @@ QString ViewManager::setZoomLevel( const QString& controlId, double zoomLevel ) 
     return result;
 }
 
+double ViewManager::getZoomLevel( const QString& controlId ) {
+    double zoom;
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+            zoom = m_controllers[i]->getZoomLevel( );
+            break;
+        }
+    }
+    return zoom;
+}
+
 QStringList ViewManager::getImageDimensions( const QString& controlId ) {
     QStringList result;
     int controlCount = getControllerCount();

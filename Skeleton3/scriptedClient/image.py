@@ -72,6 +72,10 @@ class Image(CartaView):
         result = self.con.cmdTagList("setZoomLevel", imageView=self.getId(), zoomLevel=zoom)
         return result
 
+    def getZoomLevel(self):
+        result = self.con.cmdTagList("getZoomLevel", imageView=self.getId())
+        return float(result[0])
+
     def addLink(self, dest):
         """ Note that this method needs to override the base class method
             because the source and destination are flipped."""

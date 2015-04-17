@@ -216,20 +216,47 @@ public:
      */
     QString saveState( const QString& fileName );
 
+    /**
+     * Save a screenshot of the current image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param filename the full path where the file is to be saved.
+     */
     bool saveImage( const QString& controlId, const QString& filename );
 
+    /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param fileName the full path where the file is to be saved.
+     */
     bool saveFullImage( const QString& controlId, const QString& filename );
 
+    /**
+     * Get the colormaps that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
     QStringList getLinkedColorMaps( const QString& controlId );
 
+    /**
+     * Get the animators that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
     QStringList getLinkedAnimators( const QString& controlId );
 
+    /**
+     * Get the histograms that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
     QStringList getLinkedHistograms( const QString& controlId );
 
+    /**
+     * Get the statistics views that are linked to the given image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
     QStringList getLinkedStatistics( const QString& controlId );
 
     /**
      * Center the image on the pixel with coordinates (x, y).
+     * @param controlId the unique server-side id of an object managing a controller.
      * @param x the x-coordinate for the center of the pan.
      * @param y the y-coordinate for the center of the pan.
      */
@@ -237,12 +264,20 @@ public:
 
     /**
      * Set the zoom level.
+     * @param controlId the unique server-side id of an object managing a controller.
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
      */
     QString setZoomLevel( const QString& controlId, double zoomLevel );
 
     /**
+     * Get the current zoom level.
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    double getZoomLevel( const QString& controlId );
+
+    /**
      * Get the image dimensions.
+     * @param controlId the unique server-side id of an object managing a controller.
      */
     QStringList getImageDimensions( const QString& controlId );
 
