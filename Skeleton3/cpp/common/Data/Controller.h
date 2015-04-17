@@ -198,6 +198,11 @@ public:
      */
     void updatePan( double imgX , double imgY);
 
+    /**
+     * Center the image on the pixel with coordinates (x, y).
+     * @param imgX the x-coordinate for the center of the pan.
+     * @param imgY the y-coordinate for the center of the pan.
+     */
     void centerOnPixel( double imgX , double imgY);
 
     /**

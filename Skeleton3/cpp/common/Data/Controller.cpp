@@ -809,7 +809,10 @@ void Controller::updatePan( double centerX , double centerY){
 void Controller::centerOnPixel( double centerX, double centerY ){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        m_datas[imageIndex]->setPan( centerX, centerY );
+        // Currently (0, 0) is at the top left of the image. We want it to be the
+        // bottom left, so we need to flip the y-coordinate.
+        int yDimension = m_datas[imageIndex]->getDimension( 1 );
+        m_datas[imageIndex]->setPan( centerX, yDimension - centerY );
         _render();
     }
 }
