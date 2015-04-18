@@ -1035,6 +1035,19 @@ QStringList ViewManager::getImageDimensions( const QString& controlId ) {
     return result;
 }
 
+QStringList ViewManager::getOutputSize( const QString& controlId ) {
+    QStringList result;
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+            result = m_controllers[i]->getOutputSize( );
+            break;
+        }
+    }
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

@@ -283,6 +283,12 @@ public:
     QStringList getImageDimensions( const QString& controlId );
 
     /**
+     * Get the dimensions of the image viewer (window size).
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getOutputSize( const QString& controlId );
+
+    /**
      * Set the list of plugins to be displayed.
      * @param names a list of identifiers for the plugins.
      */

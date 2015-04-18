@@ -185,6 +185,12 @@ public:
     double getZoom() const;
 
     /**
+     * Get the dimensions of the image viewer (window size).
+     * @return the image viewer dimensions.
+     */
+    QSize getOutputSize() const;
+
+    /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
      * @param imgY the y-coordinate of the center.

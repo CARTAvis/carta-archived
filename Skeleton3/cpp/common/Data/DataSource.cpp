@@ -288,6 +288,10 @@ double DataSource::getZoom() const {
     return m_renderService-> zoom();
 }
 
+QSize DataSource::getOutputSize() const {
+    return m_renderService->getOutputSize();
+}
+
 void DataSource::_initializeState(){
     m_state.insertValue<QString>( DATA_PATH, "");
 }

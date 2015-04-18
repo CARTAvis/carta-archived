@@ -850,6 +850,17 @@ QStringList Controller::getImageDimensions( ){
     return result;
 }
 
+QStringList Controller::getOutputSize( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        QSize outputSize = m_datas[imageIndex]->getOutputSize();
+        result.append( QString::number( outputSize.width() ) );
+        result.append( QString::number( outputSize.height() ) );
+    }
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );

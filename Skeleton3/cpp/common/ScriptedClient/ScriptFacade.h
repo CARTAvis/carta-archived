@@ -290,6 +290,12 @@ public:
      */
     QStringList getImageDimensions( const QString& controlId );
 
+    /**
+     * Get the dimensions of the image viewer (window size).
+     * @param controlId the unique server-side id of an object managing a controller.
+     */
+    QStringList getOutputSize( const QString& controlId );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

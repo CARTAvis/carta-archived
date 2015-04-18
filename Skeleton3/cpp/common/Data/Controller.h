@@ -230,6 +230,11 @@ public:
     QStringList getImageDimensions( );
 
     /**
+     * Get the dimensions of the image viewer (window size).
+     */
+    QStringList getOutputSize( );
+
+    /**
      * Return a count of the number of images in the stack.
      * @return the number of images in the stack.
      */

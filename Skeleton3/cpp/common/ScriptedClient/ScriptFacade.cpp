@@ -354,3 +354,8 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     QStringList result = m_viewManager->getImageDimensions( controlId );
     return result;
 }
+
+QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
+    QStringList result = m_viewManager->getOutputSize( controlId );
+    return result;
+}

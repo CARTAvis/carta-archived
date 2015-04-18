@@ -64,8 +64,8 @@ class Image(CartaView):
         animator.setChannel(z)
         return result
 
-    def updateZoom(self, x, y, z):
-        result = self.con.cmdTagList("updateZoom", imageView=self.getId(), xval=x, yval=y)
+    def centerWithRadius(self, x, y, r, dim='width'):
+        result = self.com.cmdTagList("centerWithRadius", imageView=self.getId(), xval=x, yval=y, radius=r, dimension=dim)
         return result
 
     def setZoomLevel(self, zoom):
@@ -98,5 +98,10 @@ class Image(CartaView):
 
     def getImageDimensions(self):
         result = self.con.cmdTagList("getImageDimensions", imageView=self.getId())
+        result = [int(i) for i in result]
+        return result
+
+    def getOutputSize(self):
+        result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         result = [int(i) for i in result]
         return result

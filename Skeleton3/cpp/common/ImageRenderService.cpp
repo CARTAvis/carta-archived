@@ -80,6 +80,12 @@ Service::setOutputSize( QSize size )
     m_outputSize = size;
 }
 
+QSize
+Service::getOutputSize()
+{
+    return m_outputSize;
+}
+
 void
 Service::setPan( QPointF pt )
 {
