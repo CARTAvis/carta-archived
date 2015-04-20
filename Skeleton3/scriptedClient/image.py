@@ -64,9 +64,23 @@ class Image(CartaView):
         animator.setChannel(z)
         return result
 
-    def centerWithRadius(self, x, y, r, dim='width'):
-        result = self.com.cmdTagList("centerWithRadius", imageView=self.getId(), xval=x, yval=y, radius=r, dimension=dim)
-        return result
+    def centerWithRadius(self, x, y, radius, dim='width'):
+        """
+        A convenience function:
+            something that takes a centre and a radius and computes a ZoomLevel
+            to put the centre at the centre of the viewer window and have the
+            distance to the edge of the window be the "radius".
+        Note that this function is defined entirely in terms of other, lower
+        level Python functions.
+        """
+        self.centerOnPixel(x, y)
+        viewerDim = self.getOutputSize()
+        if dim == 'width':
+            dimNumber = 0
+        elif dim == 'height':
+            dimNumber = 1
+        zoom = (float(viewerDim[dimNumber]/2)) / radius
+        self.setZoomLevel(zoom)
 
     def setZoomLevel(self, zoom):
         result = self.con.cmdTagList("setZoomLevel", imageView=self.getId(), zoomLevel=zoom)
