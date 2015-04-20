@@ -3,7 +3,7 @@
  **/
 
 #include "ImageRenderService.h"
-#include "LinearMap.h"
+#include "CartaLib/LinearMap.h"
 #include <QColor>
 #include <QPainter>
 
@@ -182,8 +182,8 @@ Service::img2screen( const QPointF & p )
     double scy = m_outputSize.height() / 2.0;
 
     /// \todo cache xmap/ymap, update with zoom/pan/resize
-    LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
-    LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
+    Carta::Lib::LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
+    Carta::Lib::LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
     QPointF res;
     res.rx() = xmap.inv( p.x() );
     res.ry() = ymap.inv( p.y() );
@@ -199,8 +199,8 @@ Service::screen2img( const QPointF & p )
     double scy = m_outputSize.height() / 2.0;
 
     /// \todo cache xmap/ymap, update with zoom/pan/resize
-    LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
-    LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
+    Carta::Lib::LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
+    Carta::Lib::LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
     QPointF res;
     res.rx() = xmap.apply( p.x() );
     res.ry() = ymap.apply( p.y() );

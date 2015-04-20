@@ -3,11 +3,8 @@
  **/
 
 #include "DesktopConnector.h"
-#include "common/LinearMap.h"
+#include "CartaLib/LinearMap.h"
 #include "common/MyQApp.h"
-//#include "common/State/StateXmlRestorer.h"
-//#include "common/State/StateReader.h"
-//#include "DesktopStateWriter.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -32,7 +29,7 @@ struct DesktopConnector::ViewInfo
     QSize clientSize;
 
     /// linear maps convert x,y from client to image coordinates
-    LinearMap1D tx, ty;
+    Carta::Lib::LinearMap1D tx, ty;
 
     /// refresh timer for this object
     QTimer refreshTimer;
@@ -278,17 +275,17 @@ void DesktopConnector::refreshViewNow(IView *view)
 
         // remember the transformations we did to the image in the viewInfo so that we can
         // properly translate mouse events etc
-        viewInfo-> tx = LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
+        viewInfo-> tx = Carta::Lib::LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
                                      0, origImage.width()-1);
-        viewInfo-> ty = LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
+        viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
         emit jsViewUpdatedSignal( view-> name(), pix);
     }
     else {
         qDebug() << "Re-scale not needed";
-        viewInfo-> tx = LinearMap1D( 0, 1, 0, 1);
-        viewInfo-> ty = LinearMap1D( 0, 1, 0, 1);
+        viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
+        viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
         emit jsViewUpdatedSignal( view-> name(), origImage);
     }

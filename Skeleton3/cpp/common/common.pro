@@ -13,7 +13,6 @@ HEADERS += \
     IPlatform.h \
     Viewer.h \
     IView.h \
-    LinearMap.h \
     MyQApp.h \
     CallbackList.h \
     PluginManager.h \
@@ -67,7 +66,6 @@ HEADERS += \
 
 SOURCES += \
     Viewer.cpp \
-    LinearMap.cpp \
     MyQApp.cpp \
     CallbackList.cpp \
     PluginManager.cpp \

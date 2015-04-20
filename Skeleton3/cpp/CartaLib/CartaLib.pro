@@ -12,6 +12,7 @@ DEFINES += CARTALIB_LIBRARY
 SOURCES += \
     CartaLib.cpp \
     HtmlString.cpp \
+    LinearMap.cpp \
     Hooks/ColormapsScalar.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     CartaLib.h\
     cartalib_global.h \
     HtmlString.h \
+    LinearMap.h \
     Hooks/ColormapsScalar.h \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \

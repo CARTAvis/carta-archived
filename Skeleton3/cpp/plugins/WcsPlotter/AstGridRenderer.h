@@ -45,5 +45,6 @@ public:
 private:
 
     VGList m_vgList;
+    Image::ImageInterface::SharedPtr m_iimage = nullptr;
 };
 }

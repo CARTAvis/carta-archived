@@ -21,7 +21,7 @@ AstGridRenderer::~AstGridRenderer() { }
 void
 AstGridRenderer::setInputImage( Image::ImageInterface::SharedPtr image )
 {
-    Q_UNUSED( image );
+    m_iimage = image;
 }
 
 void
