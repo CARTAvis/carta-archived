@@ -62,6 +62,13 @@ public:
     void clear();
 
     /**
+     * Return a string representing the histogram state of a particular type.
+     * @param type - the type of state needed.
+     * @return a QString representing the corresponding histogram state.
+     */
+    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
      * Send a new state update to the client.
      */
     void refreshState();
@@ -362,7 +369,6 @@ private:
     const static QString FOOT_PRINT_REGION_ALL;
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
-    const static QString LINK;
     const static QString X_COORDINATE;
     const static QString POINTER_MOVE;
     const static QString SIGNIFICANT_DIGITS;

@@ -19,11 +19,7 @@ qx.Class.define("skel.Command.Session.CommandRestore", {
     members : {
         
         doAction : function( vals, undoCB ){
-            var path = skel.widgets.Path.getInstance();
-            this.sendCommand( "", this.m_SAVE_STATE, function(val){} );
-        },
-        
-
-        m_SAVE_STATE: "statename:firstSave"
+            qx.event.message.Bus.dispatch(new qx.event.message.Message( "showSessionRestoreDialog", vals));
+        }
     }
 });

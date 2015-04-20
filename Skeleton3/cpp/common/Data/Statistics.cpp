@@ -30,7 +30,7 @@ bool Statistics::m_registered =
 
 Statistics::Statistics( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
-        m_linkImpl( new LinkableImpl( &m_state) ){
+        m_linkImpl( new LinkableImpl( path) ){
     _initializeCallbacks();
      _initializeState();
 }
@@ -43,6 +43,23 @@ QString Statistics::addLink( CartaObject* cartaObject ){
     }
     else {
         result = "Statistics only supports linking to images";
+    }
+    return result;
+}
+
+QString Statistics::getStateString( SnapshotType type ) const{
+    QString result;
+    if ( type == SNAPSHOT_PREFERENCES ){
+        qDebug() << "getting state for preferences needs to be implemented";
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        qDebug() << "statistics data not implemented";
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    else {
+        qDebug() << "Statistics does not implement "<<type<<" snapshots";
     }
     return result;
 }

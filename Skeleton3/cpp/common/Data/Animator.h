@@ -76,6 +76,13 @@ public:
     QList<QString> getLinks() const;
 
     /**
+     * Return a string representing the animator state of a particular type.
+     * @param type - the type of state needed.
+     * @return a QString representing the corresponding animator state.
+     */
+    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
      * Force the connector to flush the state to the view.
      */
     void refreshState();

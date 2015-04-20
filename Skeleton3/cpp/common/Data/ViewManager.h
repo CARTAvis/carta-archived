@@ -135,7 +135,7 @@ private:
      * the state and gives the object a second chance to establish their links.
      */
     void _refreshState();
-    bool _readState( const QString& fileName );
+    bool _readState( const QString& sessionId, const QString& fileName ) const;
 
     /**
      * Save the current state.
@@ -145,8 +145,8 @@ private:
      * @param dataSave - true if the data should be saved; false otherwise.
      * @return an error message if there was a problem saving state; an empty string otherwise.
      */
-    QString saveState( const QString& fileName, bool layoutSave, bool preferencesSave, bool dataSave );
-    QString getStateString( SnapshotType stateType ) const;
+    QString saveState( const QString& sessionId, const QString& fileName, bool layoutSave, bool preferencesSave, bool dataSave );
+    QString getStateStringLayout() const;
 
 
     //A list of Controllers requested by the client.

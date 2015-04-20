@@ -23,7 +23,12 @@ public:
      * @return a list of supported snapshots.
      */
     QString getSnapshots(const QString& sessionId ) const;
-
+    QString readLayout(const QString& sessionId, const QString& baseName) const;
+    QString readPreferences(const QString& sessionId, const QString& baseName) const;
+    QString readData(const QString& sessionId, const QString& baseName) const;
+    QString saveLayout(const QString& sessionId, const QString& baseName, const QString& layoutStr) const;
+    QString savePreferences(const QString& sessionId, const QString& baseName, const QString& prefStr) const;
+    QString saveData(const QString& sessionId, const QString& baseName, const QString& dataStr) const;
     const static QString CLASS_NAME;
     const static QString SNAPSHOT_SELECTED;
     const static QString FILE_NAME;
@@ -34,12 +39,19 @@ public:
 
 private:
     const static QString DEFAULT_SAVE;
+    const static QString DIR_LAYOUT;
+    const static QString DIR_DATA;
+    const static QString DIR_PREFERENCES;
     const static QString SUFFIX;
 
     QString _getRootDir(const QString& /*sessionId*/) const;
-    void _makeFileNode(QJsonArray& parentArray, const QString& fileName) const;
-    void _processDirectory(const QDir& rootDir, QJsonObject& rootObj) const;
+    void _processDirectory(const QDir& rootDir, QStringList& snapshotList) const;
+    void _initializeCallbacks();
     void _initializeState();
+    QString _read( const QString& fileLocation ) const;
+    QString _readSpecific( const QString& sessionId, const QString& subDirName, const QString& baseName ) const;
+    bool _save( const QString& fileLocation, const QString& stateStr ) const;
+    QString _saveSpecific( const QString& sessionId, const QString subDirName, const QString& baseName, const QString saveStr ) const;
 
     static bool m_registered;
     Snapshots( const QString& path, const QString& id );

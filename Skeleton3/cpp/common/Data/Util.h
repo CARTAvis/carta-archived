@@ -66,6 +66,14 @@ public:
      static void commandPostProcess( const QString& errorMsg );
 
      /**
+      * Return the lookup key for an array element with a given name and index.
+      * @param arrayName - the name of a state array.
+      * @param index - the array index.
+      * @return the lookup key for the array element.
+      */
+     static QString getLookup( const QString& arrayName, int index );
+
+     /**
       * Round the value to the given number of significant digits.
       * @param value the value to round.
       * @param digits the number of significant digits.

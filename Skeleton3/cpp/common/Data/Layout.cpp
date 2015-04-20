@@ -139,6 +139,16 @@ void Layout::clear(){
     }
 }
 
+QString Layout::getStateString( SnapshotType type ) const {
+    QString result;
+    if ( type == SNAPSHOT_LAYOUT ){
+        result = m_state.toString();
+    }
+    else {
+        qDebug() << "Unsupported layout snapshot type="<<type;
+    }
+    return result;
+}
 
 int Layout::_findEmptyRow( int colIndex, int targetRowIndex ) const {
     int hiddenRow = -1;

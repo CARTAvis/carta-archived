@@ -53,7 +53,6 @@ const QString Histogram::FOOT_PRINT_REGION_ALL = "All Regions";
 const QString Histogram::FREQUENCY_UNIT = "rangeUnit";
 const QString Histogram::CLIP_MIN_PERCENT = "clipMinPercent";
 const QString Histogram::CLIP_MAX_PERCENT = "clipMaxPercent";
-const QString Histogram::LINK = "links";
 const QString Histogram::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Histogram::X_COORDINATE = "x";
 const QString Histogram::POINTER_MOVE = "pointer-move";
@@ -79,7 +78,7 @@ Histogram::Histogram( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
 
             m_view(nullptr),
-            m_linkImpl( new LinkableImpl( &m_state)),
+            m_linkImpl( new LinkableImpl( path )),
             m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     _initializeStatics();
     _initializeDefaultState();
@@ -245,6 +244,23 @@ void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller )
 
     //Refresh the view
     _refreshView();
+}
+
+QString Histogram::getStateString( SnapshotType type ) const{
+    QString result;
+    if ( type == SNAPSHOT_PREFERENCES ){
+        qDebug() << "getting state for preferences needs to be implemented";
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        qDebug() << "Histogram data not implemented";
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    else {
+        qDebug() << "Histogram does not implement "<<type<<" snapshots";
+    }
+    return result;
 }
 
 

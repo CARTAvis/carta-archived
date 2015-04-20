@@ -5,14 +5,15 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 #Test window manipulation.
 class tWindow(unittest.TestCase):
+    
     def setUp(self):
         self.driver = webdriver.Firefox()
-           
+        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        self.driver.implicitly_wait(10)
+        
     #Test that a window can be minimized and then restored to its original position
     def test_minimize_restore(self):    
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         # Find a window capable of loading an image.
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
@@ -48,8 +49,6 @@ class tWindow(unittest.TestCase):
     
     def test_maximize_remove(self):    
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         # Find and select the colormap window.
         colorWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")
@@ -91,8 +90,6 @@ class tWindow(unittest.TestCase):
         
     def test_maximize_restore(self):    
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         # Find and select the colormap window.
         colorWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")
@@ -132,8 +129,6 @@ class tWindow(unittest.TestCase):
     # Test that we can add a window and change it into a statistics view.
     def test_add_window(self):
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         #For later use, determine the number of DisplayWindows.
         windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
@@ -187,8 +182,6 @@ class tWindow(unittest.TestCase):
     # Test that an existing window can be removed.
     def stest_remove(self):
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         # Find and select the colormap window.
         colorWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")

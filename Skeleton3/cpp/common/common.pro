@@ -26,7 +26,6 @@ HEADERS += \
     State/ObjectManager.h \
     State/StateInterface.h \
     State/StateReader.h \
-    State/StateWriter.h \
     ImageView.h \
     Data/Animator.h \
     Data/AnimatorType.h \
@@ -84,7 +83,6 @@ SOURCES += \
     State/ObjectManager.cpp\
     State/StateInterface.cpp \
     State/StateReader.cpp \
-    State/StateWriter.cpp \
     ImageView.cpp \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \

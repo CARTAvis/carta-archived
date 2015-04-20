@@ -35,7 +35,12 @@ public:
      */
     void clear();
 
-
+    /**
+     * Return a string representing the statistics state of a particular type.
+     * @param type - the type of state needed.
+     * @return a QString representing the corresponding statistics state.
+     */
+    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
     virtual ~Statistics();
     const static QString CLASS_NAME;
 

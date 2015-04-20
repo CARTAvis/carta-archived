@@ -45,6 +45,13 @@ public:
     void clear();
 
     /**
+     * Return a string representing the colormap state of a particular type.
+     * @param type - the type of state needed.
+     * @return a QString representing the corresponding colormap state.
+     */
+    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
      * Force a flush of state to the client.
      */
     void refreshState();

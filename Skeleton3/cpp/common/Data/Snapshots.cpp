@@ -14,6 +14,9 @@ namespace Data {
 const QString Snapshots::SNAPSHOT_SELECTED = "selected";
 const QString Snapshots::CLASS_NAME = "Snapshots";
 const QString Snapshots::DEFAULT_SAVE = "default";
+const QString Snapshots::DIR_LAYOUT = "layout";
+const QString Snapshots::DIR_PREFERENCES = "preferences";
+const QString Snapshots::DIR_DATA = "data";
 const QString Snapshots::SUFFIX = ".cartaState";
 const QString Snapshots::FILE_NAME = "fileName";
 const QString Snapshots::SAVE_LAYOUT = "layoutSnapshot";
@@ -41,30 +44,26 @@ bool Snapshots::m_registered =
 Snapshots::Snapshots( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
     _initializeState();
+    _initializeCallbacks();
 }
 
 QString Snapshots::_getRootDir(const QString& /*sessionId*/) const {
-    return "/tmp/Sessions";
+    return "/tmp/snapshots";
 }
 
 QString Snapshots::getSnapshots( const QString& sessionId ) const {
     QString rootDirName = _getRootDir(sessionId);
     QDir rootDir( rootDirName );
-    QString jsonTree;
-    QJsonObject rootObj;
-    _processDirectory( rootDir, rootObj );
-    QJsonDocument document( rootObj );
-    QByteArray textArray = document.toJson();
-    QString jsonText(textArray);
-    return jsonText;
+    QStringList snapshotList;
+    _processDirectory( rootDir, snapshotList );
+    return snapshotList.join( ",");
 }
 
-void Snapshots::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) const {
+void Snapshots::_processDirectory(const QDir& rootDir, QStringList& snapshotList) const {
     if (!rootDir.exists()) {
         return;
     }
 
-    QJsonArray sessionArray;
     QDirIterator dit(rootDir.absolutePath(), QDir::NoFilter);
     while (dit.hasNext()) {
         dit.next();
@@ -76,27 +75,125 @@ void Snapshots::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) con
         QString fileName = dit.fileInfo().fileName();
         if (dit.fileInfo().isFile()) {
             if (fileName.endsWith(SUFFIX)) {
-                _makeFileNode(sessionArray, fileName);
+                fileName = fileName.left( fileName.length() - SUFFIX.length());
+                if ( snapshotList.indexOf( fileName ) < 0 ){
+                    snapshotList.append( fileName );
+                }
             }
         }
+        else if (dit.fileInfo().isDir()){
+            QString subDirPath = dit.fileInfo().absoluteFilePath();
+            QDir subDir( subDirPath );
+            _processDirectory( subDir, snapshotList);
+        }
     }
-    rootObj.insert("sessions", sessionArray);
 }
 
-void Snapshots::_makeFileNode(QJsonArray& parentArray, const QString& fileName) const {
-    QJsonObject obj;
-    int fileNameLength = fileName.size() - SUFFIX.size();
-    QString shortName = fileName.left( fileNameLength );
-    QJsonValue fileValue( shortName );
-    obj.insert("name", fileValue);
-    parentArray.append(obj);
-}
+
 
 void Snapshots::_initializeState(){
     m_state.insertValue( SNAPSHOT_SELECTED, DEFAULT_SAVE );
     m_state.flushState();
 }
 
+void Snapshots::_initializeCallbacks(){
+    addCommandCallback( "getSnapshots", [=] (const QString & /*cmd*/,
+                                const QString & /*params*/, const QString & sessionId) -> QString {
+                QString result = getSnapshots( sessionId );
+                return result;
+            });
+}
+
+QString Snapshots::readLayout(const QString& sessionId, const QString& baseName) const {
+    QString result = _readSpecific( sessionId, DIR_LAYOUT, baseName);
+    return result;
+}
+
+QString Snapshots::readPreferences(const QString& sessionId, const QString& baseName) const {
+    QString result = _readSpecific( sessionId, DIR_PREFERENCES, baseName);
+    return result;
+}
+
+QString Snapshots::readData(const QString& sessionId, const QString& baseName) const {
+    QString result = _readSpecific( sessionId, DIR_DATA, baseName );
+    return result;
+}
+
+QString Snapshots::saveLayout(const QString& sessionId, const QString& baseName, const QString& layoutStr) const {
+    QString result = _saveSpecific( sessionId, DIR_LAYOUT, baseName, layoutStr );
+    return result;
+}
+
+QString Snapshots::savePreferences(const QString& sessionId, const QString& baseName, const QString& prefStr) const {
+    QString result = _saveSpecific( sessionId, DIR_PREFERENCES, baseName, prefStr );
+    return result;
+}
+
+QString Snapshots::saveData(const QString& sessionId, const QString& baseName, const QString& dataStr) const {
+    QString result = _saveSpecific( sessionId, DIR_DATA, baseName, dataStr );
+    return result;
+}
+
+QString Snapshots::_readSpecific( const QString& sessionId, const QString& subDirName, const QString& baseName) const {
+    QString result;
+    QString fullName = baseName;
+    if ( !baseName.endsWith( SUFFIX ) ){
+        fullName = fullName + SUFFIX;
+    }
+    QString rootDir = _getRootDir( sessionId );
+    QString filePath = rootDir + QDir::separator() + subDirName + QDir::separator() + fullName;
+
+    QFile file( filePath );
+    if ( file.exists() ){
+        result = _read( filePath);
+    }
+    return result;
+}
+
+QString Snapshots::_saveSpecific( const QString& sessionId, const QString subDirName, const QString& baseName, const QString saveStr ) const {
+    QString result;
+    QString fullName = baseName;
+    if ( !baseName.endsWith( SUFFIX ) ){
+        fullName = fullName + SUFFIX;
+    }
+    QString rootDir = _getRootDir( sessionId );
+    QString filePath = rootDir + QDir::separator() + subDirName + QDir::separator() + fullName;
+    bool saved = _save( filePath, saveStr );
+    if ( !saved ){
+        result = "There was a problem saving the "+subDirName;
+    }
+    return result;
+}
+
+bool Snapshots::_save( const QString& fileLocation, const QString& stateStr ) const {
+    QFile file( fileLocation );
+    bool fileSaved = true;
+    if ( !file.open( QIODevice::WriteOnly) ){
+        fileSaved = false;
+    }
+    else {
+        QTextStream stream( &file );
+        stream << stateStr;
+        stream.flush();
+        file.close();
+    }
+    return fileSaved;
+}
+
+QString Snapshots::_read( const QString& fileLocation ) const {
+    //Read in the file and store it in StateInterface
+    QFile file( fileLocation );
+    QString state;
+    if ( !file.open(QFile::ReadOnly | QFile::Text)){
+        qDebug() << "Could not open file="<<fileLocation<<" for reading";
+    }
+    else {
+        QTextStream in(&file);
+        state = in.readLine();
+        file.close();
+    }
+    return state;
+}
 
 Snapshots::~Snapshots(){
 

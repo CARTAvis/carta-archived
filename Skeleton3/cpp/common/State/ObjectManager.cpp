@@ -28,6 +28,8 @@ QString CartaObject::getStateString( SnapshotType /*type*/ ) const {
     return "";
 }
 
+
+
 QString
 CartaObject::getClassName () const
 {
@@ -60,6 +62,7 @@ CartaObject::CartaObject (const QString & className,
 
 void CartaObject::resetState( const QString& state ){
     m_state.setState( state );
+    m_state.flushState();
 }
 
 void

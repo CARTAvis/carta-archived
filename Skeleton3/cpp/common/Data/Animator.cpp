@@ -28,7 +28,7 @@ bool Animator::m_registered =
 
 Animator::Animator(const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id),
-    m_linkImpl( new LinkableImpl( &m_state))
+    m_linkImpl( new LinkableImpl( path ))
     {
     _initializeState();
     _initializeCallbacks();
@@ -171,6 +171,23 @@ int Animator::_getMaxImageCount() const {
         }
     }
     return maxImages;
+}
+
+QString Animator::getStateString( SnapshotType type ) const{
+    QString result;
+    if ( type == SNAPSHOT_PREFERENCES ){
+        qDebug() << "getting state for preferences needs to be implemented";
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        qDebug() << "Animator data not implemented";
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    else {
+        qDebug() << "Animator does not implement "<<type<<" snapshots";
+    }
+    return result;
 }
 
 void Animator::_imageIndexChanged( int selectedImage){

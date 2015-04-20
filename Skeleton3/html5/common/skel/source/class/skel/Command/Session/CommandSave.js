@@ -10,21 +10,14 @@ qx.Class.define("skel.Command.Session.CommandSave", {
      * Constructor.
      */
     construct : function() {
-        var path = skel.widgets.Path.getInstance();
-        var cmd = path.getCommandSaveState();
-        this.base( arguments, "Save...", cmd );
+        this.base( arguments, "Save...", null );
         this.m_toolBarVisible = false;
     },
     
     members : {
         
         doAction : function( vals, undoCB ){
-            var path = skel.widgets.Path.getInstance();
-            this.sendCommand( "", this.m_SAVE_STATE, function(val){} );
-        },
-        
-
-        
-        m_SAVE_STATE: "statename:firstSave"
+            qx.event.message.Bus.dispatch(new qx.event.message.Message( "showSessionSaveDialog", vals));
+        }
     }
 });

@@ -91,6 +91,10 @@ CartaObject* Util::findSingletonObject( const QString& objectName ){
     return obj;
 }
 
+QString Util::getLookup( const QString& arrayName, int index ){
+    return arrayName + StateInterface::DELIMITER + QString::number( index );
+}
+
 void Util::commandPostProcess( const QString& errorMsg){
     if ( errorMsg.trimmed().length() > 0 ){
         CartaObject* obj = Util::findSingletonObject( ErrorManager::CLASS_NAME );

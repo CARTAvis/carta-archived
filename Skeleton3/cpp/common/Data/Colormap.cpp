@@ -55,7 +55,7 @@ bool Colormap::m_registered =
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
-    m_linkImpl( new LinkableImpl( &m_state ) ),
+    m_linkImpl( new LinkableImpl( path ) ),
     m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     m_significantDigits = 6;
     _initializeDefaultState();
@@ -80,7 +80,22 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
     return result;
 }
 
-
+QString Colormap::getStateString( SnapshotType type ) const{
+    QString result;
+    if ( type == SNAPSHOT_PREFERENCES ){
+        qDebug() << "getting state for preferences needs to be implemented";
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        qDebug() << "Colormap data not implemented";
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    else {
+        qDebug() << "Colormap does not implement "<<type<<" snapshots";
+    }
+    return result;
+}
 
 void Colormap::_initializeDefaultState(){
     m_state.insertValue<QString>( COLOR_MAP_NAME, "Gray" );
