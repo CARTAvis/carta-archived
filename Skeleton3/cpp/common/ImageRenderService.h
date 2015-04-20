@@ -143,7 +143,15 @@ public:
     void
     setOutputSize( QSize size );
 
+    ///
+    /// \brief return the last output size requested
+    /// \return
+    ///
+    QSize outputSize() const;
+
+    ///
     /// which part of the image should be centered, given in casa-pixel coordinate system
+    ///
     void
     setPan( QPointF pt );
 

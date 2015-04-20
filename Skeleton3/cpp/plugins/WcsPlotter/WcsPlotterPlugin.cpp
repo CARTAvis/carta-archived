@@ -2,6 +2,7 @@
 #include "SkyGridPlotter.h"
 #include "CartaLib/Hooks/DrawWcsGrid.h"
 #include "../CasaImageLoader/CCImage.h"
+#include "AstGridRenderer.h"
 #include "FitsHeaderExtractor.h"
 #include <QDebug>
 #include <QPainter>
@@ -24,10 +25,6 @@
 namespace WcsPlotterPluginNS
 {
 
-AstGridRenderer::AstGridRenderer() // : IWcsGridRenderer()
-{
-    qDebug() << "creating ast grid renderer";
-}
 
 //static QString fixedHdr() {
 //    QStringList ss;

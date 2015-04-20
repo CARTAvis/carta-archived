@@ -75,6 +75,8 @@ public:
     virtual void
     setLineColor( QColor color) = 0;
 
+    /// start rendering with current parameters
+    /// previously scheduled rendering may be aborted as a result of calling this
     virtual void
     startRendering() = 0;
 
@@ -86,7 +88,7 @@ public:
 signals:
 
     void
-    done( VGList & vg );
+    done( Carta::Lib::VectorGraphics::VGList vg );
 
 };
 

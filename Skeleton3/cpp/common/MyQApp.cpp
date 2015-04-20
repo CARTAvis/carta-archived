@@ -18,7 +18,7 @@ MyQApp::MyQApp(int & argc, char ** argv) :
 
 typedef DeferHelper::VoidFunc VoidFunc;
 
-// we need this
+// we need this for signal/slot to send/receive VoidFunc arguments
 Q_DECLARE_METATYPE( VoidFunc)
 
 ///

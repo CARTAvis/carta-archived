@@ -2,6 +2,7 @@
  *
  **/
 
+#include <QMetaType>
 #include <QImage>
 
 #pragma once
@@ -29,3 +30,5 @@ private:
 }
 }
 }
+
+Q_DECLARE_METATYPE( Carta::Lib::VectorGraphics::VGList)

@@ -80,12 +80,18 @@ Service::setOutputSize( QSize size )
     m_outputSize = size;
 }
 
+QSize
+Service::outputSize() const
+{
+    return m_outputSize;
+}
+
 void
 Service::setPan( QPointF pt )
 {
     m_pan = pt;
 
-//    m_pan = QPointF( - 0.5, - 0.5 );
+    //    m_pan = QPointF( - 0.5, - 0.5 );
 
 //    if ( pt != m_pan ) {
 //        m_pan = pt;
@@ -301,8 +307,8 @@ Service::internalRenderSlot( JobId jobId )
 //    QPointF p2 = img2screen( QPointF( m_frameImage.width()-0.5, m_frameImage.height()-0.5));
 
     int imageHeight = m_frameImage.height();
-    QPointF p1 = img2screen( QPointF( -0.5, imageHeight - 0.5 ) );
-    QPointF p2 = img2screen( QPointF( m_frameImage.width() - 0.5, -0.5 ) );
+    QPointF p1 = img2screen( QPointF( - 0.5, imageHeight - 0.5 ) );
+    QPointF p2 = img2screen( QPointF( m_frameImage.width() - 0.5, - 0.5 ) );
 
     QRectF rectf( p1, p2 );
     p.setRenderHint( QPainter::SmoothPixmapTransform, false );

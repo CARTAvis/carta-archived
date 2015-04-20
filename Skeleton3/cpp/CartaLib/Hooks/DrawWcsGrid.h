@@ -19,50 +19,6 @@ namespace Carta
 {
 namespace Lib
 {
-
-/*
-/// Synchronous API for world coordinate renderer
-class IWcsGridRenderer : public QObject
-{
-    Q_OBJECT
-    CLASS_BOILERPLATE( IWcsGridRenderer );
-
-    typedef VectorGraphics::VGList VGList;
-
-public:
-
-    virtual void
-    setInputImage( Image::ImageInterface::SharedPtr image ) = 0;
-
-    virtual void
-    setOutputSize( const QSize & size ) = 0;
-
-    virtual void
-    setImageRect( const QRectF & rect ) = 0;
-
-    virtual void
-    setOutputRect( const QRectF & rect ) = 0;
-
-    virtual void
-    setLineColor( QColor color) = 0;
-
-    virtual void
-    startRendering() = 0;
-
-    // looks like this needs to be defined out of line, otherwise dlopen() fails
-    // to load any classes inherited from this...
-    virtual
-    ~IWcsGridRenderer();
-
-signals:
-
-    void
-    done( VGList & vg );
-
-};
-
-*/
-
 namespace Hooks
 {
 /// draw a grid on top of an image

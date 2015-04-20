@@ -12,6 +12,7 @@
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
 #include "../IView.h"
+#include "CartaLib/Nullable.h"
 #include "CartaLib/Hooks/DrawWcsGrid.h"
 #include <QTimer>
 
@@ -36,9 +37,9 @@ public:
     /// IView interface
     virtual const QString & name() const override { return m_rawViewName; }
     /// IView interface
-    virtual QSize size() override { return m_imageBuffer.size(); }
+    virtual QSize size() override;
     /// IView interface
-    virtual const QImage & getBuffer() override { return m_imageBuffer; }
+    virtual const QImage & getBuffer() override;
     /// IView interface
     virtual void handleResizeRequest(const QSize & size) override;
     /// IView interface
@@ -72,7 +73,7 @@ private slots:
     void irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId);
 
     /// slot for grid
-    void wcsGridSlot( Carta::Lib::VectorGraphics::VGList &);
+    void wcsGridSlot(Carta::Lib::VectorGraphics::VGList);
 
 private:
     /// when client changes zoom, this gets called
@@ -80,6 +81,12 @@ private:
 
     /// when client changes pan, this gets called
     QString panCB(const QString &, const QString & params, const QString &);
+
+    /// combine image rendering and grid rendering, and schedule repaint
+    void combineImageAndGrid();
+
+    /// schedule a grid update after pan/zoom were modified
+    void updateGridAfterPanZoom();
 
     /// this is the part of the state we use
     QString m_statePrefix;
@@ -103,17 +110,17 @@ private:
     /// pointer to connector
     IConnector * m_connector = nullptr;
 
-    /// buffered image store
-    QImage m_imageBuffer;
+    /// copy of the image rendering service result
+    QImage m_renderedAstroImage;
+
+    /// image rendering + grid rendering
+    QImage m_renderBuffer;
 
     /// raw view name for the connector
     QString m_rawViewName;
 
     /// the loaded astro image
     Image::ImageInterface::SharedPtr m_astroImage = nullptr;
-
-    /// wcs grid renderer
-    Carta::Lib::IWcsGridRenderer::SharedPtr m_wcsGridRenderer = nullptr;
 
     /// clip cache, hard-coded to single quantile
     std::vector< std::vector<double> > m_quantileCache;
@@ -129,6 +136,12 @@ private:
 
     /// grid plotting
     bool m_gridToggle = false;
+
+    /// results of grid drawing
+    Nullable< Carta::Lib::VectorGraphics::VGList > m_gridVG;
+
+    /// wcs grid renderer
+    Carta::Lib::IWcsGridRenderer::SharedPtr m_wcsGridRenderer = nullptr;
 
 };
 }

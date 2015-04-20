@@ -13,14 +13,16 @@ SOURCES += \
     SkyGridPlotter.cpp \
     FitsHeaderExtractor.cpp \
     SimpleFitsParser.cpp \
-    WcsPlotterPlugin.cpp
+    WcsPlotterPlugin.cpp \
+    AstGridRenderer.cpp
 
 HEADERS += \
     grfdriver.h \
     SkyGridPlotter.h \
     FitsHeaderExtractor.h \
     SimpleFitsParser.h \
-    WcsPlotterPlugin.h
+    WcsPlotterPlugin.h \
+    AstGridRenderer.h
 
 CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
 WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
