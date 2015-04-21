@@ -82,6 +82,14 @@ class Image(CartaView):
         zoom = (float(viewerDim[dimNumber]/2)) / radius
         self.setZoomLevel(zoom)
 
+    def fitToViewer(self):
+        iDim = self.getImageDimensions()
+        oDim = self.getOutputSize()
+        if (oDim[0] < oDim[1]):
+            self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[0]/2,'width')
+        else:
+            self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[1]/2,'height')
+
     def setZoomLevel(self, zoom):
         result = self.con.cmdTagList("setZoomLevel", imageView=self.getId(), zoomLevel=zoom)
         return result
