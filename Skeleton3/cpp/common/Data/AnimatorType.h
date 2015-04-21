@@ -30,9 +30,10 @@ public:
 
     /**
      * Returns a json string representing the state of this AnimatorType.
+     * @param type - the type of state needed.
      * @return a Json string representing the state of this AnimatorType.
      */
-    //virtual QString getStateString() const;
+    QString getStateString( SnapshotType type ) const;
 
     /**
      * Returns true if the animator is no longer visually available; false otherwise.

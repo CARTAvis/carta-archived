@@ -57,6 +57,14 @@ int AnimatorType::getFrame() const {
     return m_select->getIndex();
 }
 
+QString AnimatorType::getStateString( SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    return result;
+}
+
 void AnimatorType::_initializeState( ){
     m_state.insertValue<int>( STEP, 1 );
     m_state.insertValue<int>( RATE, 20 );

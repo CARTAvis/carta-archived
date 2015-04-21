@@ -247,9 +247,9 @@ void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller )
 }
 
 QString Histogram::getStateString( SnapshotType type ) const{
-    QString result;
+    QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
-        qDebug() << "getting state for preferences needs to be implemented";
+        result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
         qDebug() << "Histogram data not implemented";

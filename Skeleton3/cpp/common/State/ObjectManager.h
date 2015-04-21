@@ -19,7 +19,8 @@ class CartaObject {
 
 public:
 
-    virtual ~CartaObject () {}
+    virtual ~CartaObject () {};
+
 
     QString addIdToCommand (const QString & commandName) const;
     //Snapshots of state that can be saved.
@@ -110,6 +111,8 @@ public:
         }
         return globalId;
     }
+
+
     virtual ~CartaObjectFactory (){}
 
     virtual CartaObject * create (const QString & path, const QString & id) = 0;
@@ -129,6 +132,14 @@ public:
     QString createObject (const QString & className);
     QString destroyObject (const QString & id);
     CartaObject * getObject (const QString & id);
+
+    /**
+     * Returns a string containing the state of all managed objects as JSON array of strings.
+     * @param snapName - the name of the snapshot.
+     * @param type - the type of state needed.
+     * @return a QString containing the entire state of managed objects.
+     */
+    QString getStateString( const QString& snapName, CartaObject::SnapshotType type ) const;
     void initialize ();
     bool registerClass (const QString & className, CartaObjectFactory * factory);
     ///Initialize the state variables that were persisted.
@@ -172,6 +183,9 @@ public:
     static const QString CreateObject;
     static const QString ClassName;
     static const QString DestroyObject;
+    static const QString STATE_ARRAY;
+    static const QString STATE_ID;
+    static const QString STATE_VALUE;
 
 private:
 

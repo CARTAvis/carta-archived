@@ -6,6 +6,7 @@ import tMenuToolVisibility
 import tAnimatorAddRemove
 import tWindow
 import tSnapshotLayout
+import tSnapshotPreferences
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -16,6 +17,7 @@ def suite():
     test_suite.addTest( unittest.makeSuite(tAnimatorAddRemove.tAnimatorAddRemove))
     test_suite.addTest( unittest.makeSuite(tWindow.tWindow))
     test_suite.addTest( unittest.makeSuite(tSnapshotLayout.tSnapshotLayout))
+    test_suite.addTest( unittest.makeSuite(tSnapshotPreferences.tSnapshotPreferences))
     
     return test_suite
 

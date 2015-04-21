@@ -139,14 +139,8 @@ void Layout::clear(){
     }
 }
 
-QString Layout::getStateString( SnapshotType type ) const {
-    QString result;
-    if ( type == SNAPSHOT_LAYOUT ){
-        result = m_state.toString();
-    }
-    else {
-        qDebug() << "Unsupported layout snapshot type="<<type;
-    }
+QString Layout::getStateString() const {
+    QString result = m_state.toString();
     return result;
 }
 

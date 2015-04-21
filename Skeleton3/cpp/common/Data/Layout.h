@@ -41,11 +41,10 @@ public:
     QStringList getPluginList() const;
 
     /**
-     * Return a string representing the histogram state of a particular type.
-     * @param type - the type of state needed.
-     * @return a QString representing the corresponding histogram state.
+     * Return a string representing the layout state.
+     * @return a QString representing the corresponding layout state.
      */
-    QString getStateString( SnapshotType type ) const;
+    QString getStateString() const;
 
     /**
      * Remove the grid cell at the given row and column from the grid.

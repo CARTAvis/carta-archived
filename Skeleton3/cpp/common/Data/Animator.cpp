@@ -176,7 +176,7 @@ int Animator::_getMaxImageCount() const {
 QString Animator::getStateString( SnapshotType type ) const{
     QString result;
     if ( type == SNAPSHOT_PREFERENCES ){
-        qDebug() << "getting state for preferences needs to be implemented";
+        result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
         qDebug() << "Animator data not implemented";

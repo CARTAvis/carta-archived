@@ -114,6 +114,9 @@ CartaObject::removeId (const QString & commandAndId)
 const QString ObjectManager::CreateObject = "CreateObject";
 const QString ObjectManager::ClassName = "ClassName";
 const QString ObjectManager::DestroyObject = "DestroyObject";
+const QString ObjectManager::STATE_ARRAY = "states";
+const QString ObjectManager::STATE_ID = "id";
+const QString ObjectManager::STATE_VALUE = "state";
 
 ObjectManager::ObjectManager ()
 :       m_root( "CartaObjects"),
@@ -128,6 +131,31 @@ QString ObjectManager::getRootPath() const {
 
 QString ObjectManager::getRoot() const {
     return m_root;
+}
+
+QString ObjectManager::getStateString( const QString& rootName, CartaObject::SnapshotType type ) const {
+    StateInterface state( rootName );
+    int stateCount = m_objects.size();
+    state.insertArray( STATE_ARRAY, stateCount );
+    int arrayIndex = 0;
+    //Create an array of object with each object having an id and state.
+    for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+        CartaObject* obj = it->second.getObject();
+        QString objState = obj->getStateString( type );
+        if ( !objState.isEmpty() && objState.trimmed().length() > 0){
+           QString lookup = STATE_ARRAY + StateInterface::DELIMITER + QString::number( arrayIndex );
+           QString idStr = lookup + StateInterface::DELIMITER + STATE_ID;
+           state.insertValue<QString>( idStr, it->first );
+           QString objStr = lookup + StateInterface::DELIMITER + STATE_VALUE;
+           state.insertValue<QString>( objStr, objState );
+           arrayIndex++;
+        }
+    }
+    //Because some of the objects may not support a snapshot of type,
+    //the original array that was created may be too large.  We resize
+    //it according to actual contents.
+    state.resizeArray( STATE_ARRAY, arrayIndex, StateInterface::PreserveAll );
+    return state.toString();
 }
 
 

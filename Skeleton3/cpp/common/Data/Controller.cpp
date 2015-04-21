@@ -272,8 +272,9 @@ int Controller::getState( const QString& type, const QString& key ){
 
 
 QString Controller::getStateString( SnapshotType type ) const{
+    QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
-        qDebug() << "getting state for preferences needs to be implemented";
+        result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
         qDebug() << "getting state for data needs to be implemented";
@@ -286,7 +287,7 @@ QString Controller::getStateString( SnapshotType type ) const{
     writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::CHANNEL, m_selectChannel->getStateString());
     writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::IMAGE, m_selectImage->getStateString());
     return writeState.toString();*/
-    return "";
+    return result;
 }
 
 

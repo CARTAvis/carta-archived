@@ -15,6 +15,14 @@ namespace Data {
 class Preferences : public CartaObject {
 
 public:
+
+    /**
+     * Return a string representing the histogram state of a particular type.
+     * @param type - the type of state needed.
+     * @return a QString representing the corresponding histogram state.
+     */
+    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+
     /**
      * Show/hide the menu bar.
      * @param visible true if the menu bar should be shown; false otherwise.

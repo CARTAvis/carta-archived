@@ -620,12 +620,10 @@ void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& 
 
 }
 
-
-bool ViewManager::_readState( const QString& sessionId, const QString& saveName ) const {
-    //_clear();
+bool ViewManager::_readStateLayout( const QString& sessionId, const QString& saveName ){
     Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
-    bool stateRead = true;
     QString layoutState = snapshot->readLayout( sessionId, saveName );
+    bool layoutRead = false;
     if ( ! layoutState.isEmpty() ){
         StateInterface state("");
         state.setState( layoutState );
@@ -634,8 +632,7 @@ bool ViewManager::_readState( const QString& sessionId, const QString& saveName 
         int linkCount = state.getArraySize( LinkableImpl::LINK );
         ObjectManager* objManager = ObjectManager::objectManager();
         for ( int i = 0; i < linkCount; i++ ){
-            QString sourceLookup = Util::getLookup( LinkableImpl::LINK, i)/*+
-                    StateInterface::DELIMITER+LinkableImpl::PARENT_ID*/;
+            QString sourceLookup = Util::getLookup( LinkableImpl::LINK, i);
             QString sourceLink = state.getValue<QString>( sourceLookup );
             StateInterface sourceState( "");
             sourceState.setState( sourceLink );
@@ -662,16 +659,42 @@ bool ViewManager::_readState( const QString& sessionId, const QString& saveName 
                 qDebug() << "Null link source!";
             }
         }
-        stateRead = true;
+        layoutRead = true;
     }
-    QString prefState = snapshot->readPreferences( sessionId, saveName );
-    if ( ! prefState.isEmpty() ){
-        stateRead = true;
+    return layoutRead;
+}
+
+
+bool ViewManager::_readStatePreferences( const QString& sessionId, const QString& saveName ){
+    Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
+    QString prefStateStr = snapshot->readPreferences( sessionId, saveName );
+    bool prefsRead = false;
+    if ( ! prefStateStr.isEmpty() ){
+        StateInterface prefState("");
+        prefState.setState( prefStateStr );
+        int prefsCount = prefState.getArraySize( ObjectManager::STATE_ARRAY );
+        ObjectManager* objManager = ObjectManager::objectManager();
+        for ( int i = 0; i < prefsCount; i++ ){
+            QString stateLookup = Util::getLookup( ObjectManager::STATE_ARRAY, i);
+            QString idLookup = stateLookup + StateInterface::DELIMITER + ObjectManager::STATE_ID;
+            QString objId = prefState.getValue<QString>( idLookup );
+            CartaObject* cartaObj = objManager->getObject( objId );
+            if ( cartaObj != NULL ){
+                QString valLookup = stateLookup + StateInterface::DELIMITER + ObjectManager::STATE_VALUE;
+                QString stateVal = prefState.getValue<QString>(valLookup);
+                cartaObj ->resetState( stateVal );
+            }
+        }
+        prefsRead = true;
     }
-    QString dataState = snapshot->readData( sessionId, saveName );
-    if ( ! dataState.isEmpty() ){
-        stateRead = true;
-    }
+    return prefsRead;
+}
+
+bool ViewManager::_readState( const QString& sessionId, const QString& saveName ){
+    bool layoutRead = _readStateLayout( sessionId, saveName);
+    bool prefRead = _readStatePreferences( sessionId, saveName);
+    //bool dataRead = _readStateData( sessionId, saveName );
+    bool stateRead = layoutRead || prefRead;
     return stateRead;
 }
 
@@ -749,43 +772,19 @@ void ViewManager::setImageView(){
 }
 
 
-
-QString ViewManager::getStateStringLayout() const {
-    StateInterface state( Layout::CLASS_NAME );
-    state.insertObject( Layout::CLASS_NAME, m_layout->getStateString( SNAPSHOT_LAYOUT) );
-    int linkCount = m_animators.size() + m_colormaps.size() + m_histograms.size();
-    state.insertArray( LinkableImpl::LINK, linkCount );
-    int arrayIndex = 0;
-   for ( int i = 0; i < m_animators.size(); i++ ){
-       QString lookup = Util::getLookup( LinkableImpl::LINK,arrayIndex);
-       QString linkValue = m_animators[i]->getStateString(SNAPSHOT_LAYOUT);
-       state.setValue<QString>( lookup, linkValue );
-       arrayIndex++;
-   }
-   for ( int i = 0; i < m_colormaps.size(); i++ ){
-       QString lookup = Util::getLookup( LinkableImpl::LINK,arrayIndex);
-       state.setValue<QString>( lookup,  m_colormaps[i]->getStateString( SNAPSHOT_LAYOUT ) );
-       arrayIndex++;
-   }
-   for ( int i = 0; i < m_histograms.size(); i++ ){
-       QString lookup = Util::getLookup( LinkableImpl::LINK,arrayIndex);
-       state.setValue<QString>( lookup, m_histograms[i]->getStateString( SNAPSHOT_LAYOUT ) );
-       arrayIndex++;
-   }
-   return state.toString();
-}
-
-
 QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
     QString result;
+    ObjectManager* objMan = ObjectManager::objectManager();
     Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
     if ( saveLayout ){
-        QString layoutStr = getStateStringLayout();
-        result = snapshot->saveLayout( sessionId, saveName, layoutStr );
+        //Layout state consists of both the layout and the links.
+        QString layoutState = m_layout->getStateString();
+        QString linkState =objMan->getStateString( LinkableImpl::LINK, SNAPSHOT_LAYOUT);
+        result = "{\"Layout\":"+layoutState+","+linkState+"};";
     }
     if ( savePreferences ){
-        /*QString prefStr = getStateString( SNAPSHOT_PREFERENCES );
-        result = snapshot->savePreferences( sessionId, saveName, prefStr );*/
+        QString prefStr = objMan->getStateString( "Preferences",SNAPSHOT_PREFERENCES );
+        result = snapshot->savePreferences( sessionId, saveName, prefStr );
     }
     if ( saveData ){
         /*QString dataStr = getStateString( SNAPSHOT_DATA );

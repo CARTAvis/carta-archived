@@ -135,7 +135,30 @@ private:
      * the state and gives the object a second chance to establish their links.
      */
     void _refreshState();
-    bool _readState( const QString& sessionId, const QString& fileName ) const;
+
+    /**
+     * Read and restore state for a particular sessionId from a file.
+     * @param sessionId - an identifier for a user session.
+     * @param fileName - the name of a saved session state.
+     * @return true if the state was read and restored; false otherwise.
+     */
+    bool _readState( const QString& sessionId, const QString& fileName );
+
+    /**
+     * Read and restore the layout state for a particular sessionId from a file.
+     * @param sessionId - an identifier for a user session.
+     * @param saveName - the name of a file containing the layout state.
+     * @return true if the layout state was read and restored; false otherwise.
+     */
+    bool _readStateLayout( const QString& sessionId, const QString& saveName );
+
+    /**
+     * Read and restore user preferences for a particular sessionId from a file.
+     * @param sessionId - an identifier for a user session.
+     * @param saveName - the name of a file containing the layout state.
+     * @return true if the user preferences were read and restored; false otherwise.
+     */
+    bool _readStatePreferences( const QString& sessionId, const QString& saveName );
 
     /**
      * Save the current state.
@@ -146,8 +169,6 @@ private:
      * @return an error message if there was a problem saving state; an empty string otherwise.
      */
     QString saveState( const QString& sessionId, const QString& fileName, bool layoutSave, bool preferencesSave, bool dataSave );
-    QString getStateStringLayout() const;
-
 
     //A list of Controllers requested by the client.
     QList <Controller* > m_controllers;

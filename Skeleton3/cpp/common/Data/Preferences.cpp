@@ -36,6 +36,17 @@ Preferences::Preferences( const QString& path, const QString& id):
     _initializeCallbacks();
 }
 
+QString Preferences::getStateString( SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    else {
+        qDebug()<<"Unsupported type "<<type<<" for controller get state";
+    }
+    return result;
+}
+
 void Preferences::_initializeDefaultState(){
     m_state.insertValue<bool>( SHOW_MENU, true );
     m_state.insertValue<bool>( SHOW_TOOLBAR, true );
