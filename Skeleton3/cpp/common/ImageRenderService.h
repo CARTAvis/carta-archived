@@ -268,6 +268,9 @@ private:
     /// pan/zoom to work faster
     QImage m_frameImage;
 
+    /// render the frame if needed
+    void _renderFrame();
+
     /// cache for individual frames (to make movie playing little bit faster)
     QCache < QString, QImage > m_frameCache;
 };

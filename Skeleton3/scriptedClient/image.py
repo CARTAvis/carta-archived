@@ -59,7 +59,7 @@ class Image(CartaView):
         Centers the viewer on the pixel at (x, y).
         z is used to select the dimension in a data cube.
         """
-        result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(), xval=x, yval=y, zval=z)
+        result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(), xval=x, yval=y)
         animator = self.getLinkedAnimators()[0]
         animator.setChannel(z)
         return result
