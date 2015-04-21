@@ -115,6 +115,17 @@ class Image(CartaView):
         result = [int(i) for i in result]
         return result
 
+    def getChannelCount(self):
+        """
+        A convenience function.
+        Returns the number of channels in the image.
+        """
+        result = 1
+        dimensions = self.getImageDimensions()
+        if (len(dimensions) > 2):
+            result = dimensions[2]
+        return result
+
     def getOutputSize(self):
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         result = [int(i) for i in result]
