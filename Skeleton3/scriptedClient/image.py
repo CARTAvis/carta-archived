@@ -60,8 +60,9 @@ class Image(CartaView):
         z is used to select the dimension in a data cube.
         """
         result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(), xval=x, yval=y)
-        animator = self.getLinkedAnimators()[0]
-        animator.setChannel(z)
+        animators = self.getLinkedAnimators()
+        if (len(animators) > 0):
+            animators[0].setChannel(z)
         return result
 
     def centerWithRadius(self, x, y, radius, dim='width'):
