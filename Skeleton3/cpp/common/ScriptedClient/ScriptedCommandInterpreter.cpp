@@ -305,6 +305,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setBinCount( histogramView, binCount );
     }
 
+    else if ( cmd == "setbinwidth" ) {
+        QString histogramView = args["histogramView"].toString();
+        double binWidth = args["binWidth"].toDouble();
+        result = m_scriptFacade->setBinWidth( histogramView, binWidth );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

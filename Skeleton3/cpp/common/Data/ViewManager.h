@@ -320,6 +320,14 @@ public:
      */
     QString setBinCount( const QString& histogramId, int binCount );
 
+    /**
+     * Set the width of the histogram bins.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param binWidth the histogram bin width.
+     * @return an error message if there was a problem setting the bin width; an empty string otherwise.
+     */
+    QString setBinWidth( const QString& histogramId, double binWidth );
+
     static const QString CLASS_NAME;
 
     /**

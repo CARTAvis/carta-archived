@@ -1108,6 +1108,19 @@ QString ViewManager::setBinCount( const QString& histogramId, int binCount ){
     return result;
 }
 
+QString ViewManager::setBinWidth( const QString& histogramId, double binWidth ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->setBinWidth( binWidth );
+            break;
+        }
+    }
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

@@ -377,3 +377,9 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWidth ) {
+    QString result = m_viewManager->setBinWidth( histogramId, binWidth );
+    QStringList resultList(result);
+    return resultList;
+}
