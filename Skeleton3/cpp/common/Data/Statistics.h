@@ -38,9 +38,10 @@ public:
     /**
      * Return a string representing the statistics state of a particular type.
      * @param type - the type of state needed.
+     * @param sessionId - an identifier for the user's session.
      * @return a QString representing the corresponding statistics state.
      */
-    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
     virtual ~Statistics();
     const static QString CLASS_NAME;
 

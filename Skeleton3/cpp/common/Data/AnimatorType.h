@@ -29,17 +29,28 @@ public:
     int getFrame() const;
 
     /**
-     * Returns a json string representing the state of this AnimatorType.
-     * @param type - the type of state needed.
-     * @return a Json string representing the state of this AnimatorType.
+     * Returns a json string representing the user preferences.
+     * @return a Json string representing user preferences.
      */
-    QString getStateString( SnapshotType type ) const;
+    QString getStatePreferences() const;
+
+    /**
+     * Returns a json string representing data selections.
+     * @return a Json string representing data selections.
+     */
+    QString getStateData() const;
 
     /**
      * Returns true if the animator is no longer visually available; false otherwise.
      * @return true if the animator is hidden; false otherwise.
      */
     bool isRemoved() const;
+
+    /**
+     * Reset the animator's selections.
+     * @param state - the selection state of the animator.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Set whether the animator should wrap, reverse, etc when it gets to the start
@@ -69,20 +80,15 @@ public:
 
     /**
      * Set the animator visible/invisible.
-     * @param removed true if the animator should be hidden; false otherwise.
+     * @param visible - true if the animator should be visible; false if it should be hidden.
      */
-    void setRemoved( bool removed );
+    void setVisible( bool visible );
 
     /**
      * Sets the upper bound for the selection.
      * @param a nonnegative upper bound for the selection.
      */
     void setUpperBound( int value );
-
-    /**
-     * Set the purpose of the animator - whether it is animating channels, images, etc.
-     */
-    void setPurpose( const QString& name );
 
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
@@ -112,7 +118,6 @@ private:
     //Set state variables involving the animator
     void _saveState();
 
-    bool m_removed;
     static bool m_registered;
 
     //Animator's selection.
@@ -122,9 +127,9 @@ private:
     const static QString END_BEHAVIOR_WRAP;
     const static QString END_BEHAVIOR_JUMP;
     const static QString END_BEHAVIOR_REVERSE;
-    const static QString LABEL;
     const static QString RATE;
     const static QString STEP;
+    const static QString VISIBLE;
     AnimatorType( const AnimatorType& other);
     AnimatorType operator=( const AnimatorType& other );
 };

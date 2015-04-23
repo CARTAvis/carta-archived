@@ -665,24 +665,22 @@ bool ViewManager::_readStateLayout( const QString& sessionId, const QString& sav
 }
 
 
-bool ViewManager::_readStatePreferences( const QString& sessionId, const QString& saveName ){
-    Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
-    QString prefStateStr = snapshot->readPreferences( sessionId, saveName );
+bool ViewManager::_readState( const QString& stateStr, SnapshotType type ){
     bool prefsRead = false;
-    if ( ! prefStateStr.isEmpty() ){
-        StateInterface prefState("");
-        prefState.setState( prefStateStr );
-        int prefsCount = prefState.getArraySize( ObjectManager::STATE_ARRAY );
+    if ( ! stateStr.isEmpty() ){
+        StateInterface state("");
+        state.setState( stateStr );
+        int stateCount = state.getArraySize( ObjectManager::STATE_ARRAY );
         ObjectManager* objManager = ObjectManager::objectManager();
-        for ( int i = 0; i < prefsCount; i++ ){
+        for ( int i = 0; i < stateCount; i++ ){
             QString stateLookup = Util::getLookup( ObjectManager::STATE_ARRAY, i);
             QString idLookup = stateLookup + StateInterface::DELIMITER + ObjectManager::STATE_ID;
-            QString objId = prefState.getValue<QString>( idLookup );
+            QString objId = state.getValue<QString>( idLookup );
             CartaObject* cartaObj = objManager->getObject( objId );
             if ( cartaObj != NULL ){
                 QString valLookup = stateLookup + StateInterface::DELIMITER + ObjectManager::STATE_VALUE;
-                QString stateVal = prefState.getValue<QString>(valLookup);
-                cartaObj ->resetState( stateVal );
+                QString stateVal = state.getValue<QString>(valLookup);
+                cartaObj ->resetState( stateVal, type );
             }
         }
         prefsRead = true;
@@ -690,11 +688,16 @@ bool ViewManager::_readStatePreferences( const QString& sessionId, const QString
     return prefsRead;
 }
 
+
 bool ViewManager::_readState( const QString& sessionId, const QString& saveName ){
+    //Order is important: layout -> preferences -> data
     bool layoutRead = _readStateLayout( sessionId, saveName);
-    bool prefRead = _readStatePreferences( sessionId, saveName);
-    //bool dataRead = _readStateData( sessionId, saveName );
-    bool stateRead = layoutRead || prefRead;
+    Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
+    QString prefStateStr = snapshot->readPreferences( sessionId, saveName );
+    bool prefRead = _readState( prefStateStr, SNAPSHOT_PREFERENCES);
+    QString dataStateStr = snapshot->readData( sessionId, saveName );
+    bool dataRead = _readState( dataStateStr, SNAPSHOT_DATA );
+    bool stateRead = layoutRead || prefRead || dataRead;
     return stateRead;
 }
 
@@ -779,16 +782,20 @@ QString ViewManager::saveState( const QString& sessionId, const QString& saveNam
     if ( saveLayout ){
         //Layout state consists of both the layout and the links.
         QString layoutState = m_layout->getStateString();
-        QString linkState =objMan->getStateString( LinkableImpl::LINK, SNAPSHOT_LAYOUT);
-        result = "{\"Layout\":"+layoutState+","+linkState+"};";
+        QString linkState =objMan->getStateString( sessionId, LinkableImpl::LINK, SNAPSHOT_LAYOUT);
+        StateInterface state( "");
+        state.insertObject( Layout::CLASS_NAME, layoutState);
+        state.insertObject( LinkableImpl::LINK, linkState );
+        QString layoutStr = state.toString();
+        result = snapshot->saveLayout( sessionId, saveName, layoutStr);
     }
     if ( savePreferences ){
-        QString prefStr = objMan->getStateString( "Preferences",SNAPSHOT_PREFERENCES );
+        QString prefStr = objMan->getStateString( sessionId, Preferences::CLASS_NAME,SNAPSHOT_PREFERENCES );
         result = snapshot->savePreferences( sessionId, saveName, prefStr );
     }
     if ( saveData ){
-        /*QString dataStr = getStateString( SNAPSHOT_DATA );
-        result = snapshot->saveData( sessionId, saveName, getStateString( SNAPSHOT_DATA ));*/
+        QString dataStr = objMan->getStateString( sessionId, "Data", SNAPSHOT_DATA );
+        result = snapshot->saveData( sessionId, saveName, dataStr);
     }
     return result;
 }

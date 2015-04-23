@@ -36,13 +36,10 @@ Preferences::Preferences( const QString& path, const QString& id):
     _initializeCallbacks();
 }
 
-QString Preferences::getStateString( SnapshotType type ) const{
+QString Preferences::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
         result = m_state.toString();
-    }
-    else {
-        qDebug()<<"Unsupported type "<<type<<" for controller get state";
     }
     return result;
 }

@@ -19,7 +19,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
     # Set the channel animator to jump end behavior.  Save a preference snapshot.  
     # Set the channel animator to wrap end behavior.  Restore the preference snapshot.
     # Check that the animator reverts back to jump behavior.
-    def stest_animator_jump(self):    
+    def test_animator_jump(self):    
         driver = self.driver
         
         # Find the settings button on the animator and click it.
@@ -85,12 +85,19 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         driver = self.driver
         
         # Find the preferences button on the menu bar and click it.
+        menuBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.MenuBar']")
+        self.assertIsNotNone( menuBar, "Could not find the menu bar")
         preferencesButton = driver.find_element_by_xpath("//div[text()='Preferences']/..")
         self.assertIsNotNone( preferencesButton, "Could not find div with text Preferences")
         ActionChains(driver).click(preferencesButton).perform()
         
         # Click the show button on the sub menu.
-        ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_RIGHT ).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ENTER )
+        showButton = driver.find_element_by_xpath("//div/div[text()='Show']/..")
+        self.assertIsNotNone(showButton, "Could not click open button on data subcontext menu.")
+        ActionChains(driver).click( showButton).perform()
+        showToolButton = driver.find_element_by_xpath( "//div[text()='Show Tool Bar']/..")
+        self.assertIsNotNone( showToolButton, "Could not find show tool button")
+        ActionChains(driver).click( showToolButton).perform()
         
         # Verify the toolbar is NOT visible
         toolVisible = self._isToolbarVisible( driver )

@@ -295,6 +295,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
             this.m_indexText.setIntegerOnly( true );
             this.m_indexText.setToolTipText( "Set the current value.");
+            this.m_indexText.setTextId( this.m_title +"IndexText");
             this.m_indexText.setValue( "0");
             this.m_indexText.addListener("textChanged", function(e) {
                 var value = this.m_indexText.getValue();
@@ -447,6 +448,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
+            skel.widgets.TestID.addTestId( this.m_highBoundsSpinner, this.m_title+"UpperBoundSpin");
             this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();
             sliderComposite.setLayout(new qx.ui.layout.HBox(5));

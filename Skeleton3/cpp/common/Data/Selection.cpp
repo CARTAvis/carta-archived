@@ -55,6 +55,12 @@ int Selection::getState(const QString& key ) const{
     }
     return value;
 }
+
+QString Selection::getStateString() const{
+    QString result = m_state.toString();
+    return result;
+}
+
 int Selection::getIndex() const {
     return _getValue( INDEX_KEY);
 }

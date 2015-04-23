@@ -32,7 +32,7 @@ void Region::_initializeCallbacks(){
                                     const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = { "info"};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        resetState( dataValues[ *keys.begin()]);
+        resetStateData( dataValues[ *keys.begin()]);
         return "";
     });
 }

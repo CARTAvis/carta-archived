@@ -153,12 +153,12 @@ private:
     bool _readStateLayout( const QString& sessionId, const QString& saveName );
 
     /**
-     * Read and restore user preferences for a particular sessionId from a file.
-     * @param sessionId - an identifier for a user session.
-     * @param saveName - the name of a file containing the layout state.
-     * @return true if the user preferences were read and restored; false otherwise.
+     * Read and restore state for a particular sessionId from a string.
+     * @param stateStr - a string representation of the state.
+     * @param type - the type of state.
+     * @return true if the state was read and restored; false otherwise.
      */
-    bool _readStatePreferences( const QString& sessionId, const QString& saveName );
+    bool _readState( const QString& stateStr, SnapshotType type );
 
     /**
      * Save the current state.

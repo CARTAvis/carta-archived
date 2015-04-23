@@ -42,11 +42,18 @@ namespace Carta {
 
 namespace Data {
 
-class DataSource : public QObject, public CartaObject, public IColoredView {
+class DataSource : public QObject, public IColoredView {
 
 Q_OBJECT
 
 public:
+
+    /**
+     * Constructor.
+     * @param the base path for state identification.
+     * @param id the particular id for this object.
+     */
+    DataSource( );
 
     /**
      * Returns whether or not the data was successfully loaded.
@@ -126,13 +133,6 @@ public:
      * @param fileName a locator for data.
      */
     bool contains(const QString& fileName) const;
-
-    /**
-     * Saves the state.
-     * @param winId an identifier for the DataController displaying the data.
-     * @param index of the data in the DataController.
-     */
-    void saveState(/*QString winId, int dataIndex*/);
 
     /**
      * Return a QImage representation of this data.
@@ -221,8 +221,6 @@ public:
      */
     QString getImageViewName() const;
 
-
-
     /**
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
@@ -269,8 +267,6 @@ public:
 
     virtual ~DataSource();
 
-    const static QString CLASS_NAME;
-
 signals:
 
     //Notification that a new image has been produced.
@@ -282,17 +278,8 @@ private slots:
     void _renderingDone( QImage img, int64_t jobId );
 
 private:
-
-    /**
-     * Constructor.
-     * @param the base path for state identification.
-     * @param id the particular id for this object.
-     */
-    DataSource(const QString& path, const QString& id );
-
-    class Factory;
     
-        /**
+    /**
      * Returns the raw data as an array.
      * @param frameLow the lower bound for the channel range or -1 for the whole image.
      * @param frameHigh the upper bound for the channel range or -1 for the whole image.
@@ -311,7 +298,6 @@ private:
     bool m_cmapUseInterpolatedCaching;
     int m_cmapCacheSize;
 
-    static bool m_registered;
     static const QString DATA_PATH;
 
     //Pointer to image interface.

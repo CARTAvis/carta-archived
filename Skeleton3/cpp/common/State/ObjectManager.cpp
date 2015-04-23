@@ -24,7 +24,7 @@ QString CartaObject::addIdToCommand (const QString & command) const {
     return fullCommand;
 }
 
-QString CartaObject::getStateString( SnapshotType /*type*/ ) const {
+QString CartaObject::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
     return "";
 }
 
@@ -58,11 +58,24 @@ CartaObject::CartaObject (const QString & className,
   m_path (path){
     }
 
-
+void CartaObject::resetState( const QString& state, SnapshotType type ){
+    if ( type == SNAPSHOT_DATA){
+        resetStateData( state );
+    }
+    else if ( type == SNAPSHOT_PREFERENCES ){
+        resetState( state );
+    }
+    else {
+        qDebug() << "Unsupport resetState type="<<type;
+    }
+}
 
 void CartaObject::resetState( const QString& state ){
     m_state.setState( state );
     m_state.flushState();
+}
+
+void CartaObject::resetStateData( const QString& /*state*/ ){
 }
 
 void
@@ -133,7 +146,7 @@ QString ObjectManager::getRoot() const {
     return m_root;
 }
 
-QString ObjectManager::getStateString( const QString& rootName, CartaObject::SnapshotType type ) const {
+QString ObjectManager::getStateString( const QString& sessionId, const QString& rootName, CartaObject::SnapshotType type ) const {
     StateInterface state( rootName );
     int stateCount = m_objects.size();
     state.insertArray( STATE_ARRAY, stateCount );
@@ -141,7 +154,7 @@ QString ObjectManager::getStateString( const QString& rootName, CartaObject::Sna
     //Create an array of object with each object having an id and state.
     for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
         CartaObject* obj = it->second.getObject();
-        QString objState = obj->getStateString( type );
+        QString objState = obj->getStateString( sessionId, type );
         if ( !objState.isEmpty() && objState.trimmed().length() > 0){
            QString lookup = STATE_ARRAY + StateInterface::DELIMITER + QString::number( arrayIndex );
            QString idStr = lookup + StateInterface::DELIMITER + STATE_ID;

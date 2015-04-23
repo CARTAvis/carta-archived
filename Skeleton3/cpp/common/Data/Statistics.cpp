@@ -47,19 +47,13 @@ QString Statistics::addLink( CartaObject* cartaObject ){
     return result;
 }
 
-QString Statistics::getStateString( SnapshotType type ) const{
+QString Statistics::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
         result = m_state.toString();
     }
-    else if ( type == SNAPSHOT_DATA ){
-        qDebug() << "statistics data not implemented";
-    }
     else if ( type == SNAPSHOT_LAYOUT ){
         result = m_linkImpl->getStateString();
-    }
-    else {
-        qDebug() << "Statistics does not implement "<<type<<" snapshots";
     }
     return result;
 }

@@ -29,7 +29,7 @@ qx.Class
                         /**
                          * Callback for a state change; update the animators that are displayed.
                          */
-                        _animationCB : function( ){
+                        /*_animationCB : function( ){
                             if ( this.m_sharedVar ){
                                 var val = this.m_sharedVar.get();
                                 if ( val ){
@@ -42,16 +42,19 @@ qx.Class
                                     }
                                 }
                             }
+                        },*/
+                        windowSharedVarUpdate : function( animObj ){
+                            this._showHideAnimation( animObj );
                         },
                         
                         /**
                          * Add a callback to the main window shared variable to deal with animation
                          * related changes.
                          */
-                        _initSharedVarAnim : function(){
+                        /*_initSharedVarAnim : function(){
                             this.m_sharedVar.addCB( this._animationCB.bind( this ));
                             this._animationCB();
-                        },
+                        },*/
                         
                         /**
                          * Get server side information about the list of all possible
@@ -114,8 +117,8 @@ qx.Class
                                         this.m_supportedAnimations[i] = animObj.animators[i];
                                     }
                                     //Update which animators should appear based on the state of this animator
-                                    this._animationCB();
-                                    
+                                    //this._animationCB();
+                                    this._sharedVarCB();
                                 }
                                 catch( err ){
                                     console.log( "Could not parse: "+val );
@@ -179,10 +182,10 @@ qx.Class
                         /**
                          * Implemented to remove the title.
                          */
-                        windowIdInitialized : function() {
+                        /*windowIdInitialized : function() {
                             arguments.callee.base.apply(this, arguments );
                             this._initSharedVarAnim();
-                        },
+                        },*/
                         
                         //Shared variable containing all animations.
                         m_sharedVarAnimations : null,

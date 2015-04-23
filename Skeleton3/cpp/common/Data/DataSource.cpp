@@ -18,28 +18,9 @@ namespace Carta {
 
 namespace Data {
 
-const QString DataSource::CLASS_NAME = "DataSource";
-
-class DataSource::Factory : public CartaObjectFactory {
-
-    public:
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new DataSource (path, id);
-        }
-};
-
-bool DataSource::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
-                                                   new DataSource::Factory());
-
 const QString DataSource::DATA_PATH = "dataPath";
 
-
-
-DataSource::DataSource(const QString& path, const QString& id) :
-    CartaObject( CLASS_NAME, path, id),
+DataSource::DataSource() :
     m_image( nullptr )
     {
         m_cmapUseCaching = true;
@@ -61,8 +42,6 @@ DataSource::DataSource(const QString& path, const QString& id) :
         m_pixelPipeline-> setColormap( std::make_shared < Carta::Core::GrayColormap > () );
         m_pixelPipeline-> setMinMax( 0, 1 );
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
-
-        _initializeState();
 }
 
 bool DataSource::contains(const QString& fileName) const {
@@ -292,10 +271,6 @@ double DataSource::getZoom() const {
     return m_renderService-> zoom();
 }
 
-void DataSource::_initializeState(){
-    m_state.insertValue<QString>( DATA_PATH, "");
-}
-
 void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
 
     if ( frameIndex < 0 ) {
@@ -445,14 +420,6 @@ void DataSource::setCacheSize( int cacheSize ){
 void DataSource::setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
-}
-
-
-void DataSource::saveState( ) {
-    QString oldSavedFile = m_state.getValue<QString>( DATA_PATH );
-    if ( m_fileName != oldSavedFile ){
-        m_state.setValue<QString>( DATA_PATH, m_fileName );
-    }
 }
 
 void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,

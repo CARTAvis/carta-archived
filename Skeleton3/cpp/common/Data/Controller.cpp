@@ -1,6 +1,7 @@
 #include "State/ObjectManager.h"
 
 #include "Data/Controller.h"
+#include "Data/DataLoader.h"
 #include "Data/Colormap.h"
 #include "Data/DataSource.h"
 #include "Data/Histogram.h"
@@ -58,6 +59,7 @@ Controller::Controller( const QString& path, const QString& id ) :
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
         m_view(nullptr),
+        m_stateData( path + StateInterface::DELIMITER + StateInterface::STATE_DATA ),
         m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW),
         m_viewSize( 400, 400){
 
@@ -95,8 +97,7 @@ void Controller::addData(const QString& fileName) {
 
     //Add the data if it is not already there.
     if (targetIndex == -1) {
-        CartaObject* dataSource = Util::createObject( DataSource::CLASS_NAME );
-        DataSource* targetSource = dynamic_cast<DataSource*>(dataSource);
+        DataSource* targetSource = new DataSource();
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         m_datas.append(targetSource);
@@ -164,6 +165,13 @@ void Controller::clear(){
     unregisterView();
 }
 
+void Controller::_clearData(){
+    for ( DataSource* source : m_datas ){
+        delete source;
+    }
+    m_datas.clear();
+}
+
 QString Controller::closeImage( const QString& name ){
     int targetIndex = -1;
     QString result;
@@ -176,6 +184,7 @@ QString Controller::closeImage( const QString& name ){
     }
     if ( targetIndex >= 0 ){
         this->_removeData( targetIndex );
+        emit dataChanged( this );
     }
     else {
         result = "Could not find data to remove for name="+name;
@@ -271,22 +280,34 @@ int Controller::getState( const QString& type, const QString& key ){
 }
 
 
-QString Controller::getStateString( SnapshotType type ) const{
+QString Controller::getStateString( const QString& sessionId, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
-        qDebug() << "getting state for data needs to be implemented";
+        //Data state should include the data of all DataSources (images loaded)
+        //Data state should include DataSource that is selected
+        //Data state should include channel that is selected.
+        StateInterface dataState("");
+        CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
+        DataLoader* dataLoader = dynamic_cast<DataLoader*>(cartaObj);
+        if ( dataLoader != nullptr ){
+            QString rootDir = dataLoader->getRootDir( sessionId );
+            StateInterface dataStateCopy( "");
+            dataStateCopy.setState( m_stateData.toString());
+            int dataCount = dataStateCopy.getArraySize( DATA );
+            for ( int i = 0; i < dataCount; i++ ){
+                QString lookup = Util::getLookup( DATA, i );
+                QString fileName = dataStateCopy.getValue<QString>( lookup );
+                dataStateCopy.setValue<QString>( lookup, rootDir + StateInterface::DELIMITER + fileName );
+            }
+            dataState.setState( dataStateCopy.toString());
+            dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
+            dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+            result = dataState.toString();
+        }
     }
-    else {
-        qDebug()<<"Unsupported type "<<type<<" for controller get state";
-    }
-    /*StateInterface writeState( m_state );
-    writeState.insertObject( Selection::SELECTIONS );
-    writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::CHANNEL, m_selectChannel->getStateString());
-    writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::IMAGE, m_selectImage->getStateString());
-    return writeState.toString();*/
     return result;
 }
 
@@ -431,19 +452,23 @@ void Controller::_initializeSelection( Selection* & selection ){
 void Controller::_initializeState(){
 
     //Set whether or not to auto clip
+    //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
-    m_state.insertValue<int>(DATA_COUNT, 0 );
-    m_state.insertArray(DATA, 0 );
+    m_state.flushState();
+
+    //Now the data state.
+    m_stateData.insertValue<int>(DATA_COUNT, 0 );
+    m_stateData.insertArray(DATA, 0 );
 
 
     //For testing only.
     //_makeRegion( RegionRectangle::CLASS_NAME );
     int regionCount = m_regions.size();
-    m_state.insertArray(REGIONS, regionCount );
+    m_stateData.insertArray(REGIONS, regionCount );
     //_saveRegions();
-    m_state.flushState();
+    m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
@@ -530,25 +555,42 @@ void Controller::_repaintFrameNow(){
     m_repaintFrameQueued = false;
 }
 
+void Controller::resetStateData( const QString& state ){
+    //First we reset the data this controller is displaying
+    _clearData();
+    StateInterface dataState( "");
+    dataState.setState( state );
+    int dataCount = dataState.getValue<int>(DATA_COUNT);
+    for ( int i = 0; i < dataCount; i++ ){
+        QString lookup = Util::getLookup( DATA, i );
+        QString fileName = dataState.getValue<QString>( lookup );
+        this->addData( fileName );
+    }
+    //Now we need to restore the selected channel and image.
+    QString channelState = dataState.getValue<QString>( Selection::CHANNEL );
+    m_selectChannel->resetState( channelState );
+    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
+    m_selectImage ->resetState( dataStateStr );
+}
+
 void Controller::saveState() {
     bool stateChanged = false;
     int dataCount = m_datas.size();
-    int oldDataCount = m_state.getValue<int>(DATA_COUNT );
+    int oldDataCount = m_stateData.getValue<int>(DATA_COUNT );
     if ( oldDataCount != dataCount ){
         stateChanged = true;
-        m_state.setValue<int>( DATA_COUNT, dataCount );
+        m_stateData.setValue<int>( DATA_COUNT, dataCount );
         //Insert the names of the data items for display purposes.
-        m_state.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
+        m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
         for (int i = 0; i < dataCount; i++) {
-            m_datas[i]->saveState(/*m_winId, i*/);
             QString imageViewName = m_datas[i]->getImageViewName();
             QString dataKey = DATA + StateInterface::DELIMITER +QString::number(i);
             QString oldViewName;
             if ( i < oldDataCount ){
-                oldViewName = m_state.getValue<QString>(dataKey);
+                oldViewName = m_stateData.getValue<QString>(dataKey);
             }
             if ( imageViewName != oldViewName ){
-                m_state.setValue<QString>( dataKey, imageViewName );
+                m_stateData.setValue<QString>( dataKey, imageViewName );
             }
         }
     }
@@ -556,7 +598,7 @@ void Controller::saveState() {
     m_state.resizeArray( REGIONS, regionCount );
     _saveRegions();*/
     if ( stateChanged ){
-        m_state.flushState();
+        m_stateData.flushState();
     }
 }
 
@@ -794,10 +836,8 @@ Controller::~Controller(){
         objMan->destroyObject( m_selectImage->getId());
         m_selectImage = nullptr;
     }
-    for ( DataSource* source : m_datas ){
-        objMan->destroyObject( source->getId());
-    }
-    m_datas.clear();
+    _clearData();
+
 
     for ( Region* region : m_regions ){
         objMan->destroyObject( region->getId());

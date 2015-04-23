@@ -31,7 +31,8 @@ class tSnapshot(unittest.TestCase):
     def _clickSessionRestoreButton(self,driver):
         restoreButton = driver.find_element_by_xpath( "//div[text()='Restore...']/..")
         self.assertIsNotNone( restoreButton, "Could not find restore session button in submenu")
-        ActionChains(driver).click( restoreButton).perform()
+        ActionChains(driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        #ActionChains(driver).click( restoreButton).perform()
             
     # Click the Save... option in the Sessions submenu
     def _clickSessionSaveButton(self,driver):        
@@ -101,8 +102,7 @@ class tSnapshot(unittest.TestCase):
         ActionChains(driver).click( restoreSnapButton).perform()
           
     def tearDown(self):
-        print "Hi"
-        #self.driver.close()
+        self.driver.close()
 
 if __name__ == "__main__":
     unittest.main()        

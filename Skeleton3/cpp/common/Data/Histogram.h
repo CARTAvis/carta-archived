@@ -64,14 +64,21 @@ public:
     /**
      * Return a string representing the histogram state of a particular type.
      * @param type - the type of state needed.
+     * @param sessionId - an identifier for a user's session.
      * @return a QString representing the corresponding histogram state.
      */
-    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
      * Send a new state update to the client.
      */
     void refreshState();
+
+    /**
+     * Reset the data dependent state of the histogram.
+     * @param state - information such as clipping that depends on the data loaded.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Set the amount of extra space on each side of the clip bounds.
@@ -138,17 +145,6 @@ public:
      * @return an error message if there was a problem setting the range; an empty string otherwise.
      */
     QString setClipRangePercent( double minPercent, double maxPercent );
-
-
-
-    /**
-     * Set the clip min and max of the histogram.
-     * @param clipMin the minimum intensity.
-     * @param clipMax the maximum intensity.
-     * @param link the server-side id of the controller whose data was used to generate the histogram.
-     * @return an error message if there was a problem setting the range; an empty QString otherwise.
-     */
-    //QString setClipRange( double clipMin, double clipMax, const QString& link );
 
     /**
      * Set the number of bins in the histogram.
@@ -393,6 +389,9 @@ private:
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     Carta::Histogram::HistogramGenerator* m_histogram;
+
+    //State specific to the data that is loaded.
+    StateInterface m_stateData;
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     StateInterface m_stateMouse;

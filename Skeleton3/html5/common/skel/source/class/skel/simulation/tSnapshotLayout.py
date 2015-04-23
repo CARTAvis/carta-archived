@@ -60,4 +60,5 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         # Verify the window count is the same
         newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
         newWindowCount = len( newWindowList )
+        print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount, "Window count changed with restore")

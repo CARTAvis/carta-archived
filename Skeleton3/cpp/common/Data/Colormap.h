@@ -46,10 +46,11 @@ public:
 
     /**
      * Return a string representing the colormap state of a particular type.
+     * @param sessionId - an identifier for the user's session.
      * @param type - the type of state needed.
      * @return a QString representing the corresponding colormap state.
      */
-    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
      * Force a flush of state to the client.

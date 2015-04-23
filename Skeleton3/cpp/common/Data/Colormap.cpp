@@ -80,19 +80,13 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
     return result;
 }
 
-QString Colormap::getStateString( SnapshotType type ) const{
-    QString result;
+QString Colormap::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+    QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
         result = m_state.toString();
     }
-    else if ( type == SNAPSHOT_DATA ){
-        qDebug() << "Colormap data not implemented";
-    }
     else if ( type == SNAPSHOT_LAYOUT ){
         result = m_linkImpl->getStateString();
-    }
-    else {
-        qDebug() << "Colormap does not implement "<<type<<" snapshots";
     }
     return result;
 }

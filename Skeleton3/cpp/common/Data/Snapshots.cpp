@@ -48,7 +48,7 @@ Snapshots::Snapshots( const QString& path, const QString& id):
 }
 
 QString Snapshots::_getRootDir(const QString& /*sessionId*/) const {
-    return "/tmp/snapshots";
+    return "/scratch/snapshots";
 }
 
 QString Snapshots::getSnapshots( const QString& sessionId ) const {

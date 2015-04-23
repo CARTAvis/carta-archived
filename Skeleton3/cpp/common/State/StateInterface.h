@@ -19,6 +19,7 @@ public:
     friend class StateInterfaceTestImpl;
 
     static const QString DELIMITER;
+    static const QString STATE_DATA;
 
     StateInterface (const QString & path, const QString& type = "", const QString& initialState="");
     StateInterface (const StateInterface & other);

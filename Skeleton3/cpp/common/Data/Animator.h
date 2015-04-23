@@ -80,7 +80,7 @@ public:
      * @param type - the type of state needed.
      * @return a QString representing the corresponding animator state.
      */
-    virtual QString getStateString( SnapshotType type ) const Q_DECL_OVERRIDE;
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
      * Force the connector to flush the state to the view.
@@ -101,6 +101,17 @@ public:
      */
     QString removeAnimator( const QString& type );
 
+    /**
+     * Reset user preferences for the animator.
+     * @param state- the animator's state.
+     */
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
+     * Reset the data state for the animator (what images/channels are selected, etc).
+     * @param state - the animator's data state.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
     static const QString CLASS_NAME;
 
     virtual ~Animator();
@@ -128,6 +139,9 @@ private:
     QString _initAnimator( const QString& type, bool* newAnimator );
 
     void _resetAnimationParameters( int selectedImage );
+
+    //Reset the state of an individual animator.
+    void _resetStateAnimator( const StateInterface& state, const QString& key );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
