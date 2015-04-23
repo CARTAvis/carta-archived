@@ -6,7 +6,7 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.Command.Data.CommandRegion", {
+qx.Class.define("skel.Command.Region.CommandRegion", {
     extend : skel.Command.CommandGroup,
     type : "singleton",
 

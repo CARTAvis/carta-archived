@@ -25,9 +25,9 @@ HEADERS += \
     CCRawView.h \
     CCCoordinateFormatter.h
 
-CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
-CFITSIODIR=../../../../ThirdParty/cfitsio-3360-shared
+CASACOREDIR=../../../../ThirdParty/casacore-shared
+WCSLIBDIR=../../../../ThirdParty/wcslib-shared
+CFITSIODIR=../../../../ThirdParty/cfitsio-shared
 CASACOREDIR=$$absolute_path($${CASACOREDIR})
 WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
 CFITSIODIR=$$absolute_path($${CFITSIODIR})
@@ -39,7 +39,7 @@ casacoreLIBS += -lcasa_casa -llapack -lblas -lgfortran -ldl
 casacoreLIBS += -L$${WCSLIBDIR}/lib -lwcs
 casacoreLIBS += -L$${CFITSIODIR}/lib -lcfitsio
 
-INCLUDEPATH += $${CASACOREDIR}/include/casacore
+INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${WCSLIBDIR}/include
 INCLUDEPATH += $${CFITSIODIR}/include
 
