@@ -1,17 +1,17 @@
-#include "ImageHistogram.h"
 #include <assert.h>
 #include <QDebug>
 #include <QtCore/qmath.h>
 #include "Globals.h"
 #include "PluginManager.h"
 #include "CartaLib/IImage.h"
-#include <images/Images/SubImage.h>
-#include <images/Regions/ImageRegion.h>
-#include <lattices/Lattices/LatticeHistograms.h>
+#include "ImageHistogram.h"
+#include <casacore/images/Images/SubImage.h>
+#include <casacore/images/Regions/ImageRegion.h>
+#include <casacore/lattices/LatticeMath/LatticeHistograms.h>
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "plugins/CasaImageLoader/CasaImageLoader.h"
-#include <casa/Arrays/Vector.h>
-#include <casa/BasicSL/String.h>
+#include <casacore/casa/Arrays/Vector.h>
+#include <casacore/casa/BasicSL/String.h>
 
 
 template <class T>

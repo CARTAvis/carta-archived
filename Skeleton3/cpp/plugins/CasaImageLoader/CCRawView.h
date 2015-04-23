@@ -5,9 +5,9 @@
 #pragma once
 
 #include "CartaLib/IImage.h"
-#include "lattices/Lattices/LatticeStepper.h"
-#include "lattices/Lattices/LatticeIterator.h"
-#include "casa/Arrays/IPosition.h"
+#include "casacore/lattices/Lattices/LatticeStepper.h"
+#include "casacore/lattices/Lattices/LatticeIterator.h"
+#include "casacore/casa/Arrays/IPosition.h"
 
 template < typename PType >
 class CCImage;

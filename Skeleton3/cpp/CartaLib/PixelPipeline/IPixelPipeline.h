@@ -3,6 +3,8 @@
 #include "CartaLib/CartaLib.h"
 #include <QRgb>
 #include <stdexcept>
+#include <cmath>
+#include <array>
 
 namespace Carta
 {

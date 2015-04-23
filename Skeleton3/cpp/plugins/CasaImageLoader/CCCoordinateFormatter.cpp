@@ -3,8 +3,8 @@
  **/
 
 #include "CCCoordinateFormatter.h"
-#include <coordinates/Coordinates.h>
-#include <measures/Measures/Stokes.h>
+#include <casacore/coordinates/Coordinates.h>
+#include <casacore/measures/Measures/Stokes.h>
 #include <QDebug>
 
 #define CARTA_DEBUG_THIS_FILE 0

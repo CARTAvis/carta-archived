@@ -1,6 +1,7 @@
 #include "Data/ChannelUnits.h"
 #include "CartaLib/CartaLib.h"
 #include <QDebug>
+#include <cmath>
 
 namespace Carta {
 

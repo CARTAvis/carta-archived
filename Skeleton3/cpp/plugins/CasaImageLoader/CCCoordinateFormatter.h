@@ -7,7 +7,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/ICoordinateFormatter.h"
 
-#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <casacore/coordinates/Coordinates/CoordinateSystem.h>
 #include <memory>
 
 class CCCoordinateFormatter : public CoordinateFormatterInterface

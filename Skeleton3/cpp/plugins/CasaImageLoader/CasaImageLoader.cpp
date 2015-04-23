@@ -4,15 +4,15 @@
 #include <QDebug>
 #include <QPainter>
 #include <QTime>
-#include <casa/Exceptions/Error.h>
-#include <images/Images/FITSImage.h>
-#include <images/Images/MIRIADImage.h>
-#include <images/Images/HDF5Image.h>
-#include <images/Images/ImageExpr.h>
-#include <images/Images/ImageExprParse.h>
-#include <images/Images/ImageOpener.h>
-#include <casa/Arrays/ArrayMath.h>
-#include <casa/Quanta.h>
+#include <casacore/casa/Exceptions/Error.h>
+#include <casacore/images/Images/FITSImage.h>
+#include <casacore/images/Images/MIRIADImage.h>
+#include <casacore/images/Images/HDF5Image.h>
+#include <casacore/images/Images/ImageExpr.h>
+#include <casacore/images/Images/ImageExprParse.h>
+#include <casacore/images/Images/ImageOpener.h>
+#include <casacore/casa/Arrays/ArrayMath.h>
+#include <casacore/casa/Quanta.h>
 #include <memory>
 #include <algorithm>
 #include <cstdint>
@@ -108,6 +108,7 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     auto shapes = shape.asStdVector();
     qDebug() << "lat.shape = " << std::string( lat->shape().toString()).c_str();
     qDebug() << "lat.dataType = " << lat->dataType();
+	qDebug() << "Float type is " << casa::TpFloat;
 
     CCImageBase::SharedPtr res;
     res = tryCast<float>(lat);
@@ -116,25 +117,27 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     if( ! res) res = tryCast<int16_t>(lat);
     if( ! res) res = tryCast<int32_t>(lat);
     if( ! res) res = tryCast<int64_t>(lat);
+    if( ! res) res = tryCast<int64_t>(lat);
 
     if( res) {
         qDebug() << "Created image interface with type=" << Carta::toStr( res->pixelType());
         return res;
     }
 
-    // we have an unknown type for lattice, let's try to convert it to double
-    qWarning() << "Unsupported lattice type:" << lat-> dataType();
-
-    /// \todo should we try LEL to convert to double or float???
-    //    << " trying LEL to float";
-    //    try {
-    //        std::string expr = "float('" + fname.toStdString() + "')";
-    //        casa::LatticeExpr<casa::Float> le ( casa::ImageExprParse::command( expr ));
-    //        img = new casa::ImageExpr<casa::Float> ( le, expr );
-    //        qDebug() << "\t-LEL conversion successful";
-    //    } catch ( ... ) {}
+	// if the initial conversion attempt failed, try a LEL expression
+    casa::ImageInterface<casa::Float> * img = 0;
+    try {
+        qDebug() << "Trying LEL conversion";
+    	string expr = "float('" + fname.toStdString() + "')";
+        casa::LatticeExpr<casa::Float> le ( casa::ImageExprParse::command( expr ));
+        img = new casa::ImageExpr<casa::Float> ( le, expr );
+        qDebug() << "\t-LEL conversion successful";
+        return CCImage<float>::create( img);
+    } catch ( ... ) {}
+	
 
     // indicate failure
+    qWarning() << "Unsupported lattice type:" << lat-> dataType();
     delete lat;
     return nullptr;
 }

@@ -282,15 +282,19 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
     // if the plugin type is c++, make sure the plugin has .so file
     if( info.json.typeString == "c++") {
         QFileInfo soInfo( dirName + "/libplugin.so");
-        if( ! soInfo.exists()) {
-            info.errors << "...c++ plugin must have libplugin.so";
+        QFileInfo dylibInfo( dirName + "/libplugin.dylib");
+        if( ! soInfo.exists() && ! dylibInfo.exists()) {
+            info.errors << "...c++ plugin must have libplugin.so or libplugin.dylib";
             return info;
         }
-        if( ! soInfo.isExecutable()) {
-            info.errors << "...c++ plugin must have executable libplugin.so";
+        if( ! soInfo.isExecutable() && ! dylibInfo.isExecutable()) {
+            info.errors << "...c++ plugin must have executable libplugin.so or libplugin.dylib";
             return info;
         }
-        info.soPath = soInfo.filePath();
+		if(soInfo.exists())
+    		info.soPath = soInfo.filePath();
+		else
+    		info.soPath = dylibInfo.filePath();
     }
 
     // if the plugin type is c++ or lib, find all libraries under libs subdirectory
@@ -298,7 +302,7 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
         qDebug() << "Looking for libs...";
         QDirIterator dit(
                     dirName + "/libs",
-                    { "*.so", "*.so.*" },
+                    { "*.so", "*.so.*", "*.dylib" },
                     QDir::Files | QDir::Executable,
                     QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
         while( dit.hasNext()) {
