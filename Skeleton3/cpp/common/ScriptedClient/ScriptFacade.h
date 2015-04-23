@@ -338,6 +338,13 @@ public:
      */
     QStringList setPlaneMode( const QString& histogramId, const QString& planeMode );
 
+    /**
+     * Set the drawing style for the histogram (outline, filled, etc).
+     * @param style a unique identifier for a histogram drawing style.
+     * @return an error message if there was a problem setting the draw style; an empty string otherwise.
+     */
+    QStringList setGraphStyle( const QString& histogramId, const QString& style );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

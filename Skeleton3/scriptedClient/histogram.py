@@ -41,3 +41,9 @@ class Histogram(CartaView):
                                      histogramView=self.getId(),
                                      planeMode=mode)
         return result
+
+    def setGraphStyle(self, style):
+        result = self.con.cmdTagList("setGraphStyle",
+                                     histogramView=self.getId(),
+                                     graphStyle=style)
+        return result

@@ -317,6 +317,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setPlaneMode( histogramView, planeMode );
     }
 
+    else if ( cmd == "setgraphstyle" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString graphStyle = args["graphStyle"].toString();
+        result = m_scriptFacade->setGraphStyle( histogramView, graphStyle );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

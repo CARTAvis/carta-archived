@@ -389,3 +389,9 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QString& style ) {
+    QString result = m_viewManager->setGraphStyle( histogramId, style );
+    QStringList resultList(result);
+    return resultList;
+}

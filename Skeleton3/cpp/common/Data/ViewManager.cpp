@@ -1134,6 +1134,19 @@ QString ViewManager::setPlaneMode( const QString& histogramId, const QString& pl
     return result;
 }
 
+QString ViewManager::setGraphStyle( const QString& histogramId, const QString& style ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->setGraphStyle( style );
+            break;
+        }
+    }
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

@@ -336,6 +336,13 @@ public:
      */
     QString setPlaneMode( const QString& histogramId, const QString& planeMode );
 
+    /**
+     * Set the drawing style for the histogram (outline, filled, etc).
+     * @param style a unique identifier for a histogram drawing style.
+     * @return an error message if there was a problem setting the draw style; an empty string otherwise.
+     */
+    QString setGraphStyle( const QString& histogramId, const QString& graphStyle );
+
     static const QString CLASS_NAME;
 
     /**
