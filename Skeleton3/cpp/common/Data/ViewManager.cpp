@@ -1015,7 +1015,7 @@ double ViewManager::getZoomLevel( const QString& controlId ) {
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
-            zoom = m_controllers[i]->getZoomLevel( );
+            zoom = m_controllers[i]->getZoomLevel();
             break;
         }
     }
@@ -1028,7 +1028,7 @@ QStringList ViewManager::getImageDimensions( const QString& controlId ) {
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
-            result = m_controllers[i]->getImageDimensions( );
+            result = m_controllers[i]->getImageDimensions();
             break;
         }
     }
@@ -1041,7 +1041,32 @@ QStringList ViewManager::getOutputSize( const QString& controlId ) {
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
-            result = m_controllers[i]->getOutputSize( );
+            result = m_controllers[i]->getOutputSize();
+            break;
+        }
+    }
+    return result;
+}
+
+QString ViewManager::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            if ( mode == "percent" ) {
+                result += m_histograms[i]->setClipMinPercent( clipMinValue );
+                result += m_histograms[i]->setClipMaxPercent( clipMaxValue );
+            }
+            else if ( mode == "intensity" ) {
+                result += m_histograms[i]->setClipMin( clipMinValue );
+                result += m_histograms[i]->setClipMax( clipMaxValue );
+            }
+            else {
+                result = "invalid mode: " + mode;
+                break;
+            }
+            m_histograms[i]->applyClips();
             break;
         }
     }

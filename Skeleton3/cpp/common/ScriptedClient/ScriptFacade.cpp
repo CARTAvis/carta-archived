@@ -359,3 +359,9 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
     QStringList result = m_viewManager->getOutputSize( controlId );
     return result;
 }
+
+QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ) {
+    QString result = m_viewManager->applyClips( histogramId, clipMinValue, clipMaxValue, mode );
+    QStringList resultList(result);
+    return resultList;
+}

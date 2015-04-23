@@ -269,6 +269,18 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getColorMaps();
     }
 
+    /// histogram commands
+
+    else if ( cmd == "applyclips" ) {
+        QString histogramView = args["histogramView"].toString();
+        double clipMinValue = args["clipMinValue"].toDouble();
+        double clipMaxValue = args["clipMaxValue"].toDouble();
+        QString modeStr = args["modeStr"].toString();
+        result = m_scriptFacade->applyClips( histogramView, clipMinValue, clipMaxValue, modeStr );
+    }
+
+    /// commands for testing
+
     else if ( cmd == "fakecommand" ) {
         QString data = args["data"].toString();
         result.append("Fake command received");

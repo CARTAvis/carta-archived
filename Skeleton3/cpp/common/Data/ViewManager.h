@@ -294,6 +294,15 @@ public:
      */
     bool setPlugins( const QStringList& names );
 
+    /**
+     * Applies clips to image.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param clipMinValue the minimum of data to be shown.
+     * @param clipMaxValue the maximum of data to be shown.
+     * @param mode can be either "percent" or "intensity"
+     */
+    QString applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode );
+
     static const QString CLASS_NAME;
 
     /**
