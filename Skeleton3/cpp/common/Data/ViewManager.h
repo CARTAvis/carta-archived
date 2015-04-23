@@ -311,6 +311,15 @@ public:
      * @param percentile a number [0,1] for which an intensity is desired.
      */
     QString getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
+
+    /**
+     * Set the number of bins in the histogram.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param binCount the number of histogram bins.
+     * @return an error message if there was a problem setting the bin count; an empty string otherwise.
+     */
+    QString setBinCount( const QString& histogramId, int binCount );
+
     static const QString CLASS_NAME;
 
     /**

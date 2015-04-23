@@ -299,6 +299,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->applyClips( histogramView, clipMinValue, clipMaxValue, modeStr );
     }
 
+    else if ( cmd == "setbincount" ) {
+        QString histogramView = args["histogramView"].toString();
+        int binCount = args["binCount"].toInt();
+        result = m_scriptFacade->setBinCount( histogramView, binCount );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

@@ -371,3 +371,9 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount ) {
+    QString result = m_viewManager->setBinCount( histogramId, binCount );
+    QStringList resultList(result);
+    return resultList;
+}

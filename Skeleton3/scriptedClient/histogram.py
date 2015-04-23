@@ -15,9 +15,23 @@ class Histogram(CartaView):
         return result
 
     def applyClipsByPercent(self, clipMin, clipMax):
+        """ Convenience function. """
         result = self.applyClips(clipMin, clipMax, "percent")
         return result
 
     def applyClipsByIntensity(self, clipMin, clipMax):
+        """ Convenience function. """
         result = self.applyClips(clipMin, clipMax, "intensity")
+        return result
+
+    def setBinCount(self, count):
+        result = self.con.cmdTagList("setBinCount",
+                                     histogramView=self.getId(),
+                                     binCount=count)
+        return result
+
+    def setBinWidth(self, width):
+        result = self.con.cmdTagList("setBinWidth",
+                                     histogramView=self.getId(),
+                                     binWidth=width)
         return result

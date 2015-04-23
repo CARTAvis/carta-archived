@@ -314,6 +314,14 @@ public:
      */
     QStringList getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
 
+    /**
+     * Set the number of bins in the histogram.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param binCount the number of histogram bins.
+     * @return an error message if there was a problem setting the bin count; an empty string otherwise.
+     */
+    QStringList setBinCount( const QString& histogramId, int binCount );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.
