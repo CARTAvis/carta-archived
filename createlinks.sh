@@ -1,5 +1,5 @@
 #!/bin/bash
-export CARTAROOT=$HOME/src/CARTA
+export CARTAROOT=$HOME/dev
 export GNULIB=/usr/lib/x86_64-linux-gnu
 
 rmsymlink()
@@ -21,7 +21,7 @@ cd ./ThirdParty
 #
 rmsymlink qwt
 mkdir -p qwt
-export QWTLOCATION=/usr/local/qwt-6.1.3-svn
+export QWTLOCATION=/usr/local/qwt-6.1.2
 rmsymlink qwt/include
 rmsymlink qwt/lib
 ln -s $QWTLOCATION/include qwt/include
@@ -31,7 +31,7 @@ ln -s $QWTLOCATION/lib qwt/lib
 # qooxdoo installation location
 # change this to poit to your installation diretory
 #
-export QOOXDOO35LOCATION=$CARTAROOT/qooxdoo-3.5-sdk
+export QOOXDOO35LOCATION=/home/jeff/dev/qooxdoo-3.5-sdk
 rmsymlink qooxdoo-3.5-sdk 
 ln -s ${QOOXDOO35LOCATION} qooxdoo-3.5-sdk
 
@@ -65,7 +65,7 @@ ln -s $GNULIB  wcslib-shared/lib
 #
 #rapidjson installation location
 #
-export RAPIDJSON=$CARTAROOT/rapidjson
+export RAPIDJSON=/usr/include/rapidjson
 rmsymlink rapidjson
 ln -s $RAPIDJSON rapidjson
 
