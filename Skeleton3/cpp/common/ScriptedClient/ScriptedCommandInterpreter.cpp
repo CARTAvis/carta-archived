@@ -311,6 +311,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setBinWidth( histogramView, binWidth );
     }
 
+    else if ( cmd == "setplanemode" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString planeMode = args["planeMode"].toString();
+        result = m_scriptFacade->setPlaneMode( histogramView, planeMode );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

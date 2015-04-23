@@ -1121,6 +1121,19 @@ QString ViewManager::setBinWidth( const QString& histogramId, double binWidth ){
     return result;
 }
 
+QString ViewManager::setPlaneMode( const QString& histogramId, const QString& planeMode ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->setPlaneMode( planeMode );
+            break;
+        }
+    }
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

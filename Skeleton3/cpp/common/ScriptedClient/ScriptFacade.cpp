@@ -383,3 +383,9 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QString& planeMode ) {
+    QString result = m_viewManager->setPlaneMode( histogramId, planeMode );
+    QStringList resultList(result);
+    return resultList;
+}

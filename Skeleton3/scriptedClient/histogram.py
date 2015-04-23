@@ -35,3 +35,9 @@ class Histogram(CartaView):
                                      histogramView=self.getId(),
                                      binWidth=width)
         return result
+
+    def setPlaneMode(self, mode):
+        result = self.con.cmdTagList("setPlaneMode",
+                                     histogramView=self.getId(),
+                                     planeMode=mode)
+        return result

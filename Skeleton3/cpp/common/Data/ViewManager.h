@@ -328,6 +328,14 @@ public:
      */
     QString setBinWidth( const QString& histogramId, double binWidth );
 
+    /**
+     * Set whether the histogram should be based on a single plane, a range of planes, or the entire cube.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param planeMode a unique identifier for the 3D data range.
+     * @return an error message if there was a problem setting the 3D data range; an empty string otherwise.
+     */
+    QString setPlaneMode( const QString& histogramId, const QString& planeMode );
+
     static const QString CLASS_NAME;
 
     /**
