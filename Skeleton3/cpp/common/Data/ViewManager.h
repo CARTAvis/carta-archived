@@ -303,6 +303,14 @@ public:
      */
     QString applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode );
 
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     */
+    QString getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
     static const QString CLASS_NAME;
 
     /**

@@ -46,6 +46,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     QStringList result;
     QString key = "result";
 
+    /// application commands
+
     if ( cmd == "getcolormapviews" ) {
         result = m_scriptFacade->getColorMapViews();
     }
@@ -102,6 +104,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString name = args["name"].toString();
         result = m_scriptFacade->saveState(name);
     }
+
+    else if ( cmd == "getcolormaps" ) {
+        result = m_scriptFacade->getColorMaps();
+    }
+
+    /// colormap commands
 
     else if ( cmd == "setcolormap" ) {
         QString colormapId = args["colormapId"].toString();
@@ -160,6 +168,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString transform = args["transform"].toString();
         result = m_scriptFacade->setDataTransform( colormapId, transform );
     }
+
+    /// image/controller commands
 
     else if ( cmd == "loadfile" ) {
         QString imageView = args["imageView"].toString();
@@ -244,6 +254,20 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getOutputSize( imageView );
     }
 
+    else if ( cmd == "getintensity" ) {
+        QString imageView = args["imageView"].toString();
+        int frameLow = args["frameLow"].toInt();
+        int frameHigh = args["frameHigh"].toInt();
+        double percentile = args["percentile"].toDouble();
+        result = m_scriptFacade->getIntensity( imageView, frameLow, frameHigh, percentile );
+    }
+        /*
+        result = self.con.cmdTagList("getIntensity", imageView=self.getId(),
+                                     frameLow=frameLow, frameHigh=frameHigh,
+                                     percentile=percentile)
+        */
+    /// animator commands
+
     else if ( cmd == "setchannel" ) {
         QString animatorView = args["animatorView"].toString();
         int channel = args["channel"].toInt();
@@ -264,10 +288,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 //    else if ( cmd == "getfilelist" ) {
 //        QString fileList = m_scriptFacade->getFileList();
 //    }
-
-    else if ( cmd == "getcolormaps" ) {
-        result = m_scriptFacade->getColorMaps();
-    }
 
     /// histogram commands
 

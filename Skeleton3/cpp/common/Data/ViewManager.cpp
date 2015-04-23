@@ -1048,6 +1048,28 @@ QStringList ViewManager::getOutputSize( const QString& controlId ) {
     return result;
 }
 
+QString ViewManager::getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ) {
+    QString result;
+    double intensity;
+    bool valid;
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+            valid = m_controllers[i]->getIntensity( frameLow, frameHigh, percentile, &intensity );
+            break;
+        }
+    }
+    if ( valid ) {
+        result = QString::number( intensity );
+    }
+    else {
+        result = Util::toString( valid );
+    }
+    return result;
+}
+
+
 QString ViewManager::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ){
     QString result = "";
     int histogramCount = getHistogramCount();

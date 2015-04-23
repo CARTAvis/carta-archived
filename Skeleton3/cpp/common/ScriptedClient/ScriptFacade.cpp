@@ -365,3 +365,9 @@ QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMin
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ) {
+    QString result = m_viewManager->getIntensity( controlId, frameLow, frameHigh, percentile );
+    QStringList resultList(result);
+    return resultList;
+}
