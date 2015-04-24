@@ -340,10 +340,21 @@ public:
 
     /**
      * Set the drawing style for the histogram (outline, filled, etc).
+     * @param histogramId the unique server-side id of an object managing a histogram.
      * @param style a unique identifier for a histogram drawing style.
      * @return an error message if there was a problem setting the draw style; an empty string otherwise.
      */
     QStringList setGraphStyle( const QString& histogramId, const QString& style );
+
+    /**
+     * Set whether or not the histogram's vertical axis should use a log scale.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param logCount true if the vertical axis should be logarithmic; false otherwise.
+     *  Can also be equal to "toggle" to turn the log scale on or off depending on its
+     *  current value.
+     * @return an error message if there was a problem setting the flag; an empty string otherwise.
+     */
+    QStringList setLogCount( const QString& histogramId, const QString& logCount );
 
     /*
      * Singleton accessor.

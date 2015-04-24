@@ -1147,6 +1147,30 @@ QString ViewManager::setGraphStyle( const QString& histogramId, const QString& s
     return result;
 }
 
+QString ViewManager::setLogCount( const QString& histogramId, const QString& logCountStr ){
+    QString result = "";
+    bool validBool = false;
+    bool logCount = Util::toBool( logCountStr, &validBool );
+    if ( validBool || logCountStr.toLower() == "toggle" ) {
+        int histogramCount = getHistogramCount();
+        for ( int i = 0; i < histogramCount; i++ ){
+            QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+            if ( histogramId == histogramPath ){
+                if ( logCountStr.toLower() == "toggle" ) {
+                    bool currentLogCount = m_histograms[i]->getLogCount();
+                    logCount = !currentLogCount;
+                }
+                result = m_histograms[i]->setLogCount( logCount );
+                break;
+            }
+        }
+    }
+    else {
+        result = "Set log count parameter must be true/false: " + logCountStr;
+    }
+    return result;
+}
+
 bool ViewManager::_saveState( const QString& saveName ){
     QString filePath = getStateLocation( saveName );
     StateWriter writer( filePath );

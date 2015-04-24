@@ -395,3 +395,9 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString& logCount ) {
+    QString result = m_viewManager->setLogCount( histogramId, logCount );
+    QStringList resultList(result);
+    return resultList;
+}

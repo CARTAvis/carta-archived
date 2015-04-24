@@ -343,6 +343,16 @@ public:
      */
     QString setGraphStyle( const QString& histogramId, const QString& graphStyle );
 
+    /**
+     * Set whether or not the histogram's vertical axis should use a log scale.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param logCount true if the vertical axis should be logarithmic; false otherwise.
+     *  Can also be equal to "toggle" to turn the log scale on or off depending on its
+     *  current value.
+     * @return an error message if there was a problem setting the flag; an empty string otherwise.
+     */
+    QString setLogCount( const QString& histogramId, const QString& logCountStr );
+
     static const QString CLASS_NAME;
 
     /**

@@ -185,6 +185,12 @@ public:
     QString setLogCount( bool logCount );
 
     /**
+    * Determine whether or not the vertical axis is using a log scale.
+    * @return the current status of the GRAPH_LOG_COUNT state variable.
+    */
+    bool getLogCount();
+
+    /**
      * Set whether the histogram should be based on a single plane, a range of planes, or the entire cube.
      * @param planeMode a unique identifier for the 3D data range.
      * @return an error message if there was a problem setting the 3D data range; an empty string otherwise.

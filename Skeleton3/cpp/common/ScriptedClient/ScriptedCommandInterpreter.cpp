@@ -323,6 +323,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGraphStyle( histogramView, graphStyle );
     }
 
+    else if ( cmd == "setlogcount" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString logCount = args["logCount"].toString().toLower();
+        result = m_scriptFacade->setLogCount( histogramView, logCount);
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

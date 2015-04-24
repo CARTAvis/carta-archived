@@ -1388,6 +1388,11 @@ QString Histogram::setLogCount( bool logCount ){
     return result;
 }
 
+bool Histogram::getLogCount(){
+    bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
+    return logCount;
+}
+
 QString Histogram::setPlaneMode( const QString& planeModeStr ){
     QString result;
     QString oldPlaneMode = m_state.getValue<QString>(PLANE_MODE);

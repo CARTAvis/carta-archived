@@ -47,3 +47,9 @@ class Histogram(CartaView):
                                      histogramView=self.getId(),
                                      graphStyle=style)
         return result
+
+    def setLogCount(self, logCount='toggle'):
+        result = self.con.cmdTagList("setLogCount",
+                                     histogramView=self.getId(),
+                                     logCount=str(logCount))
+        return result
