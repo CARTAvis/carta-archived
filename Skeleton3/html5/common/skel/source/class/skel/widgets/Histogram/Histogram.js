@@ -114,7 +114,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_settingsVisible = false;
             this._initMain();
             this._initControls();
-            
         },
        
         /**
@@ -203,7 +202,8 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._histogramChangedCB.bind(this));
-            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_id + path.SEP + "data");
+            var dataPath = this.m_id + path.SEP + "data";
+            this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB( this._histogramDataCB.bind( this));
             this._initView();
             this._histogramChangedCB();

@@ -25,37 +25,6 @@ qx.Class
 
                     members : {
                         
-                        
-                        /**
-                         * Callback for a state change; update the animators that are displayed.
-                         */
-                        /*_animationCB : function( ){
-                            if ( this.m_sharedVar ){
-                                var val = this.m_sharedVar.get();
-                                if ( val ){
-                                    try {
-                                        var animObj = JSON.parse( val );
-                                        this._showHideAnimation(animObj);
-                                    }
-                                    catch( err ){
-                                        console.log( "Could not parse: "+val );
-                                    }
-                                }
-                            }
-                        },*/
-                        windowSharedVarUpdate : function( animObj ){
-                            this._showHideAnimation( animObj );
-                        },
-                        
-                        /**
-                         * Add a callback to the main window shared variable to deal with animation
-                         * related changes.
-                         */
-                        /*_initSharedVarAnim : function(){
-                            this.m_sharedVar.addCB( this._animationCB.bind( this ));
-                            this._animationCB();
-                        },*/
-                        
                         /**
                          * Get server side information about the list of all possible
                          * animators that are available.
@@ -77,20 +46,20 @@ qx.Class
                         },
                         
                         /**
-                         * Update the commands about which animation is visible..
+                         * Returns true if the animator widget with the given identifier is visible;
+                         *      false otherwise.
+                         * @param animId {String} an identifier for an animator.
+                         * @return {boolean} true if the animator is visible; false otherwise.
                          */
-                        updateCmds : function(){
-                            var animAllCmd = skel.Command.Animate.CommandAnimations.getInstance();
-                            if ( this.m_supportedAnimations !== null ){
-                                for (var i = 0; i < this.m_supportedAnimations.length; i++) {
-                                    var animId = this.m_supportedAnimations[i];
-                                    var animCmd = animAllCmd.getCmd( animId );
-                                    var visible = this.isVisible( animId );
-                                    animCmd.setValue( visible );
+                        isVisible : function( animId ){
+                            var visible = false;
+                            if ( this.m_animators !== null ){
+                                if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
+                                    visible = true;
                                 }
                             }
+                            return visible;
                         },
-
                         
                         /**
                          * Set the appearance of this window based on whether or not it is selected.
@@ -101,7 +70,6 @@ qx.Class
                             arguments.callee.base.apply(this, arguments, selected, multiple );
                             this.updateCmds();
                         },
-                        
                         
                         /**
                          * Update the list of available animators from the server.
@@ -117,31 +85,13 @@ qx.Class
                                         this.m_supportedAnimations[i] = animObj.animators[i];
                                     }
                                     //Update which animators should appear based on the state of this animator
-                                    //this._animationCB();
-                                    this._sharedVarCB();
+                                    this._showHideAnimation( animObj );
                                 }
                                 catch( err ){
                                     console.log( "Could not parse: "+val );
                                 }
                             }
                         },
-                        
-                        /**
-                         * Returns true if the animator widget with the given identifier is visible;
-                         *      false otherwise.
-                         * @param animId {String} an identifier for an animator.
-                         * @return {boolean} true if the animator is visible; false otherwise.
-                         */
-                        isVisible : function( animId ){
-                            var visible = false;
-                            if ( this.m_animators !== null ){
-                                if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
-                                    visible = true;
-                                }
-                            }
-                            return visible;
-                        },
-
                         
                         /**
                          * Adds or removes a specific animator from the display
@@ -179,13 +129,31 @@ qx.Class
                             }
                         },
                         
+                        
                         /**
-                         * Implemented to remove the title.
+                         * Update the commands about which animation is visible..
                          */
-                        /*windowIdInitialized : function() {
-                            arguments.callee.base.apply(this, arguments );
-                            this._initSharedVarAnim();
-                        },*/
+                        updateCmds : function(){
+                            var animAllCmd = skel.Command.Animate.CommandAnimations.getInstance();
+                            if ( this.m_supportedAnimations !== null ){
+                                for (var i = 0; i < this.m_supportedAnimations.length; i++) {
+                                    var animId = this.m_supportedAnimations[i];
+                                    var animCmd = animAllCmd.getCmd( animId );
+                                    var visible = this.isVisible( animId );
+                                    animCmd.setValue( visible );
+                                }
+                            }
+                        },
+                        
+                        /**
+                         * Show/hide animators based on server information.
+                         * @param animObj {Object} server side information about the animators that
+                         *      are visible.
+                         */
+                        windowSharedVarUpdate : function( animObj ){
+                            this._showHideAnimation( animObj );
+                        },
+                        
                         
                         //Shared variable containing all animations.
                         m_sharedVarAnimations : null,
