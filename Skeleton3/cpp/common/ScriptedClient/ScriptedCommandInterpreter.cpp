@@ -119,13 +119,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "reversecolormap" ) {
         QString colormapId = args["colormapId"].toString();
-        QString reverseString = args["reverseString"].toString();
+        QString reverseString = args["reverseString"].toString().toLower();
         result = m_scriptFacade->reverseColorMap( colormapId, reverseString );
     }
 
     else if ( cmd == "setcachecolormap" ) {
         QString colormapId = args["colormapId"].toString();
-        QString cacheString = args["cacheString"].toString();
+        QString cacheString = args["cacheString"].toString().toLower();
         result = m_scriptFacade->setCacheColormap( colormapId, cacheString );
     }
 
@@ -137,13 +137,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "setinterpolatedcolormap" ) {
         QString colormapId = args["colormapId"].toString();
-        QString interpolatedString = args["interpolatedString"].toString();
+        QString interpolatedString = args["interpolatedString"].toString().toLower();
         result = m_scriptFacade->setInterpolatedColorMap( colormapId, interpolatedString );
     }
 
     else if ( cmd == "invertcolormap" ) {
         QString colormapId = args["colormapId"].toString();
-        QString invertString = args["invertString"].toString();
+        QString invertString = args["invertString"].toString().toLower();
         result = m_scriptFacade->invertColorMap( colormapId, invertString );
     }
 
