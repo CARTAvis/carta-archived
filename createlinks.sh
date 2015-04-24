@@ -77,7 +77,7 @@ ln -s $PUREWEBSDK pureweb-4.1.1-sdk
 # CASACORE installation directories
 rmsymlink  casacore-shared
 mkdir -p casacore-shared
-export CASACORE_1_7_0=/usr/local/include/casacore
+export CASACORE_1_7_0=/usr/local/include
 rmsymlink  casacore-shared/include
 rmsymlink  casacore-shared/lib
 ln -s $CASACORE_1_7_0 ./casacore-shared/include 
