@@ -10,8 +10,7 @@ class Histogram(CartaView):
         result = self.con.cmdTagList("applyClips",
                                      histogramView=self.getId(),
                                      clipMinValue=clipMin,
-                                     clipMaxValue=clipMax,
-                                     modeStr=mode)
+                                     clipMaxValue=clipMax, modeStr=mode)
         return result
 
     def applyClipsByPercent(self, clipMin, clipMax):
@@ -40,6 +39,13 @@ class Histogram(CartaView):
         result = self.con.cmdTagList("setPlaneMode",
                                      histogramView=self.getId(),
                                      planeMode=mode)
+        return result
+
+    def setPlaneRange(self, minPlane, maxPlane):
+        result = self.con.cmdTagList("setPlaneRange",
+                                     histogramView=self.getId(),
+                                     minPlane=minPlane,
+                                     maxPlane=maxPlane)
         return result
 
     def setGraphStyle(self, style):

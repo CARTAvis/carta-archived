@@ -329,6 +329,15 @@ public:
     QString setPlaneMode( const QString& histogramId, const QString& planeMode );
 
     /**
+     * Set the range of channels to include as data in generating the histogram.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param minPlane the minimum frequency (GHz) to include.
+     * @param maxPlane the maximum frequency (GHz) to include.
+     * @return an error message if there was a problem setting the frame range; an empty string otherwise.
+     */
+    QString setPlaneRange( const QString& histogramId, double minPlane, double maxPlane );
+
+    /**
      * Set the drawing style for the histogram (outline, filled, etc).
      * @param style a unique identifier for a histogram drawing style.
      * @return an error message if there was a problem setting the draw style; an empty string otherwise.

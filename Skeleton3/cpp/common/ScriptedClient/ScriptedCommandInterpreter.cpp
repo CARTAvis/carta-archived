@@ -317,6 +317,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setPlaneMode( histogramView, planeMode );
     }
 
+    else if ( cmd == "setplanerange" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minPlane = args["minPlane"].toDouble();
+        double maxPlane = args["maxPlane"].toDouble();
+        result = m_scriptFacade->setPlaneRange( histogramView, minPlane, maxPlane );
+    }
+
     else if ( cmd == "setgraphstyle" ) {
         QString histogramView = args["histogramView"].toString();
         QString graphStyle = args["graphStyle"].toString();
