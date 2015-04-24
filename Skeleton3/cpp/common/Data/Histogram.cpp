@@ -1391,10 +1391,10 @@ QString Histogram::setLogCount( bool logCount ){
 QString Histogram::setPlaneMode( const QString& planeModeStr ){
     QString result;
     QString oldPlaneMode = m_state.getValue<QString>(PLANE_MODE);
-    if ( planeModeStr == PLANE_MODE_ALL || planeModeStr == PLANE_MODE_SINGLE ||
-            planeModeStr == PLANE_MODE_RANGE ){
-        if ( planeModeStr != oldPlaneMode ){
-            m_state.setValue<QString>(PLANE_MODE, planeModeStr );
+    QString actualPlaneMode = _getActualPlaneMode( planeModeStr );
+    if ( actualPlaneMode != "" ){
+        if ( actualPlaneMode != oldPlaneMode ){
+            m_state.setValue<QString>(PLANE_MODE, actualPlaneMode );
             m_state.flushState();
             _generateHistogram( true );
         }
@@ -1405,7 +1405,19 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
     return result;
 }
 
-
+QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
+    QString result = "";
+    if ( QString::compare( planeModeStr, PLANE_MODE_ALL, Qt::CaseInsensitive) == 0 ){
+        result = PLANE_MODE_ALL;
+    }
+    else if ( QString::compare( planeModeStr, PLANE_MODE_SINGLE, Qt::CaseInsensitive) == 0 ){
+        result = PLANE_MODE_SINGLE;
+    }
+    else if ( QString::compare( planeModeStr, PLANE_MODE_RANGE, Qt::CaseInsensitive) == 0 ){
+        result = PLANE_MODE_RANGE;
+    }
+    return result;
+}
 
 QString Histogram::_set2DFootPrint( const QString& params ){
     QString result;
@@ -1506,10 +1518,10 @@ void Histogram::_setErrorMargin(){
 QString Histogram::setGraphStyle( const QString& styleStr ){
     QString result;
     QString oldStyle = m_state.getValue<QString>(GRAPH_STYLE);
-    if ( styleStr == GRAPH_STYLE_LINE || styleStr == GRAPH_STYLE_OUTLINE ||
-            styleStr == GRAPH_STYLE_FILL ){
-        if ( styleStr != oldStyle ){
-            m_state.setValue<QString>(GRAPH_STYLE, styleStr );
+    QString actualStyle = _getActualGraphStyle( styleStr );
+    if ( actualStyle != "" ){
+        if ( actualStyle != oldStyle ){
+            m_state.setValue<QString>(GRAPH_STYLE, actualStyle );
             m_state.flushState();
             _generateHistogram( false );
         }
@@ -1520,6 +1532,19 @@ QString Histogram::setGraphStyle( const QString& styleStr ){
     return result;
 }
 
+QString Histogram::_getActualGraphStyle( const QString& styleStr ){
+    QString result = "";
+    if ( QString::compare( styleStr, GRAPH_STYLE_LINE, Qt::CaseInsensitive) == 0 ){
+        result = GRAPH_STYLE_LINE;
+    }
+    else if ( QString::compare( styleStr, GRAPH_STYLE_OUTLINE, Qt::CaseInsensitive) == 0 ){
+        result = GRAPH_STYLE_OUTLINE;
+    }
+    else if ( QString::compare( styleStr, GRAPH_STYLE_FILL, Qt::CaseInsensitive) == 0 ){
+        result = GRAPH_STYLE_FILL;
+    }
+    return result;
+}
 
 QString Histogram::setUseClipBuffer( bool useBuffer ){
     QString result;

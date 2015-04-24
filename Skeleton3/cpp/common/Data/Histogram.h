@@ -305,10 +305,25 @@ private:
     * @param channel the single frame to use for histogram data.
     * @return an error message if there was a problem setting the channel; an empty string otherwise.
     */
-   QString setCubeChannel( int channel );
+    QString setCubeChannel( int channel );
 
+    /**
+    * Check if the given string represents a valid plane mode by doing a case
+    *   insensitive comparison to each of the defined plane mode strings.
+    * @param planeModeStr the string to check.
+    * @return the actual plane mode string if a match is found; an empty
+    *   string otherwise.
+    */
+    QString _getActualPlaneMode( const QString& planeModeStr );
 
-
+    /**
+    * Check if the given string represents a valid graph style by doing a case
+    *   insensitive comparison to each of the defined graph style strings.
+    * @param styleStr the string to check.
+    * @return the actual graph style string if a match is found; an empty
+    *   string otherwise.
+    */
+    QString _getActualGraphStyle( const QString& styleStr );
 
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
     
