@@ -104,6 +104,9 @@ qx.Class
                             if ( this.m_supportedAnimations === null ){
                                 return;
                             }
+                            if ( this.m_identifier === null || this.m_identifier.length === 0 ){
+                                return;
+                            }
                             for (var i = 0; i < this.m_supportedAnimations.length; i++) {
                                 var animId = this.m_supportedAnimations[i];
                                 var animVisible = false;
@@ -153,7 +156,6 @@ qx.Class
                         windowSharedVarUpdate : function( animObj ){
                             this._showHideAnimation( animObj );
                         },
-                        
                         
                         //Shared variable containing all animations.
                         m_sharedVarAnimations : null,
