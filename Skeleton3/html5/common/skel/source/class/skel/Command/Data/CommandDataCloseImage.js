@@ -18,7 +18,7 @@ qx.Class.define("skel.Command.Data.CommandDataCloseImage", {
         var cmd = path.SEP_COMMAND + path.CLOSE_IMAGE;
         this.base( arguments, label, cmd);
         this.m_toolBarVisible = false;
-        this.setEnabled( false );
+        this.setEnabled( true );
         this.m_global = false;
         this.setToolTipText("Remove the image " + this.getLabel() + ".");
     },

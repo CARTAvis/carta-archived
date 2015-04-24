@@ -12,18 +12,14 @@ qx.Class.define("skel.Command.Session.CommandRestore", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.getCommandRestoreState();
-        this.base( arguments, "Restore Session", cmd );
+        this.base( arguments, "Restore...", cmd );
         this.m_toolBarVisible = false;
     },
     
     members : {
         
         doAction : function( vals, undoCB ){
-            var path = skel.widgets.Path.getInstance();
-            this.sendCommand( "", this.m_SAVE_STATE, function(val){} );
-        },
-        
-
-        m_SAVE_STATE: "statename:firstSave"
+            qx.event.message.Bus.dispatch(new qx.event.message.Message( "showSessionRestoreDialog", vals));
+        }
     }
 });

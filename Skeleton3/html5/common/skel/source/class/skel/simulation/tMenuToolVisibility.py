@@ -6,8 +6,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 #Test that the customize dialog can be used to show/hide functionality on the
 #menu and tool bars.
 class tMenuToolVisibility(unittest.TestCase):
+    
     def setUp(self):
         self.driver = webdriver.Firefox()
+        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        self.driver.implicitly_wait(10)
            
     def _verifyClips(self, parentWidget, expectedCount ):
         #Check that there are not clip buttons on the parentWidget by looking for labels with a %
@@ -19,8 +22,6 @@ class tMenuToolVisibility(unittest.TestCase):
     #Test that we can add a clip command to the toolbar and then remove it
     def test_tool_showHideClip(self):    
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         # Right click on the toolbar to bring up the context menu.
         toolBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.ToolBar']")
@@ -74,8 +75,6 @@ class tMenuToolVisibility(unittest.TestCase):
     #Test that we can remove clipping from appearing on the menu bar.
     def test_menu_hideClipping(self):    
         driver = self.driver
-        driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        driver.implicitly_wait(10)
         
         # Click on an CasaImageLoader Window so that clipping is available on the menu.
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")

@@ -24,18 +24,19 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
                 //Removing a window from the layout can change the layout from a recognized one
                 //to a custom one.  So that we don't get the custom layout popup to appear signifying
                 //a layout change, we temporarily disable it.
+                var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
+                layoutCmd.setActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
-                customLayoutCmd.setActive( false );
+                customLayoutCmd.setValue( true );
                 var path = skel.widgets.Path.getInstance();
                 for ( var i = 0; i < activeWins.length; i++ ){
                     var row = activeWins[i].getRow();
                     var col = activeWins[i].getCol();
                     activeWins[i].closeWindow();
                     var params = "row:"+row+",col:"+col;
-                    customLayoutCmd.setValue( true );
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
-                customLayoutCmd.setActive( true );
+                layoutCmd.setActive( true );
             }
         }
     }

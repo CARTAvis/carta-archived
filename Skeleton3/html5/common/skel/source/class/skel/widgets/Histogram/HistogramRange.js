@@ -120,6 +120,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             this.m_minClipText = new skel.widgets.CustomUI.NumericTextField( null, null);
             this.m_minClipText.setToolTipText( "Smallest value on the horizontal axis.");
             this.m_minClipText.setIntegerOnly( false );
+            this.m_minClipText.setTextId( "histogramZoomMinValue");
             this.m_minClipListenerId = this.m_minClipText.addListener( "textChanged", 
                     this._sendClipMinCmd,  this );
             
@@ -128,6 +129,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             this.m_percentMinClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMinClipText.setToolTipText( "Percentage to zoom from the left on the horizontal axis; 0 is no left zoom.");
             this.m_percentMinClipText.setIntegerOnly( false );
+            this.m_percentMinClipText.setTextId( "histogramZoomMinPercent");
             this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged", 
                     this._sendClipMinPercentCmd, this );
             
@@ -141,6 +143,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             maxLabel.setTextAlign( "center");
             this.m_maxClipText = new skel.widgets.CustomUI.NumericTextField( null, null );
             this.m_maxClipText.setToolTipText( "Largest value on the horizontal axis");
+            this.m_maxClipText.setTextId( "histogramZoomMaxValue");
             this.m_maxClipText.setIntegerOnly( false );
             this.m_maxClipListenerId = this.m_maxClipText.addListener( "textChanged", 
                     this._sendClipMaxCmd, this );
@@ -150,6 +153,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             this.m_percentMaxClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMaxClipText.setToolTipText( "Percentage to zoom in from the right on the horizontal axis; 100 is no right zoom.");
             this.m_percentMaxClipText.setIntegerOnly( false );
+            this.m_percentMaxClipText.setTextId( "histogramZoomMaxPercent");
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", 
                     this._sendClipMaxPercentCmd, this );
             

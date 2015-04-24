@@ -25,7 +25,13 @@ public:
      * @param key a lookup key for the state.
      * @return the value of the state.
      */
-    int getState(const QString& key ) const;
+     int getState(const QString& key ) const;
+
+     /**
+      * Returns a json string representing the state of this selection.
+      * @return a string representing the state of this selection.
+      */
+     QString getStateString() const;
 
     /**
      * Returns the current index selection;

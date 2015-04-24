@@ -100,10 +100,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->removeLink(source, dest);
     }
 
-    else if ( cmd == "savestate" ) {
-        QString name = args["name"].toString();
-        result = m_scriptFacade->saveState(name);
-    }
+//    else if ( cmd == "savestate" ) {
+//        QString name = args["name"].toString();
+//        result = m_scriptFacade->saveState(name);
+//    }
 
     else if ( cmd == "getcolormaps" ) {
         result = m_scriptFacade->getColorMaps();

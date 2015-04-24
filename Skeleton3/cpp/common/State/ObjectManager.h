@@ -19,21 +19,40 @@ class CartaObject {
 
 public:
 
-    virtual ~CartaObject () {}
+    virtual ~CartaObject () {};
+
 
     QString addIdToCommand (const QString & commandName) const;
+    //Snapshots of state that can be saved.
+    typedef enum SnapshotType { SNAPSHOT_DATA, SNAPSHOT_PREFERENCES, SNAPSHOT_LAYOUT } SnapshotType;
+
+    /**
+     * Returns a json representation of this object's state.
+     * @param sessionId - an identifier for a user's session.
+     * @param type an identifier for the type of state to be returned.
+     * @return a QString representing this object's state.
+     */
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const;
     QString getClassName () const;
     QString getId () const;
     QString getPath () const;
-    /**
-     * Returns a json representation of this object's state.
-     * @return a QString representing this object's state.
-     */
-    virtual QString getStateString() const;
 
     /**
      * Reset the state of this object.
      * @param state a QString representing a new state for this object.
+     */
+    void resetState( const QString& state, SnapshotType type );
+
+    /**
+     * Reset the data state of this object.
+     * @param state a QString representing the data state of the object.
+     */
+    //By default; does nothing.  Override for objects containing a data state.
+    virtual void resetStateData( const QString& state );
+
+    /**
+     * Reset the user preferences for this object.
+     * @param state - the user preferences for the object.
      */
     virtual void resetState( const QString& state );
 
@@ -106,6 +125,8 @@ public:
         }
         return globalId;
     }
+
+
     virtual ~CartaObjectFactory (){}
 
     virtual CartaObject * create (const QString & path, const QString & id) = 0;
@@ -125,6 +146,15 @@ public:
     QString createObject (const QString & className);
     QString destroyObject (const QString & id);
     CartaObject * getObject (const QString & id);
+
+    /**
+     * Returns a string containing the state of all managed objects as JSON array of strings.
+     * @param sessionId - an identifier for a user's session.
+     * @param snapName - the name of the snapshot.
+     * @param type - the type of state needed.
+     * @return a QString containing the entire state of managed objects.
+     */
+    QString getStateString( const QString& sessionId, const QString& snapName, CartaObject::SnapshotType type ) const;
     void initialize ();
     bool registerClass (const QString & className, CartaObjectFactory * factory);
     ///Initialize the state variables that were persisted.
@@ -168,6 +198,9 @@ public:
     static const QString CreateObject;
     static const QString ClassName;
     static const QString DestroyObject;
+    static const QString STATE_ARRAY;
+    static const QString STATE_ID;
+    static const QString STATE_VALUE;
 
 private:
 

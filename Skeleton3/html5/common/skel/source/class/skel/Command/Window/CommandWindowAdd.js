@@ -22,18 +22,19 @@ qx.Class.define("skel.Command.Window.CommandWindowAdd", {
             if ( skel.Command.Command.m_activeWins.length > 0 ){
                 //Adding a window will change to a custom layout, but we don't want to show
                 //the custom layout dialog in such a case.
+                var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
+                layoutCmd.setActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
-                customLayoutCmd.setActive( false );
+                customLayoutCmd.setValue( true );
                 var path = skel.widgets.Path.getInstance();
                 for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
                     var window = skel.Command.Command.m_activeWins[i];
                     var row = window.getRow();
                     var col = window.getCol();
                     var params = "row:"+row+",col:"+col;
-                    customLayoutCmd.setValue( true );
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
-                customLayoutCmd.setActive( true );
+                layoutCmd.setActive( true );
             }
         }
     }

@@ -82,6 +82,15 @@ qx.Class.define("skel.Command.CommandComposite", {
             }
             return toolVisible;
         },
+        
+        _resetEnabled : function( ){
+            arguments.callee.base.apply(this, arguments);
+            //The children should be enabled based on the state of the composite.
+            var enabled = this.isEnabled();
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                this.m_cmds[i].setEnabled( enabled );
+            }
+        },
        
         setVisibleMenu : function( visible){
             for ( var i = 0; i < this.m_cmds.length; i++ ){

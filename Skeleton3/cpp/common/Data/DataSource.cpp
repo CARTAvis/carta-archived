@@ -18,28 +18,9 @@ namespace Carta {
 
 namespace Data {
 
-const QString DataSource::CLASS_NAME = "DataSource";
-
-class DataSource::Factory : public CartaObjectFactory {
-
-    public:
-
-        CartaObject * create (const QString & path, const QString & id)
-        {
-            return new DataSource (path, id);
-        }
-};
-
-bool DataSource::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
-                                                   new DataSource::Factory());
-
 const QString DataSource::DATA_PATH = "dataPath";
 
-
-
-DataSource::DataSource(const QString& path, const QString& id) :
-    CartaObject( CLASS_NAME, path, id),
+DataSource::DataSource() :
     m_image( nullptr )
     {
         m_cmapUseCaching = true;
@@ -61,8 +42,6 @@ DataSource::DataSource(const QString& path, const QString& id) :
         m_pixelPipeline-> setColormap( std::make_shared < Carta::Core::GrayColormap > () );
         m_pixelPipeline-> setMinMax( 0, 1 );
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
-
-        _initializeState();
 }
 
 bool DataSource::contains(const QString& fileName) const {
@@ -73,50 +52,54 @@ bool DataSource::contains(const QString& fileName) const {
     return representsData;
 }
 
-QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight ){
+QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
-    int imgX = mouseX * m_image-> dims()[0] / pictureWidth;
-    int imgY = mouseY * m_image-> dims()[1] / pictureHeight;
-    imgY = m_image-> dims()[1] - imgY - 1;
-
-    CoordinateFormatterInterface::SharedPtr cf(
-            m_image-> metaData()-> coordinateFormatter()-> clone() );
-
-    std::vector < QString > knownSCS2str {
-            "Unknown", "J2000", "B1950", "ICRS", "Galactic",
-            "Ecliptic"
-        };
-    std::vector < KnownSkyCS > css {
-            KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-            KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
-        };
-     out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
-     out << "Image cursor:" << imgX << "," << imgY << "\n";
-
-     for ( auto cs : css ) {
-        cf-> setSkyCS( cs );
-        out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
-        std::vector < Carta::Lib::AxisInfo > ais;
-        for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
-            const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
-            ais.push_back( ai );
+    
+    bool valid = false;
+    QPointF imgPt = getImagePt( lastMouse, &valid );
+    if ( valid ){
+        int imgX = imgPt.x();
+        int imgY = imgPt.y();
+    
+        CoordinateFormatterInterface::SharedPtr cf(
+                m_image-> metaData()-> coordinateFormatter()-> clone() );
+    
+        std::vector < QString > knownSCS2str {
+                "Unknown", "J2000", "B1950", "ICRS", "Galactic",
+                "Ecliptic"
+            };
+        std::vector < KnownSkyCS > css {
+                KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
+                KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
+            };
+         out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
+         out << "Image cursor:" << imgX << "," << imgY << "\n";
+    
+         for ( auto cs : css ) {
+            cf-> setSkyCS( cs );
+            out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+            std::vector < Carta::Lib::AxisInfo > ais;
+            for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
+                const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
+                ais.push_back( ai );
+            }
+            std::vector < double > pixel( m_image-> dims().size(), 0.0 );
+            pixel[0] = imgX;
+            pixel[1] = imgY;
+            if( pixel.size() > 2) {
+               pixel[2] = frameIndex;
+            }
+            auto list = cf-> formatFromPixelCoordinate( pixel );
+            for ( size_t i = 0 ; i < ais.size() ; i++ ) {
+                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+            }
+            out << "\n";
         }
-        std::vector < double > pixel( m_image-> dims().size(), 0.0 );
-        pixel[0] = imgX;
-        pixel[1] = imgY;
-        if( pixel.size() > 2) {
-           pixel[2] = frameIndex;
-        }
-        auto list = cf-> formatFromPixelCoordinate( pixel );
-        for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-            out << ais[i].shortLabel().html() << ":" << list[i] << " ";
-        }
-        out << "\n";
+
+        str.replace( "\n", "<br />" );
     }
-
-    str.replace( "\n", "<br />" );
     return str;
 }
 
@@ -292,10 +275,6 @@ QSize DataSource::getOutputSize() const {
     return m_renderService->getOutputSize();
 }
 
-void DataSource::_initializeState(){
-    m_state.insertValue<QString>( DATA_PATH, "");
-}
-
 void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
 
     if ( frameIndex < 0 ) {
@@ -445,14 +424,6 @@ void DataSource::setCacheSize( int cacheSize ){
 void DataSource::setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
-}
-
-
-void DataSource::saveState( ) {
-    QString oldSavedFile = m_state.getValue<QString>( DATA_PATH );
-    if ( m_fileName != oldSavedFile ){
-        m_state.setValue<QString>( DATA_PATH, m_fileName );
-    }
 }
 
 void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,

@@ -25,7 +25,6 @@ HEADERS += \
     State/ObjectManager.h \
     State/StateInterface.h \
     State/StateReader.h \
-    State/StateWriter.h \
     ImageView.h \
     Data/Animator.h \
     Data/AnimatorType.h \
@@ -49,6 +48,7 @@ HEADERS += \
     Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
+    Data/Snapshots.h \
     Data/Statistics.h \
     Data/TransformsData.h \
     Data/TransformsImage.h \
@@ -87,7 +87,6 @@ SOURCES += \
     State/ObjectManager.cpp\
     State/StateInterface.cpp \
     State/StateReader.cpp \
-    State/StateWriter.cpp \
     ImageView.cpp \
     Data/Animator.cpp \
     Data/AnimatorType.cpp \
@@ -108,6 +107,7 @@ SOURCES += \
     Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
+    Data/Snapshots.cpp \
     Data/Statistics.cpp \
     Data/TransformsData.cpp \
     Data/TransformsImage.cpp \

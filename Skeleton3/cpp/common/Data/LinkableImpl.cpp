@@ -7,10 +7,11 @@ namespace Carta {
 namespace Data {
 
 const QString LinkableImpl::LINK = "links";
+const QString LinkableImpl::PARENT_ID = "source";
 
-LinkableImpl::LinkableImpl( StateInterface* state ){
-    m_state = state;
-    _initializeState();
+LinkableImpl::LinkableImpl( const QString& parentPath ):
+    m_state( parentPath +StateInterface::DELIMITER+LINK, "LinkableImpl" ){
+    _initializeState( parentPath );
 
 }
 
@@ -29,19 +30,19 @@ bool LinkableImpl::addLink( CartaObject* cartaObj ){
 
 void LinkableImpl::_adjustState(){
     int cartaObjCount = m_cartaObjs.size();
-    m_state->resizeArray( LINK, cartaObjCount );
+    m_state.resizeArray( LINK, cartaObjCount );
     for ( int i = 0; i < cartaObjCount; i++ ){
         QString idStr( LINK + StateInterface::DELIMITER + QString::number(i));
-        m_state->setValue<QString>(idStr, m_cartaObjs[i]->getPath());
+        m_state.setValue<QString>(idStr, m_cartaObjs[i]->getPath());
     }
-    m_state->flushState();
+    m_state.flushState();
 }
 
 
 void LinkableImpl::clear(){
     m_cartaObjs.clear();
-    m_state->resizeArray( LINK, 0 );
-    m_state->flushState();
+    m_state.resizeArray( LINK, 0 );
+    m_state.flushState();
 }
 
 int LinkableImpl::_getIndex( CartaObject* cartaObj ){
@@ -68,7 +69,7 @@ CartaObject* LinkableImpl::getLink( int index ) const {
 }
 
 int LinkableImpl::getLinkCount() const {
-    int linkCount = m_state->getArraySize( LINK );
+    int linkCount = m_state.getArraySize( LINK );
     return linkCount;
 }
 
@@ -85,13 +86,19 @@ QString LinkableImpl::getLinkId( int linkIndex ) const {
     QString linkId;
     if ( 0 <= linkIndex && linkIndex < getLinkCount()){
         QString idStr( LINK + StateInterface::DELIMITER + QString::number(linkIndex));
-        linkId = m_state->getValue<QString>( idStr );
+        linkId = m_state.getValue<QString>( idStr );
     }
     return linkId;
 }
 
-void LinkableImpl::_initializeState(){
-    m_state->insertArray(LINK, 0 );
+QString LinkableImpl::getStateString() const{
+    return m_state.toString();
+}
+
+void LinkableImpl::_initializeState( const QString& parentPath ){
+    m_state.insertArray(LINK, 0 );
+    m_state.insertValue<QString>(PARENT_ID,parentPath);
+    m_state.flushState();
 }
 
 bool LinkableImpl::removeLink( CartaObject* cartaObj ){

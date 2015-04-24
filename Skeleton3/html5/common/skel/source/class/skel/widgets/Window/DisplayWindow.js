@@ -320,6 +320,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_identifier );
             this.m_sharedVar.addCB( this._sharedVarCB.bind( this ));
             this._sharedVarCB( this.m_sharedVar.get());
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVarLink = this.m_connector.getSharedVar( this.m_identifier + path.SEP + "links");
+            this.m_sharedVarLink.addCB( this._sharedVarLinkCB.bind( this));
+            this._sharedVarLinkCB( this.m_sharedVarLink.get());
         },
         
         /**
@@ -512,10 +516,26 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         
         
         /**
-         * Callback for a data state change for this window.
+         * Callback for a state change for this window.
          */
         _sharedVarCB : function( ){
             var val = this.m_sharedVar.get();
+            if ( val ){
+                try {
+                    var winObj = JSON.parse( val );
+                    this.windowSharedVarUpdate( winObj );
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
+                }
+            }
+        },
+        
+        /**
+         * Callback for a link state change for this window.
+         */
+        _sharedVarLinkCB : function( ){
+            var val = this.m_sharedVarLink.get();
             if ( val ){
                 try {
                     var winObj = JSON.parse( val );
@@ -532,7 +552,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                             qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
                         }
                     }
-                    this.windowSharedVarUpdate( winObj );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
@@ -647,6 +666,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         //Connected variables 
         m_connector : null,
         m_sharedVar : null,
+        m_sharedVarLink : null,
         
         //Server side object id
         m_identifier : "",

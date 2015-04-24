@@ -232,13 +232,13 @@ public:
      */
     QStringList saveFullImage( const QString& controlId, const QString& fileName, double scale );
 
-    /**
-     * Save the current layout to a .json file in the /tmp directory.
-     * @param fileName the base name of the file. The layout will be saved to
-     * /tmp/fileName.json.
-     * @return whether the operation was a success or not.
-     */
-    QStringList saveState( const QString& saveName );
+//    /**
+//     * Save the current layout to a .json file in the /tmp directory.
+//     * @param fileName the base name of the file. The layout will be saved to
+//     * /tmp/fileName.json.
+//     * @return whether the operation was a success or not.
+//     */
+//    QStringList saveState( const QString& saveName );
 
     /**
      * Get the animators that are linked to the given image view.

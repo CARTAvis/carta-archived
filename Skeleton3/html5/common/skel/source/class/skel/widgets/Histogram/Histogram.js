@@ -29,7 +29,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         },
         
         /**
-         * Callback for a change in histogram settings.
+         * Callback for a change in histogram preference settings.
          */
         _histogramChangedCB : function(){
             var val = this.m_sharedVar.get();
@@ -41,21 +41,15 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                         this.m_binSettings.setBinWidth(hist.binWidth );
                     }
                     if ( this.m_clipSettings !== null ){
-                        this.m_clipSettings.setColorRange( hist.colorMin, hist.colorMax );
-                        this.m_clipSettings.setColorRangePercent( hist.colorMinPercent, hist.colorMaxPercent);
                         this.m_clipSettings.setCustomClip( hist.customClip );
                     }
                     
                     if ( this.m_rangeSettings !== null ){
-                        this.m_rangeSettings.setClipBounds( hist.clipMin, hist.clipMax );
-                        this.m_rangeSettings.setClipPercents( hist.clipMinPercent, hist.clipMaxPercent);
                         this.m_rangeSettings.setBuffer( hist.useClipBuffer );
-                        this.m_rangeSettings.setBufferAmount( hist.clipBuffer );
                     }
                     if ( this.m_cubeSettings !== null ){
                         this.m_cubeSettings.setPlaneMode( hist.planeMode );
                         this.m_cubeSettings.setUnit( hist.rangeUnit );
-                        this.m_cubeSettings.setPlaneBounds( hist.planeMin, hist.planeMax );
                     }
                    
                     if ( this.m_displaySettings !== null ){
@@ -77,6 +71,37 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             }
         },
         
+        /**
+         * Callback for a change in histogram data dependent settings.
+         */
+        _histogramDataCB : function(){
+            var val = this.m_sharedVarData.get();
+            if ( val ){
+                try {
+                    var hist = JSON.parse( val );
+                    if ( this.m_clipSettings !== null ){
+                        this.m_clipSettings.setColorRange( hist.colorMin, hist.colorMax );
+                        this.m_clipSettings.setColorRangePercent( hist.colorMinPercent, hist.colorMaxPercent);
+                    }
+                    
+                    if ( this.m_rangeSettings !== null ){
+                        this.m_rangeSettings.setClipBounds( hist.clipMin, hist.clipMax );
+                        this.m_rangeSettings.setClipPercents( hist.clipMinPercent, hist.clipMaxPercent);
+                        this.m_rangeSettings.setBufferAmount( hist.clipBuffer );
+                    }
+                    if ( this.m_cubeSettings !== null ){
+                        this.m_cubeSettings.setPlaneBounds( hist.planeMin, hist.planeMax );
+                    }
+                   
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.clearErrors();
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val+" error: "+err );
+                }
+            }
+        },
+        
         
         /**
          * Initializes the UI.
@@ -89,7 +114,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_settingsVisible = false;
             this._initMain();
             this._initControls();
-            
         },
        
         /**
@@ -178,8 +202,12 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._histogramChangedCB.bind(this));
+            var dataPath = this.m_id + path.SEP + "data";
+            this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
+            this.m_sharedVarData.addCB( this._histogramDataCB.bind( this));
             this._initView();
             this._histogramChangedCB();
+            this._histogramDataCB();
             
         },
         
@@ -238,6 +266,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_id : null,
         m_connector : null,
         m_sharedVar : null,
+        m_sharedVarData : null,
         
         m_view : null
     }

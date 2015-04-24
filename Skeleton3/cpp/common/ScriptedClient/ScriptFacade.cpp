@@ -306,11 +306,13 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
     return resultList;
 }
 
+/*
 QStringList ScriptFacade::saveState( const QString& saveName ) {
-    QString result = m_viewManager->saveState( saveName );
+    QString result = m_viewManager->saveState( "fakeSessionId", saveName, true, true, true );
     QStringList resultList(result);
     return resultList;
 }
+*/
 
 QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
     QStringList linkedColorMaps = m_viewManager->getLinkedColorMaps( controlId );

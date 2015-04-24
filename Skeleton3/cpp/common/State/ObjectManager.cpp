@@ -14,7 +14,7 @@ using namespace std;
 
 QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits", "Clips", "Colormaps",
         "DataLoader","TransformsImage","TransformsData","ErrorManager","Layout",
-        "Preferences","ViewManager"};
+        "Preferences","Snapshots","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -23,6 +23,12 @@ QString CartaObject::addIdToCommand (const QString & command) const {
     }
     return fullCommand;
 }
+
+QString CartaObject::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
+    return "";
+}
+
+
 
 QString
 CartaObject::getClassName () const
@@ -52,12 +58,24 @@ CartaObject::CartaObject (const QString & className,
   m_path (path){
     }
 
-QString CartaObject::getStateString() const {
-    return m_state.toString();
+void CartaObject::resetState( const QString& state, SnapshotType type ){
+    if ( type == SNAPSHOT_DATA){
+        resetStateData( state );
+    }
+    else if ( type == SNAPSHOT_PREFERENCES ){
+        resetState( state );
+    }
+    else {
+        qDebug() << "Unsupport resetState type="<<type;
+    }
 }
 
 void CartaObject::resetState( const QString& state ){
     m_state.setState( state );
+    m_state.flushState();
+}
+
+void CartaObject::resetStateData( const QString& /*state*/ ){
 }
 
 void
@@ -109,6 +127,9 @@ CartaObject::removeId (const QString & commandAndId)
 const QString ObjectManager::CreateObject = "CreateObject";
 const QString ObjectManager::ClassName = "ClassName";
 const QString ObjectManager::DestroyObject = "DestroyObject";
+const QString ObjectManager::STATE_ARRAY = "states";
+const QString ObjectManager::STATE_ID = "id";
+const QString ObjectManager::STATE_VALUE = "state";
 
 ObjectManager::ObjectManager ()
 :       m_root( "CartaObjects"),
@@ -123,6 +144,31 @@ QString ObjectManager::getRootPath() const {
 
 QString ObjectManager::getRoot() const {
     return m_root;
+}
+
+QString ObjectManager::getStateString( const QString& sessionId, const QString& rootName, CartaObject::SnapshotType type ) const {
+    StateInterface state( rootName );
+    int stateCount = m_objects.size();
+    state.insertArray( STATE_ARRAY, stateCount );
+    int arrayIndex = 0;
+    //Create an array of object with each object having an id and state.
+    for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+        CartaObject* obj = it->second.getObject();
+        QString objState = obj->getStateString( sessionId, type );
+        if ( !objState.isEmpty() && objState.trimmed().length() > 0){
+           QString lookup = STATE_ARRAY + StateInterface::DELIMITER + QString::number( arrayIndex );
+           QString idStr = lookup + StateInterface::DELIMITER + STATE_ID;
+           state.insertValue<QString>( idStr, it->first );
+           QString objStr = lookup + StateInterface::DELIMITER + STATE_VALUE;
+           state.insertValue<QString>( objStr, objState );
+           arrayIndex++;
+        }
+    }
+    //Because some of the objects may not support a snapshot of type,
+    //the original array that was created may be too large.  We resize
+    //it according to actual contents.
+    state.resizeArray( STATE_ARRAY, arrayIndex, StateInterface::PreserveAll );
+    return state.toString();
 }
 
 

@@ -19,8 +19,9 @@ class LinkableImpl {
 public:
     /**
      * Constructor.
+     * @param parentPath - server-side id of the link source.
      */
-    LinkableImpl( StateInterface* state );
+    LinkableImpl( const QString& parentPath );
 
     /**
      * Clear all links.
@@ -49,19 +50,30 @@ public:
      */
     QList<QString> getLinkIds() const;
 
+    /**
+     * Return a string representing the link destinations that have been added.
+     * @return a QString representing the corresponding linkages.
+     */
+    QString getStateString() const;
+
     CartaObject* searchLinks(const QString& link);
 
     bool removeLink( CartaObject* cartaObj );
     bool addLink( CartaObject* cartaObj );
     virtual ~LinkableImpl();
-private:
 
     const static QString LINK;
+    const static QString PARENT_ID;
+
+private:
+
 
     /**
      * Initialize default state.
+     * @param parentPath - the server side id of the parent object for which the links are
+     *      being maintained.
      */
-    void _initializeState();
+    void _initializeState( const QString& parentPath);
 
     /**
      * Update the state when links change.
@@ -74,9 +86,10 @@ private:
      * @return a nonnegative index if the image view is linked; -1 otherwise.
      */
     int _getIndex( CartaObject* cartaObj );
+
     /// List of cartaObjs managed by this animator.
     QList<CartaObject* > m_cartaObjs;
-    StateInterface* m_state; //Used
+    StateInterface m_state; //Used
 
     LinkableImpl( const LinkableImpl& other);
     LinkableImpl operator=( const LinkableImpl& other );
