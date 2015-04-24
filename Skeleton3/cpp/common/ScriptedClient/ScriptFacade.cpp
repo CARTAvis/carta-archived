@@ -403,3 +403,9 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::setColored( const QString& histogramId, const QString& colored ) {
+    QString result = m_viewManager->setColored( histogramId, colored );
+    QStringList resultList(result);
+    return resultList;
+}

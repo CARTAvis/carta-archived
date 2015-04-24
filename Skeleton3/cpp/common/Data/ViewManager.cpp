@@ -1214,6 +1214,30 @@ QString ViewManager::setLogCount( const QString& histogramId, const QString& log
     return result;
 }
 
+QString ViewManager::setColored( const QString& histogramId, const QString& coloredStr ){
+    QString result = "";
+    bool validBool = false;
+    bool colored = Util::toBool( coloredStr, &validBool );
+    if ( validBool || coloredStr.toLower() == "toggle" ) {
+        int histogramCount = getHistogramCount();
+        for ( int i = 0; i < histogramCount; i++ ){
+            QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+            if ( histogramId == histogramPath ){
+                if ( coloredStr.toLower() == "toggle" ) {
+                    bool currentColored = m_histograms[i]->getColored();
+                    colored = !currentColored;
+                }
+                result = m_histograms[i]->setColored( colored );
+                break;
+            }
+        }
+    }
+    else {
+        result = "Set colored parameter must be true/false: " + coloredStr;
+    }
+    return result;
+}
+
 QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
     QString result;
     ObjectManager* objMan = ObjectManager::objectManager();

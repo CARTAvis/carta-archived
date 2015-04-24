@@ -326,7 +326,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     else if ( cmd == "setlogcount" ) {
         QString histogramView = args["histogramView"].toString();
         QString logCount = args["logCount"].toString().toLower();
-        result = m_scriptFacade->setLogCount( histogramView, logCount);
+        result = m_scriptFacade->setLogCount( histogramView, logCount );
+    }
+
+    else if ( cmd == "setcolored" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString colored = args["colored"].toString().toLower();
+        result = m_scriptFacade->setColored( histogramView, colored );
     }
 
     /// commands for testing

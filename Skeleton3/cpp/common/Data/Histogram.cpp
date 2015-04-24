@@ -1180,6 +1180,11 @@ QString Histogram::setColored( bool colored ){
     return result;
 }
 
+bool Histogram::getColored(){
+    bool colored = m_state.getValue<bool>(GRAPH_COLORED);
+    return colored;
+}
+
 QString Histogram::setColorMin( double colorMin, bool finish ){
     QString result;
     double oldMin = m_stateData.getValue<double>(COLOR_MIN);

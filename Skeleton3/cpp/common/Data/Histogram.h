@@ -174,6 +174,12 @@ public:
     QString setColored( bool colored );
 
     /**
+    * Determine whether or not the histogram is colored by intensity.
+    * @return true if the histogram is colored by intensity; false otherwise.
+    */
+    bool getColored();
+
+    /**
      * Set the drawing style for the histogram (outline, filled, etc).
      * @param style a unique identifier for a histogram drawing style.
      * @return an error message if there was a problem setting the draw style; an empty string otherwise.
@@ -189,7 +195,7 @@ public:
 
     /**
     * Determine whether or not the vertical axis is using a log scale.
-    * @return the current status of the GRAPH_LOG_COUNT state variable.
+    * @return true if the vertical axis is using a log scale; false otherwise.
     */
     bool getLogCount();
 

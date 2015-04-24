@@ -53,3 +53,9 @@ class Histogram(CartaView):
                                      histogramView=self.getId(),
                                      logCount=str(logCount))
         return result
+
+    def setColored(self, colored='toggle'):
+        result = self.con.cmdTagList("setColored",
+                                     histogramView=self.getId(),
+                                     colored=str(colored))
+        return result
