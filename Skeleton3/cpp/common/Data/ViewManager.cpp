@@ -1190,6 +1190,19 @@ QString ViewManager::setPlaneRange( const QString& histogramId, double minPlane,
     return result;
 }
 
+QString ViewManager::setChannelUnit( const QString& histogramId, const QString& units ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->setChannelUnit( units );
+            break;
+        }
+    }
+    return result;
+}
+
 QString ViewManager::setGraphStyle( const QString& histogramId, const QString& style ){
     QString result = "";
     int histogramCount = getHistogramCount();

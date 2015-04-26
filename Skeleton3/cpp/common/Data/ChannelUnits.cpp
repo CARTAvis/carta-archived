@@ -89,7 +89,7 @@ int ChannelUnits::getIndex( const QString& unit ) const {
     int unitIndex = -1;
     int unitCount = m_unitList.size();
     for ( int i = 0; i < unitCount; i++ ){
-        if ( m_unitList[i] == unit){
+        if ( m_unitList[i].toLower() == unit.toLower() ){
             unitIndex = i;
             break;
         }

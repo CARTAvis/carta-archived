@@ -1509,12 +1509,13 @@ QString Histogram::setChannelUnit( const QString& units ){
     QString oldUnits = m_state.getValue<QString>(FREQUENCY_UNIT);
     int unitIndex = m_channelUnits->getIndex( units );
     if ( unitIndex >= 0 ){
-        if ( oldUnits != units ){
-            m_state.setValue<QString>(FREQUENCY_UNIT, units );
+        QString unitsProperCase = m_channelUnits->getUnit( unitIndex );
+        if ( oldUnits != unitsProperCase ){
+            m_state.setValue<QString>(FREQUENCY_UNIT, unitsProperCase );
             double oldPlaneMin = m_stateData.getValue<double>(PLANE_MIN);
-            double planeMin = m_channelUnits->convert( oldUnits, units, oldPlaneMin );
+            double planeMin = m_channelUnits->convert( oldUnits, unitsProperCase, oldPlaneMin );
             double oldPlaneMax = m_stateData.getValue<double>(PLANE_MAX);
-            double planeMax = m_channelUnits->convert( oldUnits, units, oldPlaneMax );
+            double planeMax = m_channelUnits->convert( oldUnits, unitsProperCase, oldPlaneMax );
             result = setPlaneRange( planeMin, planeMax );
             m_state.flushState();
         }

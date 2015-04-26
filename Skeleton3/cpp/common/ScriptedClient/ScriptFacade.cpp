@@ -398,6 +398,12 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
     return resultList;
 }
 
+QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QString& units ) {
+    QString result = m_viewManager->setChannelUnit( histogramId, units );
+    QStringList resultList(result);
+    return resultList;
+}
+
 QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QString& style ) {
     QString result = m_viewManager->setGraphStyle( histogramId, style );
     QStringList resultList(result);

@@ -348,6 +348,15 @@ public:
     QStringList setPlaneRange( const QString& histogramId, double minPlane, double maxPlane );
 
     /**
+     * Set the unit used to specify a channel range, for example, "GHz".
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param units the channel units used to specify a range.
+     * @return an error message if there was a problem setting the channel units;
+     *      otherwise and empty string.
+     */
+    QStringList setChannelUnit( const QString& histogramId, const QString& units );
+
+    /**
      * Set the drawing style for the histogram (outline, filled, etc).
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param style a unique identifier for a histogram drawing style.

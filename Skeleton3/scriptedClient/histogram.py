@@ -48,6 +48,12 @@ class Histogram(CartaView):
                                      maxPlane=maxPlane)
         return result
 
+    def setChannelUnit(self, unit):
+        result = self.con.cmdTagList("setChannelUnit",
+                                     histogramView=self.getId(),
+                                     unit=unit)
+        return result
+
     def setGraphStyle(self, style):
         result = self.con.cmdTagList("setGraphStyle",
                                      histogramView=self.getId(),

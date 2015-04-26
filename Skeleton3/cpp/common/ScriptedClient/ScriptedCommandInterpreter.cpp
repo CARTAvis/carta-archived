@@ -324,6 +324,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setPlaneRange( histogramView, minPlane, maxPlane );
     }
 
+    else if ( cmd == "setchannelunit" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString unit = args["unit"].toString();
+        result = m_scriptFacade->setChannelUnit( histogramView, unit );
+    }
+
     else if ( cmd == "setgraphstyle" ) {
         QString histogramView = args["histogramView"].toString();
         QString graphStyle = args["graphStyle"].toString();
