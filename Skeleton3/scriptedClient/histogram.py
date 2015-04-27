@@ -6,6 +6,12 @@ from cartaview import CartaView
 class Histogram(CartaView):
     """Represents a histogram view"""
 
+    def setClipRange(self, minRange, maxRange):
+        result = self.con.cmdTagList("setClipRange",
+                                     histogramView=self.getId(),
+                                     minRange=minRange, maxRange=maxRange)
+        return result
+
     def applyClips(self, clipMin, clipMax, mode):
         result = self.con.cmdTagList("applyClips",
                                      histogramView=self.getId(),

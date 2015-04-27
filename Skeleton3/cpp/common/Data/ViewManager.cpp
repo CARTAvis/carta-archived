@@ -1112,6 +1112,18 @@ QString ViewManager::getIntensity( const QString& controlId, int frameLow, int f
     return result;
 }
 
+QString ViewManager::setClipRange( const QString& histogramId, double minRange, double maxRange ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->setClipRange( minRange, maxRange );
+            break;
+        }
+    }
+    return result;
+}
 
 QString ViewManager::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ){
     QString result = "";

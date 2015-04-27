@@ -291,6 +291,15 @@ public:
     bool setPlugins( const QStringList& names );
 
     /**
+     * Set the lower and upper bounds for the histogram horizontal axis.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param minRange a lower bound for the histogram horizontal axis.
+     * @param maxRange an upper bound for the histogram horizontal axis.
+     * @return an error message if there was a problem setting the range; an empty string otherwise.
+     */
+    QString setClipRange( const QString& histogramId, double minRange, double maxRange );
+
+    /**
      * Applies clips to image.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param clipMinValue the minimum of data to be shown.

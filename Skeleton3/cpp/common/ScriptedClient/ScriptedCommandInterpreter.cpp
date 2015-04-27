@@ -291,6 +291,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     /// histogram commands
 
+    else if ( cmd == "setcliprange" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minRange = args["minRange"].toDouble();
+        double maxRange = args["maxRange"].toDouble();
+        result = m_scriptFacade->setClipRange( histogramView, minRange, maxRange );
+    }
+
     else if ( cmd == "applyclips" ) {
         QString histogramView = args["histogramView"].toString();
         double clipMinValue = args["clipMinValue"].toDouble();
