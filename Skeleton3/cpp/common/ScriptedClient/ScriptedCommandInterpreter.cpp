@@ -348,6 +348,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setColored( histogramView, colored );
     }
 
+    else if ( cmd == "savehistogram" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString filename = args["filename"].toString();
+        int width = args["width"].toInt();
+        int height = args["height"].toInt();
+        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

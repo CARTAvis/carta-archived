@@ -1656,6 +1656,17 @@ void Histogram::_updateColorMap( Colormap* map ){
     _generateHistogram( false );
 }
 
+QString Histogram::saveHistogram( const QString& filename, int width, int height ){
+    QString result = "";
+    Carta::Histogram::HistogramGenerator m_histogramSaver = *m_histogram;
+    if ( width > 0 && height > 0 ) {
+        m_histogramSaver.setSize( width, height );
+    }
+    QImage * histogramImageSaver = m_histogramSaver.toImage();
+    histogramImageSaver->save( filename );
+    return result;
+}
+
 void Histogram::_updateSize( const QSize& size ){
     m_histogram->setSize( size.width(), size.height());
     _generateHistogram( false );

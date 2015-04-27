@@ -384,6 +384,15 @@ public:
      */
     QStringList setColored( const QString& histogramId, const QString& colored );
 
+    /**
+     * Save a copy of the histogram as an image.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width, in pixels, of the saved image.
+     * @param height the height, in pixels, of the saved image.
+     */
+    QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

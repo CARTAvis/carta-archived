@@ -1264,6 +1264,19 @@ QString ViewManager::setColored( const QString& histogramId, const QString& colo
     return result;
 }
 
+QString ViewManager::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->saveHistogram( filename, width, height );
+            break;
+        }
+    }
+    return result;
+}
+
 QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
     QString result;
     ObjectManager* objMan = ObjectManager::objectManager();

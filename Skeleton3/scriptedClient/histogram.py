@@ -71,3 +71,10 @@ class Histogram(CartaView):
                                      histogramView=self.getId(),
                                      colored=str(colored))
         return result
+
+    def saveHistogram(self, filename, width=-1, height=-1):
+        result = self.con.cmdTagList("saveHistogram",
+                                     filename=filename,
+                                     histogramView=self.getId(),
+                                     width=width, height=height)
+        return result

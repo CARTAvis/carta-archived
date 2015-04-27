@@ -286,6 +286,14 @@ public:
      */
     QString setSignificantDigits( int digits );
 
+    /**
+     * Save a copy of the histogram as an image.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width, in pixels, of the saved image.
+     * @param height the height, in pixels, of the saved image.
+     */
+    QString saveHistogram( const QString& filename, int width, int height );
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
     const static QString GRAPH_STYLE_LINE;

@@ -421,3 +421,9 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
     QStringList resultList(result);
     return resultList;
 }
+
+QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ) {
+    QString result = m_viewManager->saveHistogram( histogramId, filename, width, height );
+    QStringList resultList(result);
+    return resultList;
+}
