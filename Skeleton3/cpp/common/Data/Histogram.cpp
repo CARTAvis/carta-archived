@@ -1663,7 +1663,10 @@ QString Histogram::saveHistogram( const QString& filename, int width, int height
         m_histogramSaver.setSize( width, height );
     }
     QImage * histogramImageSaver = m_histogramSaver.toImage();
-    histogramImageSaver->save( filename );
+    bool resultBool = histogramImageSaver->save( filename );
+    if ( !resultBool ) {
+        result = "Error saving histogram to " + filename;
+    }
     return result;
 }
 

@@ -379,6 +379,8 @@ public:
      * @param filename the full path where the file is to be saved.
      * @param width the width, in pixels, of the saved image.
      * @param height the height, in pixels, of the saved image.
+     * @return an error message if there was a problem saving the histogram;
+     *      an empty string otherwise.
      */
     QString saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
 
