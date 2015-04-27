@@ -179,8 +179,22 @@ public:
      */
     void saveState();
 
+    /**
+     * Save a screenshot of the current image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param filename the full path where the file is to be saved.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     */
     bool saveImage( const QString& filename );
 
+    /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param fileName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     */
     bool saveFullImage( const QString& filename, double scale );
 
     /**

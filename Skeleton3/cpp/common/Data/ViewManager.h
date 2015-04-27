@@ -212,6 +212,8 @@ public:
      * Save a screenshot of the current image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param filename the full path where the file is to be saved.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
      */
     bool saveImage( const QString& controlId, const QString& filename );
 
@@ -220,6 +222,8 @@ public:
      * @param controlId the unique server-side id of an object managing a controller.
      * @param fileName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
      */
     bool saveFullImage( const QString& controlId, const QString& filename, double scale );
 
