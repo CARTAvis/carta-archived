@@ -107,10 +107,11 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
          * Initializes the UI.
          */
         _init : function( ) {
-            var widgetLayout = new qx.ui.layout.Grow();
-            this._setLayout(widgetLayout);
-            this.setAllowGrowX( true );
-            this.setAllowGrowY( true );
+            this._setLayout(new qx.ui.layout.Grow());
+            this.m_content = new qx.ui.container.Composite();
+            this._add( this.m_content );
+            this.m_content.setLayout(new qx.ui.layout.VBox());
+            
             this.m_settingsVisible = false;
             this._initMain();
             this._initControls();
@@ -157,7 +158,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                 allowGrowY: true
             });
             
-            this._add(this.m_mainComposite);
+            this.m_content.add( this.m_mainComposite, {flex:1});
         },
         
         /**
@@ -174,6 +175,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     this.m_mainComposite.add( this.m_view, {flex:1} );
 
                 }
+                
             }
         },
         
@@ -182,13 +184,13 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
          */
         layoutControls : function(){
             if(this.m_settingsVisible){
-                if ( this.m_mainComposite.indexOf( this.m_settingsContainer) < 0 ){
-                    this.m_mainComposite.add( this.m_settingsContainer );
+                if ( this.m_content.indexOf( this.m_settingsContainer ) < 0 ){
+                    this.m_content.add( this.m_settingsContainer );
                 }
             }
             else{
-                if ( this.m_mainComposite.indexOf( this.m_settingsContainer) >= 0 ){
-                    this.m_mainComposite.remove( this.m_settingsContainer );
+                if ( this.m_content.indexOf( this.m_settingsContainer ) >= 0 ){
+                    this.m_content.remove( this.m_settingsContainer );
                 }
             }
         },
@@ -250,6 +252,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.layoutControls();
         },
         
+        m_content : null,
         m_mainComposite : null,
         m_settingsContainer : null,
         m_settingsVisible : null,
