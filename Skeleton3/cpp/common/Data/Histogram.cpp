@@ -1587,6 +1587,10 @@ QString Histogram::setUseClipBuffer( bool useBuffer ){
     return result;
 }
 
+bool Histogram::getUseClipBuffer(){
+    bool useBuffer = m_state.getValue<bool>(CLIP_BUFFER);
+    return useBuffer;
+}
 
 void Histogram::_startSelection(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};

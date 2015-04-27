@@ -95,6 +95,12 @@ public:
     QString setUseClipBuffer( bool useBuffer );
 
     /**
+    * Determine whether or not extra space is being shown on each side of the clip bounds.
+    * @return true if extra space is being shown; false otherwise.
+    */
+    bool getUseClipBuffer();
+
+    /**
      * Set the maximum clip value.
      * @param clipMax the upper bound for the histogram.
      * @param complete true if the change should propagate to the client and redraw the histogram;

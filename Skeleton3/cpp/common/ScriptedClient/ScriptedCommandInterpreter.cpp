@@ -291,6 +291,18 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     /// histogram commands
 
+    else if ( cmd == "setclipbuffer" ) {
+        QString histogramView = args["histogramView"].toString();
+        int bufferAmount = args["bufferAmount"].toInt();
+        result = m_scriptFacade->setClipBuffer( histogramView, bufferAmount );
+    }
+
+    else if ( cmd == "setuseclipbuffer" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString useBuffer = args["useBuffer"].toString().toLower();
+        result = m_scriptFacade->setUseClipBuffer( histogramView, useBuffer );
+    }
+
     else if ( cmd == "setcliprange" ) {
         QString histogramView = args["histogramView"].toString();
         double minRange = args["minRange"].toDouble();

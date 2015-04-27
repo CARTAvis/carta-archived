@@ -1112,6 +1112,43 @@ QString ViewManager::getIntensity( const QString& controlId, int frameLow, int f
     return result;
 }
 
+QString ViewManager::setClipBuffer( const QString& histogramId, int bufferAmount ){
+    QString result = "";
+    int histogramCount = getHistogramCount();
+    for ( int i = 0; i < histogramCount; i++ ){
+        QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+        if ( histogramId == histogramPath ){
+            result = m_histograms[i]->setClipBuffer( bufferAmount );
+            break;
+        }
+    }
+    return result;
+}
+
+QString ViewManager::setUseClipBuffer( const QString& histogramId, const QString& useBufferStr ){
+    QString result = "";
+    bool validBool = false;
+    bool useBuffer = Util::toBool( useBufferStr, &validBool );
+    if ( validBool || useBufferStr.toLower() == "toggle" ) {
+        int histogramCount = getHistogramCount();
+        for ( int i = 0; i < histogramCount; i++ ){
+            QString histogramPath = getObjectId(Histogram::CLASS_NAME, i);
+            if ( histogramId == histogramPath ){
+                if ( useBufferStr.toLower() == "toggle" ) {
+                    bool currentUseBuffer = m_histograms[i]->getUseClipBuffer();
+                    useBuffer = !currentUseBuffer;
+                }
+                result = m_histograms[i]->setUseClipBuffer( useBuffer );
+                break;
+            }
+        }
+    }
+    else {
+        result = "Set clip buffer parameter must be true/false: " + useBufferStr;
+    }
+    return result;
+}
+
 QString ViewManager::setClipRange( const QString& histogramId, double minRange, double maxRange ){
     QString result = "";
     int histogramCount = getHistogramCount();

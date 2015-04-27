@@ -301,6 +301,22 @@ public:
     QStringList getOutputSize( const QString& controlId );
 
     /**
+     * Set the amount of extra space on each side of the clip bounds.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param bufferAmount a percentage in [0,100) representing the amount of extra space.
+     * @return an error message if the clip buffer was not successfully set; an empty string otherwise.
+     */
+    QStringList setClipBuffer( const QString& histogramId, int bufferAmount );
+
+    /**
+     * Set whether or not to show extra space on each side of the clip bounds.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param useBuffer true if extra space should be shown; false otherwise.
+     * @return an error message if there was a problem; an empty string if the flag was set successfully.
+     */
+    QStringList setUseClipBuffer( const QString& histogramId, const QString& useBuffer );
+
+    /**
      * Set the lower and upper bounds for the histogram horizontal axis.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param minRange a lower bound for the histogram horizontal axis.
