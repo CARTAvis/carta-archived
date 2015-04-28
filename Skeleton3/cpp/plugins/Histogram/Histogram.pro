@@ -61,12 +61,10 @@ unix:macx {
 	casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
     PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.dylib
 	LIBS+=-L/usr/local/lib
-	INCLUDEPATH += $${CASACOREDIR}/include/casacore/lattices/LatticeMath
 }
 else{
 	casacoreLIBS += -lcasa_images -lcasa_components -lcasa_coordinates -lcasa_fits -lcasa_measures
     PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.so
-	INCLUDEPATH += $${CASACOREDIR}/include/casacore/lattices/Lattices
 	INCLUDEPATH += $${CASACOREDIR}/include/casacore
 }
 

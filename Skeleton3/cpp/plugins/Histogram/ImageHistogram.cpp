@@ -7,7 +7,12 @@
 #include "ImageHistogram.h"
 #include <casacore/images/Images/SubImage.h>
 #include <casacore/images/Regions/ImageRegion.h>
-#include <LatticeHistograms.h>
+#include <casacore/casa/version.h>
+#ifdef CASACORE_VERSION
+#include <casacore/lattices/LatticeMath/LatticeHistograms.h>
+#else
+#include <casacore/lattices/Lattices/LatticeHistograms.h>
+#endif
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "plugins/CasaImageLoader/CasaImageLoader.h"
 #include <casacore/casa/Arrays/Vector.h>
