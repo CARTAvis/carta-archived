@@ -7,6 +7,16 @@
 #include <QColor>
 #include <QPainter>
 
+// most optimal Qt format seems to be Format_ARGB32_Premultiplied
+static constexpr QImage::Format OptimalQImageFormat = QImage::Format_ARGB32_Premultiplied;
+
+// however!!!! there seems to be a bug in QT's rendering of premultiplied images...
+// there goes significant chunk of my life!!!!!!!!!!!!!!! GRRRRRRRRR!!!!!!!!!
+// QPainter::drawImage( QRectF ....) will really mess up with high zoom (scaling)
+// if source & destination are both ARGB32_Premultiplied
+/// \todo check if the bug is still there in Qt5.4+, it definitely is there in Qt5.3
+static constexpr bool QtPremultipliedBugStillExists = true;
+
 /// internal algorithm for converting an instance of image interface to qimage
 /// using the pixel pipeline
 ///
@@ -22,9 +32,15 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     typedef double Scalar;
     QSize size( rawView->dims()[0], rawView->dims()[1] );
 
-    if ( qImage.format() != QImage::Format_ARGB32_Premultiplied ||
+    QImage::Format desiredFormat = OptimalQImageFormat;
+    if( QtPremultipliedBugStillExists) {
+        desiredFormat = QImage::Format_ARGB32;
+    }
+
+    // QImage::Format desiredFormat = QImage::Format_ARGB32;
+    if ( qImage.format() != desiredFormat ||
          qImage.size() != size ) {
-        qImage = QImage( size, QImage::Format_ARGB32_Premultiplied );
+        qImage = QImage( size, desiredFormat );
     }
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
@@ -90,12 +106,6 @@ void
 Service::setPan( QPointF pt )
 {
     m_pan = pt;
-
-    //    m_pan = QPointF( - 0.5, - 0.5 );
-
-//    if ( pt != m_pan ) {
-//        m_pan = pt;
-//    }
 }
 
 QPointF
@@ -241,10 +251,10 @@ Service::internalRenderSlot( JobId jobId )
         cacheId += "/0";
     }
 
-    qDebug() << "internalRenderSlot... cache size: "
-             << m_frameCache.totalCost() * 100.0 / m_frameCache.maxCost() << "% "
-             << m_frameCache.size() << "entries";
-    qDebug() << "id:" << cacheId;
+//    qDebug() << "internalRenderSlot... cache size: "
+//             << m_frameCache.totalCost() * 100.0 / m_frameCache.maxCost() << "% "
+//             << m_frameCache.size() << "entries";
+//    qDebug() << "id:" << cacheId;
     struct Scope {
         ~Scope() { qDebug() << "internalRenderSlot done"; } }
     debugScopeGuard;
@@ -296,7 +306,7 @@ Service::internalRenderSlot( JobId jobId )
     }
 
     // prepare output
-    QImage img( m_outputSize, QImage::Format_ARGB32_Premultiplied );
+    QImage img( m_outputSize, OptimalQImageFormat );
 
 //    img.fill( QColor( "blue" ) );
     img.fill( QColor( 50, 50, 50 ) );
@@ -315,30 +325,50 @@ Service::internalRenderSlot( JobId jobId )
 
 //    rectf = rectf.normalized();
     p.drawImage( rectf, m_frameImage );
+//    qDebug() << "m_frameImage" << m_frameImage.size();
+//    qDebug() << "m_frameImage" << zoom() << rectf.width() / m_frameImage.width()
+//             << rectf.height() / m_frameImage.height();
 
-//    p.drawImage( rectf, m_frameImage.mirrored(false, true) );
+    // debugging rectangle
+    if( 0) {
+        p.setPen( QPen( QColor("yellow"), 3));
+        p.setBrush( Qt::NoBrush);
+        p.drawRect( rectf);
+    }
 
-    // debug code: redraw counter
-//    if ( CARTA_RUNTIME_CHECKS ) {
-//        static int counter = 0;
-//        counter++;
-//        p.setPen( QColor( "yellow" ) );
-//        p.drawText( img.rect(), Qt::AlignCenter, QString::number( counter ) );
-//    }
+    // more debugging - draw pixel grid
+    // \todo need to add clipping if we want to expose this as a functionality
+    if( true && zoom() > 5) {
+        p.setRenderHint( QPainter::Antialiasing, true);
+        p.setPen( QPen( QColor(255, 255, 255, 255), 0.1));
+        QPointF tl = screen2img( QPointF( 0, 0));
+        QPointF br = screen2img( QPointF( outputSize().width(), outputSize().height()));
+        int x1 = std::floor( tl.x());
+        int x2 = std::ceil( br.x());
+        for( double x = x1 ; x <= x2 ; ++ x) {
+            QPointF pt = img2screen( QPointF( x -0.5, 0));
+            p.drawLine( QPointF(pt.x(), 0), QPointF(pt.x(), outputSize().height()));
+        }
+        int y1 = std::floor( tl.y());
+        int y2 = std::ceil( br.y());
+        std::swap( y1, y2);
+        for( double y = y1 ; y <= y2 ; ++ y) {
+            QPointF pt = img2screen( QPointF( 0, y - 0.5));
+            p.drawLine( QPointF(0, pt.y()), QPointF(outputSize().width(), pt.y()));
+        }
+    }
 
     // report result
     emit done( QImage( img ), jobId );
 
-//    stamp the image about to be inserted with
+    // debuggin: put a yellow stamp on the image, so that next time it's recalled
+    // it'll have 'cached' stamped on it
     if ( CARTA_RUNTIME_CHECKS ) {
-        static int counter = 0;
-        counter++;
         p.setPen( QColor( "yellow" ) );
         p.drawText( img.rect(), Qt::AlignRight | Qt::AlignBottom, "Cached" );
     }
 
     // insert this image into frame cache
-    qDebug() << "byteCount=" << img.byteCount();
     m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
 } // internalRenderSlot
 }

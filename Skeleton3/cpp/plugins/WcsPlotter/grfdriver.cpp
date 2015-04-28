@@ -1,10 +1,16 @@
+/// \warning the code below is still little messy as it implements painting to both QImage
+/// and vector graphics
+/// \todo clean up the code that draws into QImage, only leave vector graphics code
+
+#include "grfdriver.h"
 #include "CartaLib/CartaLib.h"
 #include <float.h>
 #include <math.h>
 #include <string.h>
 #include <QPainter>
 
-//#include "grfdriver.h"
+namespace VG = Carta::Lib::VectorGraphics;
+namespace VGE = VG::Entries;
 
 extern "C" {
 #include <ast.h>
@@ -17,8 +23,29 @@ static struct GrfDriverGlobals {
     QColor lineColor = QColor( "#ffff00" );
     QColor textColor = QColor( "#ffffff" );
     QPainter * painter = nullptr;
+
+    VG::VGComposer * vgComposer = nullptr;
+    double penWidth = 1.0;
 }
 globals;
+
+void grfdriverSetVGComposer(Carta::Lib::VectorGraphics::VGComposer * vgComp)
+{
+    qDebug() << "grfdriverSetVGComposer" << vgComp;
+    globals.vgComposer = vgComp;
+
+//    globals = GrfDriverGlobals();
+
+    if( globals.vgComposer) {
+        globals.vgComposer-> append< VGE::PenWidth>( globals.penWidth);
+        globals.vgComposer-> append< VGE::PenColor>( globals.lineColor);
+    }
+}
+
+static VG::VGComposer * vgc()
+{
+    return globals.vgComposer;
+}
 
 //static QImage * grfImage_ = 0;
 //static QColor lineColor_( "#ffff00" );
@@ -53,10 +80,20 @@ p()
 void
 grfSetImage( QImage * img )
 {
+    qDebug() << "grfSetImage" << img;
     globals.image = img;
     if ( globals.painter ) {
         delete globals.painter;
         globals.painter = 0;
+    }
+    if( ! img) {
+        static bool once = true;
+        static QImage simg;
+        if( once) {
+            once = false;
+            simg = QImage( 100, 100, QImage::Format_ARGB32_Premultiplied);
+        }
+        img = & simg;
     }
     if ( img ) {
         globals.painter = new QPainter( img );
@@ -65,6 +102,7 @@ grfSetImage( QImage * img )
         globals.painter-> setPen( QPen( globals.lineColor, 0.5 ) );
         globals.painter-> setBrush( Qt::NoBrush );
     }
+    qDebug() << "globals.painter" << globals.painter;
 }
 
 /// helper to draw text
@@ -121,24 +159,21 @@ drawText( const char * text, float x, float y, const char * just,
 
     if ( ! xb ) {
         p().save();
-
-//        if( xb) p().setOpacity( 0.1);
         p().setTransform( tr );
         p().fillRect( offx, offy + fm.descent(), tw, - th, QColor( 0, 0, 0, 128 ) );
-
-//        p().save();
-//        p().setBrush( QColor(0,0,0,100));
-//        p().setPen( Qt::NoPen);
-//        p().drawRect(offx,offy+fm.descent(),tw,-th);
-//        p().setBrush( QColor(255,255,255,255));
-//        p().setPen( Qt::NoPen);
-//        p().drawEllipse( 0, 0, 3, 3);
-//        p().restore();
-
-        //        p().setPen( QColor(255,255,255));
         p().setPen( globals.textColor );
         p().drawText( offx, offy, text );
         p().restore();
+
+        if( vgc()) {
+            vgc()->append<VGE::Save>();
+            vgc()->append<VGE::SetTransform>(tr, true);
+            QRectF rect( offx, offy + fm.descent(), tw, - th);
+            vgc()->append<VGE::FillRect>( rect, QColor( 255, 0, 0, 228));
+            vgc()->append<VGE::PenColor>( globals.textColor);
+            vgc()->append<VGE::DrawText>( text, QPointF(offx,offy));
+            vgc()->append<VGE::Restore>();
+        }
     }
 
     // compute the bounding rectangle...
@@ -156,16 +191,6 @@ drawText( const char * text, float x, float y, const char * just,
         yb[2] = p3.y();
         xb[3] = p4.x();
         yb[3] = p4.y();
-        if ( 0 ) {
-            p().save();
-            p().setPen( QPen( QColor( 255, 255, 255, 100 ), 1 ) );
-            p().setBrush( Qt::NoBrush );
-            p().drawLine( p1, p2 );
-            p().drawLine( p2, p3 );
-            p().drawLine( p3, p4 );
-            p().drawLine( p4, p1 );
-            p().restore();
-        }
     }
 } // drawText
 
@@ -289,8 +314,6 @@ astGFlush( void )
 *-
 */
 
-    //   ccpgupdt();
-//    dbg(1) << "Trace\n";
     return 1;
 }
 
@@ -523,10 +546,19 @@ astGLine( int n, const float * x, const float * y )
             qpts[i].setY( y[i] );
         }
         p().drawPolyline( qpts, n );
+
+        if( vgc()) {
+            for( int i = 0 ; i < n - 1 ; ++ i) {
+                vgc()-> append< VGE::Line> ( qpts[i], qpts[i+1]);
+            }
+        }
     }
-    else {
+    else if( n == 2) {
         for ( int i = 0 ; i < n - 1 ; i++ ) {
             p().drawLine( QPointF( x[i], y[i] ), QPointF( x[i + 1], y[i + 1] ) );
+        }
+        if( vgc()) {
+            vgc()-> append< VGE::Line> ( QPointF( x[0], y[0] ), QPointF( x[1], y[1] ));
         }
     }
 
@@ -646,10 +678,6 @@ astGText( const char * text, float x, float y, const char * just,
 *     -  Any unrecognised character in "just" causes an error.
 *-
 */
-
-//    QString jst = just ? QString( just ).toUpper() : "CC";
-
-//    dbg(1) << "Trace astGText( " << text << " | " <<  jst << ")\n";
 
     drawText( text, x, y, just, upx, upy );
     return 1;
@@ -780,10 +808,6 @@ astGTxExt( const char * text, float x, float y, const char * just,
 *-
 */
 
-//    QString jst = just ? QString( just ).toUpper() : "CC";
-
-//    dbg(1) << "Trace astGTxExt( " << text << " | " <<  jst << ")\n";
-
     drawText( text, x, y, just, upx, upy, xb, yb );
     return 1;
 }
@@ -907,6 +931,13 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             pen.setWidthF( value );
             p().setPen( pen );
         }
+        if( vgc()) {
+            if( old_value) {
+                * old_value = globals.penWidth;
+            }
+            globals.penWidth = value;
+            vgc()-> append< VGE::PenWidth>( value);
+        }
     }
     else if ( attr == GRF__SIZE ) {
 //        out << "size(";
@@ -959,3 +990,5 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
     return 1;
 } // astGAttr
 }
+
+

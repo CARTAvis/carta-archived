@@ -1,4 +1,4 @@
-#include "SkyGridPlotter.h"
+#include "AstGridPlotter.h"
 #include <iostream>
 #include "grfdriver.h"
 
@@ -9,54 +9,56 @@ extern "C" {
 namespace WcsPlotterPluginNS
 {
 
-AstLibSkyGridPlotter::AstLibSkyGridPlotter()
+AstGridPlotterQImage::AstGridPlotterQImage()
 {
 //    impl_ = new Impl;
     m_carLin = false;
-    m_img = 0;
+    m_img = nullptr;
 }
 
-AstLibSkyGridPlotter::~AstLibSkyGridPlotter()
+AstGridPlotterQImage::~AstGridPlotterQImage()
 {
 //     delete impl_;
 }
 
-bool AstLibSkyGridPlotter::setFitsHeader(const QString & hdr)
+bool AstGridPlotterQImage::setFitsHeader(const QString & hdr)
 {
     m_fitsHeader = hdr;
 
     return true;
 }
 
-void AstLibSkyGridPlotter::setCarLin(bool flag)
+void AstGridPlotterQImage::setCarLin(bool flag)
 {
     m_carLin = flag;
 }
 
-void AstLibSkyGridPlotter::setSystem( const QString & system)
+void AstGridPlotterQImage::setSystem( const QString & system)
 {
     m_system = system;
 }
 
-void AstLibSkyGridPlotter::setOutputImage(QImage *img)
+void AstGridPlotterQImage::setOutputImage(QImage *img)
 {
     m_img = img;
 }
 
-void AstLibSkyGridPlotter::setOutputRect(const QRectF &rect)
+void AstGridPlotterQImage::setOutputVGComposer(AstGridPlotterQImage::VGComposer * vgc)
+{
+    m_vgc = vgc;
+}
+
+void AstGridPlotterQImage::setOutputRect(const QRectF &rect)
 {
     m_orect = rect;
 }
 
-void AstLibSkyGridPlotter::setInputRect(const QRectF & rect)
+void AstGridPlotterQImage::setInputRect(const QRectF & rect)
 {
-    /// convert from casa coordinates to fits (add 1)
-    m_irect = QRectF( rect.left() + 1, rect.top() + 1, rect.width(), rect.height());
-
-    m_irect = QRectF( m_irect.left(), m_irect.bottom(), m_irect.width(), - m_irect.height());
+    m_irect = rect;
 }
 
-void AstLibSkyGridPlotter::setPlotOption(const QString & option)
+void AstGridPlotterQImage::setPlotOption(const QString & option)
 {
     m_plotOptions.append( option);
 }
@@ -66,15 +68,15 @@ struct AstGuard {
     ~AstGuard() { astEnd; }
 };
 
-bool AstLibSkyGridPlotter::plot()
+bool AstGridPlotterQImage::plot()
 {
     astClearStatus;
     AstGuard astGuard;
 
-    if( ! m_img ) {
-        m_errorString = "No image set";
-        return false;
-    }
+//    if( ! m_img ) {
+//        m_errorString = "No image set";
+//        return false;
+//    }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-zero-length"
@@ -108,10 +110,12 @@ bool AstLibSkyGridPlotter::plot()
 
     float gbox[] = { float(m_orect.left()), float(m_orect.bottom()),
                      float(m_orect.right()), float(m_orect.top()) };
-    double pbox[] = { m_irect.left(), m_irect.bottom(),
-                      m_irect.right(), m_irect.top() };
+    // convert from casa coordinates to fits (add 1)
+    double pbox[] = { m_irect.left()+1, m_irect.bottom()+1,
+                      m_irect.right()+1, m_irect.top()+1 };
 
     grfSetImage( m_img);
+    grfdriverSetVGComposer( m_vgc);
 
     AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
     if( plot == 0 || ! astOK) {
@@ -141,22 +145,6 @@ bool AstLibSkyGridPlotter::plot()
         astClear( plot, "Epoch,Equinox");
     }
 
-//    if( system_ == FK5) {
-//        astSet( plot, "System=FK5, Equinox=J2000");
-//    } else if( system_ == FK4) {
-//        astSet( plot, "System=FK4, Equinox=B1950");
-//    } else if( system_ == ICRS) {
-//        astSet( plot, "System=ICRS");
-//    } else if( system_ == Galactic) {
-//        astSet( plot, "System=Galactic");
-//    } else if( system_ == Ecliptic) {
-//        astSet( plot, "System=Ecliptic");
-//    } else {
-//        // leave it be
-//    }
-
-
-
     for( int i = 0 ; i < m_plotOptions.length() ; i ++ ) {
         std::string stdstr = m_plotOptions[i].toStdString();
 #pragma GCC diagnostic push
@@ -167,7 +155,8 @@ bool AstLibSkyGridPlotter::plot()
 
     astGrid( plot );
 
-    grfSetImage(0);
+    grfSetImage( nullptr);
+    grfdriverSetVGComposer( nullptr);
 
     plot = (AstPlot *) astAnnul( plot);
     wcsinfo = (AstFrameSet *) astAnnul( wcsinfo);
@@ -176,17 +165,17 @@ bool AstLibSkyGridPlotter::plot()
     return true;
 }
 
-QString AstLibSkyGridPlotter::getError()
+QString AstGridPlotterQImage::getError()
 {
     return m_errorString;
 }
 
-void AstLibSkyGridPlotter::setLineColor(QString color)
+void AstGridPlotterQImage::setLineColor(QString color)
 {
     grfSetLineColor( color);
 }
 
-void AstLibSkyGridPlotter::setTextColor(QString color)
+void AstGridPlotterQImage::setTextColor(QString color)
 {
     grfSetTextColor( color);
 }

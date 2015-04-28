@@ -1,5 +1,7 @@
 /**
+ * Code that generates a fits header from ImageInterface.
  *
+ * It can do this using casacore (on casa images), or using custom code on raw FITS files.
  **/
 
 #include "FitsHeaderExtractor.h"

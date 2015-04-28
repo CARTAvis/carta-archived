@@ -141,6 +141,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 
                                         // this is very inefficient, but it'll get the job done for now
                                         m_renderService-> render( 0 );
+                                        updateGridAfterPanZoomResize();
                                     }
                                     );
 
@@ -160,34 +161,36 @@ ImageViewController::playMovie( bool flag )
 }
 
 void
-ImageViewController::updateGridAfterPanZoom()
+ImageViewController::updateGridAfterPanZoomResize()
 {
+    // erase current grid
+    m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
+
+    // if grid drawing is not enabled, we are done (are we?)
     if ( ! ( m_gridToggle && m_wcsGridRenderer ) ) {
         return;
     }
 
-    auto renderSize = m_renderBuffer.size();
+    auto renderSize = m_renderService-> outputSize();
     m_wcsGridRenderer-> setOutputSize( renderSize );
 
-    int left = 50;
-    int right = 10;
-    int bottom = 50;
-    int top = 10;
+    int leftMargin = 50;
+    int rightMargin = 10;
+    int bottomMargin = 50;
+    int topMargin = 10;
 
-    QSize s = m_renderBuffer.size();
-    QPointF bl( left, renderSize.height() - bottom );
-    bl = m_renderService-> screen2img( bl );
-    QPointF tr( renderSize.width() - right, top );
-    tr = m_renderService-> screen2img( tr );
+    QRectF outputRect( leftMargin, topMargin,
+                       renderSize.width() - leftMargin - rightMargin,
+                       renderSize.height() - topMargin - bottomMargin);
+    QRectF inputRect(
+                m_renderService-> screen2img( outputRect.topLeft()),
+                m_renderService-> screen2img( outputRect.bottomRight()));
 
-    m_wcsGridRenderer-> setImageRect(
-        QRectF( bl, tr ) );
-    m_wcsGridRenderer-> setOutputRect(
-        QRectF( left, top, s.width() - left - right,
-                s.height() - top - bottom ) );
+    m_wcsGridRenderer-> setImageRect( inputRect);
+    m_wcsGridRenderer-> setOutputRect( outputRect);
 
-    m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
     m_wcsGridRenderer-> startRendering();
+
 } // updateGridAfterPanZoom
 
 QString
@@ -231,7 +234,7 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
     m_renderService-> render( 0 );
 
     // if grid is active, ask grid renderer to re-render grid as well
-    updateGridAfterPanZoom();
+    updateGridAfterPanZoomResize();
 
     return "";
 } // zoomCB
@@ -248,7 +251,7 @@ ImageViewController::panCB( const QString &, const QString & params, const QStri
     }
 
     // update grid if appropriate
-    updateGridAfterPanZoom();
+    updateGridAfterPanZoomResize();
 
     return "";
 } // zoomCB
@@ -315,11 +318,7 @@ ImageViewController::handleResizeRequest( const QSize & size )
     m_renderService-> render( 0 );
 
     // request grid redraw with the new size as well
-    if ( m_gridToggle && m_wcsGridRenderer ) {
-        m_wcsGridRenderer-> setOutputSize( m_renderService-> outputSize() );
-        m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
-        m_wcsGridRenderer-> startRendering();
-    }
+    updateGridAfterPanZoomResize();
 }
 
 void
@@ -402,7 +401,7 @@ ImageViewController::loadFrame( int frame )
     if( m_wcsGridRenderer) {
         m_wcsGridRenderer-> setInputImage( m_astroImage );
     }
-    updateGridAfterPanZoom();
+    updateGridAfterPanZoomResize();
 
     // update the GUI
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
@@ -431,12 +430,13 @@ ImageViewController::combineImageAndGrid()
     // draw the grid over top
     if( ! m_gridVG.isNull()) {
         QPainter p( & m_renderBuffer);
-        Carta::Lib::VectorGraphics::VGList vg = m_gridVG.val();
-        p.drawImage( 0, 0, vg.qImage());
+        Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
+        if( ! vgRenderer.render( m_gridVG.val(), p)) {
+            qWarning() << "could not render grid vector graphics";
+        }
     }
 
     // schedule a repaint with the connector
-//    m_renderBuffer = m_renderedAstroImage;
     m_connector-> refreshView( this );
 }
 
@@ -449,37 +449,33 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
     if ( m_gridToggle ) {
         QPainter p( & m_renderedAstroImage );
 
-//        p.setPen( QPen( QColor( "red" ), 5 ) );
-//        p.drawLine( QPointF( 0, 0 ), QPointF( img.width(), img.height() ) );
-
         Carta::Lib::Hooks::DrawWcsGridHook::Params params( nullptr );
         params.m_astroImage = m_astroImage;
         params.outputSize = m_renderedAstroImage.size();
         {
-            int left = 50;
-            int right = 10;
-            int bottom = 50;
-            int top = 10;
+            int leftMargin = 50;
+            int rightMargin = 10;
+            int bottomMargin = 50;
+            int topMargin = 10;
 
             QSize s = m_renderedAstroImage.size();
-            QPointF bl( left, m_renderedAstroImage.size().height() - bottom );
+            QPointF bl( leftMargin, m_renderedAstroImage.size().height() - bottomMargin );
             bl = m_renderService-> screen2img( bl );
             qDebug() << "bl=" << bl;
-            QPointF tr( m_renderedAstroImage.size().width() - right, top );
+            QPointF tr( m_renderedAstroImage.size().width() - rightMargin, topMargin );
             tr = m_renderService-> screen2img( tr );
 
-//            std::swap( bl.ry(), tr.ry());
-
             params.frameRect = QRectF( bl, tr );
-            params.outputRect = QRectF( left, top, s.width() - left - right,
-                                        s.height() - top - bottom );
+            params.frameRect = QRectF( params.frameRect.bottomLeft(), params.frameRect.topRight());
+            params.outputRect = QRectF( leftMargin, topMargin, s.width() - leftMargin - rightMargin,
+                                        s.height() - topMargin - bottomMargin );
         }
 
         auto res =
             Globals::instance()-> pluginManager()
                 -> prepare < Carta::Lib::Hooks::DrawWcsGridHook > ( params ).first();
         if ( res.isNull() ) {
-            qWarning( "Grid failed" );
+            qWarning( "Grid failed (qimage version)" );
         }
         else {
             p.setPen( Qt::NoPen );
@@ -517,7 +513,7 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 void
 ImageViewController::wcsGridSlot( Carta::Lib::VectorGraphics::VGList vglist)
 {
-    qDebug() << "wcsgrid: wcsGridSlot";
+    qDebug() << "wcsgrid: wcsGridSlot" << vglist.entries().size() << "entries";
     m_gridVG = vglist;
 
     combineImageAndGrid();

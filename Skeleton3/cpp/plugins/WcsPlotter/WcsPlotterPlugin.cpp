@@ -1,5 +1,5 @@
 #include "WcsPlotterPlugin.h"
-#include "SkyGridPlotter.h"
+#include "AstGridPlotter.h"
 #include "CartaLib/Hooks/DrawWcsGrid.h"
 #include "../CasaImageLoader/CCImage.h"
 #include "AstGridRenderer.h"
@@ -93,7 +93,7 @@ WcsPlotterPlugin::handleHook( BaseHook & hookData )
                        << fhExtractor.getErrors();
             return false;
         }
-        AstLibSkyGridPlotter sgp;
+        AstGridPlotterQImage sgp;
         sgp.setInputRect( params.frameRect );
         sgp.setOutputRect( params.outputRect );
         sgp.setFitsHeader( hdr );
@@ -125,11 +125,11 @@ WcsPlotterPlugin::handleHook( BaseHook & hookData )
     }
     else if ( hookData.is < GetWcsGridRendererHook > () ) {
         auto & hook = static_cast < GetWcsGridRendererHook & > ( hookData );
-        hook.result.reset( new AstGridRenderer() );
+        hook.result.reset( new WcsGridRendererAst() );
         return true;
     }
 
-    qWarning() << "Sorrry, WcsPlotterPlugin doesnt' know how to handle this hook" << hookData.hookId();
+    qCritical() << "Sorrry, WcsPlotterPlugin doesnt' know how to handle this hook" << hookData.hookId();
     return false;
 } // handleHook
 
@@ -138,7 +138,7 @@ WcsPlotterPlugin::getInitialHookList()
 {
     return {
                Initialize::staticId,
-               DrawWcsGrid::staticId,
+//               DrawWcsGrid::staticId,
                GetWcsGridRendererHook::staticId
     };
 }

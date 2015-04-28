@@ -86,7 +86,7 @@ private:
     void combineImageAndGrid();
 
     /// schedule a grid update after pan/zoom were modified
-    void updateGridAfterPanZoom();
+    void updateGridAfterPanZoomResize();
 
     /// this is the part of the state we use
     QString m_statePrefix;

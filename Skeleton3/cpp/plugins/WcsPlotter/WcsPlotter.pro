@@ -10,19 +10,19 @@ CONFIG += plugin
 
 SOURCES += \
     grfdriver.cpp \
-    SkyGridPlotter.cpp \
     FitsHeaderExtractor.cpp \
     SimpleFitsParser.cpp \
     WcsPlotterPlugin.cpp \
-    AstGridRenderer.cpp
+    AstGridRenderer.cpp \
+    AstGridPlotter.cpp
 
 HEADERS += \
     grfdriver.h \
-    SkyGridPlotter.h \
     FitsHeaderExtractor.h \
     SimpleFitsParser.h \
     WcsPlotterPlugin.h \
-    AstGridRenderer.h
+    AstGridRenderer.h \
+    AstGridPlotter.h
 
 CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
 WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared

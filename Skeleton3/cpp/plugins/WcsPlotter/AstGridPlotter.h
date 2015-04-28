@@ -1,4 +1,4 @@
-/// wrapper class for plotting WCS grids using AST library
+/// class for plotting WCS grids using AST library
 ///
 ///     http://starlink.eao.hawaii.edu/starlink/AST
 ///
@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "CartaLib/VectorGraphics/VGList.h"
 #include <QSize>
 #include <QString>
 #include <QRectF>
@@ -16,12 +17,18 @@ class QImage;
 
 namespace WcsPlotterPluginNS
 {
-class AstLibSkyGridPlotter
+///
+/// \brief The AstLibSkyGridPlotter class can render a wcs grid to a QImage using
+/// the starlink's AST library.
+///
+class AstGridPlotterQImage
 {
 public:
 
-    AstLibSkyGridPlotter();
-    ~AstLibSkyGridPlotter();
+    typedef Carta::Lib::VectorGraphics::VGComposer VGComposer;
+
+    AstGridPlotterQImage();
+    ~AstGridPlotterQImage();
 
     /// feed the plotter the raw FITS header (concatenated 80-char strings)
     /// returns whether the header has enough information about
@@ -40,6 +47,10 @@ public:
     /// sets the output image (does not take ownership)
     void
     setOutputImage( QImage * img );
+
+    /// sets the output VGComposer
+    void
+    setOutputVGComposer( VGComposer * vgc);
 
     /// sets the output rectangle in screen coordinates for the grid
     /// the annotation text will be rendered outside of this rectangle, so
@@ -76,12 +87,14 @@ public:
 
 protected:
 
-    bool m_carLin;
+    bool m_carLin = false;
     QString m_errorString;
     QString m_fitsHeader;
     QStringList m_plotOptions;
     QString m_system;
     QRectF m_orect, m_irect;
-    QImage * m_img;
+    QImage * m_img = nullptr;
+
+    VGComposer * m_vgc = nullptr;
 };
 }

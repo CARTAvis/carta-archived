@@ -82,7 +82,7 @@ VGList::getChanges()
     return m_changes;
 }
 
-IEntry *
+IVGListEntry *
 VGList::getEntry( int64_t ind )
 {
     CARTA_ASSERT( ind >= 0 && size_t( ind ) < m_entries.size() );
@@ -96,7 +96,7 @@ VGList::nEntries()
 }
 
 int64_t
-VGList::addEntry( IEntry * entry )
+VGList::addEntry( IVGListEntry * entry )
 {
     auto currentIndex = m_entries.size();
     m_entries.push_back( entry );
@@ -105,7 +105,7 @@ VGList::addEntry( IEntry * entry )
 }
 
 void
-VGList::setEntry( int64_t ind, IEntry * entry )
+VGList::setEntry( int64_t ind, IVGListEntry * entry )
 {
     CARTA_ASSERT( ind >= 0 && size_t( ind ) < m_entries.size() );
 
@@ -132,7 +132,7 @@ void
 RendererQPainter::rasterize( VGList & vg )
 {
     for ( int64_t ind = 0 ; ind > vg.nEntries() ; ++ind ) {
-        IEntry * e = vg.getEntry( ind );
+        IVGListEntry * e = vg.getEntry( ind );
         if ( e ) {
             e-> cplusplus( * this );
         }

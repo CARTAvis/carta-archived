@@ -250,7 +250,7 @@ private:
     QPainter * m_qpainter = nullptr;
 };
 
-class IEntry
+class IVGListEntry
 {
 public:
 
@@ -261,10 +261,10 @@ public:
     javascript() = 0;
 
     virtual
-    ~IEntry() { }
+    ~IVGListEntry() { }
 };
 
-class Circle : public IEntry
+class Circle : public IVGListEntry
 {
 public:
 
@@ -294,7 +294,7 @@ private:
     double m_radius;
 };
 
-class Line : public IEntry
+class Line : public IVGListEntry
 {
 public:
 
@@ -342,7 +342,7 @@ public:
     getChanges();
 
     /// get an entry at given index
-    IEntry *
+    IVGListEntry *
     getEntry( int64_t ind );
 
     /// get current number of entries
@@ -351,7 +351,7 @@ public:
 
     /// add an entry and we become an owner
     int64_t
-    addEntry( IEntry * entry );
+    addEntry( IVGListEntry * entry );
 
     /// templated version of addEntry with parameter forwarding
     template < typename EntryType, typename ... Args >
@@ -363,7 +363,7 @@ public:
 
     /// set a specific entry
     void
-    setEntry( int64_t ind, IEntry * entry );
+    setEntry( int64_t ind, IVGListEntry * entry );
 
     /// templated version of setEntry()
     template < typename EntryType, typename ... Args >
@@ -378,7 +378,7 @@ public:
 private:
 
     /// here we keep the actual entries
-    std::vector < IEntry * > m_entries;
+    std::vector < IVGListEntry * > m_entries;
 
     /// here we keep the list of changed things
     std::unordered_set < u_int64_t > m_changes;
