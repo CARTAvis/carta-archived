@@ -151,7 +151,7 @@ INCLUDEPATH += ../../../ThirdParty/rapidjson/include
 #LIBS += -L/home/pfederl/Software/qwt-6.1.2-qt-5.3.2/lib -lqwt
 
 #QWT_ROOT = /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
-QWT_ROOT = $$absolute_path("../../../Externals/ThirdParty/qwt")
+QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 INCLUDEPATH += $$QWT_ROOT/include
 LIBS += -L$$QWT_ROOT/lib -lqwt
 QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
