@@ -20,12 +20,12 @@ public:
     }
 };
 
+const QString AnimatorType::VISIBLE = "visible";
 const QString AnimatorType::COMMAND_SET_FRAME = "setFrame";
 const QString AnimatorType::END_BEHAVIOR = "endBehavior";
 const QString AnimatorType::END_BEHAVIOR_WRAP = "Wrap";
 const QString AnimatorType::END_BEHAVIOR_JUMP = "Jump";
 const QString AnimatorType::END_BEHAVIOR_REVERSE = "Reverse";
-const QString AnimatorType::LABEL = "purpose";
 const QString AnimatorType::RATE = "frameRate";
 const QString AnimatorType::STEP = "frameStep";
 
@@ -36,32 +36,33 @@ bool AnimatorType::m_registered =
     ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new AnimatorType::Factory());
 
-AnimatorType::AnimatorType(/*const QString& prefix, const QString& animationType, const QString& id*/
-        const QString& path, const QString& id ):
+AnimatorType::AnimatorType(const QString& path, const QString& id ):
 	CartaObject( CLASS_NAME, path, id ){
         m_select = nullptr;
         _makeSelection();
-        m_removed = false;
         _initializeState();
         _initializeCommands();
 }
-
-/*QString AnimatorType::getStateString() const{
-    StateInterface writeState( m_state );
-    writeState.insertObject(Selection::CLASS_NAME, m_select->getStateString());
-    return writeState.toString();
-}*/
-
 
 int AnimatorType::getFrame() const {
     return m_select->getIndex();
 }
 
+QString AnimatorType::getStateData() const {
+    QString result = m_select->getStateString();
+    return result;
+}
+
+QString AnimatorType::getStatePreferences() const{
+    QString result  = m_state.toString();
+    return result;
+}
+
 void AnimatorType::_initializeState( ){
     m_state.insertValue<int>( STEP, 1 );
     m_state.insertValue<int>( RATE, 20 );
-    m_state.insertValue<QString>( LABEL, "Undefined");
     m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
+    m_state.insertValue<bool>( VISIBLE, true);
     m_state.flushState();
 }
 
@@ -145,7 +146,8 @@ void AnimatorType::_initializeCommands(){
 }
 
 bool AnimatorType::isRemoved() const {
-    return m_removed;
+    bool visible = m_state.getValue<bool>( VISIBLE );
+    return !visible;
 }
 
 
@@ -157,6 +159,12 @@ QString AnimatorType::_makeSelection(){
     QString selId = objManager->createObject( Selection::CLASS_NAME );
     m_select = dynamic_cast<Selection*>(objManager->getObject( selId ));
     return m_select->getPath();
+}
+
+void AnimatorType::resetStateData( const QString& state ){
+    if ( m_select != nullptr ){
+        m_select->resetState( state );
+    }
 }
 
 QString AnimatorType::setEndBehavior( const QString& endStr ){
@@ -220,16 +228,12 @@ QString AnimatorType::setFrame( int frameIndex ){
     return result;
 }
 
-void AnimatorType::setPurpose( const QString& name ){
-    QString oldPurpose = m_state.getValue<QString>(LABEL);
-    if ( oldPurpose != name ){
-        m_state.setValue<QString>(LABEL, name );
+void AnimatorType::setVisible( bool visible ){
+    bool oldVisible = m_state.getValue<bool>(VISIBLE);
+    if ( oldVisible != visible ){
+        m_state.setValue<bool>(VISIBLE, visible );
         m_state.flushState();
     }
-}
-
-void AnimatorType::setRemoved( bool removed ){
-    m_removed = removed;
 }
 
 void AnimatorType::setUpperBound( int value ){

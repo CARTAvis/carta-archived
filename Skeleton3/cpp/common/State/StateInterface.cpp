@@ -80,6 +80,7 @@ private:
 };
 
 const QString StateInterface::DELIMITER("/");
+const QString StateInterface::STATE_DATA( "data");
 
 
 StateInterface::StateInterface (const QString & path, const QString& type, const QString& initialState )

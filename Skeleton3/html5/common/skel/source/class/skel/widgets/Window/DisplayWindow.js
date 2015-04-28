@@ -25,7 +25,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         this.m_row = row;
         this.m_col = col;
         var pathDict = skel.widgets.Path.getInstance();
-        
         this._init();
         this._initWindowBar();
         
@@ -55,6 +54,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     events : {
         "iconify" : "qx.event.type.Data",
         "maximizeWindow" : "qx.event.type.Data",
+        "closeWindow" : "qx.event.type.Data",
         "restoreWindow" : "qx.event.type,Data",
         "registered" : "qx.event.type.Data"
     },
@@ -65,6 +65,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     },
 
     members : {
+        
+        
         
         /**
          * Adds a button to the window's caption bar.
@@ -134,6 +136,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( linkIndex >= 0 ){
                 this.m_links.splice(linkIndex);
             }
+        },
+        
+        /**
+         * Send notification that this window should be closed.
+         */
+        closeWindow : function(){
+            this.m_closed = true;
+            this.fireDataEvent( "closeWindow", "");
         },
 
         /**
@@ -241,7 +251,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_scrollArea = new qx.ui.container.Scroll();
             this.m_content = new qx.ui.container.Composite();
             this.m_content.setLayout(new qx.ui.layout.VBox(0));
-            // this.m_content.setLayout( new qx.ui.layout.Canvas());
             this.m_scrollArea.add(this.m_content);
             this.add(this.m_scrollArea, {
                 flex : 1
@@ -249,7 +258,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_contextMenu = new qx.ui.menu.Menu();
             this.m_contextMenu.addListener( "appear", this._contextMenuEvent, this);
             this.setContextMenu(this.m_contextMenu);
-
             this.addListener("mousedown", function(ev) {
                 this.setSelected(true, ev.isCtrlPressed());
             });
@@ -312,6 +320,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_identifier );
             this.m_sharedVar.addCB( this._sharedVarCB.bind( this ));
             this._sharedVarCB( this.m_sharedVar.get());
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVarLink = this.m_connector.getSharedVar( this.m_identifier + path.SEP + "links");
+            this.m_sharedVarLink.addCB( this._sharedVarLinkCB.bind( this));
+            this._sharedVarLinkCB( this.m_sharedVarLink.get());
         },
         
         /**
@@ -504,10 +516,26 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         
         
         /**
-         * Callback for a data state change for this window.
+         * Callback for a state change for this window.
          */
         _sharedVarCB : function( ){
             var val = this.m_sharedVar.get();
+            if ( val ){
+                try {
+                    var winObj = JSON.parse( val );
+                    this.windowSharedVarUpdate( winObj );
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
+                }
+            }
+        },
+        
+        /**
+         * Callback for a link state change for this window.
+         */
+        _sharedVarLinkCB : function( ){
+            var val = this.m_sharedVarLink.get();
             if ( val ){
                 try {
                     var winObj = JSON.parse( val );
@@ -524,7 +552,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                             qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
                         }
                     }
-                    this.windowSharedVarUpdate( winObj );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
@@ -639,6 +666,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         //Connected variables 
         m_connector : null,
         m_sharedVar : null,
+        m_sharedVarLink : null,
         
         //Server side object id
         m_identifier : "",

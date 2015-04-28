@@ -23,6 +23,15 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
     },
     
     members : {
+        /**
+         * The commands to close individual images have changed.
+         */
+        // Needed so that if data is added to an image that is already selected, i.e.,
+        // enabled status has not changed, but data count has, the close image commands
+        // will be updated.
+        closeChanged : function(){
+            this._resetEnabled();
+        },
         
         _resetEnabled : function( ){
             arguments.callee.base.apply( this, arguments );
@@ -43,7 +52,15 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                     }
                 }
             }
+            if ( this.m_cmds.length > 0 ){
+                this.setEnabled( true );
+            }
+            else {
+                this.setEnabled( false );
+            }
             this.setValue( this.m_cmds );
+            qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                    "commandsChanged", null));
         }
     }
 

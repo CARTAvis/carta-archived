@@ -19,7 +19,7 @@ qx.Class.define("skel.Command.Animate.CommandAnimations", {
         this.setValue( this.m_cmds );
         this.m_global = false;
         this.setEnabled( false );
-        this.m_toolBarVisible = true;
+        this.m_toolBarVisible = false;
         this._initAnimations();
         this.setToolTipText("Show/hide animators.");
     },

@@ -53,7 +53,6 @@ const QString Histogram::FOOT_PRINT_REGION_ALL = "All Regions";
 const QString Histogram::FREQUENCY_UNIT = "rangeUnit";
 const QString Histogram::CLIP_MIN_PERCENT = "clipMinPercent";
 const QString Histogram::CLIP_MAX_PERCENT = "clipMaxPercent";
-const QString Histogram::LINK = "links";
 const QString Histogram::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Histogram::X_COORDINATE = "x";
 const QString Histogram::POINTER_MOVE = "pointer-move";
@@ -77,9 +76,9 @@ bool Histogram::m_registered =
 
 Histogram::Histogram( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
-
             m_view(nullptr),
-            m_linkImpl( new LinkableImpl( &m_state)),
+            m_linkImpl( new LinkableImpl( path )),
+            m_stateData( path + StateInterface::DELIMITER + StateInterface::STATE_DATA),
             m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     _initializeStatics();
     _initializeDefaultState();
@@ -179,13 +178,13 @@ void Histogram::_createHistogram( Controller* controller){
         int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
         minIntensity = Util::roundToDigits( minIntensity, significantDigits );
         maxIntensity = Util::roundToDigits( maxIntensity, significantDigits );
-        m_state.setValue<double>(CLIP_MIN_PERCENT, 0 );
-        m_state.setValue<double>(CLIP_MAX_PERCENT, 100 );
-        m_state.setValue<double>(CLIP_MIN, minIntensity);
-        m_state.setValue<double>(CLIP_MAX, maxIntensity);
-        m_state.setValue<double>(COLOR_MIN, minIntensity );
-        m_state.setValue<double>(COLOR_MAX, maxIntensity );
-        m_state.flushState();
+        m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0 );
+        m_stateData.setValue<double>(CLIP_MAX_PERCENT, 100 );
+        m_stateData.setValue<double>(CLIP_MIN, minIntensity);
+        m_stateData.setValue<double>(CLIP_MAX, maxIntensity);
+        m_stateData.setValue<double>(COLOR_MIN, minIntensity );
+        m_stateData.setValue<double>(COLOR_MAX, maxIntensity );
+        m_stateData.flushState();
     }
     _generateHistogram( true, controller );
 }
@@ -247,33 +246,47 @@ void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller )
     _refreshView();
 }
 
+QString Histogram::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        result = m_stateData.toString();
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    return result;
+}
+
 
 void Histogram::_finishClips (){
     bool customClip = m_state.getValue<bool>(CUSTOM_CLIP );
     if ( !customClip ){
-        m_state.setValue<double>(COLOR_MIN, m_state.getValue<double>(CLIP_MIN));
-        m_state.setValue<double>(COLOR_MAX, m_state.getValue<double>(CLIP_MAX));
-        m_state.setValue<double>(COLOR_MIN_PERCENT, m_state.getValue<double>(CLIP_MIN_PERCENT));
-        m_state.setValue<double>(COLOR_MAX_PERCENT, m_state.getValue<double>(CLIP_MAX_PERCENT));
+        m_stateData.setValue<double>(COLOR_MIN, m_stateData.getValue<double>(CLIP_MIN));
+        m_stateData.setValue<double>(COLOR_MAX, m_stateData.getValue<double>(CLIP_MAX));
+        m_stateData.setValue<double>(COLOR_MIN_PERCENT, m_stateData.getValue<double>(CLIP_MIN_PERCENT));
+        m_stateData.setValue<double>(COLOR_MAX_PERCENT, m_stateData.getValue<double>(CLIP_MAX_PERCENT));
     }
-    m_state.flushState();
+    m_stateData.flushState();
     _generateHistogram( true );
 }
 
 void Histogram::_finishColor(){
-    double colorMin = m_state.getValue<double>(COLOR_MIN);
-    double colorMax = m_state.getValue<double>(COLOR_MAX);
+    double colorMin = m_stateData.getValue<double>(COLOR_MIN);
+    double colorMax = m_stateData.getValue<double>(COLOR_MAX);
     m_histogram->setRangeIntensityColor( colorMin, colorMax );
-    m_state.flushState();
+    m_stateData.flushState();
 }
 
 double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& percentKey ){
-    double intensity = m_state.getValue<double>(clipKey);
+    double intensity = m_stateData.getValue<double>(clipKey);
     //Add padding to either side of the intensity if we are not already at our max.
     if ( m_state.getValue<bool>(CLIP_BUFFER) ){
-        float bufferPercentile = m_state.getValue<int>(CLIP_BUFFER_SIZE ) / 2.0;
+        float bufferPercentile = m_stateData.getValue<int>(CLIP_BUFFER_SIZE ) / 2.0;
         //See how much padding we have on either side.
-        float existing = m_state.getValue<double>(percentKey);
+        float existing = m_stateData.getValue<double>(percentKey);
         float actual = existing - bufferPercentile;
         if ( clipKey == CLIP_MAX){
             actual = existing + bufferPercentile;
@@ -326,34 +339,37 @@ std::pair<int,int> Histogram::_getFrameBounds() const {
 }
 
 void Histogram::_initializeDefaultState(){
-    m_state.insertValue<double>( CLIP_MIN, 0 );
-    m_state.insertValue<double>(CLIP_MAX, 1);
-    m_state.insertValue<bool>(CLIP_APPLY, false );
-    m_state.insertValue<bool>(CLIP_BUFFER, false);
-    m_state.insertValue<int>(CLIP_BUFFER_SIZE, 10 );
+
+    //Data State - likely to change with a different image
+    m_stateData.insertValue<double>( CLIP_MIN, 0 );
+    m_stateData.insertValue<double>(CLIP_MAX, 1);
+    m_stateData.insertValue<int>(CLIP_BUFFER_SIZE, 10 );
+    m_stateData.insertValue<double>(COLOR_MIN, 0 );
+    m_stateData.insertValue<double>(COLOR_MAX, 1 );
+    m_stateData.insertValue<int>(COLOR_MIN_PERCENT, 0 );
+    m_stateData.insertValue<int>(COLOR_MAX_PERCENT, 100 );
+    m_stateData.insertValue<double>(CLIP_MIN_PERCENT, 0);
+    m_stateData.insertValue<double>(CLIP_MAX_PERCENT, 100);
+    m_stateData.insertValue<double>(PLANE_MIN, 0 );
+    m_stateData.insertValue<double>(PLANE_MAX, 1 );
+    m_stateData.flushState();
+
+    //Preferences - not image specific
     const int DEFAULT_BIN_COUNT = 25;
     m_state.insertValue<int>(BIN_COUNT, DEFAULT_BIN_COUNT );
     double binWidth = _toBinWidth(DEFAULT_BIN_COUNT);
     m_state.insertValue<double>(BIN_WIDTH, binWidth );
-    m_state.insertValue<double>(COLOR_MIN, 0 );
-    m_state.insertValue<double>(COLOR_MAX, 1 );
-    m_state.insertValue<int>(COLOR_MIN_PERCENT, 0 );
-    m_state.insertValue<int>(COLOR_MAX_PERCENT, 100 );
     m_state.insertValue<bool>(CUSTOM_CLIP, false );
+    m_state.insertValue<bool>(CLIP_APPLY, false );
+    m_state.insertValue<bool>(CLIP_BUFFER, false);
     m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
     m_state.insertValue<bool>(GRAPH_LOG_COUNT, true );
     m_state.insertValue<bool>(GRAPH_COLORED, false );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_SINGLE );
-    m_state.insertValue<double>(PLANE_MIN, 0 );
-    m_state.insertValue<double>(PLANE_MAX, 1 );
     m_state.insertValue<QString>(FREQUENCY_UNIT, m_channelUnits->getDefaultUnit());
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
-    m_state.insertValue<double>(CLIP_MIN_PERCENT, 0);
-    m_state.insertValue<double>(CLIP_MAX_PERCENT, 100);
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<bool>(Util::STATE_FLUSH, false );
-
-
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -567,8 +583,8 @@ void Histogram::_initializeCallbacks(){
             QString clipWithoutPercent = dataValues[clipKey].remove("%");
             double clipVal = dataValues[clipKey].toDouble(&validClip);
             if ( validClip ){
-                double oldClipValMin = m_state.getValue<double>(CLIP_MIN_PERCENT );
-                double oldClipValMax = m_state.getValue<double>( CLIP_MAX_PERCENT );
+                double oldClipValMin = m_stateData.getValue<double>(CLIP_MIN_PERCENT );
+                double oldClipValMax = m_stateData.getValue<double>( CLIP_MAX_PERCENT );
                 double leftOver = 100 - clipVal*100;
                 double clipValMin = leftOver / 2.0;
                 double clipValMax = clipVal*100 + leftOver / 2.0;
@@ -815,8 +831,8 @@ void Histogram::_loadData( Controller* controller ){
     QString rangeUnits = m_state.getValue<QString>(FREQUENCY_UNIT );
     QString planeMode = m_state.getValue<QString>(PLANE_MODE);
     if ( planeMode == PLANE_MODE_RANGE ){
-        minFrequency = m_state.getValue<double>(PLANE_MIN);
-        maxFrequency = m_state.getValue<double>(PLANE_MAX);
+        minFrequency = m_stateData.getValue<double>(PLANE_MIN);
+        maxFrequency = m_stateData.getValue<double>(PLANE_MAX);
     }
     std::pair<int,int> frameBounds = _getFrameBounds();
     int minChannel = frameBounds.first;
@@ -895,15 +911,18 @@ void Histogram::_resetBinCountBasedOnWidth(){
     }
 }
 
-
+void Histogram::resetStateData( const QString& state ){
+    m_stateData.setState( state );
+    m_stateData.flushState();
+}
 
 QString Histogram::setClipBuffer( int bufferAmount ){
     QString result;
     if ( bufferAmount >= 0 && bufferAmount < 100 ){
-        int oldBufferAmount = m_state.getValue<int>( CLIP_BUFFER_SIZE);
+        int oldBufferAmount = m_stateData.getValue<int>( CLIP_BUFFER_SIZE);
         if ( oldBufferAmount != bufferAmount ){
-            m_state.setValue<int>( CLIP_BUFFER_SIZE, bufferAmount );
-            m_state.flushState();
+            m_stateData.setValue<int>( CLIP_BUFFER_SIZE, bufferAmount );
+            m_stateData.flushState();
             _generateHistogram( true );
         }
     }
@@ -988,12 +1007,12 @@ QString Histogram::setClipMax( double clipMax, bool finish ){
     QString result;
     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
     double clipMaxRounded = Util::roundToDigits( clipMax, significantDigits );
-    double oldMax = m_state.getValue<double>(CLIP_MAX);
-    double clipMin = m_state.getValue<double>(CLIP_MIN);
-    double oldMaxPercent = m_state.getValue<double>(CLIP_MAX_PERCENT);
+    double oldMax = m_stateData.getValue<double>(CLIP_MAX);
+    double clipMin = m_stateData.getValue<double>(CLIP_MIN);
+    double oldMaxPercent = m_stateData.getValue<double>(CLIP_MAX_PERCENT);
     if ( clipMin < clipMaxRounded ){
         if ( qAbs(clipMaxRounded - oldMax) > m_errorMargin){
-            m_state.setValue<double>(CLIP_MAX, clipMaxRounded );
+            m_stateData.setValue<double>(CLIP_MAX, clipMaxRounded );
             _resetBinCountBasedOnWidth();
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
@@ -1004,7 +1023,7 @@ QString Histogram::setClipMax( double clipMax, bool finish ){
                 if ( clipMaxPercent >= 0 ){
                     clipMaxPercent = Util::roundToDigits(clipMaxPercent * 100, significantDigits);
                     if(qAbs(oldMaxPercent - clipMaxPercent) > m_errorMargin){
-                        m_state.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent);
+                        m_stateData.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent);
                     }
                 }
                 else {
@@ -1026,14 +1045,14 @@ QString Histogram::setClipMax( double clipMax, bool finish ){
 
 QString Histogram::setClipMin( double clipMin, bool finish ){
     QString result;
-    double oldMin = m_state.getValue<double>(CLIP_MIN);
-    double clipMax = m_state.getValue<double>(CLIP_MAX);
-    double oldMinPercent = m_state.getValue<double>(CLIP_MIN_PERCENT);
+    double oldMin = m_stateData.getValue<double>(CLIP_MIN);
+    double clipMax = m_stateData.getValue<double>(CLIP_MAX);
+    double oldMinPercent = m_stateData.getValue<double>(CLIP_MIN_PERCENT);
     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
     double clipMinRounded = Util::roundToDigits( clipMin, significantDigits );
     if( clipMinRounded < clipMax ){
         if ( qAbs(clipMinRounded - oldMin) > m_errorMargin){
-            m_state.setValue<double>(CLIP_MIN, clipMinRounded );
+            m_stateData.setValue<double>(CLIP_MIN, clipMinRounded );
             _resetBinCountBasedOnWidth();
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
@@ -1042,7 +1061,7 @@ QString Histogram::setClipMin( double clipMin, bool finish ){
                 clipMinPercent = Util::roundToDigits(clipMinPercent * 100, significantDigits);
                 if ( clipMinPercent >= 0 ){
                     if(qAbs(oldMinPercent - clipMinPercent) > m_errorMargin){
-                        m_state.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent);
+                        m_stateData.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent);
                     }
                 }
                 else {
@@ -1064,14 +1083,14 @@ QString Histogram::setClipMin( double clipMin, bool finish ){
 
 QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
      QString result;
-     double oldMinPercent = m_state.getValue<double>(CLIP_MIN_PERCENT);
-     double clipMaxPercent = m_state.getValue<double>(CLIP_MAX_PERCENT);
+     double oldMinPercent = m_stateData.getValue<double>(CLIP_MIN_PERCENT);
+     double clipMaxPercent = m_stateData.getValue<double>(CLIP_MAX_PERCENT);
      int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
      double clipMinPercentRounded = Util::roundToDigits( clipMinPercent, significantDigits );
      if( 0 <= clipMinPercentRounded && clipMinPercentRounded <= 100  ){
          if ( clipMinPercentRounded < clipMaxPercent ){
              if ( qAbs(clipMinPercentRounded - oldMinPercent) > m_errorMargin){
-                 m_state.setValue<double>(CLIP_MIN_PERCENT, clipMinPercentRounded );
+                 m_stateData.setValue<double>(CLIP_MIN_PERCENT, clipMinPercentRounded );
                  Controller* controller = _getControllerSelected();
                  if ( controller != nullptr ){
                      double clipMin = 0;
@@ -1079,9 +1098,9 @@ QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
                      std::pair<int,int> bounds = _getFrameBounds();
                      bool validIntensity = controller->getIntensity( bounds.first, bounds.second, cMin, &clipMin);
                      if(validIntensity){
-                         double oldClipMin = m_state.getValue<double>(CLIP_MIN);
+                         double oldClipMin = m_stateData.getValue<double>(CLIP_MIN);
                          if(qAbs(oldClipMin - clipMin) > m_errorMargin){
-                             m_state.setValue<double>(CLIP_MIN, Util::roundToDigits(clipMin, significantDigits));
+                             m_stateData.setValue<double>(CLIP_MIN, Util::roundToDigits(clipMin, significantDigits));
                              _resetBinCountBasedOnWidth();
                          }
                      }
@@ -1107,15 +1126,15 @@ QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
 
 QString Histogram::setClipMaxPercent( double clipMaxPercent, bool complete ){
      QString result;
-     double oldMaxPercent = m_state.getValue<double>(CLIP_MAX_PERCENT);
-     double clipMinPercent = m_state.getValue<double>(CLIP_MIN_PERCENT);
+     double oldMaxPercent = m_stateData.getValue<double>(CLIP_MAX_PERCENT);
+     double clipMinPercent = m_stateData.getValue<double>(CLIP_MIN_PERCENT);
      int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
      double clipMaxPercentRounded = Util::roundToDigits( clipMaxPercent, significantDigits );
      if( 0 <= clipMaxPercentRounded && clipMaxPercentRounded <= 100  ){
          double lookupPercent = clipMaxPercentRounded;
          if ( clipMinPercent < lookupPercent ){
              if ( qAbs(clipMaxPercentRounded - oldMaxPercent) > m_errorMargin){
-                 m_state.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercentRounded );
+                 m_stateData.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercentRounded );
                  Controller* controller = _getControllerSelected();
                  if ( controller != nullptr ){
                      double clipMax = 0;
@@ -1123,9 +1142,9 @@ QString Histogram::setClipMaxPercent( double clipMaxPercent, bool complete ){
                      std::pair<int,int> bound = _getFrameBounds();
                      bool validIntensity = controller->getIntensity(bound.first,bound.second, decPercent, &clipMax);
                      if(validIntensity){
-                         double oldClipMax = m_state.getValue<double>(CLIP_MAX);
+                         double oldClipMax = m_stateData.getValue<double>(CLIP_MAX);
                          if(qAbs(oldClipMax - clipMax) > m_errorMargin){
-                             m_state.setValue<double>(CLIP_MAX, Util::roundToDigits(clipMax, significantDigits));
+                             m_stateData.setValue<double>(CLIP_MAX, Util::roundToDigits(clipMax, significantDigits));
                              _resetBinCountBasedOnWidth();
                          }
                      }
@@ -1163,14 +1182,14 @@ QString Histogram::setColored( bool colored ){
 
 QString Histogram::setColorMin( double colorMin, bool finish ){
     QString result;
-    double oldMin = m_state.getValue<double>(COLOR_MIN);
-    double colorMax = m_state.getValue<double>(COLOR_MAX);
-    double oldMinPercent = m_state.getValue<double>(COLOR_MIN_PERCENT);
+    double oldMin = m_stateData.getValue<double>(COLOR_MIN);
+    double colorMax = m_stateData.getValue<double>(COLOR_MAX);
+    double oldMinPercent = m_stateData.getValue<double>(COLOR_MIN_PERCENT);
     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
     double colorMinRounded = Util::roundToDigits( colorMin, significantDigits );
     if( colorMinRounded < colorMax ){
         if ( qAbs(colorMinRounded - oldMin) > m_errorMargin){
-            m_state.setValue<double>(COLOR_MIN, colorMinRounded );
+            m_stateData.setValue<double>(COLOR_MIN, colorMinRounded );
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
@@ -1178,7 +1197,7 @@ QString Histogram::setColorMin( double colorMin, bool finish ){
                 colorMinPercent = colorMinPercent * 100;
                 if ( colorMinPercent >= 0 ){
                     if(qAbs(oldMinPercent - colorMinPercent) > m_errorMargin){
-                        m_state.setValue<double>(COLOR_MIN_PERCENT, Util::roundToDigits(colorMinPercent,significantDigits ));
+                        m_stateData.setValue<double>(COLOR_MIN_PERCENT, Util::roundToDigits(colorMinPercent,significantDigits ));
                     }
                 }
                 else {
@@ -1199,14 +1218,14 @@ QString Histogram::setColorMin( double colorMin, bool finish ){
 
 QString Histogram::setColorMax( double colorMax, bool finish ){
     QString result;
-    double oldMax = m_state.getValue<double>(COLOR_MAX);
-    double colorMin = m_state.getValue<double>(COLOR_MIN);
-    double oldMaxPercent = m_state.getValue<double>(COLOR_MAX_PERCENT);
+    double oldMax = m_stateData.getValue<double>(COLOR_MAX);
+    double colorMin = m_stateData.getValue<double>(COLOR_MIN);
+    double oldMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
     double colorMaxRounded = Util::roundToDigits( colorMax, significantDigits );
     if ( colorMin < colorMaxRounded ){
         if ( qAbs(colorMaxRounded - oldMax) > m_errorMargin){
-            m_state.setValue<double>(COLOR_MAX, colorMaxRounded );
+            m_stateData.setValue<double>(COLOR_MAX, colorMaxRounded );
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
@@ -1216,7 +1235,7 @@ QString Histogram::setColorMax( double colorMax, bool finish ){
                 if ( colorMaxPercent >= 0 ){
                     colorMaxPercent = colorMaxPercent * 100;
                     if(qAbs(oldMaxPercent - colorMaxPercent) > m_errorMargin){
-                        m_state.setValue<double>(COLOR_MAX_PERCENT, Util::roundToDigits(colorMaxPercent,significantDigits));
+                        m_stateData.setValue<double>(COLOR_MAX_PERCENT, Util::roundToDigits(colorMaxPercent,significantDigits));
                     }
                 }
                 else {
@@ -1236,15 +1255,15 @@ QString Histogram::setColorMax( double colorMax, bool finish ){
 
 QString Histogram::setColorMaxPercent( double colorMaxPercent, bool complete ){
      QString result;
-     double oldMaxPercent = m_state.getValue<double>(COLOR_MAX_PERCENT);
-     double colorMinPercent = m_state.getValue<double>(COLOR_MIN_PERCENT);
+     double oldMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
+     double colorMinPercent = m_stateData.getValue<double>(COLOR_MIN_PERCENT);
      int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
      double colorMaxPercentRounded = Util::roundToDigits( colorMaxPercent, significantDigits);
      if( 0 <= colorMaxPercentRounded && colorMaxPercentRounded <= 100  ){
          double lookupPercent = colorMaxPercentRounded;
          if ( colorMinPercent < lookupPercent ){
              if ( qAbs(colorMaxPercentRounded - oldMaxPercent) > m_errorMargin){
-                 m_state.setValue<double>(COLOR_MAX_PERCENT, colorMaxPercentRounded );
+                 m_stateData.setValue<double>(COLOR_MAX_PERCENT, colorMaxPercentRounded );
                  Controller* controller = _getControllerSelected();
                  if ( controller != nullptr ){
                      double colorMax = 0;
@@ -1252,9 +1271,9 @@ QString Histogram::setColorMaxPercent( double colorMaxPercent, bool complete ){
                      std::pair<int,int> bound = _getFrameBounds();
                      bool validIntensity = controller->getIntensity(bound.first,bound.second, decPercent, &colorMax);
                      if(validIntensity){
-                         double oldColorMax = m_state.getValue<double>(COLOR_MAX);
+                         double oldColorMax = m_stateData.getValue<double>(COLOR_MAX);
                          if(qAbs(oldColorMax - colorMax) > m_errorMargin){
-                             m_state.setValue<double>(COLOR_MAX, Util::roundToDigits(colorMax,significantDigits));
+                             m_stateData.setValue<double>(COLOR_MAX, Util::roundToDigits(colorMax,significantDigits));
                          }
                      }
                      else {
@@ -1279,14 +1298,14 @@ QString Histogram::setColorMaxPercent( double colorMaxPercent, bool complete ){
 
 QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
      QString result;
-     double oldMinPercent = m_state.getValue<double>(COLOR_MIN_PERCENT);
-     double colorMaxPercent = m_state.getValue<double>(COLOR_MAX_PERCENT);
-     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+     double oldMinPercent = m_stateData.getValue<double>(COLOR_MIN_PERCENT);
+     double colorMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
+     int significantDigits = m_stateData.getValue<int>(SIGNIFICANT_DIGITS);
      double colorMinPercentRounded = Util::roundToDigits( colorMinPercent, significantDigits );
      if( 0 <= colorMinPercentRounded && colorMinPercentRounded <= 100  ){
          if ( colorMinPercentRounded < colorMaxPercent ){
              if ( qAbs(colorMinPercentRounded - oldMinPercent) > m_errorMargin){
-                 m_state.setValue<double>(COLOR_MIN_PERCENT, colorMinPercentRounded );
+                 m_stateData.setValue<double>(COLOR_MIN_PERCENT, colorMinPercentRounded );
                  Controller* controller = _getControllerSelected();
                  if ( controller != nullptr ){
                      double colorMin = 0;
@@ -1294,9 +1313,9 @@ QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
                      std::pair<int,int> bounds = _getFrameBounds();
                      bool validIntensity = controller->getIntensity( bounds.first, bounds.second, cMin, &colorMin);
                      if(validIntensity){
-                         double oldColorMin = m_state.getValue<double>(COLOR_MIN);
+                         double oldColorMin = m_stateData.getValue<double>(COLOR_MIN);
                          if(qAbs(oldColorMin - colorMin) > m_errorMargin){
-                             m_state.setValue<double>(COLOR_MIN, Util::roundToDigits(colorMin,significantDigits));
+                             m_stateData.setValue<double>(COLOR_MIN, Util::roundToDigits(colorMin,significantDigits));
                          }
                      }
                      else {
@@ -1431,22 +1450,22 @@ QString Histogram::_set2DFootPrint( const QString& params ){
 QString Histogram::setPlaneRange( double planeMin, double planeMax){
     QString result;
     if ( planeMin >= 0 && planeMax >= 0 ){
-        double storedMin = m_state.getValue<double>(PLANE_MIN);
-        double storedMax = m_state.getValue<double>(PLANE_MAX);
+        double storedMin = m_stateData.getValue<double>(PLANE_MIN);
+        double storedMax = m_stateData.getValue<double>(PLANE_MAX);
         if ( planeMin <= planeMax ){
             int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
             bool changedState = false;
             if ( qAbs(planeMin - storedMin) > m_errorMargin){
-                m_state.setValue<double>(PLANE_MIN, Util::roundToDigits(planeMin, significantDigits ));
+                m_stateData.setValue<double>(PLANE_MIN, Util::roundToDigits(planeMin, significantDigits ));
                 changedState = true;
             }
 
             if ( qAbs(planeMax - storedMax) > m_errorMargin ){
-                m_state.setValue<double>(PLANE_MAX, Util::roundToDigits(planeMax, significantDigits) );
+                m_stateData.setValue<double>(PLANE_MAX, Util::roundToDigits(planeMax, significantDigits) );
                 changedState = true;
             }
             if ( changedState ){
-                m_state.flushState();
+                m_stateData.flushState();
                 QString planeMode = m_state.getValue<QString>(PLANE_MODE);
                 if ( planeMode == PLANE_MODE_RANGE ){
                     _generateHistogram( true );
@@ -1470,9 +1489,9 @@ QString Histogram::setChannelUnit( const QString& units ){
     if ( unitIndex >= 0 ){
         if ( oldUnits != units ){
             m_state.setValue<QString>(FREQUENCY_UNIT, units );
-            double oldPlaneMin = m_state.getValue<double>(PLANE_MIN);
+            double oldPlaneMin = m_stateData.getValue<double>(PLANE_MIN);
             double planeMin = m_channelUnits->convert( oldUnits, units, oldPlaneMin );
-            double oldPlaneMax = m_state.getValue<double>(PLANE_MAX);
+            double oldPlaneMax = m_stateData.getValue<double>(PLANE_MAX);
             double planeMax = m_channelUnits->convert( oldUnits, units, oldPlaneMax );
             result = setPlaneRange( planeMin, planeMax );
             m_state.flushState();
@@ -1555,8 +1574,8 @@ void Histogram::_startSelectionColor(const QString& params ){
 }
 
 double Histogram::_toBinWidth( int count ) const {
-    double minRange = m_state.getValue<double>( CLIP_MIN);
-    double maxRange = m_state.getValue<double>( CLIP_MAX);
+    double minRange = m_stateData.getValue<double>( CLIP_MIN);
+    double maxRange = m_stateData.getValue<double>( CLIP_MAX);
     double width = 0;
     if ( count > 0 ){
         width = qAbs( maxRange - minRange) / count;
@@ -1565,8 +1584,8 @@ double Histogram::_toBinWidth( int count ) const {
 }
 
 int Histogram::_toBinCount( double width ) const {
-    double minRange = m_state.getValue<double>(CLIP_MIN );
-    double maxRange = m_state.getValue<double>(CLIP_MAX);
+    double minRange = m_stateData.getValue<double>(CLIP_MIN );
+    double maxRange = m_stateData.getValue<double>(CLIP_MAX);
     int count = 0;
     if ( width > 0 ){
         count = qCeil( qAbs( maxRange - minRange)  / width);

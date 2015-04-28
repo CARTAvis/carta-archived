@@ -28,7 +28,7 @@ bool Animator::m_registered =
 
 Animator::Animator(const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id),
-    m_linkImpl( new LinkableImpl( &m_state))
+    m_linkImpl( new LinkableImpl( path ))
     {
     _initializeState();
     _initializeCallbacks();
@@ -68,8 +68,6 @@ void Animator::_adjustStateAnimatorTypes(){
     for ( int i = 0; i < animationCount; i++ ){
         if ( !m_animators[keys[i]]->isRemoved()){
             QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + QString::number(i);
-            //m_animators[keys[i]]->setPurpose( keys[i]);
-            //QString val(m_animators[keys[i]]->getStateString());
             m_state.setValue<QString>( objPath, keys[i] );
         }
     }
@@ -126,7 +124,7 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
         }
     }
     else {
-        m_animators[type]->setRemoved( false );
+        m_animators[type]->setVisible( true );
         _adjustStateAnimatorTypes();
         animatorTypeId= m_animators[type]->getPath();
     }
@@ -171,6 +169,43 @@ int Animator::_getMaxImageCount() const {
         }
     }
     return maxImages;
+}
+
+QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+    QString result;
+    if ( type == SNAPSHOT_PREFERENCES ){
+        //User preferences should include animators visible (m_state)
+        //and individual animator preferences.
+        StateInterface prefState("");
+        prefState.insertObject( getPath(), m_state.toString());
+        QMap<QString, AnimatorType*>::const_iterator animIter;
+        for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
+            prefState.insertObject( animIter.key(), animIter.value()->getStatePreferences());
+        }
+        result = prefState.toString();
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        //Data State is selections on individual animators.
+        StateInterface dataState("");
+        QMap<QString, AnimatorType*>::const_iterator animIter;
+        int animCount = m_animators.size();
+        dataState.insertArray(AnimatorType::ANIMATIONS, animCount);
+        int i = 0;
+        for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
+            QString animKey = Util::getLookup( AnimatorType::ANIMATIONS, i );
+            QString animState = animIter.value()->getStateData();
+            QString animKeyName = animKey + StateInterface::DELIMITER + "name";
+            QString animKeyValue = animKey + StateInterface::DELIMITER + "value";
+            dataState.insertValue<QString>( animKeyName, animIter.key() );
+            dataState.insertValue<QString>( animKeyValue, animState );
+            i++;
+        }
+        result = dataState.toString();
+    }
+    return result;
 }
 
 void Animator::_imageIndexChanged( int selectedImage){
@@ -236,7 +271,7 @@ void Animator::refreshState(){
 QString Animator::removeAnimator( const QString& type ){
     QString result;
     if ( m_animators.contains( type )){
-        m_animators[type]->setRemoved( true );
+        m_animators[type]->setVisible( false );
         _adjustStateAnimatorTypes();
     }
     else {
@@ -288,6 +323,53 @@ void Animator::_resetAnimationParameters( int selectedImage ){
        m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
 
    }
+}
+
+void Animator::_resetStateAnimator( const StateInterface& state, const QString& key ){
+    try {
+        QString animPrefs = state.toString( key );
+        if ( animPrefs.length() > 0 ){
+            if ( ! m_animators.contains( key )){
+                QString animId;
+                addAnimator( key , animId );
+            }
+            m_animators[key]->resetState( animPrefs, SNAPSHOT_PREFERENCES);
+        }
+        else {
+            removeAnimator( key );
+        }
+    }
+    catch( std::invalid_argument& ex ){
+        //State did not contain this animator so we remove it.
+        removeAnimator( key );
+    }
+}
+
+void Animator::resetState( const QString& state ){
+    StateInterface prefState("");
+    prefState.setState( state );
+    _resetStateAnimator( prefState, Selection::CHANNEL);
+    _resetStateAnimator( prefState, Selection::IMAGE );
+    _adjustStateAnimatorTypes();
+}
+
+void Animator::resetStateData( const QString& state ){
+    StateInterface dataState("");
+    dataState.setState( state );
+    int animationCount = dataState.getArraySize( AnimatorType::ANIMATIONS );
+    for (int i = 0; i < animationCount; i++ ){
+        QString lookup = Util::getLookup( AnimatorType::ANIMATIONS, i );
+        QString keyName = lookup + StateInterface::DELIMITER + "name";
+        QString animName = dataState.getValue<QString>( keyName );
+        QString keyValue = lookup + StateInterface::DELIMITER + "value";
+        QString stateValue = dataState.getValue<QString>( keyValue );
+        if ( m_animators.contains( animName )){
+            m_animators[animName]->resetStateData( stateValue );
+        }
+        else {
+            qDebug() << "Unrecognized animator state: "<<stateValue;
+        }
+    }
 }
 
 Animator::~Animator(){

@@ -42,11 +42,18 @@ namespace Carta {
 
 namespace Data {
 
-class DataSource : public QObject, public CartaObject, public IColoredView {
+class DataSource : public QObject, public IColoredView {
 
 Q_OBJECT
 
 public:
+
+    /**
+     * Constructor.
+     * @param the base path for state identification.
+     * @param id the particular id for this object.
+     */
+    DataSource( );
 
     /**
      * Returns whether or not the data was successfully loaded.
@@ -128,13 +135,6 @@ public:
     bool contains(const QString& fileName) const;
 
     /**
-     * Saves the state.
-     * @param winId an identifier for the DataController displaying the data.
-     * @param index of the data in the DataController.
-     */
-    void saveState(/*QString winId, int dataIndex*/);
-
-    /**
      * Return a QImage representation of this data.
      * @param frameIndex the index of the spectral coordinate to load.
      * @param autoClip true if clips should be automatically generated; false otherwise.
@@ -163,6 +163,14 @@ public:
      * @return the corresponding location on the image.
      */
     QPointF getImagePt( QPointF screenPt, bool* valid ) const;
+    
+    /**
+     * Returns the location on the screen corresponding to a location in image coordinates.
+     * @param imagePt an (x,y) pair of image coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding pixel coordinates.
+     */
+    QPointF getScreenPt( QPointF imagePt, bool* valid ) const;
 
     /**
      * Return the current pan center.
@@ -213,17 +221,14 @@ public:
      */
     QString getImageViewName() const;
 
-
-
     /**
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
      * @param frameIndex the current channel index.
-     * @param pictureWidth the width of the QImage displaying the source.
-     * @param pictureHeight the height of the QImage displaying the source.
+     * @return a QString containing cursor text.
      */
-    QString getCursorText( int mouseX, int mouseY, int frameIndex, int pictureWidth, int pictureHeight );
+    QString getCursorText( int mouseX, int mouseY, int frameIndex);
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -262,8 +267,6 @@ public:
 
     virtual ~DataSource();
 
-    const static QString CLASS_NAME;
-
 signals:
 
     //Notification that a new image has been produced.
@@ -275,17 +278,8 @@ private slots:
     void _renderingDone( QImage img, int64_t jobId );
 
 private:
-
-    /**
-     * Constructor.
-     * @param the base path for state identification.
-     * @param id the particular id for this object.
-     */
-    DataSource(const QString& path, const QString& id );
-
-    class Factory;
     
-        /**
+    /**
      * Returns the raw data as an array.
      * @param frameLow the lower bound for the channel range or -1 for the whole image.
      * @param frameHigh the upper bound for the channel range or -1 for the whole image.
@@ -304,7 +298,6 @@ private:
     bool m_cmapUseInterpolatedCaching;
     int m_cmapCacheSize;
 
-    static bool m_registered;
     static const QString DATA_PATH;
 
     //Pointer to image interface.

@@ -119,10 +119,19 @@ qx.Class.define( "skel.Application",
         _showCustomizeDialog : function( message ){
             if( this.m_customizeDialog === null ) {
                 this.m_customizeDialog = new skel.Command.Customize.CustomizeDialog();
+                this.m_customizeDialog.addListener("closeCustomizeDialog", function(ev){
+                    this._hideWidget( this.m_customizeDialog );
+                }, this );
             }
             var data = message.getData();
             this.m_customizeDialog.setMenuPage( data.menu );
-            this._setPopupWinProperties( this.m_customizeDialog );
+            var layoutObj = {
+                    left  : "0%",
+                    right : "70%",
+                    top   : "10%",
+                    bottom: "10%"
+            };
+            this._showWidget( this.m_customizeDialog, layoutObj );
         },
         
         _showLayoutPopup : function( message ){
@@ -142,14 +151,18 @@ qx.Class.define( "skel.Application",
                     this._hideWidget( this.m_layoutPopup );
                 }, this );
             }
-            this.m_layoutPopup.setGridSize( this.m_desktop.getRowCount(), this.m_desktop.getColCount());
-            var layoutObj = {
-                    left  : "0%",
-                    right : "90%",
-                    top   : "0%",
-                    bottom: "90%"
-            };
-            this._showWidget( this.m_layoutPopup, layoutObj );
+            //Only show the layout popup if we are not restoring a session.  Restoring might
+            //trigger the pop-up to incorrectly show if the layout changes.
+            if ( this.m_sessionRestoreDialog ===null || !this.m_sessionRestoreDialog.isVisible()){
+                this.m_layoutPopup.setGridSize( this.m_desktop.getRowCount(), this.m_desktop.getColCount());
+                var layoutObj = {
+                        left  : "0%",
+                        right : "90%",
+                        top   : "0%",
+                        bottom: "90%"
+                };
+                this._showWidget( this.m_layoutPopup, layoutObj );
+            }
         },
         
         _showFileBrowser : function( message ){
@@ -164,6 +177,38 @@ qx.Class.define( "skel.Application",
                     bottom: "50%"
             };
             this._showWidget( this.m_fileBrowser, layoutObj );
+        },
+        
+        _showSessionRestore : function( message ){
+            if ( this.m_sessionRestoreDialog === null ){
+                this.m_sessionRestoreDialog = new skel.Command.Session.RestoreDialog();
+                this.m_sessionRestoreDialog.addListener("closeSessionRestore",function(evt){
+                    this._hideWidget( this.m_sessionRestoreDialog );
+                }, this );
+            }
+            var layoutObj = {
+                    left : "0%",
+                    right : "70%",
+                    top : "0%",
+                    bottom : "75%"
+            };
+            this._showWidget( this.m_sessionRestoreDialog, layoutObj );
+        },
+        
+        _showSessionSave : function( message ){
+            if ( this.m_sessionSaveDialog === null ){
+                this.m_sessionSaveDialog = new skel.Command.Session.SaveDialog();
+                this.m_sessionSaveDialog.addListener("closeSessionSave",function(evt){
+                    this._hideWidget( this.m_sessionSaveDialog );
+                }, this );
+            }
+            var layoutObj = {
+                    left : "0%",
+                    right : "70%",
+                    top : "0%",
+                    bottom : "75%"
+            };
+            this._showWidget( this.m_sessionSaveDialog, layoutObj );
         },
         
         _showHistogramPreferences : function( message ){
@@ -183,11 +228,16 @@ qx.Class.define( "skel.Application",
         },
         
         _showWidget : function( widget, layoutObj ){
-            if( this.m_mainContainer.indexOf( widget ) < 0 ) {
-                this.getRoot().add( widget, layoutObj );
+            var root = this.getRoot();
+            if( root.indexOf( widget ) < 0 ) {
+                root.add( widget, layoutObj );
             }
         },
         
+        /**
+         * Remove the widget from the main display.
+         * @param widget {qx.ui.core.Widget} the widget to remove.
+         */
         _hideWidget : function( widget ){
             var root = this.getRoot();
             if( widget !== null && root.indexOf( widget ) >= 0 ) {
@@ -226,6 +276,13 @@ qx.Class.define( "skel.Application",
             qx.event.message.Bus.subscribe( "shareSession", function( ev ){
                 this.m_statusBar.updateSessionSharing( ev.getData() );
             }, this );
+            qx.event.message.Bus.subscribe( "showSessionRestoreDialog", function(message){
+                this._showSessionRestore( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "showSessionSaveDialog", function(message){
+                this._showSessionSave( message);
+            }, this );
+            
             qx.event.message.Bus.subscribe( "layoutChanged", function( ev ){
                 this._layout();
             }, this );
@@ -421,7 +478,6 @@ qx.Class.define( "skel.Application",
             win.setUserBounds( leftPt, topPt, widthVal, heightVal );
         },
 
-
         m_desktop       : null,
         m_histogramPreferences : null,
         m_menuBar       : null,
@@ -432,7 +488,9 @@ qx.Class.define( "skel.Application",
         m_fileBrowser   : null,
         m_customizeDialog : null,
         m_layoutPopup : null,
-        m_sharedVarPreferences : null
+        m_sharedVarPreferences : null,
+        m_sessionRestoreDialog : null,
+        m_sessionSaveDialog : null
     }
 } );
 

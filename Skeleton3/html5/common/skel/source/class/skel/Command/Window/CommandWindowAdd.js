@@ -20,6 +20,12 @@ qx.Class.define("skel.Command.Window.CommandWindowAdd", {
         
         doAction : function( vals, undoCB ){
             if ( skel.Command.Command.m_activeWins.length > 0 ){
+                //Adding a window will change to a custom layout, but we don't want to show
+                //the custom layout dialog in such a case.
+                var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
+                layoutCmd.setActive( false );
+                var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
+                customLayoutCmd.setValue( true );
                 var path = skel.widgets.Path.getInstance();
                 for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
                     var window = skel.Command.Command.m_activeWins[i];
@@ -28,6 +34,7 @@ qx.Class.define("skel.Command.Window.CommandWindowAdd", {
                     var params = "row:"+row+",col:"+col;
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
+                layoutCmd.setActive( true );
             }
         }
     }

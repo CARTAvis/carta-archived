@@ -47,6 +47,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 this.m_content.add(this.m_view, overlayMap );
             }
             this.m_view.setVisibility( "visible" );
+            
         },
         
         /**
@@ -171,6 +172,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +"data" );
+            this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
+            this._sharedVarDataCB();
             this._dataLoadedCB();
         },
         
@@ -180,21 +185,37 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
-        windowSharedVarUpdate : function( winObj ){
-            this.m_datas = [];
-            //Add close menu buttons for all the images that are loaded.
-            if ( winObj.data && winObj.data.length > 0){
-                for ( var i = 0; i < winObj.data.length; i++ ){
-                    this.m_datas[i] = winObj.data[i];
+        _sharedVarDataCB : function(){
+            var val = this.m_sharedVarData.get();
+            if ( val ){
+                try {
+                    var winObj = JSON.parse( val );
+                    this.m_datas = [];
+                    //Add close menu buttons for all the images that are loaded.
+                    if ( winObj.data && winObj.data.length > 0){
+                        for ( var i = 0; i < winObj.data.length; i++ ){
+                            this.m_datas[i] = winObj.data[i];
+                        }
+                        this._dataLoadedCB();
+                    }
+                    else {
+                        //No images to show so set the view hidden.
+                        if ( this.m_view !== null ){
+                            this.m_view.setVisibility( "hidden" );
+                        }
+                    }
+                    var closeCmd = skel.Command.Data.CommandDataClose.getInstance();
+                    closeCmd.closeChanged();
                 }
-                this._dataLoadedCB();
-            }
-            else {
-                //No images to show so set the view hidden.
-                if ( this.m_view !== null ){
-                    this.m_view.setVisibility( "hidden" );
+                catch( err ){
+                    console.log( "Could not parse: "+val );
                 }
             }
+            
+            
+            
+            
+            
         },
 
 
@@ -202,6 +223,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_renderButton : null,
         m_drawCanvas : null,
         m_datas : [],
+        m_sharedVarData : null,
        
         m_view : null,
         m_shapes : [ "Rectangle", "Ellipse", "Point", "Polygon" ]

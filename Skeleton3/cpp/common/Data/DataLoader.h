@@ -37,6 +37,13 @@ public:
      */
     QString getFile( const QString& fakePath, const QString& sessionId ) const;
 
+    /**
+     * Return the top level directory for the data file search.
+     * @param sessionId - an identifier for the user's session.
+     * @return the absolute path to the directory containing the user's files.
+     */
+    QString getRootDir(const QString& sessionId) const;
+
     static QString fakeRootDirName;
     const static QString CLASS_NAME;
 
@@ -47,9 +54,6 @@ private:
     static bool m_registered;
 
     class Factory;
-
-    /// Return the top level directory for the data file search.
-    QString getRootDir(const QString& sessionId) const;
 
     //Look for eligible data files in a specific directory (recursive).
     void processDirectory(const QDir& rootDir, QJsonObject& rootArray);

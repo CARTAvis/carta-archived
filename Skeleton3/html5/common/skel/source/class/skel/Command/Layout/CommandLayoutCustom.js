@@ -19,13 +19,27 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
     members : {
         
         doAction : function( vals ){
-            if ( vals ){
+            if ( vals && this.m_active ){
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "showLayoutPopup", vals));
             }
         },
         
         getType : function(){
             return skel.Command.Command.TYPE_BOOL;
-        }
+        },
+        
+        /**
+         * Sets whether or not this command's action will be performed.
+         * @param active {boolean} true if the action should be performed; false otherwise.
+         */
+        //Note:  This was inspired by the fact if we add or remove a window in the layout,
+        //the server will change to a custom layout.  In such a case, the value of this command
+        //may be changed to true(if it is not already a custom layout), but we don't want to
+        //show the custom layout popup.
+        setActive : function( active ){
+            this.m_active = active;
+        },
+        
+        m_active : true
     }
 });

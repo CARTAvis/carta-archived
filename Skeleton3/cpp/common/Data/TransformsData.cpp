@@ -83,11 +83,13 @@ void TransformsData::_initializeCallbacks(){
      });
 }
 
-bool TransformsData::isTransform( const QString& name ) const {
+bool TransformsData::isTransform( const QString& name, QString& actualName ) const {
     int transformCount = m_transforms.size();
     bool validTransform = false;
     for ( int i = 0; i < transformCount; i++ ){
-        if ( name == m_transforms[i] ){
+        int result = QString::compare( name, m_transforms[i], Qt::CaseInsensitive );
+        if ( result == 0 ){
+           actualName = m_transforms[i];
            validTransform = true;
            break;
         }

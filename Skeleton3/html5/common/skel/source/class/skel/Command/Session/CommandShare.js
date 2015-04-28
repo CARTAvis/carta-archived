@@ -10,7 +10,7 @@ qx.Class.define("skel.Command.Session.CommandShare", {
      * Constructor.
      */
     construct : function() {
-        this.base( arguments, "Share Session", null );
+        this.base( arguments, "Share", null );
         this.m_toolBarVisible = false;
     },
     

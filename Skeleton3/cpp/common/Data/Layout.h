@@ -41,6 +41,12 @@ public:
     QStringList getPluginList() const;
 
     /**
+     * Return a string representing the layout state.
+     * @return a QString representing the corresponding layout state.
+     */
+    QString getStateString() const;
+
+    /**
      * Remove the grid cell at the given row and column from the grid.
      * @param rowIndex the row of the cell to remove.
      * @param colIndex the column of the cell to remove.

@@ -55,7 +55,7 @@ bool Colormap::m_registered =
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
-    m_linkImpl( new LinkableImpl( &m_state ) ),
+    m_linkImpl( new LinkableImpl( path ) ),
     m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
     m_significantDigits = 6;
     _initializeDefaultState();
@@ -80,7 +80,16 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
     return result;
 }
 
-
+QString Colormap::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString();
+    }
+    return result;
+}
 
 void Colormap::_initializeDefaultState(){
     m_state.insertValue<QString>( COLOR_MAP_NAME, "Gray" );
@@ -510,9 +519,11 @@ QString Colormap::setDataTransform( const QString& transformString ){
     QString transformName = m_state.getValue<QString>(TRANSFORM_DATA);
     QString result;
     if ( m_dataTransforms != nullptr ){
-        if( m_dataTransforms->isTransform( transformString ) ){
-            if ( transformString != transformName ){
-                m_state.setValue<QString>(TRANSFORM_DATA, transformString );
+        QString actualTransform;
+        bool recognizedTransform = m_dataTransforms->isTransform( transformString, actualTransform );
+        if( recognizedTransform ){
+            if ( actualTransform != transformName ){
+                m_state.setValue<QString>(TRANSFORM_DATA, actualTransform );
                 m_state.flushState();
                 int linkCount = m_linkImpl->getLinkCount();
                 for( int i = 0; i < linkCount; i++ ){

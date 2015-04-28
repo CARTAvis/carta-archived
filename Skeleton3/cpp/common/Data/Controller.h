@@ -180,10 +180,18 @@ public:
     void saveState();
 
     /**
+     * Reset the images that are loaded and other data associated state.
+     * @param state - the data state.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
      * Returns a json string representing the state of this controller.
+     * @param type - the type of snapshot to return.
+     * @param sessionId - an identifier for the user's session.
      * @return a string representing the state of this controller.
      */
-    virtual QString getStateString() const;
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
      * Change the pan of the current image.
@@ -265,6 +273,8 @@ private:
     void _initializeCallbacks();
     void _initializeSelections();
     void _initializeSelection( Selection* & selection );
+
+    void _clearData();
     QString _makeRegion( const QString& regionType );
     void _removeData( int index );
     void _render();
@@ -300,6 +310,9 @@ private:
 
 
     QList<Region* > m_regions;
+
+    //Holds image that are loaded and selections on the data.
+    StateInterface m_stateData;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

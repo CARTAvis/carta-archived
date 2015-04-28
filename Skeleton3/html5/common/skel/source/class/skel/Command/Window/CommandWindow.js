@@ -34,11 +34,16 @@ qx.Class.define("skel.Command.Window.CommandWindow", {
          * Update the available commands when a window is maximized.
          */
         _windowMaximized : function(){
-            //Remove the maximize cmd
+            //Remove the maximize and minimize cmds
             var maxCmd = skel.Command.Window.CommandWindowMaximize.getInstance();
             var maxIndex = this.m_cmds.indexOf( maxCmd );
             if ( maxIndex >= 0 ){
                 this.m_cmds.splice( maxIndex, 1 );
+            }
+            var minCmd = skel.Command.Window.CommandWindowMinimize.getInstance();
+            var minIndex = this.m_cmds.indexOf( minCmd );
+            if ( minIndex >= 0 ){
+                this.m_cmds.splice( minIndex, 1 );
             }
             //Insert the restore cmd
             var restoreCmd = skel.Command.Window.CommandWindowRestore.getInstance();
@@ -46,7 +51,6 @@ qx.Class.define("skel.Command.Window.CommandWindow", {
             if ( restoreIndex < 0 ){
                 this.m_cmds.splice( maxIndex, 0, restoreCmd);
             }
-            
         },
         
         /**
@@ -59,11 +63,16 @@ qx.Class.define("skel.Command.Window.CommandWindow", {
             if ( restoreIndex >= 0 ){
                 this.m_cmds.splice( restoreIndex, 1 );
             }
-            //Insert the maximize cmd
+            //Insert the maximize and minimize cmd
             var maxCmd = skel.Command.Window.CommandWindowMaximize.getInstance();
             var maxIndex = this.m_cmds.indexOf( maxCmd );
             if (maxIndex < 0) {
                 this.m_cmds.splice(restoreIndex, 0, maxCmd );
+            }
+            var minCmd = skel.Command.Window.CommandWindowMinimize.getInstance();
+            var minIndex = this.m_cmds.indexOf( minCmd );
+            if ( minIndex < 0 ){
+                this.m_cmds.splice( restoreIndex, 0, minCmd );
             }
         }
     }
