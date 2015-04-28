@@ -1,4 +1,4 @@
-#include "Data/AnimationTypes.h"
+#include "AnimationTypes.h"
 #include "Data/Selection.h"
 #include "CartaLib/CartaLib.h"
 #include <QDebug>

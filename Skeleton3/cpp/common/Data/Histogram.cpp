@@ -1,6 +1,6 @@
 #include "Data/Histogram.h"
 #include "Data/Clips.h"
-#include "Data/Colormap.h"
+#include "Data/Colormap/Colormap.h"
 #include "Data/ChannelUnits.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Controller.h"
@@ -146,8 +146,8 @@ QString Histogram::addLink( CartaObject*  target){
 
 void Histogram::applyClips(){
    //Get percentiles and normalize to [0,1].
-   double clipMinPercent = m_state.getValue<double>( COLOR_MIN_PERCENT );
-   double clipMaxPercent = m_state.getValue<double>(COLOR_MAX_PERCENT);
+   double clipMinPercent = m_stateData.getValue<double>( COLOR_MIN_PERCENT );
+   double clipMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
    if ( clipMinPercent > 0 || clipMaxPercent > 0 ){
        double minPercentile =  clipMinPercent / 100.0;
        double maxPercentile = clipMaxPercent / 100.0;

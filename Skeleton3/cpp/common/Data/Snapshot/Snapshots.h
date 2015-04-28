@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "Snapshot.h"
 #include <QDir>
 
 namespace Carta {
@@ -39,13 +40,11 @@ public:
 
 private:
     const static QString DEFAULT_SAVE;
-    const static QString DIR_LAYOUT;
-    const static QString DIR_DATA;
-    const static QString DIR_PREFERENCES;
+
     const static QString SUFFIX;
 
     QString _getRootDir(const QString& /*sessionId*/) const;
-    void _processDirectory(const QDir& rootDir, QStringList& snapshotList) const;
+    void _processDirectory(const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const;
     void _initializeCallbacks();
     void _initializeState();
     QString _read( const QString& fileLocation ) const;

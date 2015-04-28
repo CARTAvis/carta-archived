@@ -1,11 +1,12 @@
-#include "Data/Snapshots.h"
-#include "Data/Selection.h"
-#include "CartaLib/CartaLib.h"
+#include "Snapshots.h"
+#include "Data/Util.h"
 #include <QDebug>
+#include <QDateTime>
 #include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+
 
 namespace Carta {
 
@@ -14,9 +15,7 @@ namespace Data {
 const QString Snapshots::SNAPSHOT_SELECTED = "selected";
 const QString Snapshots::CLASS_NAME = "Snapshots";
 const QString Snapshots::DEFAULT_SAVE = "default";
-const QString Snapshots::DIR_LAYOUT = "layout";
-const QString Snapshots::DIR_PREFERENCES = "preferences";
-const QString Snapshots::DIR_DATA = "data";
+
 const QString Snapshots::SUFFIX = ".cartaState";
 const QString Snapshots::FILE_NAME = "fileName";
 const QString Snapshots::SAVE_LAYOUT = "layoutSnapshot";
@@ -54,12 +53,21 @@ QString Snapshots::_getRootDir(const QString& /*sessionId*/) const {
 QString Snapshots::getSnapshots( const QString& sessionId ) const {
     QString rootDirName = _getRootDir(sessionId);
     QDir rootDir( rootDirName );
-    QStringList snapshotList;
+    QMap<QString,Snapshot> snapshotList;
     _processDirectory( rootDir, snapshotList );
-    return snapshotList.join( ",");
+    StateInterface snapshotStates( "");
+    QList<QString> names = snapshotList.keys();
+    int count = names.size();
+    snapshotStates.insertArray( CLASS_NAME, count );
+    for ( int i = 0; i < count; i++ ){
+        QString lookup = Util::getLookup( CLASS_NAME, i );
+        snapshotStates.setValue<QString>( lookup, snapshotList[names[i]].toString());
+    }
+    qDebug() << "Snapshots are: "<<snapshotStates.toString();
+    return snapshotStates.toString();
 }
 
-void Snapshots::_processDirectory(const QDir& rootDir, QStringList& snapshotList) const {
+void Snapshots::_processDirectory(const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const {
     if (!rootDir.exists()) {
         return;
     }
@@ -76,9 +84,16 @@ void Snapshots::_processDirectory(const QDir& rootDir, QStringList& snapshotList
         if (dit.fileInfo().isFile()) {
             if (fileName.endsWith(SUFFIX)) {
                 fileName = fileName.left( fileName.length() - SUFFIX.length());
-                if ( snapshotList.indexOf( fileName ) < 0 ){
-                    snapshotList.append( fileName );
+                if ( !snapshotList.contains( fileName ) ){
+                    snapshotList.insert(fileName, Snapshot(fileName));
+                    QDateTime lastModify = dit.fileInfo().lastModified();
+                    QString lastModifyStr = lastModify.toString("ddd MMMM d yyyy");
+                    snapshotList[fileName].setCreatedDate( lastModifyStr );
                 }
+                //Add in the state interfaces
+                QString rootName = rootDir.dirName();
+                qDebug() << "RootDir fileName="<<rootName;
+                snapshotList[fileName].setState(rootName, true);
             }
         }
         else if (dit.fileInfo().isDir()){
@@ -105,32 +120,32 @@ void Snapshots::_initializeCallbacks(){
 }
 
 QString Snapshots::readLayout(const QString& sessionId, const QString& baseName) const {
-    QString result = _readSpecific( sessionId, DIR_LAYOUT, baseName);
+    QString result = _readSpecific( sessionId, Snapshot::DIR_LAYOUT, baseName);
     return result;
 }
 
 QString Snapshots::readPreferences(const QString& sessionId, const QString& baseName) const {
-    QString result = _readSpecific( sessionId, DIR_PREFERENCES, baseName);
+    QString result = _readSpecific( sessionId, Snapshot::DIR_PREFERENCES, baseName);
     return result;
 }
 
 QString Snapshots::readData(const QString& sessionId, const QString& baseName) const {
-    QString result = _readSpecific( sessionId, DIR_DATA, baseName );
+    QString result = _readSpecific( sessionId, Snapshot::DIR_DATA, baseName );
     return result;
 }
 
 QString Snapshots::saveLayout(const QString& sessionId, const QString& baseName, const QString& layoutStr) const {
-    QString result = _saveSpecific( sessionId, DIR_LAYOUT, baseName, layoutStr );
+    QString result = _saveSpecific( sessionId, Snapshot::DIR_LAYOUT, baseName, layoutStr );
     return result;
 }
 
 QString Snapshots::savePreferences(const QString& sessionId, const QString& baseName, const QString& prefStr) const {
-    QString result = _saveSpecific( sessionId, DIR_PREFERENCES, baseName, prefStr );
+    QString result = _saveSpecific( sessionId, Snapshot::DIR_PREFERENCES, baseName, prefStr );
     return result;
 }
 
 QString Snapshots::saveData(const QString& sessionId, const QString& baseName, const QString& dataStr) const {
-    QString result = _saveSpecific( sessionId, DIR_DATA, baseName, dataStr );
+    QString result = _saveSpecific( sessionId, Snapshot::DIR_DATA, baseName, dataStr );
     return result;
 }
 

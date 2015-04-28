@@ -1,4 +1,4 @@
-#include "Data/Animator.h"
+#include "Animator.h"
 #include "Data/Selection.h"
 #include "Data/Controller.h"
 #include "Data/Util.h"

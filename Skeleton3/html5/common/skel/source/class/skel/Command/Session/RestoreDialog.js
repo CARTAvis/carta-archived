@@ -16,15 +16,11 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
         this.base(arguments);
         this.m_connector = mImport( "connector");
 
-        var nameContainer = new qx.ui.container.Composite();
-        nameContainer.setLayout(new qx.ui.layout.HBox(2));
-        var nameLabel = new qx.ui.basic.Label( "Restore Name:");
-        nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-        nameContainer.add(nameLabel);
-        this.m_restoreCombo = new qx.ui.form.ComboBox();
-        skel.widgets.TestID.addTestId( this.m_restoreCombo, "snapshotRestoreName");
-        nameContainer.add( this.m_restoreCombo);
-        nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+        var pane = new qx.ui.splitpane.Pane( "horizontal");
+        this.m_snapshotTable = new skel.Command.Session.StateTable();
+        pane.add( this.m_snapshotTable, 1 );
+        this.m_detailsArea = new qx.ui.form.TextArea();
+        pane.add( this.m_detailsArea, 1 );
         
         var butContainer = new qx.ui.container.Composite();
         butContainer.setLayout( new qx.ui.layout.HBox(2));
@@ -38,7 +34,7 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
             //Restoring the layout, could change it, and we don't want the pop-up
             var path = skel.widgets.Path.getInstance();
             var cmd = path.getCommandRestoreState();
-            var stateName = this.m_restoreCombo.getValue();
+            var stateName = this.m_snapshotTable.getSnapshotName();
             var params = "fileName:"+stateName;
             this.m_connector.sendCommand( cmd, params, function(val){} );
             
@@ -47,7 +43,7 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
         butContainer.add( closeButton );
         
         this._setLayout( new qx.ui.layout.VBox(2));
-        this._add( nameContainer );
+        this._add( pane );
         this._add( butContainer );
        //Send a command to update the available snapshots
         this.addListener( "appear", function(){
@@ -72,28 +68,24 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
         
         _updateSnapshots : function(val){
             if ( val !== null ){
-                var oldName = this.m_restoreCombo.getValue();
-                var snapshots = val.split( ",");
-                this.m_restoreCombo.removeAll();
-                for ( var i = 0; i < snapshots.length; i++ ){
-                    var tempItem = new qx.ui.form.ListItem( snapshots[i] );
-                    this.m_restoreCombo.add( tempItem );
-                }
-                //Try to reset the old selection
-                if ( oldName !== null ){
-                    this.m_restoreCombo.setValue( oldName );
-                }
-                //Select the first item
-                else if ( snapshots.length > 0 ){
-                    var selectables = this.m_restoreCombo.getChildrenContainer().getSelectables(true);
-                    if ( selectables.length > 0 ){
-                        this.m_restoreCombo.setValue( selectables[0].getLabel());
+                try {
+                    var jsonObj = JSON.parse( val );
+                    var snapshotStrArray = jsonObj.Snapshots;
+                    var count = snapshotStrArray.length;
+                    this.m_snapshotTable.clear();
+                    for ( var i = 0; i < count; i++ ){
+                        var snap = JSON.parse( snapshotStrArray[i]);
+                        this.m_snapshotTable.addSnapshot( snap.Snapshot, snap.dateCreated, snap.layout, snap.preferences, snap.data );
+                        //TODO:  Add clickable description
                     }
+                }
+                catch( err ){
+                    console.log( "UpdateSnapshots could not parse: "+val+" error: "+err );
                 }
             }
         },
         
-        m_restoreCombo : null,
+        m_snapshotTable : null,
         m_connector : null
     },
 
