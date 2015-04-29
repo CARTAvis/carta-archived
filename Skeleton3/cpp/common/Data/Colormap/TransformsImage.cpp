@@ -1,4 +1,4 @@
-#include "Data/TransformsImage.h"
+#include "TransformsImage.h"
 #include "Data/Util.h"
 
 #include <QDebug>

@@ -1,11 +1,11 @@
-#include "Data/ViewPlugins.h"
+#include "ViewPlugins.h"
 #include "Globals.h"
 #include "PluginManager.h"
-#include "Animator.h"
+#include "Animator/Animator.h"
 #include "Controller.h"
 #include "Statistics.h"
 #include "Histogram.h"
-#include "Colormap.h"
+#include "Colormap/Colormap.h"
 
 #include <QDir>
 #include <QDebug>

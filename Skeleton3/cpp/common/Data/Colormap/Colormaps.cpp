@@ -1,4 +1,4 @@
-#include "Data/Colormaps.h"
+#include "Data/Colormap/Colormaps.h"
 #include "Data/Util.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
