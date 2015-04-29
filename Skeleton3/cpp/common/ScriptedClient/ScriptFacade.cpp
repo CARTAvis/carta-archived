@@ -366,26 +366,109 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
 }
 
 QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferAmount ) {
-    QString result = m_viewManager->setClipBuffer( histogramId, bufferAmount );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setClipBuffer( bufferAmount );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
-QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QString& useBuffer ) {
-    QString result = m_viewManager->setUseClipBuffer( histogramId, useBuffer );
-    QStringList resultList(result);
+QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QString& useBufferStr ) {
+    QStringList resultList;
+    bool validBool = false;
+    bool useBuffer = Carta::Data::Util::toBool( useBufferStr, &validBool );
+    if ( validBool || useBufferStr.toLower() == "toggle" ) {
+        ObjectManager* objMan = ObjectManager::objectManager();
+        QString id = objMan->parseId( histogramId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+            if ( histogram != nullptr ){
+                if ( useBufferStr.toLower() == "toggle" ) {
+                    bool currentUseBuffer = histogram->getUseClipBuffer();
+                    useBuffer = !currentUseBuffer;
+                }
+                QString result = histogram->setUseClipBuffer( useBuffer );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = QStringList( "this shouldn't happen." );
+            }
+        }
+        else {
+            resultList = QStringList( "Object has been removed and no longer exists?" );
+        }
+    }
+    else {
+        resultList = QStringList( "Set clip buffer parameter must be true/false or 'toggle': " + useBufferStr );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRange, double maxRange ) {
-    QString result = m_viewManager->setClipRange( histogramId, minRange, maxRange );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setClipRange( minRange, maxRange );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ) {
-    QString result = m_viewManager->applyClips( histogramId, clipMinValue, clipMaxValue, mode );
-    QStringList resultList(result);
+    QStringList resultList;
+    QString result = "";
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            if ( mode == "percent" ) {
+                result += histogram->setClipMinPercent( clipMinValue );
+                result += histogram->setClipMaxPercent( clipMaxValue );
+            }
+            else if ( mode == "intensity" ) {
+                result += histogram->setClipMin( clipMinValue );
+                result += histogram->setClipMax( clipMaxValue );
+            }
+            else {
+                result = "invalid mode: " + mode;
+            }
+            histogram->applyClips();
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
@@ -396,55 +479,212 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
 }
 
 QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount ) {
-    QString result = m_viewManager->setBinCount( histogramId, binCount );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setBinCount( binCount );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWidth ) {
-    QString result = m_viewManager->setBinWidth( histogramId, binWidth );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setBinWidth( binWidth );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QString& planeMode ) {
-    QString result = m_viewManager->setPlaneMode( histogramId, planeMode );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setPlaneMode( planeMode );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minPlane, double maxPlane) {
-    QString result = m_viewManager->setPlaneRange( histogramId, minPlane, maxPlane );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setPlaneRange( minPlane, maxPlane );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QString& units ) {
-    QString result = m_viewManager->setChannelUnit( histogramId, units );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setChannelUnit( units );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QString& style ) {
-    QString result = m_viewManager->setGraphStyle( histogramId, style );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setGraphStyle( style );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
-QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString& logCount ) {
-    QString result = m_viewManager->setLogCount( histogramId, logCount );
-    QStringList resultList(result);
+QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString& logCountStr ) {
+    QStringList resultList;
+    bool validBool = false;
+    bool logCount = Carta::Data::Util::toBool( logCountStr, &validBool );
+    if ( validBool || logCountStr.toLower() == "toggle" ) {
+        ObjectManager* objMan = ObjectManager::objectManager();
+        QString id = objMan->parseId( histogramId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+            if ( histogram != nullptr ){
+                if ( logCountStr.toLower() == "toggle" ) {
+                    bool currentLogCount = histogram->getLogCount();
+                    logCount = !currentLogCount;
+                }
+                QString result = histogram->setLogCount( logCount );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = QStringList( "this shouldn't happen." );
+            }
+        }
+        else {
+            resultList = QStringList( "Object has been removed and no longer exists?" );
+        }
+    }
+    else {
+        resultList = QStringList( "Set log count parameter must be true/false or 'toggle': " + logCountStr );
+    }
     return resultList;
 }
 
-QStringList ScriptFacade::setColored( const QString& histogramId, const QString& colored ) {
-    QString result = m_viewManager->setColored( histogramId, colored );
-    QStringList resultList(result);
+QStringList ScriptFacade::setColored( const QString& histogramId, const QString& coloredStr ) {
+    QStringList resultList;
+    bool validBool = false;
+    bool colored = Carta::Data::Util::toBool( coloredStr, &validBool );
+    if ( validBool || coloredStr.toLower() == "toggle" ) {
+        ObjectManager* objMan = ObjectManager::objectManager();
+        QString id = objMan->parseId( histogramId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+            if ( histogram != nullptr ){
+                if ( coloredStr.toLower() == "toggle" ) {
+                    bool currentColored = histogram->getColored();
+                    colored = !currentColored;
+                }
+                QString result = histogram->setColored( colored );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = QStringList( "this shouldn't happen." );
+            }
+        }
+        else {
+            resultList = QStringList( "Object has been removed and no longer exists?" );
+        }
+    }
+    else {
+        resultList = QStringList( "Set colored parameter must be true/false or 'toggle': " + coloredStr );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ) {
-    QString result = m_viewManager->saveHistogram( histogramId, filename, width, height );
-    QStringList resultList(result);
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( histogramId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->saveHistogram( filename, width, height );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }

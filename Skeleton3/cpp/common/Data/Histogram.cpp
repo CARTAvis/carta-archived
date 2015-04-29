@@ -826,7 +826,6 @@ void Histogram::_initializeStatics(){
 void Histogram::_loadData( Controller* controller ){
 
     int binCount = m_stateData.getValue<int>(BIN_COUNT)+1;
-    qDebug() << "(JT) Histogram::_loadData() binCount =" << binCount;
     double minFrequency = -1;
     double maxFrequency = -1;
     QString rangeUnits = m_stateData.getValue<QString>(FREQUENCY_UNIT );

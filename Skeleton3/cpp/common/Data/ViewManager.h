@@ -292,40 +292,6 @@ public:
     bool setPlugins( const QStringList& names );
 
     /**
-     * Set the amount of extra space on each side of the clip bounds.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param bufferAmount a percentage in [0,100) representing the amount of extra space.
-     * @return an error message if the clip buffer was not successfully set; an empty string otherwise.
-     */
-    QString setClipBuffer( const QString& histogramId, int bufferAmount );
-
-    /**
-     * Set whether or not to show extra space on each side of the clip bounds.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param useBuffer true if extra space should be shown; false otherwise.
-     * @return an error message if there was a problem; an empty string if the flag was set successfully.
-     */
-    QString setUseClipBuffer( const QString& histogramId, const QString& useBufferStr );
-
-    /**
-     * Set the lower and upper bounds for the histogram horizontal axis.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param minRange a lower bound for the histogram horizontal axis.
-     * @param maxRange an upper bound for the histogram horizontal axis.
-     * @return an error message if there was a problem setting the range; an empty string otherwise.
-     */
-    QString setClipRange( const QString& histogramId, double minRange, double maxRange );
-
-    /**
-     * Applies clips to image.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param clipMinValue the minimum of data to be shown.
-     * @param clipMaxValue the maximum of data to be shown.
-     * @param mode can be either "percent" or "intensity"
-     */
-    QString applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode );
-
-    /**
      * Returns the intensity corresponding to a given percentile.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
@@ -333,86 +299,6 @@ public:
      * @param percentile a number [0,1] for which an intensity is desired.
      */
     QString getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
-
-    /**
-     * Set the number of bins in the histogram.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param binCount the number of histogram bins.
-     * @return an error message if there was a problem setting the bin count; an empty string otherwise.
-     */
-    QString setBinCount( const QString& histogramId, int binCount );
-
-    /**
-     * Set the width of the histogram bins.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param binWidth the histogram bin width.
-     * @return an error message if there was a problem setting the bin width; an empty string otherwise.
-     */
-    QString setBinWidth( const QString& histogramId, double binWidth );
-
-    /**
-     * Set whether the histogram should be based on a single plane, a range of planes, or the entire cube.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param planeMode a unique identifier for the 3D data range.
-     * @return an error message if there was a problem setting the 3D data range; an empty string otherwise.
-     */
-    QString setPlaneMode( const QString& histogramId, const QString& planeMode );
-
-    /**
-     * Set the range of channels to include as data in generating the histogram.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param minPlane the minimum frequency (GHz) to include.
-     * @param maxPlane the maximum frequency (GHz) to include.
-     * @return an error message if there was a problem setting the frame range; an empty string otherwise.
-     */
-    QString setPlaneRange( const QString& histogramId, double minPlane, double maxPlane );
-
-    /**
-     * Set the unit used to specify a channel range, for example, "GHz".
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param units the channel units used to specify a range.
-     * @return an error message if there was a problem setting the channel units;
-     *      otherwise and empty string.
-     */
-    QString setChannelUnit( const QString& histogramId, const QString& units );
-
-    /**
-     * Set the drawing style for the histogram (outline, filled, etc).
-     * @param style a unique identifier for a histogram drawing style.
-     * @return an error message if there was a problem setting the draw style; an empty string otherwise.
-     */
-    QString setGraphStyle( const QString& histogramId, const QString& graphStyle );
-
-    /**
-     * Set whether or not the histogram's vertical axis should use a log scale.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param logCount true if the vertical axis should be logarithmic; false otherwise.
-     *  Can also be equal to "toggle" to turn the log scale on or off depending on its
-     *  current value.
-     * @return an error message if there was a problem setting the flag; an empty string otherwise.
-     */
-    QString setLogCount( const QString& histogramId, const QString& logCountStr );
-
-    /**
-     * Set where or not the histogram should be colored by intensity.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param colored true if the histogram should be colored by intensity; false otherwise.
-     *  Can also be equal to "toggle" to turn the coloring on or off depending on its
-     *  current value.
-     * @return an error message if there was a problem setting the flag; an empty string otherwise.
-     */
-    QString setColored( const QString& histogramId, const QString& coloredStr );
-
-    /**
-     * Save a copy of the histogram as an image.
-     * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param filename the full path where the file is to be saved.
-     * @param width the width, in pixels, of the saved image.
-     * @param height the height, in pixels, of the saved image.
-     * @return an error message if there was a problem saving the histogram;
-     *      an empty string otherwise.
-     */
-    QString saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
 
     static const QString CLASS_NAME;
 
