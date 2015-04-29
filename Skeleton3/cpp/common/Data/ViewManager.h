@@ -166,9 +166,11 @@ private:
      * @param layoutSave - true if the layout should be saved; false otherwise.
      * @param preferencesSave -true if the preferences should be saved; false otherwise.
      * @param dataSave - true if the data should be saved; false otherwise.
+     * @param saveDescription - notes about the state being saved.
      * @return an error message if there was a problem saving state; an empty string otherwise.
      */
-    QString saveState( const QString& sessionId, const QString& fileName, bool layoutSave, bool preferencesSave, bool dataSave );
+    QString saveState( const QString& sessionId, const QString& fileName, bool layoutSave,
+            bool preferencesSave, bool dataSave, const QString& saveDescription );
 
     //A list of Controllers requested by the client.
     QList <Controller* > m_controllers;

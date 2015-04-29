@@ -21,6 +21,7 @@ const QString Snapshots::FILE_NAME = "fileName";
 const QString Snapshots::SAVE_LAYOUT = "layoutSnapshot";
 const QString Snapshots::SAVE_PREFERENCES = "preferencesSnapshot";
 const QString Snapshots::SAVE_DATA = "dataSnapshot";
+const QString Snapshots::SAVE_DESCRIPTION = "description";
 
 class Snapshots::Factory : public CartaObjectFactory {
     public:
@@ -54,7 +55,7 @@ QString Snapshots::getSnapshots( const QString& sessionId ) const {
     QString rootDirName = _getRootDir(sessionId);
     QDir rootDir( rootDirName );
     QMap<QString,Snapshot> snapshotList;
-    _processDirectory( rootDir, snapshotList );
+    _processDirectory( sessionId, rootDir, snapshotList );
     StateInterface snapshotStates( "");
     QList<QString> names = snapshotList.keys();
     int count = names.size();
@@ -63,11 +64,10 @@ QString Snapshots::getSnapshots( const QString& sessionId ) const {
         QString lookup = Util::getLookup( CLASS_NAME, i );
         snapshotStates.setValue<QString>( lookup, snapshotList[names[i]].toString());
     }
-    qDebug() << "Snapshots are: "<<snapshotStates.toString();
     return snapshotStates.toString();
 }
 
-void Snapshots::_processDirectory(const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const {
+void Snapshots::_processDirectory(const QString& sessionId, const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const {
     if (!rootDir.exists()) {
         return;
     }
@@ -83,23 +83,30 @@ void Snapshots::_processDirectory(const QDir& rootDir, QMap<QString,Snapshot>& s
         QString fileName = dit.fileInfo().fileName();
         if (dit.fileInfo().isFile()) {
             if (fileName.endsWith(SUFFIX)) {
-                fileName = fileName.left( fileName.length() - SUFFIX.length());
-                if ( !snapshotList.contains( fileName ) ){
-                    snapshotList.insert(fileName, Snapshot(fileName));
+                QString strippedFileName = fileName.left( fileName.length() - SUFFIX.length());
+                if ( !snapshotList.contains( strippedFileName ) ){
+                    snapshotList.insert(strippedFileName, Snapshot(strippedFileName));
+                }
+                QString dirName = rootDir.dirName();
+                if ( dirName == CLASS_NAME.toLower()){
                     QDateTime lastModify = dit.fileInfo().lastModified();
                     QString lastModifyStr = lastModify.toString("ddd MMMM d yyyy");
-                    snapshotList[fileName].setCreatedDate( lastModifyStr );
+                    snapshotList[strippedFileName].setCreatedDate( lastModifyStr );
+
+                    QString description = _readSpecific( sessionId, "", strippedFileName);
+                    snapshotList[strippedFileName].setDescription( description );
                 }
-                //Add in the state interfaces
-                QString rootName = rootDir.dirName();
-                qDebug() << "RootDir fileName="<<rootName;
-                snapshotList[fileName].setState(rootName, true);
+                else {
+                    //Add in the state interfaces
+                    QString rootName = rootDir.dirName();
+                    snapshotList[strippedFileName].setState(rootName, true);
+                }
             }
         }
         else if (dit.fileInfo().isDir()){
             QString subDirPath = dit.fileInfo().absoluteFilePath();
             QDir subDir( subDirPath );
-            _processDirectory( subDir, snapshotList);
+            _processDirectory( sessionId, subDir, snapshotList);
         }
     }
 }
@@ -149,6 +156,11 @@ QString Snapshots::saveData(const QString& sessionId, const QString& baseName, c
     return result;
 }
 
+QString Snapshots::saveDescription( const QString& sessionId, const QString& baseName, const QString& description ) const {
+    QString result = _saveSpecific( sessionId, "", baseName, description );
+    return result;
+}
+
 QString Snapshots::_readSpecific( const QString& sessionId, const QString& subDirName, const QString& baseName) const {
     QString result;
     QString fullName = baseName;
@@ -156,7 +168,11 @@ QString Snapshots::_readSpecific( const QString& sessionId, const QString& subDi
         fullName = fullName + SUFFIX;
     }
     QString rootDir = _getRootDir( sessionId );
-    QString filePath = rootDir + QDir::separator() + subDirName + QDir::separator() + fullName;
+    QString filePath = rootDir + QDir::separator();
+    if ( subDirName.length() > 0 ){
+        filePath = filePath+ subDirName + QDir::separator();
+    }
+    filePath = filePath + fullName;
 
     QFile file( filePath );
     if ( file.exists() ){
@@ -172,7 +188,11 @@ QString Snapshots::_saveSpecific( const QString& sessionId, const QString subDir
         fullName = fullName + SUFFIX;
     }
     QString rootDir = _getRootDir( sessionId );
-    QString filePath = rootDir + QDir::separator() + subDirName + QDir::separator() + fullName;
+    QString filePath = rootDir + QDir::separator();
+    if ( subDirName.length() > 0 ){
+        filePath = filePath + subDirName + QDir::separator();
+    }
+    filePath = filePath + fullName;
     bool saved = _save( filePath, saveStr );
     if ( !saved ){
         result = "There was a problem saving the "+subDirName;

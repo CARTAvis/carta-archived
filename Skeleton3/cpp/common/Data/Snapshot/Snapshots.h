@@ -30,12 +30,14 @@ public:
     QString saveLayout(const QString& sessionId, const QString& baseName, const QString& layoutStr) const;
     QString savePreferences(const QString& sessionId, const QString& baseName, const QString& prefStr) const;
     QString saveData(const QString& sessionId, const QString& baseName, const QString& dataStr) const;
+    QString saveDescription( const QString& sessionId, const QString& baseName, const QString& description ) const;
     const static QString CLASS_NAME;
     const static QString SNAPSHOT_SELECTED;
     const static QString FILE_NAME;
     const static QString SAVE_LAYOUT;
     const static QString SAVE_PREFERENCES;
     const static QString SAVE_DATA;
+    const static QString SAVE_DESCRIPTION;
     virtual ~Snapshots();
 
 private:
@@ -44,7 +46,7 @@ private:
     const static QString SUFFIX;
 
     QString _getRootDir(const QString& /*sessionId*/) const;
-    void _processDirectory(const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const;
+    void _processDirectory(const QString& sessionId, const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const;
     void _initializeCallbacks();
     void _initializeState();
     QString _read( const QString& fileLocation ) const;

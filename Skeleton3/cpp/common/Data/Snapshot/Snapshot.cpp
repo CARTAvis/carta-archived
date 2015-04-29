@@ -8,6 +8,7 @@ namespace Carta {
 namespace Data {
 
 const QString Snapshot::DATE_CREATED = "dateCreated";
+const QString Snapshot::DESCRIPTION = "description";
 const QString Snapshot::DIR_LAYOUT = "layout";
 const QString Snapshot::DIR_PREFERENCES = "preferences";
 const QString Snapshot::DIR_DATA = "data";
@@ -29,6 +30,13 @@ void Snapshot::setCreatedDate( const QString& dateCreated ){
     }
 }
 
+void Snapshot::setDescription( const QString& descript ){
+    QString oldDescript = m_state.getValue<QString>( DESCRIPTION );
+    if ( oldDescript != descript ){
+        m_state.setValue<QString>( DESCRIPTION, descript );
+    }
+}
+
 void Snapshot::setState( const QString& stateName, bool saved ){
     bool oldSaved = m_state.getValue<bool>( stateName );
     if ( oldSaved != saved ){
@@ -42,6 +50,7 @@ void Snapshot::_initializeState( const QString& name ){
     m_state.insertValue<bool>( DIR_LAYOUT, false );
     m_state.insertValue<bool>( DIR_PREFERENCES, false );
     m_state.insertValue<bool>( DIR_DATA, false );
+    m_state.insertValue<QString>( DESCRIPTION, "");
     m_state.insertValue<QString>( DATE_CREATED, "");
 }
 

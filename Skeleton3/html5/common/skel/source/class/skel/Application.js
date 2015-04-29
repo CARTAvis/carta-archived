@@ -188,9 +188,9 @@ qx.Class.define( "skel.Application",
             }
             var layoutObj = {
                     left : "0%",
-                    right : "50%",
+                    right : "25%",
                     top : "0%",
-                    bottom : "50%"
+                    bottom : "75%"
             };
             this._showWidget( this.m_sessionRestoreDialog, layoutObj );
         },
@@ -204,9 +204,9 @@ qx.Class.define( "skel.Application",
             }
             var layoutObj = {
                     left : "0%",
-                    right : "70%",
+                    right : "50%",
                     top : "0%",
-                    bottom : "75%"
+                    bottom : "65%"
             };
             this._showWidget( this.m_sessionSaveDialog, layoutObj );
         },

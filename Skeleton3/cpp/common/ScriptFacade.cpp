@@ -1,10 +1,10 @@
 #include "ScriptFacade.h"
 #include "Data/ViewManager.h"
-#include "Data/Animator.h"
-#include "Data/AnimatorType.h"
+#include "Data/Animator/Animator.h"
+#include "Data/Animator/AnimatorType.h"
 #include "Data/Controller.h"
-#include "Data/Colormap.h"
-#include "Data/Colormaps.h"
+#include "Data/Colormap/Colormap.h"
+#include "Data/Colormap/Colormaps.h"
 #include "Data/Util.h"
 
 #include <QDebug>

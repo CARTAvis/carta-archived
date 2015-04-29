@@ -18,7 +18,11 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
 
         var pane = new qx.ui.splitpane.Pane( "horizontal");
         this.m_snapshotTable = new skel.Command.Session.StateTable();
-        pane.add( this.m_snapshotTable, 1 );
+        this.m_snapshotTable.setHeight(200);
+        this.m_snapshotTable.addListener( "selectionChanged", function(){
+            this._updateDescription();
+        }, this );
+        pane.add( this.m_snapshotTable, 3 );
         this.m_detailsArea = new qx.ui.form.TextArea();
         pane.add( this.m_detailsArea, 1 );
         
@@ -65,6 +69,13 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
             };
         },
         
+        _updateDescription : function(){
+            var snapName = this.m_snapshotTable.getSnapshotName();
+            if ( snapName !== null && snapName.length > 0 ){
+                var descript = this.m_snapMap[snapName];
+                this.m_detailsArea.setValue( descript );
+            }
+        },
         
         _updateSnapshots : function(val){
             if ( val !== null ){
@@ -73,10 +84,18 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
                     var snapshotStrArray = jsonObj.Snapshots;
                     var count = snapshotStrArray.length;
                     this.m_snapshotTable.clear();
+                    this.m_snapMap = {};
                     for ( var i = 0; i < count; i++ ){
                         var snap = JSON.parse( snapshotStrArray[i]);
-                        this.m_snapshotTable.addSnapshot( snap.Snapshot, snap.dateCreated, snap.layout, snap.preferences, snap.data );
-                        //TODO:  Add clickable description
+                        var name = snap.Snapshot;
+                        if ( (typeof snap.description ==="undefined") || (snap.description === "") ){
+                            this.m_snapMap[name] = "No Details";
+                        }
+                        else {
+                            this.m_snapMap[name] = snap.description;
+                        }
+                        this.m_snapshotTable.addSnapshot( name, snap.dateCreated, snap.layout, 
+                                snap.preferences, snap.data );
                     }
                 }
                 catch( err ){
@@ -86,7 +105,8 @@ qx.Class.define("skel.Command.Session.RestoreDialog", {
         },
         
         m_snapshotTable : null,
-        m_connector : null
+        m_connector : null,
+        m_snapMap : {}
     },
 
     properties : {

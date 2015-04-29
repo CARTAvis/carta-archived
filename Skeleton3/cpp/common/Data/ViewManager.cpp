@@ -252,9 +252,10 @@ void ViewManager::_initCallbacks(){
     addCommandCallback( "saveState", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & sessionId) -> QString {
         std::set<QString> keys = {Snapshots::FILE_NAME,Snapshots::SAVE_LAYOUT,
-                Snapshots::SAVE_PREFERENCES,Snapshots::SAVE_DATA};
+                Snapshots::SAVE_PREFERENCES,Snapshots::SAVE_DATA, Snapshots::SAVE_DESCRIPTION};
         std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
         QString result;
+        QString saveDescription = dataValues[Snapshots::SAVE_DESCRIPTION];
         bool validLayout = false;
         bool saveLayout = Util::toBool( dataValues[Snapshots::SAVE_LAYOUT], &validLayout );
         if ( !validLayout ){
@@ -274,7 +275,7 @@ void ViewManager::_initCallbacks(){
                 }
                 else {
                     result = saveState(sessionId, dataValues[Snapshots::FILE_NAME],
-                           saveLayout, savePrefs, saveData );
+                           saveLayout, savePrefs, saveData, saveDescription );
                 }
             }
         }
@@ -774,10 +775,12 @@ void ViewManager::setImageView(){
 }
 
 
-QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
+QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout,
+        bool savePreferences, bool saveData, const QString& description ){
     QString result;
     ObjectManager* objMan = ObjectManager::objectManager();
     Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
+    result = snapshot->saveDescription( sessionId, saveName, description );
     if ( saveLayout ){
         //Layout state consists of both the layout and the links.
         QString layoutState = m_layout->getStateString();

@@ -15,28 +15,35 @@ qx.Class.define("skel.Command.Session.StateTable", {
     construct : function( ) {
         this.base(arguments);
         
+        //Data Model
         var tableModel = new qx.ui.table.model.Simple();
         var path = skel.widgets.Path.getInstance();
-        var colArray = ["Name", "Date Created", path.STATE_LAYOUT, path.STATE_PREFERENCES, path.STATE_SESSION];
+        var colArray = ["Name", "Date Created", path.STATE_LAYOUT, path.STATE_PREFERENCES, 
+                        path.STATE_SESSION];
         tableModel.setColumns( colArray);
-        var i = 1;
-        for ( i = 1; i <= colArray.length; i++ ){
+        var i = 0;
+        for ( i = 0; i < colArray.length; i++ ){
             tableModel.setColumnEditable(i, false );
         }
-        
         this.setTableModel( tableModel );
-        this.set({
-            width: 300,
-            height: 400
-        });
-        this.getSelectionModel().setSelectionMode( qx.ui.table.selection.Model.SINGLE_SELECTION);
+        
+        
+        //Selection Model
+        var selectModel = this.getSelectionModel();
+        selectModel.setSelectionMode( qx.ui.table.selection.Model.SINGLE_SELECTION);
+        selectModel.addListener( "changeSelection", function(){
+            this.fireDataEvent( "selectionChanged", "");
+        }, this );
         
         //Display checkboxes in the last column
         var tcm = this.getTableColumnModel();
-        for ( i = 3; i <= colArray.length; i++ ){
-            tcm.setDataCellRenderer(3, new qx.ui.table.cellrenderer.Boolean());
+        for ( i = 2; i < colArray.length; i++ ){
+            tcm.setDataCellRenderer(i, new qx.ui.table.cellrenderer.Boolean());
         }
-        
+    },
+    
+    events : {
+        "selectionChanged" : "qx.event.type.Data"
     },
     
     members : {
@@ -56,13 +63,20 @@ qx.Class.define("skel.Command.Session.StateTable", {
             tableRow[0].push( layout );
             tableRow[0].push( preferences );
             tableRow[0].push( session );
-            this.getTableModel().addRows( tableRow );
+            var tableModel = this.getTableModel();
+            tableModel.addRows( tableRow );
+            if ( this.m_selectedName === null || this.m_selectedName === name ){
+                var selectModel = this.getSelectionModel();
+                var rowCount = tableModel.getRowCount();
+                selectModel.setSelectionInterval( rowCount - 1, rowCount - 1);
+            }
         },
         
         /**
          * Remove all snapshots from the table.
          */
         clear : function(){
+            this.m_selectedName = this.getSnapshotName();
             var tableModel = this.getTableModel();
             var rowCount = tableModel.getRowCount();
             tableModel.removeRows( 0, rowCount, true );
@@ -75,11 +89,16 @@ qx.Class.define("skel.Command.Session.StateTable", {
         getSnapshotName : function(){
             var selectionModel = this.getSelectionModel();
             var selectionRanges = selectionModel.getSelectedRanges();
-            var selectionIndex = selectionRanges[0].minIndex;
-            var dataModel = this.getTableModel();
-            var selectedData = dataModel.getRowData( selectionIndex );
-            var name = selectedData[0];
+            var name = null;
+            if ( selectionRanges.length > 0 ){
+                var selectionIndex = selectionRanges[0].minIndex;
+                var dataModel = this.getTableModel();
+                var selectedData = dataModel.getRowData( selectionIndex );
+                name = selectedData[0];
+            }
             return name;
-        }
+        },
+        
+        m_selectedName : null
     }
 });
