@@ -271,9 +271,14 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
 }
 
 QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
-    m_viewManager->setImage( animatorId, index );
+    Carta::Data::Animator* animator = getAnimator( animatorId );
+    if ( animator ){
+        animator->changeImageIndex( index );
+    }
+    else {
+        qDebug() << "Could not find animator";
+    }
     QStringList result("setImage");
-    result.append(QString::number(index));
     return result;
 }
 

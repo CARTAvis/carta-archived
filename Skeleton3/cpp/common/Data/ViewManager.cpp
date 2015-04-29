@@ -873,26 +873,6 @@ QString ViewManager::setDataTransform( const QString& colormapId, const QString&
     return output;
 }
 
-bool ViewManager::setChannel( const QString& animatorId, int index ){
-    int animatorIndex = _findAnimator( animatorId );
-    bool animatorFound = false;
-    if ( animatorIndex >= 0 ){
-        m_animators[animatorIndex]->changeChannelIndex( index );
-        animatorFound = true;
-    }
-    return animatorFound;
-}
-
-bool ViewManager::setImage( const QString& animatorId, int index ){
-    int animatorIndex = _findAnimator( animatorId );
-    bool animatorFound = false;
-    if ( animatorIndex >= 0 ){
-        m_animators[animatorIndex]->changeImageIndex( index );
-        animatorFound = true;
-    }
-    return animatorFound;
-}
-
 QString ViewManager::setCustomView( int rows, int cols ){
     if ( m_layout == nullptr ){
         _makeLayout();
