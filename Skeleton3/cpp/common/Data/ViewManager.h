@@ -109,8 +109,9 @@ public:
      * Set the number of rows and columns in the layout grid.
      * @param rows the number of rows in the grid.
      * @param cols the number of columns in the grid.
+     * @return a possible error message or an empty QString if there is no error.
      */
-    void setCustomView( int rows, int cols );
+    QString setCustomView( int rows, int cols );
 
      /**
      * Reset the layout to show objects under active development.

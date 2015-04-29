@@ -144,10 +144,8 @@ QStringList ScriptFacade::setAnalysisLayout(){
 }
 
 QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
-    m_viewManager->setCustomView( rows, cols );
-    QStringList result("setAnalysisLayout");
-    result.append("rows=" + QString::number(rows));
-    result.append("cols=" + QString::number(cols));
+    QString resultStr = m_viewManager->setCustomView( rows, cols );
+    QStringList result( resultStr );
     return result;
 }
 

@@ -893,12 +893,12 @@ bool ViewManager::setImage( const QString& animatorId, int index ){
     return animatorFound;
 }
 
-void ViewManager::setCustomView( int rows, int cols ){
-    _clear();
+QString ViewManager::setCustomView( int rows, int cols ){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
     QString result = m_layout->setLayoutSize( rows, cols );
+    return result;
 }
 
 void ViewManager::setDeveloperView(){
