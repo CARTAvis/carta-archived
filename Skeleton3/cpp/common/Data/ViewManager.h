@@ -61,7 +61,7 @@ public:
     /**
      * Return the number of colormap views.
      */
-    int getColorMapCount() const;
+    int getColormapCount() const;
 
     /**
      * Return the number of animator views.
@@ -117,30 +117,6 @@ public:
      * Reset the layout to a predefined view displaying only a single image.
      */
     void setImageView();
-
-    /**
-     * Get the colormaps that are linked to the given image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    QStringList getLinkedColorMaps( const QString& controlId );
-
-    /**
-     * Get the animators that are linked to the given image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    QStringList getLinkedAnimators( const QString& controlId );
-
-    /**
-     * Get the histograms that are linked to the given image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    QStringList getLinkedHistograms( const QString& controlId );
-
-    /**
-     * Get the statistics views that are linked to the given image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    QStringList getLinkedStatistics( const QString& controlId );
 
     /**
      * Set the list of plugins to be displayed.

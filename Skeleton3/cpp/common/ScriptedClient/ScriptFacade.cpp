@@ -63,7 +63,7 @@ QStringList ScriptFacade::getImageViews() {
 
 QStringList ScriptFacade::getColorMapViews() {
     QStringList colorMapViewList;
-    int numColorMaps = m_viewManager->getColorMapCount();
+    int numColorMaps = m_viewManager->getColormapCount();
     for (int i = 0; i < numColorMaps; i++) {
         QString colorMapView = getColorMapId( i );
         colorMapViewList << colorMapView;
@@ -483,22 +483,74 @@ QStringList ScriptFacade::saveState( const QString& saveName ) {
 */
 
 QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
-    QStringList linkedColorMaps = m_viewManager->getLinkedColorMaps( controlId );
+    QStringList linkedColorMaps;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = 0; i < m_viewManager->getColormapCount(); i++ ){
+        QString colormapId = getColorMapId( i );
+        QString id = objMan->parseId( colormapId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+            QList<QString> oldLinks = colormap->getLinks();
+            if (oldLinks.contains( controlId )) {
+                linkedColorMaps.append( colormapId );
+            }
+        }
+    }
     return linkedColorMaps;
 }
 
 QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
-    QStringList linkedAnimators = m_viewManager->getLinkedAnimators( controlId );
+    QStringList linkedAnimators;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = 0; i < m_viewManager->getAnimatorCount(); i++ ){
+        QString animatorId = getAnimatorViewId( i );
+        QString id = objMan->parseId( animatorId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+            QList<QString> oldLinks = animator->getLinks();
+            if (oldLinks.contains( controlId )) {
+                linkedAnimators.append( animatorId );
+            }
+        }
+    }
     return linkedAnimators;
 }
 
 QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
-    QStringList linkedHistograms = m_viewManager->getLinkedHistograms( controlId );
+    QStringList linkedHistograms;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = 0; i < m_viewManager->getHistogramCount(); i++ ){
+        QString histogramId = getHistogramViewId( i );
+        QString id = objMan->parseId( histogramId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+            QList<QString> oldLinks = histogram->getLinks();
+            if (oldLinks.contains( controlId )) {
+                linkedHistograms.append( histogramId );
+            }
+        }
+    }
     return linkedHistograms;
 }
 
 QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
-    QStringList linkedStatistics = m_viewManager->getLinkedStatistics( controlId );
+    QStringList linkedStatistics;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( int i = 0; i < m_viewManager->getStatisticsCount(); i++ ){
+        QString statisticsId = getStatisticsViewId( i );
+        QString id = objMan->parseId( statisticsId );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Statistics* statistics = dynamic_cast<Carta::Data::Statistics*>(obj);
+            QList<QString> oldLinks = statistics->getLinks();
+            if (oldLinks.contains( controlId )) {
+                linkedStatistics.append( statisticsId );
+            }
+        }
+    }
     return linkedStatistics;
 }
 

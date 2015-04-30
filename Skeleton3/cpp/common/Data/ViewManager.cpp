@@ -319,7 +319,7 @@ void ViewManager::_initializeDefaultState(){
 }
 
 int ViewManager::_findColorMap( const QString& id ) const {
-    int colorCount = getColorMapCount();
+    int colorCount = getColormapCount();
     int colorIndex = -1;
     for ( int i = 0; i < colorCount; i++ ){
         if ( m_colormaps[i]->getPath() == id ){
@@ -536,7 +536,7 @@ int ViewManager::getControllerCount() const {
     return controllerCount;
 }
 
-int ViewManager::getColorMapCount() const {
+int ViewManager::getColormapCount() const {
     int colorMapCount = m_colormaps.size();
     return colorMapCount;
 }
@@ -818,58 +818,6 @@ void ViewManager::setImageView(){
         _clearControllers( 1 );
     }
     m_layout->setLayoutImage();
-}
-
-QStringList ViewManager::getLinkedColorMaps( const QString& controlId ) {
-    QStringList linkedColorMaps;
-    int colormapCount = m_colormaps.size();
-    for ( int i = 0; i < colormapCount; i++ ){
-        QList<QString> oldLinks = m_colormaps[ i ]-> getLinks();
-        QString colormapId = getObjectId(Colormap::CLASS_NAME, i);
-        if (oldLinks.contains( controlId )) {
-            linkedColorMaps.append(colormapId);
-        }
-    }
-    return linkedColorMaps;
-}
-
-QStringList ViewManager::getLinkedAnimators( const QString& controlId ) {
-    QStringList linkedAnimators;
-    int animatorCount = m_animators.size();
-    for ( int i = 0; i < animatorCount; i++ ){
-        QList<QString> oldLinks = m_animators[ i ]-> getLinks();
-        QString animatorId = getObjectId(Animator::CLASS_NAME, i);
-        if (oldLinks.contains( controlId )) {
-            linkedAnimators.append(animatorId);
-        }
-    }
-    return linkedAnimators;
-}
-
-QStringList ViewManager::getLinkedHistograms( const QString& controlId ) {
-    QStringList linkedHistograms;
-    int histogramCount = m_histograms.size();
-    for ( int i = 0; i < histogramCount; i++ ){
-        QList<QString> oldLinks = m_histograms[ i ]-> getLinks();
-        QString histogramId = getObjectId(Histogram::CLASS_NAME, i);
-        if (oldLinks.contains( controlId )) {
-            linkedHistograms.append(histogramId);
-        }
-    }
-    return linkedHistograms;
-}
-
-QStringList ViewManager::getLinkedStatistics( const QString& controlId ) {
-    QStringList linkedStatistics;
-    int statisticsCount = m_statistics.size();
-    for ( int i = 0; i < statisticsCount; i++ ){
-        QList<QString> oldLinks = m_statistics[ i ]-> getLinks();
-        QString statisticsId = getObjectId(Statistics::CLASS_NAME, i);
-        if (oldLinks.contains( controlId )) {
-            linkedStatistics.append(statisticsId);
-        }
-    }
-    return linkedStatistics;
 }
 
 QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
