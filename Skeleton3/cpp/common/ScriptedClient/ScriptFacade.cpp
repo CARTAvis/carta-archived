@@ -182,61 +182,192 @@ QStringList ScriptFacade::showImageAnimator( const QString& index ){
 }
 
 QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
-    m_viewManager->setColorMap( colormapId, colormapName );
-    QStringList result("setColorMap");
-    result.append(colormapName);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setColorMap( colormapName );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QString& reverseStr ){
-    m_viewManager->reverseColorMap( colormapId, reverseStr );
-    QStringList result("reverseColorMap");
-    result.append(reverseStr);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->reverseColormap( reverseStr );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
-    QString output = m_viewManager->setCacheColormap( colormapId, cacheStr );
-    QStringList result(output);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setCacheColormap( cacheStr );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
-    QString output = m_viewManager->setCacheSize( colormapId, cacheSize );
-    QStringList result(output);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setCacheSize( cacheSize );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
-    QString output = m_viewManager->setInterpolatedColorMap( colormapId, interpolateStr );
-    QStringList result(output);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setInterpolatedColorMap( interpolateStr );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QString& invertStr ){
-    m_viewManager->invertColorMap( colormapId, invertStr );
-    QStringList result("invertColorMap");
-    result.append(invertStr);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->invertColorMap( invertStr );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){
-    m_viewManager->setColorMix( colormapId, percentString );
-    QStringList result("setColorMix");
-    result.append(percentString);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setColorMix( percentString );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
-    QString output = m_viewManager->setGamma( colormapId, gamma );
-    QStringList result(output);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setGamma( gamma );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QString& transformString ){
-    QString output = m_viewManager->setDataTransform( colormapId, transformString );
-    QStringList result(output);
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( colormapId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            QString result = colormap->setDataTransform( transformString );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setImageLayout(){

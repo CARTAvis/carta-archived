@@ -585,7 +585,7 @@ QString Colormap::setDataTransform( const QString& transformString ){
                 int linkCount = m_linkImpl->getLinkCount();
                 for( int i = 0; i < linkCount; i++ ){
                     Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-                    controller->setTransformData( transformString );
+                    controller->setTransformData( actualTransform );
                 }
                 emit colorMapChanged( this );
             }
