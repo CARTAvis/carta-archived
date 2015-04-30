@@ -55,18 +55,6 @@ std::vector<HookId> CasaImageLoader::getInitialHookList()
     };
 }
 
-
-static CCImage<casa::Float>::SharedPtr tryCastFloat( casa::LatticeBase * lat)
-{
-    typedef casa::ImageInterface<casa::Float> CCIT;
-    CCIT * cii = (CCIT *)(lat);
-    typename CCImage<casa::Float>::SharedPtr res = nullptr;
-    if( cii) {
-        res = CCImage<casa::Float>::create( cii);
-    }
-    return res;
-}
-
 template <typename T>
 static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 {
@@ -97,7 +85,7 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     // first try as paged array
     try {
         lat = casa::ImageOpener::openPagedImage ( fname.toStdString());
-	qDebug() << "\t-opened as paged image";
+    qDebug() << "\t-opened as paged image";
     } catch ( casa::AipsError & e) {
         qWarning() << "\t-paged image open failed: " << e.what();
     }
@@ -105,9 +93,9 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     if( ! lat ) {
         try {
             lat = casa::ImageOpener::openImage ( fname.toStdString());
-	    qDebug() << "\t-opened as unpaged image";
+        qDebug() << "\t-opened as unpaged image";
         } catch ( casa::AipsError & e) {
-	    qWarning() << "\t-unpaged image open failed: " << e.what();
+        qWarning() << "\t-unpaged image open failed: " << e.what();
         }
     }
     // if we failed to open the lattice, we are done :(
@@ -115,42 +103,62 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
         qDebug() << "\t-out of ideas, bailing out";
         return nullptr;
     }
-	lat->reopen();
+    lat->reopen();
     qDebug() << "lat=" << lat;
     auto shape = lat->shape();
     auto shapes = shape.asStdVector();
     qDebug() << "lat.shape = " << std::string( lat->shape().toString()).c_str();
     qDebug() << "lat.dataType = " << lat->dataType();
-	qDebug() << "Float type is " << casa::TpFloat;
+    qDebug() << "Float type is " << casa::TpFloat;
 
     CCImageBase::SharedPtr res;
-    res = tryCastFloat(lat);
+    res = tryCast<float>(lat);
     if( ! res) res = tryCast<double>(lat);
     if( ! res) res = tryCast<u_int8_t>(lat);
     if( ! res) res = tryCast<int16_t>(lat);
     if( ! res) res = tryCast<int32_t>(lat);
     if( ! res) res = tryCast<int64_t>(lat);
-    if( ! res) res = tryCast<int64_t>(lat);
+
+    // if dynamic casting fails, try static cast since we know what type lat
+	if(!res) {
+    	if(lat->dataType() == casa::TpFloat) {
+    		typedef casa::ImageInterface<casa::Float> CCITF;
+    		CCITF * ciif = static_cast<CCITF *>(lat);
+    		if( ciif) 
+       		 	res = CCImage<casa::Float>::create( ciif);
+		} else if(lat->dataType() == casa::TpDouble) {
+    		typedef casa::ImageInterface<casa::Double> CCITD;
+    		CCITD * ciid = static_cast<CCITD *>(lat);
+    		if( ciid) 
+       		 	res = CCImage<casa::Double>::create( ciid);
+		} else if(lat->dataType() == casa::TpInt) {
+    		typedef casa::ImageInterface<casa::Int> CCITI;
+    		CCITI * ciii = static_cast<CCITI *>(lat);
+    		if( ciii) 
+       		 	res = CCImage<casa::Int>::create( ciii);
+		} 
+	}
 
     if( res) {
         qDebug() << "Created image interface with type=" << Carta::toStr( res->pixelType());
         return res;
     }
 
-	// if the initial conversion attempt failed, try a LEL expression
+
+    // if the initial conversion attempt failed, try a LEL expression
 /*
     casa::ImageInterface<casa::Float> * img = 0;
     try {
         qDebug() << "Trying LEL conversion";
-    	std::string expr = "float('" + fname.toStdString() + "')";
-		qDebug() << "Espression is " << expr.c_str();
+        std::string expr = "float('" + fname.toStdString() + "')";
+        qDebug() << "Espression is " << expr.c_str();
         casa::LatticeExpr<casa::Float> le ( casa::ImageExprParse::command( expr ));
         img = new casa::ImageExpr<casa::Float> ( le, expr );
         qDebug() << "\t-LEL conversion successful";
         return CCImage<float>::create( img);
     } catch ( ... ) {} 
 */
-	
+    
 
     // indicate failure
     qWarning() << "Unsupported lattice type:" << lat-> dataType();
