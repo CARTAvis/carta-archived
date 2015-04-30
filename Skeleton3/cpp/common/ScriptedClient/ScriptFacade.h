@@ -62,12 +62,6 @@ public:
     QStringList getColorMaps() const;
 
     /**
-     * Return a list of filenames that can be loaded.
-     * @return a QStringList containing the names of available files.
-     */
-    QStringList getFileList() const;
-
-    /**
      * Establish a link between a source and destination.
      * @param sourceId the unique server side id of the link source.
      * @param destId the unique server side id of an object responsible for an image view.

@@ -43,14 +43,6 @@ class Application:
         colormapsList = self.con.cmdTagList(commandStr)
         return colormapsList
 
-    def getFileList(self):
-        commandStr = "getFileList"
-        fileListJson = self.con.cmdTagList(commandStr)
-        j = json.loads(fileListJson)
-        # Start parsing from the first occurrence of 'dir'
-        fileList = parseDirectory(j['dir'], "")
-        return fileList
-
     def getImageViews(self):
         commandStr = "getImageViews"
         imageViewsList = self.con.cmdTagList(commandStr)

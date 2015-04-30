@@ -35,12 +35,6 @@ QStringList ScriptFacade::getColorMaps() const {
     return maps->getColorMaps();
 }
 
-QStringList ScriptFacade::getFileList() const {
-    QString fileList = m_viewManager->getFileList();
-    QStringList result(fileList);
-    return result;
-}
-
 QString ScriptFacade::getImageViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, index );
 }
@@ -415,32 +409,67 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
 
 QStringList ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
     const QString& param = "clipValue:" + clipValue;
-    m_viewManager->setClipValue( controlId, param );
-    QStringList result("setClipValue");
-    result.append(clipValue);
-    return result;
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->setClipValue( param );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename ) {
-    bool result = m_viewManager->saveImage( controlId, filename );
-    QStringList resultList;
-    if ( !result ) {
-        resultList.append( "Could not save image to " + filename );
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            bool result = controller->saveImage( filename );
+            if ( !result ) {
+                resultList = QStringList( "Could not save image to " + filename );
+            }
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
     }
     else {
-        resultList.append("");
+        resultList = QStringList( "Object has been removed and no longer exists?" );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, double scale ) {
-    bool result = m_viewManager->saveFullImage( controlId, filename, scale );
-    QStringList resultList;
-    if ( !result ) {
-        resultList.append( "Could not save full image to " + filename );
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            bool result = controller->saveFullImage( filename, scale );
+            if ( !result ) {
+                resultList = QStringList( "Could not save full image to " + filename );
+            }
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
     }
     else {
-        resultList.append("");
+        resultList = QStringList( "Object has been removed and no longer exists?" );
     }
     return resultList;
 }
@@ -474,31 +503,104 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
 }
 
 QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, double y ) {
-    QString result = m_viewManager->centerOnPixel( controlId, x, y );
-    QStringList resultList(result);
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->centerOnPixel( x, y );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLevel ) {
-    QString result = m_viewManager->setZoomLevel( controlId, zoomLevel );
-    QStringList resultList(result);
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->setZoomLevel( zoomLevel );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
-    double zoom = m_viewManager->getZoomLevel( controlId );
-    QStringList resultList( QString::number( zoom ) );
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            double zoomLevel = controller->getZoomLevel( );
+            resultList = QStringList( QString::number( zoomLevel ) );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 
 QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
-    QStringList result = m_viewManager->getImageDimensions( controlId );
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getImageDimensions( );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
-    QStringList result = m_viewManager->getOutputSize( controlId );
-    return result;
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getOutputSize( );
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferAmount ) {
@@ -609,8 +711,30 @@ QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMin
 }
 
 QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ) {
-    QString result = m_viewManager->getIntensity( controlId, frameLow, frameHigh, percentile );
-    QStringList resultList(result);
+    QStringList resultList;
+    double intensity;
+    bool valid;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            valid = controller->getIntensity( frameLow, frameHigh, percentile, &intensity );
+            if ( valid ) {
+                resultList = QStringList( QString::number( intensity ) );
+            }
+            else {
+                resultList = QStringList( Carta::Data::Util::toString( valid ) );
+            }
+        }
+        else {
+            resultList = QStringList( "this shouldn't happen." );
+        }
+    }
+    else {
+        resultList = QStringList( "Object has been removed and no longer exists?" );
+    }
     return resultList;
 }
 

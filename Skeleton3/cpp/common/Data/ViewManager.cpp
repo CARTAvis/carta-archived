@@ -531,11 +531,6 @@ void ViewManager::loadLocalFile( const QString& controlId, const QString& fileNa
     }
 }
 
-QString ViewManager::getFileList() {
-    QString fileList = m_dataLoader->getData("", "");
-    return fileList;
-}
-
 int ViewManager::getControllerCount() const {
     int controllerCount = m_controllers.size();
     return controllerCount;
@@ -825,50 +820,6 @@ void ViewManager::setImageView(){
     m_layout->setLayoutImage();
 }
 
-//void ViewManager::setPlugins( const QStringList& names ){
-//    if ( m_layout == nullptr ){
-//        _makeLayout();
-//    }
-//    m_layout->setPlugins( names );
-//}
-
-void ViewManager::setClipValue( const QString& controlId, const QString& param ){
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-           m_controllers[i]->setClipValue( param );
-           break;
-        }
-    }
-}
-
-bool ViewManager::saveImage( const QString& controlId, const QString& filename ){
-    int controlCount = getControllerCount();
-    bool result = false;
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-           result = m_controllers[i]->saveImage( filename );
-           break;
-        }
-    }
-    return result;
-}
-
-bool ViewManager::saveFullImage( const QString& controlId, const QString& filename, double scale ){
-    int controlCount = getControllerCount();
-    bool result = false;
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-           result = m_controllers[i]->saveFullImage( filename, scale );
-           break;
-        }
-    }
-    return result;
-}
-
 QStringList ViewManager::getLinkedColorMaps( const QString& controlId ) {
     QStringList linkedColorMaps;
     int colormapCount = m_colormaps.size();
@@ -919,92 +870,6 @@ QStringList ViewManager::getLinkedStatistics( const QString& controlId ) {
         }
     }
     return linkedStatistics;
-}
-
-QString ViewManager::centerOnPixel( const QString& controlId, double x, double y ) {
-    QString result = "";
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-            m_controllers[i]->centerOnPixel( x, y );
-            break;
-        }
-    }
-    return result;
-}
-
-QString ViewManager::setZoomLevel( const QString& controlId, double zoomLevel ) {
-    QString result = "";
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-            m_controllers[i]->setZoomLevel( zoomLevel );
-            break;
-        }
-    }
-    return result;
-}
-
-double ViewManager::getZoomLevel( const QString& controlId ) {
-    double zoom;
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-            zoom = m_controllers[i]->getZoomLevel();
-            break;
-        }
-    }
-    return zoom;
-}
-
-QStringList ViewManager::getImageDimensions( const QString& controlId ) {
-    QStringList result;
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-            result = m_controllers[i]->getImageDimensions();
-            break;
-        }
-    }
-    return result;
-}
-
-QStringList ViewManager::getOutputSize( const QString& controlId ) {
-    QStringList result;
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-            result = m_controllers[i]->getOutputSize();
-            break;
-        }
-    }
-    return result;
-}
-
-QString ViewManager::getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ) {
-    QString result;
-    double intensity;
-    bool valid;
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-            valid = m_controllers[i]->getIntensity( frameLow, frameHigh, percentile, &intensity );
-            break;
-        }
-    }
-    if ( valid ) {
-        result = QString::number( intensity );
-    }
-    else {
-        result = Util::toString( valid );
-    }
-    return result;
 }
 
 QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){

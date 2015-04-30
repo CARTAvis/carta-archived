@@ -54,11 +54,6 @@ public:
     QString linkRemove( const QString& sourceId, const QString& destId );
 
     /**
-     * Return a list of filenames that can be loaded into the image viewer.
-     */
-    QString getFileList();
-
-    /**
      * Return the number of controllers (image views).
      */
     int getControllerCount() const;
@@ -124,32 +119,6 @@ public:
     void setImageView();
 
     /**
-     * Set the histogram to show the specified percentage of the data.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param clipValue the percentage of data to be shown.
-     */
-    void setClipValue( const QString& controlId, const QString& param );
-
-    /**
-     * Save a screenshot of the current image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param filename the full path where the file is to be saved.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
-     */
-    bool saveImage( const QString& controlId, const QString& filename );
-
-    /**
-     * Save a copy of the full image in the current image view at its native resolution.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param fileName the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
-     */
-    bool saveFullImage( const QString& controlId, const QString& filename, double scale );
-
-    /**
      * Get the colormaps that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      */
@@ -174,52 +143,10 @@ public:
     QStringList getLinkedStatistics( const QString& controlId );
 
     /**
-     * Center the image on the pixel with coordinates (x, y).
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param x the x-coordinate for the center of the pan.
-     * @param y the y-coordinate for the center of the pan.
-     */
-    QString centerOnPixel( const QString& controlId, double x, double y );
-
-    /**
-     * Set the zoom level.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param zoomLevel either positive or negative depending on the desired zoom direction.
-     */
-    QString setZoomLevel( const QString& controlId, double zoomLevel );
-
-    /**
-     * Get the current zoom level.
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    double getZoomLevel( const QString& controlId );
-
-    /**
-     * Get the image dimensions.
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    QStringList getImageDimensions( const QString& controlId );
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @param controlId the unique server-side id of an object managing a controller.
-     */
-    QStringList getOutputSize( const QString& controlId );
-
-    /**
      * Set the list of plugins to be displayed.
      * @param names a list of identifiers for the plugins.
      */
     bool setPlugins( const QStringList& names );
-
-    /**
-     * Returns the intensity corresponding to a given percentile.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     */
-    QString getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
 
     static const QString CLASS_NAME;
 

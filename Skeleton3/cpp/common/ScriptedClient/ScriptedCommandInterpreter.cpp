@@ -285,10 +285,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->showImageAnimator( animatorView );
     }
 
-//    else if ( cmd == "getfilelist" ) {
-//        QString fileList = m_scriptFacade->getFileList();
-//    }
-
     /// histogram commands
 
     else if ( cmd == "setclipbuffer" ) {
