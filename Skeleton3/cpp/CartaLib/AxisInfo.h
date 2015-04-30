@@ -11,7 +11,7 @@ class AxisInfo
 {
 public:
     /// axis types we recognize
-    enum KnownType
+    enum class KnownType
     {
         DIRECTION_LON, /// < direction, longitude-ish
         DIRECTION_LAT, /// < direction, latitude-ish

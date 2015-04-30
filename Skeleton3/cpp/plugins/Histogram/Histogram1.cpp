@@ -4,7 +4,7 @@
 #include "Globals.h"
 #include "PluginManager.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "casacore/coordinates/Coordinates/SpectralCoordinate.h"
+#include <casacore/coordinates/Coordinates/SpectralCoordinate.h>
 #include <QDebug>
 
 

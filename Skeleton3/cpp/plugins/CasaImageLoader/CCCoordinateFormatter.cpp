@@ -462,18 +462,18 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             m_precisions[pixelAxis] = 3;
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
-            aInfo.setKnownType( aInfo.KnownType::SPECTRAL )
+            aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
                 .setLongLabel( HtmlString::fromPlain( "Frequency" ) )
                 .setShortLabel( HtmlString( "Freq", "Freq" ) );
             m_precisions[pixelAxis] = 6;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
-            aInfo.setKnownType( aInfo.KnownType::STOKES )
+            aInfo.setKnownType( AxisInfo::KnownType::STOKES )
                 .setLongLabel( HtmlString::fromPlain( "Stokes" ) )
                 .setShortLabel( HtmlString::fromPlain( "Stokes" ) );
         }
         else if ( cc.type() == casa::Coordinate::TABULAR ) {
-            aInfo.setKnownType( aInfo.KnownType::TABULAR );
+            aInfo.setKnownType( AxisInfo::KnownType::TABULAR );
 
             //            else if ( cc.type() == casa::Coordinate::QUALITY ) {
             //                aInfo.setKnownType( aInfo.KnownType::QUALITY);
@@ -481,7 +481,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         else {
             // other types... we copy whatever casacore dishes out
-            aInfo.setKnownType( aInfo.KnownType::OTHER );
+            aInfo.setKnownType( AxisInfo::KnownType::OTHER );
             QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
             QString shortLabel = rawAxisLabel;
             aInfo.setLongLabel( HtmlString::fromPlain( rawAxisLabel ) );
@@ -510,14 +510,14 @@ CCCoordinateFormatter::formatWorldValue( int whichAxis, double worldValue )
 
     // for longigute / latitude we do the same thing, except for a different factor
     // when doing sexagesimal
-    if ( ai.knownType() == ai.KnownType::DIRECTION_LON
-         || ai.knownType() == ai.KnownType::DIRECTION_LAT ) {
-        double sexFactor = ( ai.knownType() == ai.KnownType::DIRECTION_LON )
+    if ( ai.knownType() == AxisInfo::KnownType::DIRECTION_LON
+         || ai.knownType() == AxisInfo::KnownType::DIRECTION_LAT ) {
+        double sexFactor = ( ai.knownType() == AxisInfo::KnownType::DIRECTION_LON )
                            ? 24 * 60 * 60 / ( 2 * M_PI )
                            : 180 * 60 * 60 / M_PI;
 
         // for longitude values, wrap around negative values
-        if ( ai.knownType() == ai.KnownType::DIRECTION_LON && worldValue < 0 ) {
+        if ( ai.knownType() == AxisInfo::KnownType::DIRECTION_LON && worldValue < 0 ) {
             worldValue += 2 * M_PI;
         }
         if ( skyFormatting() == SkyFormatting::Radians ) {
@@ -547,11 +547,11 @@ CCCoordinateFormatter::formatWorldValue( int whichAxis, double worldValue )
     }
 
     // for stokes we convert to a string using casacore's Stokes class
-    else if ( ai.knownType() == ai.KnownType::STOKES ) {
+    else if ( ai.knownType() == AxisInfo::KnownType::STOKES ) {
         return casa::Stokes::name( static_cast < casa::Stokes::StokesTypes > ( round( worldValue ) ) )
                    .c_str();
     }
-    else if ( ai.knownType() == ai.KnownType::SPECTRAL ){
+    else if ( ai.knownType() == AxisInfo::KnownType::SPECTRAL ){
         int exp = 1;
         QStringList availUnits={"Hz","KHz","MHz","GHz"};
         int unitCount = availUnits.size();

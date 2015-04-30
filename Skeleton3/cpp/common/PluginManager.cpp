@@ -291,10 +291,10 @@ PluginManager::PluginInfo PluginManager::parsePluginDir(const QString & dirName)
             info.errors << "...c++ plugin must have executable libplugin.so or libplugin.dylib";
             return info;
         }
-		if(soInfo.exists())
-    		info.soPath = soInfo.filePath();
-		else
-    		info.soPath = dylibInfo.filePath();
+        if(soInfo.exists())
+            info.soPath = soInfo.filePath();
+        else
+            info.soPath = dylibInfo.filePath();
     }
 
     // if the plugin type is c++ or lib, find all libraries under libs subdirectory

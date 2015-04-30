@@ -55,6 +55,18 @@ std::vector<HookId> CasaImageLoader::getInitialHookList()
     };
 }
 
+
+static CCImage<casa::Float>::SharedPtr tryCastFloat( casa::LatticeBase * lat)
+{
+    typedef casa::ImageInterface<casa::Float> CCIT;
+    CCIT * cii = (CCIT *)(lat);
+    typename CCImage<casa::Float>::SharedPtr res = nullptr;
+    if( cii) {
+        res = CCImage<casa::Float>::create( cii);
+    }
+    return res;
+}
+
 template <typename T>
 static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 {
@@ -103,6 +115,7 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
         qDebug() << "\t-out of ideas, bailing out";
         return nullptr;
     }
+	lat->reopen();
     qDebug() << "lat=" << lat;
     auto shape = lat->shape();
     auto shapes = shape.asStdVector();
@@ -111,7 +124,7 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
 	qDebug() << "Float type is " << casa::TpFloat;
 
     CCImageBase::SharedPtr res;
-    res = tryCast<float>(lat);
+    res = tryCastFloat(lat);
     if( ! res) res = tryCast<double>(lat);
     if( ! res) res = tryCast<u_int8_t>(lat);
     if( ! res) res = tryCast<int16_t>(lat);
@@ -125,15 +138,18 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     }
 
 	// if the initial conversion attempt failed, try a LEL expression
+/*
     casa::ImageInterface<casa::Float> * img = 0;
     try {
         qDebug() << "Trying LEL conversion";
-    	string expr = "float('" + fname.toStdString() + "')";
+    	std::string expr = "float('" + fname.toStdString() + "')";
+		qDebug() << "Espression is " << expr.c_str();
         casa::LatticeExpr<casa::Float> le ( casa::ImageExprParse::command( expr ));
         img = new casa::ImageExpr<casa::Float> ( le, expr );
         qDebug() << "\t-LEL conversion successful";
         return CCImage<float>::create( img);
-    } catch ( ... ) {}
+    } catch ( ... ) {} 
+*/
 	
 
     // indicate failure

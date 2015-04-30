@@ -4,7 +4,7 @@
 
 #include <casacore/casa/aipstype.h>
 #include <casacore/casa/vector.h>
-#include <IImageHistogram.h>
+#include "IImageHistogram.h"
 #include <QTextStream>
 
 
