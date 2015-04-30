@@ -28,6 +28,9 @@ class Animator : public QObject, public CartaObject, public ILinkable {
 
 public:
 
+    //ILinkable
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+
     /**
      * Add an animator of the given type.
      * @param type an identifier for the type of animator to add (channel, image, etc).
@@ -68,12 +71,6 @@ public:
      * @param the path of the controller at the given index linked to this Animator;
      */
     QString getLinkId( int linkindex ) const;
-
-    /**
-     * Return a list of identifiers for all objects that are controlled by this animator.
-     * @return a list of identifiers for objects under the control of this animator.
-     */
-    QList<QString> getLinks() const;
 
     /**
      * Return a string representing the animator state of a particular type.

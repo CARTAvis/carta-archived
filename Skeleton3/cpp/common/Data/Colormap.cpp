@@ -598,7 +598,7 @@ QString Colormap::setDataTransform( const QString& transformString ){
     return result;
 }
 
-QList<QString> Colormap::getLinks() const {
+QList<QString> Colormap::getLinks() {
     return m_linkImpl->getLinkIds();
 }
 

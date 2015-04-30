@@ -138,7 +138,7 @@ int Animator::getLinkCount() const {
     return m_linkImpl->getLinkCount();
 }
 
-QList<QString> Animator::getLinks() const {
+QList<QString> Animator::getLinks() {
     return m_linkImpl->getLinkIds();
 }
 

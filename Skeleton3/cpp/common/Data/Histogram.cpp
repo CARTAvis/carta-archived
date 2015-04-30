@@ -1679,7 +1679,8 @@ void Histogram::_updateSize( const QSize& size ){
     _generateHistogram( false );
 }
 
-QList<QString> Histogram::getLinks() const {
+//QList<QString> Histogram::getLinks() const {
+QList<QString> Histogram::getLinks() {
     return m_linkImpl->getLinkIds();
 }
 

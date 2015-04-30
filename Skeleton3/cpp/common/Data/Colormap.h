@@ -38,6 +38,7 @@ public:
     //ILinkable
     virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -119,12 +120,6 @@ public:
      * @return error information if gamma could not be set.
      */
     QString setGamma( double gamma );
-
-    /**
-     * Return a list of identifiers for all objects that are controlled by this colormap.
-     * @return a list of identifiers for objects under the control of this colormap.
-     */
-    QList<QString> getLinks() const;
 
     std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( ) const;
 

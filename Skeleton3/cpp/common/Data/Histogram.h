@@ -50,6 +50,7 @@ public:
     //ILinkable
     QString addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Applies clips to image.
@@ -151,12 +152,6 @@ public:
      * @return an error message if there was a problem setting the range; an empty string otherwise.
      */
     QString setClipRangePercent( double minPercent, double maxPercent );
-
-    /**
-     * Return a list of identifiers for all objects that are controlled by this histogram.
-     * @return a list of identifiers for objects under the control of this histogram.
-     */
-    QList<QString> getLinks() const;
 
     /**
      * Set the number of bins in the histogram.

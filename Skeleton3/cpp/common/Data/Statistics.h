@@ -29,17 +29,12 @@ public:
     //ILinkable
     virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
      */
     void clear();
-
-    /**
-     * Return a list of identifiers for all objects that are controlled by this statistics view.
-     * @return a list of identifiers for objects under the control of this statistics view.
-     */
-    QList<QString> getLinks() const;
 
     /**
      * Return a string representing the statistics state of a particular type.

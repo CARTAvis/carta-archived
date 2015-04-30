@@ -30,6 +30,14 @@ public:
      */
     virtual QString addLink( CartaObject* cartaObj ) = 0;
 
+    /**
+     * Return a list of identifiers for all objects that are controlled by
+     * this CartaObject.
+     * @return a list of identifiers for objects under the control of this
+     * CartaObject.
+     */
+    virtual QList<QString> getLinks() = 0;
+
 };
 }
 }
