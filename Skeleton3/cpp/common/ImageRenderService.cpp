@@ -102,7 +102,7 @@ QPointF Service::pan()
 void
 Service::setZoom( double zoom )
 {
-    double newZoom = clamp( zoom, 0.1, 64.0 );
+    double newZoom = clamp( zoom, 1e-9, 1e+9 );
     if ( newZoom != m_zoom ) {
         m_zoom = newZoom;
     }
