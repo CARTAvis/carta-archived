@@ -498,7 +498,7 @@ QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
         }
         else {
             resultList = QStringList( "error" );
-            resultList.append( "The specified something or other could not be found." );
+            resultList.append( "Could not find colormap." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -523,8 +523,11 @@ QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
         }
         else {
             resultList = QStringList( "error" );
-            resultList.append( "The specified image view could not be found." );
+            resultList.append( "Could not find animator." );
         }
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
     }
     return resultList;
 }
@@ -545,8 +548,11 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
         }
         else {
             resultList = QStringList( "error" );
-            resultList.append( "The specified image view could not be found." );
+            resultList.append( "Could not find histogram." );
         }
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
     }
     return resultList;
 }
@@ -567,8 +573,11 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
         }
         else {
             resultList = QStringList( "error" );
-            resultList.append( "The specified image view could not be found." );
+            resultList.append( "Could not find statistics view." );
         }
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
     }
     return resultList;
 }

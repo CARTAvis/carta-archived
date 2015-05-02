@@ -34,27 +34,30 @@ class Image(CartaView):
         resultList = self.con.cmdTagList("getLinkedAnimators",
                                          imageView=self.getId())
         linkedAnimatorViews = []
-        for animator in resultList:
-            linkedAnimatorView = Animator(animator, self.con)
-            linkedAnimatorViews.append(linkedAnimatorView)
+        if (resultList[0] != ""):
+            for animator in resultList:
+                linkedAnimatorView = Animator(animator, self.con)
+                linkedAnimatorViews.append(linkedAnimatorView)
         return linkedAnimatorViews
 
     def getLinkedHistograms(self):
         resultList = self.con.cmdTagList("getLinkedHistograms",
                                          imageView=self.getId())
         linkedHistogramViews = []
-        for histogram in resultList:
-            linkedHistogramView = Histogram(histogram, self.con)
-            linkedHistogramViews.append(linkedHistogramView)
+        if (resultList[0] != ""):
+            for histogram in resultList:
+                linkedHistogramView = Histogram(histogram, self.con)
+                linkedHistogramViews.append(linkedHistogramView)
         return linkedHistogramViews
 
     def getLinkedStatistics(self):
         resultList = self.con.cmdTagList("getLinkedStatistics",
                                          imageView=self.getId())
         linkedStatisticsViews = []
-        for statistics in resultList:
-            linkedStatisticsView = Statistics(statistics, self.con)
-            linkedStatisticsViews.append(linkedStatisticsView)
+        if (resultList[0] != ""):
+            for statistics in resultList:
+                linkedStatisticsView = Statistics(statistics, self.con)
+                linkedStatisticsViews.append(linkedStatisticsView)
         return linkedStatisticsViews
 
     def setClipValue(self, index):
