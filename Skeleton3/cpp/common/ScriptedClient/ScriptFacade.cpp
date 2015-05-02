@@ -483,7 +483,7 @@ QStringList ScriptFacade::saveState( const QString& saveName ) {
 */
 
 QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
-    QStringList linkedColorMaps;
+    QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = 0; i < m_viewManager->getColormapCount(); i++ ){
         QString colormapId = getColorMapId( i );
@@ -493,15 +493,22 @@ QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
             Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
             QList<QString> oldLinks = colormap->getLinks();
             if (oldLinks.contains( controlId )) {
-                linkedColorMaps.append( colormapId );
+                resultList.append( colormapId );
             }
         }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "The specified something or other could not be found." );
+        }
     }
-    return linkedColorMaps;
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
-    QStringList linkedAnimators;
+    QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = 0; i < m_viewManager->getAnimatorCount(); i++ ){
         QString animatorId = getAnimatorViewId( i );
@@ -511,15 +518,19 @@ QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
             Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
             QList<QString> oldLinks = animator->getLinks();
             if (oldLinks.contains( controlId )) {
-                linkedAnimators.append( animatorId );
+                resultList.append( animatorId );
             }
         }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "The specified image view could not be found." );
+        }
     }
-    return linkedAnimators;
+    return resultList;
 }
 
 QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
-    QStringList linkedHistograms;
+    QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = 0; i < m_viewManager->getHistogramCount(); i++ ){
         QString histogramId = getHistogramViewId( i );
@@ -529,15 +540,19 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             QList<QString> oldLinks = histogram->getLinks();
             if (oldLinks.contains( controlId )) {
-                linkedHistograms.append( histogramId );
+                resultList.append( histogramId );
             }
         }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "The specified image view could not be found." );
+        }
     }
-    return linkedHistograms;
+    return resultList;
 }
 
 QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
-    QStringList linkedStatistics;
+    QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = 0; i < m_viewManager->getStatisticsCount(); i++ ){
         QString statisticsId = getStatisticsViewId( i );
@@ -547,11 +562,15 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
             Carta::Data::Statistics* statistics = dynamic_cast<Carta::Data::Statistics*>(obj);
             QList<QString> oldLinks = statistics->getLinks();
             if (oldLinks.contains( controlId )) {
-                linkedStatistics.append( statisticsId );
+                resultList.append( statisticsId );
             }
         }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "The specified image view could not be found." );
+        }
     }
-    return linkedStatistics;
+    return resultList;
 }
 
 QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, double y ) {
@@ -565,11 +584,13 @@ QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, dou
             controller->centerOnPixel( x, y );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -585,11 +606,13 @@ QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLev
             controller->setZoomLevel( zoomLevel );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -606,11 +629,13 @@ QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
             resultList = QStringList( QString::number( zoomLevel ) );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -626,11 +651,13 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
             resultList = controller->getImageDimensions( );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -646,11 +673,13 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
             resultList = controller->getOutputSize( );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }

@@ -384,6 +384,9 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result.append("Unknown command");
     }
 
+    if ( result[0] == "error" ) {
+        key = "error";
+    }
     rjo.insert( key, QJsonValue::fromVariant( result ) );
     JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
     m_messageListener->send( rjm.toTagMessage() );

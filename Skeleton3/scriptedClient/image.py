@@ -24,9 +24,10 @@ class Image(CartaView):
         resultList = self.con.cmdTagList("getLinkedColormaps",
                                          imageView=self.getId())
         linkedColormapViews = []
-        for colormap in resultList:
-            linkedColormapView = Colormap(colormap, self.con)
-            linkedColormapViews.append(linkedColormapView)
+        if (resultList[0] != ""):
+            for colormap in resultList:
+                linkedColormapView = Colormap(colormap, self.con)
+                linkedColormapViews.append(linkedColormapView)
         return linkedColormapViews
 
     def getLinkedAnimators(self):
@@ -68,9 +69,10 @@ class Image(CartaView):
         """
         result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(),
                                      xval=x, yval=y)
-        animators = self.getLinkedAnimators()
-        if (len(animators) > 0):
-            animators[0].setChannel(z)
+        if (result[0] != "error"):
+            animators = self.getLinkedAnimators()
+            if (len(animators) > 0):
+                animators[0].setChannel(z)
         return result
 
     def centerWithRadius(self, x, y, radius, dim='width'):
@@ -82,8 +84,10 @@ class Image(CartaView):
         Note that this function is defined entirely in terms of other, lower
         level Python functions.
         """
-        self.centerOnPixel(x, y)
         viewerDim = self.getOutputSize()
+        if (len(viewerDim) != 2):
+            return "Could not center the image."
+        self.centerOnPixel(x, y)
         if dim == 'width':
             dimNumber = 0
         elif dim == 'height':
@@ -114,7 +118,11 @@ class Image(CartaView):
 
     def getZoomLevel(self):
         result = self.con.cmdTagList("getZoomLevel", imageView=self.getId())
-        return float(result[0])
+        if (result[0] != "error"):
+            result = float(result[0])
+        else:
+            result = result[1]
+        return result
 
     def addLink(self, dest):
         """ Note that this method needs to override the base class method
@@ -143,7 +151,10 @@ class Image(CartaView):
     def getImageDimensions(self):
         result = self.con.cmdTagList("getImageDimensions",
                                      imageView=self.getId())
-        result = [int(i) for i in result]
+        if (result[0] != "error"):
+            result = [int(i) for i in result]
+        else:
+            result = result[1]
         return result
 
     def getChannelCount(self):
@@ -159,7 +170,10 @@ class Image(CartaView):
 
     def getOutputSize(self):
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
-        result = [int(i) for i in result]
+        if (result[0] != "error"):
+            result = [int(i) for i in result]
+        else:
+            result = result[1]
         return result
 
 
