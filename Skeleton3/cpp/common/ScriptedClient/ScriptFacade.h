@@ -18,12 +18,6 @@ namespace Carta {
 class ScriptFacade {
 
 public:
-    /**
-     * Return a container containing animators.
-     * @param index the ID of the desired animator.
-     * @return the first animator container at the given index.
-     */
-    Carta::Data::Animator* getAnimator( const QString& index );
 
     /**
      * Return a list of the image views defined by the layout.

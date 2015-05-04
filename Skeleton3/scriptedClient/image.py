@@ -89,7 +89,8 @@ class Image(CartaView):
         """
         viewerDim = self.getOutputSize()
         if (len(viewerDim) != 2):
-            return "Could not center the image."
+            #return "Could not center the image."
+            return viewerDim
         self.centerOnPixel(x, y)
         if dim == 'width':
             dimNumber = 0
@@ -100,6 +101,8 @@ class Image(CartaView):
 
     def fitToViewer(self):
         iDim = self.getImageDimensions()
+        if (len(iDim) != 2):
+            return iDim
         oDim = self.getOutputSize()
         if (oDim[0] < oDim[1]):
             self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[0]/2,'width')
@@ -156,8 +159,6 @@ class Image(CartaView):
                                      imageView=self.getId())
         if (result[0] != "error"):
             result = [int(i) for i in result]
-        else:
-            result = result[1]
         return result
 
     def getChannelCount(self):
@@ -167,8 +168,10 @@ class Image(CartaView):
         """
         result = 1
         dimensions = self.getImageDimensions()
-        if (len(dimensions) > 2):
-            result = dimensions[2]
+        if (dimensions[0] != "error"):
+            result = dimensions[1]
+        else:
+            result = dimensions
         return result
 
     def getOutputSize(self):

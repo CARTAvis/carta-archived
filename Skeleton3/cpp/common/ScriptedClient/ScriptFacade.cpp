@@ -58,6 +58,9 @@ QStringList ScriptFacade::getImageViews() {
         QString imageView = getImageViewId( i );
         imageViewList << imageView;
     }
+    if (numControllers == 0) {
+        imageViewList = QStringList("");
+    }
     return imageViewList;
 }
 
@@ -67,6 +70,9 @@ QStringList ScriptFacade::getColorMapViews() {
     for (int i = 0; i < numColorMaps; i++) {
         QString colorMapView = getColorMapId( i );
         colorMapViewList << colorMapView;
+    }
+    if (numColorMaps == 0) {
+        colorMapViewList = QStringList("");
     }
     return colorMapViewList;
 }
@@ -78,6 +84,9 @@ QStringList ScriptFacade::getAnimatorViews() {
         QString animatorView = getAnimatorViewId( i );
         animatorViewList << animatorView;
     }
+    if (numAnimators == 0) {
+        animatorViewList = QStringList("");
+    }
     return animatorViewList;
 }
 
@@ -88,6 +97,9 @@ QStringList ScriptFacade::getHistogramViews() {
         QString histogramView = getHistogramViewId( i );
         histogramViewList << histogramView;
     }
+    if (numHistograms == 0) {
+        histogramViewList = QStringList("");
+    }
     return histogramViewList;
 }
 
@@ -97,6 +109,9 @@ QStringList ScriptFacade::getStatisticsViews() {
     for (int i = 0; i < numStatistics; i++) {
         QString statisticsView = getStatisticsViewId( i );
         statisticsViewList << statisticsView;
+    }
+    if (numStatistics == 0) {
+        statisticsViewList = QStringList("");
     }
     return statisticsViewList;
 }
@@ -154,26 +169,6 @@ QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
     QString resultStr = m_viewManager->setCustomView( rows, cols );
     QStringList result( resultStr );
     return result;
-}
-
-Carta::Data::Animator* ScriptFacade::getAnimator( const QString& index ){
-    Carta::Data::Animator* animator;
-    QString animId;
-    int numAnimators = m_viewManager->getAnimatorCount();
-    for ( int i = 0; i < numAnimators; i++ ) {
-        QString animatorView = getAnimatorViewId( i );
-        if ( animatorView == index ) {
-            animId = m_viewManager->getObjectId( Carta::Data::Animator::CLASS_NAME, i );
-            break;
-        }
-    }
-    if ( animId != NULL ) {
-        ObjectManager* objMan = ObjectManager::objectManager();
-        QString id = objMan->parseId( animId );
-        CartaObject* obj = objMan->getObject( id );
-        animator = dynamic_cast<Carta::Data::Animator*>(obj);
-    }
-    return animator;
 }
 
 QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){

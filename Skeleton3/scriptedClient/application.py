@@ -47,45 +47,50 @@ class Application:
         commandStr = "getImageViews"
         imageViewsList = self.con.cmdTagList(commandStr)
         imageViews = []
-        for iv in imageViewsList:
-            imageView = Image(iv, self.con)
-            imageViews.append(imageView)
+        if (imageViewsList[0] != ""):
+            for iv in imageViewsList:
+                imageView = Image(iv, self.con)
+                imageViews.append(imageView)
         return imageViews
 
     def getColormapViews(self):
         commandStr = "getColormapViews"
         colormapViewsList = self.con.cmdTagList(commandStr)
         colormapViews = []
-        for cmv in colormapViewsList:
-            colormapView = Colormap(cmv, self.con)
-            colormapViews.append(colormapView)
+        if (colormapViewsList[0] != ""):
+            for cmv in colormapViewsList:
+                colormapView = Colormap(cmv, self.con)
+                colormapViews.append(colormapView)
         return colormapViews
 
     def getAnimatorViews(self):
         commandStr = "getAnimatorViews"
         animatorViewsList = self.con.cmdTagList(commandStr)
         animatorViews = []
-        for av in animatorViewsList:
-            animatorView = Animator(av, self.con)
-            animatorViews.append(animatorView)
+        if (animatorViewsList[0] != ""):
+            for av in animatorViewsList:
+                animatorView = Animator(av, self.con)
+                animatorViews.append(animatorView)
         return animatorViews
 
     def getHistogramViews(self):
         commandStr = "getHistogramViews"
         histogramViewsList = self.con.cmdTagList(commandStr)
         histogramViews = []
-        for hv in histogramViewsList:
-            histogramView = Histogram(hv, self.con)
-            histogramViews.append(histogramView)
+        if (histogramViewsList[0] != ""):
+            for hv in histogramViewsList:
+                histogramView = Histogram(hv, self.con)
+                histogramViews.append(histogramView)
         return histogramViews
 
     def getStatisticsViews(self):
         commandStr = "getStatisticsViews"
         statisticsViewsList = self.con.cmdTagList(commandStr)
         statisticsViews = []
-        for sv in statisticsViewsList:
-            statisticsView = Statistics(sv, self.con)
-            statisticsViews.append(statisticsView)
+        if (statisticsViewsList[0] != ""):
+            for sv in statisticsViewsList:
+                statisticsView = Statistics(sv, self.con)
+                statisticsViews.append(statisticsView)
         return statisticsViews
 
     def setAnalysisLayout(self):
