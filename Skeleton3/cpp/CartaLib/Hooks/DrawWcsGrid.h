@@ -65,7 +65,7 @@ class GetWcsGridRendererHook : public BaseHook
 public:
 
     /// the result of this hook is a pointer to a render object
-    typedef IWcsGridRenderer::SharedPtr ResultType;
+    typedef IWcsGridRenderService::SharedPtr ResultType;
 
     /// no input parameters are needed
     struct Params { };

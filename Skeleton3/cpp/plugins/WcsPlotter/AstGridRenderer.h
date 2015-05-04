@@ -13,8 +13,8 @@
 
 namespace WcsPlotterPluginNS
 {
-/// implementation of Carta::Lib::IWcsGridRenderer APIs
-class WcsGridRendererAst : public Carta::Lib::IWcsGridRenderer
+/// implementation of Carta::Lib::IWcsGridRenderService APIs
+class WcsGridRendererAst : public Carta::Lib::IWcsGridRenderService
 {
     Q_OBJECT
     CLASS_BOILERPLATE( WcsGridRendererAst );
@@ -41,6 +41,9 @@ public:
     setLineColor( QColor color ) override;
 
     virtual void
+    setLineThickness( double thickness) override;
+
+    virtual void
     startRendering() override;
 
 private slots:
@@ -57,6 +60,7 @@ private:
     QRectF m_imgRect, m_outRect;
     QSize m_outSize = QSize( 10, 10);
     QColor m_lineColor = QColor( "yellow");
+    double m_lineThickness = 1.0;
 
     struct Pimpl;
     std::unique_ptr<Pimpl> m_pimpl; // = nullptr;

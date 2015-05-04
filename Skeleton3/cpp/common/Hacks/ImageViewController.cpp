@@ -64,7 +64,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             m_wcsGridRenderer = res.val();
 
             qDebug() << "wcsgrid: connecting wcs grid renderer to core";
-            auto conn2 = connect( m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderer::done,
+            auto conn2 = connect( m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderService::done,
                                   this, & Me::wcsGridSlot,
                                   Qt::QueuedConnection );
             if ( ! conn2 ) {
@@ -145,8 +145,18 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
                                     }
                                     );
 
-    /// connect movie timer to the frame advance slot
+    // connect movie timer to the frame advance slot
     connect( & m_movieTimer, & QTimer::timeout, this, & ImageViewController::loadNextFrame );
+
+    // line thickness...
+    auto lineThicknessCB = [&] ( CSR, CSR val) {
+        bool ok;
+        double t = val.toDouble( & ok);
+        if( ! ok) return;
+        m_wcsGridRenderer-> setLineThickness( t);
+        m_wcsGridRenderer-> startRendering();
+    };
+    m_connector-> addStateCallback( "/hacks/gridControls/c1/lineThickness", lineThicknessCB);
 }
 
 void
@@ -430,6 +440,7 @@ ImageViewController::combineImageAndGrid()
     // draw the grid over top
     if( ! m_gridVG.isNull()) {
         QPainter p( & m_renderBuffer);
+        p.setRenderHint( QPainter::Antialiasing, true);
         Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
         if( ! vgRenderer.render( m_gridVG.val(), p)) {
             qWarning() << "could not render grid vector graphics";

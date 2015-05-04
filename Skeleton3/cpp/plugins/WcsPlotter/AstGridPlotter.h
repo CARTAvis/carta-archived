@@ -1,6 +1,9 @@
-/// class for plotting WCS grids using AST library
+/// c++ code for plotting WCS grids using AST library
 ///
 ///     http://starlink.eao.hawaii.edu/starlink/AST
+///
+/// This is essentially my attempt to make a dumb C++ interface for interacting with AST,
+/// at least for drawing grids.
 ///
 /// \warning This class is very unfriendly to multithreading because it uses
 /// ASTlib's plotting, which I could only get to work using global variables.
@@ -18,8 +21,7 @@ class QImage;
 namespace WcsPlotterPluginNS
 {
 ///
-/// \brief The AstLibSkyGridPlotter class can render a wcs grid to a QImage using
-/// the starlink's AST library.
+/// Renders a wcs grid to a VG composer using starlink's AST library.
 ///
 class AstGridPlotterQImage
 {
@@ -69,6 +71,9 @@ public:
     void
     setPlotOption( const QString & option );
 
+    /// set line thickness
+//    void setLineThickness( double t);
+
     /// perform the actual plot on the image
     /// returns success/failure
     bool
@@ -94,6 +99,7 @@ protected:
     QString m_system;
     QRectF m_orect, m_irect;
     QImage * m_img = nullptr;
+//    double m_lineThickness = 1.0;
 
     VGComposer * m_vgc = nullptr;
 };

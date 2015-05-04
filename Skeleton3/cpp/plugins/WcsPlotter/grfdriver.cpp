@@ -37,8 +37,8 @@ void grfdriverSetVGComposer(Carta::Lib::VectorGraphics::VGComposer * vgComp)
 //    globals = GrfDriverGlobals();
 
     if( globals.vgComposer) {
-        globals.vgComposer-> append< VGE::PenWidth>( globals.penWidth);
-        globals.vgComposer-> append< VGE::PenColor>( globals.lineColor);
+        globals.vgComposer-> append< VGE::SetPenWidth>( globals.penWidth);
+        globals.vgComposer-> append< VGE::SetPenColor>( globals.lineColor);
     }
 }
 
@@ -169,8 +169,8 @@ drawText( const char * text, float x, float y, const char * just,
             vgc()->append<VGE::Save>();
             vgc()->append<VGE::SetTransform>(tr, true);
             QRectF rect( offx, offy + fm.descent(), tw, - th);
-            vgc()->append<VGE::FillRect>( rect, QColor( 255, 0, 0, 228));
-            vgc()->append<VGE::PenColor>( globals.textColor);
+            vgc()->append<VGE::FillRect>( rect, QColor( 0, 0, 0, 128 ));
+            vgc()->append<VGE::SetPenColor>( globals.textColor);
             vgc()->append<VGE::DrawText>( text, QPointF(offx,offy));
             vgc()->append<VGE::Restore>();
         }
@@ -245,6 +245,10 @@ astGBBuf( void )
 
     //   ccpgbbuf();
 //    dbg(1) << "Trace\n";
+
+    if( vgc()) {
+        vgc()-> append<VGE::Save>();
+    }
     return 1;
 }
 
@@ -282,6 +286,11 @@ astGEBuf( void )
 
     //   ccpgebuf();
 //    dbg(1) << "Trace\n";
+
+    if( vgc()) {
+        vgc()-> append<VGE::Restore>();
+    }
+
     return 1;
 }
 
@@ -539,26 +548,15 @@ astGLine( int n, const float * x, const float * y )
         return 1;
     }
 
-    if ( n > 2 ) {
-        QPointF * qpts = new QPointF[n];
+    if ( n >= 2 ) {
+        QPolygonF qpts(n);
         for ( int i = 0 ; i < n ; i++ ) {
             qpts[i].setX( x[i] );
             qpts[i].setY( y[i] );
         }
-        p().drawPolyline( qpts, n );
 
         if( vgc()) {
-            for( int i = 0 ; i < n - 1 ; ++ i) {
-                vgc()-> append< VGE::Line> ( qpts[i], qpts[i+1]);
-            }
-        }
-    }
-    else if( n == 2) {
-        for ( int i = 0 ; i < n - 1 ; i++ ) {
-            p().drawLine( QPointF( x[i], y[i] ), QPointF( x[i + 1], y[i + 1] ) );
-        }
-        if( vgc()) {
-            vgc()-> append< VGE::Line> ( QPointF( x[0], y[0] ), QPointF( x[1], y[1] ));
+            vgc()-> append< VGE::DrawPolyline> ( qpts);
         }
     }
 
@@ -922,7 +920,6 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
         }
     }
     else if ( attr == GRF__WIDTH ) {
-//        out << "width(";
         if ( old_value ) {
             * old_value = p().pen().widthF();
         }
@@ -930,17 +927,17 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             QPen pen = p().pen();
             pen.setWidthF( value );
             p().setPen( pen );
-        }
-        if( vgc()) {
-            if( old_value) {
-                * old_value = globals.penWidth;
+
+            if( vgc()) {
+                if( old_value) {
+                    * old_value = globals.penWidth;
+                }
+                globals.penWidth = value;
+                vgc()-> append< VGE::SetPenWidth>( value);
             }
-            globals.penWidth = value;
-            vgc()-> append< VGE::PenWidth>( value);
         }
     }
     else if ( attr == GRF__SIZE ) {
-//        out << "size(";
         if ( old_value ) {
             * old_value = p().fontInfo().pointSizeF();
         }
@@ -951,7 +948,6 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
         }
     }
     else if ( attr == GRF__FONT ) {
-//        out << "font(";
         if ( old_value ) {
             * old_value = 1.0;
         }
@@ -961,31 +957,10 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             * old_value = 1.0;
         }
 
-//        out << "color(";
     }
     else {
-//        out << "?!?(";
+
     }
-
-//    if( prim == GRF__LINE) {
-//        out << "line)";
-//    } else if( prim == GRF__MARK) {
-//        out << "mark)";
-//    } else if( prim == GRF__TEXT) {
-//        out << "text)";
-//    } else {
-//        out << "?!?)";
-//    }
-
-//    if( value != AST__BAD) {
-//        out << " = " << value;
-//    }
-
-//    if( old_value) {
-//        out << " old = " << * old_value;
-//    }
-
-//    dbg(1) << out.str() << "\n";
 
     return 1;
 } // astGAttr

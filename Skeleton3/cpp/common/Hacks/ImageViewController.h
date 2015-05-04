@@ -141,7 +141,7 @@ private:
     Nullable< Carta::Lib::VectorGraphics::VGList > m_gridVG;
 
     /// wcs grid renderer
-    Carta::Lib::IWcsGridRenderer::SharedPtr m_wcsGridRenderer = nullptr;
+    Carta::Lib::IWcsGridRenderService::SharedPtr m_wcsGridRenderer = nullptr;
 
 };
 }

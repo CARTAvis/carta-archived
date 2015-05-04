@@ -110,6 +110,9 @@ qx.Class.define("skel.hacks.Hacks", {
             // create colormap window
             this.m_colormapWindow = new skel.boundWidgets.ColormapWindow();
 
+            // create grid controls window
+            this.m_gridControlsWindow = new skel.hacks.GridControlsWindow( "/hacks/gridControls/c1/");
+
         },
 
         m_connector: null,

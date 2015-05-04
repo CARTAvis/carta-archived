@@ -63,6 +63,11 @@ void AstGridPlotterQImage::setPlotOption(const QString & option)
     m_plotOptions.append( option);
 }
 
+//void AstGridPlotterQImage::setLineThickness(double t)
+//{
+//    m_lineThickness = t;
+//}
+
 struct AstGuard {
     AstGuard() { astBegin; }
     ~AstGuard() { astEnd; }

@@ -340,7 +340,9 @@ Service::internalRenderSlot( JobId jobId )
     // \todo need to add clipping if we want to expose this as a functionality
     if( true && zoom() > 5) {
         p.setRenderHint( QPainter::Antialiasing, true);
-        p.setPen( QPen( QColor(255, 255, 255, 255), 0.1));
+        double alpha = Carta::Lib::linMap( zoom(), 5, 32, 0.01, 0.2);
+        alpha = clamp( alpha, 0.0, 1.0);
+        p.setPen( QPen( QColor(255, 255, 255, 255), alpha));
         QPointF tl = screen2img( QPointF( 0, 0));
         QPointF br = screen2img( QPointF( outputSize().width(), outputSize().height()));
         int x1 = std::floor( tl.x());
@@ -349,8 +351,8 @@ Service::internalRenderSlot( JobId jobId )
             QPointF pt = img2screen( QPointF( x -0.5, 0));
             p.drawLine( QPointF(pt.x(), 0), QPointF(pt.x(), outputSize().height()));
         }
-        int y1 = std::floor( tl.y());
-        int y2 = std::ceil( br.y());
+        int y1 = std::ceil( tl.y());
+        int y2 = std::floor( br.y());
         std::swap( y1, y2);
         for( double y = y1 ; y <= y2 ; ++ y) {
             QPointF pt = img2screen( QPointF( 0, y - 0.5));

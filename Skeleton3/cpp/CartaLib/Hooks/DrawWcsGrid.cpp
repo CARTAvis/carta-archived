@@ -6,4 +6,4 @@
 
 
 
-Carta::Lib::IWcsGridRenderer::~IWcsGridRenderer() { }
+Carta::Lib::IWcsGridRenderService::~IWcsGridRenderService() { }

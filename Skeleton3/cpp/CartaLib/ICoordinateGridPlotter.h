@@ -50,11 +50,11 @@ namespace Carta
 namespace Lib
 {
 
-/// API for world coordinate renderer
-class IWcsGridRenderer : public QObject
+/// API for world coordinate rendering service
+class IWcsGridRenderService : public QObject
 {
     Q_OBJECT
-    CLASS_BOILERPLATE( IWcsGridRenderer );
+    CLASS_BOILERPLATE( IWcsGridRenderService );
 
     typedef VectorGraphics::VGList VGList;
 
@@ -75,6 +75,9 @@ public:
     virtual void
     setLineColor( QColor color) = 0;
 
+    virtual void
+    setLineThickness( double thickness) = 0;
+
     /// start rendering with current parameters
     /// previously scheduled rendering may be aborted as a result of calling this
     virtual void
@@ -83,7 +86,7 @@ public:
     // looks like this needs to be defined out of line, otherwise dlopen() fails
     // to load any classes inherited from this...
     virtual
-    ~IWcsGridRenderer();
+    ~IWcsGridRenderService();
 
 signals:
 

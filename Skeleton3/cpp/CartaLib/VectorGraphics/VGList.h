@@ -25,7 +25,7 @@ public:
         : m_qPainter( qPainter )
     {
         m_qPainter.setPen( QPen( QColor( "red" ), 1 ) );
-        m_qPainter.setFont( QFont( "Helvetica", 10));
+        m_qPainter.setFont( QFont( "Helvetica", 10 ) );
     }
 
     /// draw a line from point p1 to p2
@@ -33,6 +33,13 @@ public:
     drawLine( const QPointF & p1, const QPointF & p2 )
     {
         m_qPainter.drawLine( p1, p2 );
+    }
+
+    /// draw a polyline
+    void
+    drawPolyline( const QPolygonF & poly )
+    {
+        m_qPainter.drawPolyline( poly );
     }
 
     /// set the width of lines
@@ -50,6 +57,12 @@ public:
     {
         QPen pen = m_qPainter.pen();
         pen.setColor( color );
+        m_qPainter.setPen( pen );
+    }
+
+    void
+    setPen( const QPen & pen )
+    {
         m_qPainter.setPen( pen );
     }
 
@@ -74,12 +87,15 @@ public:
     }
 
     void
-    fillRect( const QRectF & rect, const QColor & color) {
-        m_qPainter.fillRect( rect, color);
+    fillRect( const QRectF & rect, const QColor & color )
+    {
+        m_qPainter.fillRect( rect, color );
     }
 
-    void drawText( QString text, QPointF pos) {
-        m_qPainter.drawText( pos, text);
+    void
+    drawText( QString text, QPointF pos )
+    {
+        m_qPainter.drawText( pos, text );
     }
 
 private:
@@ -109,13 +125,13 @@ public:
 namespace Entries
 {
 /// line entry implementation
-class Line : public IVGListEntry
+class DrawLine : public IVGListEntry
 {
-    CLASS_BOILERPLATE( Line );
+    CLASS_BOILERPLATE( DrawLine );
 
 public:
 
-    Line( const QPointF & p1, const QPointF & p2 )
+    DrawLine( const QPointF & p1, const QPointF & p2 )
     {
         m_p1 = p1;
         m_p2 = p2;
@@ -140,14 +156,44 @@ private:
     QPointF m_p1, m_p2;
 };
 
-/// pen width implementation
-class PenWidth : public IVGListEntry
+/// polyline entry implementation
+class DrawPolyline : public IVGListEntry
 {
-    CLASS_BOILERPLATE( PenWidth );
+    CLASS_BOILERPLATE( DrawPolyline );
 
 public:
 
-    PenWidth( double width )
+    DrawPolyline( const QPolygonF & poly)
+    {
+        m_poly = poly;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.drawPolyline( m_poly);
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.polyline(not implemented yet);" );
+    }
+
+private:
+
+    QPolygonF m_poly;
+};
+
+/// set pen width implementation
+class SetPenWidth : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetPenWidth );
+
+public:
+
+    SetPenWidth( double width )
     {
         m_width = width;
     }
@@ -171,14 +217,14 @@ private:
     double m_width = 1.0;
 };
 
-/// pen width implementation
-class PenColor : public IVGListEntry
+/// set pen color implementation
+class SetPenColor : public IVGListEntry
 {
-    CLASS_BOILERPLATE( PenColor );
+    CLASS_BOILERPLATE( SetPenColor );
 
 public:
 
-    PenColor( QColor color )
+    SetPenColor( QColor color )
     {
         m_color = color;
     }
@@ -200,6 +246,39 @@ public:
 private:
 
     QColor m_color = QColor( 255, 255, 255 );
+};
+
+/// set pen implementation
+class SetPen : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetPen );
+
+public:
+
+    SetPen( QPen pen )
+    {
+        m_pen = pen;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.setPen( m_pen );
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.setPenColor('%1');" )
+                   .arg( m_pen.color().name( QColor::HexArgb ) )
+               << QString( "p.setPenWidth(%1);" )
+                   .arg( m_pen.width() );
+    }
+
+private:
+
+    QPen m_pen = QPen( QColor( 255, 255, 255 ) );
 };
 
 /// save the state of the painter
@@ -332,7 +411,7 @@ class DrawText : public IVGListEntry
 
 public:
 
-    DrawText( QString text, const QPointF & pos = QPointF(0,0) )
+    DrawText( QString text, const QPointF & pos = QPointF( 0, 0 ) )
     {
         m_text = text;
         m_pos = pos;
@@ -352,7 +431,7 @@ public:
 
         return QStringList()
                << QString( "p.drawText(%1,%2,%3);" )
-                   .arg( escapedText)
+                   .arg( escapedText )
                    .arg( m_pos.x() )
                    .arg( m_pos.y() );
     }
@@ -360,9 +439,8 @@ public:
 private:
 
     QString m_text = "";
-    QPointF m_pos = QPointF( 0, 0);
+    QPointF m_pos = QPointF( 0, 0 );
 };
-
 }
 
 class VGComposer;
