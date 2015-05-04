@@ -8,7 +8,7 @@
 #include "CartaLib/IImage.h"
 #include "CCRawView.h"
 #include "CCMetaDataInterface.h"
-#include "images/Images/ImageInterface.h"
+#include "casacore/images/Images/ImageInterface.h"
 #include <QDebug>
 #include <memory>
 

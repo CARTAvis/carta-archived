@@ -2,15 +2,15 @@
 #include <QDebug>
 #include <QPainter>
 #include <QTime>
-#include <casa/Exceptions/Error.h>
-#include <images/Images/FITSImage.h>
-#include <images/Images/MIRIADImage.h>
-#include <images/Images/HDF5Image.h>
-#include <images/Images/ImageExpr.h>
-#include <images/Images/ImageExprParse.h>
-#include <images/Images/ImageOpener.h>
-#include <casa/Arrays/ArrayMath.h>
-#include <casa/Quanta.h>
+#include <casacore/casa/Exceptions/Error.h>
+#include <casacore/images/Images/FITSImage.h>
+#include <casacore/images/Images/MIRIADImage.h>
+#include <casacore/images/Images/HDF5Image.h>
+#include <casacore/images/Images/ImageExpr.h>
+#include <casacore/images/Images/ImageExprParse.h>
+#include <casacore/images/Images/ImageOpener.h>
+#include <casacore/casa/Arrays/ArrayMath.h>
+#include <casacore/casa/Quanta.h>
 #include <memory>
 #include <algorithm>
 

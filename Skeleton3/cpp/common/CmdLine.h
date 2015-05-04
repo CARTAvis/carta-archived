@@ -33,7 +33,7 @@ public:
 
 protected:
 
-    friend ParsedInfo CmdLine::parse( const QStringList & argv);
+    friend ParsedInfo parse( const QStringList & argv);
     QString m_configFilePath;
     QString m_htmlPath;
     QStringList m_fileList;

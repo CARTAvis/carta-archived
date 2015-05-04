@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CartaLib/IImage.h"
-#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <casacore/coordinates/Coordinates/CoordinateSystem.h>
 #include <memory>
 
 

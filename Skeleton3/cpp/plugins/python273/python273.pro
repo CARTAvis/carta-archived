@@ -3,6 +3,10 @@
 }
 
 INCLUDEPATH += /usr/include/python2.7
+unix:macx{
+ 	INCLUDEPATH += /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/numpy/core/include
+}
+
 LIBS += -lpython2.7
 INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
