@@ -77,6 +77,21 @@ public:
     QStringList removeLink( const QString& sourceId, const QString& destId );
 
     /**
+     * Set the layout to a predefined analysis layout.
+     */
+    QStringList setAnalysisLayout();
+
+    /**
+     * Set the layout to a custom layout.
+     */
+    QStringList setCustomLayout( int rows, int cols );
+
+    /**
+     * Set the layout to a predefined layout displaying a single image.
+     */
+    QStringList setImageLayout();
+
+    /**
      * Load a file from /scratch/Images into an image view.
      * @param objectId the unique server-side id of an object that displays an
      * image view.
@@ -97,27 +112,6 @@ public:
      * @param animatorId the unique server-side id of an object managing an animator.
      */
     QStringList showImageAnimator( const QString& animatorId );
-
-    /**
-     * Set the layout to a predefined analysis layout.
-     */
-    QStringList setAnalysisLayout();
-
-    /**
-     * Set the layout to a custom layout.
-     */
-    QStringList setCustomLayout( int rows, int cols );
-
-    /**
-     * Set the layout to a predefined layout displaying a single image.
-     */
-    QStringList setImageLayout();
-
-//    /**
-//     * Set an animator channel.
-//     * @param channel the channel to set.
-//     */
-//    void setChannel( int channel );
 
     /**
      * Set the color map that is being displayed.
@@ -241,24 +235,32 @@ public:
     /**
      * Get the animators that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of ID values for the linked animators, or a list of a single
+     *  empty string if no linked animators were found.
      */
     QStringList getLinkedAnimators( const QString& controlId );
 
     /**
      * Get the colormaps that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of ID values for the linked colormaps, or a list of a single
+     *  empty string if no linked colormaps were found.
      */
     QStringList getLinkedColorMaps( const QString& controlId );
 
     /**
      * Get the histograms that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of ID values for the linked histograms, or a list of a single
+     *  empty string if no linked histograms were found.
      */
     QStringList getLinkedHistograms( const QString& controlId );
 
     /**
      * Get the statistics views that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of ID values for the linked statistics, or a list of a single
+     *  empty string if no linked statistics were found.
      */
     QStringList getLinkedStatistics( const QString& controlId );
 

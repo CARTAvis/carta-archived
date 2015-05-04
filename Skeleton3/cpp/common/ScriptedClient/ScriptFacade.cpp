@@ -117,6 +117,19 @@ QStringList ScriptFacade::removeLink( const QString& sourceId, const QString& de
     return result;
 }
 
+QStringList ScriptFacade::setImageLayout(){
+    m_viewManager->setImageView();
+    QStringList result("setImageLayout");
+    return result;
+}
+
+QStringList ScriptFacade::setPlugins( const QStringList& names ) {
+    m_viewManager->setPlugins( names );
+    QStringList result("setPlugins");
+    result.append(names);
+    return result;
+}
+
 QStringList ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
     m_viewManager->loadFile( objectId, fileName );
     QStringList result("loadFile");
@@ -161,18 +174,6 @@ Carta::Data::Animator* ScriptFacade::getAnimator( const QString& index ){
         animator = dynamic_cast<Carta::Data::Animator*>(obj);
     }
     return animator;
-}
-
-QStringList ScriptFacade::showImageAnimator( const QString& index ){
-    QString result = "failure";
-    Carta::Data::Animator* animator = getAnimator( index );
-    if ( animator ){
-        result = "success";
-        QString animId;
-        animator->addAnimator( "Image", animId );
-    }
-    QStringList resultList(result);
-    return resultList;
 }
 
 QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
@@ -364,47 +365,77 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
     return resultList;
 }
 
-QStringList ScriptFacade::setImageLayout(){
-    m_viewManager->setImageView();
-    QStringList result("setImageLayout");
-    return result;
-}
-
-QStringList ScriptFacade::setPlugins( const QStringList& names ) {
-    m_viewManager->setPlugins( names );
-    QStringList result("setPlugins");
-    result.append(names);
-    return result;
+QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( animatorId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+        if ( animator != nullptr){
+            QString animId; 
+            animator->addAnimator( "Image", animId );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified animator could not be found." );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
-    Carta::Data::Animator* animator = getAnimator( animatorId );
-    if ( animator ){
-        Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
-        if ( animType != nullptr ){
-            animType->setFrame( index );
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( animatorId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+        if ( animator != nullptr){
+            Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
+            if ( animType != nullptr ){
+                animType->setFrame( index );
+            }
+            else {
+                qDebug()<<"Could not get channel animator";
+            }
         }
         else {
-            qDebug()<<"Could not get channel animator";
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        qDebug() << "Could not find animator";
+        resultList = QStringList( "error" );
+        resultList.append( "The specified animator could not be found." );
     }
-    QStringList result("setChannel");
-    return result;
+    return resultList;
 }
 
 QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
-    Carta::Data::Animator* animator = getAnimator( animatorId );
-    if ( animator ){
-        animator->changeImageIndex( index );
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( animatorId );
+    CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+        if ( animator != nullptr){
+            animator->changeImageIndex( index );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
     }
     else {
-        qDebug() << "Could not find animator";
+        resultList = QStringList( "error" );
+        resultList.append( "The specified animator could not be found." );
     }
-    QStringList result("setImage");
-    return result;
+    return resultList;
 }
 
 QStringList ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {

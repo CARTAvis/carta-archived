@@ -261,11 +261,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         double percentile = args["percentile"].toDouble();
         result = m_scriptFacade->getIntensity( imageView, frameLow, frameHigh, percentile );
     }
-        /*
-        result = self.con.cmdTagList("getIntensity", imageView=self.getId(),
-                                     frameLow=frameLow, frameHigh=frameHigh,
-                                     percentile=percentile)
-        */
+
     /// animator commands
 
     else if ( cmd == "setchannel" ) {
