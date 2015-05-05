@@ -48,6 +48,7 @@ public:
     {
         QPen pen = m_qPainter.pen();
         pen.setWidth( width );
+        qDebug() << "penWidth->" << width;
         m_qPainter.setPen( pen );
     }
 

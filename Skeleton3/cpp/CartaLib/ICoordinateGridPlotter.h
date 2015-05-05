@@ -73,13 +73,27 @@ public:
     setOutputRect( const QRectF & rect ) = 0;
 
     virtual void
-    setLineColor( QColor color) = 0;
-
-    virtual void
     setLineThickness( double thickness) = 0;
 
+    virtual double
+    lineThickness() = 0;
+
+    virtual void
+    setLineColor( QColor color) = 0;
+
+    virtual QColor
+    lineColor() = 0;
+
+    virtual void
+    setGridDensity( double density) = 0;
+
+    virtual void
+    setInternalLabels( bool on) = 0;
+
     /// start rendering with current parameters
-    /// previously scheduled rendering may be aborted as a result of calling this
+    /// if possible, previously scheduled rendering will be canceled
+    /// or you can think of it as this: multiple calls to this will normally only
+    /// result in a single result reported
     virtual void
     startRendering() = 0;
 

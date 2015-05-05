@@ -65,11 +65,18 @@ public:
     void
     setInputRect( const QRectF & rect );
 
+    /// read/write access to indexed colors
+    std::vector<QColor> & colors() { return m_colors; }
+
     /// set various options for grid drawing
     /// this is a temporary method, and it is dependent on AST lib
     /// \todo Replace this with implementation independent API
     void
     setPlotOption( const QString & option );
+
+    void setDensityModifier( double dm) {
+        m_densityModifier = dm;
+    }
 
     /// set line thickness
 //    void setLineThickness( double t);
@@ -83,12 +90,8 @@ public:
     QString
     getError();
 
-    /// static function to set text and line colors
-    static void
-    setLineColor( QString color );
-
-    static void
-    setTextColor( QString color );
+//    static void
+//    setTextColor( QString color );
 
 protected:
 
@@ -99,7 +102,8 @@ protected:
     QString m_system;
     QRectF m_orect, m_irect;
     QImage * m_img = nullptr;
-//    double m_lineThickness = 1.0;
+    std::vector<QColor> m_colors;
+    double m_densityModifier = 1.0;
 
     VGComposer * m_vgc = nullptr;
 };

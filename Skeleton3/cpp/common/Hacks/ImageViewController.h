@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <QObject>
+#include "WcsGridOptionsController.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
@@ -15,6 +15,7 @@
 #include "CartaLib/Nullable.h"
 #include "CartaLib/Hooks/DrawWcsGrid.h"
 #include <QTimer>
+#include <QObject>
 
 namespace Hacks
 {
@@ -142,6 +143,9 @@ private:
 
     /// wcs grid renderer
     Carta::Lib::IWcsGridRenderService::SharedPtr m_wcsGridRenderer = nullptr;
+
+    /// wcs grid options controller
+    WcsGridOptionsController::UniquePtr m_wcsGridOptionsController ;
 
 };
 }

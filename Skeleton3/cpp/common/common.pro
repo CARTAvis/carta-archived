@@ -62,7 +62,8 @@ HEADERS += \
     Hacks/ImageViewController.h \
     Hacks/MainModel.h \
     Hacks/ILayeredView.h \
-    Hacks/IVectorGraphicsView.h
+    Hacks/IVectorGraphicsView.h \
+    Hacks/WcsGridOptionsController.h
 
 SOURCES += \
     Viewer.cpp \
@@ -113,7 +114,8 @@ SOURCES += \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
     Hacks/ILayeredView.cpp \
-    Hacks/IVectorGraphicsView.cpp
+    Hacks/IVectorGraphicsView.cpp \
+    Hacks/WcsGridOptionsController.cpp
 
 
 #message( "common            PWD=$$PWD")

@@ -20,7 +20,7 @@ struct WcsGridRendererAst::Pimpl
 WcsGridRendererAst::WcsGridRendererAst() : IWcsGridRenderService()
 {
     qDebug() << "creating ast grid renderer";
-    m_pimpl.reset( new Pimpl);
+    m_pimpl.reset( new Pimpl );
 }
 
 WcsGridRendererAst::~WcsGridRendererAst()
@@ -30,7 +30,7 @@ void
 WcsGridRendererAst::setInputImage( Image::ImageInterface::SharedPtr image )
 {
     m_iimage = image;
-    CARTA_ASSERT( m_iimage);
+    CARTA_ASSERT( m_iimage );
 
     Pimpl & m = * m_pimpl;
 
@@ -40,11 +40,11 @@ WcsGridRendererAst::setInputImage( Image::ImageInterface::SharedPtr image )
     m.fitsHeader = fhExtractor.getHeader();
 
     // sanity check
-    if( m.fitsHeader.size() < 1) {
+    if ( m.fitsHeader.size() < 1 ) {
         qWarning() << "Could not extract fits header..."
                    << fhExtractor.getErrors();
     }
-}
+} // setInputImage
 
 void
 WcsGridRendererAst::setOutputSize( const QSize & size )
@@ -70,7 +70,8 @@ WcsGridRendererAst::setLineColor( QColor color )
     m_lineColor = color;
 }
 
-void WcsGridRendererAst::setLineThickness(double thickness)
+void
+WcsGridRendererAst::setLineThickness( double thickness )
 {
     m_lineThickness = thickness;
 }
@@ -89,7 +90,6 @@ WcsGridRendererAst::startRendering()
 
     // make a new VG composer
     VG::VGComposer vgc;
-
 
     // get the fits header if we don't have one yet
 
@@ -113,18 +113,26 @@ WcsGridRendererAst::startRendering()
     }
 
     // draw the grid
+    // =============================
     AstGridPlotterQImage sgp;
+    sgp.colors().push_back( m_lineColor);
+    sgp.colors().push_back( m_lineColor);
+    sgp.colors().push_back( m_lineColor);
+    sgp.colors().push_back( QColor( "magenta"));
+    sgp.colors().push_back( QColor( "orange"));
+
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
-    sgp.setFitsHeader( m.fitsHeader.join( ""));
-    sgp.setOutputVGComposer( & vgc);
+    sgp.setFitsHeader( m.fitsHeader.join( "" ) );
+    sgp.setOutputVGComposer( & vgc );
     sgp.setPlotOption( "tol=0.001" );
-    sgp.setPlotOption( "Labelling=Exterior" );
-//        sgp.setPlotOption( "Labelling=Interior");
+//    sgp.setPlotOption( "Labelling=Exterior" );
+    sgp.setPlotOption( QString("Labelling=%1").arg(
+                           m_internalLabels ? "Interior" : "Exterior") );
     sgp.setPlotOption( "DrawTitle=0" );
-    sgp.setPlotOption( "Width(axes)=2" );
-    sgp.setPlotOption( "Width(border)=2" );
-    sgp.setPlotOption( QString("Width(Grid)=%1").arg( m_lineThickness / 10.0));
+    sgp.setPlotOption( QString( "Width(axes)=%1" ).arg( m_lineThickness * 2 ) );
+    sgp.setPlotOption( QString( "Width(border)=%1" ).arg( m_lineThickness * 2 ) );
+    sgp.setPlotOption( QString( "Width(grid)=%1" ).arg( m_lineThickness ) );
 
     sgp.setPlotOption( "LabelUp(2)=0" );
     sgp.setPlotOption( "Size=9" );
@@ -132,6 +140,13 @@ WcsGridRendererAst::startRendering()
     sgp.setPlotOption( "TextLab(2)=1" );
     sgp.setPlotOption( "Size(TextLab1)=11" );
     sgp.setPlotOption( "Size(TextLab2)=11" );
+    sgp.setPlotOption( "Colour(grid1)=0");
+    sgp.setPlotOption( "Colour(grid2)=1");
+    sgp.setPlotOption( "Colour(border)=2");
+    sgp.setPlotOption( "Colour(TextLab)=3");
+    sgp.setPlotOption( "Colour(NumLab)=4");
+//    sgp.setPlotOption( QString("Gap=%1").arg( m_gridDensity));
+    sgp.setDensityModifier( m_gridDensity);
     bool plotSuccess = sgp.plot();
     qDebug() << "plotSuccess" << plotSuccess;
     qDebug() << sgp.getError();
@@ -145,7 +160,6 @@ WcsGridRendererAst::startRendering()
 //    vgc.append<VGE::DrawText> ("Hello", QPointF( 100, 100));
 //    vgc.append<VGE::Restore>();
 
-
     // save a copy of the VG list from the composer
     m_vgList = vgc.vgList();
 
@@ -158,11 +172,31 @@ WcsGridRendererAst::startRendering()
 
 //        connect( & m_dbgTimer2, & QTimer::timeout, this, & Me::dbgSlot);
 //        m_dbgTimer2.start( 1000 / 60.0);
-
     }
     m_dbgTimer-> start( qrand() % 1 );
-
 } // startRendering
+
+double
+WcsGridRendererAst::lineThickness()
+{
+    return m_lineThickness;
+}
+
+QColor
+WcsGridRendererAst::lineColor()
+{
+    return m_lineColor;
+}
+
+void WcsGridRendererAst::setGridDensity(double density)
+{
+    m_gridDensity = density;
+}
+
+void WcsGridRendererAst::setInternalLabels(bool on)
+{
+    m_internalLabels = on;
+}
 
 void
 WcsGridRendererAst::reportResult()
@@ -170,7 +204,8 @@ WcsGridRendererAst::reportResult()
     emit done( m_vgList );
 }
 
-void WcsGridRendererAst::dbgSlot()
+void
+WcsGridRendererAst::dbgSlot()
 {
     m_dbgAngle += 0.1;
     startRendering();

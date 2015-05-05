@@ -83,6 +83,13 @@ bool AstGridPlotterQImage::plot()
 //        return false;
 //    }
 
+    // copy over colors
+    grfDriverGlobals().colors = colors();
+    // make sure we have at least 1 color
+    grfDriverGlobals().colors.push_back( QColor("blue"));
+    // reset color index
+    grfDriverGlobals().currentColorIndex = 0;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-zero-length"
     AstFitsChan * fitschan = astFitsChan( NULL, NULL, "" );
@@ -128,15 +135,16 @@ bool AstGridPlotterQImage::plot()
         return false;
     }
 
+
     double minDim = std::min( m_orect.width(), m_orect.height());
-    double desiredGapInPix = 2;
+    double desiredGapInPix = 5;
     double desiredGapInPerc = desiredGapInPix / minDim;
 
     astSetD( plot, "NumLabGap", desiredGapInPerc);
     desiredGapInPix = 3;
     desiredGapInPerc = desiredGapInPix / minDim;
     astSetD( plot, "TextLabGap(1)", desiredGapInPerc);
-    desiredGapInPix = 5;
+    desiredGapInPix = 10;
     desiredGapInPerc = desiredGapInPix / minDim;
     astSetD( plot, "TextLabGap(2)", desiredGapInPerc);
 
@@ -158,6 +166,13 @@ bool AstGridPlotterQImage::plot()
 #pragma GCC diagnostic pop
     }
 
+    if( true || qrand() % 2) {
+        double g1 = astGetD( plot, "Gap(1)");
+        double g2 = astGetD( plot, "Gap(2)");
+        astSetD( plot, "Gap(1)", g1 * m_densityModifier);
+        astSetD( plot, "Gap(2)", g2 * m_densityModifier);
+    }
+
     astGrid( plot );
 
     grfSetImage( nullptr);
@@ -175,14 +190,9 @@ QString AstGridPlotterQImage::getError()
     return m_errorString;
 }
 
-void AstGridPlotterQImage::setLineColor(QString color)
-{
-    grfSetLineColor( color);
-}
-
-void AstGridPlotterQImage::setTextColor(QString color)
-{
-    grfSetTextColor( color);
-}
+//void AstGridPlotterQImage::setTextColor(QString color)
+//{
+//    grfSetTextColor( color);
+//}
 
 }

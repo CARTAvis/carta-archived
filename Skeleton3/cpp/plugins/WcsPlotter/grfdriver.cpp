@@ -18,16 +18,7 @@ extern "C" {
 #include <ast_err.h>             /* AST error codes */
 };
 
-static struct GrfDriverGlobals {
-    QImage * image = nullptr;
-    QColor lineColor = QColor( "#ffff00" );
-    QColor textColor = QColor( "#ffffff" );
-    QPainter * painter = nullptr;
-
-    VG::VGComposer * vgComposer = nullptr;
-    double penWidth = 1.0;
-}
-globals;
+static GrfDriverGlobals globals;
 
 void grfdriverSetVGComposer(Carta::Lib::VectorGraphics::VGComposer * vgComp)
 {
@@ -38,7 +29,7 @@ void grfdriverSetVGComposer(Carta::Lib::VectorGraphics::VGComposer * vgComp)
 
     if( globals.vgComposer) {
         globals.vgComposer-> append< VGE::SetPenWidth>( globals.penWidth);
-        globals.vgComposer-> append< VGE::SetPenColor>( globals.lineColor);
+        globals.vgComposer-> append< VGE::SetPenColor>( globals.colors[ 0]);
     }
 }
 
@@ -51,17 +42,17 @@ static VG::VGComposer * vgc()
 //static QColor lineColor_( "#ffff00" );
 //static QColor textColor_( "#ffffff" );
 
-void
-grfSetLineColor( QString color )
-{
-    globals.lineColor = QColor( color );
-}
+//void
+//grfSetLineColor( QString color )
+//{
+//    globals.lineColor = QColor( color );
+//}
 
-void
-grfSetTextColor( QString color )
-{
-    globals.textColor = QColor( color );
-}
+//void
+//grfSetTextColor( QString color )
+//{
+//    globals.textColor = QColor( color );
+//}
 
 //QImage &
 //grfImage()
@@ -99,7 +90,7 @@ grfSetImage( QImage * img )
         globals.painter = new QPainter( img );
         globals.painter-> setRenderHint( QPainter::Antialiasing, true );
         globals.painter-> setFont( QFont( "Helvetica", 10 ) );
-        globals.painter-> setPen( QPen( globals.lineColor, 0.5 ) );
+        globals.painter-> setPen( QPen( QColor("white"), 0.5 ) );
         globals.painter-> setBrush( Qt::NoBrush );
     }
     qDebug() << "globals.painter" << globals.painter;
@@ -158,19 +149,19 @@ drawText( const char * text, float x, float y, const char * just,
     tr.rotate( atan2( upx, upy ) * 180 / M_PI );
 
     if ( ! xb ) {
-        p().save();
-        p().setTransform( tr );
-        p().fillRect( offx, offy + fm.descent(), tw, - th, QColor( 0, 0, 0, 128 ) );
-        p().setPen( globals.textColor );
-        p().drawText( offx, offy, text );
-        p().restore();
+//        p().save();
+//        p().setTransform( tr );
+//        p().fillRect( offx, offy + fm.descent(), tw, - th, QColor( 0, 0, 0, 128 ) );
+//        p().setPen( globals.textColor );
+//        p().drawText( offx, offy, text );
+//        p().restore();
 
         if( vgc()) {
             vgc()->append<VGE::Save>();
             vgc()->append<VGE::SetTransform>(tr, true);
             QRectF rect( offx, offy + fm.descent(), tw, - th);
             vgc()->append<VGE::FillRect>( rect, QColor( 0, 0, 0, 128 ));
-            vgc()->append<VGE::SetPenColor>( globals.textColor);
+//            vgc()->append<VGE::SetPenColor>( globals.textColor);
             vgc()->append<VGE::DrawText>( text, QPointF(offx,offy));
             vgc()->append<VGE::Restore>();
         }
@@ -954,7 +945,14 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
     }
     else if ( attr == GRF__COLOUR ) {
         if ( old_value ) {
-            * old_value = 1.0;
+            * old_value = globals.currentColorIndex;
+        }
+        qDebug() << "GRF__COLOUR" << value;
+        if( value != AST__BAD) {
+            int ind = value;
+            ind = clamp<int>( ind, 0, globals.colors.size()-1);
+            globals.currentColorIndex = ind;
+            vgc()-> append<VGE::SetPenColor>( globals.colors[ globals.currentColorIndex]);
         }
 
     }
@@ -967,3 +965,9 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
 }
 
 
+
+
+GrfDriverGlobals &grfDriverGlobals()
+{
+    return globals;
+}

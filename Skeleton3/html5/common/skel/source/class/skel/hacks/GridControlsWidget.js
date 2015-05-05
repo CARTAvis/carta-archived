@@ -19,63 +19,57 @@ qx.Class.define( "skel.hacks.GridControlsWidget", {
         this.m_connector = mImport( "connector");
 
         this.setLayout( new qx.ui.layout.VBox( 3));
+
+        function linMap( x, x1, x2, y1, y2) {
+            return (x-x1)/(x2-x1) * (y2-y1) + y1;
+        }
+
+        var sliderRow = function( label, varName, cfg)
+        {
+            var box = new qx.ui.container.Composite( new qx.ui.layout.HBox() );
+            var formatter = new qx.util.format.NumberFormat();
+            formatter.setMaximumFractionDigits(3);
+            formatter.setMinimumFractionDigits(3);
+            function fmtNum(x) {
+                var s = formatter.format(Number(x));
+                while( s.length < 10) s = ' ' + s;
+                return s;
+            }
+            box.add( new skel.boundWidgets.Label( label, fmtNum, this.m_statePrefix + varName ) );
+            var defaultOptions = {
+                sharedVar  : this.m_connector.getSharedVar( this.m_statePrefix + varName )
+            };
+            var options = qx.lang.Object.mergeWith( defaultOptions, cfg, true);
+            var slider = new skel.hacks.BoundSlider( options);
+            slider.setMinWidth( 100);
+            box.add( slider, {flex: 1} );
+            return box;
+        }.bind(this);
+
         this.m_controls = {};
         var box;
 
         // line opacity
-        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "Line opacity:"));
-        this.m_controls.lineOpacitySlider = new skel.hacks.BoundSlider(
-            {
-                orientation: "horizontal",
-                sharedVar: this.m_connector.getSharedVar( this.m_statePrefix + "lineOpacity"),
-                min: 0,
-                max: 1
-            } ).set( { minWidth: 100 });
-        box.add( this.m_controls.lineOpacitySlider, { flex: 1});
-        this.add( box);
-
-        // line thickness
-        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "Line thickness:"));
-        this.m_controls.lineThicknessSlider = new skel.hacks.BoundSlider(
-            {
-                orientation: "horizontal",
-                sharedVar: this.m_connector.getSharedVar( this.m_statePrefix + "lineThickness"),
-                min: 0,
-                max: 10
-
-            });
-        box.add( this.m_controls.lineThicknessSlider, { flex: 1});
-        this.add( box);
-
+        this.add( sliderRow( "Line thickness:", "lineThickness", {
+            val2slider: function(x) { return linMap( x, 0, 10, 0, 1000 ) },
+            slider2val: function(x) { return linMap( x, 0, 1000, 0, 10 ) }
+        }));
+        // line opacity
+        this.add( sliderRow( "Line opacity:", "lineOpacity", {
+            val2slider: function(x) { return linMap( x, 0, 1, 0, 1000 ) },
+            slider2val: function(x) { return linMap( x, 0, 1000, 0, 1 ) }
+        }));
         // grid density
-        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "Density:"));
-        this.m_controls.gridDensitySlider = new skel.hacks.BoundSlider(
-            {
-                orientation: "horizontal",
-                sharedVar: this.m_connector.getSharedVar( this.m_statePrefix + "gridDensity"),
-                min: 0,
-                max: 10
+        this.add( sliderRow( "Grid density:", "gridDensity", {
+            val2slider: function(x) { return linMap( x, 0.25, 3, 0, 1000 ) },
+            slider2val: function(x) { return linMap( x, 0, 1000, 0.25, 3 ) }
+        }));
 
-            });
-        box.add( this.m_controls.gridDensitySlider, { flex: 1});
+        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
+        //box.add( new qx.ui.basic.Label( "Internal labels:"));
+        box.add( new skel.boundWidgets.Toggle( "Internal labels", this.m_statePrefix + "internalLabels"));
         this.add( box);
 
-        // font size
-        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "Font size:"));
-        this.m_controls.fontSizeSlider = new skel.hacks.BoundSlider(
-            {
-                orientation: "horizontal",
-                sharedVar: this.m_connector.getSharedVar( this.m_statePrefix + "fontSize"),
-                min: 0,
-                max: 10
-
-            });
-        box.add( this.m_controls.fontSizeSlider, { flex: 1});
-        this.add( box);
 
         // system
         box = new qx.ui.container.Composite( new qx.ui.layout.HBox());

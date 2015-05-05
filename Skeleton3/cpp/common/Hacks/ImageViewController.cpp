@@ -64,9 +64,10 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             m_wcsGridRenderer = res.val();
 
             qDebug() << "wcsgrid: connecting wcs grid renderer to core";
-            auto conn2 = connect( m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderService::done,
-                                  this, & Me::wcsGridSlot,
-                                  Qt::QueuedConnection );
+            auto conn2 = connect(
+                m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderService::done,
+                this, & Me::wcsGridSlot,
+                Qt::QueuedConnection );
             if ( ! conn2 ) {
                 qWarning() << "wcsgrid: wcs grid renderer failed to connect!!!";
 
@@ -126,8 +127,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
         }
     };
 
-    m_connector-> addStateCallback( m_statePrefix + "/pointer-move",  ptrMoveCB);
-
+    m_connector-> addStateCallback( m_statePrefix + "/pointer-move",  ptrMoveCB );
 
     // hook-up movie play button
     m_connector-> addStateCallback( m_statePrefix + "/playToggle", [&] ( CSR, CSR val ) {
@@ -148,15 +148,13 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     // connect movie timer to the frame advance slot
     connect( & m_movieTimer, & QTimer::timeout, this, & ImageViewController::loadNextFrame );
 
-    // line thickness...
-    auto lineThicknessCB = [&] ( CSR, CSR val) {
-        bool ok;
-        double t = val.toDouble( & ok);
-        if( ! ok) return;
-        m_wcsGridRenderer-> setLineThickness( t);
-        m_wcsGridRenderer-> startRendering();
-    };
-    m_connector-> addStateCallback( "/hacks/gridControls/c1/lineThickness", lineThicknessCB);
+    // create a controller for grid options
+    m_wcsGridOptionsController.reset(
+        new WcsGridOptionsController(
+            this,
+            "/hacks/gridControls/c1",
+            m_wcsGridRenderer
+            ) );
 }
 
 void
@@ -191,16 +189,15 @@ ImageViewController::updateGridAfterPanZoomResize()
 
     QRectF outputRect( leftMargin, topMargin,
                        renderSize.width() - leftMargin - rightMargin,
-                       renderSize.height() - topMargin - bottomMargin);
+                       renderSize.height() - topMargin - bottomMargin );
     QRectF inputRect(
-                m_renderService-> screen2img( outputRect.topLeft()),
-                m_renderService-> screen2img( outputRect.bottomRight()));
+        m_renderService-> screen2img( outputRect.topLeft() ),
+        m_renderService-> screen2img( outputRect.bottomRight() ) );
 
-    m_wcsGridRenderer-> setImageRect( inputRect);
-    m_wcsGridRenderer-> setOutputRect( outputRect);
+    m_wcsGridRenderer-> setImageRect( inputRect );
+    m_wcsGridRenderer-> setOutputRect( outputRect );
 
     m_wcsGridRenderer-> startRendering();
-
 } // updateGridAfterPanZoom
 
 QString
@@ -408,7 +405,7 @@ ImageViewController::loadFrame( int frame )
     m_renderService-> render( 0 );
 
     // if grid is active, request a grid rendering as well
-    if( m_wcsGridRenderer) {
+    if ( m_wcsGridRenderer ) {
         m_wcsGridRenderer-> setInputImage( m_astroImage );
     }
     updateGridAfterPanZoomResize();
@@ -433,23 +430,23 @@ void
 ImageViewController::combineImageAndGrid()
 {
     // first paint the rendered astro image (if we have it)
-    if( ! m_renderedAstroImage.isNull()) {
+    if ( ! m_renderedAstroImage.isNull() ) {
         m_renderBuffer = m_renderedAstroImage;
     }
 
     // draw the grid over top
-    if( ! m_gridVG.isNull()) {
-        QPainter p( & m_renderBuffer);
-        p.setRenderHint( QPainter::Antialiasing, true);
+    if ( ! m_gridVG.isNull() && m_gridToggle) {
+        QPainter p( & m_renderBuffer );
+        p.setRenderHint( QPainter::Antialiasing, true );
         Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
-        if( ! vgRenderer.render( m_gridVG.val(), p)) {
+        if ( ! vgRenderer.render( m_gridVG.val(), p ) ) {
             qWarning() << "could not render grid vector graphics";
         }
     }
 
     // schedule a repaint with the connector
     m_connector-> refreshView( this );
-}
+} // combineImageAndGrid
 
 void
 ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId )
@@ -477,7 +474,7 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
             tr = m_renderService-> screen2img( tr );
 
             params.frameRect = QRectF( bl, tr );
-            params.frameRect = QRectF( params.frameRect.bottomLeft(), params.frameRect.topRight());
+            params.frameRect = QRectF( params.frameRect.bottomLeft(), params.frameRect.topRight() );
             params.outputRect = QRectF( leftMargin, topMargin, s.width() - leftMargin - rightMargin,
                                         s.height() - topMargin - bottomMargin );
         }
@@ -522,7 +519,7 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 } // irsDoneSlot
 
 void
-ImageViewController::wcsGridSlot( Carta::Lib::VectorGraphics::VGList vglist)
+ImageViewController::wcsGridSlot( Carta::Lib::VectorGraphics::VGList vglist )
 {
     qDebug() << "wcsgrid: wcsGridSlot" << vglist.entries().size() << "entries";
     m_gridVG = vglist;

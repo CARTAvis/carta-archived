@@ -10,21 +10,30 @@ qx.Class.define( "skel.hacks.BoundSlider", {
     extend: qx.ui.form.Slider,
 
     construct: function( pconfig) {
+        // figure out options
         var defaultConfig = {
             orientation: "horizontal",
             sharedVar: null,
-            min: 0,
-            max: 1
+            maximum: 1000,
+            pageStep: 100,
+            singleStep: 1,
+            val2slider: function(x) { return x; },
+            slider2val: function(x) { return x; }
         };
-        var config = qx.lang.Object.mergeWith( defaultConfig, pconfig, true);
-        this.base( arguments, config.orientation);
+        this.m_config = qx.lang.Object.mergeWith( defaultConfig, pconfig, true);
+        // call old constructor
+        this.base( arguments, this.m_config.orientation);
 
-        console.log( config);
-        this.m_sharedVar = config.sharedVar;
-        console.log( this.m_sharedVar);
-        this.m_sharedVar.addCB( this._sharedVarCB.bind(this));
-        this._sharedVarCB( this.m_sharedVar.get());
+        // set some other parameters
+        this.setMaximum( this.m_config.maximum);
+        this.setPageStep( this.m_config.pageStep);
+        this.setSingleStep( this.m_config.singleStep);
 
+        // listen and react to state changes
+        this.m_config.sharedVar.addCB( this._sharedVarCB.bind(this));
+        this._sharedVarCB( this.m_config.sharedVar.get());
+
+        // listen to UI events
         this.addListener( "changeValue", this._changeValueCB.bind(this));
 
     },
@@ -33,7 +42,7 @@ qx.Class.define( "skel.hacks.BoundSlider", {
 
         _sharedVarCB: function( val) {
             if( this.m_ignoreSharedVarCB) return;
-            var newValue = Number(val);
+            var newValue = this.m_config.val2slider( Number(val));
             this.m_ignoreChangeValueCB = true;
             this.setValue( newValue);
             this.m_ignoreChangeValueCB = false;
@@ -41,9 +50,9 @@ qx.Class.define( "skel.hacks.BoundSlider", {
 
         _changeValueCB: function( ev) {
             if( this.m_ignoreChangeValueCB) return;
-            var newVal = Number(ev.getData());
+            var newVal = this.m_config.slider2val( Number(ev.getData()));
             this.m_ignoreSharedVarCB = true;
-            this.m_sharedVar.set( newVal);
+            this.m_config.sharedVar.set( newVal);
             this.m_ignoreSharedVarCB = false;
         },
 
