@@ -100,14 +100,16 @@ class Image(CartaView):
         self.setZoomLevel(zoom)
 
     def fitToViewer(self):
-        iDim = self.getImageDimensions()
-        if (len(iDim) != 2):
-            return iDim
         oDim = self.getOutputSize()
-        if (oDim[0] < oDim[1]):
-            self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[0]/2,'width')
+        iDim = self.getImageDimensions()
+        if (iDim[0] != "error" and oDim[0] != "error"):
+            if (oDim[0] < oDim[1]):
+                self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[0]/2,'width')
+            else:
+                self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[1]/2,'height')
+            return []
         else:
-            self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[1]/2,'height')
+            return ["Could not fit image to viewer."]
 
     def zoomToPixel(self, x, y):
         iDim = self.getImageDimensions()
@@ -187,7 +189,9 @@ class Image(CartaView):
         result = self.con.cmdTagList("getIntensity", imageView=self.getId(),
                                      frameLow=frameLow, frameHigh=frameHigh,
                                      percentile=percentile)
-        if (result[0] == False):
+        if (result[0] == "error"):
+            return result[1]
+        elif (result[0] == False):
             return False
         else:
             return float(result[0])

@@ -183,11 +183,13 @@ QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -204,11 +206,13 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -225,11 +229,13 @@ QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -246,11 +252,13 @@ QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -267,11 +275,13 @@ QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, co
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -288,11 +298,13 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -309,11 +321,13 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -330,11 +344,13 @@ QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -351,11 +367,13 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -445,11 +463,13 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, const QString&
             controller->setClipValue( param );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
@@ -468,11 +488,13 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
             }
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -491,11 +513,13 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
             }
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -731,11 +755,13 @@ QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferA
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram view could not be found." );
     }
     return resultList;
 }
@@ -759,11 +785,13 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "this shouldn't happen." );
+                resultList = QStringList( "error" );
+                resultList.append( "An unknown error has occurred." );
             }
         }
         else {
-            resultList = QStringList( "Object has been removed and no longer exists?" );
+            resultList = QStringList( "error" );
+            resultList.append( "The specified histogram view could not be found." );
         }
     }
     else {
@@ -784,11 +812,13 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram view could not be found." );
     }
     return resultList;
 }
@@ -817,11 +847,13 @@ QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMin
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram view could not be found." );
     }
     return resultList;
 }
@@ -845,11 +877,13 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
             }
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }
@@ -866,11 +900,13 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
@@ -887,11 +923,13 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
@@ -908,11 +946,13 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
@@ -929,11 +969,13 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
@@ -950,11 +992,13 @@ QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
@@ -971,11 +1015,13 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
@@ -999,11 +1045,13 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "this shouldn't happen." );
+                resultList = QStringList( "error" );
+                resultList.append( "An unknown error has occurred." );
             }
         }
         else {
-            resultList = QStringList( "Object has been removed and no longer exists?" );
+            resultList = QStringList( "error" );
+            resultList.append( "The specified histogram could not be found." );
         }
     }
     else {
@@ -1031,11 +1079,13 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "this shouldn't happen." );
+                resultList = QStringList( "error" );
+                resultList.append( "An unknown error has occurred." );
             }
         }
         else {
-            resultList = QStringList( "Object has been removed and no longer exists?" );
+            resultList = QStringList( "error" );
+            resultList.append( "The specified histogram could not be found." );
         }
     }
     else {
@@ -1056,11 +1106,13 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "this shouldn't happen." );
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "Object has been removed and no longer exists?" );
+        resultList = QStringList( "error" );
+        resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
 }
