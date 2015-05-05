@@ -28,3 +28,5 @@
 # shared library files (cross-platform friendly)
 *.so
 *.dylib
+
+*createlinks.sh

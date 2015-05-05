@@ -136,7 +136,7 @@ QStringList ScriptFacade::removeLink( const QString& sourceId, const QString& de
 
 QStringList ScriptFacade::setImageLayout(){
     m_viewManager->setImageView();
-    QStringList result("setImageLayout");
+    QStringList result("");
     return result;
 }
 
@@ -175,7 +175,7 @@ QStringList ScriptFacade::loadLocalFile( const QString& objectId, const QString&
 
 QStringList ScriptFacade::setAnalysisLayout(){
     m_viewManager->setAnalysisView();
-    QStringList result("setAnalysisLayout");
+    QStringList result("");
     return result;
 }
 

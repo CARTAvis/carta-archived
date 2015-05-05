@@ -59,6 +59,7 @@ public:
      * Establish a link between a source and destination.
      * @param sourceId the unique server side id of the link source.
      * @param destId the unique server side id of an object responsible for an image view.
+     * @return an error message if the link does not succeed.
      */
     QStringList addLink( const QString& sourceId, const QString& destId );
 
@@ -72,16 +73,21 @@ public:
 
     /**
      * Set the layout to a predefined analysis layout.
+     * @return currently just an empty QStringList, as the methods that it
+     *  calls have void return values
      */
     QStringList setAnalysisLayout();
 
     /**
      * Set the layout to a custom layout.
+     * @return a possible error message or an empty QStringList if there is no error.
      */
     QStringList setCustomLayout( int rows, int cols );
 
     /**
      * Set the layout to a predefined layout displaying a single image.
+     * @return currently just an empty QStringList, as the methods that it
+     *  calls have void return values
      */
     QStringList setImageLayout();
 
@@ -91,6 +97,8 @@ public:
      * image view.
      * @param fileName a path, relative to /scratch/Images, identifying the
      * file containing an image.
+     * @return an error message if there was a problem loading the file;
+     *      an empty string otherwise.
      */
     QStringList loadFile( const QString& objectId, const QString& fileName);
 
@@ -98,12 +106,16 @@ public:
      * Load a file into an image view.
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
+     * @return an error message if there was a problem loading the file;
+     *      an empty string otherwise.
      */
     QStringList loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
      * Show the image animator.
      * @param animatorId the unique server-side id of an object managing an animator.
+     * @return an error message if there was a problem showing the image animator;
+     *      an empty string otherwise.
      */
     QStringList showImageAnimator( const QString& animatorId );
 
@@ -111,6 +123,8 @@ public:
      * Set the color map that is being displayed.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param colormapName the name of the color map.
+     * @return an error message if there was a problem setting the colormap;
+     *      an empty string otherwise.
      */
     QStringList setColorMap( const QString& colormapId, const QString& colormapName );
 
