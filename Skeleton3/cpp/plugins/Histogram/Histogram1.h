@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "CartaLib/IPlugin.h"
 #include <QObject>
 #include <vector>
 #include "plugins/CasaImageLoader/CCImage.h"
 #include "CartaLib/Hooks/HistogramResult.h"
+#include "CartaLib/IPlugin.h"
 
 
 class IImageHistogram;

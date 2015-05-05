@@ -143,18 +143,20 @@ SOURCES += \
 #PRECOMPILED_HEADER = stable.h
 #QMAKE_CXXFLAGS += -H
 
-INCLUDEPATH += ../../../ThirdParty/rapidjson/include 
+INCLUDEPATH += $$absolute_path(../../../ThirdParty/rapidjson/include)
 
 #INCLUDEPATH += ../../../ThirdParty/qwt/include
 #LIBS += -L../../../ThirdParty/qwt/lib -lqwt
-#INCLUDEPATH += /home/pfederl/Software/qwt-6.1.2-qt-5.3.2/include
-#LIBS += -L/home/pfederl/Software/qwt-6.1.2-qt-5.3.2/lib -lqwt
 
-#QWT_ROOT = /home/pfederl/Software/qwt-6.1.2-qt-5.3.2
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 INCLUDEPATH += $$QWT_ROOT/include
-LIBS += -L$$QWT_ROOT/lib -lqwt
-QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
-
+unix:macx {
+	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
+	LIBS +=-L../CartaLib -lCartaLib -framework qwt
+}
+else{
+	QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+	LIBS +=-L../CartaLib -lCartaLib -L$$QWT_ROOT/lib -lqwt
+}
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib

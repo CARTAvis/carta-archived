@@ -3,6 +3,7 @@
 #include "Data/ErrorManager.h"
 #include <QStringList>
 #include <QDebug>
+#include <cmath>
 
 namespace Carta {
 

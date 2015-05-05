@@ -22,13 +22,22 @@ RESOURCES = resources.qrc
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include
 
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
-unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.so
-DEPENDPATH += $$PROJECT_ROOT/common
-
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
-unix: PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.so
+DEPENDPATH += $$PROJECT_ROOT/common
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
-QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../common\''
+
+#QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../common\''
+QMAKE_LFLAGS += '-Wl,-rpath,\'../CartaLib:../common\''
 
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
-QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+unix:macx {
+    QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
+    LIBS +=-framework qwt
+    PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.dylib
+}
+else{
+    QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+    LIBS +=-L$$QWT_ROOT/lib -lqwt
+    PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.so
+}
+
