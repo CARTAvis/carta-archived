@@ -32,10 +32,6 @@
 
 using namespace rapidjson;
 
-// Pavol: what is this? Temporary delimiter for debugging purposes?
-// it used to be part of the Viewer class
-static const QString SOCKET_DELIMITER("\n");
-
 /// Recursively parse through a directory structure contained in a json value
 static QStringList _parseDirectory( const Value& dir, QString prefix )
 {
