@@ -52,8 +52,9 @@ public:
      * Add data to this controller.
      * @param fileName the location of the data;
      *        this could represent a url or an absolute path on a local filesystem.
+     * @return true upon success, false otherwise.
      */
-    void addData(const QString& fileName);
+    bool addData(const QString& fileName);
 
     /**
      * Apply the indicated clips to managed images.

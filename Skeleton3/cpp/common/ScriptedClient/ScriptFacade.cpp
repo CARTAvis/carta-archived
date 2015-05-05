@@ -117,19 +117,21 @@ QStringList ScriptFacade::getStatisticsViews() {
 }
 
 QStringList ScriptFacade::addLink( const QString& sourceId, const QString& destId ){
-    QString la = m_viewManager->linkAdd( sourceId, destId );
-    QStringList result(la);
-    result.append(sourceId);
-    result.append(destId);
-    return result;
+    QStringList resultList("");
+    QString result = m_viewManager->linkAdd( sourceId, destId );
+    if ( result != "" ) {
+        resultList = QStringList( result );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::removeLink( const QString& sourceId, const QString& destId ){
-    QString lr = m_viewManager->linkRemove( sourceId, destId );
-    QStringList result(lr);
-    result.append(sourceId);
-    result.append(destId);
-    return result;
+    QStringList resultList("");
+    QString result = m_viewManager->linkRemove( sourceId, destId );
+    if ( result != "" ) {
+        resultList = QStringList( result );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setImageLayout(){
@@ -139,24 +141,36 @@ QStringList ScriptFacade::setImageLayout(){
 }
 
 QStringList ScriptFacade::setPlugins( const QStringList& names ) {
-    m_viewManager->setPlugins( names );
-    QStringList result("setPlugins");
-    result.append(names);
-    return result;
+    QStringList resultList("");
+    bool result = m_viewManager->setPlugins( names );
+    if ( result == false ) {
+        resultList = QStringList( "error" );
+        QString errorStr = "There was an error setting the plugins: " + names.join( ',' );
+        resultList.append( errorStr );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
-    m_viewManager->loadFile( objectId, fileName );
-    QStringList result("loadFile");
-    result.append(fileName);
-    return result;
+    QStringList resultList("");
+    bool result = m_viewManager->loadFile( objectId, fileName );
+    if ( result == false ) {
+        resultList = QStringList( "error" );
+        QString errorStr = "Could not load file " + fileName;
+        resultList.append( errorStr );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
-    m_viewManager->loadLocalFile( objectId, fileName );
-    QStringList result("loadLocalFile");
-    result.append(fileName);
-    return result;
+    QStringList resultList("");
+    bool result = m_viewManager->loadLocalFile( objectId, fileName );
+    if ( result == false ) {
+        resultList = QStringList( "error" );
+        QString errorStr = "Could not load file " + fileName;
+        resultList.append( errorStr );
+    }
+    return resultList;
 }
 
 QStringList ScriptFacade::setAnalysisLayout(){

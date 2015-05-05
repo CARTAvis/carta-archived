@@ -504,7 +504,8 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     return viewId;
 }
 
-void ViewManager::loadFile( const QString& controlId, const QString& fileName){
+bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
+    bool result = false;
     int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
@@ -513,22 +514,26 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
            m_controllers[i]->addData( path );
+           result = true;
            break;
         }
     }
+    return result;
 }
 
-void ViewManager::loadLocalFile( const QString& controlId, const QString& fileName){
+bool ViewManager::loadLocalFile( const QString& controlId, const QString& fileName){
+    bool result = false;
     int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
            //Add the data to it
             _makeDataLoader();
-           m_controllers[i]->addData( fileName );
+           result = m_controllers[i]->addData( fileName );
            break;
         }
     }
+    return result;
 }
 
 int ViewManager::getControllerCount() const {

@@ -83,8 +83,9 @@ public:
      * @param fileName a locater for the data to load.
      * @param objectId the unique server side id of the controller which is
      * responsible for displaying the file.
+     * @return true if successful, false otherwise.
      */
-    void loadFile( const QString& objectId, const QString& fileName);
+    bool loadFile( const QString& objectId, const QString& fileName);
 
 
     /**
@@ -92,8 +93,9 @@ public:
      * @param fileName a locater for the data to load.
      * @param objectId the unique server side id of the controller which is
      * responsible for displaying the file.
+     * @return true if successful, false otherwise.
      */
-    void loadLocalFile( const QString& objectId, const QString& fileName);
+    bool loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
      * Reset the layout to a predefined analysis view.

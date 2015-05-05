@@ -85,7 +85,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 
 
-void Controller::addData(const QString& fileName) {
+bool Controller::addData(const QString& fileName) {
     //Find the location of the data, if it already exists.
     int targetIndex = -1;
     for (int i = 0; i < m_datas.size(); i++) {
@@ -123,6 +123,7 @@ void Controller::addData(const QString& fileName) {
     else {
         _removeData( targetIndex );
     }
+    return successfulLoad;
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
