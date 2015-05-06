@@ -618,7 +618,7 @@ void Controller::saveState() {
 }
 
 bool Controller::saveImage( const QString& filename ) {
-    bool result = m_view->saveImage( filename );
+    bool result = m_view->getBuffer().save( filename);
     return result;
 }
 
