@@ -89,21 +89,21 @@ public:
     /**
      * Interpolate the current colormap.
      * @param interpolateStr Should be equal to either "true" or "false".
-     * @return error information if the color map was not successfully reversed.
+     * @return error information if the color map was not successfully interpolated.
      */
     QString setInterpolatedColorMap( const QString& interpolateStr );
 
     /**
      * Invert the current colormap.
      * @param invertStr Should be equal to either "true" or "false".
-     * @return error information if the color map was not successfully reversed.
+     * @return error information if the color map was not successfully inverted.
      */
     QString invertColorMap( const QString& invertStr );
 
     /**
      * Set a color mix.
      * @param percentString a formatted string specifying the blue, green, and red percentanges.
-     * @return error information if the color mix was successfully set.
+     * @return error information if the color mix was not successfully set.
      */
     QString setColorMix( const QString& percentString );
 

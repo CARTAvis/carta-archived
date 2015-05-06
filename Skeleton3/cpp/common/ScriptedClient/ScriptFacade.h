@@ -132,6 +132,7 @@ public:
      * Reverse the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param reverseStr should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully reversed.
      */
     QStringList reverseColorMap( const QString& colormapId, const QString& reverseStr );
 
@@ -139,6 +140,7 @@ public:
      * Set caching for the current colormap
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param cacheStr should be equal to either "true" or "false"
+     * @return error information if the cache size was not successfully set.
      */
     QStringList setCacheColormap( const QString& colormapId, const QString& cacheStr );
 
@@ -146,6 +148,7 @@ public:
      * Set the cache size of the colormap
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param cacheSize the desired cache size.
+     * @return error information if the cache size was not successfully set.
      */
     QStringList setCacheSize( const QString& colormapId, const QString& cacheSize );
 
@@ -153,6 +156,7 @@ public:
      * Interpolate the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param interpolateStr should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully interpolated.
      */
     QStringList setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
 
@@ -160,6 +164,7 @@ public:
      * Invert the current colormap.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param invertStr should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully inverted.
      */
     QStringList invertColorMap( const QString& colormapId, const QString& invertStr );
 
@@ -167,6 +172,7 @@ public:
      * Set a color mix.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     * @return error information if the color mix was not successfully set.
      */
     QStringList setColorMix( const QString& colormapId, const QString& percentString );
 
@@ -189,6 +195,7 @@ public:
     /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
+     * @return error information if plugins could not be set.
      */
     QStringList setPlugins( const QStringList& names );
 
@@ -196,6 +203,7 @@ public:
      * Set the image channel to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the channel number.
+     * @return error information if the channel could not be set.
      */
     QStringList setChannel( const QString& animatorId, int index );
 
@@ -203,6 +211,7 @@ public:
      * Set the image to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the image number.
+     * @return error information if the image could not be set.
      */
     QStringList setImage( const QString& animatorId, int index );
 
@@ -210,6 +219,7 @@ public:
      * Set the histogram to show the specified percentage of the data.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param clipValue the percentage of data to be shown.
+     * @return error information if the clip value could not be set.
      */
     QStringList setClipValue( const QString& controlId, const QString& clipValue );
 
@@ -244,7 +254,7 @@ public:
      * Get the animators that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of ID values for the linked animators, or a list of a single
-     *  empty string if no linked animators were found.
+     *      empty string if no linked animators were found.
      */
     QStringList getLinkedAnimators( const QString& controlId );
 
@@ -252,7 +262,7 @@ public:
      * Get the colormaps that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of ID values for the linked colormaps, or a list of a single
-     *  empty string if no linked colormaps were found.
+     *      empty string if no linked colormaps were found.
      */
     QStringList getLinkedColorMaps( const QString& controlId );
 
@@ -260,7 +270,7 @@ public:
      * Get the histograms that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of ID values for the linked histograms, or a list of a single
-     *  empty string if no linked histograms were found.
+     *      empty string if no linked histograms were found.
      */
     QStringList getLinkedHistograms( const QString& controlId );
 
@@ -268,7 +278,7 @@ public:
      * Get the statistics views that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of ID values for the linked statistics, or a list of a single
-     *  empty string if no linked statistics were found.
+     *      empty string if no linked statistics were found.
      */
     QStringList getLinkedStatistics( const QString& controlId );
 
@@ -276,6 +286,7 @@ public:
      * Center the image on the pixel with coordinates (x, y).
      * @param x the x-coordinate for the center of the pan.
      * @param y the y-coordinate for the center of the pan.
+     * @return error information if the image could not be centered on the given pixel.
      */
     QStringList centerOnPixel( const QString& controlId, double x, double y );
 
@@ -283,24 +294,30 @@ public:
      * Set the zoom level.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
+     * @return error information if the zoom level could not be set.
      */
     QStringList setZoomLevel( const QString& controlId, double zoomLevel );
 
     /**
      * Get the current zoom level.
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return the zoom level, or error information if it could not be obtained.
      */
     QStringList getZoomLevel( const QString& controlId );
 
     /**
      * Get the image dimensions.
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of the image dimensions, or error information if the
+     *      dimensions could not be obtained.
      */
     QStringList getImageDimensions( const QString& controlId );
 
     /**
      * Get the dimensions of the image viewer (window size).
      * @param controlId the unique server-side id of an object managing a controller.
+     * @return the width and height of the image viewer as a list, or error
+     *      information if the output size could not be obtained.
      */
     QStringList getOutputSize( const QString& controlId );
 
@@ -335,6 +352,7 @@ public:
      * @param clipMinValue the minimum of data to be shown.
      * @param clipMaxValue the maximum of data to be shown.
      * @param mode can be either "percent" or "intensity"
+     * @return an error message if there was a problem applying the clips; an empty string otherwise.
      */
     QStringList applyClips( const QString& histogramId, double clipMinPercent, double clipMaxPercent, QString mode );
 

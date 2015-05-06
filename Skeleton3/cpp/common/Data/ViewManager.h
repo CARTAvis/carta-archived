@@ -123,6 +123,7 @@ public:
     /**
      * Set the list of plugins to be displayed.
      * @param names a list of identifiers for the plugins.
+     * @return error information if plugins could not be set.
      */
     bool setPlugins( const QStringList& names );
 
