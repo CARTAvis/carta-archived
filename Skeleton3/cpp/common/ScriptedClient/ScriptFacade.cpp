@@ -890,7 +890,8 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
                 resultList = QStringList( QString::number( intensity ) );
             }
             else {
-                resultList = QStringList( Carta::Data::Util::toString( valid ) );
+                resultList = QStringList( "error" );
+                resultList.append( "Could not get intensity for the specified parameters." );
             }
         }
         else {

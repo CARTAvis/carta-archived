@@ -204,7 +204,7 @@ int Controller::getFrameChannel() const {
 bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
     bool validIntensity = false;
     int imageIndex = m_selectImage->getIndex();
-    if ( 0 <= imageIndex && imageIndex < m_datas.size()){
+    if ( 0 <= imageIndex && imageIndex < m_datas.size() && percentile >= 0.0 && percentile <= 1.0 ){
         validIntensity = m_datas[imageIndex]->getIntensity( frameLow, frameHigh, percentile, intensity );
     }
     return validIntensity;
