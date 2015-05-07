@@ -2,13 +2,13 @@
 #ifndef IMAGE_HISTOGRAM_H_
 #define IMAGE_HISTOGRAM_H_
 
-#include <casa/aipstype.h>
-#include <casa/vector.h>
-#include <IImageHistogram.h>
+#include <casacore/casa/aipstype.h>
+#include <casacore/casa/vector.h>
+#include "IImageHistogram.h"
 #include <QTextStream>
 
 
-#include <tr1/memory>
+#include <memory>
 
 namespace casa {
     template <class T> class ImageInterface;
@@ -73,7 +73,7 @@ private:
 	vector<T> m_yValues;
 	casa::LatticeHistograms<T>* m_histogramMaker;
 	casa::ImageRegion* m_region;
-	std::tr1::shared_ptr<casa::SubImage<T> > subImage;
+	std::shared_ptr<casa::SubImage<T> > subImage;
 	const int ALL_CHANNELS;
 	const int ALL_INTENSITIES;
     const casa::ImageInterface<T>*  m_image; //Use

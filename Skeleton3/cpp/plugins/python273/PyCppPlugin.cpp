@@ -40,7 +40,7 @@ static void enableCtrlC()
         }
         qDebug() << "old sigint:" << (void *)(oldSigIntAction.sa_handler)
                  << (void *) (oldSigIntAction.sa_sigaction)
-                 << (void *) (oldSigIntAction.sa_restorer)
+                // << (void *) (oldSigIntAction.sa_restorer)
                  << oldSigIntAction.sa_flags
                  << maskList.join(",");
     }

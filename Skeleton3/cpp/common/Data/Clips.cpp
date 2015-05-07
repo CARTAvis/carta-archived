@@ -2,6 +2,7 @@
 #include "CartaLib/CartaLib.h"
 #include "State/UtilState.h"
 #include <QDebug>
+#include <cmath>
 
 namespace Carta {
 
@@ -82,7 +83,7 @@ int Clips::getIndex( const QString& clipValue ) const {
         for ( int i = 0; i < clipCount; i++ ){
             QString clipLookup = UtilState::getLookup( CLIP_LIST, i );
             double clip = m_state.getValue<double>(clipLookup);
-            if ( abs( target - clip )<ERROR_MARGIN ){
+            if ( fabs( target - clip )<ERROR_MARGIN ){
                 clipIndex = i;
                 break;
             }

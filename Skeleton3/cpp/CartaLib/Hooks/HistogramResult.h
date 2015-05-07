@@ -3,6 +3,7 @@
  */
 #pragma once
 #include <QString>
+#include <vector>
 
 namespace Carta{
 namespace Lib{

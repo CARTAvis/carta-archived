@@ -2,6 +2,7 @@
 #include "CartaLib/CartaLib.h"
 #include "State/UtilState.h"
 #include <QDebug>
+#include <cmath>
 
 namespace Carta {
 
