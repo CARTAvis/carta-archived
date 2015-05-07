@@ -2,6 +2,7 @@
 #include "Colormap/Colormap.h"
 #include "Animator/Animator.h"
 #include "Colormap/Colormap.h"
+#include "State/UtilState.h"
 #include "Controller.h"
 #include "Histogram.h"
 #include "Statistics.h"
@@ -15,14 +16,14 @@ namespace Carta {
 
 namespace Data {
 
-class Layout::Factory : public CartaObjectFactory {
+class Layout::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
     Factory():
         CartaObjectFactory( LAYOUT ){};
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Layout (path, id);
     }
@@ -44,8 +45,10 @@ const QString Layout::TYPE_SELECTED = "layoutType";
 
 
 bool Layout::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Layout::Factory());
+
+typedef Carta::State::UtilState UtilState;
 
 Layout::Layout( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
@@ -90,7 +93,7 @@ QString Layout::addWindow( int rowIndex, int colIndex ){
                 int newRowCount = oldRowCount + 1;
                 int newSize = newRowCount * oldColCount;
                 m_state.setValue<int>( LAYOUT_ROWS, newRowCount );
-                m_state.resizeArray ( LAYOUT_PLUGINS, newSize, StateInterface::PreserveAll );
+                m_state.resizeArray ( LAYOUT_PLUGINS, newSize, Carta::State::StateInterface::PreserveAll );
 
                 //Adjust cells in the affected column by moving ones below the
                 //new cell down one and setting the new cell empty.
@@ -150,7 +153,7 @@ int Layout::_findEmptyRow( int colIndex, int targetRowIndex ) const {
     int rowCount = m_state.getValue<int>(LAYOUT_ROWS );
     for ( int i = 0; i < rowCount; i++ ){
         int index = _getArrayIndex(i, colIndex);
-        QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number(index) );
+        QString lookup( UtilState::getLookup( LAYOUT_PLUGINS,index) );
         QString plugin = m_state.getValue<QString>(lookup);
         if ( plugin == HIDDEN ){
             int rowDistance = qAbs( i - targetRowIndex );
@@ -176,7 +179,7 @@ QString Layout::_getPlugin( int rowIndex, int colIndex ) const{
     int cols = m_state.getValue<int>( LAYOUT_COLS );
     QString plugin;
     if ( arrayIndex < rows*cols && arrayIndex >= 0 ){
-        QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number( arrayIndex) );
+        QString lookup( UtilState::getLookup( LAYOUT_PLUGINS, arrayIndex) );
         plugin = m_state.getValue<QString>( lookup );
     }
     return plugin;
@@ -217,7 +220,7 @@ QStringList Layout::getPluginList() const {
     int pluginCount = rows * cols;
     QStringList plugins;
     for ( int i = 0; i < pluginCount; i++ ){
-        QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number(i) );
+        QString lookup( UtilState::getLookup( LAYOUT_PLUGINS, i) );
         plugins.push_back(m_state.getValue<QString>(lookup));
     }
     return plugins;
@@ -228,7 +231,7 @@ void Layout::_initializeCommands(){
     addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
                    const QString & params, const QString & /*sessionId*/) -> QString {
            std::set<QString> keys = {LAYOUT_ROWS, LAYOUT_COLS};
-           std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
            QString rowStr = dataValues[LAYOUT_ROWS];
            QString colStr = dataValues[LAYOUT_COLS];
            bool valid = false;
@@ -254,7 +257,7 @@ void Layout::_initializeCommands(){
     addCommandCallback( "addWindow", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = { ROW, COLUMN };
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             bool validRow = false;
             QString result;
             int rowIndex = dataValues[ROW].toInt(&validRow);
@@ -269,7 +272,7 @@ void Layout::_initializeCommands(){
     addCommandCallback( "removeWindow", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
                 std::set<QString> keys = { ROW, COLUMN };
-                std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                 bool validRow = false;
                 QString result;
                 int rowIndex = dataValues[ROW].toInt(&validRow);
@@ -288,19 +291,58 @@ void Layout::_initializeDefaultState(){
     m_state.insertArray( LAYOUT_PLUGINS, 0 );
     m_state.insertValue<int>( LAYOUT_ROWS, 0 );
     m_state.insertValue<int>( LAYOUT_COLS, 0 );
-    m_state.insertValue<QString>(TYPE_SELECTED, TYPE_ANALYSIS );
+    m_state.insertValue<QString>(TYPE_SELECTED, TYPE_CUSTOM );
+}
+
+bool Layout::isLayoutAnalysis() const {
+    bool layoutAnalysis = false;
+    if ( m_state.getValue<QString>(TYPE_SELECTED) == TYPE_ANALYSIS ){
+        layoutAnalysis = true;
+    }
+    return layoutAnalysis;
+}
+
+
+
+bool Layout::isLayoutImage() const {
+    bool layoutImage = false;
+    if ( m_state.getValue<QString>(TYPE_SELECTED) == TYPE_IMAGE ){
+        layoutImage = true;
+    }
+    return layoutImage;
 }
 
 void Layout::_moveCell( int sourceRow, int sourceCol, int destRow, int destCol ){
     int emptyIndex = _getArrayIndex( destRow, destCol );
     int existIndex = _getArrayIndex( sourceRow, sourceCol );
-    QString emptyLookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number(emptyIndex) );
-    QString existLookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number( existIndex) );
+    QString emptyLookup( UtilState::getLookup(LAYOUT_PLUGINS,emptyIndex) );
+    QString existLookup( UtilState::getLookup(LAYOUT_PLUGINS, existIndex) );
     QString existPlugin = m_state.getValue<QString>( existLookup );
     m_state.setValue<QString>(emptyLookup, existPlugin );
 }
 
-
+void Layout::resetState( const Carta::State::StateInterface& savedState ){
+    QString layoutLookup = CLASS_NAME;
+    int rows = savedState.getValue<int>(UtilState::getLookup( layoutLookup, LAYOUT_ROWS));
+    int cols = savedState.getValue<int>(UtilState::getLookup( layoutLookup, LAYOUT_COLS ));
+    QString typeStr = savedState.getValue<QString>(UtilState::getLookup( layoutLookup, TYPE_SELECTED));
+    setLayoutSize(rows,cols, typeStr);
+    //The view manager needs to update the plugins it supports.
+    QString pluginArrayLookup = UtilState::getLookup( layoutLookup, LAYOUT_PLUGINS);
+    int pluginCount = savedState.getArraySize( pluginArrayLookup );
+    QStringList pluginList;
+    for ( int i = 0; i < pluginCount; i++ ){
+        QString arrayIndexStr = UtilState::getLookup(pluginArrayLookup, i);
+        pluginList.append( savedState.getValue<QString>(arrayIndexStr) );
+     }
+    bool customLayout = false;
+    if ( typeStr == TYPE_CUSTOM ){
+        customLayout = true;
+    }
+    QStringList oldNames = getPluginList();
+    _setPlugin( pluginList, customLayout );
+    emit pluginListChanged( pluginList, oldNames );
+}
 
 QString Layout::removeWindow( int rowIndex, int colIndex ){
     QString result;
@@ -328,7 +370,7 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
             //Resize the array with one fewer row.
             int newRowCount = rowCount - 1;
             m_state.setValue<int>(LAYOUT_ROWS, newRowCount);
-            m_state.resizeArray( LAYOUT_PLUGINS, (newRowCount) * colCount, StateInterface::PreserveAll );
+            m_state.resizeArray( LAYOUT_PLUGINS, (newRowCount) * colCount, Carta::State::StateInterface::PreserveAll );
             m_state.flushState();
         }
         //Some other column has the maximum number of rows.
@@ -356,7 +398,7 @@ QString Layout::removeWindow( int rowIndex, int colIndex ){
                 }
                 int newColCount = colCount - 1;
                 m_state.setValue<int>(LAYOUT_COLS, newColCount);
-                m_state.resizeArray( LAYOUT_PLUGINS, rowCount * newColCount, StateInterface::PreserveAll );
+                m_state.resizeArray( LAYOUT_PLUGINS, rowCount * newColCount, Carta::State::StateInterface::PreserveAll );
                 m_state.flushState();
             }
         }
@@ -418,13 +460,13 @@ QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
             m_state.setValue<int>( LAYOUT_COLS, cols );
             m_state.setValue<QString>(TYPE_SELECTED, layoutType );
 
-            m_state.resizeArray( LAYOUT_PLUGINS, rows * cols, StateInterface::PreserveAll );
+            m_state.resizeArray( LAYOUT_PLUGINS, rows * cols, Carta::State::StateInterface::PreserveAll );
 
             //Resize always puts things at the end so we set extra cells empty.
             int startIndex = oldRows * oldCols;
             int endIndex = rows * cols;
             for ( int i = startIndex; i < endIndex; i++ ){
-                 QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number( i) );
+                 QString lookup( UtilState::getLookup(LAYOUT_PLUGINS, i) );
                  m_state.setValue( lookup, EMPTY );
             }
             QStringList newNames = getPluginList();
@@ -445,7 +487,7 @@ bool Layout::_setPlugin( int rowIndex, int colIndex, const QString& name, bool i
     int cols = m_state.getValue<int>( LAYOUT_COLS );
     bool pluginSet = false;
     if ( arrayIndex < rows*cols && arrayIndex >= 0 ){
-        QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number( arrayIndex) );
+        QString lookup( UtilState::getLookup(LAYOUT_PLUGINS,arrayIndex) );
         if ( !insert ){
             QString oldValue = m_state.getValue<QString>( lookup );
             if ( name != oldValue ){
@@ -463,17 +505,28 @@ bool Layout::_setPlugin( int rowIndex, int colIndex, const QString& name, bool i
     return pluginSet;
 }
 
-bool Layout::_setPlugin( const QStringList& names ){
+bool Layout::_setPlugin( const QStringList& names, bool custom ){
     int rows = m_state.getValue<int>( LAYOUT_ROWS );
     int cols = m_state.getValue<int>( LAYOUT_COLS );
     bool valid = true;
-    if ( names.size() == rows * cols ){
+    int existingSize = rows * cols;
+    if ( names.size() == existingSize ){
         int nameCount = names.size();
+        bool changed = false;
         for ( int i = 0; i < nameCount; i++ ){
-            QString lookup( LAYOUT_PLUGINS + StateInterface::DELIMITER + QString::number(i) );
-            m_state.setValue<QString>(lookup, names[i]);
+            QString lookup( UtilState::getLookup(LAYOUT_PLUGINS,i) );
+            QString oldValue = m_state.getValue<QString>(lookup);
+            if ( oldValue != names[i]){
+                m_state.setValue<QString>(lookup, names[i]);
+                changed = true;
+            }
         }
-        m_state.flushState();
+        if ( changed ){
+            if ( custom ){
+                m_state.setValue<QString>( TYPE_SELECTED, TYPE_CUSTOM );
+            }
+            m_state.flushState();
+        }
     }
     else {
         valid = false;

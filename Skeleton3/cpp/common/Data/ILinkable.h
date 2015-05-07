@@ -20,7 +20,7 @@ public:
      * @return an error message if there was a problem removing the link;
      *      an empty string otherwise..
      */
-    virtual QString removeLink( CartaObject * cartaObj ) = 0;
+    virtual QString removeLink( Carta::State::CartaObject * cartaObj ) = 0;
 
     /**
      * Add a link to the CartaObject.
@@ -28,7 +28,7 @@ public:
      * @return an error message if there was a problem adding the link;
      *      an empty string otherwise.
      */
-    virtual QString addLink( CartaObject* cartaObj ) = 0;
+    virtual QString addLink( Carta::State::CartaObject* cartaObj ) = 0;
 
 };
 }

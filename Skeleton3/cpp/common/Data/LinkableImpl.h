@@ -34,7 +34,7 @@ public:
      */
     int getLinkCount() const;
 
-    CartaObject* getLink( int index ) const;
+    Carta::State::CartaObject* getLink( int index ) const;
 
     /**
      * Returns the server-side id of the image view with the given index.
@@ -52,21 +52,22 @@ public:
 
     /**
      * Return a string representing the link destinations that have been added.
+     * @param index - the index of the parent.
+     * @param typeStr - the object type of the parent.
      * @return a QString representing the corresponding linkages.
      */
-    QString getStateString() const;
+    QString getStateString( int index, const QString& typeStr  ) const;
 
-    CartaObject* searchLinks(const QString& link);
+    Carta::State::CartaObject* searchLinks(const QString& link);
 
-    bool removeLink( CartaObject* cartaObj );
-    bool addLink( CartaObject* cartaObj );
+    bool removeLink( Carta::State::CartaObject* cartaObj );
+    bool addLink( Carta::State::CartaObject* cartaObj );
     virtual ~LinkableImpl();
 
     const static QString LINK;
     const static QString PARENT_ID;
 
 private:
-
 
     /**
      * Initialize default state.
@@ -85,11 +86,11 @@ private:
      * @param cartaObj an image view.
      * @return a nonnegative index if the image view is linked; -1 otherwise.
      */
-    int _getIndex( CartaObject* cartaObj );
+    int _getIndex( Carta::State::CartaObject* cartaObj );
 
     /// List of cartaObjs managed by this animator.
-    QList<CartaObject* > m_cartaObjs;
-    StateInterface m_state; //Used
+    QList<Carta::State::CartaObject* > m_cartaObjs;
+    Carta::State::StateInterface m_state; //Used
 
     LinkableImpl( const LinkableImpl& other);
     LinkableImpl operator=( const LinkableImpl& other );

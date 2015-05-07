@@ -15,8 +15,7 @@ class tLoadImage(unittest.TestCase):
         driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
         driver.implicitly_wait(10)
         
-        #Load a specific image.  At some point this test will need to be rewritten to use a
-        #test image available where the tests are running.
+        #Load a specific image.
         Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
         
         # Click on the Data->Close->Image button to close the image.

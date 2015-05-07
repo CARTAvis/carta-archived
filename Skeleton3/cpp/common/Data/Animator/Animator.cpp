@@ -2,6 +2,8 @@
 #include "Data/Selection.h"
 #include "Data/Controller.h"
 #include "Data/Util.h"
+#include "State/UtilState.h"
+#include "CartaLib/CartaLib.h"
 
 #include <QDebug>
 
@@ -9,11 +11,14 @@ namespace Carta {
 
 namespace Data {
 
-class Animator::Factory : public CartaObjectFactory {
+typedef Carta::State::StateInterface StateInterface;
+typedef Carta::State::UtilState UtilState;
+
+class Animator::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Animator (path, id);
     }
@@ -23,13 +28,12 @@ public:
 
 const QString Animator::CLASS_NAME = "Animator";
 bool Animator::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Animator::Factory());
 
 Animator::Animator(const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id),
-    m_linkImpl( new LinkableImpl( path ))
-    {
+    m_linkImpl( new LinkableImpl( path )){
     _initializeState();
     _initializeCallbacks();
 }
@@ -67,7 +71,7 @@ void Animator::_adjustStateAnimatorTypes(){
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
         if ( !m_animators[keys[i]]->isRemoved()){
-            QString objPath = AnimatorType::ANIMATIONS + StateInterface::DELIMITER + QString::number(i);
+            QString objPath = UtilState::getLookup(AnimatorType::ANIMATIONS, QString::number(i));
             m_state.setValue<QString>( objPath, keys[i] );
         }
     }
@@ -177,7 +181,7 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
         //User preferences should include animators visible (m_state)
         //and individual animator preferences.
         StateInterface prefState("");
-        prefState.insertObject( getPath(), m_state.toString());
+        prefState.setState( /*getPath(),*/ m_state.toString());
         QMap<QString, AnimatorType*>::const_iterator animIter;
         for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
             prefState.insertObject( animIter.key(), animIter.value()->getStatePreferences());
@@ -185,27 +189,39 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString();
+        result = m_linkImpl->getStateString(getIndex(), getType( type ) );
     }
     else if ( type == SNAPSHOT_DATA ){
         //Data State is selections on individual animators.
         StateInterface dataState("");
         QMap<QString, AnimatorType*>::const_iterator animIter;
         int animCount = m_animators.size();
+        dataState.setValue<int>(StateInterface::INDEX, getIndex() );
         dataState.insertArray(AnimatorType::ANIMATIONS, animCount);
+        dataState.setValue<QString>( StateInterface::OBJECT_TYPE,
+                CLASS_NAME + StateInterface::STATE_DATA );
         int i = 0;
         for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
-            QString animKey = Util::getLookup( AnimatorType::ANIMATIONS, i );
+            QString animKey = Carta::State::UtilState::getLookup( AnimatorType::ANIMATIONS, i );
             QString animState = animIter.value()->getStateData();
-            QString animKeyName = animKey + StateInterface::DELIMITER + "name";
-            QString animKeyValue = animKey + StateInterface::DELIMITER + "value";
+            QString animKeyName = UtilState::getLookup(animKey, "name");
+            QString animKeyValue = UtilState::getLookup(animKey, "value");
             dataState.insertValue<QString>( animKeyName, animIter.key() );
             dataState.insertValue<QString>( animKeyValue, animState );
+
             i++;
         }
         result = dataState.toString();
     }
     return result;
+}
+
+QString Animator::getType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getType( snapType );
+    if ( snapType == SNAPSHOT_DATA ){
+        objType = objType + StateInterface::STATE_DATA;
+    }
+    return objType;
 }
 
 void Animator::_imageIndexChanged( int selectedImage){
@@ -222,7 +238,7 @@ void Animator::_imageIndexChanged( int selectedImage){
 QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
     QString animId;
     if ( !m_animators.contains( type ) ){
-        CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
+        Carta::State::CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
         m_animators.insert(type, dynamic_cast<AnimatorType*>(animObj) );
         _adjustStateAnimatorTypes();
         *newAnimator = true;
@@ -238,7 +254,7 @@ void Animator::_initializeCallbacks(){
     addCommandCallback( "addAnimator", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"type"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
         QString animId = "-1";
         QString result = addAnimator( dataValues[*keys.begin()], animId );
         Util::commandPostProcess( result );
@@ -248,7 +264,7 @@ void Animator::_initializeCallbacks(){
     addCommandCallback( "removeAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {"type"};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
             QString animatorId = removeAnimator( dataValues[*keys.begin()] );
             return animatorId;
         });
@@ -274,7 +290,7 @@ QString Animator::removeAnimator( const QString& type ){
         m_animators[type]->setVisible( false );
         _adjustStateAnimatorTypes();
     }
-    else {
+    else if ( type != Selection::IMAGE && type != Selection::CHANNEL ){
         result= "Error removing animator; unrecognized type="+type;
         Util::commandPostProcess( result);
     }
@@ -321,11 +337,10 @@ void Animator::_resetAnimationParameters( int selectedImage ){
            }
        }
        m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
-
    }
 }
 
-void Animator::_resetStateAnimator( const StateInterface& state, const QString& key ){
+void Animator::_resetStateAnimator( const Carta::State::StateInterface& state, const QString& key ){
     try {
         QString animPrefs = state.toString( key );
         if ( animPrefs.length() > 0 ){
@@ -346,7 +361,7 @@ void Animator::_resetStateAnimator( const StateInterface& state, const QString& 
 }
 
 void Animator::resetState( const QString& state ){
-    StateInterface prefState("");
+    Carta::State::StateInterface prefState("");
     prefState.setState( state );
     _resetStateAnimator( prefState, Selection::CHANNEL);
     _resetStateAnimator( prefState, Selection::IMAGE );
@@ -354,14 +369,14 @@ void Animator::resetState( const QString& state ){
 }
 
 void Animator::resetStateData( const QString& state ){
-    StateInterface dataState("");
+    Carta::State::StateInterface dataState("");
     dataState.setState( state );
     int animationCount = dataState.getArraySize( AnimatorType::ANIMATIONS );
     for (int i = 0; i < animationCount; i++ ){
-        QString lookup = Util::getLookup( AnimatorType::ANIMATIONS, i );
-        QString keyName = lookup + StateInterface::DELIMITER + "name";
+        QString lookup = UtilState::getLookup( AnimatorType::ANIMATIONS, i );
+        QString keyName = UtilState::getLookup(lookup, "name");
         QString animName = dataState.getValue<QString>( keyName );
-        QString keyValue = lookup + StateInterface::DELIMITER + "value";
+        QString keyValue = UtilState::getLookup(lookup, "value");
         QString stateValue = dataState.getValue<QString>( keyValue );
         if ( m_animators.contains( animName )){
             m_animators[animName]->resetStateData( stateValue );
@@ -372,8 +387,9 @@ void Animator::resetStateData( const QString& state ){
     }
 }
 
+
 Animator::~Animator(){
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     int animationCount = m_animators.size();
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){

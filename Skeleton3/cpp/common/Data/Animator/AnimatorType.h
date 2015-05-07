@@ -16,7 +16,7 @@ namespace Data {
 
 class Selection;
 
-class AnimatorType : public QObject, public CartaObject {
+class AnimatorType : public QObject, public Carta::State::CartaObject {
 
     Q_OBJECT
 

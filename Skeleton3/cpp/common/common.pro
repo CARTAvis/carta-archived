@@ -25,6 +25,7 @@ HEADERS += \
     ScriptedCommandListener.h \
     State/ObjectManager.h \
     State/StateInterface.h \
+    State/UtilState.h \
     ImageView.h \
     Data/Animator/Animator.h \
     Data/Animator/AnimatorType.h \
@@ -48,8 +49,10 @@ HEADERS += \
     Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
+    Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
     Data/Snapshot/Snapshot.h \
+    Data/Snapshot/SnapshotsFile.h \
     Data/Statistics.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
@@ -82,6 +85,7 @@ SOURCES += \
     MainConfig.cpp \
     State/ObjectManager.cpp\
     State/StateInterface.cpp \
+    State/UtilState.cpp \
     ImageView.cpp \
     Data/Animator/Animator.cpp \
     Data/Animator/AnimatorType.cpp \
@@ -104,6 +108,7 @@ SOURCES += \
     Data/RegionRectangle.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
+    Data/Snapshot/SnapshotsFile.cpp \
     Data/Statistics.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \

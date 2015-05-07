@@ -1,5 +1,5 @@
 /***
- * List of available snapshots as well as the currently selected one.
+ * Manages the state of snapshot collections.
  *
  */
 
@@ -7,30 +7,65 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "State/UtilState.h"
 #include "Snapshot.h"
-#include <QDir>
 
 namespace Carta {
 
 namespace Data {
 
-class Snapshots : public CartaObject{
+class ISnapshotsImplementation;
+
+class Snapshots : public Carta::State::CartaObject {
 
 public:
 
     /**
-     * Returns a list of supported snapshots
+     * Delete the snapshot with the given identifier.
      * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to delete.
+     * @return an empty string if the snapshot was deleted; an error message if
+     *      there was a problem deleting the snapshot.
+     */
+    QString deleteSnapshot( const QString& sessionId, const QString& saveName );
+
+    /**
+     * Restores the default snapshot if one has been saved.
+     */
+    void initializeDefaultState();
+
+    /**
+      * Read and restore state for a particular sessionId from a string.
+      * @param stateStr - a string representation of the state.
+      * @param type - the type of state.
+      * @return true if the state was read and restored; false otherwise.
+      */
+    QString restoreSnapshot( const QString& sessionId, const QString& saveName );
+
+    /**
+     * Save the current state.
+     * @param fileName - an identifier for the state to be saved.
+     * @param layoutSave - true if the layout should be saved; false otherwise.
+     * @param preferencesSave -true if the preferences should be saved; false otherwise.
+     * @param dataSave - true if the data should be saved; false otherwise.
+     * @param saveDescription - notes about the state being saved.
+     * @return an error message if there was a problem saving state; an empty string otherwise.
+     */
+    QString saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout,
+            bool savePreferences, bool saveData, const QString& description );
+    /**
+     * Returns a list of available snapshots
+     * @param sessionId - an identifier for a user session.
      * @return a list of supported snapshots.
      */
-    QString getSnapshots(const QString& sessionId ) const;
-    QString readLayout(const QString& sessionId, const QString& baseName) const;
-    QString readPreferences(const QString& sessionId, const QString& baseName) const;
-    QString readData(const QString& sessionId, const QString& baseName) const;
-    QString saveLayout(const QString& sessionId, const QString& baseName, const QString& layoutStr) const;
-    QString savePreferences(const QString& sessionId, const QString& baseName, const QString& prefStr) const;
-    QString saveData(const QString& sessionId, const QString& baseName, const QString& dataStr) const;
-    QString saveDescription( const QString& sessionId, const QString& baseName, const QString& description ) const;
+    QList<Snapshot> getSnapshots(const QString& sessionId ) const;
+
+    /**
+     * Force a reload of stored snapshots.
+     * @param sessionId - an identifier for the user's session.
+     */
+    void updateSnapshots( const QString& sessionId );
+
     const static QString CLASS_NAME;
     const static QString SNAPSHOT_SELECTED;
     const static QString FILE_NAME;
@@ -41,18 +76,25 @@ public:
     virtual ~Snapshots();
 
 private:
-    const static QString DEFAULT_SAVE;
 
-    const static QString SUFFIX;
+    typedef Carta::State::UtilState UtilState;
+    typedef Carta::State::StateInterface StateInterface;
 
-    QString _getRootDir(const QString& /*sessionId*/) const;
-    void _processDirectory(const QString& sessionId, const QDir& rootDir, QMap<QString,Snapshot>& snapshotList) const;
+    ISnapshotsImplementation* m_snapImpl;
+    const static QString DEFAULT_SNAPSHOT;
+
     void _initializeCallbacks();
     void _initializeState();
-    QString _read( const QString& fileLocation ) const;
-    QString _readSpecific( const QString& sessionId, const QString& subDirName, const QString& baseName ) const;
-    bool _save( const QString& fileLocation, const QString& stateStr ) const;
-    QString _saveSpecific( const QString& sessionId, const QString subDirName, const QString& baseName, const QString saveStr ) const;
+
+    QString _restoreLayout(const QString& sessionId, const QString& snapName) const;
+    QString _restoreSnapshot(const QString& sessionId, CartaObject::SnapshotType snapType, const QString& baseName) const;
+
+    QString _saveData(const QString& sessionId, const QString& baseName);
+    QString _saveDescription( const QString& sessionId, const QString& baseName,
+            const QString& description );
+    QString _saveLayout(const QString& sessionId, const QString& baseName);
+    QString _savePreferences(const QString& sessionId, const QString& baseName);
+    void _saveSelected( const QString& saveName );
 
     static bool m_registered;
     Snapshots( const QString& path, const QString& id );

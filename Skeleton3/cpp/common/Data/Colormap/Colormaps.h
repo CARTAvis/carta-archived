@@ -21,7 +21,7 @@ namespace Carta {
 
 namespace Data {
 
-class Colormaps : public CartaObject {
+class Colormaps : public Carta::State::CartaObject {
 
 public:
 

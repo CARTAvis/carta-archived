@@ -356,8 +356,8 @@ bool DataSource::setFileName( const QString& fileName ){
 }
 
 void DataSource::setColorMap( const QString& name ){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+    Carta::State::CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
     m_pixelPipeline-> setColormap( maps->getColorMap( name ) );
     m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
@@ -387,7 +387,7 @@ void DataSource::setPan( double imgX, double imgY ){
 }
 
 void DataSource::setTransformData( const QString& name ){
-    CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
+    Carta::State::CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
     TransformsData* transformData = dynamic_cast<TransformsData*>(transformDataObj);
     Carta::Lib::PixelPipeline::ScaleType scaleType = transformData->getScaleType( name );
     m_pixelPipeline->setScale( scaleType );

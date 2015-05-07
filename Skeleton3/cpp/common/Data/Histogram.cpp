@@ -13,6 +13,7 @@
 #include "CartaLib/Hooks/Histogram.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "Util.h"
+#include "State/UtilState.h"
 #include <set>
 #include <QtCore/qmath.h>
 #include <QDebug>
@@ -60,26 +61,27 @@ const QString Histogram::POINTER_MOVE = "pointer-move";
 Clips*  Histogram::m_clips = nullptr;
 ChannelUnits* Histogram::m_channelUnits = nullptr;
 
-class Histogram::Factory : public CartaObjectFactory {
+class Histogram::Factory : public Carta::State::CartaObjectFactory {
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Histogram (path, id);
     }
 };
 
 bool Histogram::m_registered =
-        ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Histogram::Factory());
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Histogram::Factory());
 
-
+typedef Carta::State::UtilState UtilState;
+typedef Carta::State::StateInterface StateInterface;
 
 Histogram::Histogram( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
             m_view(nullptr),
             m_linkImpl( new LinkableImpl( path )),
-            m_stateData( path + StateInterface::DELIMITER + StateInterface::STATE_DATA),
-            m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
+            m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)),
+            m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
     _initializeStatics();
     _initializeDefaultState();
     _initializeCallbacks();
@@ -193,7 +195,7 @@ void Histogram::_createHistogram( Controller* controller){
 
 void Histogram::_endSelection(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString xstr = dataValues[X_COORDINATE];
     m_selectionEnd = xstr.toDouble();
     m_histogram->setSelectionMode( false );
@@ -203,7 +205,7 @@ void Histogram::_endSelection(const QString& params ){
 
 void Histogram::_endSelectionColor(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString xstr = dataValues[X_COORDINATE];
     m_selectionEnd = xstr.toDouble();
     m_histogram->setSelectionModeColor( false );
@@ -252,10 +254,13 @@ QString Histogram::getStateString( const QString& /*sessionId*/, SnapshotType ty
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
-        result = m_stateData.toString();
+        StateInterface dataCopy( m_stateData );
+        dataCopy.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME+StateInterface::STATE_DATA);
+        dataCopy.setValue<int>( StateInterface::INDEX, getIndex());
+        result = dataCopy.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString();
+        result = m_linkImpl->getStateString(getIndex(), getType( type ));
     }
     return result;
 }
@@ -338,6 +343,14 @@ std::pair<int,int> Histogram::_getFrameBounds() const {
     return bounds;
 }
 
+QString Histogram::getType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getType( snapType );
+    if ( snapType == SNAPSHOT_DATA ){
+        objType = objType + Carta::State::StateInterface::STATE_DATA;
+    }
+    return objType;
+}
+
 void Histogram::_initializeDefaultState(){
 
     //Data State - likely to change with a different image
@@ -408,7 +421,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {BIN_COUNT};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString binCountStr = dataValues[*keys.begin()];
         bool validInt = false;
         int binCount = binCountStr.toInt( &validInt );
@@ -426,7 +439,7 @@ void Histogram::_initializeCallbacks(){
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
             std::set<QString> keys = {BIN_WIDTH};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString binWidthStr = dataValues[*keys.begin()];
             bool validDouble = false;
             double binWidth = binWidthStr.toDouble( &validDouble );
@@ -444,7 +457,7 @@ void Histogram::_initializeCallbacks(){
                    const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {CLIP_BUFFER_SIZE};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipBufferStr = dataValues[*keys.begin()];
         bool validInt = false;
         double clipBuffer = clipBufferStr.toInt( &validInt );
@@ -462,7 +475,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {CLIP_MAX};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipMaxStr = dataValues[CLIP_MAX];
         bool validRangeMax = false;
         double clipMax = clipMaxStr.toDouble( &validRangeMax );
@@ -480,7 +493,7 @@ void Histogram::_initializeCallbacks(){
                      const QString & params, const QString & /*sessionId*/) -> QString {
        QString result;
        std::set<QString> keys = {CLIP_MAX_PERCENT};
-       std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+       std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
        QString clipMaxPercentStr = dataValues[CLIP_MAX_PERCENT];
        bool validRangeMax = false;
        double clipMaxPercent = clipMaxPercentStr.toDouble( &validRangeMax );
@@ -498,7 +511,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {CLIP_MIN};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipMinStr = dataValues[CLIP_MIN];
         bool validRangeMin = false;
         double clipMin = clipMinStr.toDouble( &validRangeMin );
@@ -517,7 +530,7 @@ void Histogram::_initializeCallbacks(){
                     const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {CLIP_MIN_PERCENT};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipMinPercentStr = dataValues[CLIP_MIN_PERCENT];
         bool validRangeMin = false;
         double clipMinPercent = clipMinPercentStr.toDouble( &validRangeMin );
@@ -535,7 +548,7 @@ void Histogram::_initializeCallbacks(){
                          const QString & params, const QString & /*sessionId*/) -> QString {
            QString result;
            std::set<QString> keys = {COLOR_MAX_PERCENT};
-           std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
            QString colorMaxPercentStr = dataValues[COLOR_MAX_PERCENT];
            bool validRangeMax = false;
            double colorMaxPercent = colorMaxPercentStr.toDouble( &validRangeMax );
@@ -553,7 +566,7 @@ void Histogram::_initializeCallbacks(){
                          const QString & params, const QString & /*sessionId*/) -> QString {
            QString result;
            std::set<QString> keys = {COLOR_MIN_PERCENT};
-           std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
            QString clipMinPercentStr = dataValues[COLOR_MIN_PERCENT];
            bool validRangeMin = false;
            double clipMinPercent = clipMinPercentStr.toDouble( &validRangeMin );
@@ -577,7 +590,7 @@ void Histogram::_initializeCallbacks(){
                     const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
             std::set<QString> keys = {"clipValue"};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             bool validClip = false;
             QString clipKey = *keys.begin();
             QString clipWithoutPercent = dataValues[clipKey].remove("%");
@@ -604,7 +617,7 @@ void Histogram::_initializeCallbacks(){
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
             std::set<QString> keys = {COLOR_MAX};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString colorMaxStr = dataValues[COLOR_MAX];
             bool validRangeMax = false;
             double colorMax = colorMaxStr.toDouble( &validRangeMax );
@@ -622,7 +635,7 @@ void Histogram::_initializeCallbacks(){
                     const QString & params, const QString & /*sessionId*/) -> QString {
                 QString result;
                 std::set<QString> keys = {COLOR_MIN};
-                std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                 QString colorMinStr = dataValues[COLOR_MIN];
                 bool validRangeMin = false;
                 double colorMin = colorMinStr.toDouble( &validRangeMin );
@@ -640,7 +653,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {CUSTOM_CLIP};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipStr = dataValues[CUSTOM_CLIP];
         bool validBool = false;
         bool customClip = Util::toBool( clipStr, &validBool );
@@ -657,7 +670,7 @@ void Histogram::_initializeCallbacks(){
     addCommandCallback( "setCubeRangeUnit", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {FREQUENCY_UNIT};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString unitStr = dataValues[*keys.begin()];
             QString result = setChannelUnit( unitStr );
             Util::commandPostProcess( result );
@@ -668,7 +681,7 @@ void Histogram::_initializeCallbacks(){
     addCommandCallback( "setGraphStyle", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {GRAPH_STYLE};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString styleStr = dataValues[*keys.begin()];
         QString result = setGraphStyle( styleStr );
         Util::commandPostProcess( result );
@@ -679,7 +692,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {GRAPH_LOG_COUNT};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString logCountStr = dataValues[*keys.begin()];
         bool validBool = false;
         bool logCount = Util::toBool( logCountStr, &validBool );
@@ -697,7 +710,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {GRAPH_COLORED};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString coloredStr = dataValues[*keys.begin()];
         bool validBool = false;
         bool colored = Util::toBool( coloredStr, &validBool );
@@ -715,7 +728,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {PLANE_MODE};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString planeModeStr = dataValues[*keys.begin()];
         result = setPlaneMode( planeModeStr );
         Util::commandPostProcess( result );
@@ -726,7 +739,7 @@ void Histogram::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {PLANE_MIN, PLANE_MAX};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString planeMinStr = dataValues[PLANE_MIN];
         QString planeMaxStr = dataValues[PLANE_MAX];
         bool validRangeMin = false;
@@ -753,7 +766,7 @@ void Histogram::_initializeCallbacks(){
                const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
        std::set<QString> keys = {CLIP_BUFFER};
-       std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+       std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
        QString clipBufferStr = dataValues[*keys.begin()];
        bool validBool = false;
        bool useClipBuffer = Util::toBool(clipBufferStr, &validBool );
@@ -771,7 +784,7 @@ void Histogram::_initializeCallbacks(){
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
             std::set<QString> keys = {SIGNIFICANT_DIGITS};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString digitsStr = dataValues[SIGNIFICANT_DIGITS];
             bool validDigits = false;
             int digits = digitsStr.toInt( &validDigits );
@@ -799,8 +812,7 @@ void Histogram::_initializeCallbacks(){
         return "";
     });
 
-    QString pointerPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW +
-            StateInterface::DELIMITER + POINTER_MOVE;
+    QString pointerPath= UtilState::getLookup(getPath(), UtilState::getLookup(ImageView::VIEW, POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
@@ -1429,7 +1441,7 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
 QString Histogram::_set2DFootPrint( const QString& params ){
     QString result;
     std::set<QString> keys = {FOOT_PRINT};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString footPrintStr = dataValues[*keys.begin()];
     QString oldFootPrint = m_state.getValue<QString>(FOOT_PRINT);
     if ( footPrintStr == FOOT_PRINT_IMAGE || footPrintStr == FOOT_PRINT_REGION ||
@@ -1554,7 +1566,7 @@ QString Histogram::setUseClipBuffer( bool useBuffer ){
 
 void Histogram::_startSelection(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString xstr = dataValues[X_COORDINATE];
     m_selectionEnabled = true;
     m_selectionStart = xstr.toDouble();
@@ -1565,7 +1577,7 @@ void Histogram::_startSelectionColor(const QString& params ){
     bool customClips = m_state.getValue<bool>(CUSTOM_CLIP );
     if ( customClips ){
         std::set<QString> keys = {X_COORDINATE};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString xstr = dataValues[X_COORDINATE];
         m_selectionEnabledColor = true;
         m_selectionStart = xstr.toDouble();

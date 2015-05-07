@@ -10,12 +10,10 @@ QT += xml
 HEADERS       = \
     ServerPlatform.h \
     ServerConnector.h \
-    StateXmlWriter.h 
 
 SOURCES       = \
     ServerPlatform.cpp \
     ServerConnector.cpp \
-    StateXmlWriter.cpp \
     serverMain.cpp 
     
 

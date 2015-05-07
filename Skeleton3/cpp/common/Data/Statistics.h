@@ -20,15 +20,15 @@ class LinkableImpl;
 class Controller;
 
 
-class Statistics : public QObject, public CartaObject, public ILinkable {
+class Statistics : public QObject, public Carta::State::CartaObject, public ILinkable {
 
     Q_OBJECT
 
 public:
 
     //ILinkable
-    virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-    virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.

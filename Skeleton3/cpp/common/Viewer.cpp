@@ -59,9 +59,9 @@ Viewer::start()
 	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
 		fname = Globals::instance()-> platform()-> initialFileList() [0];
 	}
-    ObjectManager* objManager = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
-    CartaObject* vmObj = objManager->getObject( vmId );
+    Carta::State::CartaObject* vmObj = objManager->getObject( vmId );
     m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
     if ( m_devView ){
        m_viewManager->setDeveloperView();

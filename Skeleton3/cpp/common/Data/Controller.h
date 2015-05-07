@@ -37,7 +37,7 @@ class Region;
 class RegionRectangle;
 class Selection;
 
-class Controller: public QObject, public CartaObject, public IColoredView {
+class Controller: public QObject, public Carta::State::CartaObject, public IColoredView {
 
     Q_OBJECT
 
@@ -235,7 +235,11 @@ signals:
      */
     void channelChanged( Controller* controller );
 
+protected:
+    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+
 private slots:
+
     //Refresh the view based on the latest data selection information.
     void _loadView();
 
@@ -267,6 +271,8 @@ private:
     Controller( const QString& id, const QString& path );
 
     class Factory;
+
+
 
     //Provide default values for state.
     void _initializeState();
@@ -312,11 +318,11 @@ private:
     QList<Region* > m_regions;
 
     //Holds image that are loaded and selections on the data.
-    StateInterface m_stateData;
+    Carta::State::StateInterface m_stateData;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
-    StateInterface m_stateMouse;
+    Carta::State::StateInterface m_stateMouse;
 
     QSize m_viewSize;
 

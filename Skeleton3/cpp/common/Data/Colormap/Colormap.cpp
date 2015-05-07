@@ -5,6 +5,7 @@
 #include "Data/IColoredView.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
+#include "State/UtilState.h"
 #include "ImageView.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 
@@ -40,23 +41,23 @@ const QString Colormap::TRANSFORM_DATA = "dataTransform";
 Colormaps* Colormap::m_colors = nullptr;
 TransformsData* Colormap::m_dataTransforms = nullptr;
 
-class Colormap::Factory : public CartaObjectFactory {
+class Colormap::Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
-        CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new Colormap (path, id);
         }
     };
 
 bool Colormap::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormap::Factory());
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormap::Factory());
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_linkImpl( new LinkableImpl( path ) ),
-    m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW){
+    m_stateMouse(Carta::State::UtilState::getLookup(path,ImageView::VIEW)){
     m_significantDigits = 6;
     _initializeDefaultState();
     _initializeCallbacks();
@@ -86,7 +87,7 @@ QString Colormap::getStateString( const QString& /*sessionId*/, SnapshotType typ
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString();
+        result = m_linkImpl->getStateString(getIndex(), getType( type ));
     }
     return result;
 }
@@ -137,7 +138,7 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "setDataTransform", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {TRANSFORM_DATA};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString dataTransformStr = dataValues[*keys.begin()];
         QString result = setDataTransform( dataTransformStr );
         return result;
@@ -177,7 +178,7 @@ void Colormap::_initializeCallbacks(){
                             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {SCALE_1, SCALE_2};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool valid = false;
         double scale1 = dataValues[SCALE_1].toDouble( & valid );
         if ( !valid ){
@@ -240,7 +241,7 @@ void Colormap::clear(){
 QString Colormap::_commandCacheColorMap( const QString& params ){
     QString result;
     std::set<QString> keys = {CACHE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString cacheStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool cache = Util::toBool(cacheStr, &validBool);
@@ -266,7 +267,7 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
 QString Colormap::_commandCacheSize( const QString& params ){
     QString result;
     std::set<QString> keys = {CACHE_SIZE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString cacheSizeStr = dataValues[*keys.begin()];
     bool validInt = false;
     int cacheSize = cacheSizeStr.toInt(&validInt);
@@ -292,7 +293,7 @@ QString Colormap::_commandCacheSize( const QString& params ){
 QString Colormap::_commandInterpolatedColorMap( const QString& params ){
     QString result;
     std::set<QString> keys = {INTERPOLATED};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString interpolateStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool interpolated = Util::toBool(interpolateStr, &validBool);
@@ -318,7 +319,7 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
 QString Colormap::_commandInvertColorMap( const QString& params ){
     QString result;
     std::set<QString> keys = {INVERT};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString invertStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool invert = Util::toBool(invertStr, &validBool);
@@ -345,7 +346,7 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
 QString Colormap::_commandSetColorMix( const QString& params ){
     QString result;
     std::set<QString> keys = {RED_PERCENT, GREEN_PERCENT, BLUE_PERCENT};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
 
     bool validRed = false;
     bool redChanged = _processColorStr( COLOR_MIX_RED, dataValues[RED_PERCENT], &validRed );
@@ -379,7 +380,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
 QString Colormap::_commandReverseColorMap( const QString& params ){
     QString result;
     std::set<QString> keys = {REVERSE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString reverseStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool reverse = Util::toBool(reverseStr, &validBool);
@@ -405,7 +406,7 @@ QString Colormap::_commandReverseColorMap( const QString& params ){
 
 QString Colormap::_commandSetColorMap( const QString& params ){
     std::set<QString> keys = {"name"};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString colorMapStr = dataValues[*keys.begin()];
     QString result = setColorMap( colorMapStr );
     return result;

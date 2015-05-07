@@ -41,7 +41,7 @@ class Colormap;
 class Controller;
 class LinkableImpl;
 
-class Histogram : public QObject, public CartaObject, public ILinkable {
+class Histogram : public QObject, public Carta::State::CartaObject, public ILinkable {
 
     Q_OBJECT
 
@@ -274,6 +274,9 @@ public:
     const static QString GRAPH_STYLE_OUTLINE;
     const static QString GRAPH_STYLE_FILL;
 
+protected:
+    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+
 private slots:
     void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
     void _createHistogram( Controller* );
@@ -391,10 +394,10 @@ private:
     Carta::Histogram::HistogramGenerator* m_histogram;
 
     //State specific to the data that is loaded.
-    StateInterface m_stateData;
+    Carta::State::StateInterface m_stateData;
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
-    StateInterface m_stateMouse;
+    Carta::State::StateInterface m_stateMouse;
 	Histogram( const Histogram& other);
 	Histogram operator=( const Histogram& other );
 };

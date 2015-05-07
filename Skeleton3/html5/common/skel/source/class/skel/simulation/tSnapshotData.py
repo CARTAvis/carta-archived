@@ -92,7 +92,6 @@ class tSnapshotData(tSnapshot.tSnapshot):
     def test_image_load(self):    
         driver = self.driver
         
-        # Show the image animator
         #Click on the animation window so that its actions will be enabled 
         animationWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
         self.assertIsNotNone( animationWindow, "Could not find animation window")
@@ -112,6 +111,8 @@ class tSnapshotData(tSnapshot.tSnapshot):
         Util.load_image(self, driver, origImage)
         
         # Find the session button on the menu bar and click it.
+        menuBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.MenuBar']")
+        self.assertIsNotNone( menuBar, "Could not find the menu bar")
         self._clickSessionButton( driver )
         
         # Find the save session button in the submenu and click it.

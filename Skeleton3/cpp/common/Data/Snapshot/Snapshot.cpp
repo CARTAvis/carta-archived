@@ -1,5 +1,6 @@
 #include "Snapshot.h"
-
+#include "State/ObjectManager.h"
+#include "CartaLib/CartaLib.h"
 #include <QDebug>
 
 
@@ -21,6 +22,24 @@ Snapshot::Snapshot( const QString name):
 
 QString Snapshot::getName() const {
     return m_state.getValue<QString>( CLASS_NAME );
+}
+
+QString Snapshot::getNameForType( Carta::State::CartaObject::SnapshotType snapshotType ){
+    QString dirName = "";
+    if ( snapshotType == Carta::State::CartaObject::SNAPSHOT_DATA ){
+        dirName = Snapshot::DIR_DATA;
+    }
+    else if ( snapshotType == Carta::State::CartaObject::SNAPSHOT_PREFERENCES ){
+        dirName = Snapshot::DIR_PREFERENCES;
+    }
+    else if ( snapshotType == Carta::State::CartaObject::SNAPSHOT_LAYOUT ){
+        dirName = Snapshot::DIR_LAYOUT;
+    }
+    else if ( snapshotType != Carta::State::CartaObject::SNAPSHOT_INFO ){
+        qWarning() << "Unrecognized snapshot type: "<<snapshotType;
+        CARTA_ASSERT( false );
+    }
+    return dirName;
 }
 
 void Snapshot::setCreatedDate( const QString& dateCreated ){

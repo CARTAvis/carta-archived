@@ -3,7 +3,12 @@
 #include <QColor>
 
 class IConnector;
+
+namespace Carta {
+namespace State {
 class StateInterface;
+}
+}
 
 class ImageView: public QObject, public IView {
 
@@ -11,7 +16,7 @@ Q_OBJECT
 
 public:
 
-    ImageView(const QString & viewName, QColor bgColor, QImage img, StateInterface* mouseState);
+    ImageView(const QString & viewName, QColor bgColor, QImage img, Carta::State::StateInterface* mouseState);
 
     void resetImage(QImage img);
     /**
@@ -45,7 +50,7 @@ protected:
     QString m_viewName;
     int m_timerId;
     QPointF m_lastMouse;
-    StateInterface* m_mouseState;
+    Carta::State::StateInterface* m_mouseState;
 
 
 };

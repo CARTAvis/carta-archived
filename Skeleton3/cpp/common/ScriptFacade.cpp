@@ -17,7 +17,7 @@ ScriptFacade * ScriptFacade::getInstance (){
 
 ScriptFacade::ScriptFacade(){
     QString vmLookUp = Carta::Data::ViewManager::CLASS_NAME;
-    CartaObject* obj = Carta::Data::Util::findSingletonObject( vmLookUp );
+    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( vmLookUp );
     m_viewManager = dynamic_cast<Carta::Data::ViewManager*>(obj);
 }
 
@@ -27,7 +27,7 @@ QString ScriptFacade::getColorMapId( int index ) const {
 
 QStringList ScriptFacade::getColorMaps() const {
     QString cmLookUp = Carta::Data::Colormaps::CLASS_NAME;
-    CartaObject* obj = Carta::Data::Util::findSingletonObject( cmLookUp );
+    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( cmLookUp );
     Carta::Data::Colormaps* maps = dynamic_cast<Carta::Data::Colormaps*>(obj);
     return maps->getColorMaps();
 }
@@ -50,11 +50,20 @@ void ScriptFacade::setAnalysisLayout(){
 
 Carta::Data::Animator* ScriptFacade::getAnimator(){
     QString animId = m_viewManager->getObjectId( Carta::Data::Animator::CLASS_NAME, 0 );
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     QString id = objMan->parseId( animId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
     return animator;
+}
+
+Carta::Data::Colormap* ScriptFacade::getColormap(){
+    QString animId = m_viewManager->getObjectId( Carta::Data::Colormap::CLASS_NAME, 0 );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString id = objMan->parseId( animId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+    return colormap;
 }
 
 void ScriptFacade::showImageAnimator(){
@@ -81,8 +90,9 @@ void ScriptFacade::setChannel( int channel ){
     }
 }
 
-void ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
-    m_viewManager->setColorMap( colormapId, colormapName );
+void ScriptFacade::setColorMap( const QString& /*colormapId*/, const QString& colormapName ){
+    Carta::Data::Colormap* colormap = getColormap();
+    colormap->setColorMap( colormapName );
 }
 
 void ScriptFacade::setImageLayout(){

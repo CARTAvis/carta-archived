@@ -22,7 +22,7 @@ namespace Data {
 class Controller;
 class Selection;
 
-class Animator : public QObject, public CartaObject, public ILinkable {
+class Animator : public QObject, public Carta::State::CartaObject, public ILinkable {
 
     Q_OBJECT
 
@@ -42,7 +42,7 @@ public:
      * @param cartaObject the link that will be managed.
      * @return an error message if there was a problem adding the link; otherwise an empty string.
      */
-    virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear current state..
@@ -92,7 +92,7 @@ public:
      * @param cartaObject the link to remove.
      * @return an error message if the link could not be removed; an empty string otherwise.
      */
-    virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Remove the animator of the indicated type.
@@ -112,9 +112,13 @@ public:
      * @param state - the animator's data state.
      */
     virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+
     static const QString CLASS_NAME;
 
     virtual ~Animator();
+protected:
+    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
     //Adjusts internal state based on the state in the child controllers.
@@ -141,14 +145,13 @@ private:
     void _resetAnimationParameters( int selectedImage );
 
     //Reset the state of an individual animator.
-    void _resetStateAnimator( const StateInterface& state, const QString& key );
+    void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     /// Individual animation types.
     QMap<QString, AnimatorType*> m_animators;
-
 
     static bool m_registered;
 

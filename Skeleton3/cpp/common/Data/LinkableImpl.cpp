@@ -1,5 +1,6 @@
 
 #include "Data/LinkableImpl.h"
+#include "State/UtilState.h"
 #include <QDebug>
 
 namespace Carta {
@@ -9,13 +10,16 @@ namespace Data {
 const QString LinkableImpl::LINK = "links";
 const QString LinkableImpl::PARENT_ID = "source";
 
+typedef Carta::State::StateInterface StateInterface;
+typedef Carta::State::UtilState UtilState;
+
 LinkableImpl::LinkableImpl( const QString& parentPath ):
-    m_state( parentPath +StateInterface::DELIMITER+LINK, "LinkableImpl" ){
+    m_state( UtilState::getLookup(parentPath,LINK), "LinkableImpl" ){
     _initializeState( parentPath );
 
 }
 
-bool LinkableImpl::addLink( CartaObject* cartaObj ){
+bool LinkableImpl::addLink( Carta::State::CartaObject* cartaObj ){
     bool linkAdded = false;
     if ( cartaObj ){
         int index = _getIndex( cartaObj );
@@ -32,7 +36,7 @@ void LinkableImpl::_adjustState(){
     int cartaObjCount = m_cartaObjs.size();
     m_state.resizeArray( LINK, cartaObjCount );
     for ( int i = 0; i < cartaObjCount; i++ ){
-        QString idStr( LINK + StateInterface::DELIMITER + QString::number(i));
+        QString idStr( UtilState::getLookup(LINK,i));
         m_state.setValue<QString>(idStr, m_cartaObjs[i]->getPath());
     }
     m_state.flushState();
@@ -45,7 +49,7 @@ void LinkableImpl::clear(){
     m_state.flushState();
 }
 
-int LinkableImpl::_getIndex( CartaObject* cartaObj ){
+int LinkableImpl::_getIndex( Carta::State::CartaObject* cartaObj ){
     int index = -1;
     if ( cartaObj != nullptr ){
         int cartaObjCount = m_cartaObjs.size();
@@ -60,8 +64,8 @@ int LinkableImpl::_getIndex( CartaObject* cartaObj ){
      return index;
 }
 
-CartaObject* LinkableImpl::getLink( int index ) const {
-    CartaObject* link = nullptr;
+Carta::State::CartaObject* LinkableImpl::getLink( int index ) const {
+    Carta::State::CartaObject* link = nullptr;
     if ( 0 <= index && index < m_cartaObjs.size() ){
         link = m_cartaObjs[index];
     }
@@ -85,14 +89,26 @@ QList<QString> LinkableImpl::getLinkIds() const {
 QString LinkableImpl::getLinkId( int linkIndex ) const {
     QString linkId;
     if ( 0 <= linkIndex && linkIndex < getLinkCount()){
-        QString idStr( LINK + StateInterface::DELIMITER + QString::number(linkIndex));
+        QString idStr( UtilState::getLookup( LINK,linkIndex));
         linkId = m_state.getValue<QString>( idStr );
     }
     return linkId;
 }
 
-QString LinkableImpl::getStateString() const{
-    return m_state.toString();
+QString LinkableImpl::getStateString( int index, const QString& typeStr ) const{
+    Carta::State::StateInterface linkState("");
+    int linkCount = m_cartaObjs.size();
+    linkState.insertArray( LINK, linkCount );
+    linkState.setValue<int>( StateInterface::INDEX, index );
+    linkState.setValue<QString>(StateInterface::OBJECT_TYPE, typeStr );
+    for ( int i = 0; i < linkCount; i++ ){
+        QString lookup = UtilState::getLookup( LINK, i );
+        QString indexLookup = UtilState::getLookup( lookup, StateInterface::INDEX);
+        QString typeLookup = UtilState::getLookup( lookup, StateInterface::OBJECT_TYPE );
+        linkState.insertValue<int>( indexLookup, m_cartaObjs[i]->getIndex());
+        linkState.insertValue<QString>( typeLookup, m_cartaObjs[i]->getType(Carta::State::CartaObject::SNAPSHOT_PREFERENCES));
+    }
+    return linkState.toString();
 }
 
 void LinkableImpl::_initializeState( const QString& parentPath ){
@@ -101,7 +117,7 @@ void LinkableImpl::_initializeState( const QString& parentPath ){
     m_state.flushState();
 }
 
-bool LinkableImpl::removeLink( CartaObject* cartaObj ){
+bool LinkableImpl::removeLink( Carta::State::CartaObject* cartaObj ){
     bool linkRemoved = false;
     if ( cartaObj ){
         int index = _getIndex( cartaObj );
@@ -114,8 +130,8 @@ bool LinkableImpl::removeLink( CartaObject* cartaObj ){
     return linkRemoved;
 }
 
-CartaObject* LinkableImpl::searchLinks(const QString& link){
-    CartaObject* result = nullptr;
+Carta::State::CartaObject* LinkableImpl::searchLinks(const QString& link){
+    Carta::State::CartaObject* result = nullptr;
     int cartaObjCount = m_cartaObjs.size();
     for( int i = 0; i < cartaObjCount; i++ ){
         if(m_cartaObjs[i]->getPath() == link){

@@ -18,6 +18,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
 
         // Status Message
         this.m_statusMessage = new qx.ui.basic.Label("");
+        skel.widgets.TestID.addTestId( this.m_statusMessage, "statusLabel"); 
         this.m_statusMessage.setRich( true );
         this.m_statusMessage.setAllowGrowX(true);
         this._add(this.m_statusMessage, {

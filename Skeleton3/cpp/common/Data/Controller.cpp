@@ -1,5 +1,5 @@
 #include "State/ObjectManager.h"
-
+#include "State/UtilState.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/Colormap.h"
@@ -25,11 +25,11 @@ namespace Carta {
 
 namespace Data {
 
-class Controller::Factory : public CartaObjectFactory {
+class Controller::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Controller (path, id);
     }
@@ -51,16 +51,19 @@ const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 
 const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Controller::Factory());
+
+typedef Carta::State::UtilState UtilState;
+typedef Carta::State::StateInterface StateInterface;
 
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
         m_view(nullptr),
-        m_stateData( path + StateInterface::DELIMITER + StateInterface::STATE_DATA ),
-        m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW),
+        m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA )),
+        m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)),
         m_viewSize( 400, 400){
 
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
@@ -286,23 +289,27 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
+        //Data state should include type and index for identification.
         //Data state should include the data of all DataSources (images loaded)
         //Data state should include DataSource that is selected
         //Data state should include channel that is selected.
-        StateInterface dataState("");
-        CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
+        Carta::State::StateInterface dataState("");
+        Carta::State::CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
         DataLoader* dataLoader = dynamic_cast<DataLoader*>(cartaObj);
         if ( dataLoader != nullptr ){
             QString rootDir = dataLoader->getRootDir( sessionId );
-            StateInterface dataStateCopy( "");
+            Carta::State::StateInterface dataStateCopy( "");
             dataStateCopy.setState( m_stateData.toString());
             int dataCount = dataStateCopy.getArraySize( DATA );
             for ( int i = 0; i < dataCount; i++ ){
-                QString lookup = Util::getLookup( DATA, i );
+                QString lookup = Carta::State::UtilState::getLookup( DATA, i );
                 QString fileName = dataStateCopy.getValue<QString>( lookup );
-                dataStateCopy.setValue<QString>( lookup, rootDir + StateInterface::DELIMITER + fileName );
+                dataStateCopy.setValue<QString>( lookup,
+                        UtilState::getLookup(rootDir, fileName ));
             }
             dataState.setState( dataStateCopy.toString());
+            dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
+            dataState.setValue<int>(StateInterface::INDEX, getIndex());
             dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
             dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
             result = dataState.toString();
@@ -312,6 +319,14 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
 }
 
 
+QString Controller::getType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getType( snapType );
+    if ( snapType == SNAPSHOT_DATA ){
+        objType = objType + Carta::State::StateInterface::STATE_DATA;
+    }
+    return objType;
+}
+
 void Controller::_initializeCallbacks(){
     //Listen for updates to the clip and reload the frame.
 
@@ -319,7 +334,7 @@ void Controller::_initializeCallbacks(){
                 const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {"clipValue"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool validClip = false;
         QString clipKey = *keys.begin();
         QString clipWithoutPercent = dataValues[clipKey].remove("%");
@@ -346,7 +361,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"autoClip"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipKey = *keys.begin();
         bool autoClip = false;
         if ( dataValues[clipKey] == "true"){
@@ -360,8 +375,7 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
-    QString pointerPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW +
-            StateInterface::DELIMITER + POINTER_MOVE;
+    QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( ImageView::VIEW, POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
@@ -379,7 +393,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) ->QString {
         std::set<QString> keys = {"image"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString imageName = dataValues[*keys.begin()];
         QString result = closeImage( imageName );
                 return result;
@@ -412,7 +426,7 @@ void Controller::_initializeCallbacks(){
         const QString TYPE( "type");
         const QString INDEX( "index");
         std::set<QString> keys = {TYPE, INDEX};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString shapePath;
         bool validIndex = false;
         int index = dataValues[INDEX].toInt( &validIndex );
@@ -514,8 +528,8 @@ void Controller::_loadView( ) {
 QString Controller::_makeRegion( const QString& regionType ){
     QString shapePath = Region::makeRegion( regionType );
     if ( shapePath.size() > 0 ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        CartaObject* shapeObj = objManager->getObject( shapePath );
+        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+        Carta::State::CartaObject* shapeObj = objManager->getObject( shapePath );
         shapePath = shapeObj->getPath();
         m_regions.append(dynamic_cast<Region*>(shapeObj));
 
@@ -557,12 +571,13 @@ void Controller::_repaintFrameNow(){
 
 void Controller::resetStateData( const QString& state ){
     //First we reset the data this controller is displaying
+    qDebug() << "Controller resetStateData state="<<state;
     _clearData();
-    StateInterface dataState( "");
+    Carta::State::StateInterface dataState( "");
     dataState.setState( state );
     int dataCount = dataState.getValue<int>(DATA_COUNT);
     for ( int i = 0; i < dataCount; i++ ){
-        QString lookup = Util::getLookup( DATA, i );
+        QString lookup = Carta::State::UtilState::getLookup( DATA, i );
         QString fileName = dataState.getValue<QString>( lookup );
         this->addData( fileName );
     }
@@ -571,6 +586,8 @@ void Controller::resetStateData( const QString& state ){
     m_selectChannel->resetState( channelState );
     QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
     m_selectImage ->resetState( dataStateStr );
+    //Notify others there has been a change to the data.
+    emit dataChanged( this );
 }
 
 void Controller::saveState() {
@@ -584,7 +601,7 @@ void Controller::saveState() {
         m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
         for (int i = 0; i < dataCount; i++) {
             QString imageViewName = m_datas[i]->getImageViewName();
-            QString dataKey = DATA + StateInterface::DELIMITER +QString::number(i);
+            QString dataKey = UtilState::getLookup( DATA, i);
             QString oldViewName;
             if ( i < oldDataCount ){
                 oldViewName = m_stateData.getValue<QString>(dataKey);
@@ -605,12 +622,12 @@ void Controller::saveState() {
 void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){
-        QString arrayStr = REGIONS + StateInterface::DELIMITER + QString::number(i);
+        QString arrayStr = UtilState::getLookup( REGIONS, i);
         QString regionType= m_regions[i]->getType();
         QString regionId = m_regions[i]->getPath();
         m_state.setObject( arrayStr );
-        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "type", regionType );
-        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "id", regionId );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionType );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "id"), regionId );
     }
 }
 
@@ -726,6 +743,8 @@ void Controller::setGamma( double gamma ){
     _render();
 }
 
+
+
 void Controller::setTransformData( const QString& name ){
     for ( DataSource* data : m_datas ){
         data->setTransformData( name );
@@ -827,7 +846,7 @@ void Controller::_viewResize( const QSize& newSize ){
 
 Controller::~Controller(){
     clear();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     if ( m_selectChannel != nullptr){
         objMan->destroyObject(m_selectChannel->getId());
         m_selectChannel = nullptr;

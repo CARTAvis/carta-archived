@@ -15,7 +15,7 @@ namespace Carta {
 
 namespace Data {
 
-class TransformsImage : public CartaObject {
+class TransformsImage : public Carta::State::CartaObject {
 
 public:
 

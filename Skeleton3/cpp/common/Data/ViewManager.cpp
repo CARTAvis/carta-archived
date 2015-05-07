@@ -18,6 +18,7 @@
 #include "Data/Statistics.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
+#include "State/UtilState.h"
 
 #include <QDir>
 #include <QDebug>
@@ -26,12 +27,12 @@ namespace Carta {
 
 namespace Data {
 
-class ViewManager::Factory : public CartaObjectFactory {
+class ViewManager::Factory : public Carta::State::CartaObjectFactory {
 
 public:
     Factory():
         CartaObjectFactory( "ViewManager" ){};
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new ViewManager (path, id);
     }
@@ -42,14 +43,15 @@ const QString ViewManager::SOURCE_ID = "sourceId";
 const QString ViewManager::DEST_ID = "destId";
 
 bool ViewManager::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ViewManager::Factory());
 
 ViewManager::ViewManager( const QString& path, const QString& id)
     : CartaObject( CLASS_NAME, path, id ),
       m_layout( nullptr ),
       m_dataLoader( nullptr ),
-      m_pluginsLoaded( nullptr ){
+      m_pluginsLoaded( nullptr ),
+      m_snapshots( nullptr ){
     Util::findSingletonObject( AnimationTypes::CLASS_NAME );
     Util::findSingletonObject( Clips::CLASS_NAME );
     Util::findSingletonObject( Colormaps::CLASS_NAME );
@@ -58,7 +60,6 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject( ErrorManager::CLASS_NAME );
     Util::findSingletonObject( Preferences::CLASS_NAME );
     Util::findSingletonObject( ChannelUnits::CLASS_NAME );
-    Util::findSingletonObject( Snapshots::CLASS_NAME );
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -67,7 +68,10 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
 void ViewManager::_adjustSize( int count, const QString& name, const QVector<int> & insertionIndices ){
     int existingCount = 0;
-    if ( name == Colormap::CLASS_NAME ){
+    if ( name == Layout::HIDDEN ){
+        return;
+    }
+    else if ( name == Colormap::CLASS_NAME ){
         existingCount = m_colormaps.size();
        _clearColormaps(count);
     }
@@ -110,7 +114,7 @@ void ViewManager::_clear(){
 }
 
 void ViewManager::_clearControllers( int startIndex ){
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     int controlCount = m_controllers.size();
     for ( int i = controlCount-1; i >= startIndex; i-- ){
         for ( Animator* anim : m_animators ){
@@ -132,7 +136,7 @@ void ViewManager::_clearControllers( int startIndex ){
 
 void ViewManager::_clearAnimators( int startIndex ){
     int animCount = m_animators.size();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     for ( int i = animCount-1; i >= startIndex; i-- ){
         objMan->destroyObject( m_animators[i]->getId());
         m_animators.pop_back();
@@ -141,7 +145,7 @@ void ViewManager::_clearAnimators( int startIndex ){
 
 void ViewManager::_clearColormaps( int startIndex ){
     int colorCount = m_colormaps.size();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     for ( int i = colorCount-1; i >= startIndex; i-- ){
         for (Histogram* hist : m_histograms ){
             hist->removeLink( m_colormaps[i]);
@@ -153,7 +157,7 @@ void ViewManager::_clearColormaps( int startIndex ){
 
 void ViewManager::_clearHistograms( int startIndex ){
     int histCount = m_histograms.size();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     for ( int i = histCount-1; i >= startIndex; i-- ){
 
         objMan->destroyObject( m_histograms[i]->getId());
@@ -163,7 +167,7 @@ void ViewManager::_clearHistograms( int startIndex ){
 
 void ViewManager::_clearStatistics( int startIndex ){
     int statCount = m_statistics.size();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     for ( int i = statCount-1; i >= startIndex; i-- ){
         objMan->destroyObject( m_statistics[i]->getId());
         m_statistics.pop_back();
@@ -175,6 +179,15 @@ void ViewManager::_initCallbacks(){
                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         _clear();
         return "";
+    });
+
+    //Callback for registering a view.
+    addCommandCallback( "registerSnapshots", [=] (const QString & /*cmd*/,
+            const QString & /*params*/, const QString & sessionId) -> QString {
+        QString viewId = _makeSnapshots();
+        //Lazy load of snapshots when user requests them.
+        m_snapshots->updateSnapshots( sessionId );
+        return viewId;
     });
 
     addCommandCallback( "setAnalysisLayout", [=] (const QString & /*cmd*/,
@@ -195,7 +208,7 @@ void ViewManager::_initCallbacks(){
         const QString ID( "id");
         const QString DATA( "data");
         std::set<QString> keys = {ID,DATA};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         loadFile( dataValues[ID], dataValues[DATA]);
         return "";
     });
@@ -206,7 +219,7 @@ void ViewManager::_initCallbacks(){
         const QString PLUGIN_ID( "pluginId");
         const QString INDEX( "index");
         std::set<QString> keys = {PLUGIN_ID, INDEX};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool validIndex = false;
         int index = dataValues[INDEX].toInt(&validIndex);
         QString viewId( "");
@@ -223,86 +236,35 @@ void ViewManager::_initCallbacks(){
     addCommandCallback( "linkAdd", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {SOURCE_ID, DEST_ID};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString result = linkAdd( dataValues[SOURCE_ID], dataValues[DEST_ID]);
         Util::commandPostProcess( result);
         return result;
     });
 
     //Callback for linking an animator with whatever it is going to animate.
-        addCommandCallback( "linkRemove", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {SOURCE_ID, DEST_ID};
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-            QString result = linkRemove( dataValues[SOURCE_ID], dataValues[DEST_ID]);
-            Util::commandPostProcess( result );
-            return result;
-        });
-
-
-        //Callback for updating links after all objects have been created.
-        addCommandCallback( "refreshState", [=] (const QString & /*cmd*/,
-                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                    _refreshState();
-                    return "";
-                });
-
-
-    //Callback for saving state.
-    addCommandCallback( "saveState", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & sessionId) -> QString {
-        std::set<QString> keys = {Snapshots::FILE_NAME,Snapshots::SAVE_LAYOUT,
-                Snapshots::SAVE_PREFERENCES,Snapshots::SAVE_DATA, Snapshots::SAVE_DESCRIPTION};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QString result;
-        QString saveDescription = dataValues[Snapshots::SAVE_DESCRIPTION];
-        bool validLayout = false;
-        bool saveLayout = Util::toBool( dataValues[Snapshots::SAVE_LAYOUT], &validLayout );
-        if ( !validLayout ){
-            result = "Error saving state; save layout should be true/false:"+params;
-        }
-        else {
-            bool validPrefs = false;
-            bool savePrefs = Util::toBool( dataValues[Snapshots::SAVE_PREFERENCES], & validPrefs );
-            if ( !validPrefs ){
-                result = "Error saving state; preferences should be true/false:"+params;
-            }
-            else {
-                bool validData = false;
-                bool saveData = Util::toBool( dataValues[Snapshots::SAVE_DATA], &validData );
-                if ( !validData ){
-                    result = "Error saving state: save data should be true/false:"+params;
-                }
-                else {
-                    result = saveState(sessionId, dataValues[Snapshots::FILE_NAME],
-                           saveLayout, savePrefs, saveData, saveDescription );
-                }
-            }
-        }
-        Util::commandPostProcess(result);
-        return result;
-    });
-
-    //Callback for restoring state.
-    addCommandCallback( "restoreState", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & sessionId) -> QString {
-        std::set<QString> keys = {Snapshots::FILE_NAME};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        QString saveName=dataValues[Snapshots::FILE_NAME];
-        QString result;
-        bool stateRestored = _readState( sessionId, saveName );
-        if ( !stateRestored ){
-            result = "There was an error restoring state: "+saveName;
-        }
+    addCommandCallback( "linkRemove", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {SOURCE_ID, DEST_ID};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString result = linkRemove( dataValues[SOURCE_ID], dataValues[DEST_ID]);
         Util::commandPostProcess( result );
         return result;
     });
+
+
+    //Callback for updating links after all objects have been created.
+    addCommandCallback( "refreshState", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                _refreshState();
+                return "";
+            });
 
     addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
             const QString NAMES( "names");
             std::set<QString> keys = { NAMES };
-            std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QStringList names = dataValues[NAMES].split(".");
             bool valid = setPlugins( names );
             QString result;
@@ -311,35 +273,32 @@ void ViewManager::_initCallbacks(){
             }
             return result;
         });
+
+    _makeLayout();
+    addStateCallback( m_layout->getPath(), [=] ( const QString& /*path*/, const QString& /*value*/ ) {
+        QStringList pluginList = m_layout->getPluginList();
+        this->setPlugins( pluginList );
+    });
+
 }
 
 
 void ViewManager::_initializeDefaultState(){
     setAnalysisView();
+    //Load the default snapshot if one exists.
+    _makeSnapshots();
+    m_snapshots->initializeDefaultState();
 }
-
-int ViewManager::_findColorMap( const QString& id ) const {
-    int colorCount = m_colormaps.size();
-    int colorIndex = -1;
-    for ( int i = 0; i < colorCount; i++ ){
-        if ( m_colormaps[i]->getPath() == id ){
-            colorIndex = i;
-            break;
-        }
-    }
-    return colorIndex;
-}
-
 
 
 QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
     QString result;
-    ObjectManager* objManager = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     QString dId = objManager->parseId( destId );
-    CartaObject* destObj = objManager->getObject( dId );
+    Carta::State::CartaObject* destObj = objManager->getObject( dId );
     if ( destObj != nullptr ){
         QString id = objManager->parseId( sourceId );
-        CartaObject* sourceObj = objManager->getObject( id );
+        Carta::State::CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
             result = linkSource->addLink( destObj );
@@ -356,12 +315,12 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
 
 QString ViewManager::linkRemove( const QString& sourceId, const QString& destId ){
     QString result;
-    ObjectManager* objManager = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     QString dId = objManager->parseId( destId );
-    CartaObject* destObj = objManager->getObject( dId );
+    Carta::State::CartaObject* destObj = objManager->getObject( dId );
     if ( destObj != nullptr ){
         QString id = objManager->parseId( sourceId );
-        CartaObject* sourceObj = objManager->getObject( id );
+        Carta::State::CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
             result = linkSource->removeLink( destObj );
@@ -378,7 +337,7 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
 
 void ViewManager::_removeView( const QString& plugin, int index ){
 
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     if ( plugin == Layout::HIDDEN ){
         return;
     }
@@ -471,6 +430,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
             viewId = _makeHistogram(index);
         }
     }
+    else if ( plugin == Snapshots::CLASS_NAME ){
+        viewId = _makeSnapshots();
+    }
     else if ( plugin == Statistics::CLASS_NAME ){
         if ( 0 <= index && index < m_statistics.size() && !forceCreate ){
             viewId = m_statistics[index]->getPath();
@@ -511,8 +473,11 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
 QString ViewManager::_makeAnimator( int index ){
     int currentCount = m_animators.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
+    Carta::State::CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
     m_animators.insert( index, dynamic_cast<Animator*>(animObj));
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_animators[i]->setIndex( i );
+    }
     QString path = m_animators[index] ->getPath();
     return path;
 }
@@ -520,8 +485,11 @@ QString ViewManager::_makeAnimator( int index ){
 QString ViewManager::_makeColorMap( int index ){
     int currentCount = m_colormaps.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
+    Carta::State::CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
     m_colormaps.insert( index, dynamic_cast<Colormap*>(controlObj) );
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_colormaps[i]->setIndex( i );
+    }
     QString path = m_colormaps[index]->getPath();
    return path;
 }
@@ -529,15 +497,18 @@ QString ViewManager::_makeColorMap( int index ){
 QString ViewManager::_makeController( int index ){
     int currentCount = m_controllers.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
+    Carta::State::CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
     m_controllers.insert( index, dynamic_cast<Controller*>(controlObj) );
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_controllers[i]->setIndex( i );
+    }
     QString path = m_controllers[index]->getPath();
     return path;
 }
 
 void ViewManager::_makeDataLoader(){
     if ( m_dataLoader == nullptr ){
-        CartaObject* dataLoaderObj = Util::createObject( DataLoader::CLASS_NAME );
+        Carta::State::CartaObject* dataLoaderObj = Util::createObject( DataLoader::CLASS_NAME );
         m_dataLoader =dynamic_cast<DataLoader*>( dataLoaderObj );
     }
 }
@@ -545,14 +516,17 @@ void ViewManager::_makeDataLoader(){
 QString ViewManager::_makeHistogram( int index ){
     int currentCount = m_histograms.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
+    Carta::State::CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
     m_histograms.insert( index, dynamic_cast<Histogram*>(controlObj) );
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_histograms[i]->setIndex( i );
+    }
     return m_histograms[index]->getPath();
 }
 
 QString ViewManager::_makeLayout(){
     if ( !m_layout ){
-        CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
+        Carta::State::CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
         m_layout = dynamic_cast<Layout*>(layoutObj );
         connect( m_layout, SIGNAL(pluginListChanged(const QStringList&, const QStringList&)),
                 this, SLOT( _pluginsChanged( const QStringList&, const QStringList&)));
@@ -564,18 +538,30 @@ QString ViewManager::_makeLayout(){
 QString ViewManager::_makePluginList(){
     if ( !m_pluginsLoaded ){
         //Initialize a view showing the plugins that have been loaded
-        CartaObject* pluginsObj = Util::createObject( ViewPlugins::CLASS_NAME );
+        Carta::State::CartaObject* pluginsObj = Util::createObject( ViewPlugins::CLASS_NAME );
         m_pluginsLoaded = dynamic_cast<ViewPlugins*>(pluginsObj);
     }
     QString pluginsPath = m_pluginsLoaded->getPath();
     return pluginsPath;
 }
 
+QString ViewManager::_makeSnapshots(){
+    if ( !m_snapshots ){
+        Carta::State::CartaObject* snapObj = Util::createObject( Snapshots::CLASS_NAME );
+        m_snapshots = dynamic_cast<Snapshots*>(snapObj );
+    }
+    QString snapPath = m_snapshots->getPath();
+    return snapPath;
+}
+
 QString ViewManager::_makeStatistics( int index ){
     int currentCount = m_statistics.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
-    m_statistics.append( dynamic_cast<Statistics*>(controlObj) );
+    Carta::State::CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
+    m_statistics.insert( index, dynamic_cast<Statistics*>(controlObj) );
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_statistics[i]->setIndex( i );
+    }
     return m_statistics[index]->getPath();
 }
 
@@ -620,86 +606,7 @@ void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& 
 
 }
 
-bool ViewManager::_readStateLayout( const QString& sessionId, const QString& saveName ){
-    Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
-    QString layoutState = snapshot->readLayout( sessionId, saveName );
-    bool layoutRead = false;
-    if ( ! layoutState.isEmpty() ){
-        StateInterface state("");
-        state.setState( layoutState );
-        QString layState = state.toString(Layout::CLASS_NAME);
-        m_layout->resetState( layState );
-        int linkCount = state.getArraySize( LinkableImpl::LINK );
-        ObjectManager* objManager = ObjectManager::objectManager();
-        for ( int i = 0; i < linkCount; i++ ){
-            QString sourceLookup = Util::getLookup( LinkableImpl::LINK, i);
-            QString sourceLink = state.getValue<QString>( sourceLookup );
-            StateInterface sourceState( "");
-            sourceState.setState( sourceLink );
-            QString sourcePath = sourceState.getValue<QString>( LinkableImpl::PARENT_ID );
-            QString sourceId = objManager->parseId( sourcePath );
-            CartaObject* obj = objManager->getObject( sourceId );
-            ILinkable* linkable = dynamic_cast<ILinkable*>(obj);
-            if ( linkable != nullptr ){
-                int destCount = sourceState.getArraySize( LinkableImpl::LINK );
-                for ( int j = 0; j < destCount; j++ ){
-                    QString destLookup = Util::getLookup( LinkableImpl::LINK, j );
-                    QString destPath = sourceState.getValue<QString>(destLookup);
-                    QString destId = objManager->parseId( destPath );
-                    CartaObject* destObj = objManager->getObject( destId );
-                    if ( destObj != nullptr ){
-                        linkable->addLink( destObj );
-                    }
-                    else {
-                        qDebug() << "Null link destination";
-                    }
-                }
-            }
-            else {
-                qDebug() << "Null link source!";
-            }
-        }
-        layoutRead = true;
-    }
-    return layoutRead;
-}
 
-
-bool ViewManager::_readState( const QString& stateStr, SnapshotType type ){
-    bool prefsRead = false;
-    if ( ! stateStr.isEmpty() ){
-        StateInterface state("");
-        state.setState( stateStr );
-        int stateCount = state.getArraySize( ObjectManager::STATE_ARRAY );
-        ObjectManager* objManager = ObjectManager::objectManager();
-        for ( int i = 0; i < stateCount; i++ ){
-            QString stateLookup = Util::getLookup( ObjectManager::STATE_ARRAY, i);
-            QString idLookup = stateLookup + StateInterface::DELIMITER + ObjectManager::STATE_ID;
-            QString objId = state.getValue<QString>( idLookup );
-            CartaObject* cartaObj = objManager->getObject( objId );
-            if ( cartaObj != NULL ){
-                QString valLookup = stateLookup + StateInterface::DELIMITER + ObjectManager::STATE_VALUE;
-                QString stateVal = state.getValue<QString>(valLookup);
-                cartaObj ->resetState( stateVal, type );
-            }
-        }
-        prefsRead = true;
-    }
-    return prefsRead;
-}
-
-
-bool ViewManager::_readState( const QString& sessionId, const QString& saveName ){
-    //Order is important: layout -> preferences -> data
-    bool layoutRead = _readStateLayout( sessionId, saveName);
-    Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
-    QString prefStateStr = snapshot->readPreferences( sessionId, saveName );
-    bool prefRead = _readState( prefStateStr, SNAPSHOT_PREFERENCES);
-    QString dataStateStr = snapshot->readData( sessionId, saveName );
-    bool dataRead = _readState( dataStateStr, SNAPSHOT_DATA );
-    bool stateRead = layoutRead || prefRead || dataRead;
-    return stateRead;
-}
 
 void ViewManager::_refreshState(){
     for ( Animator* anim : m_animators ){
@@ -717,32 +624,23 @@ void ViewManager::setAnalysisView(){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
-    else {
+    if ( !m_layout->isLayoutAnalysis()){
         _clearHistograms( 1 );
         _clearAnimators( 1 );
         _clearColormaps( 1 );
         _clearStatistics( 1 );
         _clearControllers( 1 );
-    }
-    m_layout->setLayoutAnalysis();
 
-    //Add the links to establish reasonable defaults.
-    m_animators[0]->addLink( m_controllers[0]);
-    m_colormaps[0]->addLink( m_controllers[0]);
-    m_statistics[0]->addLink( m_controllers[0]);
-    m_histograms[0]->addLink( m_controllers[0]);
-    m_histograms[0]->addLink( m_colormaps[0]);
-    _refreshState();
-}
+        m_layout->setLayoutAnalysis();
 
-bool ViewManager::setColorMap( const QString& colormapId, const QString& colormapName ){
-    int colormapIndex = _findColorMap( colormapId );
-    bool colorMapFound = false;
-    if ( colormapIndex >= 0 ){
-        m_colormaps[colormapIndex]->setColorMap( colormapName );
-        colorMapFound = true;
+        //Add the links to establish reasonable defaults.
+        m_animators[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_controllers[0]);
+        m_statistics[0]->addLink( m_controllers[0]);
+        m_histograms[0]->addLink( m_controllers[0]);
+        m_histograms[0]->addLink( m_colormaps[0]);
+        _refreshState();
     }
-    return colorMapFound;
 }
 
 void ViewManager::setDeveloperView(){
@@ -764,49 +662,25 @@ void ViewManager::setImageView(){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
-    else {
+    if ( !m_layout->isLayoutImage() ){
         _clearHistograms( 0 );
         _clearAnimators( 0 );
         _clearColormaps( 0 );
         _clearStatistics( 0 );
         _clearControllers( 1 );
+
+        m_layout->setLayoutImage();
     }
-    m_layout->setLayoutImage();
 }
 
 
-QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout,
-        bool savePreferences, bool saveData, const QString& description ){
-    QString result;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    Snapshots* snapshot = dynamic_cast<Snapshots*>(Util::findSingletonObject( Snapshots::CLASS_NAME ));
-    result = snapshot->saveDescription( sessionId, saveName, description );
-    if ( saveLayout ){
-        //Layout state consists of both the layout and the links.
-        QString layoutState = m_layout->getStateString();
-        QString linkState =objMan->getStateString( sessionId, LinkableImpl::LINK, SNAPSHOT_LAYOUT);
-        StateInterface state( "");
-        state.insertObject( Layout::CLASS_NAME, layoutState);
-        state.insertObject( LinkableImpl::LINK, linkState );
-        QString layoutStr = state.toString();
-        result = snapshot->saveLayout( sessionId, saveName, layoutStr);
-    }
-    if ( savePreferences ){
-        QString prefStr = objMan->getStateString( sessionId, Preferences::CLASS_NAME,SNAPSHOT_PREFERENCES );
-        result = snapshot->savePreferences( sessionId, saveName, prefStr );
-    }
-    if ( saveData ){
-        QString dataStr = objMan->getStateString( sessionId, "Data", SNAPSHOT_DATA );
-        result = snapshot->saveData( sessionId, saveName, dataStr);
-    }
-    return result;
-}
+
 
 bool ViewManager::setPlugins( const QStringList& names ){
     bool pluginsSet = false;
     if ( m_layout ){
         QStringList oldNames = m_layout->getPluginList();
-        bool valid = m_layout->_setPlugin( names );
+        bool valid = m_layout->_setPlugin( names, true);
         if ( !valid ){
             qDebug() << "Invalid plugins for layout size";
         }
@@ -825,7 +699,7 @@ bool ViewManager::setPlugins( const QStringList& names ){
 
 
 ViewManager::~ViewManager(){
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     if ( m_layout != nullptr){
         objMan->destroyObject(m_layout->getId());
         m_layout = nullptr;
@@ -837,6 +711,10 @@ ViewManager::~ViewManager(){
     if ( m_pluginsLoaded != nullptr ){
         objMan->destroyObject(m_pluginsLoaded->getId());
         m_pluginsLoaded = nullptr;
+    }
+    if ( m_snapshots != nullptr ){
+        objMan->destroyObject( m_snapshots->getId());
+        m_snapshots = nullptr;
     }
 }
 }

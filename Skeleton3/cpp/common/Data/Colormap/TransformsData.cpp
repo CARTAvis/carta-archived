@@ -1,5 +1,6 @@
 #include "TransformsData.h"
 #include "Data/Util.h"
+#include "State/UtilState.h"
 
 
 #include <QDebug>
@@ -18,14 +19,14 @@ const QString TransformsData::TRANSFORM_SQUARE = "Square";
 const QString TransformsData::TRANSFORM_LOG = "Logarithm";
 const QString TransformsData::TRANSFORM_POLY = "Polynomial";
 
-class TransformsData::Factory : public CartaObjectFactory {
+class TransformsData::Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
         Factory():
             CartaObjectFactory( CLASS_NAME ){};
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new TransformsData (path, id);
         }
@@ -33,7 +34,7 @@ class TransformsData::Factory : public CartaObjectFactory {
 
 
 bool TransformsData::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME, new TransformsData::Factory());
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new TransformsData::Factory());
 
 
 TransformsData::TransformsData( const QString& path, const QString& id):
@@ -67,7 +68,7 @@ void TransformsData::_initializeDefaultState(){
     m_state.insertValue<int>( TRANSFORM_COUNT, transformCount );
     m_state.insertArray( DATA_TRANSFORMS, transformCount );
     for ( int i = 0; i < transformCount; i++ ){
-        QString arrayIndexStr = DATA_TRANSFORMS + StateInterface::DELIMITER + QString::number(i);
+        QString arrayIndexStr = Carta::State::UtilState::getLookup(DATA_TRANSFORMS, QString::number(i));
         m_state.setValue<QString>(arrayIndexStr, m_transforms[i]);
     }
     m_state.flushState();

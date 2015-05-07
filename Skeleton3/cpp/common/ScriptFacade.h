@@ -12,6 +12,7 @@ namespace Carta {
     namespace Data {
         class ViewManager;
         class Animator;
+        class Colormap;
     }
 }
 
@@ -23,6 +24,12 @@ public:
      * @return the first animator container.
      */
     Carta::Data::Animator* getAnimator();
+
+    /**
+     * Return the first container containing a colormap.
+     * @return the first colormap container.
+     */
+    Carta::Data::Colormap* getColormap();
 
     /**
      * Return the unique server-side id of the object responsible for displaying an

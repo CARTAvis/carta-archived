@@ -131,12 +131,14 @@ qx.Class.define("skel.widgets.Path", {
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "refreshState";
         },
         
+        
+        
         /**
-         * Returns the command for restoring state.
-         * @return {String} command for restoring state.
+         * Returns the command to register snapshots.
+         * @return {String} command for registering snapshots.
          */
-        getCommandRestoreState : function(){
-            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "restoreState";
+        getCommandRegisterSnapshots : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "registerSnapshots";
         },
         
         /**
@@ -161,17 +163,7 @@ qx.Class.define("skel.widgets.Path", {
          */
         getCommandShapeChanged : function(shapeId){
             return shapeId + this.SEP_COMMAND +"shapeChanged";
-        },
-        
-        /**
-         * Returns the command for saving state.
-         * @return {String} command for saving state.
-         */
-        getCommandSaveState : function(){
-            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "saveState";
         }
-        
- 
 
 
     }

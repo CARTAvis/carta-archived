@@ -3,6 +3,7 @@
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "GrayColormap.h"
+#include "State/UtilState.h"
 
 #include "Globals.h"
 #include "PluginManager.h"
@@ -21,14 +22,14 @@ const QString Colormaps::COLOR_MAPS = "maps";
 const QString Colormaps::COLOR_NAME = "name";
 const QString Colormaps::COLOR_MAP_COUNT = "colorMapCount";
 
-class Colormaps::Factory : public CartaObjectFactory {
+class Colormaps::Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
         Factory():
             CartaObjectFactory( CLASS_NAME ){};
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new Colormaps (path, id);
         }
@@ -36,7 +37,7 @@ class Colormaps::Factory : public CartaObjectFactory {
 
 
 bool Colormaps::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormaps::Factory());
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormaps::Factory());
 
 
 Colormaps::Colormaps( const QString& path, const QString& id):
@@ -49,7 +50,7 @@ Colormaps::Colormaps( const QString& path, const QString& id):
 QString Colormaps::_commandGetColorStops( const QString& params ){
     QString result;
     std::set<QString> keys = {COLOR_NAME};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString nameStr = dataValues[*keys.begin()];
     std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = getColorMap( nameStr );
     if ( map != nullptr ){
@@ -100,7 +101,7 @@ void Colormaps::_initializeDefaultState(){
     m_state.insertValue<int>( COLOR_MAP_COUNT, colorMapCount );
     m_state.insertArray( COLOR_MAPS, colorMapCount );
     for ( int i = 0; i < colorMapCount; i++ ){
-        QString arrayIndexStr = COLOR_MAPS + StateInterface::DELIMITER + QString::number(i);
+        QString arrayIndexStr = Carta::State::UtilState::getLookup( COLOR_MAPS, QString::number(i));
         m_state.setValue<QString>(arrayIndexStr, m_colormaps[i]->name());
 
     }

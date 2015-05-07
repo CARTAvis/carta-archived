@@ -1,5 +1,6 @@
 #include "TransformsImage.h"
 #include "Data/Util.h"
+#include "State/UtilState.h"
 
 #include <QDebug>
 #include <set>
@@ -12,14 +13,14 @@ const QString TransformsImage::IMAGE_TRANSFORMS = "imageTransforms";
 const QString TransformsImage::CLASS_NAME = "TransformsImage";
 const QString TransformsImage::TRANSFORM_COUNT = "imageTransformCount";
 
-class TransformsImage::Factory : public CartaObjectFactory {
+class TransformsImage::Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
         Factory():
             CartaObjectFactory( CLASS_NAME ){};
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new TransformsImage (path, id);
         }
@@ -27,7 +28,7 @@ class TransformsImage::Factory : public CartaObjectFactory {
 
 
 bool TransformsImage::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME, new TransformsImage::Factory());
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new TransformsImage::Factory());
 
 
 TransformsImage::TransformsImage( const QString& path, const QString& id):
@@ -57,7 +58,7 @@ void TransformsImage::_initializeDefaultState(){
     m_state.insertValue<int>( TRANSFORM_COUNT, transformCount );
     m_state.insertArray( IMAGE_TRANSFORMS, transformCount );
     for ( int i = 0; i < transformCount; i++ ){
-        QString arrayIndexStr = IMAGE_TRANSFORMS + StateInterface::DELIMITER + QString::number(i);
+        QString arrayIndexStr = Carta::State::UtilState::getLookup(IMAGE_TRANSFORMS, QString::number(i));
         m_state.setValue<QString>(arrayIndexStr, m_transforms[i]);
     }
     m_state.flushState();

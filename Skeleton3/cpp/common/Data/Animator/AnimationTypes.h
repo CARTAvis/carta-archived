@@ -13,7 +13,7 @@ namespace Carta {
 
 namespace Data {
 
-class AnimationTypes : public CartaObject {
+class AnimationTypes : public Carta::State::CartaObject {
 
 public:
 
@@ -28,6 +28,8 @@ public:
     virtual ~AnimationTypes();
 
 private:
+
+
     void _initializeState();
 
     static bool m_registered;

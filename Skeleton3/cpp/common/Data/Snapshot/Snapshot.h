@@ -1,11 +1,11 @@
 /***
- * The state of the application.
+ * The summary of a saved application state.
  *
  */
 
 #pragma once
 
-#include "State/StateInterface.h"
+#include "State/ObjectManager.h"
 
 
 namespace Carta {
@@ -13,17 +13,28 @@ namespace Carta {
 namespace Data {
 
 
-
 class Snapshot {
 
 public:
 
+    /**
+     * Constructor.
+     * @param name - an identifier for the snapshot.
+     */
    Snapshot( const QString name = "");
 
    /**
     * Return the name of the snapshot.
+    * @return the name of the snapshot.
     */
    QString getName() const;
+
+   /**
+    * Return a string representation of the snapshot type.
+    * @param snapshotType the snapshot type.
+    * @return a human readable string representing the snapshot type.
+    */
+   static QString getNameForType( Carta::State::CartaObject::SnapshotType snapshotType );
 
    /**
     * Return snapshot information as a string.
@@ -43,6 +54,7 @@ public:
     * @param dateCreated - the date the snapshot was created.
     */
    void setCreatedDate( const QString& dateCreated );
+
    /**
     * Set a long description of the snapshot.
     * @param descript - a descriptive information about the snapshot.
@@ -61,7 +73,7 @@ private:
     const static QString CLASS_NAME;
 
     void _initializeState( const QString& name );
-    StateInterface m_state;
+    Carta::State::StateInterface m_state;
 
 };
 

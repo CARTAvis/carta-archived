@@ -29,15 +29,15 @@ class IColoredView;
 class Controller;
 class TransformsData;
 
-class Colormap : public QObject, public CartaObject, public ILinkable {
+class Colormap : public QObject, public Carta::State::CartaObject, public ILinkable {
 
     Q_OBJECT
 
 public:
 
     //ILinkable
-    virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-    virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -145,7 +145,7 @@ private:
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
-    StateInterface m_stateMouse;
+    Carta::State::StateInterface m_stateMouse;
     int m_significantDigits;
 
 	Colormap( const Colormap& other);

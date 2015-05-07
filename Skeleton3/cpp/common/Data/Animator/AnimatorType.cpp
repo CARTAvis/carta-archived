@@ -1,6 +1,7 @@
 #include "Data/Animator/Animator.h"
 #include "Data/Selection.h"
 #include "Data/Util.h"
+#include "State/UtilState.h"
 
 #include <set>
 
@@ -10,11 +11,11 @@ namespace Carta {
 
 namespace Data {
 
-class AnimatorType::Factory : public CartaObjectFactory {
+class AnimatorType::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new AnimatorType (path, id);
     }
@@ -33,7 +34,7 @@ const QString AnimatorType::CLASS_NAME = "AnimatorType";
 const QString AnimatorType::ANIMATIONS = "animators";
 
 bool AnimatorType::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new AnimatorType::Factory());
 
 AnimatorType::AnimatorType(const QString& path, const QString& id ):
@@ -100,7 +101,7 @@ void AnimatorType::_initializeCommands(){
 	                                    const QString & params, const QString & /*sessionId*/) -> QString {
 	    QString result;
 	    std::set<QString> keys = {END_BEHAVIOR};
-	    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+	    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
 	    QString endStr = dataValues[*keys.begin()];
 	    result = setEndBehavior( endStr );
 	    Util::commandPostProcess( result );
@@ -112,7 +113,7 @@ void AnimatorType::_initializeCommands(){
                                         const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {RATE};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString rateStr = dataValues[*keys.begin()];
         bool validRate = false;
         int rate = rateStr.toInt( &validRate );
@@ -130,7 +131,7 @@ void AnimatorType::_initializeCommands(){
                                             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
         std::set<QString> keys = {STEP};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString stepStr = dataValues[*keys.begin()];
         bool validStep = false;
         int step = stepStr.toInt( &validStep );
@@ -152,7 +153,7 @@ bool AnimatorType::isRemoved() const {
 
 
 QString AnimatorType::_makeSelection(){
-    ObjectManager* objManager = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     if ( m_select != nullptr ){
         objManager->destroyObject( m_select->getId());
     }
@@ -245,7 +246,7 @@ void AnimatorType::setUpperBound( int value ){
 
 AnimatorType::~AnimatorType(){
     if ( m_select != nullptr ){
-        ObjectManager* objMan = ObjectManager::objectManager();
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         objMan->destroyObject( m_select->getId());
     }
 }

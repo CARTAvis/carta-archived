@@ -99,6 +99,15 @@ qx.Class.define("skel.Command.Session.StateTable", {
             return name;
         },
         
+        /**
+         * Set the name of the snapshot to be selected.
+         */
+        setSelectedName : function( name ){
+            if ( name.length > 0 ){
+                this.m_selectedName = name;
+            }
+        },
+        
         m_selectedName : null
     }
 });
