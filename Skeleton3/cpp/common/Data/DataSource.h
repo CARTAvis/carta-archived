@@ -277,6 +277,7 @@ public:
      * @param scale the scale (zoom level) of the saved image.
      * @return an error message if there was a problem saving the image;
      *      an empty string otherwise.
+     * [NOTE: this method has been temporarily disabled, so will always return false.]
      */
     bool saveFullImage( const QString& filename, double scale );
 

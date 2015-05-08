@@ -198,16 +198,6 @@ Service::screen2img( const QPointF & p )
     return res;
 }
 
-bool
-Service::saveFullImage( const QString& filename, double scale )
-{
-    if ( m_frameImage.isNull() ) {
-        _renderFrame();
-    }
-    bool result = m_frameImage.scaled(m_frameImage.size() * scale).save( filename );
-    return result;
-}
-
 void
 Service::internalRenderSlot( JobId jobId )
 {

@@ -457,8 +457,7 @@ void DataSource::viewResize( const QSize& newSize ){
 }
 
 bool DataSource::saveFullImage( const QString& filename, double scale ){
-    bool result = m_renderService->saveFullImage( filename, scale );
-    return result;
+    return false;
 }
 
 DataSource::~DataSource() {
