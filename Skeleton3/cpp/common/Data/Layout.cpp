@@ -397,6 +397,9 @@ void Layout::setLayoutImage(){
     emit pluginListChanged( name, oldNames );
 }
 
+void Layout::setPlugins( const QStringList& names) {
+    _setPlugin( names );
+}
 
 QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
     QString errorMsg;

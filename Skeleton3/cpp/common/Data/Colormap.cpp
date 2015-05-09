@@ -242,9 +242,82 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
     std::set<QString> keys = {CACHE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString cacheStr = dataValues[*keys.begin()];
+    result = setCacheColormap( cacheStr );
+    return result;
+}
+
+QString Colormap::_commandCacheSize( const QString& params ){
+    QString result;
+    std::set<QString> keys = {CACHE_SIZE};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString cacheSizeStr = dataValues[*keys.begin()];
+    result = setCacheSize( cacheSizeStr );
+    return result;
+}
+
+QString Colormap::_commandInterpolatedColorMap( const QString& params ){
+    QString result;
+    std::set<QString> keys = {INTERPOLATED};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString interpolateStr = dataValues[*keys.begin()];
+    result = setInterpolatedColorMap( interpolateStr );
+    return result;
+}
+
+QString Colormap::_commandInvertColorMap( const QString& params ){
+    QString result;
+    std::set<QString> keys = {INVERT};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    QString invertStr = dataValues[*keys.begin()];
+    result = invertColorMap( invertStr );
+    return result;
+}
+
+QString Colormap::_commandSetColorMix( const QString& params ){
+    QString result;
+    result = setColorMix( params );
+    return result;
+}
+
+QString Colormap::reverseColormap( const QString& reverseStr )
+{
+    QString result;
+    bool validBool = false;
+    bool reverse = Util::toBool(reverseStr, &validBool);
+    bool oldReverse = m_state.getValue<bool>(REVERSE);
+    if ( reverseStr.toLower() == "toggle") {
+        reverse = !oldReverse;
+        validBool = true;
+    }
+    if ( validBool ){
+        if ( reverse != oldReverse ){
+            m_state.setValue<bool>(REVERSE, reverse );
+            m_state.flushState();
+            int linkCount = m_linkImpl->getLinkCount();
+            for( int i = 0; i < linkCount; i++ ){
+                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+                controller -> setColorReversed( reverse );
+            }
+            emit colorMapChanged( this );
+        }
+    }
+    else {
+        result = "Invalid color map reverse parameters: "+ reverseStr;
+    }
+    Util::commandPostProcess( result );
+    return result;
+}
+
+QString Colormap::setCacheColormap( const QString& cacheStr )
+{
+    QString result;
     bool validBool = false;
     bool cache = Util::toBool(cacheStr, &validBool);
     bool oldCache = m_state.getValue<bool>(CACHE);
+    if ( cacheStr.toLower() == "toggle") {
+        cache = !oldCache;
+        validBool = true;
+    }
     if ( validBool ){
         if ( cache != oldCache){
             m_state.setValue<bool>(CACHE, cache );
@@ -257,17 +330,15 @@ QString Colormap::_commandCacheColorMap( const QString& params ){
         }
     }
     else {
-        result = "Invalid color map cache parameters: "+ params;
+        result = "Invalid color map cache parameters: "+ cacheStr;
     }
     Util::commandPostProcess( result );
     return result;
 }
 
-QString Colormap::_commandCacheSize( const QString& params ){
+QString Colormap::setCacheSize( const QString& cacheSizeStr )
+{
     QString result;
-    std::set<QString> keys = {CACHE_SIZE};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString cacheSizeStr = dataValues[*keys.begin()];
     bool validInt = false;
     int cacheSize = cacheSizeStr.toInt(&validInt);
     int currentCacheSize = m_state.getValue<int>(CACHE_SIZE);
@@ -283,20 +354,22 @@ QString Colormap::_commandCacheSize( const QString& params ){
         }
     }
     else {
-        result = "Invalid color map cache size parameters: "+ params;
+        result = "Invalid color map cache size parameters: "+ cacheSizeStr;
     }
     Util::commandPostProcess( result );
     return result;
 }
 
-QString Colormap::_commandInterpolatedColorMap( const QString& params ){
+QString Colormap::setInterpolatedColorMap( const QString& interpolateStr )
+{
     QString result;
-    std::set<QString> keys = {INTERPOLATED};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString interpolateStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool interpolated = Util::toBool(interpolateStr, &validBool);
     bool currentInterpolated = m_state.getValue<bool>(INTERPOLATED);
+    if ( interpolateStr.toLower() == "toggle") {
+        interpolated = !currentInterpolated;
+        validBool = true;
+    }
     if ( validBool ){
         if ( interpolated != currentInterpolated ){
             m_state.setValue<bool>(INTERPOLATED, interpolated );
@@ -309,20 +382,22 @@ QString Colormap::_commandInterpolatedColorMap( const QString& params ){
         }
     }
     else {
-        result = "Invalid interpolated caching color map parameters: "+ params;
+        result = "Invalid interpolated caching color map parameters: "+ interpolateStr;
     }
     Util::commandPostProcess( result );
     return result;
 }
 
-QString Colormap::_commandInvertColorMap( const QString& params ){
+QString Colormap::invertColorMap( const QString& invertStr )
+{
     QString result;
-    std::set<QString> keys = {INVERT};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    QString invertStr = dataValues[*keys.begin()];
     bool validBool = false;
     bool invert = Util::toBool(invertStr, &validBool);
     bool oldInvert = m_state.getValue<bool>(INVERT );
+    if ( invertStr.toLower() == "toggle") {
+        invert = !oldInvert;
+        validBool = true;
+    }
     if ( validBool ){
         if ( invert != oldInvert ){
             m_state.setValue<bool>(INVERT, invert );
@@ -336,13 +411,14 @@ QString Colormap::_commandInvertColorMap( const QString& params ){
         }
     }
     else {
-        result = "Invalid color map invert parameters: "+ params;
+        result = "Invalid color map invert parameters: "+ invertStr;
     }
     Util::commandPostProcess( result );
     return result;
 }
 
-QString Colormap::_commandSetColorMix( const QString& params ){
+QString Colormap::setColorMix( const QString& params )
+{
     QString result;
     std::set<QString> keys = {RED_PERCENT, GREEN_PERCENT, BLUE_PERCENT};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
@@ -375,31 +451,12 @@ QString Colormap::_commandSetColorMix( const QString& params ){
     return result;
 }
 
-
 QString Colormap::_commandReverseColorMap( const QString& params ){
     QString result;
     std::set<QString> keys = {REVERSE};
     std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
     QString reverseStr = dataValues[*keys.begin()];
-    bool validBool = false;
-    bool reverse = Util::toBool(reverseStr, &validBool);
-    bool oldReverse = m_state.getValue<bool>(REVERSE);
-    if ( validBool ){
-        if ( reverse != oldReverse ){
-            m_state.setValue<bool>(REVERSE, reverse );
-            m_state.flushState();
-            int linkCount = m_linkImpl->getLinkCount();
-            for( int i = 0; i < linkCount; i++ ){
-                Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-                controller -> setColorReversed( reverse );
-            }
-            emit colorMapChanged( this );
-        }
-    }
-    else {
-        result = "Invalid color map reverse parameters: "+ params;
-    }
-    Util::commandPostProcess( result );
+    result = reverseColormap( reverseStr );
     return result;
 }
 
@@ -528,17 +585,21 @@ QString Colormap::setDataTransform( const QString& transformString ){
                 int linkCount = m_linkImpl->getLinkCount();
                 for( int i = 0; i < linkCount; i++ ){
                     Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-                    controller->setTransformData( transformString );
+                    controller->setTransformData( actualTransform );
                 }
                 emit colorMapChanged( this );
             }
-            else {
-               result = "Invalid data transform: " + transformString;
-            }
+        }
+        else {
+            result = "Invalid data transform: " + transformString + " is not a valid transform";
         }
     }
     Util::commandPostProcess( result );
     return result;
+}
+
+QList<QString> Colormap::getLinks() {
+    return m_linkImpl->getLinkIds();
 }
 
 void Colormap::_setColorProperties( Controller* target ){

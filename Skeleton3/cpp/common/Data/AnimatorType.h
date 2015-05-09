@@ -93,6 +93,8 @@ public:
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
 
+    QString changeIndex( const QString & params );
+
     virtual ~AnimatorType();
 
 signals:

@@ -38,6 +38,7 @@ public:
     //ILinkable
     virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -64,6 +65,47 @@ public:
      */
     QString setColorMap( const QString& colorMapName );
 
+    /**
+     * Reverse the current colormap.
+     * @param reverseStr Should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully reversed.
+     */
+    QString reverseColormap( const QString& reverseStr );
+
+    /**
+     * Set caching for the current colormap.
+     * @param cacheSizeStr should be equal to either "true" or "false"
+     * @return error information if the cache size was not successfully set.
+     */
+    QString setCacheColormap( const QString& cacheSizeStr );
+
+    /**
+     * Set the cache size of the current colormap.
+     * @param cacheSizeStr the desired size of the cache
+     * @return error information if the cache size was not successfully set.
+     */
+    QString setCacheSize( const QString& cacheSizeStr );
+
+    /**
+     * Interpolate the current colormap.
+     * @param interpolateStr Should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully interpolated.
+     */
+    QString setInterpolatedColorMap( const QString& interpolateStr );
+
+    /**
+     * Invert the current colormap.
+     * @param invertStr Should be equal to either "true" or "false".
+     * @return error information if the color map was not successfully inverted.
+     */
+    QString invertColorMap( const QString& invertStr );
+
+    /**
+     * Set a color mix.
+     * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     * @return error information if the color mix was not successfully set.
+     */
+    QString setColorMix( const QString& percentString );
 
     /**
      * Set the name of the data transform.
@@ -78,6 +120,8 @@ public:
      * @return error information if gamma could not be set.
      */
     QString setGamma( double gamma );
+
+    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( ) const;
 
     /**
      * Returns the selected controller for this colormap.

@@ -25,6 +25,11 @@ private:
     void _runAnalysisImage();
 
     /**
+     * Sets a predefined custom layout
+     */
+    void _runCustomImage();
+
+    /**
      * Sets a predefined layout consisting of a single image, loads an image, changes
      * the colormap, and saves it.
      */

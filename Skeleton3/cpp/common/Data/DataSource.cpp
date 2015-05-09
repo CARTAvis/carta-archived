@@ -271,6 +271,10 @@ double DataSource::getZoom() const {
     return m_renderService-> zoom();
 }
 
+QSize DataSource::getOutputSize() const {
+    return m_renderService->getOutputSize();
+}
+
 void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
 
     if ( frameIndex < 0 ) {
@@ -450,6 +454,10 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
 
 void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
+}
+
+bool DataSource::saveFullImage( const QString& filename, double scale ){
+    return false;
 }
 
 DataSource::~DataSource() {

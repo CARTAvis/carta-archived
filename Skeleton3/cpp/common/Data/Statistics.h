@@ -29,6 +29,7 @@ public:
     //ILinkable
     virtual QString addLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.

@@ -50,6 +50,7 @@ public:
     //ILinkable
     QString addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Applies clips to image.
@@ -93,6 +94,12 @@ public:
      * @return an error message if there was a problem; an empty string if the flag was set successfully.
      */
     QString setUseClipBuffer( bool useBuffer );
+
+    /**
+    * Determine whether or not extra space is being shown on each side of the clip bounds.
+    * @return true if extra space is being shown; false otherwise.
+    */
+    bool getUseClipBuffer();
 
     /**
      * Set the maximum clip value.
@@ -168,6 +175,12 @@ public:
     QString setColored( bool colored );
 
     /**
+    * Determine whether or not the histogram is colored by intensity.
+    * @return true if the histogram is colored by intensity; false otherwise.
+    */
+    bool getColored();
+
+    /**
      * Set the drawing style for the histogram (outline, filled, etc).
      * @param style a unique identifier for a histogram drawing style.
      * @return an error message if there was a problem setting the draw style; an empty string otherwise.
@@ -180,6 +193,12 @@ public:
      * @return an error message if there was a problem setting the flag; an empty string otherwise.
      */
     QString setLogCount( bool logCount );
+
+    /**
+    * Determine whether or not the vertical axis is using a log scale.
+    * @return true if the vertical axis is using a log scale; false otherwise.
+    */
+    bool getLogCount();
 
     /**
      * Set whether the histogram should be based on a single plane, a range of planes, or the entire cube.
@@ -268,6 +287,16 @@ public:
      */
     QString setSignificantDigits( int digits );
 
+    /**
+     * Save a copy of the histogram as an image.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width, in pixels, of the saved image.
+     * @param height the height, in pixels, of the saved image.
+     * @return an error message if there was a problem saving the histogram;
+     *      an empty string otherwise.
+     */
+    QString saveHistogram( const QString& filename, int width, int height );
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
     const static QString GRAPH_STYLE_LINE;
@@ -302,10 +331,25 @@ private:
     * @param channel the single frame to use for histogram data.
     * @return an error message if there was a problem setting the channel; an empty string otherwise.
     */
-   QString setCubeChannel( int channel );
+    QString setCubeChannel( int channel );
 
+    /**
+    * Check if the given string represents a valid plane mode by doing a case
+    *   insensitive comparison to each of the defined plane mode strings.
+    * @param planeModeStr the string to check.
+    * @return the actual plane mode string if a match is found; an empty
+    *   string otherwise.
+    */
+    QString _getActualPlaneMode( const QString& planeModeStr );
 
-
+    /**
+    * Check if the given string represents a valid graph style by doing a case
+    *   insensitive comparison to each of the defined graph style strings.
+    * @param styleStr the string to check.
+    * @return the actual graph style string if a match is found; an empty
+    *   string otherwise.
+    */
+    QString _getActualGraphStyle( const QString& styleStr );
 
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
     

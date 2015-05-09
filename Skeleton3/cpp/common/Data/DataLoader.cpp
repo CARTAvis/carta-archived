@@ -58,7 +58,6 @@ QString DataLoader::getData(const QString& /*selectionParams*/,
         const QString& sessionId) {
     QString rootDirName = getRootDir(sessionId);
     QDir rootDir(rootDirName);
-    QString jsonTree;
 
     QJsonObject rootObj;
     processDirectory(rootDir, rootObj);

@@ -19,6 +19,8 @@ SOURCES += \
 
 RESOURCES = resources.qrc
 
+INCLUDEPATH += ../../../ThirdParty/rapidjson/include
+
 unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
 DEPENDPATH += $$PROJECT_ROOT/common

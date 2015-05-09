@@ -67,6 +67,10 @@ QString Statistics::removeLink( CartaObject* cartaObject ){
     return result;
 }
 
+QList<QString> Statistics::getLinks() {
+    return m_linkImpl->getLinkIds();
+}
+
 
 void Statistics::clear(){
     m_linkImpl->clear();

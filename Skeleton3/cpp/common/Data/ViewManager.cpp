@@ -319,7 +319,7 @@ void ViewManager::_initializeDefaultState(){
 }
 
 int ViewManager::_findColorMap( const QString& id ) const {
-    int colorCount = m_colormaps.size();
+    int colorCount = getColormapCount();
     int colorIndex = -1;
     for ( int i = 0; i < colorCount; i++ ){
         if ( m_colormaps[i]->getPath() == id ){
@@ -330,7 +330,17 @@ int ViewManager::_findColorMap( const QString& id ) const {
     return colorIndex;
 }
 
-
+int ViewManager::_findAnimator( const QString& id ) const {
+    int animCount = getAnimatorCount();
+    int animIndex = -1;
+    for ( int i = 0; i < animCount; i++ ){
+        if ( m_animators[i]->getPath() == id ){
+            animIndex = i;
+            break;
+        }
+    }
+    return animIndex;
+}
 
 QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
     QString result;
@@ -494,8 +504,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     return viewId;
 }
 
-void ViewManager::loadFile( const QString& controlId, const QString& fileName){
-    int controlCount = m_controllers.size();
+bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
+    bool result = false;
+    int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
@@ -503,9 +514,51 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
            m_controllers[i]->addData( path );
+           result = true;
            break;
         }
     }
+    return result;
+}
+
+bool ViewManager::loadLocalFile( const QString& controlId, const QString& fileName){
+    bool result = false;
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           //Add the data to it
+            _makeDataLoader();
+           result = m_controllers[i]->addData( fileName );
+           break;
+        }
+    }
+    return result;
+}
+
+int ViewManager::getControllerCount() const {
+    int controllerCount = m_controllers.size();
+    return controllerCount;
+}
+
+int ViewManager::getColormapCount() const {
+    int colorMapCount = m_colormaps.size();
+    return colorMapCount;
+}
+
+int ViewManager::getAnimatorCount() const {
+    int animatorCount = m_animators.size();
+    return animatorCount;
+}
+
+int ViewManager::getHistogramCount() const {
+    int histogramCount = m_histograms.size();
+    return histogramCount;
+}
+
+int ViewManager::getStatisticsCount() const {
+    int statisticsCount = m_statistics.size();
+    return statisticsCount;
 }
 
 QString ViewManager::_makeAnimator( int index ){
@@ -735,14 +788,12 @@ void ViewManager::setAnalysisView(){
     _refreshState();
 }
 
-bool ViewManager::setColorMap( const QString& colormapId, const QString& colormapName ){
-    int colormapIndex = _findColorMap( colormapId );
-    bool colorMapFound = false;
-    if ( colormapIndex >= 0 ){
-        m_colormaps[colormapIndex]->setColorMap( colormapName );
-        colorMapFound = true;
+QString ViewManager::setCustomView( int rows, int cols ){
+    if ( m_layout == nullptr ){
+        _makeLayout();
     }
-    return colorMapFound;
+    QString result = m_layout->setLayoutSize( rows, cols );
+    return result;
 }
 
 void ViewManager::setDeveloperView(){
@@ -773,7 +824,6 @@ void ViewManager::setImageView(){
     }
     m_layout->setLayoutImage();
 }
-
 
 QString ViewManager::saveState( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData ){
     QString result;

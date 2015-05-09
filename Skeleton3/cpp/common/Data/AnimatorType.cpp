@@ -236,6 +236,25 @@ void AnimatorType::setVisible( bool visible ){
     }
 }
 
+QString AnimatorType::changeIndex( const QString & params )
+{
+    QString result;
+    bool validInt = false;
+    int index = params.toInt( &validInt );
+    if ( validInt ){
+    //Set our state to reflect the new image.
+        result = m_select->setIndex( index );
+        if ( result.isEmpty()){
+            //Tell the children about the new image.
+            emit indexChanged( index );
+        }
+    }
+    else {
+        result = "Animator index must be a valid integer "+params;
+    }
+    return result;
+}
+
 void AnimatorType::setUpperBound( int value ){
     if ( m_select->getUpperBound() != value ){
         m_select->setUpperBound( value );

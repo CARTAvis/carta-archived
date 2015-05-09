@@ -60,6 +60,12 @@ public:
     void setLayoutAnalysis();
 
     /**
+     * Set plugins for each of the views in the layout
+     * @param names a list of plugin names.
+     */
+    void setPlugins( const QStringList& names);
+
+     /**
      * Set a layout showing widgets currently under development.
      */
     void setLayoutDeveloper();

@@ -6,6 +6,8 @@
 
 #include <QObject>
 #include <memory>
+#include "ScriptedClient/ScriptFacade.h"
+#include <rapidjson/document.h>
 
 class ScriptedCommandListener;
 namespace Carta {
@@ -13,7 +15,6 @@ namespace Data {
 class ViewManager;
 }
 }
-
 
 ///
 /// \brief The Viewer class is the main class of the viewer. It sets up all other
@@ -33,9 +34,7 @@ public:
     /// safe to start setting/getting state)
     void start();
 
-    /**
-     * Show areas under active development.
-     */
+    /// Show areas under active development.
     void setDeveloperView( );
 
 signals:
@@ -44,20 +43,20 @@ public slots:
 
 protected slots:
 
-    /// internal callback for scripted commands
-    void scriptedCommandCB(QString command);
-
 protected:
 
     /// pointer to scripted command listener
     /// @todo make it unique ptr for auto-delete niceness
     ScriptedCommandListener * m_scl = nullptr;
 
+    ScriptFacade* m_scriptFacade = nullptr;
+
 private:
 
     bool m_devView;
 
-
     std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
+
 };
+
 

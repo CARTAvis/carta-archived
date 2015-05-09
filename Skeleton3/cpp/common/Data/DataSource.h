@@ -185,6 +185,12 @@ public:
     double getZoom() const;
 
     /**
+     * Get the dimensions of the image viewer (window size).
+     * @return the image viewer dimensions.
+     */
+    QSize getOutputSize() const;
+
+    /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
      * @param imgY the y-coordinate of the center.
@@ -264,6 +270,16 @@ public:
      * Generate a new QImage.
      */
     void render();
+
+    /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param fileName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     * [NOTE: this method has been temporarily disabled, so will always return false.]
+     */
+    bool saveFullImage( const QString& filename, double scale );
 
     virtual ~DataSource();
 

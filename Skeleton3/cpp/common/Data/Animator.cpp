@@ -74,16 +74,8 @@ void Animator::_adjustStateAnimatorTypes(){
     m_state.flushState();
 }
 
-
-
 void Animator::_channelIndexChanged( int index ){
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            controller->setFrameChannel( index );
-        }
-    }
+    changeChannelIndex( index );
 }
 
 void Animator::clear(){
@@ -146,7 +138,7 @@ int Animator::getLinkCount() const {
     return m_linkImpl->getLinkCount();
 }
 
-QList<QString> Animator::getLinks() const {
+QList<QString> Animator::getLinks() {
     return m_linkImpl->getLinkIds();
 }
 
@@ -155,6 +147,26 @@ QString Animator::getLinkId( int linkIndex ) const {
     return m_linkImpl->getLinkId( linkIndex );
 }
 
+void Animator::changeChannelIndex( int index ){
+    int linkCount = m_linkImpl->getLinkCount();
+    for( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            controller->setFrameChannel( index );
+        }
+    }
+}
+
+void Animator::changeImageIndex( int selectedImage ){
+    int linkCount = m_linkImpl->getLinkCount();
+    for( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            controller->setFrameImage( selectedImage );
+        }
+    }
+    _resetAnimationParameters(selectedImage);
+}
 
 int Animator::_getMaxImageCount() const {
     int linkCount = m_linkImpl->getLinkCount();
@@ -209,14 +221,7 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
 }
 
 void Animator::_imageIndexChanged( int selectedImage){
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            controller->setFrameImage( selectedImage );
-        }
-    }
-    _resetAnimationParameters(selectedImage);
+    changeImageIndex( selectedImage );
 }
 
 QString Animator::_initAnimator( const QString& type, bool* newAnimator ){

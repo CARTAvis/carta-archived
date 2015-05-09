@@ -10,7 +10,8 @@ ScriptTester::ScriptTester(){
 void ScriptTester::runTest(){
     //Please comment out these calls as appropriate.
     //_runSingleImage();
-    _runAnalysisImage();
+    _runCustomImage();
+    //_runAnalysisImage();
 }
 
 void ScriptTester::_runAnalysisImage() {
@@ -28,11 +29,14 @@ void ScriptTester::_runAnalysisImage() {
     //However we need the color map object if we are going to change the color.  We use an index
     //of 0 to obtain an existing color map.
     QString colormapId = m_scriptFacade->getColorMapId( 0 );
+
     //Set the color map
     QStringList colormaps = m_scriptFacade->getColorMaps();
     int mapCount = colormaps.size();
+    qDebug() << "Script tester found "<< mapCount << " colormaps";
     if ( mapCount > 1 ){
         QString mapName = colormaps[1];
+        qDebug() << "Script tester setting map to "<<mapName;
         m_scriptFacade->setColorMap( colormapId, mapName);
     }
 
@@ -43,8 +47,18 @@ void ScriptTester::_runAnalysisImage() {
     qDebug() << "Save image not implemented";
 }
 
-void ScriptTester::_runSingleImage(){
+void ScriptTester::_runCustomImage() {
+    //Set the layout
+    m_scriptFacade->setCustomLayout( 2, 2 );
 
+    QString controlId = m_scriptFacade->getImageViewId( 0 );
+    m_scriptFacade->loadFile( controlId, "/RootDirectory/m31_cropped.fits" );
+
+    //Save the image
+    qDebug() << "Save image not implemented";
+}
+
+void ScriptTester::_runSingleImage(){
     //Set the layout
     m_scriptFacade->setImageLayout();
 
@@ -53,8 +67,7 @@ void ScriptTester::_runSingleImage(){
     //The path will need to be changed appropriately to refer to an actual image on the machine where
     //this test is being run.
     QString controlId = m_scriptFacade->getImageViewId( 0 );
-    m_scriptFacade->loadFile( controlId, "/RootDirectory/Orion.methanol.cbc.contsub.image.fits" );
-
+    m_scriptFacade->loadFile( controlId, "/RootDirectory/m31_cropped.fits" );
 
     //Create a colormap, even though there is not one being displayed.  Note that here we are using a
     //default color map index of -1 to indicate that the server should create a color map for us since

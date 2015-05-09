@@ -52,8 +52,9 @@ public:
      * Add data to this controller.
      * @param fileName the location of the data;
      *        this could represent a url or an absolute path on a local filesystem.
+     * @return true upon success, false otherwise.
      */
-    void addData(const QString& fileName);
+    bool addData(const QString& fileName);
 
     /**
      * Apply the indicated clips to managed images.
@@ -180,6 +181,24 @@ public:
     void saveState();
 
     /**
+     * Save a screenshot of the current image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param filename the full path where the file is to be saved.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     */
+    bool saveImage( const QString& filename );
+
+    /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param fileName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     */
+    bool saveFullImage( const QString& filename, double scale );
+
+    /**
      * Reset the images that are loaded and other data associated state.
      * @param state - the data state.
      */
@@ -193,6 +212,8 @@ public:
      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
+    QString setClipValue( const QString& params );
+
     /**
      * Change the pan of the current image.
      * @param imgX the x-coordinate for the center of the pan.
@@ -201,12 +222,40 @@ public:
     void updatePan( double imgX , double imgY);
 
     /**
+     * Center the image on the pixel with coordinates (x, y).
+     * @param imgX the x-coordinate for the center of the pan.
+     * @param imgY the y-coordinate for the center of the pan.
+     */
+    void centerOnPixel( double imgX , double imgY);
+
+    /**
      * Update the zoom settings.
      * @param centerX the screen x-coordinate where the zoom was centered.
      * @param centerY the screen y-coordinate where the zoom was centered.
      * @param z either positive or negative depending on the desired zoom direction.
      */
     void updateZoom( double centerX, double centerY, double z );
+
+    /**
+     * Set the zoom level
+     * @param zoomLevel either positive or negative depending on the desired zoom direction.
+     */
+    void setZoomLevel( double zoomLevel );
+
+    /**
+     * Get the current zoom level
+     */
+    double getZoomLevel( );
+
+    /**
+     * Get the image dimensions.
+     */
+    QStringList getImageDimensions( );
+
+    /**
+     * Get the dimensions of the image viewer (window size).
+     */
+    QStringList getOutputSize( );
 
     /**
      * Return a count of the number of images in the stack.

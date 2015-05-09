@@ -85,7 +85,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 
 
-void Controller::addData(const QString& fileName) {
+bool Controller::addData(const QString& fileName) {
     //Find the location of the data, if it already exists.
     int targetIndex = -1;
     for (int i = 0; i < m_datas.size(); i++) {
@@ -123,6 +123,7 @@ void Controller::addData(const QString& fileName) {
     else {
         _removeData( targetIndex );
     }
+    return successfulLoad;
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
@@ -203,7 +204,7 @@ int Controller::getFrameChannel() const {
 bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
     bool validIntensity = false;
     int imageIndex = m_selectImage->getIndex();
-    if ( 0 <= imageIndex && imageIndex < m_datas.size()){
+    if ( 0 <= imageIndex && imageIndex < m_datas.size() && percentile >= 0.0 && percentile <= 1.0 ){
         validIntensity = m_datas[imageIndex]->getIntensity( frameLow, frameHigh, percentile, intensity );
     }
     return validIntensity;
@@ -311,34 +312,48 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
     return result;
 }
 
+QString Controller::setClipValue( const QString& params ) {
+    QString result;
+    std::set<QString> keys = {"clipValue"};
+    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+    bool validClip = false;
+    QString clipKey = *keys.begin();
+    QString clipWithoutPercent = dataValues[clipKey].remove("%");
+    double clipVal = dataValues[clipKey].toDouble(&validClip);
+    // Make sure the clip value is within a valid range.
+    // I'm not sure if this is the proper, accepted range, but it seems to work.
+    if ( clipVal > 1 || clipVal < 0.026 ) {
+        validClip = false;
+    }
+    if ( validClip ){
+        double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
+        double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
+        double oldClipVal = oldClipValMax - oldClipValMin;
+        const double ERROR_MARGIN = 0.000001;
+        if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
+            double leftOver = 1 - clipVal;
+            double clipValMin = leftOver / 2;
+            double clipValMax = clipVal + leftOver / 2;
+            m_state.setValue<double>( CLIP_VALUE_MIN, clipValMin );
+            m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
+            m_state.flushState();
+            if ( m_view ){
+                _loadView();
+            }
+        }
+    }
+    else {
+        qDebug() << "Invalid clip value: "<<params;
+    }
+    return result;
+}
 
 void Controller::_initializeCallbacks(){
     //Listen for updates to the clip and reload the frame.
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {"clipValue"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-        bool validClip = false;
-        QString clipKey = *keys.begin();
-        QString clipWithoutPercent = dataValues[clipKey].remove("%");
-        double clipVal = dataValues[clipKey].toDouble(&validClip);
-        if ( validClip ){
-            double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
-            double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
-            double oldClipVal = oldClipValMax - oldClipValMin;
-            const double ERROR_MARGIN = 0.000001;
-            if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
-                double leftOver = 1 - clipVal;
-                double clipValMin = leftOver / 2;
-                double clipValMax = clipVal + leftOver / 2;
-                result = applyClips (clipValMin, clipValMax );
-            }
-        }
-        else {
-            result = "Invalid clip value: "+params;
-        }
+        QString result = setClipValue( params );
         Util::commandPostProcess( result );
         return result;
     });
@@ -602,6 +617,17 @@ void Controller::saveState() {
     }
 }
 
+bool Controller::saveImage( const QString& filename ) {
+    bool result = m_view->getBuffer().save( filename);
+    return result;
+}
+
+bool Controller::saveFullImage( const QString& filename, double scale ) {
+    int imageIndex = m_selectImage->getIndex();
+    bool result = m_datas[imageIndex]->saveFullImage( filename, scale );
+    return result;
+}
+
 void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){
@@ -815,6 +841,61 @@ void Controller::updatePan( double centerX , double centerY){
             _updateCursorText( true );
         }
     }
+}
+
+void Controller::centerOnPixel( double centerX, double centerY ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        // Currently (0, 0) is at the top left of the image. We want it to be the
+        // bottom left, so we need to flip the y-coordinate.
+        int yDimension = m_datas[imageIndex]->getDimension( 1 );
+        m_datas[imageIndex]->setPan( centerX, yDimension - centerY );
+        _render();
+    }
+}
+
+void Controller::setZoomLevel( double zoomFactor ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        //Set the zoom
+        m_datas[imageIndex]->setZoom( zoomFactor );
+        _render();
+    }
+}
+
+double Controller::getZoomLevel( ){
+    double zoom;
+    QString result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        zoom = m_datas[imageIndex]->getZoom( );
+        _render();
+    }
+    return zoom;
+}
+
+QStringList Controller::getImageDimensions( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        int dimensions = m_datas[imageIndex]->getDimensions();
+        for ( int i = 0; i < dimensions; i++ ) {
+            int d = m_datas[imageIndex]->getDimension( i );
+            result.append( QString::number( d ) );
+        }
+    }
+    return result;
+}
+
+QStringList Controller::getOutputSize( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        QSize outputSize = m_datas[imageIndex]->getOutputSize();
+        result.append( QString::number( outputSize.width() ) );
+        result.append( QString::number( outputSize.height() ) );
+    }
+    return result;
 }
 
 void Controller::_viewResize( const QSize& newSize ){
