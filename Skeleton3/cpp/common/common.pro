@@ -63,7 +63,8 @@ HEADERS += \
     Hacks/MainModel.h \
     Hacks/ILayeredView.h \
     Hacks/IVectorGraphicsView.h \
-    Hacks/WcsGridOptionsController.h
+    Hacks/WcsGridOptionsController.h \
+    Hacks/SharedState.h
 
 SOURCES += \
     Viewer.cpp \
@@ -115,7 +116,8 @@ SOURCES += \
     Hacks/MainModel.cpp \
     Hacks/ILayeredView.cpp \
     Hacks/IVectorGraphicsView.cpp \
-    Hacks/WcsGridOptionsController.cpp
+    Hacks/WcsGridOptionsController.cpp \
+    Hacks/SharedState.cpp
 
 
 #message( "common            PWD=$$PWD")

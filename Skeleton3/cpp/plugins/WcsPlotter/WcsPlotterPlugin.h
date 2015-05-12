@@ -4,12 +4,9 @@
 
 #include "CartaLib/IPlugin.h"
 #include <QObject>
-#include <QString>
-#include "CartaLib/Hooks/DrawWcsGrid.h"
 
 namespace WcsPlotterPluginNS
 {
-
 class WcsPlotterPlugin : public QObject, public IPlugin
 {
     Q_OBJECT
@@ -18,7 +15,6 @@ class WcsPlotterPlugin : public QObject, public IPlugin
     ;
 
 public:
-
 
     WcsPlotterPlugin( QObject * parent = 0 );
 

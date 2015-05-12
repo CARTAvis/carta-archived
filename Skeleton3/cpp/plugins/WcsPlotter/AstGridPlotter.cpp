@@ -9,56 +9,50 @@ extern "C" {
 namespace WcsPlotterPluginNS
 {
 
-AstGridPlotterQImage::AstGridPlotterQImage()
+AstGridPlotter::AstGridPlotter()
 {
 //    impl_ = new Impl;
     m_carLin = false;
-    m_img = nullptr;
 }
 
-AstGridPlotterQImage::~AstGridPlotterQImage()
+AstGridPlotter::~AstGridPlotter()
 {
 //     delete impl_;
 }
 
-bool AstGridPlotterQImage::setFitsHeader(const QString & hdr)
+bool AstGridPlotter::setFitsHeader(const QString & hdr)
 {
     m_fitsHeader = hdr;
 
     return true;
 }
 
-void AstGridPlotterQImage::setCarLin(bool flag)
+void AstGridPlotter::setCarLin(bool flag)
 {
     m_carLin = flag;
 }
 
-void AstGridPlotterQImage::setSystem( const QString & system)
+void AstGridPlotter::setSystem( const QString & system)
 {
     m_system = system;
 }
 
-void AstGridPlotterQImage::setOutputImage(QImage *img)
-{
-    m_img = img;
-}
-
-void AstGridPlotterQImage::setOutputVGComposer(AstGridPlotterQImage::VGComposer * vgc)
+void AstGridPlotter::setOutputVGComposer(AstGridPlotter::VGComposer * vgc)
 {
     m_vgc = vgc;
 }
 
-void AstGridPlotterQImage::setOutputRect(const QRectF &rect)
+void AstGridPlotter::setOutputRect(const QRectF &rect)
 {
     m_orect = rect;
 }
 
-void AstGridPlotterQImage::setInputRect(const QRectF & rect)
+void AstGridPlotter::setInputRect(const QRectF & rect)
 {
     m_irect = rect;
 }
 
-void AstGridPlotterQImage::setPlotOption(const QString & option)
+void AstGridPlotter::setPlotOption(const QString & option)
 {
     m_plotOptions.append( option);
 }
@@ -73,22 +67,19 @@ struct AstGuard {
     ~AstGuard() { astEnd; }
 };
 
-bool AstGridPlotterQImage::plot()
+bool AstGridPlotter::plot()
 {
     astClearStatus;
     AstGuard astGuard;
 
-//    if( ! m_img ) {
-//        m_errorString = "No image set";
-//        return false;
-//    }
-
     // copy over colors
-    grfDriverGlobals().colors = colors();
+    grfGlobals()-> colors = colors();
     // make sure we have at least 1 color
-    grfDriverGlobals().colors.push_back( QColor("blue"));
+    grfGlobals()-> colors.push_back( QColor("blue"));
+    // shadows are separate
+    grfGlobals()-> lineShadowPen = m_shadowPen;
     // reset color index
-    grfDriverGlobals().currentColorIndex = 0;
+    grfGlobals()-> currentColorIndex = 0;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-zero-length"
@@ -126,7 +117,6 @@ bool AstGridPlotterQImage::plot()
     double pbox[] = { m_irect.left()+1, m_irect.bottom()+1,
                       m_irect.right()+1, m_irect.top()+1 };
 
-    grfSetImage( m_img);
     grfdriverSetVGComposer( m_vgc);
 
     AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
@@ -175,8 +165,6 @@ bool AstGridPlotterQImage::plot()
 
     astGrid( plot );
 
-    grfSetImage( nullptr);
-    grfdriverSetVGComposer( nullptr);
 
     plot = (AstPlot *) astAnnul( plot);
     wcsinfo = (AstFrameSet *) astAnnul( wcsinfo);
@@ -185,14 +173,9 @@ bool AstGridPlotterQImage::plot()
     return true;
 }
 
-QString AstGridPlotterQImage::getError()
+QString AstGridPlotter::getError()
 {
     return m_errorString;
 }
-
-//void AstGridPlotterQImage::setTextColor(QString color)
-//{
-//    grfSetTextColor( color);
-//}
 
 }

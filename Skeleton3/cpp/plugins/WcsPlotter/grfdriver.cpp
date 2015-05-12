@@ -1,6 +1,9 @@
 /// \warning the code below is still little messy as it implements painting to both QImage
+
 /// and vector graphics
 /// \todo clean up the code that draws into QImage, only leave vector graphics code
+/// \todo convert this to astGetGrfContext/astGrfSet APIs?
+/// \todo combine this file with the C++ code that drives this
 
 #include "grfdriver.h"
 #include "CartaLib/CartaLib.h"
@@ -8,6 +11,14 @@
 #include <math.h>
 #include <string.h>
 #include <QPainter>
+
+static GrfDriverGlobals globals;
+
+GrfDriverGlobals *
+grfGlobals()
+{
+    return & globals;
+}
 
 namespace VG = Carta::Lib::VectorGraphics;
 namespace VGE = VG::Entries;
@@ -18,82 +29,43 @@ extern "C" {
 #include <ast_err.h>             /* AST error codes */
 };
 
-static GrfDriverGlobals globals;
-
-void grfdriverSetVGComposer(Carta::Lib::VectorGraphics::VGComposer * vgComp)
+void
+grfdriverSetVGComposer( Carta::Lib::VectorGraphics::VGComposer * vgComp )
 {
-    qDebug() << "grfdriverSetVGComposer" << vgComp;
-    globals.vgComposer = vgComp;
+    CARTA_ASSERT( vgComp );
 
-//    globals = GrfDriverGlobals();
+    grfGlobals()->vgComposer = vgComp;
 
-    if( globals.vgComposer) {
-        globals.vgComposer-> append< VGE::SetPenWidth>( globals.penWidth);
-        globals.vgComposer-> append< VGE::SetPenColor>( globals.colors[ 0]);
+    grfGlobals()->vgComposer-> append < VGE::SetPenWidth > ( grfGlobals()->penWidth );
+    grfGlobals()->vgComposer-> append < VGE::SetPenColor > ( grfGlobals()->colors[0] );
+
+    if ( ! grfGlobals()-> image ) {
+        grfGlobals()-> image = new QImage( 100, 100, QImage::Format_ARGB32_Premultiplied );
+        grfGlobals()-> painter = new QPainter( grfGlobals()-> image );
+        grfGlobals()->painter-> setRenderHint( QPainter::Antialiasing, false );
+        grfGlobals()->painter-> setFont( QFont( "Helvetica", 10 ) );
+        grfGlobals()->painter-> setPen( QPen( QColor( "white" ), 0.5 ) );
+        grfGlobals()->painter-> setBrush( Qt::NoBrush );
     }
-}
 
-static VG::VGComposer * vgc()
+    grfGlobals()-> lineShadowColor = grfGlobals()-> lineShadowPen.color();
+    grfGlobals()-> lineShadowWidth = grfGlobals()-> lineShadowPen.widthF();
+    grfGlobals()->lineShadowOn = grfGlobals()->lineShadowColor.alphaF() > 0.0;
+    qDebug() << "shadow" << grfGlobals()->lineShadowOn << grfGlobals()->lineShadowWidth <<
+    grfGlobals()->lineShadowColor;
+} // grfdriverSetVGComposer
+
+static VG::VGComposer *
+vgc()
 {
-    return globals.vgComposer;
+    return grfGlobals()->vgComposer;
 }
-
-//static QImage * grfImage_ = 0;
-//static QColor lineColor_( "#ffff00" );
-//static QColor textColor_( "#ffffff" );
-
-//void
-//grfSetLineColor( QString color )
-//{
-//    globals.lineColor = QColor( color );
-//}
-
-//void
-//grfSetTextColor( QString color )
-//{
-//    globals.textColor = QColor( color );
-//}
-
-//QImage &
-//grfImage()
-//{
-//    CARTA_ASSERT( globals.image);
-//    return * globals.image;
-//}
 
 static QPainter &
-p()
+painter()
 {
-    CARTA_ASSERT( globals.painter );
-    return * globals.painter;
-}
-
-void
-grfSetImage( QImage * img )
-{
-    qDebug() << "grfSetImage" << img;
-    globals.image = img;
-    if ( globals.painter ) {
-        delete globals.painter;
-        globals.painter = 0;
-    }
-    if( ! img) {
-        static bool once = true;
-        static QImage simg;
-        if( once) {
-            once = false;
-            simg = QImage( 100, 100, QImage::Format_ARGB32_Premultiplied);
-        }
-        img = & simg;
-    }
-    if ( img ) {
-        globals.painter = new QPainter( img );
-        globals.painter-> setRenderHint( QPainter::Antialiasing, true );
-        globals.painter-> setFont( QFont( "Helvetica", 10 ) );
-        globals.painter-> setPen( QPen( QColor("white"), 0.5 ) );
-        globals.painter-> setBrush( Qt::NoBrush );
-    }
-    qDebug() << "globals.painter" << globals.painter;
+    CARTA_ASSERT( grfGlobals()-> painter );
+    return * grfGlobals()->painter;
 }
 
 /// helper to draw text
@@ -103,7 +75,7 @@ drawText( const char * text, float x, float y, const char * just,
 {
     QString jst = just ? QString( just ).toUpper() : "CC";
 
-    QFontMetricsF fm( p().font(), p().device() );
+    QFontMetricsF fm( painter().font(), painter().device() );
     double tw = fm.width( text );
     double asc = fm.ascent() * 0.8;
 
@@ -152,19 +124,23 @@ drawText( const char * text, float x, float y, const char * just,
 //        p().save();
 //        p().setTransform( tr );
 //        p().fillRect( offx, offy + fm.descent(), tw, - th, QColor( 0, 0, 0, 128 ) );
-//        p().setPen( globals.textColor );
+//        p().setPen( grfGlobals()->textColor );
 //        p().drawText( offx, offy, text );
 //        p().restore();
 
-        if( vgc()) {
-            vgc()->append<VGE::Save>();
-            vgc()->append<VGE::SetTransform>(tr, true);
-            QRectF rect( offx, offy + fm.descent(), tw, - th);
-            vgc()->append<VGE::FillRect>( rect, QColor( 0, 0, 0, 128 ));
-//            vgc()->append<VGE::SetPenColor>( globals.textColor);
-            vgc()->append<VGE::DrawText>( text, QPointF(offx,offy));
-            vgc()->append<VGE::Restore>();
+        vgc()->append < VGE::Save > ();
+        vgc()->append < VGE::SetTransform > ( tr, true );
+
+//            QRectF rect( offx, offy + fm.descent(), tw, - th);
+//            vgc()->append<VGE::FillRect>( rect, QColor( 0, 0, 0, 128 ));
+        if ( grfGlobals()->lineShadowOn ) {
+            vgc()->append < VGE::Save > ();
+            vgc()->append < VGE::SetPenColor > ( grfGlobals()-> lineShadowColor );
+            vgc()->append < VGE::DrawText > ( text, QPointF( offx + 1, offy + 1 ) );
+            vgc()->append < VGE::Restore > ();
         }
+        vgc()->append < VGE::DrawText > ( text, QPointF( offx, offy ) );
+        vgc()->append < VGE::Restore > ();
     }
 
     // compute the bounding rectangle...
@@ -189,16 +165,12 @@ drawText( const char * text, float x, float y, const char * just,
  *
  * The set of functions below is the actual implementation of the low level AST graphics
  * driver. These functions are called by AST lib, in particular during the invocation of
- * astGrid()
+ * astGrid(). Since AST is a C library, the following should be enclosed in extern "C"...
  *
  * ======================================================================================
  */
 
 extern "C" {
-/* Externally visible functions. */
-/* ============================= */
-/* These implement the "grf" interface in terms of the local C interface
-   to PGPLOT. */
 int
 astGBBuf( void )
 {
@@ -234,12 +206,8 @@ astGBBuf( void )
 *-
 */
 
-    //   ccpgbbuf();
-//    dbg(1) << "Trace\n";
+    vgc()-> append < VGE::Save > ();
 
-    if( vgc()) {
-        vgc()-> append<VGE::Save>();
-    }
     return 1;
 }
 
@@ -278,9 +246,7 @@ astGEBuf( void )
     //   ccpgebuf();
 //    dbg(1) << "Trace\n";
 
-    if( vgc()) {
-        vgc()-> append<VGE::Restore>();
-    }
+    vgc()-> append < VGE::Restore > ();
 
     return 1;
 }
@@ -540,15 +506,21 @@ astGLine( int n, const float * x, const float * y )
     }
 
     if ( n >= 2 ) {
-        QPolygonF qpts(n);
+        QPolygonF qpts( n );
         for ( int i = 0 ; i < n ; i++ ) {
             qpts[i].setX( x[i] );
             qpts[i].setY( y[i] );
         }
 
-        if( vgc()) {
-            vgc()-> append< VGE::DrawPolyline> ( qpts);
+        if ( grfGlobals()->lineShadowOn ) {
+            QPen shadowPen( grfGlobals()-> lineShadowColor, grfGlobals()->penWidth +
+                            grfGlobals()-> lineShadowWidth );
+            vgc()-> append < VGE::Save > ();
+            vgc()-> append < VGE::SetPen > ( shadowPen );
+            vgc()-> append < VGE::DrawPolyline > ( qpts );
+            vgc()-> append < VGE::Restore > ();
         }
+        vgc()-> append < VGE::DrawPolyline > ( qpts );
     }
 
     return 1;
@@ -594,16 +566,15 @@ astGMark( int n, const float * x, const float * y, int type )
 *-
 */
 
-//    dbg(1) << "Trace GMARK ==========\n";
+    qDebug() << "astgmark";
 
     if ( n > 0 && x && y ) {
-        //       ccpgpt( n, (float *) x, (float *) y, type );
-    }
-    for ( int i = 0 ; i < n ; i++ ) {
-        p().drawEllipse( x[i], y[i], type, type );
+        for ( int i = 0 ; i < n ; i++ ) {
+            painter().drawEllipse( x[i], y[i], type, type );
+        }
     }
     return 1;
-}
+} // astGMark
 
 int
 astGText( const char * text, float x, float y, const char * just,
@@ -710,8 +681,6 @@ astGScales( float * alpha, float * beta )
 
 *-
 */
-
-//    dbg(1) << "Trace: astGScales() = = = = = = = = = = = =\n";
 
     if ( alpha ) {
         * alpha = 1;
@@ -837,13 +806,11 @@ astGQch( float * chv, float * chh )
 *-
 */
 
-//    dbg(1) << "Trace: astGQch\n";
-
     if ( chh ) {
-        * chh = p().font().pointSizeF();
+        * chh = painter().font().pointSizeF();
     }
     if ( chv ) {
-        * chv = p().font().pointSizeF();
+        * chv = painter().font().pointSizeF();
     }
     return 1;
 }
@@ -912,30 +879,24 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
     }
     else if ( attr == GRF__WIDTH ) {
         if ( old_value ) {
-            * old_value = p().pen().widthF();
+            * old_value = painter().pen().widthF();
         }
         if ( value != AST__BAD ) {
-            QPen pen = p().pen();
-            pen.setWidthF( value );
-            p().setPen( pen );
-
-            if( vgc()) {
-                if( old_value) {
-                    * old_value = globals.penWidth;
-                }
-                globals.penWidth = value;
-                vgc()-> append< VGE::SetPenWidth>( value);
+            if ( old_value ) {
+                * old_value = grfGlobals()->penWidth;
             }
+            grfGlobals()->penWidth = value;
+            vgc()-> append < VGE::SetPenWidth > ( value );
         }
     }
     else if ( attr == GRF__SIZE ) {
         if ( old_value ) {
-            * old_value = p().fontInfo().pointSizeF();
+            * old_value = painter().fontInfo().pointSizeF();
         }
         if ( value != AST__BAD ) {
-            QFont font = p().font();
+            QFont font = painter().font();
             font.setPointSizeF( value );
-            p().setFont( font );
+            painter().setFont( font );
         }
     }
     else if ( attr == GRF__FONT ) {
@@ -945,29 +906,18 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
     }
     else if ( attr == GRF__COLOUR ) {
         if ( old_value ) {
-            * old_value = globals.currentColorIndex;
+            * old_value = grfGlobals()->currentColorIndex;
         }
-        qDebug() << "GRF__COLOUR" << value;
-        if( value != AST__BAD) {
+        if ( value != AST__BAD ) {
             int ind = value;
-            ind = clamp<int>( ind, 0, globals.colors.size()-1);
-            globals.currentColorIndex = ind;
-            vgc()-> append<VGE::SetPenColor>( globals.colors[ globals.currentColorIndex]);
+            ind = Carta::Lib::clamp < int > ( ind, 0, grfGlobals()->colors.size() - 1 );
+            grfGlobals()->currentColorIndex = ind;
+            vgc()-> append < VGE::SetPenColor > ( grfGlobals()->colors[grfGlobals()->
+                                                                           currentColorIndex] );
         }
-
     }
-    else {
-
-    }
+    else { }
 
     return 1;
 } // astGAttr
-}
-
-
-
-
-GrfDriverGlobals &grfDriverGlobals()
-{
-    return globals;
 }

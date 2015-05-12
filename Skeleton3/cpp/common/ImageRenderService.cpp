@@ -117,7 +117,7 @@ Service::pan()
 void
 Service::setZoom( double zoom )
 {
-    double newZoom = clamp( zoom, 0.1, 256.0 );
+    double newZoom = Carta::Lib::clamp( zoom, 0.1, 256.0 );
     if ( newZoom != m_zoom ) {
         m_zoom = newZoom;
     }
@@ -341,7 +341,7 @@ Service::internalRenderSlot( JobId jobId )
     if( true && zoom() > 5) {
         p.setRenderHint( QPainter::Antialiasing, true);
         double alpha = Carta::Lib::linMap( zoom(), 5, 32, 0.01, 0.2);
-        alpha = clamp( alpha, 0.0, 1.0);
+        alpha = Carta::Lib::clamp( alpha, 0.0, 1.0);
         p.setPen( QPen( QColor(255, 255, 255, 255), alpha));
         QPointF tl = screen2img( QPointF( 0, 0));
         QPointF br = screen2img( QPointF( outputSize().width(), outputSize().height()));

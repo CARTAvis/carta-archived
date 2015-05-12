@@ -72,22 +72,13 @@ void DesktopConnector::setState(const QString& path, const QString & newValue)
         return;
     }
 
-    // if we did find it, but the value is different, set it to new value (optimized)
-    // and emit signal
+    // if we did find it, but the value is different, set it to new value and emit signal
     if( it-> second != newValue) {
         it-> second = newValue;
         emit stateChangedSignal( path, newValue);
     }
 
-    // otherwise don't do anything at all
-
-//    if( it != m_state.end() && it-> second == newValue) {
-//        // if we alredy have an entry for this path and the stored value is
-//        // the same as the incoming value, we don't want to do anything
-//        return;
-//    }
-//    m_state[path] = newValue;
-//    emit stateChangedSignal( path, newValue);
+    // otherwise there was no change to state, so do dothing
 }
 
 

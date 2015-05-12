@@ -97,13 +97,13 @@ protected:
 };
 
 static SkyFormatting
-getDefaultForSkyCS( const KnownSkyCS & skyCS )
+getDefaultForSkyCS( const Carta::Lib::KnownSkyCS & skyCS )
 {
     switch ( skyCS )
     {
-    case KnownSkyCS::B1950 :
-    case KnownSkyCS::J2000 :
-    case KnownSkyCS::ICRS :
+    case Carta::Lib::KnownSkyCS::B1950 :
+    case Carta::Lib::KnownSkyCS::J2000 :
+    case Carta::Lib::KnownSkyCS::ICRS :
         return SkyFormatting::Sexagesimal;
 
     default :
@@ -230,7 +230,7 @@ CCCoordinateFormatter::enableAxis( int ind )
     qFatal( "not implemented" );
 }
 
-KnownSkyCS
+Carta::Lib::KnownSkyCS
 CCCoordinateFormatter::skyCS()
 {
     if ( ! m_casaCS->hasDirectionCoordinate() ) {

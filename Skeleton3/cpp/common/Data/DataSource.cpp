@@ -61,7 +61,7 @@ bool DataSource::setFileName( const QString& fileName ){
             CoordinateFormatterInterface::VD pixel;
             pixel.resize( m_coordinateFormatter->nAxes(), 0 );
             auto fmt = m_coordinateFormatter-> formatFromPixelCoordinate( pixel );
-            auto skycs = KnownSkyCS::Galactic;
+            auto skycs = Carta::Lib::KnownSkyCS::Galactic;
             m_coordinateFormatter-> setSkyCS( skycs );
             /*qDebug() << "set skycs to" << int (skycs)
                      << "now it is" << int ( m_coordinateFormatter-> skyCS() );*/
@@ -188,10 +188,14 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex, int p
             "Unknown", "J2000", "B1950", "ICRS", "Galactic",
             "Ecliptic"
         };
-    std::vector < KnownSkyCS > css {
-            KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-            KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
-        };
+    std::vector < Carta::Lib::KnownSkyCS > css {
+        Carta::Lib::KnownSkyCS::J2000,
+        Carta::Lib::KnownSkyCS::B1950,
+        Carta::Lib::KnownSkyCS::Galactic,
+        Carta::Lib::KnownSkyCS::Ecliptic,
+        Carta::Lib::KnownSkyCS::ICRS
+    };
+
      out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
      out << "Image cursor:" << imgX << "," << imgY << "\n";
 

@@ -1,7 +1,7 @@
 /**
  * I have not decided on an automated system for asigning unique static IDs to hooks,
- * so for now we'll do it manually. And the weapon of choice template specialization
- * with enums (ugly, awkward, but easy to spot bugs)
+ * so for now we'll do it manually. And the weapon of choice is template specialization
+ * with enums (ugly, awkward, but easy to spot bugs).
  **/
 
 #pragma once
@@ -21,10 +21,7 @@ enum class UniqueHookIDs {
     LoadAstroImage_ID,
     HistogramHook_ID,
     ColormapsScalarHook_ID,
-
     LoadPlugin_ID,
-
-    DrawWcsGridHook_ID,
     GetWcsGridRendererHook_ID,
 
     /// experimental, soon to be removed:

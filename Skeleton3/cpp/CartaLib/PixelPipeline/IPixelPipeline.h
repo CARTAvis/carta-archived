@@ -230,7 +230,7 @@ public:
         CARTA_ASSERT( m_stage3 );
 
         // stage 0: clamp
-        double val = clamp( p_val, m_min, m_max );
+        double val = Carta::Lib::clamp( p_val, m_min, m_max );
 
         // stage 1: scalar to scalar
         for ( auto & s : m_stage1 ) {

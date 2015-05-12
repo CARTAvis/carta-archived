@@ -13,7 +13,7 @@
 #include "../ImageRenderService.h"
 #include "../IView.h"
 #include "CartaLib/Nullable.h"
-#include "CartaLib/Hooks/DrawWcsGrid.h"
+#include "CartaLib/Hooks/GetWcsGridRenderer.h"
 #include <QTimer>
 #include <QObject>
 

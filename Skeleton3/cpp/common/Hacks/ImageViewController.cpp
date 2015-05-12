@@ -373,7 +373,7 @@ ImageViewController::loadFrame( int frame )
         frame = 0;
     }
     else {
-        frame = clamp( frame, 0, m_astroImage-> dims()[2] - 1 );
+        frame = Carta::Lib::clamp( frame, 0, m_astroImage-> dims()[2] - 1 );
     }
     m_currentFrame = frame;
 
@@ -435,7 +435,7 @@ ImageViewController::combineImageAndGrid()
     }
 
     // draw the grid over top
-    if ( ! m_gridVG.isNull() && m_gridToggle) {
+    if ( ! m_gridVG.isNull() && m_gridToggle ) {
         QPainter p( & m_renderBuffer );
         p.setRenderHint( QPainter::Antialiasing, true );
         Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
@@ -453,52 +453,6 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 {
     Q_UNUSED( jobId );
     m_renderedAstroImage = img;
-
-    if ( m_gridToggle ) {
-        QPainter p( & m_renderedAstroImage );
-
-        Carta::Lib::Hooks::DrawWcsGridHook::Params params( nullptr );
-        params.m_astroImage = m_astroImage;
-        params.outputSize = m_renderedAstroImage.size();
-        {
-            int leftMargin = 50;
-            int rightMargin = 10;
-            int bottomMargin = 50;
-            int topMargin = 10;
-
-            QSize s = m_renderedAstroImage.size();
-            QPointF bl( leftMargin, m_renderedAstroImage.size().height() - bottomMargin );
-            bl = m_renderService-> screen2img( bl );
-            qDebug() << "bl=" << bl;
-            QPointF tr( m_renderedAstroImage.size().width() - rightMargin, topMargin );
-            tr = m_renderService-> screen2img( tr );
-
-            params.frameRect = QRectF( bl, tr );
-            params.frameRect = QRectF( params.frameRect.bottomLeft(), params.frameRect.topRight() );
-            params.outputRect = QRectF( leftMargin, topMargin, s.width() - leftMargin - rightMargin,
-                                        s.height() - topMargin - bottomMargin );
-        }
-
-        auto res =
-            Globals::instance()-> pluginManager()
-                -> prepare < Carta::Lib::Hooks::DrawWcsGridHook > ( params ).first();
-        if ( res.isNull() ) {
-            qWarning( "Grid failed (qimage version)" );
-        }
-        else {
-            p.setPen( Qt::NoPen );
-            p.setBrush( QBrush( QColor( 0, 0, 0, 128 ) ) );
-            double x1 = 0, x2 = params.outputRect.left(),
-                   x3 = params.outputRect.right(), x4 = m_renderedAstroImage.width();
-            double y1 = 0, y2 = params.outputRect.top(),
-                   y3 = params.outputRect.bottom(), y4 = m_renderedAstroImage.height();
-            p.drawRect( QRectF( QPointF( x1, y1 ), QPointF( x4, y2 ) ) );
-            p.drawRect( QRectF( QPointF( x1, y2 ), QPointF( x2, y3 ) ) );
-            p.drawRect( QRectF( QPointF( x1, y3 ), QPointF( x4, y4 ) ) );
-            p.drawRect( QRectF( QPointF( x3, y2 ), QPointF( x4, y3 ) ) );
-            p.drawImage( QPoint( 0, 0 ), res.val() );
-        }
-    }
 
     // update colormap preview.
     // this does not really belong here, but since we are just hacking...

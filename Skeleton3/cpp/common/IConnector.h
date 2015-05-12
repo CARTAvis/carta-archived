@@ -31,7 +31,6 @@ public:
     /// signature for initialization callback
     typedef std::function<void(bool success)> InitializeCallback;
 
-
     /// signature for state changed callback
     typedef std::function<void (CSR path, CSR newValue)> StateChangedCallback;
 

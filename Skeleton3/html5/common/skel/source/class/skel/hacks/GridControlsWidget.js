@@ -60,7 +60,7 @@ qx.Class.define( "skel.hacks.GridControlsWidget", {
             slider2val: function(x) { return linMap( x, 0, 1000, 0, 1 ) }
         }));
         // grid density
-        this.add( sliderRow( "Grid density:", "gridDensity", {
+        this.add( sliderRow( "Grid spacing:", "gridDensity", {
             val2slider: function(x) { return linMap( x, 0.25, 3, 0, 1000 ) },
             slider2val: function(x) { return linMap( x, 0, 1000, 0.25, 3 ) }
         }));
@@ -76,17 +76,33 @@ qx.Class.define( "skel.hacks.GridControlsWidget", {
         box.add( new qx.ui.basic.Label( "System:"));
         this.add( box);
 
-        // font color
-        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "Font color:"));
-        this.add( box);
+
+        // line color
+        var colButt;
+        var colpop = new qx.ui.control.ColorPopup();
+        colpop.exclude();
 
         // line color
         box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "Line color:"));
+        colButt = new qx.ui.form.Button( "Line color");
+        box.add( colButt);
+        colButt.addListener( "execute", function(e) {
+            colpop.placeToWidget( colButt);
+            colpop.setValue( "#ff0000");
+            colpop.show();
+        });
         this.add( box);
 
-
+        // font color
+        box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
+        colButt = new qx.ui.form.Button( "Font color");
+        box.add( colButt);
+        colButt.addListener( "execute", function(e) {
+            colpop.placeToWidget( colButt);
+            colpop.setValue( "#ff00ff");
+            colpop.show();
+        });
+        this.add( box);
 
 
         this.setMinWidth( 100);

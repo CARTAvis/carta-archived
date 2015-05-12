@@ -2,11 +2,15 @@
 ///
 ///     http://starlink.eao.hawaii.edu/starlink/AST
 ///
-/// This is essentially my attempt to make a dumb C++ interface for interacting with AST,
+/// This is essentially my attempt to make a simple C++ interface for interacting with AST,
 /// at least for drawing grids.
 ///
 /// \warning This class is very unfriendly to multithreading because it uses
 /// ASTlib's plotting, which I could only get to work using global variables.
+///
+/// \todo there is a way to tell AST to use a different graphics driver without
+/// resorting to globals, but I feel it introduces a small performance penalty.
+/// One day we should investigate whether it's actually signifficant penalty.
 
 #pragma once
 
@@ -15,22 +19,24 @@
 #include <QString>
 #include <QRectF>
 #include <QStringList>
+#include <QFont>
 
 class QImage;
 
 namespace WcsPlotterPluginNS
 {
 ///
-/// Renders a wcs grid to a VG composer using starlink's AST library.
+/// Renders a wcs grid to a vector graphics composer using starlink's AST library.
 ///
-class AstGridPlotterQImage
+class AstGridPlotter
 {
 public:
 
+    /// short type alias
     typedef Carta::Lib::VectorGraphics::VGComposer VGComposer;
 
-    AstGridPlotterQImage();
-    ~AstGridPlotterQImage();
+    AstGridPlotter();
+    ~AstGridPlotter();
 
     /// feed the plotter the raw FITS header (concatenated 80-char strings)
     /// returns whether the header has enough information about
@@ -45,10 +51,6 @@ public:
     /// set which system to plot
     void
     setSystem( const QString & system = QString() );
-
-    /// sets the output image (does not take ownership)
-    void
-    setOutputImage( QImage * img );
 
     /// sets the output VGComposer
     void
@@ -65,8 +67,14 @@ public:
     void
     setInputRect( const QRectF & rect );
 
+    /// read/write access to indexed fonts
+    std::vector<QFont> & qfonts() { return m_qfonts; }
+
     /// read/write access to indexed colors
     std::vector<QColor> & colors() { return m_colors; }
+
+    /// set shadow color (alpha=0 means no shadow)
+    void setShadowPen( const QPen & pen) { m_shadowPen = pen; }
 
     /// set various options for grid drawing
     /// this is a temporary method, and it is dependent on AST lib
@@ -101,9 +109,10 @@ protected:
     QStringList m_plotOptions;
     QString m_system;
     QRectF m_orect, m_irect;
-    QImage * m_img = nullptr;
     std::vector<QColor> m_colors;
+    std::vector<QFont> m_qfonts;
     double m_densityModifier = 1.0;
+    QPen m_shadowPen = QPen( QColor( 0, 0, 0, 0), 1);
 
     VGComposer * m_vgc = nullptr;
 };
