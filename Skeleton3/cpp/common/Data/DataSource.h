@@ -287,7 +287,7 @@ public:
      *      an empty string otherwise.
      * [NOTE: this method has been temporarily disabled, so will always return false.]
      */
-    bool saveFullImage( const QString& filename, double scale );
+    bool saveFullImage( const QString& savename, double scale );
 
     virtual ~DataSource();
 

@@ -34,6 +34,11 @@ public:
     explicit
     ScriptedRenderService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
 
+    /// specify zoom
+    /// \param zoom how many screen pixels does a data pixel occupy on screen
+    void
+    setZoom( double zoom );
+
     /// destructor
     ~ScriptedRenderService();
 

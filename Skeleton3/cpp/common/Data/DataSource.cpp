@@ -457,9 +457,9 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-bool DataSource::saveFullImage( const QString& filename, double scale ){
-//    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( filename );
-    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( filename, m_image, m_pixelPipeline, m_fileName );
+bool DataSource::saveFullImage( const QString& savename, double scale ){
+    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
+    m_scriptedRenderService->setZoom( scale );
     bool result = m_scriptedRenderService->saveFullImage();
     return result;
 }
