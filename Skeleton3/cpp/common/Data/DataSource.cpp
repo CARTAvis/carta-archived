@@ -9,6 +9,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
+#include "../ScriptedRenderService.h"
 #include "../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QDir>
@@ -457,7 +458,10 @@ void DataSource::viewResize( const QSize& newSize ){
 }
 
 bool DataSource::saveFullImage( const QString& filename, double scale ){
-    return false;
+//    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( filename );
+    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( filename, m_image, m_pixelPipeline, m_fileName );
+    bool result = m_scriptedRenderService->saveFullImage();
+    return result;
 }
 
 DataSource::~DataSource() {

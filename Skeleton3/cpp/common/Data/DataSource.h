@@ -39,6 +39,14 @@ namespace Carta {
 }
 
 namespace Carta {
+    namespace Core {
+        namespace ScriptedClient {
+            class ScriptedRenderService;
+        }
+    }
+}
+
+namespace Carta {
 
 namespace Data {
 
@@ -330,6 +338,8 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
+
+    Carta::Core::ScriptedClient::ScriptedRenderService *m_scriptedRenderService;
     
     DataSource(const DataSource& other);
     DataSource operator=(const DataSource& other);

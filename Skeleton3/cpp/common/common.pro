@@ -59,6 +59,7 @@ HEADERS += \
     GrayColormap.h \
     HackViewer.h \
     ImageRenderService.h \
+    ScriptedRenderService.h \
     Histogram/HistogramGenerator.h \
     Histogram/HistogramSelection.h \
     Histogram/HistogramPlot.h \
@@ -123,6 +124,7 @@ SOURCES += \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     ImageRenderService.cpp \
+    ScriptedRenderService.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
     Algorithms/quantileAlgorithms.cpp \
