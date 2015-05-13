@@ -280,12 +280,15 @@ public:
     void render();
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
+     * Save a copy of the full image in the current image view at its native
+     * resolution.
      * @param fileName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
      * @return an error message if there was a problem saving the image;
      *      an empty string otherwise.
-     * [NOTE: this method has been temporarily disabled, so will always return false.]
+     * [NOTE: this method still returns false because I don't yet know how to
+     * access the return value from the QImage save() method, which is being
+     * used inside a Qt slot.]
      */
     bool saveFullImage( const QString& savename, double scale );
 
