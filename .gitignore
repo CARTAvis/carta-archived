@@ -2,9 +2,6 @@
 # Makefile
 # moc*.cpp
 
-# qt creator
-# to be fixed
-
 # C++ byproducts
 *.a
 *.o
@@ -12,6 +9,9 @@
 *.so.*
 *.log
 *.i
+
+# emacs by-products
+*~
 
 # git mergetool byproducts
 *.orig

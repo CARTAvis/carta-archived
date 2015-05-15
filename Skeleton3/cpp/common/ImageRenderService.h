@@ -36,6 +36,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QCache>
+#include <QTimer>
 
 namespace Carta
 {
@@ -126,6 +127,20 @@ class Service : public QObject
 
 public:
 
+    /// constructor
+    explicit
+    Service( QObject * parent = 0 );
+
+    /// no copy constructor
+    Service( const Service & ) = delete;
+
+    /// no assignment
+    Service &
+    operator= ( const Service & ) = delete;
+
+    /// destructor
+    ~Service();
+
     ///
     /// \brief sets the input data (view) for rendering
     /// \param view pointer to the view
@@ -183,34 +198,6 @@ public:
     const PixelPipelineCacheSettings &
     pixelPipelineCacheSettings() const;
 
-    /// ask the service to render using the current settings and use the given
-    /// jobId when notifying us of the results
-    /// any previous rendering will most likely be canceled, unless the results
-    /// have already been queued up for delivery
-    void
-    render( JobId jobId );
-
-    /// get the last used render parameters
-//    Input
-//    lastJobParameters()
-//    {
-//        return m_currentInput;
-//    }
-
-    /// constructor
-    explicit
-    Service( QObject * parent = 0 );
-
-    /// no copy constructor
-    Service( const Service & ) = delete;
-
-    /// no assignment
-    Service &
-    operator= ( const Service & ) = delete;
-
-    /// destructor
-    ~Service();
-
     /// convert image coordinates to screen coordinates
     /// \param p coordinates to convert
     /// \return converted coordinates
@@ -225,10 +212,14 @@ public:
     QPointF
     screen2img( const QPointF & p );
 
-protected slots:
+public slots:
 
-    /// internal helper, this will execute in our own thread
-    void internalRenderSlot( JobId );
+    /// ask the service to render using the current settings and use the given
+    /// jobId when notifying us of the results
+    /// any previous rendering will most likely be canceled, unless the results
+    /// have already been queued up for delivery
+    void
+    render( JobId jobId );
 
 signals:
 
@@ -244,7 +235,12 @@ signals:
     /// \warning connect to this using queued connection
     void error( QStringList, JobId );
 
-    void internalRenderSignal( JobId );
+//    void internalRenderSignal( );
+
+protected slots:
+
+    /// internal helper, this will execute in our own thread
+    void internalRenderSlot();
 
 private:
 
@@ -274,6 +270,13 @@ private:
 
     /// cache for individual frames (to make movie playing little bit faster)
     QCache < QString, QImage > m_frameCache;
+
+    /// last requested job id
+    JobId m_lastSubmittedJobId = -1;
+
+    /// timer to make sure we only fire one render signal even if multiple requests
+    /// are submitted
+    QTimer m_renderTimer;
 };
 }
 }

@@ -113,23 +113,23 @@ public:
     /// set the font attribute for the given text element
     /// does nothing for non-text elements, i.e. lines
     virtual void
-    setFont( Element e, const QFont & font) = 0;
+    setFont( Element e, int fontIndex, double pointSize) = 0;
 
     /// get the font attribute for the given element
-    virtual const QFont &
-    font( Element e) = 0;
+//    virtual const QFont &
+//    font( Element e) = 0;
 
-    virtual void
-    setLineThickness( double thickness ) = 0;
+//    virtual void
+//    setLineThickness( double thickness ) = 0;
 
-    virtual double
-    lineThickness() = 0;
+//    virtual double
+//    lineThickness() = 0;
 
-    virtual void
-    setLineColor( QColor color ) = 0;
+//    virtual void
+//    setLineColor( QColor color ) = 0;
 
-    virtual QColor
-    lineColor() = 0;
+//    virtual QColor
+//    lineColor() = 0;
 
     /// set the grid density modifier...
     virtual void

@@ -166,16 +166,23 @@ Service::pixelPipelineCacheSettings() const
 void
 Service::render( JobId jobId )
 {
-    emit internalRenderSignal( jobId );
+    m_lastSubmittedJobId = jobId;
+    if( ! m_renderTimer.isActive()) {
+        m_renderTimer.start();
+    }
 }
 
 Service::Service( QObject * parent ) : QObject( parent )
 {
     // hook up the internal schedule helper signal to the scheduleJob slot, using
     // queued connection
-    auto conn = connect( this, & Service::internalRenderSignal,
-                         this, & Service::internalRenderSlot,
-                         Qt::QueuedConnection );
+//    auto conn = connect( this, & Service::internalRenderSignal,
+//                         this, & Service::internalRenderSlot,
+//                         Qt::QueuedConnection );
+
+    m_renderTimer.setSingleShot( true);
+    m_renderTimer.setInterval(1);
+    connect( & m_renderTimer, & QTimer::timeout, this, & Me::internalRenderSlot);
 
     m_frameCache.setMaxCost( 1 * 1024 * 1024 * 1024 ); // 1 gig
 }
@@ -218,8 +225,12 @@ Service::screen2img( const QPointF & p )
 }
 
 void
-Service::internalRenderSlot( JobId jobId )
+Service::internalRenderSlot(  )
 {
+    static int renderCount = 0;
+    qDebug() << "Image render" << renderCount ++ << "xyz";
+
+    // raw double to base64 converter
     auto d2hex = [] (double x) -> QString {
         return QByteArray( (char *) ( & x ), sizeof( x ) ).toBase64();
     };
@@ -232,7 +243,6 @@ Service::internalRenderSlot( JobId jobId )
     // zoom
     // pixel pipeline cache settings
     // Floats are binary-encoded (base64)
-
     QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7" )
                           .arg( m_inputViewCacheId )
                           .arg( m_pixelPipelineCacheId )
@@ -262,7 +272,7 @@ Service::internalRenderSlot( JobId jobId )
     auto cachedImage = m_frameCache.object( cacheId );
     if ( cachedImage ) {
         qDebug() << "frame cache hit";
-        emit done( * cachedImage, jobId );
+        emit done( * cachedImage, m_lastSubmittedJobId );
         return;
     }
     qDebug() << "frame cache miss";
@@ -361,7 +371,7 @@ Service::internalRenderSlot( JobId jobId )
     }
 
     // report result
-    emit done( QImage( img ), jobId );
+    emit done( QImage( img ), m_lastSubmittedJobId );
 
     // debuggin: put a yellow stamp on the image, so that next time it's recalled
     // it'll have 'cached' stamped on it

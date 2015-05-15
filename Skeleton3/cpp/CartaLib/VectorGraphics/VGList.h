@@ -7,6 +7,7 @@
 #include <QImage>
 #include <QStringList>
 #include <QPainter>
+#include <QFontInfo>
 
 #pragma once
 
@@ -16,16 +17,44 @@ namespace Lib
 {
 namespace VectorGraphics
 {
-/// our QPainter on stereoids
+/// our QPainter with an API that should be reproducible in HTML5
 class BetterQPainter
 {
 public:
 
+    class FontInfo
+    {
+    public:
+        QString name() { return "some font"; }
+    private:
+        QString m_name;
+        friend class BetterQPainter;
+    };
+
     BetterQPainter( QPainter & qPainter )
         : m_qPainter( qPainter )
     {
+        // setup default fonts
+        m_fonts.push_back( QFont( "Helvetica", 10)); // <-- default
+        m_fonts.push_back( QFont( "Monospace", 10));
+        m_fonts.push_back( QFont( "Courier", 10));
+        m_fonts.push_back( QFont( "Purisa", 10));
+
+        // default pen
         m_qPainter.setPen( QPen( QColor( "red" ), 1 ) );
-        m_qPainter.setFont( QFont( "Helvetica", 10 ) );
+        // default font
+        m_qPainter.setFont( m_fonts.front());
+    }
+
+    /// get info about the existing fonts
+    std::vector<FontInfo> fontInfos() {
+        std::vector<FontInfo> infos;
+        for( QFont & font : m_fonts) {
+            FontInfo finfo;
+            finfo.m_name = QFontInfo( font).family();
+            infos.push_back( finfo);
+        }
+        return infos;
     }
 
     /// draw a line from point p1 to p2
@@ -66,6 +95,22 @@ public:
         m_qPainter.setPen( pen );
     }
 
+    void setFontIndex( int fontIndex) {
+        qDebug() << "fontIndex" << fontIndex;
+        CARTA_ASSERT( fontIndex >= 0 && fontIndex < int(m_fonts.size()));
+        fontIndex = Carta::Lib::clamp<int>( fontIndex, 0, int(m_fonts.size() - 1));
+        QFont font = m_fonts[fontIndex];
+        font.setPointSizeF( m_qPainter.font().pointSizeF());
+        m_qPainter.setFont( font);
+    }
+
+    void setFontSize( int size) {
+        QFont f = m_qPainter.font();
+        f.setPointSizeF( size);
+        m_qPainter.setFont( f);
+    }
+
+
     /// save the state of the painter
     void
     save()
@@ -101,6 +146,7 @@ public:
 private:
 
     QPainter & m_qPainter;
+    std::vector<QFont> m_fonts;
 };
 
 /// api for an entry in a VGList
@@ -248,14 +294,14 @@ private:
     QColor m_color = QColor( 255, 255, 255 );
 };
 
-/// set pen implementation
+/// set pen entry
 class SetPen : public IVGListEntry
 {
     CLASS_BOILERPLATE( SetPen );
 
 public:
 
-    SetPen( QPen pen )
+    SetPen( const QPen & pen )
     {
         m_pen = pen;
     }
@@ -280,6 +326,69 @@ private:
 
     QPen m_pen = QPen( QColor( 255, 255, 255 ) );
 };
+
+/// set font entry
+class SetFontIndex : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetFontIndex );
+
+public:
+
+    SetFontIndex( int fontIndex )
+    {
+        m_fontIndex = fontIndex;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.setFontIndex( m_fontIndex );
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.setFont('%1');" )
+                   .arg( m_fontIndex );
+    }
+
+private:
+
+    int m_fontIndex = 0;
+};
+
+/// set fontSize entry
+class SetFontSize : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetFontSize );
+
+public:
+
+    SetFontSize( double size )
+    {
+        m_size = size;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.setFontSize( m_size );
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.setFontSize('%1');" )
+                   .arg( m_size );
+    }
+
+private:
+
+    double m_size = 0;
+};
+
 
 /// save the state of the painter
 class Save : public IVGListEntry

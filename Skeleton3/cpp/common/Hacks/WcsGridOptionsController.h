@@ -35,11 +35,11 @@ public slots:
 
 private:
 
-    void
-    lineOpacityCB(const QString &, const QString & val);
+//    void
+//    lineOpacityCB(const QString &, const QString & val);
 
-    void
-    lineThicknessCB( const QString &, const QString & val );
+//    void
+//    lineThicknessCB( const QString &, const QString & val );
 
 //    void
 //    gridDensityCB( const QString &, const QString & val);
@@ -63,6 +63,9 @@ private:
     SS::TypedVariable<QPen>::SharedPtr m_labelText1Pen;
     SS::TypedVariable<QPen>::SharedPtr m_labelText2Pen;
     SS::TypedVariable<QPen>::SharedPtr m_shadowPen;
+
+    SS::DoubleVar::UniquePtr m_numText1FontSize;
+    SS::IntVar::UniquePtr m_numText1FontIndex;
 
     void stdVarCB();
 

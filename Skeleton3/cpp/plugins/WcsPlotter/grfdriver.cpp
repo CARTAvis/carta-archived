@@ -53,6 +53,12 @@ grfdriverSetVGComposer( Carta::Lib::VectorGraphics::VGComposer * vgComp )
     grfGlobals()->lineShadowOn = grfGlobals()->lineShadowColor.alphaF() > 0.0;
     qDebug() << "shadow" << grfGlobals()->lineShadowOn << grfGlobals()->lineShadowWidth <<
     grfGlobals()->lineShadowColor;
+
+    // reset color index
+    grfGlobals()-> currentColorIndex = 0;
+
+    // reset font index
+    grfGlobals()-> currentFontIndex = 0;
 } // grfdriverSetVGComposer
 
 static VG::VGComposer *
@@ -82,14 +88,14 @@ drawText( const char * text, float x, float y, const char * just,
 //    double th = fm.height();
     double th = fm.descent() + 1 + asc;
 
-    // normalize upx,upy
-    {
-        double d = sqrt( upx * upx + upy * upy );
-        if ( d > 1e-6 ) {
-            upx /= d;
-            upy /= d;
-        }
-    }
+    // normalize upx,upy - not needed as we are only using this with atan2()
+//    {
+//        double d = sqrt( upx * upx + upy * upy );
+//        if ( d > 1e-6 ) {
+//            upx /= d;
+//            upy /= d;
+//        }
+//    }
 
     // create an offset tx,ty based on adjustments
     double offx, offy;
@@ -897,11 +903,18 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             QFont font = painter().font();
             font.setPointSizeF( value );
             painter().setFont( font );
+
+            vgc()-> append < VGE::SetFontSize > ( painter().font().pointSizeF() );
         }
     }
     else if ( attr == GRF__FONT ) {
         if ( old_value ) {
-            * old_value = 1.0;
+            * old_value = grfGlobals()->currentFontIndex;
+        }
+        if ( value != AST__BAD ) {
+            int ind = value;
+            grfGlobals()->currentFontIndex = ind;
+            vgc()-> append < VGE::SetFontIndex > ( ind );
         }
     }
     else if ( attr == GRF__COLOUR ) {
@@ -912,8 +925,7 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             int ind = value;
             ind = Carta::Lib::clamp < int > ( ind, 0, grfGlobals()->colors.size() - 1 );
             grfGlobals()->currentColorIndex = ind;
-            vgc()-> append < VGE::SetPenColor > ( grfGlobals()->colors[grfGlobals()->
-                                                                           currentColorIndex] );
+            vgc()-> append < VGE::SetPenColor > ( grfGlobals()->colors[ind] );
         }
     }
     else { }

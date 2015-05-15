@@ -34,6 +34,7 @@ qx.Class.define("skel.hacks.HackMainWindow", {
         //this.setHeight( 200 );
         this.setShowMinimize( false );
         this.setLayout( new qx.ui.layout.VBox( 5));
+        this.setAlwaysOnTop( true);
 
         this.add(new skel.boundWidgets.Toggle( "Cursor", "/hacks/cursorVisible"));
         this.add(new skel.boundWidgets.Toggle( "Colormap", "/hacks/cm-windowVisible"));

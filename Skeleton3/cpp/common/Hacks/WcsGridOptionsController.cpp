@@ -36,13 +36,13 @@ WcsGridOptionsController::WcsGridOptionsController(
     SetupVar( m_internalLabels, SS::BoolVar,
               "internalLabels", false);
     SetupVar( m_gridDensityModifier, SS::DoubleVar,
-              "gridDensity", 0.5);
+              "gridDensity", 1.0);
     SetupVar( m_borderLinesPen, SS::TypedVariable<QPen>,
               "borderLines", QPen( QColor( 0, 255, 0), 2));
     SetupVar( m_axisLines1Pen, SS::TypedVariable<QPen>,
-              "aixsLines1", QPen( QColor( 0, 0, 180), 2));
+              "axisLines1", QPen( QColor( 0, 0, 180), 2));
     SetupVar( m_axisLines2Pen, SS::TypedVariable<QPen>,
-              "aixsLines2", QPen( QColor( 255, 0, 180), 2));
+              "axisLines2", QPen( QColor( 255, 0, 180), 2));
     SetupVar( m_gridLines1Pen, SS::TypedVariable<QPen>,
               "gridLines1", QPen( QColor( 255, 255, 255), 1));
     SetupVar( m_gridLines2Pen, SS::TypedVariable<QPen>,
@@ -55,72 +55,37 @@ WcsGridOptionsController::WcsGridOptionsController(
     SetupVar( m_numText1Pen, SS::TypedVariable<QPen>,
               "numText1pen", QPen( QColor( "white"), 1));
     SetupVar( m_numText2Pen, SS::TypedVariable<QPen>,
-              "numText2pen", QPen( QColor( "purple"), 1));
+              "numText2pen", QPen( QColor( "white"), 1));
     SetupVar( m_labelText1Pen, SS::TypedVariable<QPen>,
               "labelText1pen", QPen( QColor( "orange"), 1));
     SetupVar( m_labelText2Pen, SS::TypedVariable<QPen>,
-              "labelText2pen", QPen( QColor( "gray"), 1));
+              "labelText2pen", QPen( QColor( "yellow"), 1));
 
     SetupVar( m_shadowPen, SS::TypedVariable<QPen>,
               "shadowPen", QPen( QColor( 0,0,0,64), 1));
 
+    SetupVar( m_numText1FontIndex, SS::IntVar,
+              "numText1FontIndex", 0);
+    SetupVar( m_numText1FontSize, SS::DoubleVar,
+              "numText1FontSize", 10);
 
 #undef SetupVar
 
-    //
-    // add callbacks for state changes
-    // ====================================
-    using namespace std::placeholders;
-    // line thickness
-    m_connector-> addStateCallback(
-                m_statePrefix + "lineThickness",
-                std::bind( & Me::lineThicknessCB, this, _1, _2 ));
-    // line opacity
-    m_connector-> addStateCallback(
-                m_statePrefix + "lineOpacity",
-                std::bind( & Me::lineOpacityCB, this, _1, _2 ));
 
-    // set up some defaults
-    double lineThickness = 0.5;
-    m_connector-> setState( m_statePrefix + "lineThickness", QString::number( lineThickness));
-    m_wcsGridRenderer-> setLineThickness( lineThickness);
-    QColor lineColor( 255, 255, 0, 255);
-    m_connector-> setState( m_statePrefix + "lineOpacity", QString::number( lineColor.alphaF()));
-    m_wcsGridRenderer-> setLineColor( lineColor);
-
-    m_wcsGridRenderer-> setSkyCS( Carta::Lib::KnownSkyCS::Galactic);
+    // default coordinate system
+    m_wcsGridRenderer-> setSkyCS( Carta::Lib::KnownSkyCS::ICRS);
 
     stdVarCB();
 }
 
-void WcsGridOptionsController::lineThicknessCB(const QString &, const QString & val)
-{
-    bool ok;
-    double t = val.toDouble( & ok );
-    if ( ! ok ) {
-        return;
-    }
-    m_wcsGridRenderer-> setLineThickness( t );
-    m_wcsGridRenderer-> startRendering();
-
-}
-
-//void WcsGridOptionsController::gridDensityCB(const QString &, const QString & val)
+//void WcsGridOptionsController::lineThicknessCB(const QString &, const QString & val)
 //{
 //    bool ok;
 //    double t = val.toDouble( & ok );
 //    if ( ! ok ) {
 //        return;
 //    }
-//    m_wcsGridRenderer-> setGridDensity( t );
-//    m_wcsGridRenderer-> startRendering();
-
-//}
-
-//void WcsGridOptionsController::internalLabelsCB(const QString &, const QString & val)
-//{
-//    bool t = val.simplified() == "1";
-//    m_wcsGridRenderer-> setInternalLabels( t);
+//    m_wcsGridRenderer-> setLineThickness( t );
 //    m_wcsGridRenderer-> startRendering();
 
 //}
@@ -161,22 +126,36 @@ void WcsGridOptionsController::stdVarCB()
     m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::Shadow,
                                 m_shadowPen-> get());
 
+    m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText1,
+                                 m_numText1FontIndex-> get(),
+                                 m_numText1FontSize-> get());
+
+    m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText2,
+                                 m_numText1FontIndex-> get(),
+                                 m_numText1FontSize-> get());
+    m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText1,
+                                 m_numText1FontIndex-> get(),
+                                 m_numText1FontSize-> get());
+    m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
+                                 m_numText1FontIndex-> get(),
+                                 m_numText1FontSize-> get());
+
     m_wcsGridRenderer-> startRendering();
 
 
 }
 
-void WcsGridOptionsController::lineOpacityCB(const QString &, const QString & val)
-{
-    bool ok;
-    double t = val.toDouble( & ok );
-    if ( ! ok ) {
-        return;
-    }
-    QColor color = m_wcsGridRenderer-> lineColor();
-    color.setAlphaF( t);
-    m_wcsGridRenderer-> setLineColor( color);
-    m_wcsGridRenderer-> startRendering();
-}
+//void WcsGridOptionsController::lineOpacityCB(const QString &, const QString & val)
+//{
+//    bool ok;
+//    double t = val.toDouble( & ok );
+//    if ( ! ok ) {
+//        return;
+//    }
+//    QColor color = m_wcsGridRenderer-> lineColor();
+//    color.setAlphaF( t);
+//    m_wcsGridRenderer-> setLineColor( color);
+//    m_wcsGridRenderer-> startRendering();
+//}
 
 }

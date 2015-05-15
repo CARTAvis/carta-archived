@@ -10,6 +10,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "GrayColormap.h"
 #include <QPainter>
+#include <QTime>
 #include <functional>
 
 namespace Impl
@@ -140,6 +141,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
                                         m_gridToggle = ( val == "1" );
 
                                         // this is very inefficient, but it'll get the job done for now
+                                        qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
                                         m_renderService-> render( 0 );
                                         updateGridAfterPanZoomResize();
                                     }
@@ -238,6 +240,7 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
 
     // tell the service to rerender
     m_renderedAstroImage = QImage();
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 
     // if grid is active, ask grid renderer to re-render grid as well
@@ -254,6 +257,7 @@ ImageViewController::panCB( const QString &, const QString & params, const QStri
         auto newCenter = m_renderService-> screen2img( { vals[0], vals[1] }
                                                        );
         m_renderService-> setPan( newCenter );
+        qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
         m_renderService-> render( 0 );
     }
 
@@ -284,6 +288,7 @@ ImageViewController::setCmapInvert( bool flag )
 {
     m_pixelPipeline-> setInvert( flag );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 }
 
@@ -292,6 +297,7 @@ ImageViewController::setCmapReverse( bool flag )
 {
     m_pixelPipeline-> setReverse( flag );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 }
 
@@ -300,6 +306,7 @@ ImageViewController::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::Sha
 {
     m_pixelPipeline-> setColormap( cmap );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 }
 
@@ -307,6 +314,7 @@ void
 ImageViewController::setPPCsettings( ImageViewController::PPCsettings settings )
 {
     m_renderService-> setPixelPipelineCacheSettings( settings );
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 }
 
@@ -322,6 +330,7 @@ ImageViewController::handleResizeRequest( const QSize & size )
     // redraw the image with the new size
     m_renderedAstroImage = QImage();
     m_renderService-> setOutputSize( size );
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 
     // request grid redraw with the new size as well
@@ -402,6 +411,7 @@ ImageViewController::loadFrame( int frame )
 
     // tell the render service to render this job
     m_renderService-> setInputView( view, QString( "%1//%2" ).arg( m_fileName ).arg( m_currentFrame ) );
+    qDebug() << "loc:" << __FILE__ << __LINE__ << "xyz";
     m_renderService-> render( 0 );
 
     // if grid is active, request a grid rendering as well
@@ -436,12 +446,14 @@ ImageViewController::combineImageAndGrid()
 
     // draw the grid over top
     if ( ! m_gridVG.isNull() && m_gridToggle ) {
+        QTime t; t.restart();
         QPainter p( & m_renderBuffer );
         p.setRenderHint( QPainter::Antialiasing, true );
         Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
         if ( ! vgRenderer.render( m_gridVG.val(), p ) ) {
             qWarning() << "could not render grid vector graphics";
         }
+        qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
     }
 
     // schedule a repaint with the connector

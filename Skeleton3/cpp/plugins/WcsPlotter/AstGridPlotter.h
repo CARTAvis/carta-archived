@@ -68,7 +68,7 @@ public:
     setInputRect( const QRectF & rect );
 
     /// read/write access to indexed fonts
-    std::vector<QFont> & qfonts() { return m_qfonts; }
+    std::vector<QFont> & fonts() { return m_qfonts; }
 
     /// read/write access to indexed colors
     std::vector<QColor> & colors() { return m_colors; }

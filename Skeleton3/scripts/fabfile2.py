@@ -16,7 +16,7 @@ from fabric.contrib.project import rsync_project
 env.user = "calsci"
 env.hosts = ['almatest.cyberska.org']
 pureWebRoot = "PureWeb/4.1.1"
-remoteDeployDir = "PavolDeploy"
+remoteDeployDir = "PavolDeploy2"
 localSourceDir = "/home/pfederl/Work/ALMAvis"
 
 if localSourceDir.endswith("/"):

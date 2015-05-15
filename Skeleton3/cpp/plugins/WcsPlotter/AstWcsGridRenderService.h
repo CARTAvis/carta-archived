@@ -37,20 +37,20 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) override;
 
-    virtual void
-    setLineThickness( double thickness ) override;
+//    virtual void
+//    setLineThickness( double thickness ) override;
 
     virtual void
     startRendering() override;
 
-    virtual double
-    lineThickness() override;
+//    virtual double
+//    lineThickness() override;
 
-    virtual void
-    setLineColor( QColor color ) override;
+//    virtual void
+//    setLineColor( QColor color ) override;
 
-    virtual QColor
-    lineColor() override;
+//    virtual QColor
+//    lineColor() override;
 
     virtual void
     setGridDensityModifier( double density ) override;
@@ -65,13 +65,13 @@ public:
     setPen( Element e, const QPen & pen ) override;
 
     virtual const QPen &
-    pen( Element e );
+    pen( Element e ) override;
 
     virtual void
-    setFont( Element e, const QFont & font );
+    setFont( Element e, int fontIndex, double pointSize) override;
 
-    virtual const QFont &
-    font( Element e );
+//    virtual const QFont &
+//    font( Element e ) override;
 
     virtual void
     setShadowColor( const QColor & color ) override;
@@ -80,6 +80,9 @@ public:
     shadowColor() override;
 
 private slots:
+
+    // internal slot - does the actual rendering
+    void renderNow();
 
     // part of a hack to simulate delayed signal
     void
@@ -103,6 +106,9 @@ private:
     // shortcut to pimpl
     inline Pimpl &
     m();
+
+    // the render timer
+    QTimer m_renderTimer;
 
     // part of a hack to simulate delayed signal
     std::unique_ptr < QTimer > m_dbgTimer = nullptr;
