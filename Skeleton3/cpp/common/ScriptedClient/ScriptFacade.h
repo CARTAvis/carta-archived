@@ -322,6 +322,16 @@ public:
     QStringList getOutputSize( const QString& controlId );
 
     /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList getPixelCoordinates( const QString& controlId, double ra, double dec );
+
+    /**
      * Set the amount of extra space on each side of the clip bounds.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param bufferAmount a percentage in [0,100) representing the amount of extra space.

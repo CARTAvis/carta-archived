@@ -292,6 +292,15 @@ public:
      */
     bool saveFullImage( const QString& savename, double scale );
 
+    /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList getPixelCoordinates( double ra, double dec );
+
     virtual ~DataSource();
 
 signals:

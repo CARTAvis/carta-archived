@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from astropy.coordinates import SkyCoord
+
 from statistics import Statistics
 from cartaview import CartaView
 from histogram import Histogram
@@ -200,3 +202,14 @@ class Image(CartaView):
             return False
         else:
             return float(result[0])
+
+    def centerOnCoordinate(self, skyCoord):
+        """
+        Centers the image on an astropy Sky Coordinate object.
+        """
+        result = self.con.cmdTagList("getPixelCoordinates",
+                                     imageView=self.getId(),
+                                     ra=skyCoord.ra.radian,
+                                     dec=skyCoord.dec.radian)
+        self.centerOnPixel( float(result[0]), float(result[1]) )
+        return result

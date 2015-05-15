@@ -464,6 +464,19 @@ bool DataSource::saveFullImage( const QString& savename, double scale ){
     return result;
 }
 
+QStringList DataSource::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    const CoordinateFormatterInterface::VD world { ra, dec };
+    CoordinateFormatterInterface::VD pixel;
+    bool valid = cf->toPixel( world, pixel );
+    if ( valid ){
+        result = QStringList( QString::number( pixel[0] ) );
+        result.append( QString::number( pixel[1] ) );
+    }
+    return result;
+}
+
 DataSource::~DataSource() {
 
 }

@@ -898,6 +898,15 @@ QStringList Controller::getOutputSize( ){
     return result;
 }
 
+QStringList Controller::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelCoordinates( ra, dec );
+    }
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );
