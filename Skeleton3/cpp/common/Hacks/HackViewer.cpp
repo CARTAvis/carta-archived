@@ -149,6 +149,19 @@ HackViewer::start()
 
     prefixedAddStateCallback( "cm-current", colormapCB2 );
 
+    // tell clients about available coordinate systems
+    prefixedSetState( "knownSkyCS/s0", QString("%1 J2000").arg(
+                          Carta::Lib::knownSkyCS2int( Carta::Lib::KnownSkyCS::J2000)));
+    prefixedSetState( "knownSkyCS/s1", QString("%1 B1950").arg(
+                          static_cast<int>( Carta::Lib::KnownSkyCS::B1950)));
+    prefixedSetState( "knownSkyCS/s2", QString("%1 ICRS").arg(
+                          static_cast<int>( Carta::Lib::KnownSkyCS::ICRS)));
+    prefixedSetState( "knownSkyCS/s3", QString("%1 Galactic").arg(
+                          static_cast<int>( Carta::Lib::KnownSkyCS::Galactic)));
+    prefixedSetState( "knownSkyCS/s4", QString("%1 Ecliptic").arg(
+                          static_cast<int>( Carta::Lib::KnownSkyCS::Ecliptic)));
+    prefixedSetState( "knownSkyCS/count", "5");
+
     qDebug() << "HackViewer has been initialized.";
 } // start
 

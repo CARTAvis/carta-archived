@@ -66,6 +66,7 @@ private:
 
     SS::DoubleVar::UniquePtr m_numText1FontSize;
     SS::IntVar::UniquePtr m_numText1FontIndex;
+    SS::IntVar::UniquePtr m_currentSkyCS;
 
     void stdVarCB();
 

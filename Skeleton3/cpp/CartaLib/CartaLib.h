@@ -78,10 +78,25 @@ cartaAssertAbort( const char * assertion, const char * file, const char * func, 
 }
 
 /// known sky coordinate systems
+/// \warning make sure the first entry is =0, and the last entry is Error
 enum class KnownSkyCS
 {
-    Unknown, J2000, B1950, ICRS, Galactic, Ecliptic
+    Unknown = 0, ///< intended as a return value
+    Default, ///< intended as input value (requested system = default)
+    J2000,
+    B1950,
+    ICRS,
+    Galactic,
+    Ecliptic,
+    Error ///< intended as an indication of error
 };
+
+/// convenience function to convert KnownSkyCS to int
+int knownSkyCS2int( KnownSkyCS cs);
+
+/// convenience function to convert int to KnownSkyCS
+/// in case the input int is invalid, we return error
+KnownSkyCS int2knownSkyCS( int cs);
 
 /// clamp a value to be in range [v1..v2]
 template < typename T >

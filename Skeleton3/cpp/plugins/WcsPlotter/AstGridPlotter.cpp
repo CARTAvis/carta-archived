@@ -192,7 +192,7 @@ AstGridPlotter::plot()
 
     }
 
-    if ( true ) {
+    if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );
         qDebug() << "labelling= " << labelling << ( ! ! labelling );
         if( ! labelling) {
@@ -202,7 +202,7 @@ AstGridPlotter::plot()
 
     astGrid( plot );
 
-    if ( true ) {
+    if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );
         qDebug() << "labelling== " << labelling << ( ! ! labelling );
         if( ! labelling) {
@@ -211,7 +211,7 @@ AstGridPlotter::plot()
     }
 
     if ( ! astOK ) {
-        qWarning() << "AST error occurred probably in astGrid()" << astStatus << "xyz";
+        qWarning() << "AST error occurred probably in astGrid()" << astStatus;
         astClearStatus;
     }
 

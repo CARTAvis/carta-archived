@@ -101,7 +101,9 @@ qx.Class.define( "skel.hacks.GridControlsWidget", {
 
         // system
         box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
-        box.add( new qx.ui.basic.Label( "System:"));
+        box.add( new skel.hacks.BoundSkyCSSelector({
+            sharedVar: this.m_connector.getSharedVar( this.m_statePrefix + "skyCS")
+        }));
         this.add( box);
 
 

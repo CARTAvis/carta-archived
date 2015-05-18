@@ -69,11 +69,11 @@ WcsGridOptionsController::WcsGridOptionsController(
     SetupVar( m_numText1FontSize, SS::DoubleVar,
               "numText1FontSize", 10);
 
+    SetupVar( m_currentSkyCS, SS::IntVar,
+              "skyCS", static_cast<int>(Carta::Lib::KnownSkyCS::Galactic));
+
+
 #undef SetupVar
-
-
-    // default coordinate system
-    m_wcsGridRenderer-> setSkyCS( Carta::Lib::KnownSkyCS::ICRS);
 
     stdVarCB();
 }
@@ -139,6 +139,16 @@ void WcsGridOptionsController::stdVarCB()
     m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
                                  m_numText1FontIndex-> get(),
                                  m_numText1FontSize-> get());
+
+
+    // coordinate system
+    typedef Carta::Lib::KnownSkyCS CS;
+    CS skyCS = Carta::Lib::int2knownSkyCS( m_currentSkyCS-> get());
+    if( skyCS != CS::Error) {
+        m_wcsGridRenderer-> setSkyCS( skyCS);
+    } else {
+        qWarning() << "Unknown sky cs requested from client:" << m_currentSkyCS-> get();
+    }
 
     m_wcsGridRenderer-> startRendering();
 
