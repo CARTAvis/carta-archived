@@ -62,6 +62,7 @@ public:
     typedef VectorGraphics::VGList VGList;
 
     /// types of elements supported
+    /// their appearance can be customized
     enum class Element
     {
         BorderLines = 0, ///< border around the image (for external labels)
@@ -76,39 +77,44 @@ public:
         LabelText1, ///< annotation for axis1
         LabelText2, ///< annotation for axis2
         Shadow, ///< shadow under text/lines
+        MarginDim, ///< rectangles around the grid border
         __count ///< internal, don't use
     };
 
     /// set the input data, shold have at least 2 dimensions
+    /// \note the data is not imporant, only meta data attached to this is important
     virtual void
     setInputImage( Image::ImageInterface::SharedPtr image ) = 0;
 
-    /// how big the resulting image is
-    virtual void
-    setOutputSize( const QSize & size ) = 0;
-
-    /// which part of the image data to render (in casa coordinates)
+    /// which part of the input image data to render (in casa coordinates)
+    /// this always assumes we are doing axis1/axis2 grid
     virtual void
     setImageRect( const QRectF & rect ) = 0;
 
+    /// how big the resulting rendering should be
+    virtual void
+    setOutputSize( const QSize & size ) = 0;
+
     /// where in the output to render the imageRect
+    /// so the coordinate mapping from casa pixel coordinates to screen coordinates
+    /// is imageRect -> outputRect
     virtual void
     setOutputRect( const QRectF & rect ) = 0;
 
-    /// set the pen attribute for the given element
+    /// set a pen attribute for the given element
     virtual void
     setPen( Element e, const QPen & pen) = 0;
 
-    /// get the pen attribute for the given element
+    /// get a pen attribute for the given element
     virtual const QPen &
     pen( Element e) = 0;
 
     /// set the shadow color
     /// anything with alpha=0 will mean no shadow
-    virtual void setShadowColor( const QColor & color) = 0;
+//    virtual void setShadowColor( const QColor & color) = 0;
 
     /// return the current shadow color
-    virtual const QColor & shadowColor() = 0;
+//    virtual const QColor & shadowColor() = 0;
 
     /// set the font attribute for the given text element
     /// does nothing for non-text elements, i.e. lines
@@ -152,6 +158,17 @@ public:
     virtual void
     startRendering() = 0;
 
+    /// \brief whether the service should report empty grid or not
+    /// \param flag if set to true, the result will always be an empty grid
+    ///
+    /// This is a convenience function to make synchronization a little bit easier when
+    /// one needs to combine a rendered image with a grid, but the grid drawing is disabled.
+    /// Insteady of handling it as a special case, you can just set this flag to true, and
+    /// grid will be reported as drawn, but the VGList will be empty.
+    virtual void
+    setEmptyGrid( bool flag) = 0;
+
+    /// virtual destructor
     ///\note looks like this needs to be defined out of line, otherwise dlopen() fails
     /// to load any classes inherited from this...
     virtual

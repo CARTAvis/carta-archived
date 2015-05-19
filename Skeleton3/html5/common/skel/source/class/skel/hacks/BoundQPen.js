@@ -135,11 +135,13 @@ qx.Class.define( "skel.hacks.BoundQPen", {
             box.add( this.m_alphaSlider, { flex: 1} );
             this.m_popup.add( box );
 
+            box = new qx.ui.container.Composite( new qx.ui.layout.HBox());
+            box.add( new qx.ui.basic.Label( "Width:"));
             this.m_widthSlider = new qx.ui.form.Slider();
             this.m_widthSlider.set( {maximum: 10000, pageStep: 500} );
             this.m_widthSlider.addListener( "changeValue", this._uiCB.bind( this ) );
-            this.m_popup.add( this.m_widthSlider );
-
+            box.add( this.m_widthSlider, { flex: 1} );
+            this.m_popup.add( box );
 
             this._updateUIAfterParse();
         },

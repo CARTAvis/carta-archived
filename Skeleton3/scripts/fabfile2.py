@@ -4,7 +4,7 @@
 # 1) cd into build directory
 #    cd /scratch/builds/Skeleton3/Dev/
 # 2) run the deploy script from the source directory
-#    python -m fabric -f ~/Work/ALMAvis/Skeleton3/scripts/fabfile.py deploy
+#    python -m fabric -f ~/Work/ALMAvis/Skeleton3/scripts/fabfile2.py deploy
 
 from __future__ import with_statement
 from fabric.api import *

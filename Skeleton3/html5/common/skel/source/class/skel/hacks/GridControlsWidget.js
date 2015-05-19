@@ -86,7 +86,8 @@ qx.Class.define( "skel.hacks.GridControlsWidget", {
             ["Labels 2", "numText2pen"],
             ["Axis Labels 1", "labelText1pen"],
             ["Axis Labels 2", "labelText2pen"],
-            ["Shadow", "shadowPen"]
+            ["Shadow", "shadowPen"],
+            ["Margin dim", "marginDimPen"]
         ];
         box = new qx.ui.container.Composite( new qx.ui.layout.Flow( 2, 2));
         pens.forEach( function(e,ind) {

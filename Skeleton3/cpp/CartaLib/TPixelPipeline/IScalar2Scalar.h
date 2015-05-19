@@ -43,23 +43,6 @@ public:
     ~IScalar2Scalar() { }
 };
 
-/*void
-test1()
-{
-    std::shared_ptr < IScalar2Scalar < double > > x;
-
-    // this below does not compile... (but now it does, wth, c++ sucks)
-    IScalar2Scalar < double >::SharedPtr yy;
-
-    // but this does !!!
-    typedef IScalar2Scalar < double > XYZ;
-    XYZ::SharedPtr y;
-
-    // and it works
-    static_assert( std::is_same < decltype( x ), decltype( y ) >::value, "oops" );
-    static_assert( std::is_same < decltype( x ), decltype( yy ) >::value, "oops" );
-}*/
-
 /// interface for implementing stage 3 (normalized scalar -> ScalarRgb)
 /// this is the most generic colormap
 template < typename InputScalar, typename OutputScalar >

@@ -183,13 +183,12 @@ AstGridPlotter::plot()
         astSetD( plot, "Gap(2)", g2 * m_densityModifier );
     }
 
-    {
+    if( false) {
         fflush(stdout);
         printf("====================== astshow begin ======================");
         astShow( plot);
         printf("======================= astshow end =======================");
         fflush(stdout);
-
     }
 
     if ( false ) {

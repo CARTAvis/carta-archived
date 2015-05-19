@@ -63,6 +63,7 @@ private:
     SS::TypedVariable<QPen>::SharedPtr m_labelText1Pen;
     SS::TypedVariable<QPen>::SharedPtr m_labelText2Pen;
     SS::TypedVariable<QPen>::SharedPtr m_shadowPen;
+    SS::TypedVariable<QPen>::SharedPtr m_marginDimPen;
 
     SS::DoubleVar::UniquePtr m_numText1FontSize;
     SS::IntVar::UniquePtr m_numText1FontIndex;

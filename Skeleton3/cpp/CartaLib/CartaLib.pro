@@ -26,7 +26,8 @@ SOURCES += \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
     PWLinear.cpp \
-    VectorGraphics/VGList.cpp
+    VectorGraphics/VGList.cpp \
+    VectorGraphics/BetterQPainter.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -53,7 +54,8 @@ HEADERS += \
     PWLinear.h \
     VectorGraphics/VGList.h \
     Hooks/GetWcsGridRenderer.h \
-    Hooks/LoadPlugin.h
+    Hooks/LoadPlugin.h \
+    VectorGraphics/BetterQPainter.h
 
 unix {
     target.path = /usr/lib

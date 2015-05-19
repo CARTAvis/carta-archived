@@ -885,7 +885,7 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
     }
     else if ( attr == GRF__WIDTH ) {
         if ( old_value ) {
-            * old_value = painter().pen().widthF();
+            * old_value = grfGlobals()->penWidth;
         }
         if ( value != AST__BAD ) {
             if ( old_value ) {

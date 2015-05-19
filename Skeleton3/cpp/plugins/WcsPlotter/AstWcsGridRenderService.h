@@ -37,20 +37,8 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) override;
 
-//    virtual void
-//    setLineThickness( double thickness ) override;
-
     virtual void
     startRendering() override;
-
-//    virtual double
-//    lineThickness() override;
-
-//    virtual void
-//    setLineColor( QColor color ) override;
-
-//    virtual QColor
-//    lineColor() override;
 
     virtual void
     setGridDensityModifier( double density ) override;
@@ -70,14 +58,8 @@ public:
     virtual void
     setFont( Element e, int fontIndex, double pointSize) override;
 
-//    virtual const QFont &
-//    font( Element e ) override;
-
     virtual void
-    setShadowColor( const QColor & color ) override;
-
-    virtual const QColor &
-    shadowColor() override;
+    setEmptyGrid( bool flag) override;
 
 private slots:
 
@@ -100,6 +82,7 @@ private:
     QColor m_lineColor = QColor( "yellow" );
     double m_gridDensity = 0.5;
     bool m_internalLabels = false;
+    bool m_emptyGridFlag = true;
 
     struct Pimpl;
     std::unique_ptr < Pimpl > m_pimpl; // = nullptr;

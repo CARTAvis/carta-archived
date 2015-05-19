@@ -64,6 +64,9 @@ WcsGridOptionsController::WcsGridOptionsController(
     SetupVar( m_shadowPen, SS::TypedVariable<QPen>,
               "shadowPen", QPen( QColor( 0,0,0,64), 1));
 
+    SetupVar( m_marginDimPen, SS::TypedVariable<QPen>,
+              "marginDimPen", QPen( QColor( 0,0,0,64), 1));
+
     SetupVar( m_numText1FontIndex, SS::IntVar,
               "numText1FontIndex", 0);
     SetupVar( m_numText1FontSize, SS::DoubleVar,
@@ -125,6 +128,8 @@ void WcsGridOptionsController::stdVarCB()
 
     m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::Shadow,
                                 m_shadowPen-> get());
+    m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::MarginDim,
+                                m_marginDimPen-> get());
 
     m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText1,
                                  m_numText1FontIndex-> get(),
