@@ -65,6 +65,7 @@ void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercenti
 
 void ScriptedRenderService::_readyToSave( QImage img ){
     img.save( m_outputFilename );
+    m_renderService->deleteLater();
 }
 
 
