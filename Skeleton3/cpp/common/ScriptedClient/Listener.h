@@ -57,6 +57,10 @@ signals:
     void
     received( TagMessage message );
 
+    /// emitted whenever an asyncrhonous message arrives
+    void
+    receivedAsync( TagMessage message );
+
 public slots:
 
 private slots:

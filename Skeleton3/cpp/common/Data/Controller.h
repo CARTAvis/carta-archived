@@ -193,10 +193,8 @@ public:
      * Save a copy of the full image in the current image view at its native resolution.
      * @param fileName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
      */
-    bool saveFullImage( const QString& filename, double scale );
+    void saveFullImage( const QString& filename, double scale );
 
     /**
      * Reset the images that are loaded and other data associated state.
@@ -293,6 +291,10 @@ signals:
      */
     void channelChanged( Controller* controller );
 
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
+
 private slots:
     //Refresh the view based on the latest data selection information.
     void _loadView();
@@ -316,6 +318,9 @@ private slots:
      * Repaint the image.
      */
     void _repaintFrameNow();
+
+    // Asynchronous result from saveFullImage().
+    void saveImageResultCB( bool result );
 
 private:
 

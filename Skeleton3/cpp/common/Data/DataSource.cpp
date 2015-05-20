@@ -32,7 +32,6 @@ DataSource::DataSource() :
         connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
                  this, & DataSource::_renderingDone);
 
-
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
 
@@ -457,11 +456,17 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-bool DataSource::saveFullImage( const QString& savename, double scale ){
+void DataSource::saveFullImage( const QString& savename, double scale ){
     m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
     m_scriptedRenderService->setZoom( scale );
-    bool result = m_scriptedRenderService->saveFullImage();
-    return result;
+
+    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::saveImageResultCB );
+
+    m_scriptedRenderService->saveFullImage();
+}
+
+void DataSource::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
 }
 
 QStringList DataSource::getPixelCoordinates( double ra, double dec ){

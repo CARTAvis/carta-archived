@@ -22,6 +22,20 @@ ScriptFacade::ScriptFacade(){
     QString vmLookUp = Carta::Data::ViewManager::CLASS_NAME;
     CartaObject* obj = Carta::Data::Util::findSingletonObject( vmLookUp );
     m_viewManager = dynamic_cast<Carta::Data::ViewManager*>(obj);
+
+    int numControllers = m_viewManager->getControllerCount();
+    for (int i = 0; i < numControllers; i++) {
+        QString imageView = getImageViewId( i );
+        ObjectManager* objMan = ObjectManager::objectManager();
+        QString id = objMan->parseId( imageView );
+        CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                connect( controller, & Carta::Data::Controller::saveImageResult, this, & ScriptFacade::saveImageResultCB );
+            }
+        }
+    }
 }
 
 QString ScriptFacade::getColorMapId( int index ) const {
@@ -513,30 +527,22 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     return resultList;
 }
 
-QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, double scale ) {
-    QStringList resultList("");
+void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, double scale ) {
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
     CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            bool result = controller->saveFullImage( filename, scale );
-            if ( !result ) {
-                resultList = QStringList( "Could not save full image to " + filename );
-            }
-        }
-        else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            controller->saveFullImage( filename, scale );
         }
     }
-    else {
-        resultList = QStringList( "error" );
-        resultList.append( "The specified image view could not be found." );
-    }
-    return resultList;
 }
+
+void ScriptFacade::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
+}
+
 
 /*
 QStringList ScriptFacade::saveState( const QString& saveName ) {

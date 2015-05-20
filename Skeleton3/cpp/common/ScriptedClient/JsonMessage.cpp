@@ -24,7 +24,7 @@ JsonMessage::toTagMessage() const
 JsonMessage
 JsonMessage::fromTagMessage( const TagMessage & message )
 {
-    CARTA_ASSERT( message.tag() == TAG );
+    CARTA_ASSERT( message.tag() == TAG || message.tag() == "async" );
     QJsonParseError jsonError;
     QJsonDocument doc = QJsonDocument::fromJson( message.data(), & jsonError );
     if ( doc.isEmpty() || jsonError.error != QJsonParseError::NoError ) {

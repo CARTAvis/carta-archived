@@ -284,13 +284,8 @@ public:
      * resolution.
      * @param fileName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
-     * [NOTE: this method still returns false because I don't yet know how to
-     * access the return value from the QImage save() method, which is being
-     * used inside a Qt slot.]
      */
-    bool saveFullImage( const QString& savename, double scale );
+    void saveFullImage( const QString& savename, double scale );
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -308,10 +303,17 @@ signals:
     //Notification that a new image has been produced.
     void renderingDone( QImage img);
 
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
+
 private slots:
 
     //Notification from the rendering service that a new image has been produced.
     void _renderingDone( QImage img, int64_t jobId );
+
+    // Asynchronous result from saveFullImage().
+    void saveImageResultCB( bool result );
 
 private:
     

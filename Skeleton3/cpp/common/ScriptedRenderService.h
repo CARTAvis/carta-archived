@@ -33,6 +33,8 @@ namespace ScriptedClient
 
 class ScriptedRenderService : public QObject
 {
+    Q_OBJECT
+
 public:
 
     /// constructor
@@ -53,16 +55,21 @@ public:
 
     /// Prepares the image to be rendered using ImageRenderService. After the rendering
     /// has finished, the image is then saved to the location stored in m_outputFilename.
-    bool saveFullImage();
+    /// The return value of the save attempt is passed asynchronously via
+    /// _saveFullImageCB().
+    void saveFullImage();
+
+signals:
+
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
 
 private slots:
 
     /// Notification from the rendering service that a new image has been
     /// produced and is ready to be saved.
-    /// [NOTE: the QImage save() method returns a boolean value, but at this
-    /// point I am not sure how to return that value to DataSource or anywhere
-    /// else.]
-    void _readyToSave( QImage img );
+    void _saveFullImageCB( QImage img );
 
 private:
 
@@ -89,7 +96,6 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipelineCopy;
-
 };
 
 }

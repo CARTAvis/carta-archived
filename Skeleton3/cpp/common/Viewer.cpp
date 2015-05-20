@@ -108,8 +108,6 @@ Viewer::start()
         m_viewManager->loadFile( controlId, fname );
     }
 
-    m_scriptFacade = ScriptFacade::getInstance();
-
     qDebug() << "Viewer has been initialized.";
 }
 

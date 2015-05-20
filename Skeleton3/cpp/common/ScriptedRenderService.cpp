@@ -16,7 +16,7 @@ ScriptedRenderService::ScriptedRenderService( QString savename, std::shared_ptr<
     m_inputFilename = filename;
     m_renderService = new Carta::Core::ImageRenderService::Service();
     connect( m_renderService, & Carta::Core::ImageRenderService::Service::done,
-             this, & ScriptedRenderService::_readyToSave );
+             this, & ScriptedRenderService::_saveFullImageCB );
 }
 
 ScriptedRenderService::~ScriptedRenderService()
@@ -26,10 +26,9 @@ void ScriptedRenderService::setZoom( double zoom ){
     m_renderService->setZoom( zoom );
 }
 
-bool ScriptedRenderService::saveFullImage(){
+void ScriptedRenderService::saveFullImage(){
     _prepareData( 0, 0.0, 1.0 );
     m_renderService->render( 0 );
-    return false;
 }
 
 void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercentile, double maxClipPercentile ){
@@ -63,8 +62,9 @@ void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercenti
     m_renderService->setPan( { m_imageCopy->dims()[0] / 2.0, m_imageCopy->dims()[1] / 2.0 });
 }
 
-void ScriptedRenderService::_readyToSave( QImage img ){
-    img.save( m_outputFilename );
+void ScriptedRenderService::_saveFullImageCB( QImage img ){
+    bool result = img.save( m_outputFilename );
+    emit saveImageResult( result );
     m_renderService->deleteLater();
 }
 
