@@ -199,12 +199,12 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
     // from there asynchronously
     setState( key, value );
 
-    if( CARTA_RUNTIME_CHECKS) {
-        auto iter = m_stateCallbackList.find( key);
-        if( iter == m_stateCallbackList.end()) {
-            qWarning() << "JS setState has no listener" << key << "=" << value;
-        }
+#ifdef CARTA_RUNTIME_CHECKS
+    auto iter = m_stateCallbackList.find( key);
+    if( iter == m_stateCallbackList.end()) {
+        qWarning() << "JS setState has no listener" << key << "=" << value;
     }
+#endif
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)

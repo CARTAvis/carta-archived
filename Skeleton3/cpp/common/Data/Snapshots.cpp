@@ -1,11 +1,16 @@
-#include "Data/Snapshots.h"
-#include "Data/Selection.h"
-#include "CartaLib/CartaLib.h"
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
 #include <QDebug>
 #include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+
+#include "Data/Snapshots.h"
+#include "Data/Selection.h"
+#include "CartaLib/CartaLib.h"
 
 namespace Carta {
 
@@ -48,7 +53,13 @@ Snapshots::Snapshots( const QString& path, const QString& id):
 }
 
 QString Snapshots::_getRootDir(const QString& /*sessionId*/) const {
+   struct passwd *pw = getpwuid(getuid());
+#ifdef DESKTOPVERSION
+    return QString("%1/%2/%3").arg(pw->pw_dir, "CARTA", "snapshots");
+#else
     return "/scratch/snapshots";
+#endif
+
 }
 
 QString Snapshots::getSnapshots( const QString& sessionId ) const {

@@ -1,9 +1,14 @@
-#include "DataLoader.h"
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include <QDebug>
 #include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "DataLoader.h"
+
 
 namespace Carta {
 
@@ -119,7 +124,12 @@ void DataLoader::makeFileNode(QJsonArray& parentArray,
 }
 
 QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
-    return "/scratch/Images";
+   struct passwd *pw = getpwuid(getuid());
+#ifdef DESKTOPVERSION
+   return QString("%1/%2/%3").arg(pw->pw_dir, "CARTA", "Images");
+#else
+   return "/scratch/Images";
+#endif
 }
 }
 }

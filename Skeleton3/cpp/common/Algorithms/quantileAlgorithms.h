@@ -43,12 +43,12 @@ quantiles2pixels(
 {
     qDebug() << "computeClips" << view.dims();
 
+#ifdef CARTA_RUNTIME_CHECKS
     // basic preconditions
-    if ( CARTA_RUNTIME_CHECKS ) {
-        for ( auto q : quant ) {
-            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
-        }
+    for ( auto q : quant ) {
+        CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
     }
+#endif
 
     // read in all values from the view into memory so that we can do quickselect on it
     std::vector < Scalar > allValues;
@@ -75,22 +75,22 @@ quantiles2pixels(
     }
     CARTA_ASSERT( result.size() == quant.size());
 
+#ifdef CARTA_RUNTIME_CHECKS
     // some extra debugging help:
-    if( CARTA_RUNTIME_CHECKS) {
-        qDebug() << "quantile quality check:";
-        for( size_t i = 0 ; i < quant.size() ; ++ i) {
-            double q = quant[i];
-            double v = result[i];
-            size_t cnt = 0;
-            for( auto inp : allValues) {
-                if( inp <= v) cnt ++;
-            }
-            double qq = double(cnt)/allValues.size();
-            qDebug() << "  " << q << "->" << v << qq << fabs(q-qq)
-                     << ((fabs(q-qq) > 0.01) ? "!!!" : "");
+    qDebug() << "quantile quality check:";
+    for( size_t i = 0 ; i < quant.size() ; ++ i) {
+        double q = quant[i];
+        double v = result[i];
+        size_t cnt = 0;
+        for( auto inp : allValues) {
+            if( inp <= v) cnt ++;
         }
-        qDebug() << "-----------------------------";
+        double qq = double(cnt)/allValues.size();
+        qDebug() << "  " << q << "->" << v << qq << fabs(q-qq)
+                 << ((fabs(q-qq) > 0.01) ? "!!!" : "");
     }
+    qDebug() << "-----------------------------";
+#endif
 
     return result;
 } // computeClips
