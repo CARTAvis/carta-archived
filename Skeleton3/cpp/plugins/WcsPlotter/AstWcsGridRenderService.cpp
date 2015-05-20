@@ -167,12 +167,6 @@ AstWcsGridRenderService::renderNow()
         sgp.colors().push_back( pen.color() );
     }
 
-//    sgp.colors().push_back( m_lineColor );
-//    sgp.colors().push_back( m_lineColor );
-//    sgp.colors().push_back( m_lineColor );
-//    sgp.colors().push_back( QColor( "magenta" ) );
-//    sgp.colors().push_back( QColor( "orange" ) );
-
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
     sgp.setFitsHeader( m().fitsHeader.join( "" ) );

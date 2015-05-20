@@ -873,28 +873,35 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
 *-
 */
 
+    // in case we forget to handle old_value below, let's set it pre-emptively to 1
     if ( old_value ) {
         * old_value = 1.0;
     }
 
+    // we don't handle different line styles, mostly because HTML5 does not handle it yet
+    // \todo revisit this in the figure when <canvas> can do dashed/dotted lines?
+    // Update: canvas.setLineDash() is now supported in many browsers?
     if ( attr == GRF__STYLE ) {
-//        out << "style(";
         if ( old_value ) {
             * old_value = 1.0;
         }
     }
+    // line width
     else if ( attr == GRF__WIDTH ) {
+        QString dbg = "xxyyzz WIDTH";
         if ( old_value ) {
             * old_value = grfGlobals()->penWidth;
+            dbg += " get";
         }
         if ( value != AST__BAD ) {
-            if ( old_value ) {
-                * old_value = grfGlobals()->penWidth;
-            }
             grfGlobals()->penWidth = value;
             vgc()-> append < VGE::SetPenWidth > ( value );
+            dbg += " set " + QString::number( value);
         }
+        qDebug() << dbg;
     }
+    // 'mostly' font size, although it could apply to markers, which I don't think are
+    // used for grids... we certainly don't draw them
     else if ( attr == GRF__SIZE ) {
         if ( old_value ) {
             * old_value = painter().fontInfo().pointSizeF();
@@ -907,6 +914,7 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             vgc()-> append < VGE::SetFontSize > ( painter().font().pointSizeF() );
         }
     }
+    // set font
     else if ( attr == GRF__FONT ) {
         if ( old_value ) {
             * old_value = grfGlobals()->currentFontIndex;
@@ -917,16 +925,21 @@ astGAttr( int attr, double value, double * old_value, int /* prim */ )
             vgc()-> append < VGE::SetFontIndex > ( ind );
         }
     }
+    // set color
     else if ( attr == GRF__COLOUR ) {
+        QString dbg = "xxyyzz COLOUR";
         if ( old_value ) {
             * old_value = grfGlobals()->currentColorIndex;
+            dbg += " get";
         }
         if ( value != AST__BAD ) {
             int ind = value;
             ind = Carta::Lib::clamp < int > ( ind, 0, grfGlobals()->colors.size() - 1 );
             grfGlobals()->currentColorIndex = ind;
             vgc()-> append < VGE::SetPenColor > ( grfGlobals()->colors[ind] );
+            dbg += " set " + QString::number( value);
         }
+        qDebug() << dbg;
     }
     else { }
 

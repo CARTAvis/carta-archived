@@ -159,10 +159,44 @@ private:
         m_qPainter.drawText( pos, text );
     }
 
+    //
+
+    /// \brief Store an indexed pen at position penId.
+    /// \param penId at what position to store the pen
+    /// \param pen pen to store
+    /// \note The indices should be consecutive, starting at 0, as we use a simple
+    /// array to store them.
+    void
+    storeIndexedPen( int penId, const QPen & pen)
+    {
+        CARTA_ASSERT( penId >= 0);
+        m_indexedPens.resize( penId + 1);
+        m_indexedPens[ penId] = pen;
+    }
+
+    /// \brief Set the current pen to be an indexed pen.
+    /// \param penId Which pen to use.
+    void
+    setIndexedPen( int penId)
+    {
+        if( CARTA_RUNTIME_CHECKS) {
+            if( penId < 0 || penId >= int( m_indexedPens.size())) {
+                qCritical() << "called setIndexedPen with" << penId << "but only have"
+                            << m_indexedPens.size() << "pens.";
+                return;
+            }
+            CARTA_ASSERT( penId >= int( m_indexedPens.size()));
+        }
+        setPen( m_indexedPens[ penId]);
+    }
+
+    // get a list of
+
 private:
 
     QPainter & m_qPainter;
     std::vector < QFont > m_fonts;
+    std::vector < QPen > m_indexedPens;
 };
 }
 }

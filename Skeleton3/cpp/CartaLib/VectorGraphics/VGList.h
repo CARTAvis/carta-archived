@@ -405,7 +405,8 @@ public:
     virtual QStringList
     javascript() override
     {
-        /// \todo implement escaping
+        /// \todo implement escaping of quotes, so that it's possible
+        /// to pass in a string containing quotes...
         QString escapedText = m_text;
 
         return QStringList()
@@ -420,7 +421,75 @@ private:
     QString m_text = "";
     QPointF m_pos = QPointF( 0, 0 );
 };
+
+/// stores a pen at a given index
+class StoreIndexedPen : public IVGListEntry
+{
+    CLASS_BOILERPLATE( StoreIndexedPen );
+
+public:
+
+    StoreIndexedPen( int ind, const QPen & pen )
+    {
+        m_ind = ind;
+        m_pen = pen;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.storeIndexedPen( m_ind, m_pen);
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.storeIndexedPen(%1,%2,%3);" )
+                   .arg( m_ind )
+                   .arg( m_pen.color().name( QColor::HexArgb) )
+                   .arg( m_pen.widthF() );
+    }
+
+private:
+
+    int m_ind = 0;
+    QPen m_pen;
+};
+
+
+/// uses a previously indexed pen
+class SetIndexedPen : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetIndexedPen );
+
+public:
+
+    SetIndexedPen( int ind)
+    {
+        m_ind = ind;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.setIndexedPen( m_ind);
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.setIndexedPen(%1);" )
+                   .arg( m_ind );
+    }
+
+private:
+
+    int m_ind = 0;
+};
 }
+
 
 class VGComposer;
 
@@ -429,34 +498,25 @@ class VGList
 {
 public:
 
+    /// make an empty list
     VGList();
 
     /// copy constructor
-//    VGList( const VGList & other) {
-//        m_entries = other.m_entries;
-//        for( size_t i = 0 ; i < m_entries.size() ; i ++ ) {
+    VGList( const VGList & other) = default;
 
-//        }
-//    };
     /// assignment operator
-//    VGList & operator= (const VGList& other) = delete;
+    VGList & operator= (const VGList& other) = default;
 
     ~VGList();
 
-//    void
-//    setQImage( QImage img );
-
-//    const QImage &
-//    qImage() const;
-
+    /// get a list of entries (ie. list of shared pointers to entries)
     const std::vector < IVGListEntry::SharedPtr > &
     entries() const { return m_entries; }
 
 private:
 
+    /// VGComposer has write access to the list of entries
     friend class VGComposer;
-
-//    QImage m_qImage;
 
     /// list of entries
     /// we use shared pointers to simplify memory management/copy constructor/assignments/etc
