@@ -55,25 +55,25 @@ fi
 
 # check that $HOME/CARTA directory exists
 if [ ! -d $HOME/CARTA ]; then
-	echo "creating $HOME/CARETA directory..."
+	echo "creating $HOME/CARTA directory..."
 	mkdir $HOME/CARTA
 fi
 
 # check that $HOME/CARTA directory exists
 if [ ! -d $HOME/CARTA ]; then
-	echo "creating $HOME/CARETA directory..."
+	echo "creating $HOME/CARTA directory..."
 	mkdir $HOME/CARTA
 fi
 
 # check that $HOME/CARTA/Images directory exists
 if [ ! -d $HOME/CARTA/Images ]; then
-	echo "creating $HOME/CARETA/Images directory..."
+	echo "creating $HOME/CARTA/Images directory..."
 	mkdir $HOME/CARTA/Images
 fi
 
 # check that $HOME/CARTA/snapshots directory exists
 if [ ! -d $HOME/CARTA/snapshots ]; then
-	echo "creating $HOME/CARETA/snapshots directory..."
+	echo "creating $HOME/CARTA/snapshots directory..."
 	mkdir $HOME/CARTA/snapshots
 fi
 
