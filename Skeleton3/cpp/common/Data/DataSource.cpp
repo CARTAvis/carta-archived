@@ -467,6 +467,7 @@ void DataSource::saveFullImage( const QString& savename, double scale ){
 
 void DataSource::saveImageResultCB( bool result ){
     emit saveImageResult( result );
+    m_scriptedRenderService->deleteLater();
 }
 
 QStringList DataSource::getPixelCoordinates( double ra, double dec ){
