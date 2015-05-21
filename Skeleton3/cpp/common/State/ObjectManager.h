@@ -176,9 +176,17 @@ public:
 
     /**
      * Destroy the object with the given identifier.
+     * @param id - the unique server side identifier for the object to destroy.
      * @return an string of zero length.
      */
     QString destroyObject (const QString & id);
+
+    /**
+     * Remove the object from storage without destroying it.
+     * @param id - the unique server-side identifier for the object to remove.
+     * @return a point to the object that was removed.
+     */
+    CartaObject* removeObject( const QString& id );
 
     /**
      * Return the object with the given identifier or a nullptr if none exists.

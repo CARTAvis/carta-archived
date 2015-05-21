@@ -10,8 +10,8 @@ namespace Data {
 const QString LinkableImpl::LINK = "links";
 const QString LinkableImpl::PARENT_ID = "source";
 
-typedef Carta::State::StateInterface StateInterface;
-typedef Carta::State::UtilState UtilState;
+using Carta::State::StateInterface;
+using Carta::State::UtilState;
 
 LinkableImpl::LinkableImpl( const QString& parentPath ):
     m_state( UtilState::getLookup(parentPath,LINK), "LinkableImpl" ){

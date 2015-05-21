@@ -12,7 +12,7 @@ const QString Clips::CLIP_LIST = "clipList";
 const QString Clips::CLASS_NAME = "Clips";
 const QString Clips::CLIP_COUNT = "clipCount";
 
-typedef Carta::State::UtilState UtilState;
+using Carta::State::UtilState;
 
 class Clips::Factory : public Carta::State::CartaObjectFactory {
     public:

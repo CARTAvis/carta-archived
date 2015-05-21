@@ -1,8 +1,8 @@
 /**
- * Command to show histogram preference settings.
+ * Command to show colormap preference settings.
  */
 
-qx.Class.define("skel.Command.Preferences.CommandPreferencesHistogram", {
+qx.Class.define("skel.Command.Colormap.Preferences", {
     extend : skel.Command.Command,
     type : "singleton",
 
@@ -10,10 +10,10 @@ qx.Class.define("skel.Command.Preferences.CommandPreferencesHistogram", {
      * Constructor.
      */
     construct : function() {
-        this.base( arguments, "Histogram...", null );
+        this.base( arguments, "Colormap...", null );
         this.m_toolBarVisible = false;
         this.m_global = false;
-        this.setToolTipText( "Show histogram preferences.");
+        this.setToolTipText( "Show colormap preferences.");
     },
     
     members : {
@@ -22,18 +22,20 @@ qx.Class.define("skel.Command.Preferences.CommandPreferencesHistogram", {
             var activeWins = skel.Command.Command.m_activeWins;
             if ( activeWins !== null && activeWins.length > 0 ){
                 //Use the first one in the list that supports this cmd.
+                var parentCmd = skel.Command.Colormap.Colormap.getInstance();
                 for ( var i = 0; i < activeWins.length; i++ ){
-                    if ( activeWins[i].isCmdSupported( this ) ){
+                    if ( activeWins[i].isCmdSupported( parentCmd ) ){
                         qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                                "showHistogramPreferences", activeWins[i]));
+                                "showColormapPreferences", activeWins[i]));
                         break;
                     }
                 }
             }
         },
         
+        
         setPrefs : function( val ){
-            
+            //console.log( "Set preferences to "+val);
         }
     }
 });

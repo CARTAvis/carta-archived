@@ -12,7 +12,7 @@ class tAnimator(unittest.TestCase):
         self.driver.implicitly_wait(10)
         
     #Verify the number of animators that are visible is equal to the expected count
-    def _verifyAnimationCount(parentWidget, expectedCount):
+    def _verifyAnimationCount(self,parentWidget, expectedCount):
         animatorList = parentWidget.find_elements_by_xpath( ".//div[@qxclass='skel.boundWidgets.Animator']" )
         animatorCount = len( animatorList )
         print "Animator list count=", animatorCount

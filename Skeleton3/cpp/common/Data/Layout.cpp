@@ -4,7 +4,7 @@
 #include "Colormap/Colormap.h"
 #include "State/UtilState.h"
 #include "Controller.h"
-#include "Histogram.h"
+#include "Histogram/Histogram.h"
 #include "Statistics.h"
 #include "ViewPlugins.h"
 #include "Util.h"
@@ -48,7 +48,7 @@ bool Layout::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Layout::Factory());
 
-typedef Carta::State::UtilState UtilState;
+using Carta::State::UtilState;
 
 Layout::Layout( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){

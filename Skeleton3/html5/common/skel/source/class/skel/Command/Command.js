@@ -226,6 +226,8 @@ qx.Class.define("skel.Command.Command", {
             }
         },
         
+        setSettings : function( id, obj ){},
+        
         /**
          * Sets the command visible/invisible for the particular object identified by the id.
          * @param id {String} the idea of an object that can display a command.

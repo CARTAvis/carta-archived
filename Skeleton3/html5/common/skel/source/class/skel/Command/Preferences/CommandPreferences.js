@@ -29,22 +29,7 @@ qx.Class.define("skel.Command.Preferences.CommandPreferences", {
     
     members : {
         
-        /**
-         * Add preference commands that apply only to the selected window.
-         * @param cmds {Array} a list of additional window specific preference commands.
-         */
-        addWindowSpecific : function( cmds ){
-            this.m_cmds.push.apply( this.m_cmds, cmds );
-        },
-        
-        /**
-         * Remove window specific preference commands.
-         */
-        clearWindowSpecific : function(){
-            var cmdCount = this.m_cmds.length;
-            this.m_cmds.splice(1, cmdCount-1);
-        },
-        
+       
         /**
          * Callback for when user preferences change.
          */

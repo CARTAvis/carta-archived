@@ -11,8 +11,8 @@ namespace Carta {
 
 namespace Data {
 
-typedef Carta::State::StateInterface StateInterface;
-typedef Carta::State::UtilState UtilState;
+using Carta::State::StateInterface;
+using Carta::State::UtilState;
 
 class Animator::Factory : public Carta::State::CartaObjectFactory {
 

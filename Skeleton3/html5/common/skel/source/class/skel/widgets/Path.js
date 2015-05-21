@@ -20,6 +20,7 @@ qx.Class.define("skel.widgets.Path", {
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.REGION = this.BASE_PATH + "region" + this.SEP;
+        this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
@@ -63,6 +64,7 @@ qx.Class.define("skel.widgets.Path", {
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",
+        SETTINGS : "",
         SNAPSHOTS : "",
         STATE_LAYOUT : "Layout",
         STATE_SESSION : "Session",

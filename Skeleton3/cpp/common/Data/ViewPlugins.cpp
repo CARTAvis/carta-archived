@@ -4,7 +4,7 @@
 #include "Animator/Animator.h"
 #include "Controller.h"
 #include "Statistics.h"
-#include "Histogram.h"
+#include "Histogram/Histogram.h"
 #include "Colormap/Colormap.h"
 #include "State/UtilState.h"
 
@@ -15,7 +15,7 @@ namespace Carta {
 
 namespace Data {
 
-typedef Carta::State::UtilState UtilState;
+using Carta::State::UtilState;
 
 class ViewPlugins::Factory : public Carta::State::CartaObjectFactory {
 

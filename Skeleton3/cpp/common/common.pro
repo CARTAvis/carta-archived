@@ -34,11 +34,15 @@ HEADERS += \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
+    Data/Colormap/Settings.h \
+    Data/Colormap/TransformsData.h \
+    Data/Colormap/TransformsImage.h \
     Data/Controller.h \
     Data/DataLoader.h \
     Data/ErrorReport.h \
     Data/ErrorManager.h \
-    Data/Histogram.h \
+    Data/Histogram/Histogram.h \
+    Data/Histogram/HistogramPreferences.h \
     Data/IColoredView.h \
     Data/ILinkable.h \
     Data/Selection.h \
@@ -54,8 +58,6 @@ HEADERS += \
     Data/Snapshot/Snapshot.h \
     Data/Snapshot/SnapshotsFile.h \
     Data/Statistics.h \
-    Data/Colormap/TransformsData.h \
-    Data/Colormap/TransformsImage.h \
     Data/Util.h \
     GrayColormap.h \
     Data/ViewManager.h \
@@ -94,11 +96,15 @@ SOURCES += \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
+    Data/Colormap/Settings.cpp \
+    Data/Colormap/TransformsData.cpp \
+    Data/Colormap/TransformsImage.cpp \
     Data/Controller.cpp \
     Data/DataLoader.cpp \
     Data/ErrorReport.cpp \
     Data/ErrorManager.cpp \
-    Data/Histogram.cpp \
+    Data/Histogram/Histogram.cpp \
+    Data/Histogram/HistogramPreferences.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/DataSource.cpp \
@@ -110,8 +116,6 @@ SOURCES += \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
     Data/Statistics.cpp \
-    Data/Colormap/TransformsData.cpp \
-    Data/Colormap/TransformsImage.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

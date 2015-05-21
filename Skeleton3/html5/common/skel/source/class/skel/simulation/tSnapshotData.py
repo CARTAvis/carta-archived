@@ -89,6 +89,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
     # Load a particular image.  Save a data snapshot.
     # Load a new image.  Restore a data snapshot.
     # Test that the original image is loaded but the second one is not
+    # Note this test requires that the default_session, if it exists contain only a single image.
     def test_image_load(self):    
         driver = self.driver
         

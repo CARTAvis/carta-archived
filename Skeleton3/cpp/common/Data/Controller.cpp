@@ -4,7 +4,7 @@
 #include "Data/DataLoader.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/DataSource.h"
-#include "Data/Histogram.h"
+#include "Data/Histogram/Histogram.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
 #include "Data/RegionRectangle.h"
@@ -54,8 +54,8 @@ bool Controller::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Controller::Factory());
 
-typedef Carta::State::UtilState UtilState;
-typedef Carta::State::StateInterface StateInterface;
+using Carta::State::UtilState;
+using Carta::State::StateInterface;
 
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),

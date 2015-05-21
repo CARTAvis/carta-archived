@@ -289,17 +289,20 @@ ObjectManager::createObject (const QString & className)
     return result;
 }
 
+CartaObject* ObjectManager::removeObject( const QString& id ){
+    CartaObject * object = getObject (id);
+
+        assert (object != 0);
+
+        m_objects.erase (id);
+        return object;
+}
+
 QString
 ObjectManager::destroyObject (const QString & id)
 {
-    CartaObject * object = getObject (id);
-
-    assert (object != 0);
-
-    m_objects.erase (id);
-
+    CartaObject* object = removeObject( id );
     delete object;
-
     return "";
 }
 
@@ -308,6 +311,7 @@ ObjectManager::destroyObject (const QString & id)
 CartaObject *
 ObjectManager::getObject (const QString & id)
 {
+
     ObjectRegistry::iterator i = m_objects.find (id);
 
     CartaObject * result = 0;
@@ -321,7 +325,6 @@ ObjectManager::getObject (const QString & id)
 
 CartaObject* ObjectManager::getObject( int index, const QString & typeStr ){
     CartaObject* target = nullptr;
-
     for( ObjectRegistry::iterator i = m_objects.begin(); i != m_objects.end(); ++i){
         CartaObject* obj = i->second.getObject();
         if ( obj->getIndex() == index && typeStr == obj->getType()){

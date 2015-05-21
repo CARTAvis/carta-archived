@@ -1,18 +1,19 @@
-#include "Data/Histogram.h"
+#include "Histogram.h"
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/ChannelUnits.h"
+#include "Data/Histogram/HistogramPreferences.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Controller.h"
+#include "Data/ErrorManager.h"
 #include "Data/Util.h"
 #include "Histogram/HistogramGenerator.h"
 #include "Globals.h"
 #include "ImageView.h"
 #include "PluginManager.h"
-#include "ErrorManager.h"
+
 #include "CartaLib/Hooks/Histogram.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
-#include "Util.h"
 #include "State/UtilState.h"
 #include <set>
 #include <QtCore/qmath.h>
@@ -73,15 +74,20 @@ public:
 bool Histogram::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Histogram::Factory());
 
-typedef Carta::State::UtilState UtilState;
-typedef Carta::State::StateInterface StateInterface;
+using Carta::State::UtilState;
+using Carta::State::StateInterface;
 
 Histogram::Histogram( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
             m_view(nullptr),
             m_linkImpl( new LinkableImpl( path )),
+            m_preferences( nullptr),
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)),
             m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
+
+    Carta::State::CartaObject* prefObj = Util::createObject( HistogramPreferences::CLASS_NAME );
+    m_preferences.reset(dynamic_cast<HistogramPreferences*>(prefObj) );
+
     _initializeStatics();
     _initializeDefaultState();
     _initializeCallbacks();
@@ -343,6 +349,10 @@ std::pair<int,int> Histogram::_getFrameBounds() const {
     return bounds;
 }
 
+QString Histogram::getPreferencesId() const {
+    return m_preferences->getPath();
+}
+
 QString Histogram::getType(CartaObject::SnapshotType snapType) const {
     QString objType = CartaObject::getType( snapType );
     if ( snapType == SNAPSHOT_DATA ){
@@ -434,6 +444,12 @@ void Histogram::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                QString result = getPreferencesId();
+                return result;
+            });
 
     addCommandCallback( "setBinWidth", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1674,6 +1690,11 @@ void Histogram::_zoomToSelection(){
 
 Histogram::~Histogram(){
     unregisterView();
+    if ( m_preferences != nullptr ){
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString id = m_preferences->getId();
+        objMan->removeObject( id );
+    }
     delete m_histogram;
 }
 }

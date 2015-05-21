@@ -40,6 +40,7 @@ class Clips;
 class Colormap;
 class Controller;
 class LinkableImpl;
+class HistogramPreferences;
 
 class Histogram : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -60,6 +61,12 @@ public:
      * Clear the state of the histogram.
      */
     void clear();
+
+    /**
+     * Returns the server side id of the histogram user preferences.
+     * @return the unique server side id of the user preferences.
+     */
+    QString getPreferencesId() const;
 
     /**
      * Return a string representing the histogram state of a particular type.
@@ -390,6 +397,9 @@ private:
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
+
+    //Preferences
+    std::unique_ptr<HistogramPreferences> m_preferences;
 
     Carta::Histogram::HistogramGenerator* m_histogram;
 

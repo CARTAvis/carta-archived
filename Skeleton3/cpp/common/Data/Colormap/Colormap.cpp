@@ -1,14 +1,15 @@
-#include "Data/Colormap/Colormap.h"
-#include "Data/Colormap/Colormaps.h"
+#include "Colormap.h"
+#include "Colormaps.h"
+#include "Settings.h"
 #include "Data/Controller.h"
-#include "Data/Colormap/TransformsData.h"
+#include "TransformsData.h"
 #include "Data/IColoredView.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "State/UtilState.h"
 #include "ImageView.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
-
+#include <QtCore/qmath.h>
 #include <set>
 
 #include <QDebug>
@@ -35,6 +36,7 @@ const QString Colormap::COLOR_MIX_BLUE = COLOR_MIX + "/" + BLUE_PERCENT;
 const QString Colormap::SCALE_1 = "scale1";
 const QString Colormap::SCALE_2 = "scale2";
 const QString Colormap::GAMMA = "gamma";
+const QString Colormap::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Colormap::TRANSFORM_IMAGE = "imageTransform";
 const QString Colormap::TRANSFORM_DATA = "dataTransform";
 
@@ -58,10 +60,14 @@ Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_linkImpl( new LinkableImpl( path ) ),
     m_stateMouse(Carta::State::UtilState::getLookup(path,ImageView::VIEW)){
-    m_significantDigits = 6;
+
+    Carta::State::CartaObject* prefObj = Util::createObject( Settings::CLASS_NAME );
+    m_settings.reset(dynamic_cast<Settings*>(prefObj) );
+
     _initializeDefaultState();
     _initializeCallbacks();
     _initializeStatics();
+    _setErrorMargin();
 }
 
 QString Colormap::addLink( CartaObject*  cartaObject ){
@@ -79,6 +85,10 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         result = "Color map only supports linking to images.";
     }
     return result;
+}
+
+QString Colormap::getPreferencesId() const {
+    return m_settings->getPath();
 }
 
 QString Colormap::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
@@ -109,6 +119,7 @@ void Colormap::_initializeDefaultState(){
     m_state.insertValue<double>(COLOR_MIX_GREEN, 1 );
     m_state.insertValue<double>(COLOR_MIX_BLUE, 1 );
 
+    m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<QString>(TRANSFORM_IMAGE, "Gamma");
     m_state.insertValue<QString>(TRANSFORM_DATA, "None");
     m_state.insertValue<bool>(Util::STATE_FLUSH, false );
@@ -128,6 +139,12 @@ void Colormap::_initializeCallbacks(){
                 QString result = _commandCacheColorMap( params );
                 return result;
             });
+
+    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                    QString result = getPreferencesId();
+                    return result;
+    });
 
     addCommandCallback( "setCacheSize", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -218,6 +235,24 @@ void Colormap::_initializeCallbacks(){
         }
         return result;
     });
+
+    addCommandCallback( "setSignificantDigits", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                QString result;
+                std::set<QString> keys = {SIGNIFICANT_DIGITS};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString digitsStr = dataValues[SIGNIFICANT_DIGITS];
+                bool validDigits = false;
+                int digits = digitsStr.toInt( &validDigits );
+                if ( validDigits ){
+                    result = setSignificantDigits( digits );
+                }
+                else {
+                    result = "Colormap significant digits must be an integer: "+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
 }
 
 void Colormap::_initializeStatics(){
@@ -501,9 +536,9 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
 QString Colormap::setGamma( double gamma ){
     QString result;
     double oldGamma = m_state.getValue<double>( GAMMA );
-    const double ERROR_MARGIN = 1 / m_significantDigits;
-    if ( qAbs( gamma - oldGamma) > ERROR_MARGIN ){
-        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, m_significantDigits ));
+    if ( qAbs( gamma - oldGamma) > m_errorMargin ){
+        int digits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, digits ));
         m_state.flushState();
         //Let the controllers know gamma has changed.
         int linkCount = m_linkImpl->getLinkCount();
@@ -557,8 +592,31 @@ void Colormap::_setColorProperties( Controller* target ){
     target->setPixelCaching( m_state.getValue<bool>(CACHE) );
 }
 
-Colormap::~Colormap(){
+QString Colormap::setSignificantDigits( int digits ){
+    QString result;
+    if ( digits <= 0 ){
+        result = "Invalid significant digits; must be positive:  "+QString::number( digits );
+    }
+    else {
+        if ( m_state.getValue<int>(SIGNIFICANT_DIGITS) != digits ){
+            m_state.setValue<int>(SIGNIFICANT_DIGITS, digits );
+            _setErrorMargin();
+        }
+    }
+    return result;
+}
 
+void Colormap::_setErrorMargin(){
+    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
+    m_errorMargin = 1.0/qPow(10,significantDigits);
+}
+
+Colormap::~Colormap(){
+    if ( m_settings != nullptr ){
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString id = m_settings->getId();
+        objMan->removeObject( id );
+    }
 }
 }
 }

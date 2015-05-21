@@ -10,7 +10,7 @@
 #include "Data/Colormap/TransformsData.h"
 #include "Data/Colormap/TransformsImage.h"
 #include "Data/ErrorManager.h"
-#include "Data/Histogram.h"
+#include "Data/Histogram/Histogram.h"
 #include "Data/ILinkable.h"
 #include "Data/Layout.h"
 #include "Data/Preferences.h"

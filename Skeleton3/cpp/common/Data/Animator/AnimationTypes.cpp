@@ -11,7 +11,7 @@ namespace Data {
 const QString AnimationTypes::ANIMATION_LIST = "animators";
 const QString AnimationTypes::CLASS_NAME = "AnimationTypes";
 
-typedef Carta::State::UtilState UtilState;
+using Carta::State::UtilState;
 
 class AnimationTypes::Factory : public Carta::State::CartaObjectFactory {
     public:

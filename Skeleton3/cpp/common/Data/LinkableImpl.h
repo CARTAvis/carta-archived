@@ -90,7 +90,7 @@ private:
 
     /// List of cartaObjs managed by this animator.
     QList<Carta::State::CartaObject* > m_cartaObjs;
-    Carta::State::StateInterface m_state; //Used
+    Carta::State::StateInterface m_state;
 
     LinkableImpl( const LinkableImpl& other);
     LinkableImpl operator=( const LinkableImpl& other );

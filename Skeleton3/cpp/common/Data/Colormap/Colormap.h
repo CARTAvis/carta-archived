@@ -28,6 +28,7 @@ class Colormaps;
 class IColoredView;
 class Controller;
 class TransformsData;
+class Settings;
 
 class Colormap : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -44,6 +45,11 @@ public:
      */
     void clear();
 
+    /**
+     * Return the server side id of the preferences for this colormap.
+     * @return the server side id of this colormap's preferences.
+     */
+    QString getPreferencesId() const;
     /**
      * Return a string representing the colormap state of a particular type.
      * @param sessionId - an identifier for the user's session.
@@ -80,6 +86,14 @@ public:
     QString setGamma( double gamma );
 
     /**
+     * Set the number of significant digits to use/display in colormap calculations.
+     * @param digits - the number of significant digits to use in calculations.
+     * @return an error message if the significant digits could not be sent; an
+     *      empty string otherwise.
+     */
+    QString setSignificantDigits( int digits );
+
+    /**
      * Returns the selected controller for this colormap.
      * @return the map's selected controller.
      */
@@ -108,6 +122,8 @@ private:
     void _initializeCallbacks();
     void _initializeStatics();
 
+    void _setErrorMargin();
+
     static bool m_registered;
     const static QString COLOR_MAP_NAME;
     const static QString REVERSE;
@@ -126,6 +142,7 @@ private:
     const static QString SCALE_1;
     const static QString SCALE_2;
     const static QString GAMMA;
+    const static QString SIGNIFICANT_DIGITS;
     const static QString TRANSFORM_IMAGE;
     const static QString TRANSFORM_DATA;
 
@@ -135,6 +152,8 @@ private:
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
+
+    std::unique_ptr<Settings> m_settings;
 
     //Supported color maps
     static Colormaps* m_colors;
@@ -146,7 +165,8 @@ private:
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
-    int m_significantDigits;
+
+    double m_errorMargin;
 
 	Colormap( const Colormap& other);
 	Colormap operator=( const Colormap& other );
