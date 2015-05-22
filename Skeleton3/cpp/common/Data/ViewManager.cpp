@@ -456,8 +456,9 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     return viewId;
 }
 
-void ViewManager::loadFile( const QString& controlId, const QString& fileName){
-    int controlCount = m_controllers.size();
+bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
+    bool result = false;
+    int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
         if ( controlId  == controlPath ){
@@ -465,9 +466,51 @@ void ViewManager::loadFile( const QString& controlId, const QString& fileName){
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
            m_controllers[i]->addData( path );
+           result = true;
            break;
         }
     }
+    return result;
+}
+
+bool ViewManager::loadLocalFile( const QString& controlId, const QString& fileName){
+    bool result = false;
+    int controlCount = getControllerCount();
+    for ( int i = 0; i < controlCount; i++ ){
+        const QString controlPath= m_controllers[i]->getPath();
+        if ( controlId  == controlPath ){
+           //Add the data to it
+            _makeDataLoader();
+           result = m_controllers[i]->addData( fileName );
+           break;
+        }
+    }
+    return result;
+}
+
+int ViewManager::getControllerCount() const {
+    int controllerCount = m_controllers.size();
+    return controllerCount;
+}
+
+int ViewManager::getColormapCount() const {
+    int colorMapCount = m_colormaps.size();
+    return colorMapCount;
+}
+
+int ViewManager::getAnimatorCount() const {
+    int animatorCount = m_animators.size();
+    return animatorCount;
+}
+
+int ViewManager::getHistogramCount() const {
+    int histogramCount = m_histograms.size();
+    return histogramCount;
+}
+
+int ViewManager::getStatisticsCount() const {
+    int statisticsCount = m_statistics.size();
+    return statisticsCount;
 }
 
 QString ViewManager::_makeAnimator( int index ){
@@ -672,7 +715,6 @@ void ViewManager::setImageView(){
         m_layout->setLayoutImage();
     }
 }
-
 
 
 

@@ -55,13 +55,48 @@ public:
     QString linkRemove( const QString& sourceId, const QString& destId );
 
     /**
+     * Return the number of controllers (image views).
+     */
+    int getControllerCount() const;
+
+    /**
+     * Return the number of colormap views.
+     */
+    int getColormapCount() const;
+
+    /**
+     * Return the number of animator views.
+     */
+    int getAnimatorCount() const;
+
+    /**
+     * Return the number of histogram views.
+     */
+    int getHistogramCount() const;
+
+    /**
+     * Return the number of statistics views.
+     */
+    int getStatisticsCount() const;
+
+    /**
      * Load the file into the controller with the given id.
      * @param fileName a locater for the data to load.
-     * @param objectId the unique server side id of the controller which is responsible for displaying
-     *      the file.
+     * @param objectId the unique server side id of the controller which is
+     * responsible for displaying the file.
+     * @return true if successful, false otherwise.
      */
-    void loadFile( const QString& objectId, const QString& fileName);
+    bool loadFile( const QString& objectId, const QString& fileName);
 
+
+    /**
+     * Load a local file into the controller with the given id.
+     * @param fileName a locater for the data to load.
+     * @param objectId the unique server side id of the controller which is
+     * responsible for displaying the file.
+     * @return true if successful, false otherwise.
+     */
+    bool loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
      * Reset the layout to a predefined analysis view.
@@ -69,10 +104,9 @@ public:
     void setAnalysisView();
 
     /**
-     * Reset the layout to show objects under active development.
+     * Reset the layout to a predefined developer layout.
      */
     void setDeveloperView();
-
 
     /**
      * Reset the layout to a predefined view displaying only a single image.
@@ -82,6 +116,7 @@ public:
     /**
      * Set the list of plugins to be displayed.
      * @param names a list of identifiers for the plugins.
+     * @return error information if plugins could not be set.
      */
     bool setPlugins( const QStringList& names );
 

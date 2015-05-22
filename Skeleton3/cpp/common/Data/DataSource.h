@@ -96,23 +96,6 @@ public:
      */
     virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
-    /**
-     * Set whether or not to use pixel caching.
-     * @param enabled true if pixel caching should be used; false otherwise.
-     */
-    virtual void setPixelCaching( bool enabled )  Q_DECL_OVERRIDE;
-
-    /**
-     * Set the pixel cache size.
-     * @param size the new pixel cache size.
-     */
-    virtual void setCacheSize( int size )  Q_DECL_OVERRIDE;
-
-    /**
-     * Set whether or not to use pixel cache interpolation.
-     * @param enabled true if pixel cache interpolation should be used; false otherwise.
-     */
-    virtual void setCacheInterpolation( bool enabled )  Q_DECL_OVERRIDE;
 
     /**
      * Set the data transform.
@@ -183,6 +166,12 @@ public:
      * @return the zoom multiplier.
      */
     double getZoom() const;
+
+    /**
+     * Get the dimensions of the image viewer (window size).
+     * @return the image viewer dimensions.
+     */
+    QSize getOutputSize() const;
 
     /**
      * Set the center for this image's display.
@@ -264,6 +253,16 @@ public:
      * Generate a new QImage.
      */
     void render();
+
+    /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param fileName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     * [NOTE: this method has been temporarily disabled, so will always return false.]
+     */
+    bool saveFullImage( const QString& filename, double scale );
 
     virtual ~DataSource();
 

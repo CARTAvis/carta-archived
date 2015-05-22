@@ -135,6 +135,12 @@ public:
     void
     setOutputSize( QSize size );
 
+    ///
+    /// \brief return the output size of the image
+    ///
+    QSize
+    getOutputSize();
+
     /// set coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
     /// (0,0), while (1,1) is it's right-top corner, and (1/2,1/2) is it's center
@@ -257,6 +263,9 @@ private:
     /// here we store the whole frame rendered, it is essentially a cache to make
     /// pan/zoom to work faster
     QImage m_frameImage;
+
+    /// render the frame if needed
+    void _renderFrame();
 
     /// cache for individual frames (to make movie playing little bit faster)
     QCache < QString, QImage > m_frameCache;

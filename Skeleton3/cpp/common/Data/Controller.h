@@ -52,8 +52,9 @@ public:
      * Add data to this controller.
      * @param fileName the location of the data;
      *        this could represent a url or an absolute path on a local filesystem.
+     * @return true upon success, false otherwise.
      */
-    void addData(const QString& fileName);
+    bool addData(const QString& fileName);
 
     /**
      * Apply the indicated clips to managed images.
@@ -102,23 +103,7 @@ public:
     virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
     virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
     virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
-    /**
-     * Set the pixel cache size.
-     * @param size the new pixel cache size.
-     */
-    virtual void setCacheSize( int size ) Q_DECL_OVERRIDE;
 
-    /**
-     * Set whether or not to use pixel cache interpolation.
-     * @param enabled true if pixel cache interpolation should be used; false otherwise.
-     */
-    virtual void setCacheInterpolation( bool enabled ) Q_DECL_OVERRIDE;
-
-    /**
-     * Set whether or not to use pixel caching.
-     * @param enabled true if pixel caching should be used; false otherwise.
-     */
-    virtual void setPixelCaching( bool enabled ) Q_DECL_OVERRIDE;
 
 
     std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
@@ -180,6 +165,24 @@ public:
     void saveState();
 
     /**
+     * Save a screenshot of the current image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param filename the full path where the file is to be saved.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     */
+    bool saveImage( const QString& filename );
+
+    /**
+     * Save a copy of the full image in the current image view at its native resolution.
+     * @param fileName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there was a problem saving the image;
+     *      an empty string otherwise.
+     */
+    bool saveFullImage( const QString& filename, double scale );
+
+    /**
      * Reset the images that are loaded and other data associated state.
      * @param state - the data state.
      */
@@ -194,11 +197,25 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
+     * Set the overall clip amount for the data.
+     * @param clipValue a number between 0 and 1.
+     * @return an error message if the clip value cannot be set; otherwise and empty string.
+     */
+    QString setClipValue( double clipValue );
+
+    /**
      * Change the pan of the current image.
      * @param imgX the x-coordinate for the center of the pan.
      * @param imgY the y-coordinate for the center of the pan.
      */
     void updatePan( double imgX , double imgY);
+
+    /**
+     * Center the image on the pixel with coordinates (x, y).
+     * @param imgX the x-coordinate for the center of the pan.
+     * @param imgY the y-coordinate for the center of the pan.
+     */
+    void centerOnPixel( double imgX , double imgY);
 
     /**
      * Update the zoom settings.
@@ -207,6 +224,27 @@ public:
      * @param z either positive or negative depending on the desired zoom direction.
      */
     void updateZoom( double centerX, double centerY, double z );
+
+    /**
+     * Set the zoom level
+     * @param zoomLevel either positive or negative depending on the desired zoom direction.
+     */
+    void setZoomLevel( double zoomLevel );
+
+    /**
+     * Get the current zoom level
+     */
+    double getZoomLevel( );
+
+    /**
+     * Get the image dimensions.
+     */
+    QStringList getImageDimensions( );
+
+    /**
+     * Get the dimensions of the image viewer (window size).
+     */
+    QStringList getOutputSize( );
 
     /**
      * Return a count of the number of images in the stack.

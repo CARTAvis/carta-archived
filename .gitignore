@@ -15,3 +15,18 @@
 
 # git mergetool byproducts
 *.orig
+
+# emacs backup files
+*~
+
+# python byproducts
+*.pyc
+
+# vi backup files
+*.swp
+
+# shared library files (cross-platform friendly)
+*.so
+*.dylib
+
+*createlinks.sh

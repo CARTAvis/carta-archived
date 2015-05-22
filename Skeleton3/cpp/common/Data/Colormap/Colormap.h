@@ -39,6 +39,7 @@ public:
     //ILinkable
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -59,6 +60,18 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
+     * Returns whether or not the colormap is reversed.
+     * @return true if the colormap is reversed; false otherwise.
+     */
+    bool isReversed() const;
+
+    /**
+     * Returns whether or not the colormap is inverted.
+     * @return true if the colormap is inverted; false, otherwise.
+     */
+    bool isInverted() const;
+
+    /**
      * Force a flush of state to the client.
      */
     void refreshState();
@@ -70,6 +83,29 @@ public:
      */
     QString setColorMap( const QString& colorMapName );
 
+    /**
+     * Reverse the current colormap.
+     * @param reverse - true if the colormap should be reversed; false otherwise.
+     * @return error information if the color map was not successfully reversed.
+     */
+    QString reverseColorMap( bool reverse );
+
+
+    /**
+     * Invert the current colormap.
+     * @param invert - true if the color map should be inverted; false otherwise..
+     * @return error information if the color map was not successfully inverted.
+     */
+    QString invertColorMap( bool invert );
+
+    /**
+     * Set a color mix.
+     * @param redValue a number in [0,1] representing the amount of red in the mix.
+     * @param blueValue a number in [0,1] representing the amount of blue in the mix.
+     * @param greenValue a number in [0,1] representing the amount of green in the mix.
+     * @return error information if the color mix was not successfully set.
+     */
+    QString setColorMix( double redValue, double blueValue, double greenValue );
 
     /**
      * Set the name of the data transform.
@@ -84,6 +120,8 @@ public:
      * @return error information if gamma could not be set.
      */
     QString setGamma( double gamma );
+
+    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( ) const;
 
     /**
      * Set the number of significant digits to use/display in colormap calculations.
@@ -108,16 +146,12 @@ private slots:
     void _setColorProperties( Controller* target );
 
 private:
-    QString _commandCacheColorMap( const QString& params );
-    QString _commandCacheSize( const QString& params );
-    QString _commandInterpolatedColorMap( const QString& params );
     QString _commandSetColorMap( const QString& params );
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
 
-    bool _processColorStr( const QString key, const QString colorStr, bool* valid );
-
+    bool _setColorMix( const QString& key, double colorPercent, QString& errorMsg );
     void _initializeDefaultState();
     void _initializeCallbacks();
     void _initializeStatics();
@@ -136,9 +170,6 @@ private:
     const static QString COLOR_MIX_RED;
     const static QString COLOR_MIX_GREEN;
     const static QString COLOR_MIX_BLUE;
-    const static QString CACHE_SIZE;
-    const static QString INTERPOLATED;
-    const static QString CACHE;
     const static QString SCALE_1;
     const static QString SCALE_2;
     const static QString GAMMA;

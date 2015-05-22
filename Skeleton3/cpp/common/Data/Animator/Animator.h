@@ -28,6 +28,9 @@ class Animator : public QObject, public Carta::State::CartaObject, public ILinka
 
 public:
 
+    //ILinkable
+    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+
     /**
      * Add an animator of the given type.
      * @param type an identifier for the type of animator to add (channel, image, etc).
@@ -70,12 +73,6 @@ public:
     QString getLinkId( int linkindex ) const;
 
     /**
-     * Return a list of identifiers for all objects that are controlled by this animator.
-     * @return a list of identifiers for objects under the control of this animator.
-     */
-    QList<QString> getLinks() const;
-
-    /**
      * Return a string representing the animator state of a particular type.
      * @param type - the type of state needed.
      * @return a QString representing the corresponding animator state.
@@ -87,8 +84,12 @@ public:
      */
     void refreshState();
 
+    void changeChannelIndex( int index );
+
+    void changeImageIndex( int selectedImage );
+
     /**
-     * Adds a link to this animator.
+     * Removes a link to this animator.
      * @param cartaObject the link to remove.
      * @return an error message if the link could not be removed; an empty string otherwise.
      */
