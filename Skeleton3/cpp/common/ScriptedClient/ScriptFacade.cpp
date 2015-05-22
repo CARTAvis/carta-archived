@@ -527,14 +527,14 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     return resultList;
 }
 
-void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, double scale ) {
+void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, const QString& aspectRatioMode ){
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
     CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            controller->saveFullImage( filename, scale );
+            controller->saveFullImage( filename, width, height, scale, aspectRatioMode );
         }
     }
 }

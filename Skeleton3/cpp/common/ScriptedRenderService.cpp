@@ -26,6 +26,22 @@ void ScriptedRenderService::setZoom( double zoom ){
     m_renderService->setZoom( zoom );
 }
 
+void ScriptedRenderService::setOutputSize( QSize size ){
+    m_outputSize = size;
+}
+
+void ScriptedRenderService::setAspectRatioMode( QString mode ){
+    if ( mode == "keep" ){
+        m_aspectRatioMode = Qt::KeepAspectRatio;
+    }
+    else if (mode == "expand" ){
+        m_aspectRatioMode = Qt::KeepAspectRatioByExpanding;
+    }
+    else {
+        m_aspectRatioMode = Qt::IgnoreAspectRatio;
+    }
+}
+
 void ScriptedRenderService::saveFullImage(){
     _prepareData( 0, 0.0, 1.0 );
     m_renderService->render( 0 );
@@ -63,7 +79,8 @@ void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercenti
 }
 
 void ScriptedRenderService::_saveFullImageCB( QImage img ){
-    bool result = img.save( m_outputFilename );
+    QImage imgScaled = img.scaled( m_outputSize * m_renderService->zoom(), m_aspectRatioMode );
+    bool result = imgScaled.save( m_outputFilename );
     emit saveImageResult( result );
     m_renderService->deleteLater();
 }

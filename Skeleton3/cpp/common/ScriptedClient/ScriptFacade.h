@@ -236,12 +236,16 @@ public:
     QStringList saveImage( const QString& controlId, const QString& fileName );
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
+     * Save a copy of the full image in the current image view.
      * @param controlId the unique server-side id of an object managing a controller.
-     * @param fileName the full path where the file is to be saved.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width of the saved image.
+     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& controlId, const QString& fileName, double scale );
+    void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, const QString& aspectRatioMode );
 
 //    /**
 //     * Save the current layout to a .json file in the /tmp directory.

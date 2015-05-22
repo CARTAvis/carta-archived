@@ -158,9 +158,40 @@ class Image(CartaView):
                                      filename=dest)
         return result
 
-    def saveFullImage(self, dest, saveScale=1):
+    def saveFullImage(self, dest, width=-1, height=-1, scale=1,
+                      aspectRatioMode='ignore'):
+        """
+        Save a copy of the entire image (not just what's in the image viewer).
+
+        Parameters
+        ----------
+        dest: string
+            The full path of the destination filename.
+        width: integer
+            The width of the saved image.
+            The default value is -1, which causes the parameter to be
+                ignored.
+        height: integer
+            The height of the saved image.
+            The default value is -1, which causes the parameter to be
+                ignored.
+        scale: float
+            The desired zoom level of the saved image.
+            The default value is 1.
+        aspectRatioMode: string
+            Can be one of three possible values: 'ignore', 'keep', or
+                'expand'. See
+                http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for an
+                explanation of these options.
+        """
+        if (width < 0 or height < 0):
+            currentDim = self.getImageDimensions()
+            width = currentDim[0]
+            height = currentDim[1]
         result = self.con.cmdAsyncList("saveFullImage", imageView=self.getId(),
-                                     filename=dest, scale=saveScale)
+                                     filename=dest, width=width, height=height,
+                                     scale=scale,
+                                     aspectRatioMode=aspectRatioMode)
         return result
 
     def getImageDimensions(self):

@@ -411,8 +411,11 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
     if ( cmd == "savefullimage" ) {
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
+        int width = args["width"].toInt();
+        int height = args["height"].toInt();
         double scale = args["scale"].toDouble();
-        m_scriptFacade->saveFullImage( imageView, filename, scale );
+        QString aspectRatioMode = args["aspectRatioMode"].toString();
+        m_scriptFacade->saveFullImage( imageView, filename, width, height, scale, aspectRatioMode );
     }
 
 } // asyncMessageReceivedCB

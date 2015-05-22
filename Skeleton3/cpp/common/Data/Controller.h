@@ -190,11 +190,15 @@ public:
     bool saveImage( const QString& filename );
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
-     * @param fileName the full path where the file is to be saved.
+     * Save a copy of the full image in the current image view.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width of the saved image.
+     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& filename, double scale );
+    void saveFullImage( const QString& filename, int width, int height, double scale, const QString& aspectRatioMode );
 
     /**
      * Reset the images that are loaded and other data associated state.
