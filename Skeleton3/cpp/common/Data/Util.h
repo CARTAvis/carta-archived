@@ -8,25 +8,18 @@
 #include <QString>
 #include <vector>
 
-class CartaObject;
+
 
 namespace Carta {
+namespace State {
+class CartaObject;
+}
 
 namespace Data {
 
 class Util {
 
 public:
-     /**
-      * Parses a string of the form:  key1:value1,key2:value2,etc for
-      * keys contained in the QList and returns a map of key value pairs.
-      * @param paramsToParse the string to parse.
-      * @param keyList a set containing the expected keys in the string.
-      * @return a map containing the (key,value) pairs in the string.  An empty map will
-      *     be returned is the keys in the string do not match those in the keyList.
-      */
-     static std::map < QString, QString > parseParamMap( const QString & paramsToParse,
-             const std::set < QString > & keyList );
 
      /**
       * Converts the a string of the form true/false into a bool.
@@ -48,7 +41,7 @@ public:
       * @param objectName the class name of the object to create.
       * @return the object that was created.
       */
-     static CartaObject* createObject( const QString& objectName );
+     static Carta::State::CartaObject* createObject( const QString& objectName );
 
      /**
       * Returns the singleton object of the given class or null if there is no such object.
@@ -56,7 +49,7 @@ public:
       * @return the singleton object with the corresponding name or null if there is no
       *     such object.
       */
-     static CartaObject* findSingletonObject( const QString& objectName );
+     static Carta::State::CartaObject* findSingletonObject( const QString& objectName );
 
      /**
       * Posts the error message, if one exists, and returns the last valid value, if one exists
@@ -66,13 +59,7 @@ public:
       */
      static void commandPostProcess( const QString& errorMsg );
 
-     /**
-      * Return the lookup key for an array element with a given name and index.
-      * @param arrayName - the name of a state array.
-      * @param index - the array index.
-      * @return the lookup key for the array element.
-      */
-     static QString getLookup( const QString& arrayName, int index );
+
 
      /**
       * Round the value to the given number of significant digits.

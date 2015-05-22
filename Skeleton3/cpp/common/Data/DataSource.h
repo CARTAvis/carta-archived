@@ -104,23 +104,6 @@ public:
      */
     virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
-    /**
-     * Set whether or not to use pixel caching.
-     * @param enabled true if pixel caching should be used; false otherwise.
-     */
-    virtual void setPixelCaching( bool enabled )  Q_DECL_OVERRIDE;
-
-    /**
-     * Set the pixel cache size.
-     * @param size the new pixel cache size.
-     */
-    virtual void setCacheSize( int size )  Q_DECL_OVERRIDE;
-
-    /**
-     * Set whether or not to use pixel cache interpolation.
-     * @param enabled true if pixel cache interpolation should be used; false otherwise.
-     */
-    virtual void setCacheInterpolation( bool enabled )  Q_DECL_OVERRIDE;
 
     /**
      * Set the data transform.

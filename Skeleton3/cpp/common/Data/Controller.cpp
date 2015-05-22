@@ -1,14 +1,14 @@
 #include "State/ObjectManager.h"
-
+#include "State/UtilState.h"
 #include "Data/Controller.h"
 #include "Data/DataLoader.h"
-#include "Data/Colormap.h"
+#include "Data/Colormap/Colormap.h"
 #include "Data/DataSource.h"
-#include "Data/Histogram.h"
+#include "Data/Histogram/Histogram.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
 #include "Data/RegionRectangle.h"
-#include "Data/Animator.h"
+#include "Data/Animator/Animator.h"
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
@@ -25,11 +25,11 @@ namespace Carta {
 
 namespace Data {
 
-class Controller::Factory : public CartaObjectFactory {
+class Controller::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Controller (path, id);
     }
@@ -51,16 +51,19 @@ const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 
 const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Controller::Factory());
+
+using Carta::State::UtilState;
+using Carta::State::StateInterface;
 
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
         m_view(nullptr),
-        m_stateData( path + StateInterface::DELIMITER + StateInterface::STATE_DATA ),
-        m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW),
+        m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA )),
+        m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)),
         m_viewSize( 400, 400){
 
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
@@ -130,7 +133,7 @@ bool Controller::addData(const QString& fileName) {
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
     bool clipsChanged = false;
-    if ( minIntensityPercentile <= maxIntensityPercentile ){
+    if ( minIntensityPercentile < maxIntensityPercentile ){
         const double ERROR_MARGIN = 0.0001;
         if ( 0 <= minIntensityPercentile && minIntensityPercentile <= 1 ){
             double oldMin = m_state.getValue<double>(CLIP_VALUE_MIN );
@@ -158,6 +161,10 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
                 _scheduleFrameReload();
             }
         }
+    }
+    else {
+        result = "The minimum percentile: "+QString::number(minIntensityPercentile)+
+                " must be less than "+QString::number(maxIntensityPercentile);
     }
     return result;
 }
@@ -288,23 +295,27 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
+        //Data state should include type and index for identification.
         //Data state should include the data of all DataSources (images loaded)
         //Data state should include DataSource that is selected
         //Data state should include channel that is selected.
-        StateInterface dataState("");
-        CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
+        Carta::State::StateInterface dataState("");
+        Carta::State::CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
         DataLoader* dataLoader = dynamic_cast<DataLoader*>(cartaObj);
         if ( dataLoader != nullptr ){
             QString rootDir = dataLoader->getRootDir( sessionId );
-            StateInterface dataStateCopy( "");
+            Carta::State::StateInterface dataStateCopy( "");
             dataStateCopy.setState( m_stateData.toString());
             int dataCount = dataStateCopy.getArraySize( DATA );
             for ( int i = 0; i < dataCount; i++ ){
-                QString lookup = Util::getLookup( DATA, i );
+                QString lookup = Carta::State::UtilState::getLookup( DATA, i );
                 QString fileName = dataStateCopy.getValue<QString>( lookup );
-                dataStateCopy.setValue<QString>( lookup, rootDir + StateInterface::DELIMITER + fileName );
+                dataStateCopy.setValue<QString>( lookup,
+                        UtilState::getLookup(rootDir, fileName ));
             }
             dataState.setState( dataStateCopy.toString());
+            dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
+            dataState.setValue<int>(StateInterface::INDEX, getIndex());
             dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
             dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
             result = dataState.toString();
@@ -313,48 +324,33 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
     return result;
 }
 
-QString Controller::setClipValue( const QString& params ) {
-    QString result;
-    std::set<QString> keys = {"clipValue"};
-    std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
-    bool validClip = false;
-    QString clipKey = *keys.begin();
-    QString clipWithoutPercent = dataValues[clipKey].remove("%");
-    double clipVal = dataValues[clipKey].toDouble(&validClip);
-    // Make sure the clip value is within a valid range.
-    // I'm not sure if this is the proper, accepted range, but it seems to work.
-    if ( clipVal > 1 || clipVal < 0.026 ) {
-        validClip = false;
+
+
+QString Controller::getType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getType( snapType );
+    if ( snapType == SNAPSHOT_DATA ){
+        objType = objType + Carta::State::StateInterface::STATE_DATA;
     }
-    if ( validClip ){
-        double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
-        double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
-        double oldClipVal = oldClipValMax - oldClipValMin;
-        const double ERROR_MARGIN = 0.000001;
-        if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
-            double leftOver = 1 - clipVal;
-            double clipValMin = leftOver / 2;
-            double clipValMax = clipVal + leftOver / 2;
-            m_state.setValue<double>( CLIP_VALUE_MIN, clipValMin );
-            m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
-            m_state.flushState();
-            if ( m_view ){
-                _loadView();
-            }
-        }
-    }
-    else {
-        qDebug() << "Invalid clip value: "<<params;
-    }
-    return result;
+    return objType;
 }
 
 void Controller::_initializeCallbacks(){
     //Listen for updates to the clip and reload the frame.
-
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result = setClipValue( params );
+        QString result;
+        std::set<QString> keys = {"clipValue"};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        bool validClip = false;
+        QString clipKey = *keys.begin();
+        QString clipWithoutPercent = dataValues[clipKey].remove("%");
+        double clipVal = dataValues[clipKey].toDouble(&validClip);
+        if ( validClip ){
+            result = setClipValue( clipVal );
+        }
+        else {
+            result = "Invalid clip value: "+params;
+        }
         Util::commandPostProcess( result );
         return result;
     });
@@ -362,7 +358,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"autoClip"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipKey = *keys.begin();
         bool autoClip = false;
         if ( dataValues[clipKey] == "true"){
@@ -376,8 +372,7 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
-    QString pointerPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW +
-            StateInterface::DELIMITER + POINTER_MOVE;
+    QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( ImageView::VIEW, POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
@@ -395,7 +390,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) ->QString {
         std::set<QString> keys = {"image"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString imageName = dataValues[*keys.begin()];
         QString result = closeImage( imageName );
                 return result;
@@ -428,7 +423,7 @@ void Controller::_initializeCallbacks(){
         const QString TYPE( "type");
         const QString INDEX( "index");
         std::set<QString> keys = {TYPE, INDEX};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString shapePath;
         bool validIndex = false;
         int index = dataValues[INDEX].toInt( &validIndex );
@@ -530,8 +525,8 @@ void Controller::_loadView( ) {
 QString Controller::_makeRegion( const QString& regionType ){
     QString shapePath = Region::makeRegion( regionType );
     if ( shapePath.size() > 0 ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        CartaObject* shapeObj = objManager->getObject( shapePath );
+        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+        Carta::State::CartaObject* shapeObj = objManager->getObject( shapePath );
         shapePath = shapeObj->getPath();
         m_regions.append(dynamic_cast<Region*>(shapeObj));
 
@@ -574,11 +569,11 @@ void Controller::_repaintFrameNow(){
 void Controller::resetStateData( const QString& state ){
     //First we reset the data this controller is displaying
     _clearData();
-    StateInterface dataState( "");
+    Carta::State::StateInterface dataState( "");
     dataState.setState( state );
     int dataCount = dataState.getValue<int>(DATA_COUNT);
     for ( int i = 0; i < dataCount; i++ ){
-        QString lookup = Util::getLookup( DATA, i );
+        QString lookup = Carta::State::UtilState::getLookup( DATA, i );
         QString fileName = dataState.getValue<QString>( lookup );
         this->addData( fileName );
     }
@@ -587,6 +582,8 @@ void Controller::resetStateData( const QString& state ){
     m_selectChannel->resetState( channelState );
     QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
     m_selectImage ->resetState( dataStateStr );
+    //Notify others there has been a change to the data.
+    emit dataChanged( this );
 }
 
 void Controller::saveState() {
@@ -600,7 +597,7 @@ void Controller::saveState() {
         m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
         for (int i = 0; i < dataCount; i++) {
             QString imageViewName = m_datas[i]->getImageViewName();
-            QString dataKey = DATA + StateInterface::DELIMITER +QString::number(i);
+            QString dataKey = UtilState::getLookup( DATA, i);
             QString oldViewName;
             if ( i < oldDataCount ){
                 oldViewName = m_stateData.getValue<QString>(dataKey);
@@ -635,12 +632,12 @@ void Controller::saveImageResultCB( bool result ){
 void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){
-        QString arrayStr = REGIONS + StateInterface::DELIMITER + QString::number(i);
+        QString arrayStr = UtilState::getLookup( REGIONS, i);
         QString regionType= m_regions[i]->getType();
         QString regionId = m_regions[i]->getPath();
         m_state.setObject( arrayStr );
-        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "type", regionType );
-        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "id", regionId );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionType );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "id"), regionId );
     }
 }
 
@@ -697,29 +694,6 @@ void Controller::setColorAmounts( double newRed, double newGreen, double newBlue
     _render();
 }
 
-void Controller::setPixelCaching( bool enabled ){
-    if ( m_datas.size() > 0 ){
-        for ( DataSource* data : m_datas ){
-            data->setPixelCaching( enabled );
-        }
-    }
-}
-
-void Controller::setCacheInterpolation( bool enabled ){
-    if ( m_datas.size() > 0 ){
-        for ( DataSource* data : m_datas ){
-            data->setCacheInterpolation( enabled );
-        }
-    }
-}
-
-void Controller::setCacheSize( int size ){
-    if ( m_datas.size() > 0 ){
-        for ( DataSource* data : m_datas ){
-            data->setCacheSize( size );
-        }
-    }
-}
 
 
 void Controller::setFrameChannel(int value) {
@@ -755,6 +729,8 @@ void Controller::setGamma( double gamma ){
     }
     _render();
 }
+
+
 
 void Controller::setTransformData( const QString& name ){
     for ( DataSource* data : m_datas ){
@@ -911,6 +887,26 @@ QStringList Controller::getPixelCoordinates( double ra, double dec ){
     return result;
 }
 
+QString Controller::setClipValue( double clipVal  ) {
+    QString result;
+    if ( 0 <= clipVal && clipVal < 1 ){
+        double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
+        double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
+        double oldClipVal = oldClipValMax - oldClipValMin;
+        const double ERROR_MARGIN = 0.000001;
+        if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
+            double leftOver = 1 - clipVal;
+            double clipValMin = leftOver / 2;
+            double clipValMax = clipVal + leftOver / 2;
+            result = applyClips (clipValMin, clipValMax );
+        }
+    }
+    else {
+        result = "Clip value must be in [0,1).";
+    }
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );
@@ -921,7 +917,7 @@ void Controller::_viewResize( const QSize& newSize ){
 
 Controller::~Controller(){
     clear();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     if ( m_selectChannel != nullptr){
         objMan->destroyObject(m_selectChannel->getId());
         m_selectChannel = nullptr;

@@ -1,16 +1,21 @@
 #include "ScriptFacade.h"
 #include "Data/ViewManager.h"
-#include "Data/Animator.h"
-#include "Data/AnimatorType.h"
+#include "Data/Animator/Animator.h"
+#include "Data/Animator/AnimatorType.h"
 #include "Data/Controller.h"
-#include "Data/Colormap.h"
-#include "Data/Colormaps.h"
+#include "Data/Colormap/Colormap.h"
+#include "Data/Colormap/Colormaps.h"
 #include "Data/Util.h"
-#include "Data/Animator.h"
-#include "Data/Histogram.h"
+#include "Data/Histogram/Histogram.h"
+#include "Data/Layout.h"
 #include "Data/Statistics.h"
 
 #include <QDebug>
+
+using Carta::State::ObjectManager;
+using Carta::State::CartaObject;
+
+QString ScriptFacade::TOGGLE = "toggle";
 
 ScriptFacade * ScriptFacade::getInstance (){
     static ScriptFacade * sc = new ScriptFacade ();
@@ -194,9 +199,28 @@ QStringList ScriptFacade::setAnalysisLayout(){
 }
 
 QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
-    QString resultStr = m_viewManager->setCustomView( rows, cols );
-    QStringList result( resultStr );
-    return result;
+    QStringList resultList;
+    QString layoutLookUp = Carta::Data::Layout::CLASS_NAME;
+    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( layoutLookUp );
+    if ( obj != nullptr ){
+       Carta::Data::Layout* layout = dynamic_cast<Carta::Data::Layout*>(obj);
+       if ( layout != nullptr ){
+           QString resultStr = layout->setLayoutSize( rows, cols );
+           resultList = QStringList( resultStr );
+       }
+       else {
+           resultList = QStringList( "error" );
+           resultList.append( "An unknown error has occurred." );
+       }
+    }
+    else {
+       resultList = QStringList( "error" );
+       resultList.append( "The layout could not be found." );
+    }
+    //QString resultStr = m_viewManager->setCustomView( rows, cols );
+    //QStringList result( resultStr );
+    //return result;
+    return resultList;
 }
 
 QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
@@ -230,8 +254,22 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
-            QString result = colormap->reverseColormap( reverseStr );
-            resultList = QStringList( result );
+            bool reverse = false;
+            bool validBool = true;
+            if ( reverseStr == TOGGLE ){
+                reverse = ! colormap->isReversed();
+            }
+            else {
+                reverse = Carta::Data::Util::toBool( reverseStr, &validBool );
+            }
+            if ( validBool ){
+                QString result = colormap->reverseColorMap( reverse );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = QStringList( "error");
+                resultList.append( "An invalid value was passed to reverse color map");
+            }
         }
         else {
             resultList = QStringList( "error" );
@@ -245,7 +283,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
     return resultList;
 }
 
-QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
+/*QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
@@ -266,9 +304,9 @@ QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QSt
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
-}
+}*/
 
-QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
+/*QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
@@ -289,9 +327,9 @@ QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
-}
+}*/
 
-QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
+/*QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
@@ -312,7 +350,7 @@ QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, co
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
-}
+}*/
 
 QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QString& invertStr ){
     QStringList resultList;
@@ -322,8 +360,22 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
-            QString result = colormap->invertColorMap( invertStr );
-            resultList = QStringList( result );
+           bool invert = false;
+           bool validBool = true;
+           if ( invertStr == TOGGLE ){
+               invert = ! colormap->isInverted();
+           }
+           else {
+               invert = Carta::Data::Util::toBool( invertStr, &validBool );
+           }
+           if ( validBool ){
+               QString result = colormap->invertColorMap( invert );
+               resultList = QStringList( result );
+           }
+           else {
+               resultList = QStringList( "error");
+               resultList.append( "An unrecognized parameter was passed to invert color map");
+           }
         }
         else {
             resultList = QStringList( "error" );
@@ -337,7 +389,7 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
     return resultList;
 }
 
-QStringList ScriptFacade::setColorMix( const QString& colormapId, const QString& percentString ){
+QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, double green, double blue ){
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
@@ -345,7 +397,7 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, const QString&
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
-            QString result = colormap->setColorMix( percentString );
+            QString result = colormap->setColorMix( red, green, blue );
             resultList = QStringList( result );
         }
         else {
@@ -479,8 +531,7 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
     return resultList;
 }
 
-QStringList ScriptFacade::setClipValue( const QString& controlId, const QString& clipValue ) {
-    const QString& param = "clipValue:" + clipValue;
+QStringList ScriptFacade::setClipValue( const QString& controlId, double clipValue ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
@@ -488,7 +539,9 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, const QString&
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            controller->setClipValue( param );
+            QString result = controller->setClipValue( clipValue );
+            resultList = QStringList( result );
+
         }
         else {
             resultList = QStringList( "error" );

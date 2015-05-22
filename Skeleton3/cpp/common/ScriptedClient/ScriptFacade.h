@@ -8,11 +8,10 @@
 #include <QString>
 #include <QObject>
 
-class ObjectManager;
+
 namespace Carta {
     namespace Data {
         class ViewManager;
-        class Animator;
     }
 }
 
@@ -145,7 +144,7 @@ public:
      * @param cacheStr should be equal to either "true" or "false"
      * @return error information if the cache size was not successfully set.
      */
-    QStringList setCacheColormap( const QString& colormapId, const QString& cacheStr );
+    //QStringList setCacheColormap( const QString& colormapId, const QString& cacheStr );
 
     /**
      * Set the cache size of the colormap
@@ -153,7 +152,7 @@ public:
      * @param cacheSize the desired cache size.
      * @return error information if the cache size was not successfully set.
      */
-    QStringList setCacheSize( const QString& colormapId, const QString& cacheSize );
+    //QStringList setCacheSize( const QString& colormapId, const QString& cacheSize );
 
     /**
      * Interpolate the current colormap.
@@ -161,7 +160,7 @@ public:
      * @param interpolateStr should be equal to either "true" or "false".
      * @return error information if the color map was not successfully interpolated.
      */
-    QStringList setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
+    //QStringList setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
 
     /**
      * Invert the current colormap.
@@ -174,10 +173,12 @@ public:
     /**
      * Set a color mix.
      * @param colormapId the unique server-side id of an object managing a color map.
-     * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     * @param red the amount of red in the mix [0,1].
+     * @param green the amount of green in the mix [0,1].
+     * @param blue the amount of blue in the mix [0,1].
      * @return error information if the color mix was not successfully set.
      */
-    QStringList setColorMix( const QString& colormapId, const QString& percentString );
+    QStringList setColorMix( const QString& colormapId, double red, double green, double blue );
 
     /**
      * Set the gamma color map parameter.
@@ -224,7 +225,7 @@ public:
      * @param clipValue the percentage of data to be shown.
      * @return error information if the clip value could not be set.
      */
-    QStringList setClipValue( const QString& controlId, const QString& clipValue );
+    QStringList setClipValue( const QString& controlId, double clipValue );
 
     /**
      * Save a screenshot of the current image view.
@@ -530,5 +531,8 @@ private:
      * @return the unique server side id of the object managing the statistics view.
      */
     QString getStatisticsViewId( int index = -1 ) const;
+
+private:
+    static QString TOGGLE;
 };
 

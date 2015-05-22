@@ -24,20 +24,24 @@ HEADERS += \
     MainConfig.h \
     State/ObjectManager.h \
     State/StateInterface.h \
-    State/StateReader.h \
+    State/UtilState.h \
     ImageView.h \
-    Data/Animator.h \
-    Data/AnimatorType.h \
-    Data/AnimationTypes.h \
+    Data/Animator/Animator.h \
+    Data/Animator/AnimatorType.h \
+    Data/Animator/AnimationTypes.h \
     Data/ChannelUnits.h \
     Data/Clips.h \
-    Data/Colormap.h \
-    Data/Colormaps.h \
+    Data/Colormap/Colormap.h \
+    Data/Colormap/Colormaps.h \
+    Data/Colormap/Settings.h \
+    Data/Colormap/TransformsData.h \
+    Data/Colormap/TransformsImage.h \
     Data/Controller.h \
     Data/DataLoader.h \
     Data/ErrorReport.h \
     Data/ErrorManager.h \
-    Data/Histogram.h \
+    Data/Histogram/Histogram.h \
+    Data/Histogram/HistogramPreferences.h \
     Data/IColoredView.h \
     Data/ILinkable.h \
     Data/Selection.h \
@@ -48,10 +52,11 @@ HEADERS += \
     Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
-    Data/Snapshots.h \
+    Data/Snapshot/ISnapshotsImplementation.h \
+    Data/Snapshot/Snapshots.h \
+    Data/Snapshot/Snapshot.h \
+    Data/Snapshot/SnapshotsFile.h \
     Data/Statistics.h \
-    Data/TransformsData.h \
-    Data/TransformsImage.h \
     Data/Util.h \
     GrayColormap.h \
     Data/ViewManager.h \
@@ -87,20 +92,24 @@ SOURCES += \
     MainConfig.cpp \
     State/ObjectManager.cpp\
     State/StateInterface.cpp \
-    State/StateReader.cpp \
+    State/UtilState.cpp \
     ImageView.cpp \
-    Data/Animator.cpp \
-    Data/AnimatorType.cpp \
-    Data/AnimationTypes.cpp \
+    Data/Animator/Animator.cpp \
+    Data/Animator/AnimatorType.cpp \
+    Data/Animator/AnimationTypes.cpp \
     Data/ChannelUnits.cpp \
     Data/Clips.cpp \
-    Data/Colormap.cpp \
-    Data/Colormaps.cpp \
+    Data/Colormap/Colormap.cpp \
+    Data/Colormap/Colormaps.cpp \
+    Data/Colormap/Settings.cpp \
+    Data/Colormap/TransformsData.cpp \
+    Data/Colormap/TransformsImage.cpp \
     Data/Controller.cpp \
     Data/DataLoader.cpp \
     Data/ErrorReport.cpp \
     Data/ErrorManager.cpp \
-    Data/Histogram.cpp \
+    Data/Histogram/Histogram.cpp \
+    Data/Histogram/HistogramPreferences.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/DataSource.cpp \
@@ -108,10 +117,10 @@ SOURCES += \
     Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
-    Data/Snapshots.cpp \
+    Data/Snapshot/Snapshots.cpp \
+    Data/Snapshot/Snapshot.cpp \
+    Data/Snapshot/SnapshotsFile.cpp \
     Data/Statistics.cpp \
-    Data/TransformsData.cpp \
-    Data/TransformsImage.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

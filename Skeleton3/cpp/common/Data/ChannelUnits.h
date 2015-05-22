@@ -13,7 +13,7 @@ namespace Carta {
 
 namespace Data {
 
-class ChannelUnits : public CartaObject {
+class ChannelUnits : public Carta::State::CartaObject {
 
 public:
 

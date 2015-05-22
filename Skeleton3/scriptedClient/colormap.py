@@ -43,9 +43,9 @@ class Colormap(CartaView):
 
     def setColorMix(self, redPercent, greenPercent, bluePercent):
         result = self.con.cmdTagList("setColorMix", colormapId=self.getId(),
-                                     red=str(redPercent),
-                                     green=str(greenPercent),
-                                     blue=str(bluePercent))
+                                     red=redPercent,
+                                     green=greenPercent,
+                                     blue=bluePercent)
         return result
 
     def setGamma(self, gamma):

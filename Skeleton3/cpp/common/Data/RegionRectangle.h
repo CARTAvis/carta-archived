@@ -39,11 +39,11 @@ private:
      */
     RegionRectangle(const QString& path, const QString& id );
 
-    class Factory : public CartaObjectFactory {
+    class Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new RegionRectangle (path, id);
         }

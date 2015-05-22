@@ -4,6 +4,7 @@
 #include "IConnector.h"
 #include "PluginManager.h"
 #include "State/StateInterface.h"
+#include "State/UtilState.h"
 
 #include <iostream>
 
@@ -17,12 +18,13 @@ const QString ImageView::VIEW = "view";
 const QString ImageView::MOUSE_Y = "mouse/x";
 const QString ImageView::MOUSE_X = "mouse/y";
 
-ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img, StateInterface* mouseState){
+ImageView::ImageView(const QString & viewName, QColor bgColor, QImage img,
+        Carta::State::StateInterface* mouseState){
     m_defaultImage = img;
     m_qimage = QImage(100, 100, QImage::Format_ARGB32_Premultiplied);
     m_qimage.fill(bgColor);
 
-    m_viewName = viewName + StateInterface::DELIMITER+VIEW;
+    m_viewName = Carta::State::UtilState::getLookup( viewName, VIEW);
     m_connector = nullptr;
     m_bgColor = bgColor;
     m_mouseState = mouseState;

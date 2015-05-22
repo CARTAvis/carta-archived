@@ -112,7 +112,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this._add( this.m_content );
             this.m_content.setLayout(new qx.ui.layout.VBox());
             
-            this.m_settingsVisible = false;
             this._initMain();
             this._initControls();
         },
@@ -134,13 +133,6 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
             this.m_displaySettings = new skel.widgets.Histogram.HistogramDisplay();
             this.m_cubeSettings = new skel.widgets.Histogram.HistogramCube();
             this.m_twoDSettings = new skel.widgets.Histogram.Histogram2D();
-
-            this.m_settingsContainer.add(this.m_rangeSettings);
-            this.m_settingsContainer.add(this.m_binSettings);
-            this.m_settingsContainer.add(this.m_displaySettings);
-            this.m_settingsContainer.add(this.m_cubeSettings);
-            this.m_settingsContainer.add( this.m_clipSettings);
-            this.m_settingsContainer.add(this.m_twoDSettings);
         },
         
         
@@ -182,15 +174,29 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         /**
          * Add or remove the control settings.
          */
-        layoutControls : function(){
-            if(this.m_settingsVisible){
+        layoutControls : function( widget, visible ){
+            if(visible){
+                //Add the widget to the settings container.
+                if ( this.m_settingsContainer.indexOf( widget ) < 0 ){
+                    this.m_settingsContainer.add( widget );
+                }
+                //Make sure the settings container is visible.
                 if ( this.m_content.indexOf( this.m_settingsContainer ) < 0 ){
                     this.m_content.add( this.m_settingsContainer );
                 }
             }
-            else{
-                if ( this.m_content.indexOf( this.m_settingsContainer ) >= 0 ){
-                    this.m_content.remove( this.m_settingsContainer );
+            else {
+                //Remove the widget from the settings container.
+                if ( this.m_settingsContainer.indexOf( widget ) >= 0 ){
+                    this.m_settingsContainer.remove( widget );
+                }
+                //If this is the last widget in the container, then remove the container.
+                var layoutItems = this.m_settingsContainer.getChildren();
+                var childCount = layoutItems.length;
+                if ( childCount === 0 ){
+                    if ( this.m_content.indexOf( this.m_settingsContainer ) >= 0 ){
+                        this.m_content.remove( this.m_settingsContainer );
+                    }
                 }
             }
         },
@@ -244,18 +250,56 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         },
         
         /**
-         * Set whether or not the user settings should be visible.
-         * @param visible {boolean} true if the settings should be visible; false otherwise.
+         * Show or hide the bin count settings.
+         * @param visible {boolean} if the settings should be shown; false otherwise.
          */
-        toggleSettings : function( ){
-            this.m_settingsVisible = !this.m_settingsVisible;
-            this.layoutControls();
+        showHideBinCount : function( visible ){
+            this.layoutControls( this.m_binSettings, visible );
+        },
+        
+        /**
+         * Show or hide the clip settings.
+         * @param visible {boolean} if the settings should be shown; false otherwise.
+         */
+        showHideClips : function( visible ){
+            this.layoutControls( this.m_clipSettings, visible );
+        },
+        
+        /**
+         * Show or hide the cube settings.
+         * @param visible {boolean} if the settings should be shown; false otherwise.
+         */
+        showHideCube : function( visible ){
+            this.layoutControls( this.m_cubeSettings, visible );
+        },
+        
+        /**
+         * Show or hide the 2D settings.
+         * @param visible {boolean} if the settings should be shown; false otherwise.
+         */
+        showHide2D : function( visible ){
+            this.layoutControls( this.m_twoDSettings, visible );
+        },
+        
+        /**
+         * Show or hide the range settings.
+         * @param visible {boolean} if the settings should be shown; false otherwise.
+         */
+        showHideRange : function( visible ){
+            this.layoutControls( this.m_rangeSettings, visible );
+        },
+        
+        /**
+         * Show or hide the display settings.
+         * @param visible {boolean} if the settings should be shown; false otherwise.
+         */
+        showHideDisplay : function( visible ){
+            this.layoutControls( this.m_displaySettings, visible );
         },
         
         m_content : null,
         m_mainComposite : null,
         m_settingsContainer : null,
-        m_settingsVisible : null,
         
         m_binSettings : null,
         m_clipSettings : null,

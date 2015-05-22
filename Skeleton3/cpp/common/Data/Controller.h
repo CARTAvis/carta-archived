@@ -37,7 +37,7 @@ class Region;
 class RegionRectangle;
 class Selection;
 
-class Controller: public QObject, public CartaObject, public IColoredView {
+class Controller: public QObject, public Carta::State::CartaObject, public IColoredView {
 
     Q_OBJECT
 
@@ -103,23 +103,7 @@ public:
     virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
     virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
     virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
-    /**
-     * Set the pixel cache size.
-     * @param size the new pixel cache size.
-     */
-    virtual void setCacheSize( int size ) Q_DECL_OVERRIDE;
 
-    /**
-     * Set whether or not to use pixel cache interpolation.
-     * @param enabled true if pixel cache interpolation should be used; false otherwise.
-     */
-    virtual void setCacheInterpolation( bool enabled ) Q_DECL_OVERRIDE;
-
-    /**
-     * Set whether or not to use pixel caching.
-     * @param enabled true if pixel caching should be used; false otherwise.
-     */
-    virtual void setPixelCaching( bool enabled ) Q_DECL_OVERRIDE;
 
 
     std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
@@ -214,7 +198,12 @@ public:
      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
-    QString setClipValue( const QString& params );
+    /**
+     * Set the overall clip amount for the data.
+     * @param clipValue a number between 0 and 1.
+     * @return an error message if the clip value cannot be set; otherwise and empty string.
+     */
+    QString setClipValue( double clipValue );
 
     /**
      * Change the pan of the current image.
@@ -299,7 +288,11 @@ signals:
     /// and a save attempt made.
     void saveImageResult( bool result );
 
+protected:
+    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+
 private slots:
+
     //Refresh the view based on the latest data selection information.
     void _loadView();
 
@@ -334,6 +327,8 @@ private:
     Controller( const QString& id, const QString& path );
 
     class Factory;
+
+
 
     //Provide default values for state.
     void _initializeState();
@@ -379,11 +374,11 @@ private:
     QList<Region* > m_regions;
 
     //Holds image that are loaded and selections on the data.
-    StateInterface m_stateData;
+    Carta::State::StateInterface m_stateData;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
-    StateInterface m_stateMouse;
+    Carta::State::StateInterface m_stateMouse;
 
     QSize m_viewSize;
 

@@ -11,7 +11,7 @@ namespace Carta {
 
 namespace Data {
 
-class Region : public CartaObject {
+class Region : public Carta::State::CartaObject {
 
 public:
     virtual ~Region();

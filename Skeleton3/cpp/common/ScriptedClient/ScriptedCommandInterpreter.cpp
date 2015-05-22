@@ -127,7 +127,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->reverseColorMap( colormapId, reverseString );
     }
 
-    else if ( cmd == "setcachecolormap" ) {
+    /*else if ( cmd == "setcachecolormap" ) {
         QString colormapId = args["colormapId"].toString();
         QString cacheString = args["cacheString"].toString().toLower();
         result = m_scriptFacade->setCacheColormap( colormapId, cacheString );
@@ -143,7 +143,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString colormapId = args["colormapId"].toString();
         QString interpolatedString = args["interpolatedString"].toString().toLower();
         result = m_scriptFacade->setInterpolatedColorMap( colormapId, interpolatedString );
-    }
+    }*/
 
     else if ( cmd == "invertcolormap" ) {
         QString colormapId = args["colormapId"].toString();
@@ -151,7 +151,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->invertColorMap( colormapId, invertString );
     }
 
-    else if ( cmd == "setcolormix" ) {
+    /*else if ( cmd == "setcolormix" ) {
         QString colormapId = args["colormapId"].toString();
         QString red = args["red"].toString();
         QString green = args["green"].toString();
@@ -159,7 +159,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString percentString;
         percentString = "redPercent:" + red + ",greenPercent:" + green + ",bluePercent:" + blue;
         result = m_scriptFacade->setColorMix( colormapId, percentString );
-    }
+    }*/
+    else if ( cmd == "setcolormix" ) {
+            QString colormapId = args["colormapId"].toString();
+            double red = args["red"].toDouble();
+            double green = args["green"].toDouble();
+            double blue = args["blue"].toDouble();
+            result = m_scriptFacade->setColorMix( colormapId, red, green,blue );
+        }
 
     else if ( cmd == "setgamma" ) {
         QString colormapId = args["colormapId"].toString();
@@ -209,7 +216,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "setclipvalue" ) {
         QString imageView = args["imageView"].toString();
-        QString clipValue = args["clipValue"].toString();
+        double clipValue = args["clipValue"].toDouble();
         result = m_scriptFacade->setClipValue( imageView, clipValue );
     }
 

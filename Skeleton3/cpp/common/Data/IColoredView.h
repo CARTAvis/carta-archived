@@ -48,24 +48,6 @@ public:
      */
     virtual void setGamma( double gamma ) = 0;
 
-    /**
-     * Set whether or not to use pixel caching.
-     * @param enabled true if pixel caching should be used; false otherwise.
-     */
-    virtual void setPixelCaching( bool enabled ) = 0;
-
-    /**
-     * Set the pixel cache size.
-     * @param size the new pixel cache size.
-     */
-    virtual void setCacheSize( int size ) = 0;
-
-    /**
-     * Set whether or not to use pixel cache interpolation.
-     * @param enabled true if pixel cache interpolation should be used; false otherwise.
-     */
-    virtual void setCacheInterpolation( bool enabled ) = 0;
-
 };
 }
 }

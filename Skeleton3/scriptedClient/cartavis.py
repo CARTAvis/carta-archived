@@ -28,6 +28,16 @@ def startPavol(
     ):
     return Application(executable, configFile, port, htmlFile, imageFile)
 
+def startSusan(
+        executable = "/home/susan/git/CARTAvis/build/Debug/Skeleton3/cpp/desktop/desktop", 
+        configFile = "/home/susan/.cartavis/config.json", 
+        port = 9999, 
+        htmlFile = "/home/susan/git/CARTAvis/Skeleton3/html5/desktop/desktopIndex.html", 
+        imageFile = ""
+    ):
+    return Application(executable, configFile, port, htmlFile, imageFile)
+
+
 def parseDirectory(directory, prefix):
     """ This is not working the way I want it to yet.
         Since it is only used for getFileList(), which in turn only lists the

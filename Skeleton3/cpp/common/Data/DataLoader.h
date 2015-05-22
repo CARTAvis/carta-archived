@@ -15,7 +15,7 @@ namespace Carta {
 
 namespace Data {
 
-class DataLoader : public CartaObject {
+class DataLoader : public Carta::State::CartaObject {
 
 public:
 

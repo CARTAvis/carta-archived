@@ -1,11 +1,11 @@
 #include "DataSource.h"
-#include "Colormaps.h"
+#include "Colormap/Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
-#include "Data/Util.h"
-#include "Data/TransformsData.h"
+#include "Util.h"
+#include "Colormap/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
@@ -360,8 +360,8 @@ bool DataSource::setFileName( const QString& fileName ){
 }
 
 void DataSource::setColorMap( const QString& name ){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+    Carta::State::CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
     m_pixelPipeline-> setColormap( maps->getColorMap( name ) );
     m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
@@ -391,7 +391,7 @@ void DataSource::setPan( double imgX, double imgY ){
 }
 
 void DataSource::setTransformData( const QString& name ){
-    CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
+    Carta::State::CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
     TransformsData* transformData = dynamic_cast<TransformsData*>(transformDataObj);
     Carta::Lib::PixelPipeline::ScaleType scaleType = transformData->getScaleType( name );
     m_pixelPipeline->setScale( scaleType );
@@ -403,23 +403,7 @@ void DataSource::setZoom( double zoomAmount){
     m_renderService-> setZoom( zoomAmount );
 }
 
-void DataSource::setPixelCaching( bool cachePixels ){
-    Carta::Core::ImageRenderService::PixelPipelineCacheSettings settings = m_renderService-> pixelPipelineCacheSettings();
-    settings.enabled = cachePixels;
-    m_renderService->setPixelPipelineCacheSettings( settings );
-}
 
-void DataSource::setCacheInterpolation( bool enabled ){
-    Carta::Core::ImageRenderService::PixelPipelineCacheSettings settings = m_renderService-> pixelPipelineCacheSettings();
-    settings.interpolated = enabled;
-    m_renderService->setPixelPipelineCacheSettings( settings );
-}
-
-void DataSource::setCacheSize( int cacheSize ){
-    Carta::Core::ImageRenderService::PixelPipelineCacheSettings settings = m_renderService-> pixelPipelineCacheSettings();
-    settings.size = cacheSize;
-    m_renderService->setPixelPipelineCacheSettings( settings );
-}
 
 void DataSource::setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );

@@ -64,7 +64,7 @@ class Image(CartaView):
 
     def setClipValue(self, index):
         result = self.con.cmdTagList("setClipValue", imageView=self.getId(),
-                                     clipValue=str(index))
+                                     clipValue=index)
         return result
 
     def centerOnPixel(self, x, y, z=0):
