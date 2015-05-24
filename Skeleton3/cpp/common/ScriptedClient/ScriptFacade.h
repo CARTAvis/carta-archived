@@ -442,7 +442,7 @@ public:
     QStringList setLogCount( const QString& histogramId, const QString& logCountStr );
 
     /**
-     * Set where or not the histogram should be colored by intensity.
+     * Set whether or not the histogram should be colored by intensity.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param colored true if the histogram should be colored by intensity; false otherwise.
      *  Can also be equal to "toggle" to turn the coloring on or off depending on its
