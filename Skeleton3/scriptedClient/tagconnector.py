@@ -9,28 +9,45 @@ from layer3 import JsonMessage
 
 class TagConnector:
     """
-    Can connect to a port, then exposes the cmd() method to send commands
-    and retrieve results. The commands and results are in JsonMessage format.
+    Connects to a port and contains method to send commands and retrieve
+    results. The commands and results are in JsonMessage format.
     Uses TagMessageSocket, which gives us freedom to later send/receive raw
-    tag messages
+    tag messages.
+
+    Parameters
+    ----------
+    port: integer
+        The port number to connect to.
     """
-    def __init__(self,port):
+
+    def __init__(self, port):
         self.port = port
-        self.socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(("localhost", self.port))
-        self.tagMessageSocket = TagMessageSocket( self.socket)
+        self.tagMessageSocket = TagMessageSocket(self.socket)
 
-    def cmd( self, cmd, ** kwargs):
-        self.tagMessageSocket.send( JsonMessage.fromKW( cmd=cmd, args=kwargs).toTagMessage())
-        tm = self.tagMessageSocket.receive()
-        result = JsonMessage.fromTagMessage(tm)
-        return result.jsonString
+    def cmdTagList(self, cmd, ** kwargs):
+        """
+        Send a tag message, return a list.
+        A command may have no arguments, e.g.:
+            cmdTagList("commandString").
+        Arguments, when present, are specified as key-value pairs, e.g.:
+            cmTagList("commandString", arg1=1, arg2=True, arg3="foo")
 
-    def cmdTagList( self, cmd, ** kwargs):
+        Parameters
+        ----------
+        cmd: string
+            The name of the command to send.
+        kwargs: dict
+            The arguments to the command, if any.
+
+        Returns
+        -------
+        list
+            The contents of the list vary depending on the command.
         """
-        Send a tag message, return a list
-        """
-        self.tagMessageSocket.send( JsonMessage.fromKW( cmd=cmd, args=kwargs).toTagMessage())
+        self.tagMessageSocket.send(
+            JsonMessage.fromKW(cmd=cmd, args=kwargs).toTagMessage())
         tm = self.tagMessageSocket.receive()
         result = JsonMessage.fromTagMessage(tm)
         j = json.loads(str(result.jsonString))
@@ -40,13 +57,28 @@ class TagConnector:
             returnValue = j['error']
         return returnValue
 
-    def cmdAsyncList( self, cmd, ** kwargs):
+    def cmdAsyncList(self, cmd, ** kwargs):
         """
-        Send an asynchronous message, return a list
+        Send an asynchronous message, return a list.
+        Note that for now, the asynchronous behaviour is only on the C++ side.
+        This may change in the future if we introduce asynchronous behaviour to
+        the Python client.
+
+        Parameters
+        ----------
+        cmd: string
+            The name of the command to send.
+        kwargs: dict
+            The arguments to the command, if any.
+
+        Returns
+        -------
+        list
+            The contents of the list vary depending on the command.
         """
-        self.tagMessageSocket.send( JsonMessage.fromKW( cmd=cmd, args=kwargs).toAsyncMessage())
+        self.tagMessageSocket.send(
+            JsonMessage.fromKW(cmd=cmd, args=kwargs).toAsyncMessage())
         tm = self.tagMessageSocket.receive()
-#        result = JsonMessage.fromAsyncMessage(tm)
         result = JsonMessage.fromTagMessage(tm)
         j = json.loads(str(result.jsonString))
         try:

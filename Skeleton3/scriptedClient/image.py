@@ -513,5 +513,5 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      ra=skyCoord.ra.radian,
                                      dec=skyCoord.dec.radian)
-        self.centerOnPixel( float(result[0]), float(result[1]) )
+        self.centerOnPixel(float(result[0]), float(result[1]))
         return result

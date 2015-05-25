@@ -294,8 +294,10 @@ class Cartavis:
         return result
 
     def fakeCommand(self, infile):
-        """Purely for the purpose of testing what happens when an arbitrarily
-        large command is sent."""
+        """
+        Purely for the purpose of testing what happens when an arbitrarily
+        large command is sent.
+        """
         f = open(infile, 'r')
         print "Start time: " + time.asctime()
         result = self.con.cmdTagList("fakeCommand", data=f.read())

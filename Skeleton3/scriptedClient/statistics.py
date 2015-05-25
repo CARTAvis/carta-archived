@@ -4,4 +4,6 @@
 from cartaview import CartaView
 
 class Statistics(CartaView):
-    """Represents a statistics view"""
+    """
+    Represents a statistics view.
+    """
