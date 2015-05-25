@@ -26,24 +26,53 @@ class Application:
         return
 
     def setGuiVisible(self,flag):
+        """
+        This command currently doesn't do anything useful.
+        """
         self.visible = flag
         return
 
     def isGuiVisible(self):
+        """
+        This command currently doesn't do anything useful.
+        """
         return self.visible
 
     def kill(self):
+        """
+        Closes the application.
+        """
         self.popen.kill()
 
     def quit(self):
+        """
+        Closes the application.
+        An alias for kill().
+        """
         self.kill()
 
     def getColormaps(self):
+        """
+        Return a list of the names of colormaps available on the server.
+
+        Returns
+        -------
+        list
+            The names of colormaps available on the server.
+        """
         commandStr = "getColormaps"
         colormapsList = self.con.cmdTagList(commandStr)
         return colormapsList
 
     def getImageViews(self):
+        """
+        Return a list of the image views defined by the layout.
+
+        Returns
+        -------
+        list
+            A list of Image objects.
+        """
         commandStr = "getImageViews"
         imageViewsList = self.con.cmdTagList(commandStr)
         imageViews = []
@@ -54,6 +83,14 @@ class Application:
         return imageViews
 
     def getColormapViews(self):
+        """
+        Return a list of the colormap views defined by the layout.
+
+        Returns
+        -------
+        list
+            A list of Colormap objects.
+        """
         commandStr = "getColormapViews"
         colormapViewsList = self.con.cmdTagList(commandStr)
         colormapViews = []
@@ -64,6 +101,14 @@ class Application:
         return colormapViews
 
     def getAnimatorViews(self):
+        """
+        Return a list of the animator views defined by the layout.
+
+        Returns
+        -------
+        list
+            A list of Animator objects.
+        """
         commandStr = "getAnimatorViews"
         animatorViewsList = self.con.cmdTagList(commandStr)
         animatorViews = []
@@ -74,6 +119,14 @@ class Application:
         return animatorViews
 
     def getHistogramViews(self):
+        """
+        Return a list of the histogram views defined by the layout.
+
+        Returns
+        -------
+        list
+            A list of Histogram objects.
+        """
         commandStr = "getHistogramViews"
         histogramViewsList = self.con.cmdTagList(commandStr)
         histogramViews = []
@@ -84,6 +137,14 @@ class Application:
         return histogramViews
 
     def getStatisticsViews(self):
+        """
+        Return a list of the statistics views defined by the layout.
+
+        Returns
+        -------
+        list
+            A list of Statistics objects.
+        """
         commandStr = "getStatisticsViews"
         statisticsViewsList = self.con.cmdTagList(commandStr)
         statisticsViews = []
@@ -94,33 +155,123 @@ class Application:
         return statisticsViews
 
     def setAnalysisLayout(self):
+        """
+        Set the layout to a predefined analysis layout.
+
+        Returns
+        -------
+        list
+            An empty list, as the C++ methods that it calls have void return
+            values.
+        """
         commandStr = "setAnalysisLayout"
         result = self.con.cmdTagList(commandStr)
         return result
 
     def setImageLayout(self):
+        """
+        Set the layout to a predefined layout displaying a single image.
+
+        Returns
+        -------
+        list
+            An empty list, as the C++ methods that it calls have void return
+            values.
+        """
         commandStr = "setImageLayout"
         result = self.con.cmdTagList(commandStr)
         return result
 
     def setCustomLayout(self, rows, cols):
+        """
+        Set the number of rows and columns in the layout grid.
+
+        Parameters
+        ----------
+        rows: integer
+            The number of rows in the layout grid.
+        cols: integer
+            The number of columns in the layout grid.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the layout; empty
+            otherwise.
+        """
         result = self.con.cmdTagList("setCustomLayout", nrows=rows, ncols=cols)
         return result
 
     def setPlugins(self, pluginList):
+        """
+        Set plugins for each of the views in the layout.
+
+        Parameters
+        ----------
+        pluginList: list
+            A list of strings representing plugin names.
+            Valid plugin names [NOTE: this list may not be complete]:
+                CasaImageLoader
+                Animator
+                Statistics
+                Colormap
+                Histogram
+                Hidden
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the plugins; empty
+            otherwise.
+        """
         pluginString = ' '.join(pluginList)
         result = self.con.cmdTagList("setPlugins", plugins=pluginString)
         return result
 
     def addLink(self, source, dest):
+        """
+        Establish a link between a source and destination.
+
+        Parameters
+        ----------
+        source: Carta object
+            The source object for the link.
+        dest: Carta object
+            The destination object for the link.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem adding the link; empty
+            otherwise.
+        """
         result = self.con.cmdTagList("addLink", sourceView=source.getId(), destView=dest.getId())
         return result
 
     def removeLink(self, source, dest):
+        """
+        Remove a link from a source to a destination.
+
+        Parameters
+        ----------
+        source: Carta object
+            The source object for the link.
+        dest: Carta object
+            The destination object for the link.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem removing the link; empty
+            otherwise.
+        """
         result = self.con.cmdTagList("removeLink", sourceView=source.getId(), destView=dest.getId())
         return result
 
     def saveState(self, saveName):
+        """
+        Not currently implemented.
+        """
         result = self.con.cmdTagList("saveState", name=saveName)
         return result
 

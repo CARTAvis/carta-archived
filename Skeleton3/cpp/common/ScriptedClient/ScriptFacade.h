@@ -197,7 +197,7 @@ public:
     QStringList setDataTransform( const QString& colormapId, const QString& transformString );
 
     /**
-     * Set plugins for each of the views in the layout
+     * Set plugins for each of the views in the layout.
      * @param names a list of plugin names.
      * @return error information if plugins could not be set.
      */
