@@ -12,7 +12,23 @@ from colormap import Colormap
 from image import Image
 
 class Application:
-    """Represents an application"""
+    """
+    A Python representation of the Carta application.
+
+    Parameters
+    ----------
+    executable: string
+        The full path of the Carta executable file.
+    configFile: string
+        The full path of the cartavis config.json file.
+    port: integer
+        The port which will be used to send commands to C++ and receive
+        results.
+    htmlFile: string
+        The full path of the desktopIndex.html file.
+    imageFile: string
+        The full path of a compatible image file to load.
+    """
 
     def __init__(self, executable, configFile, port, htmlFile, imageFile):
         args = [executable, "--scriptPort", 
@@ -245,7 +261,8 @@ class Application:
             An error message if there was a problem adding the link; empty
             otherwise.
         """
-        result = self.con.cmdTagList("addLink", sourceView=source.getId(), destView=dest.getId())
+        result = self.con.cmdTagList("addLink", sourceView=source.getId(),
+                                     destView=dest.getId())
         return result
 
     def removeLink(self, source, dest):
@@ -265,7 +282,8 @@ class Application:
             An error message if there was a problem removing the link; empty
             otherwise.
         """
-        result = self.con.cmdTagList("removeLink", sourceView=source.getId(), destView=dest.getId())
+        result = self.con.cmdTagList("removeLink", sourceView=source.getId(),
+                                     destView=dest.getId())
         return result
 
     def saveState(self, saveName):
