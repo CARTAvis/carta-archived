@@ -55,8 +55,8 @@ qx.Class.define("skel.hacks.Hacks", {
             // ==================================================================================
             var newViewName = "IVC7";
             var win2 = new qx.ui.window.Window( "Hack view new" );
-            win2.setWidth( 300 );
-            win2.setHeight( 200 );
+            win2.setWidth( 600 );
+            win2.setHeight( 400 );
             win2.setShowMinimize( false );
             win2.setUseResizeFrame( false);
             win2.setContentPadding( 5, 5, 5, 5 );
@@ -87,22 +87,9 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);
             win2.add( mp.container);
-            //mp.slider.addListener( "changeValue", function(mp, ev) {
-            //    var v = ev.getData() / mp.slider.getMaximum();
-            //    console.log( "slider->", mp.prefix, ev.getData(), v);
-            //    this.m_connector.sendCommand( mp.prefix + "/setFrame", v);
-            //}.bind( this, mp));
-
-            //var slider2 = new skel.hacks.BoundSlider({
-            //    sharedVar: this.m_connector.getSharedVar( mp.prefix + "/frameSlider"),
-            //    maximum: 999999,
-            //    pageStep: 50000,
-            //    singleStep: 1
-            //});
-            //win2.add( slider2);
 
             // pop up the window
-            this.m_app.getRoot().add( win2, {left: 220, top: 420} );
+            this.m_app.getRoot().add( win2, {left: 100, top: 100} );
             win2.open();
 
             // create cursor window

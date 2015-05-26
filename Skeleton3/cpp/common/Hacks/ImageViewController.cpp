@@ -163,19 +163,9 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     const SS::FullPath prefix = SS::FullPath::fromQString( m_statePrefix );
 
     m_frameVar.reset( new Carta::Lib::SharedState::DoubleVar( prefix.with( "frameSlider" ) ) );
+    connect( m_frameVar.get(), & SS::BoolVar::valueChanged,
+             this, & Me::frameVarCB);
     m_frameVar-> set( 0 );
-    connect( m_frameVar.get(), & SS::BoolVar::valueChanged, [&] () {
-                 qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
-                 if ( m_astroImage-> dims().size() < 2 ) {
-                     return;
-                 }
-                 int frame = m_frameVar-> get() * m_astroImage-> dims()[2] / 1000000.0;
-                 frame = Carta::Lib::clamp < int > ( frame, 0, m_astroImage-> dims()[2] - 1 );
-                 if ( frame != m_currentFrame ) {
-                     loadFrame( frame );
-                 }
-             }
-             );
 }
 
 void
@@ -378,8 +368,26 @@ ImageViewController::loadImage( QString fname )
     m_quantileCache.resize( nf );
 
     // set the frame to first one
-    loadFrame( 0 );
+//    loadFrame( 0 );
+    m_frameVar-> set(0);
+
 } // loadImage
+
+void ImageViewController::frameVarCB()
+{
+    qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
+    if ( m_astroImage-> dims().size() < 2 ) {
+        return;
+    }
+    // convert from 0..999999 to integer frame number
+    int frame = m_frameVar-> get() * m_astroImage-> dims()[2] / 1000000.0;
+    // make sure frame integer is valid
+    frame = Carta::Lib::clamp < int > ( frame, 0, m_astroImage-> dims()[2] - 1 );
+    // load the actual frame
+    if ( frame != m_currentFrame ) {
+        loadFrame( frame );
+    }
+}
 
 void
 ImageViewController::loadFrame( int frame )
@@ -397,11 +405,6 @@ ImageViewController::loadFrame( int frame )
         frame = Carta::Lib::clamp( frame, 0, m_astroImage-> dims()[2] - 1 );
     }
     m_currentFrame = frame;
-
-    int oldFrameVar = m_frameVar-> get() * m_astroImage-> dims()[2] / 1e6;
-    if ( oldFrameVar != m_currentFrame ) {
-        m_frameVar-> set( m_currentFrame * 1e6 / m_astroImage-> dims()[2] );
-    }
 
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
     auto frameSlice = SliceND().next();
@@ -439,17 +442,30 @@ ImageViewController::loadFrame( int frame )
     // update the GUI
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
 
-    qDebug() << "loadFrame done" << frame;
+//    int oldFrameVar = m_frameVar-> get() * m_astroImage-> dims()[2] / 1e6;
+//    if ( oldFrameVar != m_currentFrame ) {
+//        int v = m_currentFrame * 1e6 / m_astroImage-> dims()[2];
+//        qDebug() << "setting var->" << v << "xyz";
+//        m_frameVar-> set( m_currentFrame * 1e6 / m_astroImage-> dims()[2] );
+//        qDebug() << "setting var done" << "xyz";
+//    }
+
+    qDebug() << "loadFrame done" << frame << "xyz";
 } // loadFrame
 
 void
 ImageViewController::loadNextFrame()
 {
+    qDebug() << "loadNextFrame() xyz" << m_frameVar-> get();
     int nf = 1;
     if ( m_astroImage-> dims().size() > 2 ) {
         nf = m_astroImage-> dims()[2];
     }
-    loadFrame( ( m_currentFrame + 1 ) % nf );
+    int currFrame = std::round(m_frameVar-> get() * nf / 1e6);
+    int nextFrame = (currFrame + 1) % nf;
+    qDebug() << "curr" << currFrame << "next" << nextFrame << nextFrame * 1e6 / nf << "xyz";
+
+    m_frameVar-> set( nextFrame * 1e6 / nf);
 } // loadFrame
 
 void

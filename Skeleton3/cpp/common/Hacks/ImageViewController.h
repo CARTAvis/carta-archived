@@ -91,6 +91,9 @@ private:
     /// schedule a grid update after pan/zoom were modified
     void updateGridAfterPanZoomResize();
 
+    /// callback for frame state variable
+    void frameVarCB();
+
     /// this is the part of the state we use
     QString m_statePrefix;
 
@@ -134,9 +137,6 @@ private:
     /// movie playing timer
     QTimer m_movieTimer;
 
-    /// current 'frame'... for movie playing
-    int m_currentFrame = 0;
-
     /// grid plotting
     bool m_gridToggle = false;
 
@@ -149,7 +149,11 @@ private:
     /// wcs grid options controller
     WcsGridOptionsController::UniquePtr m_wcsGridOptionsController;
 
-    /// state variables
+    /// state variable for current frame
     Carta::Lib::SharedState::DoubleVar::UniquePtr m_frameVar;
+
+    /// current frame
+    int m_currentFrame = -1;
+
 };
 }
