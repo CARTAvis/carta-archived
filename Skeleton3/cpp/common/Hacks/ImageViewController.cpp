@@ -109,17 +109,18 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 
     m_connector-> setState( m_statePrefix + "/frame", "n/a" );
 
-    // hook-up mini movie player slider
     typedef const QString & CSR;
-    auto mmpSliderCB = [&] ( CSR, CSR par, CSR ) -> QString {
-        auto frame = Impl::s2vd( par );
-        if ( frame.size() > 0 && m_astroImage-> dims().size() > 2 ) {
-            qDebug() << "Slider" << frame[0];
-            loadFrame( frame[0] * m_astroImage-> dims()[2] );
-        }
-        return "";
-    };
-    m_connector-> addCommandCallback( m_statePrefix + "/setFrame", mmpSliderCB );
+
+    // hook-up mini movie player slider
+//    auto mmpSliderCB = [&] ( CSR, CSR par, CSR ) -> QString {
+//        auto frame = Impl::s2vd( par );
+//        if ( frame.size() > 0 && m_astroImage-> dims().size() > 2 ) {
+//            qDebug() << "Slider" << frame[0];
+//            loadFrame( frame[0] * m_astroImage-> dims()[2] );
+//        }
+//        return "";
+//    };
+//    m_connector-> addCommandCallback( m_statePrefix + "/setFrame", mmpSliderCB );
 
     auto ptrMoveCB = [&] ( CSR, CSR par ) -> void {
         auto coords = Impl::s2vd( par );
