@@ -10,33 +10,51 @@
 #include <QTime>
 
 typedef Carta::Lib::LinearMap1D LinMap;
+namespace VG = Carta::Lib::VectorGraphics; // love c++11
+namespace VGE = VG::Entries;
 
 namespace WcsPlotterPluginNS
 {
 struct AstWcsGridRenderService::Pimpl
 {
+    // we want to remember index and size about fonts
+    typedef std::pair < int, double > FontInfo;
+
+    // fits header from the input image
     QStringList fitsHeader;
 
+    // current sky CS
     Carta::Lib::KnownSkyCS knownSkyCS = Carta::Lib::KnownSkyCS::J2000;
+
+    // list of pens
     std::vector < QPen > pens;
 
-    typedef std::pair < int, double > FontInfo;
+    // where in the VG list did we set the pen indices
+    std::vector < int64_t > penEntries;
+
+    // where in the VG list did we set the margin dim color
+    int64_t dimBrushIndex = - 1;
+
+    // font info
     std::vector < FontInfo > fonts;
+
+    // last submitted job id
+    IWcsGridRenderService::JobId lastSubmittedJobId = 0;
 };
 
-AstWcsGridRenderService::AstWcsGridRenderService() : IWcsGridRenderService()
+AstWcsGridRenderService::AstWcsGridRenderService()
+    : IWcsGridRenderService()
 {
-    qDebug() << "creating ast grid renderer";
-
     // initialize private members, starting with pimpl
     m_pimpl.reset( new Pimpl );
     m().pens.resize( static_cast < int > ( Element::__count ), QPen( QColor( "white" ) ) );
     Pimpl::FontInfo tuple( 0, 10.0 );
     m().fonts.resize( static_cast < int > ( Element::__count ), tuple );
+    m().penEntries.resize( static_cast < int > ( Element::__count ), - 1 );
 
     // default pens (other than white)
-    setPen( Element::Shadow, QPen( QColor( 0, 0, 0, 64)));
-    setPen( Element::MarginDim, QPen( QColor( 0, 0, 0, 64)));
+//    setPen( Element::Shadow, QPen( QColor( 0, 0, 0, 64 ) ) );
+//    setPen( Element::MarginDim, QPen( QColor( 0, 0, 0, 64 ) ) );
 
     // setup the render timer
     m_renderTimer.setSingleShot( true );
@@ -50,95 +68,112 @@ void
 AstWcsGridRenderService::setInputImage( Image::ImageInterface::SharedPtr image )
 {
     CARTA_ASSERT( image );
-    Pimpl & m = * m_pimpl;
 
     m_iimage = image;
-
 
     // get the fits header from this image
     FitsHeaderExtractor fhExtractor;
     fhExtractor.setInput( m_iimage );
-    m.fitsHeader = fhExtractor.getHeader();
+    QStringList header = fhExtractor.getHeader();
 
     // sanity check
-    if ( m.fitsHeader.size() < 1 ) {
+    if ( header.size() < 1 ) {
         qWarning() << "Could not extract fits header..."
                    << fhExtractor.getErrors();
+    }
+
+    if ( header != m().fitsHeader ) {
+        m_vgValid = false;
+        m().fitsHeader = header;
     }
 } // setInputImage
 
 void
 AstWcsGridRenderService::setOutputSize( const QSize & size )
 {
-    m_outSize = size;
+    if ( m_outSize != size ) {
+        m_vgValid = false;
+        m_outSize = size;
+    }
 }
 
 void
 AstWcsGridRenderService::setImageRect( const QRectF & rect )
 {
-    m_imgRect = rect;
+    if ( m_imgRect != rect ) {
+        m_vgValid = false;
+        m_imgRect = rect;
+    }
 }
 
 void
 AstWcsGridRenderService::setOutputRect( const QRectF & rect )
 {
-    m_outRect = rect;
+    if ( m_outRect != rect ) {
+        m_vgValid = false;
+        m_outRect = rect;
+    }
 }
 
-//void
-//AstWcsGridRenderService::setLineColor( QColor color )
-//{
-//    m_lineColor = color;
-//}
-
-//void
-//AstWcsGridRenderService::setLineThickness( double thickness )
-//{
-//    m().lineThickness = thickness;
-//}
-
-void
-AstWcsGridRenderService::startRendering()
+Carta::Lib::IWcsGridRenderService::JobId AstWcsGridRenderService::startRendering(JobId jobId)
 {
+    if( jobId < 0) {
+        m().lastSubmittedJobId ++;
+    } else {
+        m().lastSubmittedJobId = jobId;
+    }
+    // call renderNow asap... asynchronously
     if ( ! m_renderTimer.isActive() ) {
         m_renderTimer.start( 1 );
     }
+    return m().lastSubmittedJobId;
 }
 
 void
 AstWcsGridRenderService::renderNow()
 {
-    namespace VG = Carta::Lib::VectorGraphics; // love c++11
-    namespace VGE = VG::Entries;
-    { } // uncrustify hack to circumvent a bug...
+    // if the VGList is still valid, we are done
+    if ( m_vgValid ) {
+        qDebug() << "vgValid saved us a grid redraw xyz";
+        emit done( m_vgc.vgList(), m().lastSubmittedJobId );
+        return;
+    }
 
     QTime t;
     t.start();
 
     // clear the current vector graphics in case something goes wrong later
-    m_vgList = VGList();
+//    m_vgList = VGList();
+    m_vgc.clear();
 
     // if the empty grid reporting is activated, report an empty grid
     if ( m_emptyGridFlag ) {
-        emit done( m_vgList);
+        emit done( m_vgc.vgList(), m().lastSubmittedJobId );
         return;
     }
 
-    // local helpers
+    m_vgValid = true;
+
+    // local helper - element to integer
     auto si = [&] ( Element e ) {
         return static_cast < int > ( e );
     };
+
+    // element to pen reference
     auto pi = [&] ( Element e ) -> QPen & {
         return m().pens[si( e )];
     };
+
+    // element to font info reference
     auto fi = [&] ( Element e ) -> Pimpl::FontInfo & {
         return m().fonts[si( e )];
     };
 
     // make a new VG composer
-    VG::VGComposer vgc;
+//    VG::VGComposer m_vgc;
+//    m_vgc.clear();
 
-    // add a dimmer
+    // dim the border
     {
         double x0 = 0;
         double x1 = m_outRect.left();
@@ -148,29 +183,56 @@ AstWcsGridRenderService::renderNow()
         double y1 = m_outRect.top();
         double y2 = m_outRect.bottom();
         double y3 = m_outSize.height();
-        QColor dimColor = m().pens[ si(Element::MarginDim)].color();
-        vgc.append < VGE::FillRect > ( QRectF( QPointF( x0, y0 ), QPointF( x1, y3 ) ), dimColor );
-        vgc.append < VGE::FillRect > ( QRectF( QPointF( x2, y0 ), QPointF( x3, y3 ) ), dimColor );
-        vgc.append < VGE::FillRect > ( QRectF( QPointF( x1, y0 ), QPointF( x2, y1 ) ), dimColor );
-        vgc.append < VGE::FillRect > ( QRectF( QPointF( x1, y2 ), QPointF( x2, y3 ) ), dimColor );
+        m_vgc.append < VGE::Save > ();
+        m_vgc.append < VGE::SetPen > ( Qt::NoPen );
+        m().dimBrushIndex =
+            m_vgc.append < VGE::StoreIndexedBrush > ( 0, QBrush( pi( Element::MarginDim ).brush() ) );
+        m_vgc.append < VGE::SetIndexedBrush > ( 0 );
+        m_vgc.append < VGE::DrawRect > ( QRectF( QPointF( x0, y0 ), QPointF( x1, y3 ) ) );
+        m_vgc.append < VGE::DrawRect > ( QRectF( QPointF( x2, y0 ), QPointF( x3, y3 ) ) );
+        m_vgc.append < VGE::DrawRect > ( QRectF( QPointF( x1, y0 ), QPointF( x2, y1 ) ) );
+        m_vgc.append < VGE::DrawRect > ( QRectF( QPointF( x1, y2 ), QPointF( x2, y3 ) ) );
+        m_vgc.append < VGE::Restore > ();
     }
 
-    // get the fits header if we don't have one yet
+    auto elements {
+        Element::BorderLines,
+        Element::AxisLines1,
+        Element::AxisLines2,
+        Element::GridLines1,
+        Element::GridLines2,
+        Element::TickLines1,
+        Element::TickLines2,
+        Element::NumText1,
+        Element::NumText2,
+        Element::LabelText1,
+        Element::LabelText2,
+        Element::Shadow,
+        Element::MarginDim
+    };
 
-    LinMap tx( m_imgRect.left(), m_imgRect.right(), m_outRect.left(), m_outRect.right() );
-    LinMap ty( m_imgRect.top(), m_imgRect.bottom(), m_outRect.top(), m_outRect.bottom() );
+    // setup indexed pens
+    for ( auto & e : elements ) {
+        m().penEntries[si( e )] =
+            m_vgc.append < VGE::StoreIndexedPen > ( si( e ), pi( e ) );
+    }
+
+//    LinMap tx( m_imgRect.left(), m_imgRect.right(), m_outRect.left(), m_outRect.right() );
+//    LinMap ty( m_imgRect.top(), m_imgRect.bottom(), m_outRect.top(), m_outRect.bottom() );
 
     // draw the grid
     // =============================
     AstGridPlotter sgp;
-    for ( const QPen & pen : m().pens ) {
-        sgp.colors().push_back( pen.color() );
-    }
+
+//    for ( const QPen & pen : m().pens ) {
+//        sgp.pens().push_back( pen );
+//    }
+    sgp.pens() = m().pens;
 
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
     sgp.setFitsHeader( m().fitsHeader.join( "" ) );
-    sgp.setOutputVGComposer( & vgc );
+    sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
     sgp.setPlotOption( "DrawTitle=0" );
@@ -201,13 +263,13 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( QString( "Size(NumLab2)=%1" ).arg( fi( Element::NumText2 ).second ) );
 
     // line widths
-    sgp.setPlotOption( QString( "Width(grid1)=%1" ).arg( pi( Element::GridLines1 ).widthF() ) );
-    sgp.setPlotOption( QString( "Width(grid2)=%1" ).arg( pi( Element::GridLines2 ).widthF() ) );
-    sgp.setPlotOption( QString( "Width(border)=%1" ).arg( pi( Element::BorderLines ).widthF() ) );
-    sgp.setPlotOption( QString( "Width(axis1)=%1" ).arg( pi( Element::AxisLines1 ).widthF() ) );
-    sgp.setPlotOption( QString( "Width(axis2)=%1" ).arg( pi( Element::AxisLines2 ).widthF() ) );
-    sgp.setPlotOption( QString( "Width(ticks1)=%1" ).arg( pi( Element::TickLines1 ).widthF() ) );
-    sgp.setPlotOption( QString( "Width(ticks2)=%1" ).arg( pi( Element::TickLines2 ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(grid1)=%1" ).arg( pi( Element::GridLines1 ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(grid2)=%1" ).arg( pi( Element::GridLines2 ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(border)=%1" ).arg( pi( Element::BorderLines ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(axis1)=%1" ).arg( pi( Element::AxisLines1 ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(axis2)=%1" ).arg( pi( Element::AxisLines2 ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(ticks1)=%1" ).arg( pi( Element::TickLines1 ).widthF() ) );
+//    sgp.setPlotOption( QString( "Width(ticks2)=%1" ).arg( pi( Element::TickLines2 ).widthF() ) );
 
     // colors
     sgp.setPlotOption( QString( "Colour(grid1)=%1" ).arg( si( Element::GridLines1 ) ) );
@@ -221,7 +283,8 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( QString( "Colour(NumLab2)=%1" ).arg( si( Element::NumText2 ) ) );
     sgp.setPlotOption( QString( "Colour(TextLab1)=%1" ).arg( si( Element::LabelText1 ) ) );
     sgp.setPlotOption( QString( "Colour(TextLab2)=%1" ).arg( si( Element::LabelText2 ) ) );
-    sgp.setShadowPen( pi( Element::Shadow ) );
+
+    sgp.setShadowPenIndex( si( Element::Shadow ) );
 
     // grid density
     sgp.setDensityModifier( m_gridDensity );
@@ -257,49 +320,45 @@ AstWcsGridRenderService::renderNow()
 
     // do the actual plot
     bool plotSuccess = sgp.plot();
-    qDebug() << "plotSuccess" << plotSuccess;
-    qDebug() << sgp.getError();
+//    qDebug() << "plotSuccess=" << plotSuccess;
+//    qDebug() << "plotError=" << sgp.getError();
+    if( ! plotSuccess) {
+        qWarning() << "Grid rendering error:" << sgp.getError();
+    }
 
-    // save the VG list from the composer
-    m_vgList = vgc.vgList();
-
-    static int counter = 0;
-    qDebug() << "Grid rendered in " << t.elapsed() / 1000.0 << "s" << ++counter << "xyz";
+    qDebug() << "Grid rendered in " << t.elapsed() / 1000.0 << "s";
 
     // Report the result.
-    // For debugging purposes we fire off the signal asynchronously.
-//    if ( ! m_dbgTimer ) {
-//        m_dbgTimer.reset( new QTimer );
-//        m_dbgTimer-> setSingleShot( true );
-//        connect( m_dbgTimer.get(), & QTimer::timeout, this, & Me::reportResult );
-//    }
-//    m_dbgTimer-> start( qrand() % 1 );
-
-    emit done( m_vgList);
+    emit done( m_vgc.vgList(), m().lastSubmittedJobId );
 } // startRendering
-
-void
-AstWcsGridRenderService::reportResult()
-{
-    emit done( m_vgList );
-}
 
 void
 AstWcsGridRenderService::setGridDensityModifier( double density )
 {
-    m_gridDensity = density;
+    if ( m_gridDensity != density ) {
+        m_gridDensity = density;
+        m_vgValid = false;
+    }
 }
 
 void
-AstWcsGridRenderService::setInternalLabels( bool on )
+AstWcsGridRenderService::setInternalLabels( bool flag )
 {
-    m_internalLabels = on;
+    if ( m_internalLabels != flag ) {
+        m_vgValid = false;
+        m_internalLabels = flag;
+    }
 }
 
 void
 AstWcsGridRenderService::setSkyCS( Carta::Lib::KnownSkyCS cs )
 {
-    m().knownSkyCS = cs;
+    // invalidate vglist if the requested coordinate system is different
+    // from the last one
+    if ( m().knownSkyCS != cs ) {
+        m_vgValid = false;
+        m().knownSkyCS = cs;
+    }
 }
 
 void
@@ -308,7 +367,22 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
     int ind = static_cast < int > ( e );
     CARTA_ASSERT( ind >= 0 && ind < int ( m().pens.size() ) );
     m().pens[ind] = pen;
-}
+
+    auto si = [&] ( Element e ) {
+        return static_cast < int > ( e );
+    };
+    auto pi = [&] ( Element e ) -> QPen & {
+        return m().pens[si( e )];
+    };
+
+    // if the list is valid, just change the entry directly
+    if ( m_vgValid ) {
+        m_vgc.set < VGE::StoreIndexedPen > ( m().penEntries[si( e )], si( e ), pi( e ) );
+        if ( e == Element::MarginDim ) {
+            m_vgc.set < VGE::StoreIndexedBrush > ( m().dimBrushIndex, 0, pi( e ).brush() );
+        }
+    }
+} // setPen
 
 const QPen &
 AstWcsGridRenderService::pen( Carta::Lib::IWcsGridRenderService::Element e )
@@ -325,22 +399,23 @@ AstWcsGridRenderService::setFont( Carta::Lib::IWcsGridRenderService::Element e,
 {
     int ind = static_cast < int > ( e );
     CARTA_ASSERT( ind >= 0 && ind < int ( m().fonts.size() ) );
-    m().fonts[ind] = {
+    Pimpl::FontInfo fontInfo {
         fontIndex, pointSize
     };
+
+    if ( m().fonts[ind] != fontInfo ) {
+        m_vgValid = false;
+        m().fonts[ind] = fontInfo;
+    }
 }
 
 void
 AstWcsGridRenderService::setEmptyGrid( bool flag )
 {
-    m_emptyGridFlag = flag;
-}
-
-void
-AstWcsGridRenderService::dbgSlot()
-{
-    m_dbgAngle += 0.1;
-    startRendering();
+    if ( m_emptyGridFlag != flag ) {
+        m_vgValid = false;
+        m_emptyGridFlag = flag;
+    }
 }
 
 inline AstWcsGridRenderService::Pimpl &

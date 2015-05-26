@@ -111,7 +111,6 @@ private:
     void
     setFontIndex( int fontIndex )
     {
-        qDebug() << "fontIndex" << fontIndex;
         CARTA_ASSERT( fontIndex >= 0 && fontIndex < int ( m_fonts.size() ) );
         fontIndex = Carta::Lib::clamp < int > ( fontIndex, 0, int (m_fonts.size() - 1) );
         QFont font = m_fonts[fontIndex];
@@ -147,10 +146,18 @@ private:
         m_qPainter.setTransform( t, combine );
     }
 
+    /// draw a rectangle filled with the given color, no outline
     void
     fillRect( const QRectF & rect, const QColor & color )
     {
         m_qPainter.fillRect( rect, color );
+    }
+
+    /// draw a rectangle filled with the current brush & outlined with current
+    /// pen
+    void
+    drawRect( const QRectF & rect) {
+        m_qPainter.drawRect( rect);
     }
 
     void
@@ -170,7 +177,14 @@ private:
     storeIndexedPen( int penId, const QPen & pen)
     {
         CARTA_ASSERT( penId >= 0);
-        m_indexedPens.resize( penId + 1);
+        if( penId >= int( m_indexedPens.size())) {
+            if( CARTA_RUNTIME_CHECKS) {
+                if( penId > 1000) {
+                    qCritical() << "Are you sure you want " << penId << "pens???";
+                }
+            }
+            m_indexedPens.resize( penId + 1);
+        }
         m_indexedPens[ penId] = pen;
     }
 
@@ -185,18 +199,54 @@ private:
                             << m_indexedPens.size() << "pens.";
                 return;
             }
-            CARTA_ASSERT( penId >= int( m_indexedPens.size()));
         }
         setPen( m_indexedPens[ penId]);
     }
 
-    // get a list of
+    /// \brief Store an indexed brush at position brushId.
+    /// \param brushId at what position to store the brush
+    /// \param brush brush to store
+    /// \note The indices should be consecutive, starting at 0, as we use a simple
+    /// array to store them.
+    void storeIndexedBrush( int brushId, const QBrush & brush) {
+        CARTA_ASSERT( brushId >= 0);
+        if( brushId >= int( m_indexedBrushes.size())) {
+            if( CARTA_RUNTIME_CHECKS) {
+                if( brushId > 1000) {
+                    qCritical() << "Are you sure you want " << brushId << "brushes???";
+                }
+            }
+            m_indexedBrushes.resize( brushId + 1);
+        }
+        m_indexedBrushes[ brushId] = brush;
+    }
+
+    /// \brief Set the current brush to an indexed one.
+    /// \param brushId Which indexed brush to use.
+    void
+    setIndexedBrush( int brushId)
+    {
+        if( CARTA_RUNTIME_CHECKS) {
+            if( brushId < 0 || brushId >= int( m_indexedBrushes.size())) {
+                qCritical() << "called setIndexedBrush with" << brushId << "but only have"
+                            << m_indexedBrushes.size() << "brushes.";
+                return;
+            }
+        }
+        setBrush( m_indexedBrushes[ brushId]);
+    }
+
+    /// set a brush
+    void setBrush( const QBrush & brush) {
+        m_qPainter.setBrush( brush);
+    }
 
 private:
 
     QPainter & m_qPainter;
     std::vector < QFont > m_fonts;
     std::vector < QPen > m_indexedPens;
+    std::vector < QBrush > m_indexedBrushes;
 };
 }
 }

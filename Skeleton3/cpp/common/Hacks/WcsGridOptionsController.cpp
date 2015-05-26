@@ -62,7 +62,7 @@ WcsGridOptionsController::WcsGridOptionsController(
               "labelText2pen", QPen( QColor( "yellow"), 1));
 
     SetupVar( m_shadowPen, SS::TypedVariable<QPen>,
-              "shadowPen", QPen( QColor( 0,0,0,64), 1));
+              "shadowPen", QPen( QColor( 0,0,0,64), 3));
 
     SetupVar( m_marginDimPen, SS::TypedVariable<QPen>,
               "marginDimPen", QPen( QColor( 0,0,0,64), 1));
@@ -95,10 +95,10 @@ WcsGridOptionsController::WcsGridOptionsController(
 
 void WcsGridOptionsController::stdVarCB()
 {
-    qDebug() << "stdVarCB";
-    qDebug() << "   inetrnalLabels" << m_internalLabels-> get();
-    qDebug() << "   gridDensity" << m_gridDensityModifier-> get();
-    qDebug() << "   gridLines1" << m_gridLines1Pen-> get();
+//    qDebug() << "stdVarCB";
+//    qDebug() << "   inetrnalLabels" << m_internalLabels-> get();
+//    qDebug() << "   gridDensity" << m_gridDensityModifier-> get();
+//    qDebug() << "   gridLines1" << m_gridLines1Pen-> get();
 
     m_wcsGridRenderer-> setInternalLabels( m_internalLabels-> get());
     m_wcsGridRenderer-> setGridDensityModifier( m_gridDensityModifier-> get());

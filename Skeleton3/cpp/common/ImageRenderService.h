@@ -51,7 +51,8 @@ typedef Lib::PixelPipeline::IClippedPixelPipeline IClippedPixelPipeline;
 /// job id
 typedef int64_t JobId;
 
-/*
+/* Please don't delete the commented code below. I want to revisit this later (Pavol)
+
 ///
 /// \brief Describes rendering parameters for the image rendering service
 ///
@@ -118,7 +119,8 @@ struct PixelPipelineCacheSettings {
 /// (-1/2,-1/2) is the bottom left corner of the bottom left pixel
 /// (1/2,1/2) is the top right corner of the bottom left pixel
 
-/// \todo start refactoring the pure API of this to ready this for plugins...
+/// \todo start refactoring the pure API of this to ready this for plugins..., i.e.
+/// IService with only pure virtual functions
 class Service : public QObject
 {
     CLASS_BOILERPLATE( Service );
@@ -218,8 +220,17 @@ public slots:
     /// jobId when notifying us of the results
     /// any previous rendering will most likely be canceled, unless the results
     /// have already been queued up for delivery
-    void
-    render( JobId jobId );
+    ///
+    /// \param jobId id assigned to the rendering request, which will be reported back
+    /// witht the done() signal, which can be used to make sure the arrived done() signal
+    /// corresponds to the latest request. It should be a positive number. If unspecified
+    /// (or negative number is supplied, a new id will be generated, which will
+    /// the previous one + 1)
+    ///
+    /// \return the jobId to expect when the rendering is done (useful for unspecified
+    /// jobId)
+    JobId
+    render( JobId jobId = -1 );
 
 signals:
 

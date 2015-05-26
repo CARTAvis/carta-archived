@@ -14,6 +14,7 @@
 #include "../IView.h"
 #include "CartaLib/Nullable.h"
 #include "CartaLib/Hooks/GetWcsGridRenderer.h"
+#include "common/Hacks/SharedState.h"
 #include <QTimer>
 #include <QObject>
 
@@ -74,9 +75,10 @@ private slots:
     void irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId);
 
     /// slot for grid
-    void wcsGridSlot(Carta::Lib::VectorGraphics::VGList);
+    void wcsGridSlot(Carta::Lib::VectorGraphics::VGList, Carta::Lib::IWcsGridRenderService::JobId jobId);
 
 private:
+
     /// when client changes zoom, this gets called
     QString zoomCB(const QString &, const QString & params, const QString &);
 
@@ -145,7 +147,9 @@ private:
     Carta::Lib::IWcsGridRenderService::SharedPtr m_wcsGridRenderer = nullptr;
 
     /// wcs grid options controller
-    WcsGridOptionsController::UniquePtr m_wcsGridOptionsController ;
+    WcsGridOptionsController::UniquePtr m_wcsGridOptionsController;
 
+    /// state variables
+    Carta::Lib::SharedState::DoubleVar::UniquePtr m_frameVar;
 };
 }

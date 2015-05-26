@@ -157,6 +157,25 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             "/hacks/gridControls/c1",
             m_wcsGridRenderer
             ) );
+
+#define SetupVar( vname, type, path, initValue) \
+    vname.reset( new type( prefix.with(path))); \
+    vname-> set( initValue); \
+    connect( vname.get(), & type::valueChanged, this, & Me::stdVarCB);
+#undef SetupVar
+
+    namespace SS = Carta::Lib::SharedState;
+    const SS::FullPath prefix = SS::FullPath::fromQString( m_statePrefix);
+
+    m_frameVar.reset( new Carta::Lib::SharedState::DoubleVar( prefix.with( "frameSlider")));
+    m_frameVar-> set( 0);
+    connect( m_frameVar.get(), & SS::BoolVar::valueChanged, [&] () {
+
+        if( m_astroImage-> dims().size() < 2) return;
+        int frame = m_frameVar-> get() * m_astroImage-> dims()[2] / 1000000.0;
+        frame = Carta::Lib::clamp<int>( frame, 0, m_astroImage-> dims()[2] - 1);
+        loadFrame( frame);
+    });
 }
 
 void
@@ -379,6 +398,11 @@ ImageViewController::loadFrame( int frame )
     }
     m_currentFrame = frame;
 
+    int oldFrameVar = m_frameVar-> get() * m_astroImage-> dims()[2] / 1e6;
+    if( oldFrameVar != m_currentFrame) {
+        m_frameVar-> set( m_currentFrame * 1e6 / m_astroImage-> dims()[2]);
+    }
+
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
     auto frameSlice = SliceND().next();
     for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
@@ -458,7 +482,7 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
     Q_UNUSED( jobId );
     m_renderedAstroImage = img;
 
-    // update colormap preview.
+    // update colormap preview for the clients
     // this does not really belong here, but since we are just hacking...
     QStringList list;
     double clipMin, clipMax;
@@ -477,8 +501,9 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 } // irsDoneSlot
 
 void
-ImageViewController::wcsGridSlot( Carta::Lib::VectorGraphics::VGList vglist )
+ImageViewController::wcsGridSlot(Carta::Lib::VectorGraphics::VGList vglist , Carta::Lib::IWcsGridRenderService::JobId jobId)
 {
+    Q_UNUSED( jobId);
     qDebug() << "wcsgrid: wcsGridSlot" << vglist.entries().size() << "entries";
     m_gridVG = vglist;
 

@@ -18,7 +18,6 @@ namespace Lib
 {
 namespace VectorGraphics
 {
-
 /// api for an entry in a VGList
 class IVGListEntry
 {
@@ -79,7 +78,7 @@ class DrawPolyline : public IVGListEntry
 
 public:
 
-    DrawPolyline( const QPolygonF & poly)
+    DrawPolyline( const QPolygonF & poly )
     {
         m_poly = poly;
     }
@@ -87,7 +86,7 @@ public:
     virtual void
     cplusplus( BetterQPainter & painter ) override
     {
-        painter.drawPolyline( m_poly);
+        painter.drawPolyline( m_poly );
     }
 
     virtual QStringList
@@ -259,7 +258,6 @@ private:
     double m_size = 0;
 };
 
-
 /// save the state of the painter
 class Save : public IVGListEntry
 {
@@ -383,6 +381,40 @@ private:
     QColor m_color = QColor( 255, 0, 0, 128 );
 };
 
+/// draw a rectangle filled with current brush and outlined with current pen
+class DrawRect : public IVGListEntry
+{
+    CLASS_BOILERPLATE( DrawRect );
+
+public:
+
+    DrawRect( const QRectF & rect)
+    {
+        m_rect = rect;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.drawRect( m_rect);
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.drawRect(%1,%2,%3,%4);" )
+                   .arg( m_rect.left() )
+                   .arg( m_rect.right() )
+                   .arg( m_rect.width() )
+                   .arg( m_rect.height() );
+    }
+
+private:
+
+    QRectF m_rect = QRectF( 0, 0, 10, 10 );
+};
+
 /// draw text
 class DrawText : public IVGListEntry
 {
@@ -438,7 +470,7 @@ public:
     virtual void
     cplusplus( BetterQPainter & painter ) override
     {
-        painter.storeIndexedPen( m_ind, m_pen);
+        painter.storeIndexedPen( m_ind, m_pen );
     }
 
     virtual QStringList
@@ -447,7 +479,7 @@ public:
         return QStringList()
                << QString( "p.storeIndexedPen(%1,%2,%3);" )
                    .arg( m_ind )
-                   .arg( m_pen.color().name( QColor::HexArgb) )
+                   .arg( m_pen.color().name( QColor::HexArgb ) )
                    .arg( m_pen.widthF() );
     }
 
@@ -457,7 +489,6 @@ private:
     QPen m_pen;
 };
 
-
 /// uses a previously indexed pen
 class SetIndexedPen : public IVGListEntry
 {
@@ -465,7 +496,7 @@ class SetIndexedPen : public IVGListEntry
 
 public:
 
-    SetIndexedPen( int ind)
+    SetIndexedPen( int ind )
     {
         m_ind = ind;
     }
@@ -473,7 +504,7 @@ public:
     virtual void
     cplusplus( BetterQPainter & painter ) override
     {
-        painter.setIndexedPen( m_ind);
+        painter.setIndexedPen( m_ind );
     }
 
     virtual QStringList
@@ -487,6 +518,102 @@ public:
 private:
 
     int m_ind = 0;
+};
+
+/// stores a brush at a given index
+class StoreIndexedBrush : public IVGListEntry
+{
+    CLASS_BOILERPLATE( StoreIndexedBrush );
+
+public:
+
+    StoreIndexedBrush( int ind, const QBrush & brush )
+    {
+        m_ind = ind;
+        m_brush = brush;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.storeIndexedBrush( m_ind, m_brush );
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.storeIndexedBrush(%1,%2);" )
+                   .arg( m_ind )
+                   .arg( m_brush.color().name( QColor::HexArgb ) );
+    }
+
+private:
+
+    int m_ind = 0;
+    QBrush m_brush;
+};
+
+/// uses a previously indexed brush
+class SetIndexedBrush : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetIndexedBrush );
+
+public:
+
+    SetIndexedBrush( int ind )
+    {
+        m_ind = ind;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.setIndexedBrush( m_ind );
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.setIndexedBrush(%1);" )
+                   .arg( m_ind );
+    }
+
+private:
+
+    int m_ind = 0;
+};
+
+/// uses a previously indexed brush
+class SetBrush : public IVGListEntry
+{
+    CLASS_BOILERPLATE( SetBrush );
+
+public:
+
+    SetBrush( const QBrush & brush )
+    {
+        m_brush = brush;
+    }
+
+    virtual void
+    cplusplus( BetterQPainter & painter ) override
+    {
+        painter.setBrush( m_brush );
+    }
+
+    virtual QStringList
+    javascript() override
+    {
+        return QStringList()
+               << QString( "p.setBrush(%1);" )
+                  .arg( m_brush.color().name( QColor::HexArgb ) );
+    }
+
+private:
+
+    QBrush m_brush { "black" };
 };
 }
 
@@ -502,16 +629,22 @@ public:
     VGList();
 
     /// copy constructor
-    VGList( const VGList & other) = default;
+    VGList( const VGList & other ) = default;
 
     /// assignment operator
-    VGList & operator= (const VGList& other) = default;
+    VGList &
+    operator= ( const VGList & other ) = default;
 
     ~VGList();
 
     /// get a list of entries (ie. list of shared pointers to entries)
     const std::vector < IVGListEntry::SharedPtr > &
     entries() const { return m_entries; }
+
+    /// get a list of entries (ie. list of shared pointers to entries)
+    /// with read/write access
+//    std::vector < IVGListEntry::SharedPtr > &
+//    rwEntries() { return m_entries; }
 
 private:
 
@@ -581,6 +714,13 @@ public:
     set( int64_t ind, Args && ... params )
     {
         return setEntry( ind, new EntryType( std::forward < Args > ( params ) ... ) );
+    }
+
+    /// clear all entries
+    void
+    clear()
+    {
+        m_vgList.m_entries.resize( 0 );
     }
 
 private:

@@ -70,11 +70,11 @@ public:
     /// read/write access to indexed fonts
     std::vector<QFont> & fonts() { return m_qfonts; }
 
-    /// read/write access to indexed colors
-    std::vector<QColor> & colors() { return m_colors; }
+    /// read/write access to pens
+    std::vector<QPen> & pens() { return m_pens; }
 
-    /// set shadow color (alpha=0 means no shadow)
-    void setShadowPen( const QPen & pen) { m_shadowPen = pen; }
+    /// set shadow color index
+    void setShadowPenIndex( int penIndex) { m_shadowPenIndex = penIndex; }
 
     /// set various options for grid drawing
     /// this is a temporary method, and it is dependent on AST lib
@@ -86,9 +86,6 @@ public:
         m_densityModifier = dm;
     }
 
-    /// set line thickness
-//    void setLineThickness( double t);
-
     /// perform the actual plot on the image
     /// returns success/failure
     bool
@@ -98,9 +95,6 @@ public:
     QString
     getError();
 
-//    static void
-//    setTextColor( QString color );
-
 protected:
 
     bool m_carLin = false;
@@ -109,10 +103,12 @@ protected:
     QStringList m_plotOptions;
     QString m_system;
     QRectF m_orect, m_irect;
-    std::vector<QColor> m_colors;
+    std::vector<QPen> m_pens;
     std::vector<QFont> m_qfonts;
     double m_densityModifier = 1.0;
-    QPen m_shadowPen = QPen( QColor( 0, 0, 0, 0), 1);
+
+    int m_shadowPenIndex;
+//    QPen m_shadowPen = QPen( QColor( 0, 0, 0, 0), 1);
 
     VGComposer * m_vgc = nullptr;
 };

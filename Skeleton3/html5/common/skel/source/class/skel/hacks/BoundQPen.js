@@ -109,7 +109,7 @@ qx.Class.define( "skel.hacks.BoundQPen", {
         _buttonCB: function( ev )
         {
             this._createPopup();
-            this.m_popup.placeToWidget( this.m_button );
+            //this.m_popup.placeToWidget( this.m_button );
             this.m_popup.show();
         },
 
@@ -118,7 +118,10 @@ qx.Class.define( "skel.hacks.BoundQPen", {
             if( this.m_popup != null ) {
                 return;
             }
-            this.m_popup = new qx.ui.popup.Popup( new qx.ui.layout.VBox() );
+            //this.m_popup = new qx.ui.popup.Popup( new qx.ui.layout.VBox() );
+            this.m_popup = new qx.ui.window.Window( "Pen options" );
+            this.m_popup.setLayout( new qx.ui.layout.VBox());
+            this.m_popup.setAlwaysOnTop( true);
             this.m_popup.exclude();
 
             this.m_colorPicker = new qx.ui.control.ColorSelector();

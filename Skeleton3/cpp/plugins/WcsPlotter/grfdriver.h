@@ -9,27 +9,20 @@
 struct GrfDriverGlobals {
     // externally configurable:
     // ========================
-//    std::vector< QFont> fonts;
-    std::vector < QColor > colors;
-    QPen lineShadowPen = QPen( QColor( 0, 0, 0, 16), 2);
-    QColor textShadowColor = QColor( "yellow");
+    int lineShadowPenIndex = 0;
 
     // internal details - these are computed and set inside grfdriverSetVGComposer()
     // then they are used during the plot
     // =====================
-    double penWidth = 1.0;
-    int currentColorIndex = 0;
+    int currentPenIndex = 0;
     int currentFontIndex = 0;
     QImage * image = nullptr;
     QPainter * painter = nullptr;
     Carta::Lib::VectorGraphics::VGComposer * vgComposer = nullptr;
-    // computed from lineShadowPen, true if alpha > 0
-    bool lineShadowOn = true;
-    QColor lineShadowColor = QColor( "green");
-    double lineShadowWidth = 1.0;
+
+    /// call this righ before astPlot()
+    void prepare();
 };
 
+// c-style singleton access
 GrfDriverGlobals * grfGlobals();
-
-void
-grfdriverSetVGComposer( Carta::Lib::VectorGraphics::VGComposer * vgComp );

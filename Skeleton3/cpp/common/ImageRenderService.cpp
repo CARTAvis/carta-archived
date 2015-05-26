@@ -33,7 +33,7 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     QSize size( rawView->dims()[0], rawView->dims()[1] );
 
     QImage::Format desiredFormat = OptimalQImageFormat;
-    if( QtPremultipliedBugStillExists) {
+    if ( QtPremultipliedBugStillExists ) {
         desiredFormat = QImage::Format_ARGB32;
     }
 
@@ -163,13 +163,19 @@ Service::pixelPipelineCacheSettings() const
     return m_pixelPipelineCacheSettings;
 }
 
-void
+JobId
 Service::render( JobId jobId )
 {
-    m_lastSubmittedJobId = jobId;
-    if( ! m_renderTimer.isActive()) {
+    if ( jobId < 0 ) {
+        m_lastSubmittedJobId++;
+    }
+    else {
+        m_lastSubmittedJobId = jobId;
+    }
+    if ( ! m_renderTimer.isActive() ) {
         m_renderTimer.start();
     }
+    return m_lastSubmittedJobId;
 }
 
 Service::Service( QObject * parent ) : QObject( parent )
@@ -180,9 +186,9 @@ Service::Service( QObject * parent ) : QObject( parent )
 //                         this, & Service::internalRenderSlot,
 //                         Qt::QueuedConnection );
 
-    m_renderTimer.setSingleShot( true);
-    m_renderTimer.setInterval(1);
-    connect( & m_renderTimer, & QTimer::timeout, this, & Me::internalRenderSlot);
+    m_renderTimer.setSingleShot( true );
+    m_renderTimer.setInterval( 1 );
+    connect( & m_renderTimer, & QTimer::timeout, this, & Me::internalRenderSlot );
 
     m_frameCache.setMaxCost( 1 * 1024 * 1024 * 1024 ); // 1 gig
 }
@@ -225,10 +231,10 @@ Service::screen2img( const QPointF & p )
 }
 
 void
-Service::internalRenderSlot(  )
+Service::internalRenderSlot()
 {
     static int renderCount = 0;
-    qDebug() << "Image render" << renderCount ++ << "xyz";
+    qDebug() << "Image render" << renderCount++ << "xyz";
 
     // raw double to base64 converter
     auto d2hex = [] (double x) -> QString {
@@ -335,38 +341,39 @@ Service::internalRenderSlot(  )
 
 //    rectf = rectf.normalized();
     p.drawImage( rectf, m_frameImage );
+
 //    qDebug() << "m_frameImage" << m_frameImage.size();
 //    qDebug() << "m_frameImage" << zoom() << rectf.width() / m_frameImage.width()
 //             << rectf.height() / m_frameImage.height();
 
     // debugging rectangle
-    if( 0) {
-        p.setPen( QPen( QColor("yellow"), 3));
-        p.setBrush( Qt::NoBrush);
-        p.drawRect( rectf);
+    if ( 0 ) {
+        p.setPen( QPen( QColor( "yellow" ), 3 ) );
+        p.setBrush( Qt::NoBrush );
+        p.drawRect( rectf );
     }
 
     // more debugging - draw pixel grid
     // \todo need to add clipping if we want to expose this as a functionality
-    if( true && zoom() > 5) {
-        p.setRenderHint( QPainter::Antialiasing, true);
-        double alpha = Carta::Lib::linMap( zoom(), 5, 32, 0.01, 0.2);
-        alpha = Carta::Lib::clamp( alpha, 0.0, 1.0);
-        p.setPen( QPen( QColor(255, 255, 255, 255), alpha));
-        QPointF tl = screen2img( QPointF( 0, 0));
-        QPointF br = screen2img( QPointF( outputSize().width(), outputSize().height()));
-        int x1 = std::floor( tl.x());
-        int x2 = std::ceil( br.x());
-        for( double x = x1 ; x <= x2 ; ++ x) {
-            QPointF pt = img2screen( QPointF( x -0.5, 0));
-            p.drawLine( QPointF(pt.x(), 0), QPointF(pt.x(), outputSize().height()));
+    if ( true && zoom() > 5 ) {
+        p.setRenderHint( QPainter::Antialiasing, true );
+        double alpha = Carta::Lib::linMap( zoom(), 5, 32, 0.01, 0.2 );
+        alpha = Carta::Lib::clamp( alpha, 0.0, 1.0 );
+        p.setPen( QPen( QColor( 255, 255, 255, 255 ), alpha ) );
+        QPointF tl = screen2img( QPointF( 0, 0 ) );
+        QPointF br = screen2img( QPointF( outputSize().width(), outputSize().height() ) );
+        int x1 = std::floor( tl.x() );
+        int x2 = std::ceil( br.x() );
+        for ( double x = x1 ; x <= x2 ; ++x ) {
+            QPointF pt = img2screen( QPointF( x - 0.5, 0 ) );
+            p.drawLine( QPointF( pt.x(), 0 ), QPointF( pt.x(), outputSize().height() ) );
         }
-        int y1 = std::ceil( tl.y());
-        int y2 = std::floor( br.y());
-        std::swap( y1, y2);
-        for( double y = y1 ; y <= y2 ; ++ y) {
-            QPointF pt = img2screen( QPointF( 0, y - 0.5));
-            p.drawLine( QPointF(0, pt.y()), QPointF(outputSize().width(), pt.y()));
+        int y1 = std::ceil( tl.y() );
+        int y2 = std::floor( br.y() );
+        std::swap( y1, y2 );
+        for ( double y = y1 ; y <= y2 ; ++y ) {
+            QPointF pt = img2screen( QPointF( 0, y - 0.5 ) );
+            p.drawLine( QPointF( 0, pt.y() ), QPointF( outputSize().width(), pt.y() ) );
         }
     }
 

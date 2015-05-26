@@ -58,6 +58,9 @@ class IWcsGridRenderService : public QObject
 
 public:
 
+    /// job IDs
+    typedef int64_t JobId;
+
     /// shortcut for VGList
     typedef VectorGraphics::VGList VGList;
 
@@ -103,47 +106,22 @@ public:
 
     /// set a pen attribute for the given element
     virtual void
-    setPen( Element e, const QPen & pen) = 0;
+    setPen( Element e, const QPen & pen ) = 0;
 
     /// get a pen attribute for the given element
     virtual const QPen &
-    pen( Element e) = 0;
-
-    /// set the shadow color
-    /// anything with alpha=0 will mean no shadow
-//    virtual void setShadowColor( const QColor & color) = 0;
-
-    /// return the current shadow color
-//    virtual const QColor & shadowColor() = 0;
+    pen( Element e ) = 0;
 
     /// set the font attribute for the given text element
     /// does nothing for non-text elements, i.e. lines
     virtual void
-    setFont( Element e, int fontIndex, double pointSize) = 0;
-
-    /// get the font attribute for the given element
-//    virtual const QFont &
-//    font( Element e) = 0;
-
-//    virtual void
-//    setLineThickness( double thickness ) = 0;
-
-//    virtual double
-//    lineThickness() = 0;
-
-//    virtual void
-//    setLineColor( QColor color ) = 0;
-
-//    virtual QColor
-//    lineColor() = 0;
+    setFont( Element e, int fontIndex, double pointSize ) = 0;
 
     /// set the grid density modifier...
     virtual void
     setGridDensityModifier( double density ) = 0;
 
     /// set whether the grid labels should be external or internal
-    /// \warning: sometimes external will result in internal if external
-    /// request is hard to satisfy
     virtual void
     setInternalLabels( bool on ) = 0;
 
@@ -155,8 +133,16 @@ public:
     /// if possible, previously scheduled rendering will be canceled
     /// or you can think of it as this: multiple calls to this will normally only
     /// result in a single result reported
-    virtual void
-    startRendering() = 0;
+    ///
+    /// \param jobId id assigned to the rendering request, which will be reported back
+    /// witht the done() signal, which can be used to make sure the arrived done() signal
+    /// corresponds to the latest request. It should be a positive number. If unspecified
+    /// (or negative number is supplied, a new id will be generated, which will
+    /// the previous one + 1)
+    /// \return the jobId to expect when the rendering is done (useful for unspecified
+    /// jobId)
+    virtual JobId
+    startRendering( JobId jobId = - 1 ) = 0;
 
     /// \brief whether the service should report empty grid or not
     /// \param flag if set to true, the result will always be an empty grid
@@ -166,7 +152,7 @@ public:
     /// Insteady of handling it as a special case, you can just set this flag to true, and
     /// grid will be reported as drawn, but the VGList will be empty.
     virtual void
-    setEmptyGrid( bool flag) = 0;
+    setEmptyGrid( bool flag ) = 0;
 
     /// virtual destructor
     ///\note looks like this needs to be defined out of line, otherwise dlopen() fails
@@ -177,8 +163,10 @@ public:
 signals:
 
     /// gets emitted when rendering is done
+    /// \param vg the rendered vector graphics
+    /// \param id the jobId this result corresponds to
     void
-    done( Carta::Lib::VectorGraphics::VGList vg );
+    done( Carta::Lib::VectorGraphics::VGList vg, JobId id );
 };
 }
 }

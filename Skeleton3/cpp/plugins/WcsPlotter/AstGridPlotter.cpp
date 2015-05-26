@@ -77,32 +77,36 @@ struct AstGuard {
 bool
 AstGridPlotter::plot()
 {
+
+    // setup the graphics driver globals
+    // =================================
+    // copy over pens, making sure we have at least one pen
+//    grfGlobals()-> pens = pens();
+//    if( pens().empty()) {
+//        grfGlobals()->pens.push_back( QPen( QColor( "green"), 1));
+//    }
+    // setup shadow pen
+    grfGlobals()-> lineShadowPenIndex = m_shadowPenIndex;
+    // assign VG composer
+    grfGlobals()-> vgComposer = m_vgc;
+    // pre-cache some things
+    grfGlobals()-> prepare();
+
+    // get rid of any ast errors from previous calls, just in case
     astClearStatus;
+
+    // make sure we clean up resources no matter how we exit this method
     AstGuard astGuard;
 
-    // copy over colors
-    grfGlobals()-> colors = colors();
-
-    // make sure we have at least 1 color
-    grfGlobals()-> colors.push_back( QColor( "blue" ) );
-
-//    // copy over fonts
-//    grfGlobals()-> fonts = fonts();
-//    // make sure we have at least 1 font
-//    grfGlobals()-> fonts.push_back( QFont( "Helvetica", 10));
-    // shadows are separate
-    grfGlobals()-> lineShadowPen = m_shadowPen;
-
+    // ask AST to read in the FITS header
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-zero-length"
     AstFitsChan * fitschan = astFitsChan( NULL, NULL, "" );
 #pragma GCC diagnostic pop
-
     if ( ! fitschan ) {
         m_errorString = "astFitsChan returned null :(";
         return false;
     }
-
     std::string stdstr = m_fitsHeader.toStdString();
     astPutCards( fitschan, stdstr.c_str() );
     if ( m_carLin ) {
@@ -112,8 +116,8 @@ AstGridPlotter::plot()
         astSet( fitschan, "CarLin=0" );
     }
 
+    // try to get WCS out of the fits data
     AstFrameSet * wcsinfo = static_cast < AstFrameSet * > ( astRead( fitschan ) );
-
     if ( ! astOK ) {
         m_errorString = "Some AST LIB error, check logs.";
         return false;
@@ -138,10 +142,11 @@ AstGridPlotter::plot()
         m_irect.right() + 1, m_irect.top() + 1
     };
 
-    grfdriverSetVGComposer( m_vgc );
-
+    qDebug() << "Calling astPlot()";
     AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
-    if ( plot == 0 || ! astOK ) {
+    qDebug() << "astPlot() returned";
+//    AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "" );
+    if ( ! plot || ! astOK ) {
         m_errorString = "astPlot() failed";
         return false;
     }
@@ -199,7 +204,10 @@ AstGridPlotter::plot()
         }
     }
 
+    // call the actual plotting
+    qDebug() << "Calling astGrid()";
     astGrid( plot );
+    qDebug() << "Called astGrid()";
 
     if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );

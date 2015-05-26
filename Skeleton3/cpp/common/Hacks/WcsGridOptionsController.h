@@ -21,8 +21,6 @@ class WcsGridOptionsController : public QObject
 
 public:
 
-
-
     explicit
     WcsGridOptionsController( QObject * parent,
                               QString pathPrefix,
@@ -50,26 +48,27 @@ private:
 
     SS::BoolVar::UniquePtr m_internalLabels;
     SS::DoubleVar::UniquePtr m_gridDensityModifier;
+
 //    SS::TypedVariable< double, SS::ClampedDouble >::UniquePtr m_gd;
-    SS::TypedVariable<QPen>::SharedPtr m_borderLinesPen;
-    SS::TypedVariable<QPen>::SharedPtr m_axisLines1Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_axisLines2Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_gridLines1Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_gridLines2Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_tickLines1Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_tickLines2Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_numText1Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_numText2Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_labelText1Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_labelText2Pen;
-    SS::TypedVariable<QPen>::SharedPtr m_shadowPen;
-    SS::TypedVariable<QPen>::SharedPtr m_marginDimPen;
+    SS::TypedVariable < QPen >::SharedPtr m_borderLinesPen;
+    SS::TypedVariable < QPen >::SharedPtr m_axisLines1Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_axisLines2Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_gridLines1Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_gridLines2Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_tickLines1Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_tickLines2Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_numText1Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_numText2Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_labelText1Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_labelText2Pen;
+    SS::TypedVariable < QPen >::SharedPtr m_shadowPen;
+    SS::TypedVariable < QPen >::SharedPtr m_marginDimPen;
 
     SS::DoubleVar::UniquePtr m_numText1FontSize;
     SS::IntVar::UniquePtr m_numText1FontIndex;
     SS::IntVar::UniquePtr m_currentSkyCS;
 
-    void stdVarCB();
-
+    void
+    stdVarCB();
 };
 }

@@ -37,14 +37,14 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) override;
 
-    virtual void
-    startRendering() override;
+    virtual JobId
+    startRendering( JobId jobId = 0) override;
 
     virtual void
     setGridDensityModifier( double density ) override;
 
     virtual void
-    setInternalLabels( bool on ) override;
+    setInternalLabels(bool flag ) override;
 
     virtual void
     setSkyCS( Carta::Lib::KnownSkyCS cs ) override;
@@ -67,15 +67,17 @@ private slots:
     void renderNow();
 
     // part of a hack to simulate delayed signal
-    void
-    reportResult();
+//    void
+//    reportResult();
 
-    void
-    dbgSlot();
+//    void
+//    dbgSlot();
 
 private:
 
-    VGList m_vgList;
+    Carta::Lib::VectorGraphics::VGComposer m_vgc;
+//    VGList m_vgList;
+
     Image::ImageInterface::SharedPtr m_iimage = nullptr;
     QRectF m_imgRect, m_outRect;
     QSize m_outSize = QSize( 10, 10 );
@@ -90,14 +92,19 @@ private:
     inline Pimpl &
     m();
 
-    // the render timer
+    // we use this timer inside startRendering() to delay the actual rendering
+    // by a fraction of a second, which allows us to call startRendering() multiple
+    // times, but only one rendering will really go through...
     QTimer m_renderTimer;
 
     // part of a hack to simulate delayed signal
     std::unique_ptr < QTimer > m_dbgTimer = nullptr;
 
+    // flag to indicate whether the currently stored VGlist is valid
+    bool m_vgValid = false;
+
     // another debug timer
-    QTimer m_dbgTimer2;
-    double m_dbgAngle = 0.0;
+//    QTimer m_dbgTimer2;
+//    double m_dbgAngle = 0.0;
 };
 }

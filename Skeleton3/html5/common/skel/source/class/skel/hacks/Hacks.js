@@ -51,20 +51,6 @@ qx.Class.define("skel.hacks.Hacks", {
             this.m_hackMainWindow.open();
 
             // ==================================================================================
-            // create first hack view
-            // ==================================================================================
-            //var win = new qx.ui.window.Window( "Hack view" );
-            //win.setWidth( 300 );
-            //win.setHeight( 200 );
-            //win.setShowMinimize( false );
-            //win.setUseResizeFrame( false);
-            //win.setContentPadding( 5, 5, 5, 5 );
-            //win.setLayout( new qx.ui.layout.Grow() );
-            //win.add( new skel.hacks.HackView( "hackView"));
-            //this.m_app.getRoot().add( win, {left: 200, top: 220} );
-            //win.open();
-
-            // ==================================================================================
             // newer hack window
             // ==================================================================================
             var newViewName = "IVC7";
@@ -79,8 +65,14 @@ qx.Class.define("skel.hacks.Hacks", {
             // add mini movie player
             var mp = {};
             mp.prefix = "/hacks/views/" + newViewName;
-            mp.slider = new qx.ui.form.Slider();
-            mp.slider.set({minimum: 0, maximum: 10000, pageStep: 1000 });
+            //mp.slider = new qx.ui.form.Slider();
+            //mp.slider.set({minimum: 0, maximum: 10000, pageStep: 1000 });
+            mp.slider = new skel.hacks.BoundSlider({
+                sharedVar: this.m_connector.getSharedVar( mp.prefix + "/frameSlider"),
+                maximum: 999999,
+                pageStep: 50000,
+                singleStep: 1
+            });
             win2.add( mp.slider);
             mp.container = new qx.ui.container.Composite( new qx.ui.layout.HBox(5 ));
             mp.container.getLayout().setAlignY( "middle");
@@ -95,11 +87,20 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);
             win2.add( mp.container);
-            mp.slider.addListener( "changeValue", function(mp, ev) {
-                var v = ev.getData() / mp.slider.getMaximum();
-                console.log( "slider->", mp.prefix, ev.getData(), v);
-                this.m_connector.sendCommand( mp.prefix + "/setFrame", v);
-            }.bind( this, mp));
+            //mp.slider.addListener( "changeValue", function(mp, ev) {
+            //    var v = ev.getData() / mp.slider.getMaximum();
+            //    console.log( "slider->", mp.prefix, ev.getData(), v);
+            //    this.m_connector.sendCommand( mp.prefix + "/setFrame", v);
+            //}.bind( this, mp));
+
+            //var slider2 = new skel.hacks.BoundSlider({
+            //    sharedVar: this.m_connector.getSharedVar( mp.prefix + "/frameSlider"),
+            //    maximum: 999999,
+            //    pageStep: 50000,
+            //    singleStep: 1
+            //});
+            //win2.add( slider2);
+
             // pop up the window
             this.m_app.getRoot().add( win2, {left: 220, top: 420} );
             win2.open();
