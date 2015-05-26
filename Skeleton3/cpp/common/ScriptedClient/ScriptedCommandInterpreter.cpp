@@ -104,10 +104,15 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->removeLink(source, dest);
     }
 
-//    else if ( cmd == "savestate" ) {
-//        QString name = args["name"].toString();
-//        result = m_scriptFacade->saveState(name);
-//    }
+    else if ( cmd == "savesnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        bool saveLayout = args["saveLayout"].toBool();
+        bool savePreferences = args["savePreferences"].toBool();
+        bool saveData = args["saveData"].toBool();
+        QString description = args["description"].toString();
+        result = m_scriptFacade->saveSnapshot(sessionId, saveName, saveLayout, savePreferences, saveData, description);
+    }
 
     else if ( cmd == "getcolormaps" ) {
         result = m_scriptFacade->getColorMaps();

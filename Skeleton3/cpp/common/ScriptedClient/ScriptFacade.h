@@ -248,13 +248,17 @@ public:
      */
     void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, const QString& aspectRatioMode );
 
-//    /**
-//     * Save the current layout to a .json file in the /tmp directory.
-//     * @param fileName the base name of the file. The layout will be saved to
-//     * /tmp/fileName.json.
-//     * @return whether the operation was a success or not.
-//     */
-//    QStringList saveState( const QString& saveName );
+    /**
+     * Save the current state.
+     * @param fileName - an identifier for the state to be saved.
+     * @param layoutSave - true if the layout should be saved; false otherwise.
+     * @param preferencesSave -true if the preferences should be saved; false otherwise.
+     * @param dataSave - true if the data should be saved; false otherwise.
+     * @param saveDescription - notes about the state being saved.
+     * @return an error message if there was a problem saving state; an empty string otherwise.
+     */
+    QStringList saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout,
+            bool savePreferences, bool saveData, const QString& description );
 
     /**
      * Get the animators that are linked to the given image view.

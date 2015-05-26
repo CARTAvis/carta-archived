@@ -286,11 +286,42 @@ class Cartavis:
                                      destView=dest.getId())
         return result
 
-    def saveState(self, saveName):
+    def saveSnapshot(self, sessionId, saveName, saveLayout, savePreferences,
+                     saveData, description):
         """
-        Not currently implemented.
+        Save the current state.
+
+        Parameters
+        ----------
+        sessionId: string
+            [NOTE: I don't actually know what this is for.]
+
+        saveName: string
+            An identifier for the state to be saved.
+
+        saveLayout: boolean
+            True if the layout should be saved; false otherwise.
+
+        savePreferences: boolean
+            True if the preferences should be saved; false otherwise.
+
+        saveData: boolean
+            True if the data should be saved; false otherwise.
+
+        description: string
+            Notes about the state being saved.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem saving the snapshot; empty
+            otherwise.
         """
-        result = self.con.cmdTagList("saveState", name=saveName)
+        result = self.con.cmdTagList("saveSnapshot", sessionId=sessionId,
+                                     saveName=saveName, saveLayout=saveLayout,
+                                     savePreferences=savePreferences,
+                                     saveData=saveData,
+                                     description=description)
         return result
 
     def fakeCommand(self, infile):
