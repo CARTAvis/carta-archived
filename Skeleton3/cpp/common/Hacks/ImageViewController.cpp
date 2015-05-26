@@ -140,7 +140,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     // hook up grid toggle
     m_connector-> addStateCallback( m_statePrefix + "/gridToggle", [&] ( CSR, CSR val ) {
                                         m_gridToggle = ( val == "1" );
-                                        m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggle);
+                                        m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggle );
 
                                         // this is very inefficient, but it'll get the job done for now
                                         m_renderService-> render( 0 );
@@ -159,24 +159,23 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             m_wcsGridRenderer
             ) );
 
-#define SetupVar( vname, type, path, initValue) \
-    vname.reset( new type( prefix.with(path))); \
-    vname-> set( initValue); \
-    connect( vname.get(), & type::valueChanged, this, & Me::stdVarCB);
-#undef SetupVar
-
     namespace SS = Carta::Lib::SharedState;
-    const SS::FullPath prefix = SS::FullPath::fromQString( m_statePrefix);
+    const SS::FullPath prefix = SS::FullPath::fromQString( m_statePrefix );
 
-    m_frameVar.reset( new Carta::Lib::SharedState::DoubleVar( prefix.with( "frameSlider")));
-    m_frameVar-> set( 0);
+    m_frameVar.reset( new Carta::Lib::SharedState::DoubleVar( prefix.with( "frameSlider" ) ) );
+    m_frameVar-> set( 0 );
     connect( m_frameVar.get(), & SS::BoolVar::valueChanged, [&] () {
-
-        if( m_astroImage-> dims().size() < 2) return;
-        int frame = m_frameVar-> get() * m_astroImage-> dims()[2] / 1000000.0;
-        frame = Carta::Lib::clamp<int>( frame, 0, m_astroImage-> dims()[2] - 1);
-        loadFrame( frame);
-    });
+                 qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
+                 if ( m_astroImage-> dims().size() < 2 ) {
+                     return;
+                 }
+                 int frame = m_frameVar-> get() * m_astroImage-> dims()[2] / 1000000.0;
+                 frame = Carta::Lib::clamp < int > ( frame, 0, m_astroImage-> dims()[2] - 1 );
+                 if ( frame != m_currentFrame ) {
+                     loadFrame( frame );
+                 }
+             }
+             );
 }
 
 void
@@ -385,7 +384,7 @@ ImageViewController::loadImage( QString fname )
 void
 ImageViewController::loadFrame( int frame )
 {
-    qDebug() << "loadFrame" << frame;
+    qDebug() << "loadFrame" << frame << "xyz";
 
     // make sure the frame makes sense (i.e. clip it to allowed range)
     if ( frame < 0 ) {
@@ -400,8 +399,8 @@ ImageViewController::loadFrame( int frame )
     m_currentFrame = frame;
 
     int oldFrameVar = m_frameVar-> get() * m_astroImage-> dims()[2] / 1e6;
-    if( oldFrameVar != m_currentFrame) {
-        m_frameVar-> set( m_currentFrame * 1e6 / m_astroImage-> dims()[2]);
+    if ( oldFrameVar != m_currentFrame ) {
+        m_frameVar-> set( m_currentFrame * 1e6 / m_astroImage-> dims()[2] );
     }
 
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
@@ -463,7 +462,8 @@ ImageViewController::combineImageAndGrid()
 
     // draw the grid over top
     if ( ! m_gridVG.isNull() && m_gridToggle ) {
-        QTime t; t.restart();
+        QTime t;
+        t.restart();
         QPainter p( & m_renderBuffer );
         p.setRenderHint( QPainter::Antialiasing, true );
         Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
@@ -502,9 +502,10 @@ ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::J
 } // irsDoneSlot
 
 void
-ImageViewController::wcsGridSlot(Carta::Lib::VectorGraphics::VGList vglist , Carta::Lib::IWcsGridRenderService::JobId jobId)
+ImageViewController::wcsGridSlot( Carta::Lib::VectorGraphics::VGList vglist,
+                                  Carta::Lib::IWcsGridRenderService::JobId jobId )
 {
-    Q_UNUSED( jobId);
+    Q_UNUSED( jobId );
     qDebug() << "wcsgrid: wcsGridSlot" << vglist.entries().size() << "entries";
     m_gridVG = vglist;
 
