@@ -6,8 +6,6 @@
 #include "common/Globals.h"
 #include <functional>
 
-
-
 namespace Hacks
 {
 WcsGridOptionsController::WcsGridOptionsController(
@@ -95,11 +93,6 @@ WcsGridOptionsController::WcsGridOptionsController(
 
 void WcsGridOptionsController::stdVarCB()
 {
-//    qDebug() << "stdVarCB";
-//    qDebug() << "   inetrnalLabels" << m_internalLabels-> get();
-//    qDebug() << "   gridDensity" << m_gridDensityModifier-> get();
-//    qDebug() << "   gridLines1" << m_gridLines1Pen-> get();
-
     m_wcsGridRenderer-> setInternalLabels( m_internalLabels-> get());
     m_wcsGridRenderer-> setGridDensityModifier( m_gridDensityModifier-> get());
     m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines1,
@@ -155,22 +148,8 @@ void WcsGridOptionsController::stdVarCB()
         qWarning() << "Unknown sky cs requested from client:" << m_currentSkyCS-> get();
     }
 
-    m_wcsGridRenderer-> startRendering();
-
-
+    // let everyone know something was updated
+    emit updated();
 }
-
-//void WcsGridOptionsController::lineOpacityCB(const QString &, const QString & val)
-//{
-//    bool ok;
-//    double t = val.toDouble( & ok );
-//    if ( ! ok ) {
-//        return;
-//    }
-//    QColor color = m_wcsGridRenderer-> lineColor();
-//    color.setAlphaF( t);
-//    m_wcsGridRenderer-> setLineColor( color);
-//    m_wcsGridRenderer-> startRendering();
-//}
 
 }

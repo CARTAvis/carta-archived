@@ -108,9 +108,9 @@ public:
     virtual void
     setPen( Element e, const QPen & pen ) = 0;
 
-    /// get a pen attribute for the given element
-    virtual const QPen &
-    pen( Element e ) = 0;
+//    /// get a pen attribute for the given element
+//    virtual const QPen &
+//    pen( Element e ) = 0;
 
     /// set the font attribute for the given text element
     /// does nothing for non-text elements, i.e. lines

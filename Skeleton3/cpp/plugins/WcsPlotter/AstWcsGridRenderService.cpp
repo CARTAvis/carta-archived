@@ -384,13 +384,13 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
     }
 } // setPen
 
-const QPen &
-AstWcsGridRenderService::pen( Carta::Lib::IWcsGridRenderService::Element e )
-{
-    int ind = static_cast < int > ( e );
-    CARTA_ASSERT( ind >= 0 && ind < int ( m().pens.size() ) );
-    return m().pens[ind];
-}
+//const QPen &
+//AstWcsGridRenderService::pen( Carta::Lib::IWcsGridRenderService::Element e )
+//{
+//    int ind = static_cast < int > ( e );
+//    CARTA_ASSERT( ind >= 0 && ind < int ( m().pens.size() ) );
+//    return m().pens[ind];
+//}
 
 void
 AstWcsGridRenderService::setFont( Carta::Lib::IWcsGridRenderService::Element e,

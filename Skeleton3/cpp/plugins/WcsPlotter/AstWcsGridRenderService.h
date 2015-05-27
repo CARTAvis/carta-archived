@@ -52,8 +52,8 @@ public:
     virtual void
     setPen( Element e, const QPen & pen ) override;
 
-    virtual const QPen &
-    pen( Element e ) override;
+//    virtual const QPen &
+//    pen( Element e ) override;
 
     virtual void
     setFont( Element e, int fontIndex, double pointSize) override;
