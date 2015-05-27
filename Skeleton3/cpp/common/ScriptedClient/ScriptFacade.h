@@ -255,7 +255,7 @@ public:
      * @param preferencesSave -true if the preferences should be saved; false otherwise.
      * @param dataSave - true if the data should be saved; false otherwise.
      * @param saveDescription - notes about the state being saved.
-     * @return an error message if there was a problem saving state; an empty string otherwise.
+     * @return an error message if there was a problem saving state; an empty list otherwise.
      */
     QStringList saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout,
             bool savePreferences, bool saveData, const QString& description );
@@ -266,6 +266,15 @@ public:
      * @return a list of the names of supported snapshots.
      */
     QStringList getSnapshots(const QString& sessionId );
+
+    /**
+     * Delete the snapshot with the given identifier.
+     * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to delete.
+     * @return an empty list if the snapshot was deleted; an error message if
+     *      there was a problem deleting the snapshot.
+     */
+    QStringList deleteSnapshot( const QString& sessionId, const QString& saveName );
 
     /**
      * Get the animators that are linked to the given image view.

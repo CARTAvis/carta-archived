@@ -341,6 +341,28 @@ class Cartavis:
         result = self.con.cmdTagList("getSnapshots", sessionId=sessionId)
         return result
 
+    def deleteSnapshot(self, sessionId, saveName):
+        """
+        Get a list of the names of available snapshots.
+
+        Parameters
+        ----------
+        sessionId: string
+            [NOTE: I don't actually know what this is for.]
+
+        saveName: string
+            An identifier for the state to be deleted.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem deleting the snapshot;
+            empty otherwise.
+        """
+        result = self.con.cmdTagList("deleteSnapshot", sessionId=sessionId,
+                                     saveName=saveName)
+        return result
+
     def fakeCommand(self, infile):
         """
         Purely for the purpose of testing what happens when an arbitrarily

@@ -119,6 +119,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getSnapshots(sessionId);
     }
 
+    else if ( cmd == "deletesnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        result = m_scriptFacade->deleteSnapshot(sessionId, saveName);
+    }
+
     else if ( cmd == "getcolormaps" ) {
         result = m_scriptFacade->getColorMaps();
     }

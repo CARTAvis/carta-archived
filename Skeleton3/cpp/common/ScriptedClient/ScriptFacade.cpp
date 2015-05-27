@@ -621,6 +621,14 @@ QStringList ScriptFacade::getSnapshots( const QString& sessionId ){
     return resultList;
 }
 
+QStringList ScriptFacade::deleteSnapshot( const QString& sessionId, const QString& saveName ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QString result = m_snapshots->deleteSnapshot( sessionId, saveName );
+    QStringList resultList(result);
+    return resultList;
+}
+
 QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
