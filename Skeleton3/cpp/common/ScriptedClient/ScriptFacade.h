@@ -277,6 +277,15 @@ public:
     QStringList deleteSnapshot( const QString& sessionId, const QString& saveName );
 
     /**
+     * Read and restore state for a particular sessionId from a string.
+     * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to restore.
+     * @return an empty list if the snapshot was restored; an error message if
+     *      there was a problem restoring the snapshot.
+     */
+    QStringList restoreSnapshot( const QString& sessionId, const QString& saveName );
+
+    /**
      * Get the animators that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of ID values for the linked animators, or a list of a single

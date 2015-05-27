@@ -363,6 +363,28 @@ class Cartavis:
                                      saveName=saveName)
         return result
 
+    def restoreSnapshot(self, sessionId, saveName):
+        """
+        Read and restore state for a particular sessionId from a string.
+
+        Parameters
+        ----------
+        sessionId: string
+            [NOTE: I don't actually know what this is for.]
+
+        saveName: string
+            An identifier for the state to be restored.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem restoring the snapshot;
+            empty otherwise.
+        """
+        result = self.con.cmdTagList("restoreSnapshot", sessionId=sessionId,
+                                     saveName=saveName)
+        return result
+
     def fakeCommand(self, infile):
         """
         Purely for the purpose of testing what happens when an arbitrarily
