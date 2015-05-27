@@ -29,6 +29,12 @@ if [ ! -d $HOME/.cartavis ]; then
 	mkdir $HOME/.cartavis
 fi
 
+#  check for existance of $HOME/.cartavis/log directory
+if [ ! -d $HOME/.cartavis/log ]; then
+	echo "creating $HOME/.cartavis/log directory..."
+	mkdir $HOME/.cartavis/log
+fi
+
 # check that config.json exists
 if [ ! -f $HOME/.cartavis/config.json ]; then
 	echo "copying config.json file to  $HOME/.cartavis directory..."
@@ -42,38 +48,40 @@ if [ ! -d $HOME/data ]; then
 fi
 
 # check that $HOME/data/ephemerides directory exists
-if [ ! -d $HOME/data/ephemerides ]; then
+if [ ! -e $HOME/data/ephemerides ]; then
 	echo "creating link to $HOME/data/ephemerides directory..."
+	rm $HOME/data/ephemerides
 	ln -s $dirname/data/ephemerides $HOME/data/ephemerides
 fi
 
 # check that $HOME/data/geodetic directory exists
-if [ ! -d $HOME/data/geodetic ]; then
+if [ ! -e $HOME/data/geodetic ]; then
 	echo "creating link to $HOME/data/geodetic directory..."
+	rm $HOME/data/geodetic
 	ln -s $dirname/data/geodetic $HOME/data/geodetic
 fi
 
 # check that $HOME/CARTA directory exists
 if [ ! -d $HOME/CARTA ]; then
-	echo "creating $HOME/CARETA directory..."
+	echo "creating $HOME/CARTA directory..."
 	mkdir $HOME/CARTA
 fi
 
 # check that $HOME/CARTA directory exists
 if [ ! -d $HOME/CARTA ]; then
-	echo "creating $HOME/CARETA directory..."
+	echo "creating $HOME/CARTA directory..."
 	mkdir $HOME/CARTA
 fi
 
 # check that $HOME/CARTA/Images directory exists
 if [ ! -d $HOME/CARTA/Images ]; then
-	echo "creating $HOME/CARETA/Images directory..."
+	echo "creating $HOME/CARTA/Images directory..."
 	mkdir $HOME/CARTA/Images
 fi
 
 # check that $HOME/CARTA/snapshots directory exists
 if [ ! -d $HOME/CARTA/snapshots ]; then
-	echo "creating $HOME/CARETA/snapshots directory..."
+	echo "creating $HOME/CARTA/snapshots directory..."
 	mkdir $HOME/CARTA/snapshots
 fi
 

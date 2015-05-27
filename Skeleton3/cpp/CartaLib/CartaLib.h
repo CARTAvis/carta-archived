@@ -114,12 +114,12 @@ enum class SkyFormatting
 };
 
 /// QString streaming helper (to output QStrings)
-template < typename STREAM >
+/*template < typename STREAM >
 STREAM &
 operator<< ( STREAM & stream, const QString & str )
 {
     return stream << str.toStdString();
-}
+}*/
 
 /// QString streaming helper (to read in QStrings)
 //template < typename STREAM >
