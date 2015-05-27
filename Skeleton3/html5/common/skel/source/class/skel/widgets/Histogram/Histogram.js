@@ -92,6 +92,10 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
                     if ( this.m_cubeSettings !== null ){
                         this.m_cubeSettings.setPlaneBounds( hist.planeMin, hist.planeMax );
                     }
+                    if ( this.m_binSettings !== null ){
+                        this.m_binSettings.setBinCount( hist.binCount );
+                        this.m_binSettings.setBinWidth( hist.binWidth );
+                    }
                    
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
