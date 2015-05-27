@@ -261,6 +261,13 @@ public:
             bool savePreferences, bool saveData, const QString& description );
 
     /**
+     * Returns a list of the names of available snapshots
+     * @param sessionId - an identifier for a user session.
+     * @return a list of the names of supported snapshots.
+     */
+    QStringList getSnapshots(const QString& sessionId );
+
+    /**
      * Get the animators that are linked to the given image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of ID values for the linked animators, or a list of a single

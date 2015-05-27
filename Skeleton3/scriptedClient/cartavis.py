@@ -324,6 +324,23 @@ class Cartavis:
                                      description=description)
         return result
 
+    def getSnapshots(self, sessionId):
+        """
+        Get a list of the names of available snapshots.
+
+        Parameters
+        ----------
+        sessionId: string
+            [NOTE: I don't actually know what this is for.]
+
+        Returns
+        -------
+        list
+            A list of the names of available snapshots.
+        """
+        result = self.con.cmdTagList("getSnapshots", sessionId=sessionId)
+        return result
+
     def fakeCommand(self, infile):
         """
         Purely for the purpose of testing what happens when an arbitrarily
