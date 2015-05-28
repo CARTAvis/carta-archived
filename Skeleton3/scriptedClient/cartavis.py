@@ -179,8 +179,8 @@ class Cartavis:
         Returns
         -------
         list
-            An empty list, as the C++ methods that it calls have void return
-            values.
+            An empty list, as the C++ methods that it calls have void
+            return values.
         """
         commandStr = "setAnalysisLayout"
         result = self.con.cmdTagList(commandStr)
@@ -193,8 +193,8 @@ class Cartavis:
         Returns
         -------
         list
-            An empty list, as the C++ methods that it calls have void return
-            values.
+            An empty list, as the C++ methods that it calls have void
+            return values.
         """
         commandStr = "setImageLayout"
         result = self.con.cmdTagList(commandStr)
@@ -214,8 +214,8 @@ class Cartavis:
         Returns
         -------
         list
-            An error message if there was a problem setting the layout; empty
-            otherwise.
+            An error message if there was a problem setting the layout;
+            empty otherwise.
         """
         result = self.con.cmdTagList("setCustomLayout", nrows=rows, ncols=cols)
         return result
@@ -239,8 +239,8 @@ class Cartavis:
         Returns
         -------
         list
-            An error message if there was a problem setting the plugins; empty
-            otherwise.
+            An error message if there was a problem setting the plugins;
+            empty otherwise.
         """
         pluginString = ' '.join(pluginList)
         result = self.con.cmdTagList("setPlugins", plugins=pluginString)
@@ -260,8 +260,8 @@ class Cartavis:
         Returns
         -------
         list
-            An error message if there was a problem adding the link; empty
-            otherwise.
+            An error message if there was a problem adding the link;
+            empty otherwise.
         """
         result = self.con.cmdTagList("addLink", sourceView=source.getId(),
                                      destView=dest.getId())
@@ -281,54 +281,53 @@ class Cartavis:
         Returns
         -------
         list
-            An error message if there was a problem removing the link; empty
-            otherwise.
+            An error message if there was a problem removing the link;
+            empty otherwise.
         """
         result = self.con.cmdTagList("removeLink", sourceView=source.getId(),
                                      destView=dest.getId())
         return result
 
-    def saveSnapshot(self, sessionId, saveName, saveLayout, savePreferences,
+    def newSnapshot(self, sessionId, saveName, saveLayout, savePreferences,
                      saveData, description):
         """
-        Save the current state.
+        Create a new Snapshot object that can be saved.
 
         Parameters
-        ----------
+        ---------
         sessionId: string
             An identifier for a user session.
 
         saveName: string
-            An identifier for the state to be saved.
+            The name of the snapshot.
 
         saveLayout: boolean
-            True if the layout should be saved; false otherwise.
+            True if the layout is to be saved; false otherwise.
 
         savePreferences: boolean
-            True if the preferences should be saved; false otherwise.
+            True if the preferences are to be saved; false otherwise.
 
         saveData: boolean
-            True if the data should be saved; false otherwise.
+            True if the data is to be saved; false otherwise.
 
         description: string
-            Notes about the state being saved.
+            Descriptive information about the snapshot.
 
         Returns
         -------
-        list
-            An error message if there was a problem saving the snapshot; empty
-            otherwise.
+        Snapshot
+            A new instance of the Snapshot class.
         """
-        result = self.con.cmdTagList("saveSnapshot", sessionId=sessionId,
-                                     saveName=saveName, saveLayout=saveLayout,
-                                     savePreferences=savePreferences,
-                                     saveData=saveData,
-                                     description=description)
-        return result
+        snapshot = Snapshot(sessionId=sessionId, snapshotType='', index=0,
+                            saveName=saveName, layout=saveLayout,
+                            preferences=savePreferences, data=saveData,
+                            description=description, dateCreated='',
+                            connection=self.con)
+        return snapshot
 
     def getSnapshots(self, sessionId):
         """
-        Get a list of the names of available snapshots.
+        Get a list of Snapshot objects.
 
         Parameters
         ----------
@@ -338,70 +337,26 @@ class Cartavis:
         Returns
         -------
         list
-            A list of the names of available snapshots.
+            A list of Snapshot objects.
         """
-        result = self.con.cmdTagList("getSnapshots", sessionId=sessionId)
-        return result
-
-    def getSnapshotObjects(self, sessionId):
-        names = self.con.cmdTagList("getSnapshotObjects", sessionId=sessionId)
+        snapshots = self.con.cmdTagList("getSnapshotObjects",
+                                        sessionId=sessionId)
         snapshotObjects = []
-        for name in names:
-            j = json.loads(name)
-            snapObj = Snapshot(sessionId, j['type'], j['index'], j['Snapshot'],
-                               j['layout'], j['preferences'], j['data'],
-                               j['description'], j['dateCreated'], self.con)
-            snapshotObjects.append(snapObj)
+        if (snapshots[0] != ""):
+            for snapshot in snapshots:
+                j = json.loads(snapshot)
+                snapObj = Snapshot(sessionId, j['type'], j['index'],
+                                   j['Snapshot'], j['layout'],
+                                   j['preferences'], j['data'],
+                                   j['description'], j['dateCreated'],
+                                   self.con)
+                snapshotObjects.append(snapObj)
         return snapshotObjects
-
-    def deleteSnapshot(self, sessionId, saveName):
-        """
-        Delete a snapshot.
-
-        Parameters
-        ----------
-        sessionId: string
-            An identifier for a user session.
-
-        saveName: string
-            An identifier for the state to be deleted.
-
-        Returns
-        -------
-        list
-            An error message if there was a problem deleting the snapshot;
-            empty otherwise.
-        """
-        result = self.con.cmdTagList("deleteSnapshot", sessionId=sessionId,
-                                     saveName=saveName)
-        return result
-
-    def restoreSnapshot(self, sessionId, saveName):
-        """
-        Read and restore state for a particular sessionId from a string.
-
-        Parameters
-        ----------
-        sessionId: string
-            An identifier for a user session.
-
-        saveName: string
-            An identifier for the state to be restored.
-
-        Returns
-        -------
-        list
-            An error message if there was a problem restoring the snapshot;
-            empty otherwise.
-        """
-        result = self.con.cmdTagList("restoreSnapshot", sessionId=sessionId,
-                                     saveName=saveName)
-        return result
 
     def fakeCommand(self, infile):
         """
-        Purely for the purpose of testing what happens when an arbitrarily
-        large command is sent.
+        Purely for the purpose of testing what happens when an
+        arbitrarily large command is sent.
         """
         f = open(infile, 'r')
         print "Start time: " + time.asctime()

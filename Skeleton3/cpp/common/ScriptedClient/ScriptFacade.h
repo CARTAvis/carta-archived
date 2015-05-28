@@ -270,7 +270,7 @@ public:
     /**
      * Returns a list of the available snapshots
      * @param sessionId - an identifier for a user session.
-     * @return a list of the names of supported snapshots.
+     * @return a list of supported snapshots.
      */
     QStringList getSnapshotObjects(const QString& sessionId );
 
