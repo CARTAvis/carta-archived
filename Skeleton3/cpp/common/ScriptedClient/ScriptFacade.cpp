@@ -621,6 +621,21 @@ QStringList ScriptFacade::getSnapshots( const QString& sessionId ){
     return resultList;
 }
 
+QStringList ScriptFacade::getSnapshotObjects( const QString& sessionId ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QStringList resultList;
+    QList<Carta::Data::Snapshot> snapshotList = m_snapshots->getSnapshots( sessionId );
+    int count = snapshotList.size();
+    if ( count == 0 ) {
+        resultList = QStringList("");
+    }
+    for ( int i = 0; i < count; i++ ){
+        resultList.append( snapshotList[i].toString() );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::deleteSnapshot( const QString& sessionId, const QString& saveName ){
     Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
     Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );

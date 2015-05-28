@@ -268,6 +268,13 @@ public:
     QStringList getSnapshots(const QString& sessionId );
 
     /**
+     * Returns a list of the available snapshots
+     * @param sessionId - an identifier for a user session.
+     * @return a list of the names of supported snapshots.
+     */
+    QStringList getSnapshotObjects(const QString& sessionId );
+
+    /**
      * Delete the snapshot with the given identifier.
      * @param sessionId an identifier for a user session.
      * @param saveName an identifier for the snapshot to delete.

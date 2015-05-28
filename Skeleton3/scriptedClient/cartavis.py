@@ -3,12 +3,14 @@
 
 import subprocess
 import time
+import json
 
 from tagconnector import TagConnector
 from statistics import Statistics
 from histogram import Histogram
 from animator import Animator
 from colormap import Colormap
+from snapshot import Snapshot
 from image import Image
 
 class Cartavis:
@@ -294,7 +296,7 @@ class Cartavis:
         Parameters
         ----------
         sessionId: string
-            [NOTE: I don't actually know what this is for.]
+            An identifier for a user session.
 
         saveName: string
             An identifier for the state to be saved.
@@ -331,7 +333,7 @@ class Cartavis:
         Parameters
         ----------
         sessionId: string
-            [NOTE: I don't actually know what this is for.]
+            An identifier for a user session.
 
         Returns
         -------
@@ -341,14 +343,25 @@ class Cartavis:
         result = self.con.cmdTagList("getSnapshots", sessionId=sessionId)
         return result
 
+    def getSnapshotObjects(self, sessionId):
+        names = self.con.cmdTagList("getSnapshotObjects", sessionId=sessionId)
+        snapshotObjects = []
+        for name in names:
+            j = json.loads(name)
+            snapObj = Snapshot(sessionId, j['type'], j['index'], j['Snapshot'],
+                               j['layout'], j['preferences'], j['data'],
+                               j['description'], j['dateCreated'], self.con)
+            snapshotObjects.append(snapObj)
+        return snapshotObjects
+
     def deleteSnapshot(self, sessionId, saveName):
         """
-        Get a list of the names of available snapshots.
+        Delete a snapshot.
 
         Parameters
         ----------
         sessionId: string
-            [NOTE: I don't actually know what this is for.]
+            An identifier for a user session.
 
         saveName: string
             An identifier for the state to be deleted.
@@ -370,7 +383,7 @@ class Cartavis:
         Parameters
         ----------
         sessionId: string
-            [NOTE: I don't actually know what this is for.]
+            An identifier for a user session.
 
         saveName: string
             An identifier for the state to be restored.
