@@ -9,13 +9,25 @@ class JsonMessage:
     def __init__(self, jsonString):
         """jsonString contains the json in string format"""
         self.jsonString = jsonString
+
     def toTagMessage(self):
         return TagMessage( "json", self.jsonString)
+
+    def toAsyncMessage(self):
+        return TagMessage( "async", self.jsonString)
+
     @staticmethod
     def fromTagMessage(tm):
         """constructs JsonMessage from TagMessage"""
         if tm.tag != "json":
             raise NamedError("tag message does not have 'json' as tag")
+        return JsonMessage( tm.data)
+
+    @staticmethod
+    def fromAsyncMessage(tm):
+        """constructs JsonMessage from TagMessage"""
+        if tm.tag != "async":
+            raise NamedError("async message does not have 'async' as tag")
         return JsonMessage( tm.data)
 
     @staticmethod
@@ -27,12 +39,13 @@ class JsonSocket:
     """socket wrapper that allows sending/receiving JsonMessages"""
     def __init__( self, rawSocket):
         self.tagMessageSocket = TagMessageSocket(rawSocket)
+
     def send(self,jsonMessage):
         """sends a JsonMessage"""
         self.tagMessageSocket.send( jsonMessage.toTagMessage())
         return
+
     def receive(self):
         """receives a JsonMessage"""
         tm = self.tagMessageSocket.receive()
         return JsonMessage.fromTagMessage(tm)
-

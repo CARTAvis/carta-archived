@@ -9,6 +9,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
+#include "../ScriptedRenderService.h"
 #include "../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QDir>
@@ -30,7 +31,6 @@ DataSource::DataSource() :
         m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
         connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
                  this, & DataSource::_renderingDone);
-
 
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
@@ -440,8 +440,31 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-bool DataSource::saveFullImage( const QString& /*filename*/, double /*scale*/ ){
-    return false;
+void DataSource::saveFullImage( const QString& savename, double scale ){
+    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
+    m_scriptedRenderService->setZoom( scale );
+
+    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::saveImageResultCB );
+
+    m_scriptedRenderService->saveFullImage();
+}
+
+void DataSource::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
+    m_scriptedRenderService->deleteLater();
+}
+
+QStringList DataSource::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    const CoordinateFormatterInterface::VD world { ra, dec };
+    CoordinateFormatterInterface::VD pixel;
+    bool valid = cf->toPixel( world, pixel );
+    if ( valid ){
+        result = QStringList( QString::number( pixel[0] ) );
+        result.append( QString::number( pixel[1] ) );
+    }
+    return result;
 }
 
 DataSource::~DataSource() {

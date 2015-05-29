@@ -4,6 +4,7 @@
 
 #include "Listener.h"
 #include "ScriptedCommandInterpreter.h"
+#include "Data/DataSource.h"
 
 namespace Carta
 {
@@ -20,6 +21,9 @@ ScriptedCommandInterpreter::ScriptedCommandInterpreter( int port, QObject * pare
 
     connect( m_messageListener.get(), & MessageListener::received,
              this, & ScriptedCommandInterpreter::tagMessageReceivedCB );
+
+    connect( m_messageListener.get(), & MessageListener::receivedAsync,
+             this, & ScriptedCommandInterpreter::asyncMessageReceivedCB );
 }
 
 /// this is just a quick demo how to listen to TagMessage, convert them to Json,
@@ -222,17 +226,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->saveImage( imageView, filename );
     }
 
-    else if ( cmd == "savefullimage" ) {
-        QString imageView = args["imageView"].toString();
-        QString filename = args["filename"].toString();
-        double scale = args["scale"].toDouble();
-        result = m_scriptFacade->saveFullImage( imageView, filename, scale );
-        if (result[0] == "false") {
-            key = "error";
-            result[0] = "Could not save image to " + filename;
-        }
-    }
-
     else if ( cmd == "centeronpixel" ) {
         QString imageView = args["imageView"].toString();
         double x = args["xval"].toDouble();
@@ -267,6 +260,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         int frameHigh = args["frameHigh"].toInt();
         double percentile = args["percentile"].toDouble();
         result = m_scriptFacade->getIntensity( imageView, frameLow, frameHigh, percentile );
+    }
+
+    else if ( cmd == "getpixelcoordinates" ) {
+        QString imageView = args["imageView"].toString();
+        double ra = args["ra"].toDouble();
+        double dec = args["dec"].toDouble();
+        result = m_scriptFacade->getPixelCoordinates( imageView, ra, dec );
     }
 
     /// animator commands
@@ -394,6 +394,52 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
     m_messageListener->send( rjm.toTagMessage() );
 } // tagMessageReceivedCB
+
+void
+ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
+{
+    m_scriptFacade = ScriptFacade::getInstance();
+    if ( tm.tag() != "async" ) {
+        qWarning() << "I don't handle tag" << tm.tag();
+        return;
+    }
+    JsonMessage jm = JsonMessage::fromTagMessage( tm );
+    if ( ! jm.doc().isObject() ) {
+        qWarning() << "Received json is not object...";
+        return;
+    }
+
+    connect( m_scriptFacade, & ScriptFacade::saveImageResult,
+             this, & ScriptedCommandInterpreter::saveImageResultCB );
+
+    QJsonObject jo = jm.doc().object();
+    QString cmd = jo["cmd"].toString().toLower();
+    auto args = jo["args"].toObject();
+    if ( cmd == "savefullimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString filename = args["filename"].toString();
+        double scale = args["scale"].toDouble();
+        m_scriptFacade->saveFullImage( imageView, filename, scale );
+    }
+
+} // asyncMessageReceivedCB
+
+void ScriptedCommandInterpreter::saveImageResultCB( bool saveResult ){
+    disconnect( m_scriptFacade, & ScriptFacade::saveImageResult,
+             this, & ScriptedCommandInterpreter::saveImageResultCB );
+
+    QJsonObject rjo;
+    QStringList result("");
+    QString key = "result";
+    if ( saveResult == false ) {
+        key = "error";
+        result[0] = "Could not save image.";
+    }
+    rjo.insert( key, QJsonValue::fromVariant( result ) );
+    JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+    m_messageListener->send( rjm.toTagMessage() );
+}
+
 }
 }
 }

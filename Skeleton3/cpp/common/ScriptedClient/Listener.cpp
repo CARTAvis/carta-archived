@@ -73,7 +73,12 @@ void
 MessageListener::tagMessageReceivedCB( TagMessage msg )
 {
     /// we just re-emit the message as is
-    emit received( msg );
+    if ( msg.tag() == "async" ){
+        emit receivedAsync( msg );
+    }
+    else {
+        emit received( msg );
+    }
 }
 
 }

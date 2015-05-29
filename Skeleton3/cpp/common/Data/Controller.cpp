@@ -103,6 +103,7 @@ bool Controller::addData(const QString& fileName) {
         DataSource* targetSource = new DataSource();
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
+        connect( targetSource, & DataSource::saveImageResult, this, & Controller::saveImageResultCB );
         m_datas.append(targetSource);
         targetSource->viewResize( m_viewSize );
 
@@ -619,10 +620,13 @@ bool Controller::saveImage( const QString& filename ) {
     return result;
 }
 
-bool Controller::saveFullImage( const QString& filename, double scale ) {
+void Controller::saveFullImage( const QString& filename, double scale ) {
     int imageIndex = m_selectImage->getIndex();
-    bool result = m_datas[imageIndex]->saveFullImage( filename, scale );
-    return result;
+    m_datas[imageIndex]->saveFullImage( filename, scale );
+}
+
+void Controller::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
 }
 
 void Controller::_saveRegions(){
@@ -890,6 +894,15 @@ QString Controller::setClipValue( double clipVal  ) {
     }
     else {
         result = "Clip value must be in [0,1).";
+    }
+    return result;
+}
+
+QStringList Controller::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelCoordinates( ra, dec );
     }
     return result;
 }
