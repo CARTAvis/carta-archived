@@ -878,15 +878,6 @@ QStringList Controller::getOutputSize( ){
     return result;
 }
 
-QStringList Controller::getPixelCoordinates( double ra, double dec ){
-    QStringList result("");
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
-        result = m_datas[imageIndex]->getPixelCoordinates( ra, dec );
-    }
-    return result;
-}
-
 QString Controller::setClipValue( double clipVal  ) {
     QString result;
     if ( 0 <= clipVal && clipVal < 1 ){
@@ -903,6 +894,15 @@ QString Controller::setClipValue( double clipVal  ) {
     }
     else {
         result = "Clip value must be in [0,1).";
+    }
+    return result;
+}
+
+QStringList Controller::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelCoordinates( ra, dec );
     }
     return result;
 }
