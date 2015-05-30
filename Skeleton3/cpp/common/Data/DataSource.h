@@ -39,6 +39,14 @@ namespace Carta {
 }
 
 namespace Carta {
+    namespace Core {
+        namespace ScriptedClient {
+            class ScriptedRenderService;
+        }
+    }
+}
+
+namespace Carta {
 
 namespace Data {
 
@@ -255,14 +263,21 @@ public:
     void render();
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
+     * Save a copy of the full image in the current image view at its native
+     * resolution.
      * @param fileName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
-     * [NOTE: this method has been temporarily disabled, so will always return false.]
      */
-    bool saveFullImage( const QString& filename, double scale );
+    void saveFullImage( const QString& savename, double scale );
+
+    /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList getPixelCoordinates( double ra, double dec );
 
     virtual ~DataSource();
 
@@ -271,10 +286,17 @@ signals:
     //Notification that a new image has been produced.
     void renderingDone( QImage img);
 
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
+
 private slots:
 
     //Notification from the rendering service that a new image has been produced.
     void _renderingDone( QImage img, int64_t jobId );
+
+    // Asynchronous result from saveFullImage().
+    void saveImageResultCB( bool result );
 
 private:
     
@@ -313,6 +335,8 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
+
+    Carta::Core::ScriptedClient::ScriptedRenderService *m_scriptedRenderService;
     
     DataSource(const DataSource& other);
     DataSource operator=(const DataSource& other);

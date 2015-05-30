@@ -6,6 +6,7 @@
 
 #pragma once
 #include <QString>
+#include <QObject>
 
 
 namespace Carta {
@@ -14,7 +15,9 @@ namespace Carta {
     }
 }
 
-class ScriptFacade {
+class ScriptFacade: public QObject {
+
+    Q_OBJECT
 
 public:
 
@@ -238,10 +241,8 @@ public:
      * @param controlId the unique server-side id of an object managing a controller.
      * @param fileName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
      */
-    QStringList saveFullImage( const QString& controlId, const QString& fileName, double scale );
+    void saveFullImage( const QString& controlId, const QString& fileName, double scale );
 
 //    /**
 //     * Save the current layout to a .json file in the /tmp directory.
@@ -321,6 +322,16 @@ public:
      *      information if the output size could not be obtained.
      */
     QStringList getOutputSize( const QString& controlId );
+
+    /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList getPixelCoordinates( const QString& controlId, double ra, double dec );
 
     /**
      * Set the amount of extra space on each side of the clip bounds.
@@ -453,6 +464,17 @@ public:
      */
     static ScriptFacade * getInstance ();
     virtual ~ScriptFacade(){}
+
+signals:
+
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
+
+private slots:
+
+    // Asynchronous result from saveFullImage().
+    void saveImageResultCB( bool result );
 
 private:
     Carta::Data::ViewManager* m_viewManager; //Used
