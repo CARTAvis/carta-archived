@@ -15,7 +15,7 @@ const QString Selection::IMAGE = "Image";
 const QString Selection::CHANNEL = "Channel";
 
 bool Selection::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Selection::Factory());
 
 Selection::Selection( const QString& prefix, const QString& identifier ):
@@ -55,6 +55,12 @@ int Selection::getState(const QString& key ) const{
     }
     return value;
 }
+
+QString Selection::getStateString() const{
+    QString result = m_state.toString();
+    return result;
+}
+
 int Selection::getIndex() const {
     return _getValue( INDEX_KEY);
 }
@@ -67,9 +73,6 @@ int Selection::getUpperBound() const {
     return _getValue( HIGH_KEY);
 }
 
-void Selection::setIndex(int newIndex) {
-    _setIndexCheck(newIndex);
-}
 
 void Selection::setUpperBound(int newUpperBound) {
     _setFrameBoundsCheck(/*m_highKey*/HIGH_KEY, newUpperBound);
@@ -101,30 +104,22 @@ bool Selection::_setFrameBoundsCheck(const QString& key, int bound) {
     return valueChanged;
 }
 
-int Selection::setIndex(const QString& params) {
-    bool validFrame = false;
-    int frameValue = params.toInt(&validFrame);
-    if (validFrame) {
-        _setIndexCheck(frameValue);
-    }
-    return frameValue;
-}
-
-bool Selection::_setIndexCheck(int frameValue) {
-    bool validFrame = false;
+QString Selection::setIndex(int frameValue) {
+    QString result;
     int upperBound = getUpperBound();
     int lowerBound = getLowerBound();
+    qDebug() << "upperBound = " << upperBound << "; lowerBound = " << lowerBound;
     if ( lowerBound <= frameValue && frameValue < upperBound ){
         bool valChanged = _setFrameBoundsCheck( INDEX_KEY, frameValue );
-        validFrame = true;
         if ( valChanged ){
             emit indexChanged( false );
         }
     }
     else {
-        qDebug() << "Selection:_setIndexCheck failed value="<<frameValue<<" low="<<lowerBound<<" high="<<upperBound;
+        result = "Selection index "+ QString::number(frameValue)+" must be between "+
+                QString::number(lowerBound) + " and " + QString::number(upperBound);
     }
-    return validFrame;
+    return result;
 }
 
 Selection::~Selection() {

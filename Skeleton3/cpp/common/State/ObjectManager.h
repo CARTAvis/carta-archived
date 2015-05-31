@@ -14,28 +14,71 @@
 #include "StateInterface.h"
 #include "../IConnector.h"
 
+namespace Carta {
+
+namespace State {
 
 class CartaObject {
 
 public:
 
-    virtual ~CartaObject () {}
+    virtual ~CartaObject () {};
+
 
     QString addIdToCommand (const QString & commandName) const;
+    //Snapshots of state that can be saved.
+    typedef enum SnapshotType { SNAPSHOT_INFO, SNAPSHOT_DATA, SNAPSHOT_PREFERENCES, SNAPSHOT_LAYOUT } SnapshotType;
+
+    /**
+     * Returns a json representation of this object's state.
+     * @param sessionId - an identifier for a user's session.
+     * @param type an identifier for the type of state to be returned.
+     * @return a QString representing this object's state.
+     */
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const;
     QString getClassName () const;
     QString getId () const;
     QString getPath () const;
-    /**
-     * Returns a json representation of this object's state.
-     * @return a QString representing this object's state.
-     */
-    virtual QString getStateString() const;
 
     /**
      * Reset the state of this object.
      * @param state a QString representing a new state for this object.
      */
+    void resetState( const QString& state, SnapshotType type );
+
+    /**
+     * Reset the data state of this object.
+     * @param state a QString representing the data state of the object.
+     */
+    //By default; does nothing.  Override for objects containing a data state.
+    virtual void resetStateData( const QString& state );
+
+    /**
+     * Reset the user preferences for this object.
+     * @param state - the user preferences for the object.
+     */
     virtual void resetState( const QString& state );
+
+    /**
+     * Return the index of the object (withen its type).
+     * @return index the index of the object.
+     */
+    int getIndex() const;
+
+    /**
+     * Set the index of the object.
+     * @param index - the index of the object withen its type.
+     */
+    void setIndex( int index );
+
+    /**
+     * Return the type of the object.
+     * @param snapType the type of Snapshot.
+     * @return an identifier for the type of the object.
+     */
+    //Normally the type of an object will be the class name, but for snapshots such as session snapshots
+    //this method may be overriden to append an additional identifier such as 'data' after the class name.
+    virtual QString getType(CartaObject::SnapshotType snapType = CartaObject::SnapshotType::SNAPSHOT_INFO ) const;
 
 protected:
 
@@ -59,8 +102,8 @@ protected:
     //Return the full location for the state with the given name.
     QString getStateLocation( const QString& name ) const;
 
-    QString removeId (const QString & commandAndId);
 
+    QString removeId (const QString & commandAndId);
 
     template <typename Object, typename Method>
     class OnCommand {
@@ -106,6 +149,8 @@ public:
         }
         return globalId;
     }
+
+
     virtual ~CartaObjectFactory (){}
 
     virtual CartaObject * create (const QString & path, const QString & id) = 0;
@@ -122,18 +167,77 @@ public:
 
     ~ObjectManager ();
 
+    /**
+     * Create an object of the given class.
+     * @param className - the class of the object.
+     * @return an identifier for the object that was created.
+     */
     QString createObject (const QString & className);
+
+    /**
+     * Destroy the object with the given identifier.
+     * @param id - the unique server side identifier for the object to destroy.
+     * @return an string of zero length.
+     */
     QString destroyObject (const QString & id);
+
+    /**
+     * Remove the object from storage without destroying it.
+     * @param id - the unique server-side identifier for the object to remove.
+     * @return a point to the object that was removed.
+     */
+    CartaObject* removeObject( const QString& id );
+
+    /**
+     * Return the object with the given identifier or a nullptr if none exists.
+     * @param id - an identifier for a CartaObject.
+     * @return the corresponding CartaObject or a nullptr if none exists.
+     */
     CartaObject * getObject (const QString & id);
+
+    /**
+     * Return the object of the given type an index if one exists; otherwise return a nullptr.
+     * @param index - the index of the object withen its type.
+     * @param typeStr - an identifier for the type of object.
+     * @return the corresponding CartaObject or a nullptr if none exists.
+     */
+    CartaObject* getObject( int index, const QString & typeStr );
+
+    /**
+     * Returns a string containing the state of all managed objects as JSON array of strings.
+     * @param sessionId - an identifier for a user's session.
+     * @param snapName - the name of the snapshot.
+     * @param type - the type of state needed.
+     * @return a QString containing the entire state of managed objects.
+     */
+    QString getStateString( const QString& sessionId, const QString& snapName, CartaObject::SnapshotType type ) const;
     void initialize ();
     bool registerClass (const QString & className, CartaObjectFactory * factory);
-    ///Initialize the state variables that were persisted.
-    //bool readState( const QString& fileName );
-    //bool saveState( const QString& fileName );
-    static ObjectManager * objectManager (); // singleton accessor
+
+    /**
+     * Restore a snapshot of the application state.
+     * @param stateStr - a string representation of the state to restore.
+     * @param snapType - the type of application state to restore.
+     * @return true if the state was successfully restored; false otherwise.
+     */
+    bool restoreSnapshot(const QString stateStr, CartaObject::SnapshotType snapType ) const;
+
+    /**
+     * Returns the singleton instance of the object manager.
+     * @return a pointer to the object manager.
+     */
+    // Singleton accessor
+    static ObjectManager * objectManager ();
     QString getRootPath() const;
     QString getRoot() const;
+
+    /**
+     * Parses the full path of a CartaObject to return the id portion.
+     * @param path a full path to a CartaObject;
+     * @return the id of the CartaObject.
+     */
     QString parseId( const QString& path ) const;
+    static const QString STATE_ARRAY;
 
     class OnCreateObject{
     public:
@@ -168,6 +272,10 @@ public:
     static const QString CreateObject;
     static const QString ClassName;
     static const QString DestroyObject;
+
+
+    static const QString STATE_ID;
+    static const QString STATE_VALUE;
 
 private:
 
@@ -278,7 +386,8 @@ private:
     static bool m_registered;
 
 };
-
+}
+}
 
 
 #endif /* OBJECTMANAGER_H_ */

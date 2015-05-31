@@ -38,6 +38,13 @@ public:
      * @return a summary of the error.
      */
     QString toString();
+
+    /**
+     * Equality operator.
+     * @param other an ErrorReport to compare this one to.
+     * @return true if the ErrorReports are the same; false otherwise.
+     */
+    bool operator==( const ErrorReport& other ) const;
     virtual ~ErrorReport();
 private:
     QString message;

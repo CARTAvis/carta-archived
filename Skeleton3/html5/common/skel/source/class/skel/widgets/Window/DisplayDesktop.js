@@ -25,6 +25,7 @@ qx.Class
                         this.set({
                             decorator : "desktop"
                         });
+                        this.addListener("resize", this._resetWindowSize, this);
                     },
 
                     events : {
@@ -37,7 +38,7 @@ qx.Class
                          * Adds listeners.
                          */
                         _addWindowListeners : function(){
-                            this.m_window.addListener("iconify", function() {
+                            this.m_iconifyListenerId = this.m_window.addListener("iconify", function() {
                                 if (this.m_window !== null && !this.m_window.isClosed()) {
                                     var data = {
                                         row : this.m_row,
@@ -47,16 +48,22 @@ qx.Class
                                     this.fireDataEvent("iconifyWindow", data);
                                 }
                             }, this);
-                           
-                            this.m_window.addListener("maximizeWindow",
-                                            function() {
-                                                var appRoot = this
-                                                        .getApplicationRoot();
-                                                appRoot.add(this.m_window);
-                                            }, this);
-
-                            this.addListener("resize", this._resetWindowSize, this);
-                            
+                           this.m_maxListenerId = this.m_window.addListener("maximizeWindow",
+                               function() {
+                                   var appRoot = this.getApplicationRoot();
+                                   appRoot.add(this.m_window);
+                               }, this);
+                           this.m_closeListenerId = this.m_window.addListener( "closeWindow",
+                               function(){
+                                   var appRoot = this.getApplicationRoot();
+                                   if ( appRoot.indexOf( this.m_window) >= 0 ){
+                                       appRoot.remove( this.m_window );
+                                   }
+                           }, this );
+                           this.m_restoreListenerId = this.m_window.addListener( "restoreWindow",
+                               function(){
+                                   this.restoreWindow( this.m_row, this.m_col );
+                               }, this );
                         },
                         
                         /**
@@ -80,6 +87,16 @@ qx.Class
                                         destWinId, addLink);
                             }
                             return linkSet;
+                        },
+                        
+                        /**
+                         * Remove the window with the given id from the list of links.
+                         * @param winId {String} a unique server-side id for a window.
+                         */
+                        clearLink : function( winId ){
+                            if ( this.m_window !== null ){
+                                this.m_window.clearLink( winId );
+                            }
                         },
                         
                         /**
@@ -254,8 +271,10 @@ qx.Class
                          */
                         removeWindows : function() {
                             if (this.m_window !== null) {
-                                qx.event.Registration
-                                        .removeAllListeners(this.m_window);
+                                this.m_window.removeListenerById( this.m_iconifyListenerId );
+                                this.m_window.removeListenerById( this.m_maxListenerId );
+                                this.m_window.removeListenerById( this.m_restoreListenerId );
+                                this.m_window.removeListenerById( this.m_closeListenerId );
                                 this.removeAll();
                             }
                         },
@@ -266,7 +285,7 @@ qx.Class
                          */
                         _resetWindowSize : function() {
                             var bounds = this.getBounds();
-                            if (bounds !== null) {
+                            if (bounds !== null && this.m_window !== null ) {
                                 this.m_window.setWidth(bounds.width );
                                 this.m_window.setHeight(bounds.height);
                             }
@@ -290,7 +309,7 @@ qx.Class
                                 if (appRoot.indexOf(this.m_window) != -1) {
                                     appRoot.remove(this.m_window);
                                     this.add(this.m_window);
-                                    this.m_window._restore();
+                                    this.m_window.restoreWindow();
                                 }
                                 this.m_window.open();
                                 this.show();
@@ -392,7 +411,7 @@ qx.Class
                                 //elsewhere so we will remake the window.
                                 if( this.m_window.getPlugin() != pluginId) {
                                     this.removeWindows();
-                                    this.m_window = null;
+                                    //this.m_window = null;
                                     this._makeWindow( pluginId, index);
                                 }
                                 else {
@@ -402,17 +421,17 @@ qx.Class
                             else {
                                 this._makeWindow(pluginId, index);
                             }
-
+                       
                             if ( this.m_window !== null ){
                                 this.add(this.m_window);
-                                this._resetWindowSize();
-
+                                this.m_window.setLocation( rowIndex, colIndex );
                                 this.m_window.open();
                                 if ( existingWindow ){
                                     this.m_window.initID( index );
                                 }
                                 //In case the window is excluded
                                 this.show();
+                                this._resetWindowSize();
                             }
                             return true;
                         },
@@ -430,15 +449,23 @@ qx.Class
                             if (rowIndex != this.m_row || colIndex != this.m_col) {
                                 return false;
                             }
-                            
+
                             if ( this.m_window === null ||this.m_window.getPlugin() != window.getPlugin() ){
                                 if ( this.m_window !== null ){
                                     this.removeAll();
                                 }
                                 this.m_window = window;
+                                this._addWindowListeners();
+                                this.m_window.setLocation( rowIndex, colIndex );
                                 this.add( this.m_window );
                                 this._resetWindowSize();
                             }
+                            else {
+                                if ( this.isExcluded() ){
+                                    this.show();
+                                }
+                            }
+                            
                             return true;
                         },
                         
@@ -457,6 +484,10 @@ qx.Class
 
 
                         m_window : null,
+                        m_iconifyListenerId : null,
+                        m_maxListenerId : null,
+                        m_restoreListenerId : null,
+                        m_closeListenerId : null,
                         m_row : null,
                         m_col : null
                     }

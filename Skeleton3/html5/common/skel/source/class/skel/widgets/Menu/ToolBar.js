@@ -17,124 +17,11 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
     construct : function() {
         this.base(arguments);
         this._init();
+        this._initContextMenu();
         this._initSubscriptions();
     },
 
-    events : {
-        "layoutRowCount" : "qx.event.type.Data",
-        "layoutColCount" : "qx.event.type.Data",
-        "menuAlwaysVisible" : "qx.event.type.Data",
-        "menuMoved" : "qx.event.type.Data",
-        "newWindow" : "qx.event.type.Data",
-        "shareSession" : "qx.event.type.Data",
-        "statusAlwaysVisible" : "qx.event.type.Data",
-        /// emitted when cursor window toggle is clicked
-        "showCursorWindow" : "qx.event.type.Data"
-    },
-
     members : {
-
-        _buildToolBar : function ( cmds ){
-            var i = 0;
-            if( Object.prototype.toString.call( cmds.value ) === '[object Array]') {
-                for ( i = 0; i < cmds.value.length; i++ ){
-                    this._buildToolBar( cmds.value[i]);
-                }
-            }
-            else if ( cmds.getType() === skel.widgets.Command.Command.TYPE_COMPOSITE ){
-                var vals = cmds.getValue();
-                for ( i = 0; i < vals.length; i++ ){
-                    this._buildToolBar( vals[i]);
-                }
-            }
-            else {
-                this._makeTool( cmds );
-            }
-        },
-        
-        _invokeCmd : function( lookup, val, undo ){
-            var cmdFactory = skel.widgets.Command.CommandFactory.getInstance();
-            var cmd = cmdFactory.getCommand( lookup);
-            cmd.doAction( val, this.m_activeWindowIds, undo );
-        },
-        
-        _makeRadioGroup : function( cmd ){
-            var radioGroup = new qx.ui.form.RadioGroup();
-            radioGroup.setAllowEmptySelection(true);
-            var values = cmd.getValue();
-            var labelFunction = function( anObject, button){
-                return function(){
-                    anObject._invokeCmd( button.getLabel(), "", null );
-                };
-            };
-            
-            for ( var i = 0; i < values.length; i++ ){
-                var label = values[i].getLabel();
-                var button = new qx.ui.toolbar.RadioButton(label).set({
-                    toolTipText: values[i].getToolTip()
-                });
-                button.addListener("execute", labelFunction(this, button), button );
-                button.addListener("mouseup", labelFunction( this, button ), button );
-                radioGroup.add(button);
-                button.setFocusable(false);
-                this.add(button);
-            }
-        },
-        
-        _makeToggle : function( cmd ){
-            var label = cmd.getLabel();
-            
-            //Send values to the server
-            var toggle = new skel.boundWidgets.Toggle( label, "");
-            toggle.addListener( "toggleChanged", function( val ){
-                this._invokeCmd( label, val.getData(), null );
-            }, this);
-            
-            //Updates from the server
-            cmd.addListener( "cmdValueChanged", function( evt ){
-                var data = evt.getData();
-                if ( this.getValue() != data.value ){
-                    this.setValue( data.value );
-                }
-            }, toggle);
-            this.add( toggle );
-        },
-        
-        _makeTool : function( cmd ){
-            
-            if ( cmd.isVisibleToolbar()){
-                var cmdType = cmd.getType();
-                if ( cmdType === skel.widgets.Command.Command.TYPE_GROUP){
-                    this._makeRadioGroup( cmd );
-                }
-                else if ( cmdType === skel.widgets.Command.Command.TYPE_BOOL){
-                    this._makeToggle( cmd );
-                }
-                else if ( cmdType == "number"){
-                    console.log( "Number not implemented");
-                }
-                else {
-                    console.log( "Toolbar unrecognized type "+cmdType );
-                }
-            }
-        },
-        
-        _resetButtons : function( cmds ){
-            this.removeAll();
-            this._buildToolBar( cmds );
-            this.addSpacer();
-        },
-
-        /**
-         * Initialize a tool bar containing 'quick' access buttons.
-         */
-        _init : function() {
-            var cmdFactory = skel.widgets.Command.CommandFactory.getInstance();
-            var cmds = cmdFactory.getCommandTree();
-            this._resetButtons( cmds );
-        },
-        
-
         
         /**
          * Adds menu buttons to the application menu based on
@@ -153,36 +40,132 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
                 this.m_menuPart.add(this.m_windowButtons[i]);
             }
         },
-        
-        _initSubscriptions : function(){
-            qx.event.message.Bus.subscribe( "commandsChanged", function( message ){
-                this._init();
-                    }, this );
-            this.m_activeWindowIds = [];
-            qx.event.message.Bus.subscribe(
-                    "windowSelected",
-                    function(message) {
-                        var selectedWindow = message.getData();
-                        var winId = selectedWindow.getIdentifier();
-                        if ( this.m_activeWindowIds.indexOf( winId ) == -1){
-                            this.m_activeWindowIds.push( winId );
-                            
-                        }
-                    }, this);
-            qx.event.message.Bus.subscribe(
-                    "windowUnselected",
-                    function(message) {
-                        var unselectedWindow = message.getData();
-                        var winId = unselectedWindow.getIdentifier();
-                        var windowIndex = this.m_activeWindowIds.indexOf( winId );
-                        if ( windowIndex >= 0){
-                            this.m_activeWindowIds.splice( windowIndex, 1 );
-                           
-                        }
-                    }, this);
+
+        /**
+         * Dynamically build the toolbar based on the list of commands.
+         * @param cmds {Array} the list of available commands.
+         */
+        _buildToolBar : function ( cmds ){
+            if ( cmds.isVisibleToolbar() ){
+                if ( cmds.getType() === skel.Command.Command.TYPE_COMPOSITE ){
+                    var vals = cmds.getValue();
+                    for ( var i = 0; i < vals.length; i++ ){
+                        this._buildToolBar( vals[i]);
+                    }
+                }
+                else if ( cmds.getType() == skel.Command.Command.TYPE_GROUP ){
+                    this._makeTool( cmds );
+                }
+                else if ( cmds.getType() == skel.Command.Command.TYPE_BOOL ){
+                    var check = skel.widgets.Util.makeCheck( cmds, null, true );
+                    this.add( check );
+                }
+                else if ( cmds.getType() == skel.Command.Command.TYPE_BUTTON ){
+                    var button = skel.widgets.Util.makeButton( cmds, null, true, true );
+                    this.add( button );
+                }
+                else {
+                    console.log( "Tool bar unsupported command type="+ cmds.getType() );
+                }
+            }
         },
         
-        m_activeWindowIds : null
+        /**
+         * Initialize a tool bar containing 'quick' access buttons.
+         */
+        _init : function() {
+            var cmds = skel.Command.CommandAll.getInstance();
+            this._resetToolbar( cmds );
+        },
+        
+        /**
+         * Initialize a context menu.
+         */
+        _initContextMenu : function() {
+            this.m_contextMenu = new qx.ui.menu.Menu();
+            var customizeButton = new qx.ui.menu.Button("Customize...");
+            var showDialog = skel.Command.Customize.CommandShowCustomizeDialog.getInstance();
+            customizeButton.addListener("execute", function() {
+                showDialog.doAction( false, null );
+            }, this);
+            var removeButton = new qx.ui.menu.Button( "Hide Tool Bar");
+            removeButton.addListener( "execute", function(){
+                var toolVisibleCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
+                toolVisibleCmd.doAction( false, null);
+            }, this );
+            this.m_contextMenu.add(customizeButton);
+            this.m_contextMenu.add( removeButton );
+            this.setContextMenu(this.m_contextMenu);
+        },
+        
+        /**
+         * Initialize the list of messages to listen to.
+         */
+        _initSubscriptions : function(){
+            //Available commands have changed (such as new clip values);
+            qx.event.message.Bus.subscribe( "commandsChanged", function( message ){
+               this._init();
+            }, this );
+            qx.event.message.Bus.subscribe( "commandVisibilityToolChanged", function( message){
+                this._init();
+            }, this );
+            
+        },
+        
+        /**
+         * Tell a command to perform its action.
+         * @param lookup {String} an identifier for a command.
+         * @param val {Object} the new command value.
+         * @param undo {Function} an undo callback if the action of the command does not succeed.
+         */
+        _invokeCmd : function( lookup, val, undo ){
+            var cmdFactory = skel.Command.CommandFactory.getInstance();
+            var cmd = cmdFactory.getCommand( lookup);
+            cmd.doAction( val, undo );
+        },
+        
+       
+        
+        /**
+         * Make a widget for the tool bar out of the command.
+         * @param cmd {skel.Command.Command}.
+         */
+        _makeTool : function( cmd ){
+            if ( cmd.isVisibleToolbar()){
+                var cmdType = cmd.getType();
+                if ( cmdType === skel.Command.Command.TYPE_GROUP){
+                    var radios = skel.widgets.Util.makeRadioGroup( cmd, true );
+                    for ( var i = 0; i < radios.length; i++ ){
+                        this.add( radios[i] );
+                    }
+                }
+                else if ( cmdType === skel.Command.Command.TYPE_BOOL){
+                    var check = skel.widgets.Util.makeCheck( cmd, null, true );
+                    this.add( check );
+                }
+                else if ( cmdType == skel.Command.Command.TYPE_BUTTON ){
+                    var button = skel.widgets.Util.makeButton( cmd, null, true, true );
+                    this.add( button );
+                }
+                else {
+                    console.log( "Toolbar unrecognized type "+cmdType );
+                }
+            }
+            else {
+                console.log( "Cmd was not visible on toolbar "+cmd );
+            }
+        },
+        
+        
+        /**
+         * Erase the current tool bar and reset with the new list of commands.
+         * @param cmds {Array} the new list of commands.
+         */
+        _resetToolbar : function( cmds ){
+            this.removeAll();
+            this._buildToolBar( cmds );
+            this.addSpacer();
+        }
     }
 
 });

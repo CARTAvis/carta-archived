@@ -8,7 +8,7 @@ namespace Data {
 const QString RegionRectangle::CLASS_NAME = "RegionRectangle";
 
 bool RegionRectangle::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new RegionRectangle::Factory());
 
 RegionRectangle::RegionRectangle(const QString& path, const QString& id ):
@@ -32,7 +32,7 @@ void RegionRectangle::_initializeState(){
     //m_state.flushState();
 }
 
-void RegionRectangle::resetState(const QString & params ){
+void RegionRectangle::resetStateData(const QString & params ){
     QStringList coords = params.split( " ");
     int coordCount = coords.size();
     if ( coordCount == 4 ){

@@ -45,13 +45,11 @@ qx.Class.define("skel.widgets.DisplayMain",
             var data = message.getData();
             this._setView(data.plugin, data.row, data.col);
         }, this);
-
     },
 
     events : {
         "iconifyWindow" : "qx.event.type.Data",
-        "addWindowMenu" : "qx.event.type.Data",
-        "layoutGrid" : "qx.event.type.Data"
+        "addWindowMenu" : "qx.event.type.Data"
     },
 
     members : {
@@ -91,6 +89,22 @@ qx.Class.define("skel.widgets.DisplayMain",
             if (this.m_pane !== null) {
                 this.m_pane.setDrawMode(ev.getData());
             }
+        },
+        
+        /**
+         * Returns the number of columns in the grid.
+         * @return {Number} the number of grid columns.
+         */
+        getColCount : function(){
+            return this.m_gridColCount;
+        },
+        
+        /**
+         * Returns the number of rows in the grid.
+         * @return {Number} the number of grid rows.
+         */
+        getRowCount : function(){
+            return this.m_gridRowCount;
         },
         
         /**
@@ -152,14 +166,16 @@ qx.Class.define("skel.widgets.DisplayMain",
                     var data = ev.getData();
                     this.link( data.source, data.destination, true );
                 }, this );
+                qx.event.message.Bus.subscribe("clearLinks", function(ev){
+                    var data = ev.getData();
+                    this.m_pane.clearLink( data.link );
+                }, this );
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
                 qx.event.message.Bus.subscribe(
                                 "windowSelected",
                                 function(message) {
                                     var selectedWindow = message.getData();
                                     this.m_pane.windowSelected(selectedWindow);
-                                    var menuButtons = selectedWindow.getWindowMenu();
-                                    this.fireDataEvent("addWindowMenu",menuButtons);
                                 }, this);
 
                 var displayArea = this.m_pane.getDisplayArea();
@@ -237,30 +253,72 @@ qx.Class.define("skel.widgets.DisplayMain",
          *      should be displayed.
          */
         _resetDisplayedPlugins : function( layoutObj, windows ) {
+            
             var index = 0;
+            var row = 0;
+            var col = 0;
+            var name = "";
+            var origWin = null;
+            
+            //First go through and process any windows that have not changed
+            //location or plugin.
+            for (row = 0; row < this.m_gridRowCount; row++) {
+                for (col = 0; col < this.m_gridColCount; col++) {
+                    name = layoutObj.plugins[index];
+                    if ( name && typeof(name) == "string" && name.length > 0 ){
+                        if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
+                            origWin = this.m_pane.getWindow( row, col );
+                            if ( origWin !== null && origWin.getPlugin() == name ){
+                                //Don't need to do anything but remove the window from
+                                //the list of unassigned windows and make sure it is not excluded.
+                                var winIndex = -1;
+                                for ( var i = 0; i < windows.length; i++ ){
+                                    var winRow = windows[i].getRow();
+                                    var winCol = windows[i].getCol();
+                                    if ( winRow == row && winCol == col ){
+                                        winIndex = i;
+                                        break;
+                                    }
+                                }
+                                if ( winIndex >= 0 ){
+                                    windows.splice( winIndex, 1 );
+                                }
+                                //Make sure empty window is not excluded.
+                                if ( name === skel.widgets.Window.DisplayWindow.EMPTY ){
+                                    this.m_pane.setWindow( origWin, row, col );
+                                }
+                            }
+                        }
+                    }
+                    index++;
+                }
+            }
+            
+            //Any remaining windows have moved or are new.
             var pluginMap = {};
-            for (var row = 0; row < this.m_gridRowCount; row++) {
-                console.log( "row="+row);
-                for (var col = 0; col < this.m_gridColCount; col++) {
-                    var name = layoutObj.plugins[index];
-                    console.log( "Name="+name+" col="+col);
+            index = 0;
+            for (row = 0; row < this.m_gridRowCount; row++) {
+                for (col = 0; col < this.m_gridColCount; col++) {
+                    name = layoutObj.plugins[index];
                     if ( name && typeof(name) == "string" && name.length > 0 ){
                         if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
                             if ( pluginMap[name] ===undefined ){
                                 pluginMap[name] = -1;
                             }
                             pluginMap[name] = pluginMap[name] + 1;
-                            var window = this._findWindow ( name, windows );
-                            console.log( "Found window "+name);
-                            var origWin = this.m_pane.getWindow( row, col );
-                            console.log( origWin );
-                            if ( window === null || (origWin !== null && origWin.getPlugin() !== name)){
-                                console.log( "Set view "+pluginMap[name]+" row="+row+" col="+col);
-                                this.m_pane.setView(name, pluginMap[name], row, col);
-                            }
-                            else {
-                                console.log( "setWindow row="+row+" col="+col);
-                                this.m_pane.setWindow( window, row, col );
+                            origWin = this.m_pane.getWindow( row, col );
+                            //Window never existed or has moved.
+                            if ( origWin === null || origWin.getPlugin() !== name ){
+                                //See if there is an extra window with the correct plugin
+                                var window = this._findWindow ( name, windows );
+                                //Use the existing one.
+                                if ( window !== null ){
+                                    this.m_pane.setWindow( window, row, col );
+                                }
+                                //Have to make a new window for the plugin.
+                                else {
+                                    this.m_pane.setView( name, pluginMap[name], row, col );
+                                }
                             }
                         }
                         else {
@@ -273,6 +331,16 @@ qx.Class.define("skel.widgets.DisplayMain",
                     index++;
                 }
             }
+            
+            /*
+             * Because the new views are not created in any well-defined order, some
+             * links may not get initially established if the objects they link to have
+             * not been created.  Force a refresh of state now that all the views have
+             * been created so the links are correct.
+             */
+            var path = skel.widgets.Path.getInstance();
+            var cmd = path.getCommandRefreshState();
+            this.m_connector.sendCommand( cmd, "", function(){});
         },
         
         /**
@@ -292,12 +360,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                         if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
                             this.m_gridRowCount = layout.rows;
                             this.m_gridColCount = layout.cols;
-                            var gridData = {
-                                    "rows" : this.m_gridRowCount,
-                                    "cols" : this.m_gridColCount
-                                };
-                            qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                                    "layoutGrid", gridData));
                             this.layout(this.m_gridRowCount, this.m_gridColCount);
                         }
                         this._resetDisplayedPlugins( layout, windows );
@@ -339,30 +401,13 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
         },
         
-        /**
-         * Set the shared variables that store the plugins that will be displayed
-         * in each cell.
-         */
-        
-        _setPlugins : function(){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = path.getCommandSetPlugin();
-            var params = "names:";
-            for( var i = 0; i < arguments.length; i++ ){
-                params = params + arguments[i];
-                if ( i != arguments.length - 1 ){
-                    params = params + ".";
-                }
-            }
-            this.m_connector.sendCommand( cmd, params, function(){} );
-        },
         
         /**
-         * Sends a command to the server letting it now that the displayed plugin
+         * Sends a command to the server letting it know that the displayed plug-in
          * has changed.
-         * @param plugin {String} the name of the new plugin.
-         * @param row {Number} the row index of the window containing the plugin.
-         * @param col {Number} the column index of the window containing the plugin.
+         * @param plugin {String} the name of the new plug-in.
+         * @param row {Number} the row index of the window containing the plug-in.
+         * @param col {Number} the column index of the window containing the plug-in.
          */
         _setView : function( plugin, row, col ){
             var path = skel.widgets.Path.getInstance();
@@ -376,9 +421,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                     if ( win !== null ){
                         win.clean();
                     }
-                    else {
-                        console.log( "Missing window at "+row+" "+col);
-                    }
+
                     var index = row * this.m_gridColCount + col;
                     var cmd = path.getCommandSetPlugin();
                     var params = "names:";

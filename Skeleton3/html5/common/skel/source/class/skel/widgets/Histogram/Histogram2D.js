@@ -37,7 +37,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
             this._initFootPrint();
         },
@@ -47,20 +47,30 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
          */
         _initFootPrint : function(){
             
+            var twoDContainer = new qx.ui.groupbox.GroupBox("2D", "");
+            twoDContainer.setLayout( new qx.ui.layout.VBox(1));
+            twoDContainer.setContentPadding(1,1,1,1);
+            this._add( twoDContainer );
+            
             this.m_imageRadio = new qx.ui.form.RadioButton( "Image");
-            this.m_imageRadio.addListener( "changeValue", function(){
+            this.m_imageRadio.setEnabled( false );
+            this.m_imageRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_imageRadio.getValue() ){
                     this._sendFootPrintCmd( this.m_imageRadio.getLabel());
                 }
             }, this );
+            
             this.m_regionRadio = new qx.ui.form.RadioButton( "Selected Region");
-            this.m_regionRadio.addListener( "changeValue", function(){
+            this.m_regionRadio.setEnabled( false );
+            this.m_regionRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_regionRadio.getValue()){
                     this._sendFootPrintCmd( this.m_regionRadio.getLabel());
                 }
             }, this );
+           
             this.m_regionAllRadio = new qx.ui.form.RadioButton( "All Regions");
-            this.m_regionAllRadio.addListener( "changeValue", function(){
+            this.m_regionAllRadio.setEnabled( false );
+            this.m_regionAllRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_regionAllRadio.getValue()){
                     this._sendFootPrintCmd( this.m_regionAllRadio.getLabel());
                 }
@@ -68,9 +78,9 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
             var footPrintRadio = new qx.ui.form.RadioGroup();
             footPrintRadio.add( this.m_imageRadio, this.m_regionRadio, this.m_regionAllRadio );
             
-            this._add( this.m_imageRadio );
-            this._add( this.m_regionRadio );
-            this._add( this.m_regionAllRadio );
+            twoDContainer.add( this.m_imageRadio );
+            twoDContainer.add( this.m_regionRadio );
+            twoDContainer.add( this.m_regionAllRadio );
         },
         
         /**
@@ -124,5 +134,12 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
         m_imageRadio : null,
         m_regionRadio : null,
         m_regionAllRadio : null
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

@@ -11,21 +11,21 @@ const QString ErrorManager::CLASS_NAME = "ErrorManager";
 const QChar ErrorManager::ERROR_SEPARATOR = '#';
 const QString ErrorManager::ERRORS_EXIST = "errorsExist";
 
-class ErrorManager::Factory : public CartaObjectFactory {
+class ErrorManager::Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
         Factory():
          CartaObjectFactory( CLASS_NAME ){};
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new ErrorManager (path, id);
         }
     };
 
 bool ErrorManager::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ErrorManager::Factory());
 
 
@@ -38,9 +38,9 @@ ErrorManager::ErrorManager(const QString& path, const QString& id) :
 QString ErrorManager::_commandGetErrors( const QString& /*params*/ ){
     QString errors;
     while ( !errorList.empty() ){
-        std::shared_ptr<ErrorReport> report = errorList.front();
+        std::shared_ptr<ErrorReport> report = errorList.back();
         errors.append( report->toString());
-        errorList.pop();
+        errorList.pop_back();
         if ( errorList.size() > 0 ){
             errors.append( ERROR_SEPARATOR );
         }
@@ -48,6 +48,7 @@ QString ErrorManager::_commandGetErrors( const QString& /*params*/ ){
     bool existingErrors = m_state.getValue<bool>( ERRORS_EXIST );
     if ( existingErrors ){
         m_state.setValue<bool>( ERRORS_EXIST, false );
+        m_state.flushState();
     }
     return errors;
 }
@@ -75,16 +76,35 @@ void ErrorManager::registerWarning( const QString& warningMsg ){
     qWarning() << warningMsg;
 }
 
+bool ErrorManager::_addReport( ErrorReport* errorReport ){
+    bool reportAdded = true;
+    for (std::shared_ptr<ErrorReport> report: errorList ){
+        if ( *report == *errorReport ){
+            reportAdded = false;
+            break;
+        }
+    }
+    if ( reportAdded ){
+        errorList.push_back( std::shared_ptr<ErrorReport>(errorReport) );
+    }
+    return reportAdded;
+}
+
 void ErrorManager::_addReport( const QString& msg, ErrorSeverity sev){
     assert( msg.trimmed().length() > 0 );
     QString cleanedMsg(msg);
     cleanedMsg.replace(ERROR_SEPARATOR, ' ');
-    std::shared_ptr<ErrorReport> report(new ErrorReport(cleanedMsg, sev ));
-    errorList.push(report);
-    bool existingErrors = m_state.getValue<bool>( ERRORS_EXIST );
-    if ( !existingErrors ){
-        m_state.setValue<bool>(ERRORS_EXIST, true );
+    ErrorReport* errorReport = new ErrorReport( cleanedMsg, sev );
+    bool errorAdded = _addReport( errorReport );
+    if ( errorAdded ){
+        bool existingErrors = m_state.getValue<bool>( ERRORS_EXIST );
+        if ( !existingErrors ){
+            m_state.setValue<bool>(ERRORS_EXIST, true  );
+        }
         m_state.flushState();
+    }
+    else {
+        delete errorReport;
     }
 }
 

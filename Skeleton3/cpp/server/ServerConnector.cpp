@@ -1,7 +1,5 @@
 #include "ServerConnector.h"
 #include "common/MyQApp.h"
-//#include "common/State/StateXmlRestorer.h"
-//#include "StateXmlWriter.h"
 
 
 #include <QTimer>

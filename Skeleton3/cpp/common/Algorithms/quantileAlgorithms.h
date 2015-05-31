@@ -10,6 +10,7 @@
 #include <limits>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 namespace Carta
 {

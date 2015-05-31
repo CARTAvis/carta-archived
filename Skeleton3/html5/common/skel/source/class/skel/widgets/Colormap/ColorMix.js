@@ -74,12 +74,12 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             sliderContainer.setLayout( new qx.ui.layout.VBox(2));
             this.m_redSlider = new qx.ui.form.Slider();
             this.m_redSlider.setDecorator( "slider-red");
-            this._initSlider( this.m_redSlider, sliderContainer );
+            this.m_redSliderListenerId = this._initSlider( this.m_redSlider, sliderContainer );
             this.m_greenSlider = new qx.ui.form.Slider();
             this.m_greenSlider.setDecorator( "slider-green");
-            this._initSlider( this.m_greenSlider, sliderContainer );
+            this.m_greenSliderListenerId = this._initSlider( this.m_greenSlider, sliderContainer );
             this.m_blueSlider = new qx.ui.form.Slider();
-            this._initSlider( this.m_blueSlider, sliderContainer );
+            this.m_blueSliderListenerId = this._initSlider( this.m_blueSlider, sliderContainer );
             this.m_blueSlider.setDecorator( "slider-blue" );
             this._add( sliderContainer );
             
@@ -102,30 +102,43 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         _initSlider : function( slider, sliderGroup ){
             slider.setMinimum( skel.widgets.Colormap.ColorMix.SLIDER_MIN );
             slider.setMaximum( skel.widgets.Colormap.ColorMix.SLIDER_MAX );
-            slider.addListener( "changeValue",function(e){
-                if ( this.m_synchronizeCheck !== null && this.m_synchronizeCheck.getValue()){
-                    var newValue = e.getData();
-                    if ( this.m_redSlider.getValue() != newValue ){
-                        this.m_redSlider.setValue( newValue );
-                    }
-                    if ( this.m_greenSlider.getValue() != newValue ){
-                        this.m_greenSlider.setValue( newValue );
-                    }
-                    if ( this.m_blueSlider.getValue() != newValue ){
-                        this.m_blueSlider.setValue( newValue );
-                    }
-                    this._sendColorMixChangedCommand();
-                }
-                else {
-                    this._sendColorMixChangedCommand();
-                }
-            }, this );
+            var sliderId = slider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
             slider.setValue( 0 );
             slider.setSingleStep( 1 );
             slider.setPageStep( 10 );
             slider.setFocusable( false );
             slider.setOrientation( "horizontal");
             sliderGroup.add( slider );
+            return sliderId;
+        },
+        
+        /**
+         * Callback for a slider changing its value.
+         * @param e {qx.ui.event.Type}.
+         */
+        _sliderChangedValue : function( e ){
+            if ( this.m_synchronizeCheck !== null && this.m_synchronizeCheck.getValue()){
+                var newValue = e.getData();
+                this.m_redSlider.removeListenerById( this.m_redSliderListenerId );
+                this.m_greenSlider.removeListenerById( this.m_greenSliderListenerId );
+                this.m_blueSlider.removeListenerById( this.m_blueSliderListenerId );
+                if ( this.m_redSlider.getValue() != newValue ){
+                    this.m_redSlider.setValue( newValue );
+                }
+                if ( this.m_greenSlider.getValue() != newValue ){
+                    this.m_greenSlider.setValue( newValue );
+                }
+                if ( this.m_blueSlider.getValue() != newValue ){
+                    this.m_blueSlider.setValue( newValue );
+                }
+                this.m_redSliderListenerId = this.m_redSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+                this.m_greenSliderListenerId = this.m_greenSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+                this.m_blueSliderListenerId = this.m_blueSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+                this._sendColorMixChangedCommand();
+            }
+            else {
+                this._sendColorMixChangedCommand();
+            }
         },
         
         /**
@@ -173,6 +186,9 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
          * @param bluePercent {Number} a decimal in [0,1] indicating the blue percentage.
          */
         setMix : function( redPercent, greenPercent, bluePercent ){
+            this.m_redSlider.removeListenerById( this.m_redSliderListenerId );
+            this.m_greenSlider.removeListenerById( this.m_greenSliderListenerId );
+            this.m_blueSlider.removeListenerById( this.m_blueSliderListenerId );
             var red = this._percentToValue( redPercent );
             var green = this._percentToValue( greenPercent );
             var blue = this._percentToValue( bluePercent );
@@ -185,6 +201,9 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             if ( this.m_greenSlider.getValue() != green ){
                 this.m_greenSlider.setValue( green );
             }
+            this.m_redSliderListenerId = this.m_redSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+            this.m_greenSliderListenerId = this.m_greenSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
+            this.m_blueSliderListenerId = this.m_blueSlider.addListener( skel.widgets.Path.CHANGE_VALUE,this._sliderChangedValue, this );
         },
         
         /**
@@ -210,9 +229,12 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         m_id : null,
         m_connector : null,
         m_redSlider : null,
+        m_redSliderListenerId : null,
         m_greenSlider : null,
+        m_greenSliderListenerId : null,
         m_colorGraph : null,
         m_blueSlider : null,
+        m_blueSliderListenerId : null,
         m_synchronizeCheck : null
     }
 });

@@ -14,11 +14,13 @@ qx.Class.define("skel.widgets.ErrorHandler", {
      */
     construct : function() {
         this.base(arguments);
-        this.m_connector = mImport( "connector");
-        var path = skel.widgets.Path.getInstance();
-        this.m_sharedVar = this.m_connector.getSharedVar( path.ERROR_HANDLER );
-        this.m_sharedVar.addCB( this._errorStatusCB.bind( this ));
-        this._errorStatusCB();
+        if ( typeof mImport !== "undefined"){
+            this.m_connector = mImport( "connector");
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVar = this.m_connector.getSharedVar( path.ERROR_HANDLER );
+            this.m_sharedVar.addCB( this._errorStatusCB.bind( this ));
+            this._errorStatusCB();
+        }
     },
 
     members : {
@@ -39,11 +41,12 @@ qx.Class.define("skel.widgets.ErrorHandler", {
                 var statusStr = this.m_sharedVar.get();
                 var errors = JSON.parse( statusStr );
                 if ( errors ){
+                    //Clear out any old errors.
+                    if ( this.m_statusBar !== null ){
+                        this.m_statusBar.clearMessages();
+                    }
                     if ( errors.errorsExist === true ){
-                        //Clear out any old errors.
-                        if ( this.m_statusBar !== null ){
-                            this.m_statusBar.clearMessages();
-                        }
+                       
                         //Send a command to get the new errors.
                         var path = skel.widgets.Path.getInstance();
                         var cmd = path.ERROR_HANDLER + path.SEP_COMMAND + "getErrors";

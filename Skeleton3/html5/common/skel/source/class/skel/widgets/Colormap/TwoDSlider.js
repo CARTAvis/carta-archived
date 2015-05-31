@@ -182,7 +182,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                             x : this.m_currentValue.x,
                             y : this.m_currentValue.y
                     };
-                    this.fireDataEvent( "changeValue", data);
+                    this.fireDataEvent( skel.widgets.Path.CHANGE_VALUE, data);
                 }
 
                 this.update();
@@ -213,7 +213,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                         x : this.m_currentValue.x,
                         y : this.m_currentValue.y
                 };
-                this.fireDataEvent( "changeValue", data);
+                this.fireDataEvent( skel.widgets.Path.CHANGE_VALUE, data);
                 this.update();
             },
 
@@ -239,7 +239,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                         x : this.m_currentValue.x,
                         y : this.m_currentValue.y
                 };
-                this.fireDataEvent( "changeValue", data);
+                this.fireDataEvent( skel.widgets.Path.CHANGE_VALUE, data);
                 this.update();
             },
 

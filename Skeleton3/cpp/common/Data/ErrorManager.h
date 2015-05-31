@@ -15,7 +15,7 @@ namespace Carta {
 namespace Data {
 
 
-class ErrorManager : public CartaObject {
+class ErrorManager : public Carta::State::CartaObject {
 
 public:
 
@@ -44,6 +44,7 @@ private:
     ErrorManager(const QString& path, const QString& id );
 
     void _addReport( const QString& msg, ErrorSeverity sev);
+    bool _addReport( ErrorReport* errorReport );
 
     class Factory;
 
@@ -54,7 +55,7 @@ private:
 
     static bool m_registered;
     const static QString ERRORS_EXIST;
-    std::queue< std::shared_ptr<ErrorReport> > errorList;
+    std::vector< std::shared_ptr<ErrorReport> > errorList;
     ErrorManager( const ErrorManager& other);
     ErrorManager operator=( const ErrorManager& other );
 

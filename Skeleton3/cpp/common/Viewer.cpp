@@ -11,7 +11,8 @@
 #include "MainConfig.h"
 #include "MyQApp.h"
 #include "CmdLine.h"
-#include "ScriptedCommandListener.h"
+#include "ScriptedClient/Listener.h"
+#include "ScriptedClient/ScriptedCommandInterpreter.h"
 
 #include <QImage>
 #include <QColor>
@@ -19,11 +20,44 @@
 #include <QDebug>
 #include <QCache>
 #include <QCoreApplication>
+#include <QJsonObject>
+#include <QDir>
+#include <QJsonArray>
 
 #include <cmath>
 #include <iostream>
 #include <limits>
 
+#include <rapidjson/document.h>
+
+using namespace rapidjson;
+
+/// Recursively parse through a directory structure contained in a json value
+static QStringList _parseDirectory( const Value& dir, QString prefix )
+{
+    QStringList fileList;
+    for (rapidjson::SizeType i = 0; i < dir.Size(); i++)
+    {
+        const Value& name = dir[i];
+        QString filename = QString::fromStdString(name["name"].GetString());
+        if (name.HasMember("dir")) {
+            const Value& subdir = name["dir"];
+            QStringList subFileList = _parseDirectory( subdir, prefix + "/" + filename );
+            fileList.append( subFileList );
+        }
+        else {
+            if (prefix != "")
+            {
+                filename = prefix + "/" + filename;
+            }
+            fileList.append(filename);
+            //const char *printableName = filename.toLocal8Bit().constData();
+            //printf("%s \n", printableName);
+        }
+    }
+    //return fileList.join(',');
+    return fileList;
+}
 
 Viewer::Viewer() :
     QObject( nullptr ),
@@ -35,10 +69,12 @@ Viewer::Viewer() :
         qDebug() << "Not listening to scripted commands.";
     }
     else {
-        m_scl = new ScriptedCommandListener( port, this );
+//        m_scl = new ScriptedCommandListener( port, this );
         qDebug() << "Listening to scripted commands on port " << port;
-        connect( m_scl, & ScriptedCommandListener::command,
-                 this, & Viewer::scriptedCommandCB );
+
+        // create Pavol's testing controller on port+1
+        //new Carta::Core::ScriptedClient::ScriptedCommandInterpreter( port+1, this);
+        new Carta::Core::ScriptedClient::ScriptedCommandInterpreter( port, this);
     }
     m_devView = false;
 }
@@ -59,9 +95,9 @@ Viewer::start()
 	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
 		fname = Globals::instance()-> platform()-> initialFileList() [0];
 	}
-    ObjectManager* objManager = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
-    CartaObject* vmObj = objManager->getObject( vmId );
+    Carta::State::CartaObject* vmObj = objManager->getObject( vmId );
     m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
     if ( m_devView ){
        m_viewManager->setDeveloperView();
@@ -71,6 +107,7 @@ Viewer::start()
         QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
         m_viewManager->loadFile( controlId, fname );
     }
+
     qDebug() << "Viewer has been initialized.";
 }
 
@@ -79,36 +116,3 @@ Viewer::start()
 void Viewer::setDeveloperView( ){
     m_devView = true;
 }
-
-void
-Viewer::scriptedCommandCB( QString command )
-{
-    command = command.simplified();
-    qDebug() << "Scripted command received:" << command;
-
-    QStringList args = command.split( ' ', QString::SkipEmptyParts );
-    qDebug() << "args=" << args;
-    qDebug() << "args.size=" << args.size();
-    if ( args.size() == 2 && args[0].toLower() == "load" ) {
-        qDebug() << "Trying to load" << args[1];
-        auto loadImageHookHelper = Globals::instance()->pluginManager()->
-                    prepare < LoadImage >(args[1], 0);
-        Nullable <QImage> res = loadImageHookHelper.first();
-        if ( res.isNull() ){
-            qDebug() << "Could not find any plugin to load image";
-        }
-        else {
-            qDebug() << "Image loaded: " << res.val().size();
-//            testView2->setImage( res.val() );
-        }
-    }
-    else if ( args.size() == 1 && args[0].toLower() == "quit" ) {
-        qDebug() << "Quitting...";
-        MyQApp::exit();
-        return;
-    }
-    else {
-        qWarning() << "Sorry, unknown command";
-    }
-} // scriptedCommandCB
-

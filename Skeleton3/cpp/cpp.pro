@@ -7,15 +7,23 @@ SUBDIRS = \
     CartaLib \
     common \
     desktop \
-    server \
     plugins \
     Tests \
+
+isEmpty(NOSERVER) {
+	SUBDIRS +=server
+}
 
 # explicit dependencies, much better for make -j4...
 desktop.depends = common
 server.depends = common
 plugins.depends = common
-Tests.depends = common desktop server plugins
+isEmpty(NOSERVER) {
+	Tests.depends = common desktop server plugins
+}
+else{
+	Tests.depends = common desktop plugins
+}
 
 # ... or ...
 # build directories in order, or make sure to update dependencies manually, or make -j4 won't work

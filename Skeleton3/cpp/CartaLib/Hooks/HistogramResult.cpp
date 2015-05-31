@@ -3,22 +3,41 @@ namespace Carta {
   namespace Lib {
     namespace Hooks {
 
-HistogramResult::HistogramResult( QString histogramName, 
-	std::vector<std::pair<double,double>> histogramData ){
+HistogramResult::HistogramResult( const QString histogramName, const QString units,
+	std::vector<std::pair<double,double>> histogramData){
 
-	name = histogramName;
-	data = histogramData;
+	m_name = histogramName;
+	m_data = histogramData;
+	m_units = units;
+	m_frequencyMin = -1;
+	m_frequencyMax = -1;
 
 }
 
 QString HistogramResult::getName() const{
-	return name;
+	return m_name;
 }
 
 std::vector<std::pair<double,double>> HistogramResult::getData() const{
-	return data;
+	return m_data;
 }
 
+QString HistogramResult::getUnits() const {
+    return m_units;
+}
+
+double HistogramResult::getFrequencyMin() const {
+    return m_frequencyMin;
+}
+
+double HistogramResult::getFrequencyMax() const {
+    return m_frequencyMax;
+}
+
+void HistogramResult::setFrequencyBounds( double minFreq, double maxFreq ){
+    m_frequencyMin = minFreq;
+    m_frequencyMax = maxFreq;
+}
     }
   }
 

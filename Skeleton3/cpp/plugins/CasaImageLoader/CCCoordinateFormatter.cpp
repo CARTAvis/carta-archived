@@ -3,8 +3,8 @@
  **/
 
 #include "CCCoordinateFormatter.h"
-#include <coordinates/Coordinates.h>
-#include <measures/Measures/Stokes.h>
+#include <casacore/coordinates/Coordinates.h>
+#include <casacore/measures/Measures/Stokes.h>
 #include <QDebug>
 
 #define CARTA_DEBUG_THIS_FILE 0
@@ -198,9 +198,11 @@ bool
 CCCoordinateFormatter::toPixel( const CoordinateFormatterInterface::VD & world,
                                 CoordinateFormatterInterface::VD & pixel ) const
 {
-    Q_UNUSED( pixel );
-    Q_UNUSED( world );
-    qFatal( "not implemented" );
+    casa::Vector < casa::Double > worldD = world;
+    casa::Vector < casa::Double > pixelD = pixel;
+    bool valid = m_casaCS->toPixel( pixelD, worldD );
+    pixel = { pixelD[0], pixelD[1] };
+    return valid;
 }
 
 void
@@ -422,11 +424,13 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic longitude" ) )
-                        .setShortLabel( HtmlString( "ELon", "l" ) );
+                        //.setShortLabel( HtmlString( "ELon", "l" ) );
+                        .setShortLabel( HtmlString( "ELon", "&lambda;"));
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Galactic longitude" ) )
-                        .setShortLabel( HtmlString( "GLon", "&lambda;" ) );
+                        //.setShortLabel( HtmlString( "GLon", "&lambda;" ) );
+                        .setShortLabel( HtmlString( "GLon", "l"));
                 }
                 else {
                     CARTA_ASSERT( false );
@@ -445,11 +449,13 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic latitude" ) )
-                        .setShortLabel( HtmlString( "ELat", "b" ) );
+                        //.setShortLabel( HtmlString( "ELat", "b" ) );
+                        .setShortLabel( HtmlString( "Elat", "&beta;"));
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Galactic latitude" ) )
-                        .setShortLabel( HtmlString( "GLat", "&beta;" ) );
+                        //.setShortLabel( HtmlString( "GLat", "&beta;" ) );
+                        .setShortLabel( HtmlString( "GLat", "b"));
                 }
                 else {
                     CARTA_ASSERT( false );
@@ -458,18 +464,18 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             m_precisions[pixelAxis] = 3;
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
-            aInfo.setKnownType( aInfo.KnownType::SPECTRAL )
+            aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
                 .setLongLabel( HtmlString::fromPlain( "Frequency" ) )
                 .setShortLabel( HtmlString( "Freq", "Freq" ) );
-            m_precisions[pixelAxis] = - 6;
+            m_precisions[pixelAxis] = 6;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
-            aInfo.setKnownType( aInfo.KnownType::STOKES )
+            aInfo.setKnownType( AxisInfo::KnownType::STOKES )
                 .setLongLabel( HtmlString::fromPlain( "Stokes" ) )
                 .setShortLabel( HtmlString::fromPlain( "Stokes" ) );
         }
         else if ( cc.type() == casa::Coordinate::TABULAR ) {
-            aInfo.setKnownType( aInfo.KnownType::TABULAR );
+            aInfo.setKnownType( AxisInfo::KnownType::TABULAR );
 
             //            else if ( cc.type() == casa::Coordinate::QUALITY ) {
             //                aInfo.setKnownType( aInfo.KnownType::QUALITY);
@@ -477,7 +483,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         else {
             // other types... we copy whatever casacore dishes out
-            aInfo.setKnownType( aInfo.KnownType::OTHER );
+            aInfo.setKnownType( AxisInfo::KnownType::OTHER );
             QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
             QString shortLabel = rawAxisLabel;
             aInfo.setLongLabel( HtmlString::fromPlain( rawAxisLabel ) );
@@ -506,14 +512,14 @@ CCCoordinateFormatter::formatWorldValue( int whichAxis, double worldValue )
 
     // for longigute / latitude we do the same thing, except for a different factor
     // when doing sexagesimal
-    if ( ai.knownType() == ai.KnownType::DIRECTION_LON
-         || ai.knownType() == ai.KnownType::DIRECTION_LAT ) {
-        double sexFactor = ( ai.knownType() == ai.KnownType::DIRECTION_LON )
+    if ( ai.knownType() == AxisInfo::KnownType::DIRECTION_LON
+         || ai.knownType() == AxisInfo::KnownType::DIRECTION_LAT ) {
+        double sexFactor = ( ai.knownType() == AxisInfo::KnownType::DIRECTION_LON )
                            ? 24 * 60 * 60 / ( 2 * M_PI )
                            : 180 * 60 * 60 / M_PI;
 
         // for longitude values, wrap around negative values
-        if ( ai.knownType() == ai.KnownType::DIRECTION_LON && worldValue < 0 ) {
+        if ( ai.knownType() == AxisInfo::KnownType::DIRECTION_LON && worldValue < 0 ) {
             worldValue += 2 * M_PI;
         }
         if ( skyFormatting() == SkyFormatting::Radians ) {
@@ -543,9 +549,37 @@ CCCoordinateFormatter::formatWorldValue( int whichAxis, double worldValue )
     }
 
     // for stokes we convert to a string using casacore's Stokes class
-    if ( ai.knownType() == ai.KnownType::STOKES ) {
+    else if ( ai.knownType() == AxisInfo::KnownType::STOKES ) {
         return casa::Stokes::name( static_cast < casa::Stokes::StokesTypes > ( round( worldValue ) ) )
                    .c_str();
+    }
+    else if ( ai.knownType() == AxisInfo::KnownType::SPECTRAL ){
+        int exp = 1;
+        QStringList availUnits={"Hz","KHz","MHz","GHz"};
+        int unitCount = availUnits.size();
+        for ( ; exp < unitCount; exp++ ){
+            if ( worldValue < pow(10, 3*exp) ){
+                break;
+            }
+        }
+        exp = exp - 1;
+        QString oldUnit = ai.unit();
+        int diff = 0;
+        QString unit = oldUnit;
+        if ( exp >= 1 ){
+          for ( int i = 0; i < availUnits.size(); i++  ){
+              if ( availUnits[i] == oldUnit ){
+                  if ( i < exp ){
+                      diff = exp - i;
+                      break;
+                  }
+              }
+          }
+        }
+        unit = availUnits[exp];
+        worldValue = worldValue / pow(10,3*diff);
+        int precision = axisPrecision( whichAxis);
+        return QString::number(worldValue, 'g', precision) +" "+ unit;
     }
 
     // for other types we do verbatim formatting

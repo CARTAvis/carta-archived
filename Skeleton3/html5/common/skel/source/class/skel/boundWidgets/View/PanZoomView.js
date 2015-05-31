@@ -66,9 +66,8 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             //console.log( "vwid click", pt.x, pt.y, ev.getButton());
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + path.CENTER;
-            //console.log( "center cmd "+cmd);
             this.m_connector.sendCommand( cmd,
-                "" + pt.x + " " + pt.y + " " + ev.getButton());
+                "" + pt.x + " " + pt.y + " " + ev.getButton(), function(){});
         },
 
         m_viewId : null

@@ -5,7 +5,7 @@
 #ifndef ILINKABLE_H_
 #define ILINKABLE_H_
 
-#include "Data/Controller.h"
+#include "State/ObjectManager.h"
 
 namespace Carta {
 
@@ -15,18 +15,28 @@ class ILinkable {
 public:
 
     /**
-     * Remove the link to the image view.
-     * @param controller the image view that should no longer be linked.
-     * @return true if the link was successfully removed; false otherwise.
+     * Remove the link to the CartaObject.
+     * @param cartaObj the CartaObject that should no longer be linked.
+     * @return an error message if there was a problem removing the link;
+     *      an empty string otherwise..
      */
-    virtual bool removeLink( Controller *& controller ) = 0;
+    virtual QString removeLink( Carta::State::CartaObject * cartaObj ) = 0;
 
     /**
-     * Add a link to the image view.
-     * @param controller the image view that should be linked.
-     * @return true if the controller is linked; false otherwise.
+     * Add a link to the CartaObject.
+     * @param artaObj the CartaObject that should be linked.
+     * @return an error message if there was a problem adding the link;
+     *      an empty string otherwise.
      */
-    virtual bool addLink( Controller* & controller ) = 0;
+    virtual QString addLink( Carta::State::CartaObject* cartaObj ) = 0;
+
+    /**
+     * Return a list of identifiers for all objects that are controlled by
+     * this CartaObject.
+     * @return a list of identifiers for objects under the control of this
+     * CartaObject.
+     */
+    virtual QList<QString> getLinks() = 0;
 
 };
 }

@@ -39,14 +39,15 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
         _init : function(  ) {
             this.setAllowGrowX( true );
             this.setAllowGrowY( true );
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
             
             var comp = new qx.ui.groupbox.GroupBox( "Transform");
-            comp.setLayout( new qx.ui.layout.VBox(2));
+            comp.setContentPadding(1,1,1,1);
+            comp.setLayout( new qx.ui.layout.VBox(1));
             
             var imageComposite = new qx.ui.container.Composite();
-            imageComposite.setLayout( new qx.ui.layout.HBox(2));
+            imageComposite.setLayout( new qx.ui.layout.HBox(1));
             this.m_imageCombo = new qx.ui.form.ComboBox();
             this.m_imageCombo.setToolTipText( "Select an image transformation.");
             this.m_imageCombo.setEnabled( false );
@@ -58,7 +59,7 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
             dataComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_dataCombo = new qx.ui.form.ComboBox();
             this.m_dataCombo.setToolTipText( "Select a data transformation.");
-            this.m_dataCombo.addListener( "changeValue", function(e){
+            this.m_dataCombo.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 if ( this.m_id !== null ){
                     var transformName = e.getData();
                     //Send a command to the server to let them know the map changed.

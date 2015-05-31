@@ -21,7 +21,7 @@ protected:
      * Resets the internal state of this rectangle based on the information passed in.
      * @param params a QString describing the internal rectangle state.
      */
-    virtual void resetState( const QString & params ) override;
+    virtual void resetStateData( const QString & params ) override;
 
     /**
      * Returns a string identifying the region type.
@@ -39,11 +39,11 @@ private:
      */
     RegionRectangle(const QString& path, const QString& id );
 
-    class Factory : public CartaObjectFactory {
+    class Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new RegionRectangle (path, id);
         }

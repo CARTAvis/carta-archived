@@ -7,14 +7,20 @@
 
 #include "ObjectManager.h"
 #include "Globals.h"
+#include "UtilState.h"
 #include <QDebug>
 #include <cassert>
+#include <set>
 
 using namespace std;
 
-QList<QString> CartaObjectFactory::globalIds = {"Clips", "Colormaps",
-        "DataLoader","TransformsImage","TransformsData","ErrorManager","Layout",
-        "Preferences","ViewManager"};
+namespace Carta {
+
+namespace State {
+
+QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits",
+        "Clips", "Colormaps","DataLoader","TransformsImage","TransformsData",
+        "ErrorManager","Layout","Preferences","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -23,6 +29,12 @@ QString CartaObject::addIdToCommand (const QString & command) const {
     }
     return fullCommand;
 }
+
+QString CartaObject::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
+    return "";
+}
+
+
 
 QString
 CartaObject::getClassName () const
@@ -52,12 +64,37 @@ CartaObject::CartaObject (const QString & className,
   m_path (path){
     }
 
-QString CartaObject::getStateString() const {
-    return m_state.toString();
+int CartaObject::getIndex() const {
+    return m_state.getValue<int>(StateInterface::INDEX);
+}
+
+QString CartaObject::getType(CartaObject::SnapshotType /*snapType*/) const {
+    return m_className;
+}
+
+void CartaObject::setIndex( int index ){
+    CARTA_ASSERT( index >= 0 );
+    m_state.setValue<int>(StateInterface::INDEX, index );
+}
+
+void CartaObject::resetState( const QString& state, SnapshotType type ){
+    if ( type == SNAPSHOT_DATA){
+        resetStateData( state );
+    }
+    else if ( type == SNAPSHOT_PREFERENCES ){
+        resetState( state );
+    }
+    else {
+        qDebug() << "Unsupport resetState type="<<type;
+    }
 }
 
 void CartaObject::resetState( const QString& state ){
     m_state.setState( state );
+    m_state.flushState();
+}
+
+void CartaObject::resetStateData( const QString& /*state*/ ){
 }
 
 void
@@ -96,8 +133,7 @@ QString CartaObject::getStateLocation( const QString& name ) const {
 }
 
 QString
-CartaObject::removeId (const QString & commandAndId)
-{
+CartaObject::removeId (const QString & commandAndId){
     // Command should have the ID as a prefix.  Strip off
     // that part plus the delimiter and return the rest.
 
@@ -106,9 +142,15 @@ CartaObject::removeId (const QString & commandAndId)
     return commandAndId.section (m_Delimiter, 1);
 }
 
+
+
 const QString ObjectManager::CreateObject = "CreateObject";
 const QString ObjectManager::ClassName = "ClassName";
 const QString ObjectManager::DestroyObject = "DestroyObject";
+
+const QString ObjectManager::STATE_ARRAY = "states";
+const QString ObjectManager::STATE_ID = "id";
+const QString ObjectManager::STATE_VALUE = "state";
 
 ObjectManager::ObjectManager ()
 :       m_root( "CartaObjects"),
@@ -123,6 +165,78 @@ QString ObjectManager::getRootPath() const {
 
 QString ObjectManager::getRoot() const {
     return m_root;
+}
+
+bool ObjectManager::restoreSnapshot(const QString stateStr, CartaObject::SnapshotType snapType ) const {
+    bool stateRestored = false;
+    if ( !stateStr.isEmpty() && stateStr.length() > 0 ){
+        StateInterface state("");
+        state.setState( stateStr );
+        int stateCount = state.getArraySize( STATE_ARRAY );
+        for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+            CartaObject* obj = it->second.getObject();
+
+            //Try to assign by (row,col) and matching type.  Note:  May want to remove the assigning by id.
+            int targetIndex = obj->getIndex();
+            QString targetType = obj->getType( snapType );
+            bool restored = false;
+            for ( int j = 0; j < stateCount; j++ ){
+                QString stateLookup = UtilState::getLookup( STATE_ARRAY, j );
+                int objIndex = state.getValue<int>( UtilState::getLookup(stateLookup, StateInterface::INDEX ) );
+                QString objType = state.getValue<QString>( UtilState::getLookup(stateLookup, StateInterface::OBJECT_TYPE ));
+                if ( objType == targetType && objIndex == targetIndex ){
+                    restored = true;
+                    QString stateVal = state.toString( stateLookup );
+                    obj->resetState( stateVal, snapType );
+                    break;
+                }
+            }
+
+            if ( !restored ){
+                //We lower our standard and just use the first object with matching type, assuming
+                //we can find one.
+                for ( int j = 0; j < stateCount; j++ ){
+                    QString stateLookup = UtilState::getLookup( STATE_ARRAY, j );
+                    QString typeLookup = UtilState::getLookup(stateLookup,StateInterface::OBJECT_TYPE);
+                    QString objType = state.getValue<QString>( typeLookup );
+                    if ( objType == targetType ){
+                        restored = true;
+                        QString stateVal = state.toString( stateLookup );
+                        obj->resetState( stateVal, snapType );
+                        break;
+                    }
+                }
+            }
+            if ( !restored ){
+                qDebug() << "Unable to restore "<<targetType<<" snapType="<<snapType;
+            }
+        }
+        stateRestored = true;
+    }
+    return stateRestored;
+}
+
+
+QString ObjectManager::getStateString( const QString& sessionId, const QString& rootName, CartaObject::SnapshotType type ) const {
+    StateInterface state( rootName );
+    int stateCount = m_objects.size();
+    state.insertArray( STATE_ARRAY, stateCount );
+    int arrayIndex = 0;
+    //Create an array of object with each object having an id and state.
+    for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+        CartaObject* obj = it->second.getObject();
+        QString objState = obj->getStateString( sessionId, type );
+        if ( !objState.isEmpty() && objState.trimmed().length() > 0){
+           QString lookup = UtilState::getLookup(STATE_ARRAY, arrayIndex );
+           state.setObject( lookup, objState );
+           arrayIndex++;
+        }
+    }
+    //Because some of the objects may not support a snapshot of type,
+    //the original array that was created may be too large.  We resize
+    //it according to actual contents.
+    state.resizeArray( STATE_ARRAY, arrayIndex, StateInterface::PreserveAll );
+    return state.toString();
 }
 
 
@@ -175,17 +289,20 @@ ObjectManager::createObject (const QString & className)
     return result;
 }
 
+CartaObject* ObjectManager::removeObject( const QString& id ){
+    CartaObject * object = getObject (id);
+
+        assert (object != 0);
+
+        m_objects.erase (id);
+        return object;
+}
+
 QString
 ObjectManager::destroyObject (const QString & id)
 {
-    CartaObject * object = getObject (id);
-
-    assert (object != 0);
-
-    m_objects.erase (id);
-
+    CartaObject* object = removeObject( id );
     delete object;
-
     return "";
 }
 
@@ -194,6 +311,7 @@ ObjectManager::destroyObject (const QString & id)
 CartaObject *
 ObjectManager::getObject (const QString & id)
 {
+
     ObjectRegistry::iterator i = m_objects.find (id);
 
     CartaObject * result = 0;
@@ -203,6 +321,18 @@ ObjectManager::getObject (const QString & id)
     }
 
     return result;
+}
+
+CartaObject* ObjectManager::getObject( int index, const QString & typeStr ){
+    CartaObject* target = nullptr;
+    for( ObjectRegistry::iterator i = m_objects.begin(); i != m_objects.end(); ++i){
+        CartaObject* obj = i->second.getObject();
+        if ( obj->getIndex() == index && typeStr == obj->getType()){
+            target = obj;
+            break;
+        }
+    }
+    return target;
 }
 
 void
@@ -252,3 +382,5 @@ ExampleCartaObject::ExampleCartaObject (const QString & path, const QString & id
     //addCommandCallback (DoSomething, wrapCommandHandler (this, & ExampleCartaObject::doSomething));
 }
 
+}
+}

@@ -19,6 +19,7 @@
 #include "Nullable.h"
 #include <QString>
 #include <cstdint>
+#include <vector>
 
 
 /// description of a 1D slice

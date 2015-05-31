@@ -1,13 +1,14 @@
 #include "State/ObjectManager.h"
-
+#include "State/UtilState.h"
 #include "Data/Controller.h"
-#include "Data/Colormap.h"
+#include "Data/DataLoader.h"
+#include "Data/Colormap/Colormap.h"
 #include "Data/DataSource.h"
-#include "Data/Histogram.h"
+#include "Data/Histogram/Histogram.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
 #include "Data/RegionRectangle.h"
-#include "Data/Animator.h"
+#include "Data/Animator/Animator.h"
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
@@ -24,11 +25,11 @@ namespace Carta {
 
 namespace Data {
 
-class Controller::Factory : public CartaObjectFactory {
+class Controller::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Controller (path, id);
     }
@@ -50,15 +51,19 @@ const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 
 const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Controller::Factory());
+
+using Carta::State::UtilState;
+using Carta::State::StateInterface;
 
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
         m_selectChannel(nullptr),
         m_selectImage(nullptr),
         m_view(nullptr),
-        m_stateMouse(path + StateInterface::DELIMITER+ImageView::VIEW),
+        m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA )),
+        m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)),
         m_viewSize( 400, 400){
 
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
@@ -83,7 +88,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 
 
-void Controller::addData(const QString& fileName) {
+bool Controller::addData(const QString& fileName) {
     //Find the location of the data, if it already exists.
     int targetIndex = -1;
     for (int i = 0; i < m_datas.size(); i++) {
@@ -95,10 +100,10 @@ void Controller::addData(const QString& fileName) {
 
     //Add the data if it is not already there.
     if (targetIndex == -1) {
-        CartaObject* dataSource = Util::createObject( DataSource::CLASS_NAME );
-        DataSource* targetSource = dynamic_cast<DataSource*>(dataSource);
+        DataSource* targetSource = new DataSource();
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
+        connect( targetSource, & DataSource::saveImageResult, this, & Controller::saveImageResultCB );
         m_datas.append(targetSource);
         targetSource->viewResize( m_viewSize );
 
@@ -122,10 +127,58 @@ void Controller::addData(const QString& fileName) {
     else {
         _removeData( targetIndex );
     }
+    return successfulLoad;
 }
+
+QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
+    QString result;
+    bool clipsChanged = false;
+    if ( minIntensityPercentile < maxIntensityPercentile ){
+        const double ERROR_MARGIN = 0.0001;
+        if ( 0 <= minIntensityPercentile && minIntensityPercentile <= 1 ){
+            double oldMin = m_state.getValue<double>(CLIP_VALUE_MIN );
+            if ( qAbs(minIntensityPercentile - oldMin) > ERROR_MARGIN ){
+                m_state.setValue<double>(CLIP_VALUE_MIN, minIntensityPercentile );
+                clipsChanged = true;
+            }
+        }
+        else {
+            result = "Minimum intensity percentile invalid [0,1]: "+ QString::number( minIntensityPercentile);
+        }
+        if ( 0 <= maxIntensityPercentile && maxIntensityPercentile <= 1 ){
+            double oldMax = m_state.getValue<double>(CLIP_VALUE_MAX);
+            if ( qAbs(maxIntensityPercentile - oldMax) > ERROR_MARGIN ){
+                m_state.setValue<double>(CLIP_VALUE_MAX, maxIntensityPercentile );
+                clipsChanged = true;
+            }
+        }
+        else {
+            result = "Maximum intensity percentile invalid [0,1]: "+ QString::number( maxIntensityPercentile);
+        }
+        if( clipsChanged ){
+            m_state.flushState();
+            if ( m_view ){
+                _scheduleFrameReload();
+            }
+        }
+    }
+    else {
+        result = "The minimum percentile: "+QString::number(minIntensityPercentile)+
+                " must be less than "+QString::number(maxIntensityPercentile);
+    }
+    return result;
+}
+
 
 void Controller::clear(){
     unregisterView();
+}
+
+void Controller::_clearData(){
+    for ( DataSource* source : m_datas ){
+        delete source;
+    }
+    m_datas.clear();
 }
 
 QString Controller::closeImage( const QString& name ){
@@ -140,6 +193,7 @@ QString Controller::closeImage( const QString& name ){
     }
     if ( targetIndex >= 0 ){
         this->_removeData( targetIndex );
+        emit dataChanged( this );
     }
     else {
         result = "Could not find data to remove for name="+name;
@@ -147,23 +201,42 @@ QString Controller::closeImage( const QString& name ){
     return result;
 }
 
-NdArray::RawViewInterface *  Controller::getRawData( const QString& fileName, int channel ) const {
-    NdArray::RawViewInterface * rawData = nullptr;
-    for ( DataSource* data : m_datas ){
-        if ( data->contains( fileName )){
-            rawData = data->getRawData( channel );
-            break;
-        }
+int Controller::getChannelUpperBound() const {
+    return m_selectChannel->getUpperBound();
+}
+
+int Controller::getFrameChannel() const {
+    return m_selectChannel->getIndex();
+}
+
+bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
+    bool validIntensity = false;
+    int imageIndex = m_selectImage->getIndex();
+    if ( 0 <= imageIndex && imageIndex < m_datas.size() && percentile >= 0.0 && percentile <= 1.0 ){
+        validIntensity = m_datas[imageIndex]->getIntensity( frameLow, frameHigh, percentile, intensity );
     }
-    return rawData;
+    return validIntensity;
+}
+
+double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
+    double percentile = -1;
+    int imageIndex = m_selectImage->getIndex();
+    if ( 0 <= imageIndex && imageIndex < m_datas.size()){
+        percentile = m_datas[imageIndex]->getPercentile( frameLow, frameHigh, intensity );
+    }
+    return percentile;
 }
 
 
-
 std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
-    std::vector<std::shared_ptr<Image::ImageInterface>> images(m_datas.count());
-    for( int i=0; i<m_datas.count(); ++i ){ 
-        images[i] = m_datas[i]->getImage();
+    //For right now, we are only going to do a histogram of a single image.
+    std::vector<std::shared_ptr<Image::ImageInterface>> images;
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        int imageIndex = m_selectImage->getIndex();
+        if ( 0 <= imageIndex && imageIndex < dataCount ){
+            images.push_back( m_datas[imageIndex]->getImage());
+        }
     }
     return images;
 }
@@ -187,6 +260,15 @@ QString Controller::getImageName(int index) const{
     return name;
 }
 
+std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller::getPipeline() const {
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline(nullptr);
+    int selectImageIndex = m_selectImage->getIndex();
+    if ( 0 <= selectImageIndex && selectImageIndex < m_datas.size() ){
+        pipeline = m_datas[selectImageIndex]->getPipeline();
+    }
+    return pipeline;
+}
+
 int Controller::getStackedImageCount() const {
     return m_selectImage->getUpperBound();
 }
@@ -207,53 +289,76 @@ int Controller::getState( const QString& type, const QString& key ){
 }
 
 
-QString Controller::getStateString() const{
-    StateInterface writeState( m_state );
-    writeState.insertObject( Selection::SELECTIONS );
-    writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::CHANNEL, m_selectChannel->getStateString());
-    writeState.insertObject(Selection::SELECTIONS+StateInterface::DELIMITER + Selection::IMAGE, m_selectImage->getStateString());
-    return writeState.toString();
+QString Controller::getStateString( const QString& sessionId, SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        //Data state should include type and index for identification.
+        //Data state should include the data of all DataSources (images loaded)
+        //Data state should include DataSource that is selected
+        //Data state should include channel that is selected.
+        Carta::State::StateInterface dataState("");
+        Carta::State::CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
+        DataLoader* dataLoader = dynamic_cast<DataLoader*>(cartaObj);
+        if ( dataLoader != nullptr ){
+            QString rootDir = dataLoader->getRootDir( sessionId );
+            Carta::State::StateInterface dataStateCopy( "");
+            dataStateCopy.setState( m_stateData.toString());
+            int dataCount = dataStateCopy.getArraySize( DATA );
+            for ( int i = 0; i < dataCount; i++ ){
+                QString lookup = Carta::State::UtilState::getLookup( DATA, i );
+                QString fileName = dataStateCopy.getValue<QString>( lookup );
+                dataStateCopy.setValue<QString>( lookup,
+                        UtilState::getLookup(rootDir, fileName ));
+            }
+            dataState.setState( dataStateCopy.toString());
+            dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
+            dataState.setValue<int>(StateInterface::INDEX, getIndex());
+            dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
+            dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+            result = dataState.toString();
+        }
+    }
+    return result;
 }
 
 
+
+QString Controller::getType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getType( snapType );
+    if ( snapType == SNAPSHOT_DATA ){
+        objType = objType + Carta::State::StateInterface::STATE_DATA;
+    }
+    return objType;
+}
+
 void Controller::_initializeCallbacks(){
     //Listen for updates to the clip and reload the frame.
-
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
         std::set<QString> keys = {"clipValue"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool validClip = false;
         QString clipKey = *keys.begin();
         QString clipWithoutPercent = dataValues[clipKey].remove("%");
         double clipVal = dataValues[clipKey].toDouble(&validClip);
         if ( validClip ){
-            double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
-            double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
-            double oldClipVal = oldClipValMax - oldClipValMin;
-            const double ERROR_MARGIN = 0.000001;
-            if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
-                double leftOver = 1 - clipVal;
-                double clipValMin = leftOver / 2;
-                double clipValMax = clipVal + leftOver / 2;
-                m_state.setValue<double>( CLIP_VALUE_MIN, clipValMin );
-                m_state.setValue<double>( CLIP_VALUE_MAX, clipValMax );
-                m_state.flushState();
-                if ( m_view ){
-                    _scheduleFrameReload();
-                }
-            }
+            result = setClipValue( clipVal );
         }
         else {
-            qDebug() << "Invalid clip value: "<<params;
+            result = "Invalid clip value: "+params;
         }
-        return "";
+        Util::commandPostProcess( result );
+        return result;
     });
 
     addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"autoClip"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipKey = *keys.begin();
         bool autoClip = false;
         if ( dataValues[clipKey] == "true"){
@@ -267,8 +372,7 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
-    QString pointerPath= getPath() + StateInterface::DELIMITER + ImageView::VIEW +
-            StateInterface::DELIMITER + POINTER_MOVE;
+    QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( ImageView::VIEW, POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
@@ -286,7 +390,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) ->QString {
         std::set<QString> keys = {"image"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString imageName = dataValues[*keys.begin()];
         QString result = closeImage( imageName );
                 return result;
@@ -319,7 +423,7 @@ void Controller::_initializeCallbacks(){
         const QString TYPE( "type");
         const QString INDEX( "index");
         std::set<QString> keys = {TYPE, INDEX};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString shapePath;
         bool validIndex = false;
         int index = dataValues[INDEX].toInt( &validIndex );
@@ -359,19 +463,23 @@ void Controller::_initializeSelection( Selection* & selection ){
 void Controller::_initializeState(){
 
     //Set whether or not to auto clip
+    //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
-    m_state.insertValue<int>(DATA_COUNT, 0 );
-    m_state.insertArray(DATA, 0 );
+    m_state.flushState();
+
+    //Now the data state.
+    m_stateData.insertValue<int>(DATA_COUNT, 0 );
+    m_stateData.insertArray(DATA, 0 );
 
 
     //For testing only.
     //_makeRegion( RegionRectangle::CLASS_NAME );
     int regionCount = m_regions.size();
-    m_state.insertArray(REGIONS, regionCount );
+    m_stateData.insertArray(REGIONS, regionCount );
     //_saveRegions();
-    m_state.flushState();
+    m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
@@ -380,7 +488,6 @@ void Controller::_initializeState(){
     m_stateMouse.insertValue<int>(ImageView::MOUSE_Y, 0 );
     m_stateMouse.flushState();
 }
-
 
 void Controller::_loadView( ) {
     m_reloadFrameQueued = false;
@@ -418,8 +525,8 @@ void Controller::_loadView( ) {
 QString Controller::_makeRegion( const QString& regionType ){
     QString shapePath = Region::makeRegion( regionType );
     if ( shapePath.size() > 0 ){
-        ObjectManager* objManager = ObjectManager::objectManager();
-        CartaObject* shapeObj = objManager->getObject( shapePath );
+        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+        Carta::State::CartaObject* shapeObj = objManager->getObject( shapePath );
         shapePath = shapeObj->getPath();
         m_regions.append(dynamic_cast<Region*>(shapeObj));
 
@@ -459,25 +566,44 @@ void Controller::_repaintFrameNow(){
     m_repaintFrameQueued = false;
 }
 
+void Controller::resetStateData( const QString& state ){
+    //First we reset the data this controller is displaying
+    _clearData();
+    Carta::State::StateInterface dataState( "");
+    dataState.setState( state );
+    int dataCount = dataState.getValue<int>(DATA_COUNT);
+    for ( int i = 0; i < dataCount; i++ ){
+        QString lookup = Carta::State::UtilState::getLookup( DATA, i );
+        QString fileName = dataState.getValue<QString>( lookup );
+        this->addData( fileName );
+    }
+    //Now we need to restore the selected channel and image.
+    QString channelState = dataState.getValue<QString>( Selection::CHANNEL );
+    m_selectChannel->resetState( channelState );
+    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
+    m_selectImage ->resetState( dataStateStr );
+    //Notify others there has been a change to the data.
+    emit dataChanged( this );
+}
+
 void Controller::saveState() {
     bool stateChanged = false;
     int dataCount = m_datas.size();
-    int oldDataCount = m_state.getValue<int>(DATA_COUNT );
+    int oldDataCount = m_stateData.getValue<int>(DATA_COUNT );
     if ( oldDataCount != dataCount ){
         stateChanged = true;
-        m_state.setValue<int>( DATA_COUNT, dataCount );
+        m_stateData.setValue<int>( DATA_COUNT, dataCount );
         //Insert the names of the data items for display purposes.
-        m_state.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
+        m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
         for (int i = 0; i < dataCount; i++) {
-            m_datas[i]->saveState(/*m_winId, i*/);
             QString imageViewName = m_datas[i]->getImageViewName();
-            QString dataKey = DATA + StateInterface::DELIMITER +QString::number(i);
+            QString dataKey = UtilState::getLookup( DATA, i);
             QString oldViewName;
             if ( i < oldDataCount ){
-                oldViewName = m_state.getValue<QString>(dataKey);
+                oldViewName = m_stateData.getValue<QString>(dataKey);
             }
             if ( imageViewName != oldViewName ){
-                m_state.setValue<QString>( dataKey, imageViewName );
+                m_stateData.setValue<QString>( dataKey, imageViewName );
             }
         }
     }
@@ -485,19 +611,33 @@ void Controller::saveState() {
     m_state.resizeArray( REGIONS, regionCount );
     _saveRegions();*/
     if ( stateChanged ){
-        m_state.flushState();
+        m_stateData.flushState();
     }
+}
+
+bool Controller::saveImage( const QString& filename ) {
+    bool result = m_view->getBuffer().save( filename);
+    return result;
+}
+
+void Controller::saveFullImage( const QString& filename, double scale ) {
+    int imageIndex = m_selectImage->getIndex();
+    m_datas[imageIndex]->saveFullImage( filename, scale );
+}
+
+void Controller::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
 }
 
 void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){
-        QString arrayStr = REGIONS + StateInterface::DELIMITER + QString::number(i);
+        QString arrayStr = UtilState::getLookup( REGIONS, i);
         QString regionType= m_regions[i]->getType();
         QString regionId = m_regions[i]->getPath();
         m_state.setObject( arrayStr );
-        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "type", regionType );
-        m_state.insertValue<QString>( arrayStr + StateInterface::DELIMITER + "id", regionId );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionType );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "id"), regionId );
     }
 }
 
@@ -554,45 +694,32 @@ void Controller::setColorAmounts( double newRed, double newGreen, double newBlue
     _render();
 }
 
-void Controller::setPixelCaching( bool enabled ){
-    if ( m_datas.size() > 0 ){
-        for ( DataSource* data : m_datas ){
-            data->setPixelCaching( enabled );
-        }
-    }
-}
-
-void Controller::setCacheInterpolation( bool enabled ){
-    if ( m_datas.size() > 0 ){
-        for ( DataSource* data : m_datas ){
-            data->setCacheInterpolation( enabled );
-        }
-    }
-}
-
-void Controller::setCacheSize( int size ){
-    if ( m_datas.size() > 0 ){
-        for ( DataSource* data : m_datas ){
-            data->setCacheSize( size );
-        }
-    }
-}
 
 
-void Controller::setFrameChannel(const QString& val) {
+void Controller::setFrameChannel(int value) {
     if (m_selectChannel != nullptr) {
-        m_selectChannel->setIndex(val);
+        int oldIndex = m_selectChannel->getIndex();
+        if ( value != oldIndex ){
+            m_selectChannel->setIndex(value);
+            _updateCursorText( true );
+            emit channelChanged( this );
+        }
     }
 }
 
-void Controller::setFrameImage(const QString& val) {
+void Controller::setFrameImage( int val) {
     if (m_selectImage != nullptr) {
-        m_selectImage->setIndex(val);
-    }
-    int imageIndex = m_selectImage->getIndex();
-    if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
-        int upperBound = m_datas[imageIndex]->getFrameCount();
-        m_selectChannel->setUpperBound( upperBound );
+        int oldIndex = m_selectImage->getIndex();
+        if ( oldIndex != val ){
+            m_selectImage->setIndex(val);
+            int imageIndex = m_selectImage->getIndex();
+            if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
+                int upperBound = m_datas[imageIndex]->getFrameCount();
+                m_selectChannel->setUpperBound( upperBound );
+            }
+            _updateCursorText( true );
+            emit dataChanged( this );
+        }
     }
 }
 
@@ -602,6 +729,8 @@ void Controller::setGamma( double gamma ){
     }
     _render();
 }
+
+
 
 void Controller::setTransformData( const QString& name ){
     for ( DataSource* data : m_datas ){
@@ -618,17 +747,23 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
     int oldMouseX = m_stateMouse.getValue<int>( ImageView::MOUSE_X );
     int oldMouseY = m_stateMouse.getValue<int>( ImageView::MOUSE_Y );
     if ( oldMouseX != mouseX || oldMouseY != mouseY ){
-        QSize imageSize = m_view->size();
-        int pictureWidth = imageSize.width();
-        int pictureHeight = imageSize.height();
-        QString formattedCursor;
-        int imageIndex = m_selectImage->getIndex();
-        int frameIndex = m_selectChannel->getIndex();
-        QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex, pictureWidth, pictureHeight);
-        if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
-            m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
-            m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
-            m_stateMouse.setValue<QString>( CURSOR, cursorText );
+        m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
+        m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
+        _updateCursorText( false );
+        m_stateMouse.flushState();
+    }
+}
+
+void Controller::_updateCursorText(bool notifyClients ){
+    QString formattedCursor;
+    int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
+    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
+    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
+    QString cursorText = m_datas[imageIndex]->getCursorText( mouseX, mouseY,frameIndex);
+    if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
+        m_stateMouse.setValue<QString>( CURSOR, cursorText );
+        if ( notifyClients ){
             m_stateMouse.flushState();
         }
     }
@@ -677,14 +812,99 @@ void Controller::updatePan( double centerX , double centerY){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         bool validImage = false;
-        QPointF newCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
+        QPointF oldImageCenter = m_datas[imageIndex]-> getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
             for ( DataSource* data : m_datas ){
-                data->setPan( newCenter.x(), newCenter.y() );
+                data->setPan( oldImageCenter.x(), oldImageCenter.y() );
             }
             _render();
+            _updateCursorText( true );
         }
     }
+}
+
+void Controller::centerOnPixel( double centerX, double centerY ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        // Currently (0, 0) is at the top left of the image. We want it to be the
+        // bottom left, so we need to flip the y-coordinate.
+        int yDimension = m_datas[imageIndex]->getDimension( 1 );
+        m_datas[imageIndex]->setPan( centerX, yDimension - centerY );
+        _render();
+    }
+}
+
+void Controller::setZoomLevel( double zoomFactor ){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        //Set the zoom
+        m_datas[imageIndex]->setZoom( zoomFactor );
+        _render();
+    }
+}
+
+double Controller::getZoomLevel( ){
+    double zoom;
+    QString result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        zoom = m_datas[imageIndex]->getZoom( );
+        _render();
+    }
+    return zoom;
+}
+
+QStringList Controller::getImageDimensions( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        int dimensions = m_datas[imageIndex]->getDimensions();
+        for ( int i = 0; i < dimensions; i++ ) {
+            int d = m_datas[imageIndex]->getDimension( i );
+            result.append( QString::number( d ) );
+        }
+    }
+    return result;
+}
+
+QStringList Controller::getOutputSize( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        QSize outputSize = m_datas[imageIndex]->getOutputSize();
+        result.append( QString::number( outputSize.width() ) );
+        result.append( QString::number( outputSize.height() ) );
+    }
+    return result;
+}
+
+QString Controller::setClipValue( double clipVal  ) {
+    QString result;
+    if ( 0 <= clipVal && clipVal < 1 ){
+        double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
+        double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
+        double oldClipVal = oldClipValMax - oldClipValMin;
+        const double ERROR_MARGIN = 0.000001;
+        if ( qAbs( clipVal - oldClipVal) >= ERROR_MARGIN ){
+            double leftOver = 1 - clipVal;
+            double clipValMin = leftOver / 2;
+            double clipValMax = clipVal + leftOver / 2;
+            result = applyClips (clipValMin, clipValMax );
+        }
+    }
+    else {
+        result = "Clip value must be in [0,1).";
+    }
+    return result;
+}
+
+QStringList Controller::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelCoordinates( ra, dec );
+    }
+    return result;
 }
 
 void Controller::_viewResize( const QSize& newSize ){
@@ -697,7 +917,7 @@ void Controller::_viewResize( const QSize& newSize ){
 
 Controller::~Controller(){
     clear();
-    ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     if ( m_selectChannel != nullptr){
         objMan->destroyObject(m_selectChannel->getId());
         m_selectChannel = nullptr;
@@ -706,10 +926,8 @@ Controller::~Controller(){
         objMan->destroyObject( m_selectImage->getId());
         m_selectImage = nullptr;
     }
-    for ( DataSource* source : m_datas ){
-        objMan->destroyObject( source->getId());
-    }
-    m_datas.clear();
+    _clearData();
+
 
     for ( Region* region : m_regions ){
         objMan->destroyObject( region->getId());

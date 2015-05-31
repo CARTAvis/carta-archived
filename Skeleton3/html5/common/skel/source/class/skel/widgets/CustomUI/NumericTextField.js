@@ -16,7 +16,8 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             this.base(arguments);
             this.m_minValue = minValue;
             this.m_maxValue = maxValue;
-            this.m_text = new qx.ui.form.TextField();
+            this.m_text = new skel.widgets.CustomUI.ErrorTextField();
+            this.m_textChangedValue = false;
             this.setIntegerOnly( true );
             //Only set the value in the textfield if it passes numeric validation.
 
@@ -32,12 +33,25 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                     }
                 }
             }, this );
-            this.m_text.addListener( "input", function( evt){
-                this.setValue( this.m_text.getValue());
+            this.m_text.addListener( "keypress", function( evt){
+                var enterKey = false;
+                if ( evt.getKeyIdentifier().toLowerCase() =="enter"){
+                    enterKey = true;
+                }
+                var textVal = this.m_text.getValue();
+                this.setValueFire( textVal, enterKey );
+            }, this );
+            
+            this.m_text.addListener( "focusout", function( evt ){
+                if ( this.m_textChangedValue ){
+                    var textVal = this.m_text.getValue();
+                    this.fireDataEvent( "textChanged", textVal );
+                    this.m_textChangedValue = false;
+                }
             }, this );
 
-            //Range validation when field loses focus
-            this.m_text.addListener( "changeValue", function( evt ){
+            //Range validation when field changes value
+            this.m_text.addListener( skel.widgets.Path.CHANGE_VALUE, function( evt ){
                 var numValue = this.getValue();
                 this._checkValue( numValue );
             }, this );
@@ -60,13 +74,22 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             _checkValue: function ( num ) {
                 var valid = false;
                 var validRange = this._isValidRange( num );
-                if ( validRange ){
-                   this._clearWarning();
+                if ( validRange && !this.m_text.isError()){
+                   this.clearWarning();
                    valid = true;
                 }
-                else {
-                    var warningText = "Range error:"+num +" is not in ["+this.m_minValue+","+this.m_maxValue+"]";
-                    this._postWarning(warningText);
+                else if (!validRange ){
+                    var warningText = "Range error:"+num;
+                    if ( this.m_minValue !== null ){
+                        warningText = warningText +" is not at least "+this.m_minValue;
+                    }
+                    if ( this.m_maxValue !== null ){
+                        if ( this.m_minValue !== null ){
+                            warningText = warningText + " and ";
+                        }
+                        warningText = warningText + " at most "+this.m_maxValue;
+                    }
+                    this.postWarning(warningText);
                 }
                 return valid;
             },
@@ -74,10 +97,11 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             /**
              * Remove the invalid value warning.
              */
-            _clearWarning : function(){
+            clearWarning : function(){
                 if ( this.indexOf( this.m_warning) >= 0 ){
                     this.remove( this.m_warning);
                 }
+                this.m_text.setError( false );
             },
             
             /**
@@ -86,11 +110,19 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
              */
             getValue : function(){
                 var valueStr = this.m_text.getValue();
-                var num = NaN;
+                var num = null;
                 if ( valueStr !== null ){
                    num = parseFloat(valueStr);
                 }
                 return num;
+            },
+            
+            /**
+             * Returns whether or not there is an error in the text field.
+             * @return {boolean} true if there is an error; false otherwise.
+             */
+            isError : function(){
+                return this.m_text.isError();
             },
             
             /**
@@ -154,13 +186,21 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
              * Add a warning to the display.
              * @param warningStr {String} the contents of the warning.
              */
-            _postWarning : function( warningStr ){
+            postWarning : function( warningStr ){
                 this.remove( this.m_text );
                 if ( this.indexOf( this.m_warning) == -1 ){
                     this.add( this.m_warning);
                 }
                 this.m_warning.setValue( warningStr );
                 this.add( this.m_text);
+            },
+            
+            /**
+             * Set or clear the error status of the textfield.
+             * @param inError {boolean} true if the there are no errors; false otherwise.
+             */
+            setError : function( inError ){
+                this.m_text.setError( inError );
             },
             
             /**
@@ -222,9 +262,23 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                 this._setValidValue( val );
             },
             
+            setValueFire : function( val, fireEvent ){
+                if ( this._isValidValue( val )){
+                    this.m_text.setValue( val.toString());
+                    if ( fireEvent ){
+                        this.fireDataEvent( "textChanged", val);
+                        this.m_textChangedValue = false;
+                    }
+                    else {
+                        this.m_textChangedValue = true;
+                    }
+                }
+            },
+            
             m_minValue : null,
             m_maxValue : null,
             m_text : null,
+            m_textChangedValue : null,
             m_acceptFloat : false,
             m_warning : null
         }

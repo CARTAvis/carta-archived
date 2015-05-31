@@ -12,66 +12,73 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
 
     construct : function(  ) {
         this.base(arguments);
+        this._init( );
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVarUnit = this.m_connector.getSharedVar(path.CHANNEL_UNITS);
+            this.m_sharedVarUnit.addCB(this._unitsChangedCB.bind(this));
         }
-        this._init( );
+        this._unitsChangedCB();
     },
     
     statics : {
         CMD_SET_PLANE_MODE : "setPlaneMode",
         CMD_SET_RANGE : "setPlaneRange",
-        CMD_SET_PLANE : "setPlaneSingle",
-        CHANGE_VALUE : "changeValue"
+        CMD_SET_PLANE : "setPlaneSingle"
     },
 
     members : {
 
         /**
-         * Callback for a server error when setting the plane mode.
+         * Callback for a server error when setting the plane range maximum value.
          * @param anObject {skel.widgets.Histogram.HistogramCube}.
          */
-        _errorPlaneModeCB :function( anObject ){
-            return function( planeMode ){
-                if ( planeMode ){
-                    anObject.setPlaneMode( planeMode );
+        _errorPlaneRangeMaxCB : function( anObject){
+            return function( msg ){
+                if ( msg !== null && msg.length > 0 ){
+                    anObject.m_rangeMaxText.setError( true );
+                }
+                else {
+                    this._clearErrors( anObject.m_rangeMaxText );
                 }
             };
         },
         
         /**
-         * Callback for a server error when setting the plane range.
+         * Callback for a server error when setting the plane range minimum value.
          * @param anObject {skel.widgets.Histogram.HistogramCube}.
          */
-        _errorPlaneRangeCB : function( anObject ){
-            return function( range ){
-                if ( range ){
-                    var rangeArray = range.split( ",");
-                    var min = parseInt(rangeArray[0]);
-                    var max = parseInt( rangeArray[1]);
-                    anObject.setPlaneBounds( min, max );
+        _errorPlaneRangeMinCB : function( anObject){
+            return function( msg ){
+                if ( msg !== null && msg.length > 0 ){
+                    anObject.m_rangeMinText.setError( true );
+                }
+                else {
+                    this._clearErrors( anObject.m_rangeMinText );
                 }
             };
         },
         
         /**
-         * Callback for a server error when setting a single plane.
-         * @param anObject {skel.widgets.Histogram.HistogramCube}.
+         * Clear the error indicators from the widget.
+         * @param widget {skel.widgets.CustomUI.NumericTextField}.
          */
-        _errorSinglePlaneCB : function( anObject ){
-            return function( plane ){
-                if ( plane ){
-                    var planeInt = parseInt( plane );
-                    anObject.setSelectedPlane( planeInt );
-                }
-            };
+        _clearErrors : function( widget ){
+            var oldError = widget.isError();
+            if ( oldError ){
+                widget.setError( false );
+                var errorMan = skel.widgets.ErrorHandler.getInstance();
+                errorMan.clearErrors();
+            }
         },
+        
         
         /**
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.VBox(2);
+            var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
             this._initPlane();
         },
@@ -82,87 +89,148 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          */
         _initPlane : function(){
             
+            var planeContainer = new qx.ui.groupbox.GroupBox("Channel", "");
+            planeContainer.setContentPadding(1,1,1,1);
+            var boxLayout = new qx.ui.layout.VBox(1);
+            planeContainer.setLayout( boxLayout );
+            this._add( planeContainer );
+            
+            //All
             this.m_planeAll = new qx.ui.form.RadioButton( "All");
-            this.m_planeAll.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, function(){
+            this.m_planeAll.setToolTipText( "Compute based on the entire image.");
+            this.m_planeAll.addListener( skel.widgets.Path.CHANGE_VALUE, 
+            function(){
                 if ( this.m_planeAll.getValue() ){
-                    this._planeModeChanged();
+                    this._planeModeChanged( this.m_planeAll.getLabel());
                 }
             }, this );
-            this._add( this.m_planeAll );
+            planeContainer.add( this.m_planeAll );
             
-            var singleComposite = new qx.ui.container.Composite();
-            singleComposite.setLayout(new qx.ui.layout.HBox(2));
-            this.m_planeSingle = new qx.ui.form.RadioButton( "Single");
-            singleComposite.add( this.m_planeSingle );
-            this.m_singlePlaneText = new skel.widgets.CustomUI.NumericTextField( 0, null);
-            this.m_singlePlaneText.setIntegerOnly( true );
-            this.m_singlePlaneText.addListener( "textChanged", this._sendChangeSinglePlaneCmd, this );
-            singleComposite.add( this.m_singlePlaneText );
-            this.m_planeSingle.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, function(){
-                if ( this.m_planeSingle.getValue()){
-                    this._planeModeChanged();
-                }
-            }, this );
+            //Current plane
+            this.m_planeSingle = new qx.ui.form.RadioButton( "Current");
+            this.m_planeSingle.setToolTipText( "Compute based on the current channel (Animator must be linked).");
+            this.m_planeSingle.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    function(){
+                        if ( this.m_planeSingle.getValue() ){
+                            this._planeModeChanged( this.m_planeSingle.getLabel());
+                        }
+                    }, this );
+            planeContainer.add( this.m_planeSingle);
             
+            //Range
             var rangeComposite = new qx.ui.container.Composite();
             rangeComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_planeRange = new qx.ui.form.RadioButton( "Range");
+            this.m_planeRange.setToolTipText( "Compute based on a range of frequencies.");
+            this.m_planeRange.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    function(){
+                        var planeChecked = this.m_planeRange.getValue();
+                        if ( planeChecked ){
+                            this._planeModeChanged( this.m_planeRange.getLabel());
+                        }
+                        this.m_rangeMinText.setEnabled( planeChecked );
+                        this.m_rangeMaxText.setEnabled( planeChecked );
+                        this.m_unitCombo.setEnabled( planeChecked );
+                    }, this );
             rangeComposite.add( this.m_planeRange );
-            this.m_rangeMinSpin = new qx.ui.form.Spinner();
-            this.m_rangeMinSpin.setMinimum( 0 );
-            this.m_rangeMinSpin.setMaximum( 1000000 );
-            this.m_rangeMinSpin.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, this._sendChangeBoundsCmd, this);
-            rangeComposite.add( this.m_rangeMinSpin );
-            var rangeLabel = new qx.ui.basic.Label( "<->");
-            rangeComposite.add( rangeLabel );
-            this.m_rangeMaxSpin = new qx.ui.form.Spinner();
-            this.m_rangeMaxSpin.setMinimum( 0 );
-            this.m_rangeMaxSpin.setMaximum( 1000000 );
-            this.m_rangeMaxSpin.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, this._sendChangeBoundsCmd, this);
-            rangeComposite.add( this.m_rangeMaxSpin );
-            this.m_planeRange.addListener( skel.widgets.Histogram.HistogramCube.CHANGE_VALUE, function(){
-                if ( this.m_planeRange.getValue() ){
-                    this._planeModeChanged();
+            this.m_unitCombo = new qx.ui.form.ComboBox();
+            this.m_unitCombo.setToolTipText( "Select units for cube range.");
+            this.m_unitCombo.setEnabled( false );
+            this.m_unitCombo.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
+                if ( this.m_id !== null ){
+                    var unitName = e.getData();
+                    //Send a command to the server to let them know the frequency unit changed.
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + "setCubeRangeUnit";
+                    var params = "rangeUnit:"+unitName;
+                    this.m_connector.sendCommand( cmd, params, function(){});
                 }
+            },this);
+            rangeComposite.add( this.m_unitCombo );
+            
+            var minContainer = new qx.ui.container.Composite();
+            minContainer.setLayout( new qx.ui.layout.HBox(2));
+            var minLabel = new qx.ui.basic.Label( "Min:");
+            this.m_rangeMinText = new skel.widgets.CustomUI.NumericTextField(0, null);
+            this.m_rangeMinText.setEnabled( false );
+            this.m_rangeMinText.setIntegerOnly( false );
+            this.m_rangeMinText.setToolTipText( "Smallest frequency in range.");
+            minContainer.add( new qx.ui.core.Spacer(15) );
+            minContainer.add( minLabel );
+            minContainer.add(this.m_rangeMinText );
+            this.m_minListenerId = this.m_rangeMinText.addListener( "textChanged",function(){
+                this._minRangeChanged();
             }, this );
-                
-            //The value of the max spinner is the maximum value for the min spinner.
-            this.m_rangeMaxSpin.bind( "value", this.m_rangeMinSpin, "maximum");
-            //The value of the min spinner is the minimum value for the max spinner.
-            this.m_rangeMinSpin.bind( "value", this.m_rangeMaxSpin, "minimum");
+            
+            var maxContainer = new qx.ui.container.Composite();
+            maxContainer.setLayout( new qx.ui.layout.HBox(2));
+            var maxLabel = new qx.ui.basic.Label( "Max:");
+            this.m_rangeMaxText = new skel.widgets.CustomUI.NumericTextField(0, null);
+            this.m_rangeMaxText.setToolTipText( "Largest frequency in range.");
+            this.m_rangeMaxText.setEnabled( false );
+            this.m_rangeMaxText.setIntegerOnly( false );
+            this.m_maxListenerId = this.m_rangeMaxText.addListener( "textChanged", function(){
+                this._maxRangeChanged();
+            }, this );
+            
+            maxContainer.add( new qx.ui.core.Spacer(15));
+            maxContainer.add( maxLabel );
+            maxContainer.add( this.m_rangeMaxText );
             
             var radGroup = new qx.ui.form.RadioGroup();
             radGroup.add(this.m_planeAll, this.m_planeSingle, this.m_planeRange );
-            this._add( singleComposite );
-            this._add( rangeComposite );
-
+            planeContainer.add( rangeComposite );
+            planeContainer.add( minContainer );
+            planeContainer.add( maxContainer );
+        },
+        
+        /**
+         * Callback for a change in the maximum plane range.
+         */
+        _maxRangeChanged : function(){
+            var value = this.m_rangeMaxText.getValue();
+            var min = this.m_rangeMinText.getValue();
+            if ( value >= min ){
+                var cb = this._errorPlaneRangeMaxCB(this);
+                this._clearErrors( this.m_rangeMaxText );
+                this._sendChangeBoundsCmd( cb );
+            }
+            else {
+                this.m_rangeMaxText.setError( true );
+                var errorMan = skel.widgets.ErrorHandler.getInstance();
+                errorMan.updateErrors( "Minimum range "+min+" must be less than maximimum: "+value);
+            }
+        },
+        
+        
+        /**
+         * Callback for a change in the minimum plane range.
+         */
+        _minRangeChanged : function(){
+            var value = this.m_rangeMinText.getValue();
+            var max = this.m_rangeMaxText.getValue();
+            if ( value <= max ){
+                var cb = this._errorPlaneRangeMinCB(this);
+                this._clearErrors( this.m_rangeMinText );
+                this._sendChangeBoundsCmd( cb );
+            }
+            else {
+                this.m_rangeMinText.setError( true );
+                var errorMan = skel.widgets.ErrorHandler.getInstance();
+                errorMan.updateErrors( "Minimum range "+value+" must be less than  "+max);
+            }
         },
         
         /**
          * Notify the server that the histogram's plane settings have changed.
          */
-        _planeModeChanged : function(){
-            var enableSingle = this.m_planeSingle.getValue();
-            this.m_singlePlaneText.setEnabled( enableSingle );
-            var enableRange = this.m_planeRange.getValue();
-            this.m_rangeMinSpin.setEnabled( enableRange );
-            this.m_rangeMaxSpin.setEnabled( enableRange );
+        _planeModeChanged : function( mode ){
             if ( this.m_id !== null ){
-                var mode = null;
-                if ( enableSingle ){
-                    mode = this.m_planeSingle.getLabel();
-                }
-                else if ( enableRange ){
-                    mode = this.m_planeRange.getLabel();
-                }
-                else if ( this.m_planeAll.getValue()){
-                    mode = this.m_planeAll.getLabel();
-                }
                 if ( mode !== null && this.m_connector !== null){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_PLANE_MODE;
                     var params = "planeMode:"+mode;
-                    this.m_connector.sendCommand( cmd, params, this._errorPlaneModeCB( this ));
+                    this.m_connector.sendCommand( cmd, params, function(){});
                 }
             }
         },
@@ -171,26 +239,15 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          * Notify the server that the upper and/or lower bound of planes
          * has changed.
          */
-        _sendChangeBoundsCmd : function(){
+        _sendChangeBoundsCmd : function(cb){
             if ( this.m_connector !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_RANGE;
-                var params = "planeMin:"+this.m_rangeMinSpin.getValue()+",planeMax:"+this.m_rangeMaxSpin.getValue();
-                this.m_connector.sendCommand( cmd, params, this._errorPlaneRangeCB(this));
+                var params = "planeMin:"+this.m_rangeMinText.getValue()+",planeMax:"+this.m_rangeMaxText.getValue();
+                this.m_connector.sendCommand( cmd, params, cb);
             }
         },
         
-        /**
-         * Notify the server that the selected single plane has changed.
-         */
-        _sendChangeSinglePlaneCmd : function(){
-            if ( this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Histogram.HistogramCube.CMD_SET_PLANE;
-                var params = "selectedPlane:"+this.m_singlePlaneText.getValue();
-                this.m_connector.sendCommand( cmd, params, this._errorSinglePlaneCB(this));
-            }
-        },
         
         /**
          * Set a range of planes to use in computing the histogram.
@@ -198,26 +255,22 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          * @param planeMax {number} an upper {inclusive} bound for the planes.
          */
         setPlaneBounds : function( planeMin, planeMax ){
-            if ( planeMin <= planeMax ){
-                if ( this.m_rangeMinSpin.getValue() != planeMin ){
-                    this.m_rangeMinSpin.setValue( planeMin );
+            if ( 0<=planeMin && planeMin<= planeMax ){
+                this.m_rangeMinText.removeListenerById( this.m_minListenerId );
+                this.m_rangeMaxText.removeListenerById( this.m_maxListenerId );
+                if ( this.m_rangeMinText.getValue() != planeMin ){
+                    this.m_rangeMinText.setValue( planeMin );
                 }
-                if ( this.m_rangeMaxSpin.getValue() != planeMax ){
-                    this.m_rangeMaxSpin.setValue( planeMax );
+                if ( this.m_rangeMaxText.getValue() != planeMax ){
+                    this.m_rangeMaxText.setValue( planeMax );
                 }
+                this.m_minListenerId =this.m_rangeMinText.addListener( "textChanged", 
+                        this._minRangeChanged, this);
+                this.m_maxListenerId =this.m_rangeMaxText.addListener( "textChanged", 
+                        this._maxRangeChanged, this);
             }
         },
         
-        /**
-         * Set the index of the single plane for computing the histogram.
-         * @param selectedPlane {Number} the index of the plane used to compute the histogram.
-         */
-        setSelectedPlane : function ( selectedPlane ){
-            var plainTextValue = this.m_singlePlaneText.getValue();
-            if ( plainTextValue != selectedPlane ){
-                this.m_singlePlaneText.setValue( selectedPlane );
-            }
-        },
         
         /**
          * Set whether or not this histogram is of a single plane, range of planes, or
@@ -241,9 +294,10 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
                 }
             }
             else {
-                console.log( "Unrecognized plane mode: "+mode );
+                console.log( "Unrecognized plane mode"+mode);
             }
         },
+        
         
         /**
          * Set the server side id of this histogram.
@@ -253,13 +307,73 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             this.m_id = id;
         },
         
+        /**
+         * Updates the channel units change on the server.
+         */
+        _unitsChangedCB : function(){
+            if ( this.m_sharedVarUnit ){
+                var val = this.m_sharedVarUnit.get();
+                if ( val ){
+                    try {
+                        var oldUnit = this.m_unitCombo.getValue();
+                        var units = JSON.parse( val );
+                        var unitsCount = units.channelUnitCount;
+                        this.m_unitCombo.removeAll();
+                        for ( var i = 0; i < unitsCount; i++ ){
+                            var unitName = units.channelUnitList[i];
+                            var tempItem = new qx.ui.form.ListItem( unitName );
+                            this.m_unitCombo.add( tempItem );
+                        }
+                        //Try to reset the old selection
+                        if ( oldUnit !== null ){
+                            this.m_dataCombo.setValue( oldUnit );
+                        }
+                        //Select the first item
+                        else if ( unitsCount > 0 ){
+                            var selectables = this.m_unitCombo.getChildrenContainer().getSelectables(true);
+                            if ( selectables.length > 0 ){
+                                this.m_unitCombo.setValue( selectables[0].getLabel());
+                            }
+                        }
+                    }
+                    catch( err ){
+                        console.log( "Could not parse cube units: "+val );
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Set the channel unit used to specify a channel range.
+         * @param unit {String} the new channel range unit.
+         */
+        setUnit : function( unit ){
+            var selectables = this.m_unitCombo.getChildrenContainer().getSelectables(true);
+            for ( var i = 0; i < selectables.length; i++ ){
+                if ( selectables[i].getLabel() === unit ){
+                    this.m_unitCombo.setValue( selectables[i].getLabel());
+                    break;
+                }
+            }
+        },
+        
         m_id : null,
         m_connector : null,
+        m_sharedVarUnit : null,
+        m_minListenerId : null,
+        m_maxListenerId : null,
         m_planeAll : null,
         m_planeSingle : null,
         m_planeRange : null,
-        m_singlePlaneText : null,
-        m_rangeMinSpin : null,
-        m_rangeMaxSpin : null
+        m_rangeMinText : null,
+        m_rangeMaxText : null,
+        m_unitCombo : null
+    },
+    
+    properties : {
+        appearance : {
+            refine : true,
+            init : "internal-area"
+        }
     }
 });

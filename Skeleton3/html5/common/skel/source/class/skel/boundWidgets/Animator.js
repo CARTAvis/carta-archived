@@ -28,7 +28,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
      */
     construct : function(title,  winId) {
         this.base(arguments);
-
         this.m_title = title;
         this.m_winId = winId;
 
@@ -45,14 +44,16 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _animationCB : function( ){
             var val = this.m_sharedVar.get();
-            try {
-                var animObj = JSON.parse( val );
-                this._endBehaviorCB( animObj.endBehavior );
-                this._frameStepCB( animObj.frameStep );
-                this._frameRateCB( animObj.frameRate );
-            }
-            catch( err ){
-                console.log( "Could not parse: "+val );
+            if ( val ){
+                try {
+                    var animObj = JSON.parse( val );
+                    this._endBehaviorCB( animObj.endBehavior );
+                    this._frameStepCB( animObj.frameStep );
+                    this._frameRateCB( animObj.frameRate );
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val );
+                }
             }
         },
         
@@ -291,10 +292,13 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
-            this.m_indexText = new qx.ui.form.TextField();
+            
+            this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
+            this.m_indexText.setIntegerOnly( true );
             this.m_indexText.setToolTipText( "Set the current value.");
+            this.m_indexText.setTextId( this.m_title +"IndexText");
             this.m_indexText.setValue( "0");
-            this.m_indexText.addListener("input", function(e) {
+            this.m_indexText.addListener("textChanged", function(e) {
                 var value = this.m_indexText.getValue();
                 var valueInt = parseInt(value);
                 if (!isNaN(valueInt)) {
@@ -319,7 +323,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             });
             var settingsCheck = new qx.ui.form.CheckBox("Settings...");
             settingsCheck.setToolTipText( "Show additional animator settings.");
-            settingsCheck.addListener("changeValue", function() {
+            settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 this._minMaxSettings(settingsCheck.getValue());
             }, this);
             locationComposite.add(settingsCheck);
@@ -332,7 +336,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _initSettings : function() {
             this.m_endWrapRadio = new qx.ui.form.RadioButton("Wrap");
             this.m_endWrapRadio.setToolTipText( "Wrap around when reaching an end value.");
-            this.m_endWrapRadio.addListener("changeValue", function() {
+            this.m_endWrapRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endWrapRadio.getValue()) {
                     this._sendEndBehavior(this.m_endWrapRadio.getLabel());
                 }
@@ -340,7 +344,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
             this.m_endReverseRadio.setToolTipText( "Change direction when reaching an end value.");
-            this.m_endReverseRadio.addListener("changeValue", function() {
+            this.m_endReverseRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endReverseRadio.getValue()) {
                     this._sendEndBehavior(this.m_endReverseRadio.getLabel());
                 }
@@ -348,7 +352,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
             this.m_endJumpRadio.setToolTipText( "Move from one end to the other end.");
-            this.m_endJumpRadio.addListener("changeValue", function() {
+            this.m_endJumpRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endJumpRadio.getValue()) {
                     this._sendEndBehavior(this.m_endJumpRadio.getLabel());
                 }
@@ -361,16 +365,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_speedSpinBox = new qx.ui.form.Spinner(1, 10, 100);
             this.m_speedSpinBox.setToolTipText( "Set the speed of the animation.");
 
-            this.m_speedSpinBox.addListener("changeValue", function() {
+            this.m_speedSpinBox.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 this._setTimerSpeed();
                 this._sendFrameRate();
             }, this);
             var stepLabel = new qx.ui.basic.Label("Step:");
             this.m_stepSpin = new qx.ui.form.Spinner(1, 1, 100);
             this.m_stepSpin.setToolTipText( "Set the step increment.");
-            //this.bind("frameUpperBound", this.m_stepSpin, "maximum");
             this.m_stepSpin.bind("value", this, "frameStep");
-            this.m_stepSpin.addListener( "changeValue", function(){
+            this.m_stepSpin.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 this._sendFrameStep();
             });
 
@@ -421,7 +424,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             //Kick off a command to get frame index, lower bound, and upper bound.
             var pathDict = skel.widgets.Path.getInstance();
            
-            var regCmd = this.m_animId + pathDict.SEP_COMMAND + "getSelection";
+            var regCmd = this.m_animId +pathDict.SEP_COMMAND + "getSelection";
             this.m_connector.sendCommand( regCmd, "", this._selectionCB(this));
         },
         
@@ -436,7 +439,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_lowBoundsSpinner = new qx.ui.form.Spinner(0, 0, 100);
             this.m_lowBoundsSpinner.setToolTipText( "Set a lower bound for valid values.");
             this.m_slider = new qx.ui.form.Slider();
-            this.m_slider.addListener("changeValue", function() {
+            this.m_slider.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_inUpdateState) {
                     return;
                 }
@@ -446,6 +449,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
+            skel.widgets.TestID.addTestId( this.m_highBoundsSpinner, this.m_title+"UpperBoundSpin");
             this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();
             sliderComposite.setLayout(new qx.ui.layout.HBox(5));
@@ -491,6 +495,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             var stepButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-next-frame16.png");
+            skel.widgets.TestID.addTestId( stepButton, this.m_title +"TapeDeckIncrement");
             stepButton.addListener("execute", this._incrementValue, this);
             stepButton.setToolTipText( "Increase by one step value.");
 
@@ -591,7 +596,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             return function( id ){
                 anObject.m_sharedVarSelection = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVarSelection.addCB( anObject._selectionResetCB.bind( anObject ));
-                anObject._selectionResetCB( anObject.m_sharedVarSelection.get());
+                anObject._selectionResetCB();
             };
         },
         
@@ -599,20 +604,23 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Callback for a change in the selection.
          * @param val {String} the JSON representing the animation selection.
          */
-        _selectionResetCB : function( val ){
-            if ( val ){
-                if ( this._frameCB ){
-                    try {
-                        var frameObj = JSON.parse( val );
-                        this.m_frame = frameObj.frame;
-                        this.m_frameLow = frameObj.frameStart;
-                        this.m_frameHigh = frameObj.frameEnd;
-                        this._frameStartCB();
-                        this._frameEndCB( );
-                        this._frameCB( );
-                    }
-                    catch( err ){
-                        console.log( "Could not parse: "+val );
+        _selectionResetCB : function(){
+            if ( this.m_sharedVarSelection !== null ){
+                var val = this.m_sharedVarSelection.get();
+                if ( val ){
+                    if ( this._frameCB ){
+                        try {
+                            var frameObj = JSON.parse( val );
+                            this.m_frame = frameObj.frame;
+                            this.m_frameLow = frameObj.frameStart;
+                            this.m_frameHigh = frameObj.frameEnd;
+                            this._frameStartCB();
+                            this._frameEndCB( );
+                            this._frameCB( );
+                        }
+                        catch( err ){
+                            console.log( "Could not parse: "+val );
+                        }
                     }
                 }
             }
@@ -640,7 +648,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if (this.m_connector !== null) {
                 var paramMap = frameIndex;
                 var path = skel.widgets.Path.getInstance();
-                var setFramePath = this.m_animId + path.SEP_COMMAND + "setFrame";
+                var setFramePath = this.m_animId  + path.SEP_COMMAND + "setFrame";
                 this.m_connector.sendCommand(setFramePath, paramMap, function(val) {});
             }
         },

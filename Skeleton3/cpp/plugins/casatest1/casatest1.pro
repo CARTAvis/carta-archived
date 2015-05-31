@@ -17,21 +17,27 @@ SOURCES += \
 HEADERS += \
     CasaTest1.h
 
-CASACOREDIR=../../../../ThirdParty/casacore-1.5.0-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
-CFITSIODIR=../../../../ThirdParty/cfitsio-3360-shared
+CASACOREDIR=../../../../ThirdParty/casacore-shared
+WCSLIBDIR=../../../../ThirdParty/wcslib-shared
+CFITSIODIR=../../../../ThirdParty/cfitsio-shared
 CASACOREDIR=$$absolute_path($${CASACOREDIR})
 WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
 CFITSIODIR=$$absolute_path($${CFITSIODIR})
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
-casacoreLIBS += -lcasa_images -lcasa_components -lcasa_coordinates -lcasa_fits -lcasa_measures
+unix:macx {
+	casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures -L/usr/local/lib
+}
+else{
+	casacoreLIBS += -lcasa_images -lcasa_components -lcasa_coordinates -lcasa_fits -lcasa_measures
+}
+
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
 casacoreLIBS += -lcasa_casa -llapack -lblas -lgfortran -ldl
 casacoreLIBS += -L$${WCSLIBDIR}/lib -lwcs
 casacoreLIBS += -L$${CFITSIODIR}/lib -lcfitsio
 
-INCLUDEPATH += $${CASACOREDIR}/include/casacore
+INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${WCSLIBDIR}/include
 INCLUDEPATH += $${CFITSIODIR}/include
 

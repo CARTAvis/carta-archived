@@ -12,9 +12,18 @@ namespace Carta {
 
 namespace Data {
 
-class Preferences : public CartaObject {
+class Preferences : public Carta::State::CartaObject {
 
 public:
+
+    /**
+     * Return a string representing the histogram state of a particular type.
+     * @param sessionId - an identifier for a user's session.
+     * @param type - the type of state needed.
+     * @return a QString representing the corresponding histogram state.
+     */
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
     /**
      * Show/hide the menu bar.
      * @param visible true if the menu bar should be shown; false otherwise.

@@ -83,7 +83,7 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
             
             this.m_cacheCheck = new qx.ui.form.CheckBox( "Pixel Cache");
             this.m_cacheCheck.setToolTipText( "Use a pixel cache.");
-            this.m_cacheCheck.addListener( "changeValue", function(e){
+            this.m_cacheCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 var checked = e.getData();
                 if ( this.m_connector !== null ){
                     var path = skel.widgets.Path.getInstance();
@@ -97,7 +97,7 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
             
             this.m_interpolateCheck = new qx.ui.form.CheckBox( "Interpolation");
             this.m_interpolateCheck.setToolTipText( "Use pixel cache interpolation.");
-            this.m_interpolateCheck.addListener( "changeValue", function(e){
+            this.m_interpolateCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 if ( this.m_connector !== null ){
                     var checked = e.getData();
                     var path = skel.widgets.Path.getInstance();
@@ -131,6 +131,7 @@ qx.Class.define("skel.widgets.Colormap.ColorCache", {
             this.m_cacheSizeText.setEnabled( this.m_cacheCheck.getValue() );
             
             var mapComposite = new qx.ui.groupbox.GroupBox( "Caching");
+            mapComposite.setContentPadding(1,1,1,1);
             mapComposite.setLayout(new qx.ui.layout.VBox(2));
             mapComposite.add( this.m_cacheCheck );
             mapComposite.add( this.m_interpolateCheck );

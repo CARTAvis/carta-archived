@@ -10,6 +10,7 @@
 
 qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
         extend : skel.widgets.Window.DisplayWindow,
+        include : skel.widgets.Window.PreferencesMixin,
 
         /**
          * Constructor.
@@ -22,25 +23,23 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, row, col, index, detached );
             this.m_content.setLayout( new qx.ui.layout.HBox(0));
             this.m_links = [];
-            this.m_index = index;
         },
 
         members : {
             
-
-            
             /**
-             * Returns plug-in context menu items that should be displayed
-             * on the main menu when this window is selected.
-             * @return {Array}.
+             * Return the number of significant digits to display.
+             * @return {Number} the number of significant digits the user wants to see.
              */
-            getWindowSubMenu : function() {
-                var windowMenuList = [];
-                return windowMenuList;
+            getSignificantDigits : function(){
+                var digits = 6;
+                if ( this.m_colormap !== null ){
+                    digits = this.m_colormap.getSignificantDigits();
+                }
+                return digits;
             },
             
             
-
             /**
              * Display specific UI initialization.
              */
@@ -50,50 +49,19 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                     this.m_colormap.setId( this.m_identifier );
                     this.m_content.add( this.m_colormap, {flex:1});
                 }
-                if ( this.m_showHistogram === null ){
-                    this.m_showHistogram = new qx.ui.menu.CheckBox( "Show Histogram");
-                    this.m_showHistogram.setValue( false );
-                    this.m_showHistogram.addListener( "execute", this._layoutHistogram, this );
-                    this.m_contextMenu.add( this.m_showHistogram );
-                }
+               
             },
             
             /**
-             * Instantiate the associated histogram and retrieve its id.
+             * Initialize the list of commands this window supports.
              */
-            _initHistogram : function(){
-                //Get the id of this histogram.
-                this.m_histogram = new skel.widgets.Histogram.Histogram();
-                var pathDict = skel.widgets.Path.getInstance();
-                var paramMap = "pluginId:" + pathDict.HISTOGRAM_PLUGIN + ",index:"+this.m_index;
-                var regCmd = pathDict.getCommandRegisterView();
-                this.m_connector.sendCommand( regCmd, paramMap, this._regHistogramCB(this));
+            _initSupportedCommands : function(){
+                arguments.callee.base.apply(this, arguments);
+                var settingsCmd = skel.Command.Colormap.Colormap.getInstance();
+                this.m_supportedCmds.push( settingsCmd.getLabel());
             },
             
-
-            
-            /**
-             * Add/remove the associated histogram from the color map.
-             */
-            _layoutHistogram : function(){
-                if ( this.m_showHistogram.getValue() ){
-                    if ( this.m_histogram === null ){
-                        this._initHistogram();
-                    }
-                    if ( this.m_content.indexOf( this.m_histogram) < 0 ){
-                        if ( this.m_content.indexOf( this.m_colormap) >= 0 ){
-                            this.m_content.remove( this.m_colormap );
-                        }
-                        this.m_content.add( this.m_histogram );
-                        this.m_content.add( this.m_colormap );
-                    }
-                }
-                else {
-                    if ( this.m_histogram && this.m_content.indexOf( this.m_histogram ) >= 0 ){
-                        this.m_content.remove( this.m_histogram);
-                    }
-                }
-            },
+           
 
             /**
              * Returns whether or not this window can be linked to a window
@@ -111,25 +79,78 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                 } 
                 return linkable;
             },
-
+            
             /**
-             * Callback for setting the id of the histogram.
-             * @param anObject {skel.widgets.Window.DisplayWindowColormap}.
+             * Callback for updating the visibility of the user settings from the server.
              */
-            _regHistogramCB : function( anObject ){
-                return function( id ){
-                    if ( id && id.length > 0 ){
-                        anObject.m_histogram.setId( id );
+            _preferencesCB : function(){
+                if ( this.m_sharedVarPrefs !== null ){
+                    var val = this.m_sharedVarPrefs.get();
+                    try {
+                        var setObj = JSON.parse( val );
+                        this._showHideColorMix( setObj.colorMix );
+                        this._showHideColorModel( setObj.colorModel );
+                        this._showHideColorScale( setObj.colorScale );
+                        this._showHideColorTransform( setObj.colorTransform );
                     }
-                };
+                    catch( err ){
+                        console.log( "Histogram could not parse settings");
+                    }
+                }
             },
             
             /**
-             * Called when the window's setting's button has been toggled; subclasses
-             * should implement to show hide settings.
+             * Set the number of significant digits to display.
+             * @param digits {Number} the number of significant digits to display.
              */
-            toggleSettings : function(){
-                this.m_colormap.layout();
+            setSignificantDigits : function( digits ){
+                if ( this.m_colormap !== null ){
+                    this.m_colormap.setSignificantDigits( digits );
+                }
+            },
+            
+            /**
+             * Show/hide color mix user settings.
+             * @param visible {boolean} true if the color mix settings should be 
+             *          visible; false otherwise.
+             */
+            _showHideColorMix : function( visible ){
+                if ( this.m_colormap !== null ){
+                    this.m_colormap.showHideColorMix( visible );
+                }
+            },
+            
+            /**
+             * Show/hide color model settings.
+             * @param visible {boolean} true if the color model settings should be 
+             *          visible; false otherwise.
+             */
+            _showHideColorModel : function( visible ){
+                if ( this.m_colormap !== null ){
+                    this.m_colormap.showHideColorModel( visible );
+                }
+            },
+            
+            /**
+             * Show/hide color scale user settings.
+             * @param visible {boolean} true if the color scale settings should be 
+             *          visible; false otherwise.
+             */
+            _showHideColorScale : function( visible ){
+                if ( this.m_colormap !== null ){
+                    this.m_colormap.showHideColorScale( visible );
+                }
+            },
+            
+            /**
+             * Show/hide color transform user settings.
+             * @param visible {boolean} true if the color transform settings should be 
+             *          visible; false otherwise.
+             */
+            _showHideColorTransform : function( visible ){
+                if ( this.m_colormap !== null ){
+                    this.m_colormap.showHideColorTransform( visible );
+                }
             },
 
             
@@ -139,12 +160,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             windowIdInitialized : function() {
                 this._initDisplaySpecific();
                 arguments.callee.base.apply(this, arguments);
+                this.initializePrefs();
             },
-
             
-            m_colormap : null,
-            m_showHistogram : null,
-            m_histogram : null,
-            m_index : null
+            m_colormap : null
         }
 });

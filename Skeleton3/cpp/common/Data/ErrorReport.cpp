@@ -16,6 +16,14 @@ ErrorReport::ErrorReport( const QString& msg, ErrorSeverity sev ) :
     severity(sev){
 }
 
+bool ErrorReport::operator==( const ErrorReport& other ) const {
+    bool result = false;
+    if ( message == other.getMessage()){
+        result = true;
+    }
+    return result;
+}
+
 QString ErrorReport::getMessage() const {
     return message;
 }

@@ -14,7 +14,7 @@ namespace Carta {
 
 namespace Data {
 
-class Selection : public QObject, public CartaObject {
+class Selection : public QObject, public Carta::State::CartaObject {
 
     Q_OBJECT
 
@@ -25,7 +25,13 @@ public:
      * @param key a lookup key for the state.
      * @return the value of the state.
      */
-    int getState(const QString& key ) const;
+     int getState(const QString& key ) const;
+
+     /**
+      * Returns a json string representing the state of this selection.
+      * @return a string representing the state of this selection.
+      */
+     QString getStateString() const;
 
     /**
      * Returns the current index selection;
@@ -42,18 +48,13 @@ public:
      */
     int getUpperBound() const;
 
-    /**
-     * Sets the current index of the selection, provided it is in the selection range.
-     * @param newIndex the new selection index.
-     */
-    void setIndex(int newIndex);
 
     /**
      * Sets the current index of the selection, provided it is in the selection range.
-     * @param val a String representing the new selection index.
-     * @return the index as an integer.
+     * @param val the new selection index.
+     * @return an error message if the index was not set; otherwise and empty string.
      */
-    int setIndex(const QString& val);
+    QString setIndex( int val);
 
     /**
      * Sets the upper bound of the selection.
@@ -94,11 +95,11 @@ private:
      */
     Selection( const QString& prefix, const QString& identifier);
 
-    class Factory : public CartaObjectFactory {
+    class Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new Selection (path, id);
         }
@@ -108,9 +109,6 @@ private:
 
     //Set initial values of the state if they do not already exist.
     void _initializeStates();
-
-    //Set the index, first checking that it is within bounds.
-    bool _setIndexCheck(int frameValue);
 
     //Returns the value of the passed in key as an integer.
     int _getValue(const QString& key) const;

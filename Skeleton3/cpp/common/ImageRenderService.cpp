@@ -80,6 +80,12 @@ Service::setOutputSize( QSize size )
     m_outputSize = size;
 }
 
+QSize
+Service::getOutputSize()
+{
+    return m_outputSize;
+}
+
 void
 Service::setPan( QPointF pt )
 {
@@ -96,7 +102,7 @@ QPointF Service::pan()
 void
 Service::setZoom( double zoom )
 {
-    double newZoom = clamp( zoom, 0.1, 64.0 );
+    double newZoom = clamp( zoom, 1e-9, 1e+9 );
     if ( newZoom != m_zoom ) {
         m_zoom = newZoom;
     }
@@ -253,32 +259,9 @@ Service::internalRenderSlot( JobId jobId )
         return;
     }
 
-    double clipMin, clipMax;
-    m_pixelPipelineRaw-> getClips( clipMin, clipMax );
-
     // render the frame if needed
     if ( m_frameImage.isNull() ) {
-        if ( pixelPipelineCacheSettings().enabled ) {
-            if ( pixelPipelineCacheSettings().interpolated ) {
-                if ( ! m_cachedPPinterp ) {
-                    m_cachedPPinterp.reset( new Lib::PixelPipeline::CachedPipeline < true > () );
-                    m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
-                                              pixelPipelineCacheSettings().size, clipMin, clipMax );
-                }
-                ::rawView2QImage2( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
-            }
-            else {
-                if ( ! m_cachedPP ) {
-                    m_cachedPP.reset( new Lib::PixelPipeline::CachedPipeline < false > () );
-                    m_cachedPP-> cache( * m_pixelPipelineRaw,
-                                        pixelPipelineCacheSettings().size, clipMin, clipMax );
-                }
-                ::rawView2QImage2( m_inputView.get(), * m_cachedPP, m_frameImage );
-            }
-        }
-        else {
-            ::rawView2QImage2( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
-        }
+        _renderFrame();
     }
 
     // prepare output
@@ -307,14 +290,43 @@ Service::internalRenderSlot( JobId jobId )
     if ( CARTA_RUNTIME_CHECKS ) {
         static int counter = 0;
         counter++;
-        p.setPen( QColor( "yellow" ) );
-        p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
+        //p.setPen( QColor( "yellow" ) );
+        //p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
     }
 
     // insert this image into frame cache
     qDebug() << "byteCount=" << img.byteCount();
     m_frameCache.insert( cacheId, new QImage( img ), img.byteCount());
 } // internalRenderSlot
+
+void
+Service::_renderFrame()
+{
+    double clipMin, clipMax;
+    m_pixelPipelineRaw-> getClips( clipMin, clipMax );
+    if ( pixelPipelineCacheSettings().enabled ) {
+        if ( pixelPipelineCacheSettings().interpolated ) {
+            if ( ! m_cachedPPinterp ) {
+                m_cachedPPinterp.reset( new Lib::PixelPipeline::CachedPipeline < true > () );
+                m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
+                                          pixelPipelineCacheSettings().size, clipMin, clipMax );
+            }
+            ::rawView2QImage2( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
+        }
+        else {
+            if ( ! m_cachedPP ) {
+                m_cachedPP.reset( new Lib::PixelPipeline::CachedPipeline < false > () );
+                m_cachedPP-> cache( * m_pixelPipelineRaw,
+                                    pixelPipelineCacheSettings().size, clipMin, clipMax );
+            }
+            ::rawView2QImage2( m_inputView.get(), * m_cachedPP, m_frameImage );
+        }
+    }
+    else {
+        ::rawView2QImage2( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
+    }
+} // _renderFrame
+
 }
 }
 }

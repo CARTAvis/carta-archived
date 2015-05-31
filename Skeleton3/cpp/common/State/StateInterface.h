@@ -1,12 +1,16 @@
 #pragma once
 
-//#include <string>
 #include <vector>
 #include <cassert>
 
 #include <QtCore/QString>
 
 using namespace std;
+
+namespace Carta {
+
+namespace State {
+
 
 class StateInterfaceImpl;
 
@@ -19,6 +23,9 @@ public:
     friend class StateInterfaceTestImpl;
 
     static const QString DELIMITER;
+    static const QString STATE_DATA;
+    static const QString OBJECT_TYPE;
+    static const QString INDEX;
 
     StateInterface (const QString & path, const QString& type = "", const QString& initialState="");
     StateInterface (const StateInterface & other);
@@ -184,5 +191,7 @@ template <typename T>
 void StateInterface::setValue (const QString & keyString, const T & newValue)
 {
     setTypedValue (newValue, keyString);
+}
+}
 }
 

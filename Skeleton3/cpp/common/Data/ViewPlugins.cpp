@@ -1,10 +1,12 @@
-#include "Data/ViewPlugins.h"
+#include "ViewPlugins.h"
 #include "Globals.h"
 #include "PluginManager.h"
-#include "Animator.h"
+#include "Animator/Animator.h"
+#include "Controller.h"
 #include "Statistics.h"
-#include "Histogram.h"
-#include "Colormap.h"
+#include "Histogram/Histogram.h"
+#include "Colormap/Colormap.h"
+#include "State/UtilState.h"
 
 #include <QDir>
 #include <QDebug>
@@ -13,14 +15,16 @@ namespace Carta {
 
 namespace Data {
 
-class ViewPlugins::Factory : public CartaObjectFactory {
+using Carta::State::UtilState;
+
+class ViewPlugins::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
     Factory():
         CartaObjectFactory( PLUGINS ){};
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new ViewPlugins (path, id);
     }
@@ -36,7 +40,7 @@ const QString ViewPlugins::ERRORS = "loadErrors";
 const QString ViewPlugins::STAMP = "pluginCount";
 const QString ViewPlugins::CLASS_NAME = "ViewPlugins";
 bool ViewPlugins::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ViewPlugins::Factory());
 
 ViewPlugins::ViewPlugins( const QString& path, const QString& id):
@@ -47,12 +51,12 @@ ViewPlugins::ViewPlugins( const QString& path, const QString& id):
 void ViewPlugins::_insertPlugin( int ind, const QString& name, const QString& description,
         const QString& type, const QString& version, const QString& errors ){
     QString index = QString("%1").arg(ind);
-    QString arrayIndex = PLUGINS + StateInterface::DELIMITER + index;
-    m_state.insertValue<QString>( arrayIndex + StateInterface::DELIMITER + NAME, name);
-    m_state.insertValue<QString>( arrayIndex + StateInterface::DELIMITER + DESCRIPTION, description);
-    m_state.insertValue<QString>( arrayIndex + StateInterface::DELIMITER + TYPE, type);
-    m_state.insertValue<QString>( arrayIndex + StateInterface::DELIMITER + VERSION, version);
-    m_state.insertValue<QString>( arrayIndex + StateInterface::DELIMITER + ERRORS, errors);
+    QString arrayIndex = UtilState::getLookup(PLUGINS, index);
+    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, NAME), name);
+    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, DESCRIPTION), description);
+    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, TYPE), type);
+    m_state.insertValue<QString>( UtilState::getLookup(arrayIndex, VERSION), version);
+    m_state.insertValue<QString>( UtilState::getLookup(arrayIndex, ERRORS), errors);
 }
 
 void ViewPlugins::_initializeDefaultState(){
@@ -66,7 +70,7 @@ void ViewPlugins::_initializeDefaultState(){
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
     }*/
-    m_state.insertArray( PLUGINS, 4 );
+    m_state.insertArray( PLUGINS, 5 );
     int ind = 0;
     _insertPlugin( ind, Controller::PLUGIN_NAME, "Image display", "", "", "");
     ind++;
@@ -74,8 +78,8 @@ void ViewPlugins::_initializeDefaultState(){
     ind++;
     _insertPlugin( ind, Statistics::CLASS_NAME, "Cursor information", "", "", "");
     ind++;
-    //_insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
-    //ind++;
+    _insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
+    ind++;
     _insertPlugin( ind, Colormap::CLASS_NAME, "Color map", "", "", "");
     ind++;
     m_state.insertValue<int>( STAMP, ind);

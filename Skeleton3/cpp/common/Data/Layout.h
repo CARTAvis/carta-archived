@@ -9,13 +9,16 @@
 #include "State/StateInterface.h"
 
 #include <QStringList>
+#include <QObject>
 
 namespace Carta {
 
 namespace Data {
 
-class Layout : public CartaObject {
+class Layout : public QObject, public Carta::State::CartaObject {
     friend class ViewManager;
+
+    Q_OBJECT
 
 public:
     /**
@@ -38,6 +41,24 @@ public:
     QStringList getPluginList() const;
 
     /**
+     * Return a string representing the layout state.
+     * @return a QString representing the corresponding layout state.
+     */
+    QString getStateString() const;
+
+    /**
+     * Returns true if the layout is the standard analysis layout; false otherwise.
+     * @return true if the layout is a standard analysis layout; false otherwise.
+     */
+    bool isLayoutAnalysis() const;
+
+    /**
+     * Returns true if the layout is the standard image layout; false otherwise.
+     * @return true if the layout is a standard image layout; false otherwise.
+     */
+    bool isLayoutImage() const;
+
+    /**
      * Remove the grid cell at the given row and column from the grid.
      * @param rowIndex the row of the cell to remove.
      * @param colIndex the column of the cell to remove.
@@ -46,11 +67,23 @@ public:
     QString removeWindow( int rowIndex, int colIndex );
 
     /**
+     * Restore a saved layout.
+     * @param savedState the layout state that should be restored.
+     */
+    void resetState( const Carta::State::StateInterface& savedState );
+
+    /**
      * Set a predefined analysis layout.
      */
     void setLayoutAnalysis();
 
     /**
+     * Set plugins for each of the views in the layout
+     * @param names a list of plugin names.
+     */
+    void setPlugins( const QStringList& names);
+
+     /**
      * Set a layout showing widgets currently under development.
      */
     void setLayoutDeveloper();
@@ -64,14 +97,25 @@ public:
      * Set the number of rows and columns in the layout grid.
      * @param rows the number of rows in the grid.
      * @param cols the number of columns in the grid.
+     * @param layoutType the name of one of the predefined layouts or a custom layout as the default.
      * @return a possible error message or an empty QString if there is no error.
      */
-    QString setLayoutSize( int rows, int cols );
+    QString setLayoutSize( int rows, int cols, const QString& layoutType = TYPE_CUSTOM );
     virtual ~Layout();
     const static QString CLASS_NAME;
     static const QString LAYOUT;
 
+
+signals:
+    /**
+     * Notify that the plugins have changed.
+     * @param newPlugins a list of the new plugins.
+     * @param oldPlugins a list of the old plugins.
+     */
+    void pluginListChanged( const QStringList& newPlugins, const QStringList& oldPlugins );
+
 private:
+
     int _getArrayIndex( int rowIndex, int colIndex ) const;
     QString _getPlugin( int rowIndex, int colIndex ) const;
     int _getColumnCount( int colIndex ) const;
@@ -80,8 +124,14 @@ private:
     void _initializeCommands();
     void _initializeDefaultState();
     void _moveCell( int sourceRow, int sourceCol, int destRow, int destCol );
-    bool _setPlugin( const QStringList& name );
-    bool _setPlugin( int rowIndex, int colIndex, const QString& name );
+    /**
+     * Set the list of plugins to be displayed.
+     * @param name - the list of plugins to be displayed ordered in reading order.
+     * @param custom - true if this is a custom layout false, if it is one of the recognized types.
+     */
+    //Assume the list size matches the grid size.
+    bool _setPlugin( const QStringList& name, bool custom=false );
+    bool _setPlugin( int rowIndex, int colIndex, const QString& name, bool insert = false );
 
 
     static bool m_registered;
@@ -96,6 +146,10 @@ private:
     static const QString LAYOUT_COLS;
     static const QString LAYOUT_PLUGINS;
     static const QString ROW;
+    static const QString TYPE_SELECTED;
+    static const QString TYPE_IMAGE;
+    static const QString TYPE_ANALYSIS;
+    static const QString TYPE_CUSTOM;
     Layout( const Layout& other);
     Layout operator=( const Layout& other );
 };

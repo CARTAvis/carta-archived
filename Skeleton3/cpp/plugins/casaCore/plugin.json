@@ -1,0 +1,8 @@
+{
+    "name"       : "casaCore",
+    "version"    : "1.5.0",
+    "type"       : "lib",
+    "description": "adds casacore shared libraries",
+    "about"      : "Part of skeleton3. Written by Pavol",
+    "depends"    : []
+}

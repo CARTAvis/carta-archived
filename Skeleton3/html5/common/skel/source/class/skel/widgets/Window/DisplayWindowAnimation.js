@@ -20,45 +20,72 @@ qx.Class
                         this.base(arguments, skel.widgets.Path.getInstance().ANIMATOR, row, col, index, detached );
                         this.setLayout(new qx.ui.layout.VBox(5));
                         this.m_links = [];
+                        this._initSupportedAnimations();
                     },
 
                     members : {
+                        
                         /**
-                         * Send one or more commands to the server to update it on what animators are on
-                         * display.
+                         * Get server side information about the list of all possible
+                         * animators that are available.
                          */
-                        _addRemoveAnimators : function(){
-                            var val = this.m_sharedVar.get();
+                        _initSupportedAnimations : function(){
+                            var path = skel.widgets.Path.getInstance();
+                            this.m_sharedVarAnimations = this.m_connector.getSharedVar( path.ANIMATOR_TYPES );
+                            this.m_sharedVarAnimations.addCB( this._sharedVarAnimationsCB.bind( this ));
+                            this._sharedVarAnimationsCB();
+                        },
+                        
+                        /**
+                         * Initialize the window specific commands that are supported.
+                         */
+                        _initSupportedCommands : function(){
+                            arguments.callee.base.apply(this, arguments);
+                            var animCmd = skel.Command.Animate.CommandAnimations.getInstance();
+                            this.m_supportedCmds.push( animCmd.getLabel() );
+                        },
+                        
+                        /**
+                         * Returns true if the animator widget with the given identifier is visible;
+                         *      false otherwise.
+                         * @param animId {String} an identifier for an animator.
+                         * @return {boolean} true if the animator is visible; false otherwise.
+                         */
+                        isVisible : function( animId ){
+                            var visible = false;
+                            if ( this.m_animators !== null ){
+                                if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
+                                    visible = true;
+                                }
+                            }
+                            return visible;
+                        },
+                        
+                        /**
+                         * Set the appearance of this window based on whether or not it is selected.
+                         * @param selected {boolean} true if the window is selected; false otherwise.
+                         * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
+                         */
+                        setSelected : function(selected, multiple) {
+                            arguments.callee.base.apply(this, arguments, selected, multiple );
+                            this.updateCmds();
+                        },
+                        
+                        /**
+                         * Update the list of available animators from the server.
+                         */
+                        _sharedVarAnimationsCB : function( ){
+                            var val = this.m_sharedVarAnimations.get();
                             if ( val ){
                                 try {
-                                    var emptyFunction = function(){};
-                                    var animObj = JSON.parse( this.m_sharedVar.get() );
-                                    for ( var i = 0; i < this.m_checks.length; i++ ){
-                                        var checkName = this.m_supportedAnimations[i];
-                                        var selected = this.m_checks[i].getValue();
-                                        var alreadyThere = false;
-                                        if ( animObj.animators[checkName] ){
-                                            alreadyThere = true;
-                                        }
-                                        
-                                        //Decide if the animator's visibility has changed with respect to what the serve thinks.
-                                        var changedValue = false;
-                                        if ( ( !alreadyThere && selected) || (alreadyThere && !selected) ){
-                                           changedValue = true;
-                                        }
-                                        
-                                        //If the visibility of the animator has changed issue a command to tell the server to sync up.
-                                        if ( changedValue ){
-                                           var addRemVal = "addAnimator";
-                                           if ( !selected ){
-                                               addRemVal = "removeAnimator";
-                                           }
-                                           var path = skel.widgets.Path.getInstance();
-                                           var cmd = this.m_identifier + path.SEP_COMMAND + addRemVal;
-                                           var params = "type:"+this.m_checks[i].getLabel();
-                                           this.m_connector.sendCommand( cmd, params, emptyFunction);
-                                        }
+                                    var animObj = JSON.parse( val );
+                                    //Initialize the supported animations
+                                    this.m_supportedAnimations = [];
+                                    for (var i = 0; i < animObj.animators.length; i++ ){
+                                        this.m_supportedAnimations[i] = animObj.animators[i];
                                     }
+                                    //Update which animators should appear based on the state of this animator
+                                    this._showHideAnimation( animObj );
                                 }
                                 catch( err ){
                                     console.log( "Could not parse: "+val );
@@ -66,170 +93,77 @@ qx.Class
                             }
                         },
                         
-                        
-                        /**
-                         * Callback for a state change; update the animators that are displayed.
-                         */
-                        _animationCB : function( ){
-                            if ( this.m_sharedVar ){
-                                var val = this.m_sharedVar.get();
-                                if ( val ){
-                                    try {
-                                        var animObj = JSON.parse( val );
-                                        //Go through the supported animations.  If it is in the list, mark
-                                        //as visible; otherwise mark as invisible.
-                                        for ( var j = 0; j < this.m_checks.length; j++ ){
-                                            var visible = false;
-                                            var checkName = this.m_checks[j].getLabel();
-                                            if ( animObj.animators[checkName]){
-                                                visible = true;
-                                            }
-                                            
-                                            if ( this.m_checks[j].getValue() != visible ){
-                                                this.m_checks[j].setValue( visible );
-                                            }
-                                        }
-                                        this._showHideAnimation();
-                                    }
-                                    catch( err ){
-                                        console.log( "Could not parse: "+val );
-                                    }
-                                }
-                            }
-                        },
-                        
-                        /**
-                         * Returns animation specific menu buttons.
-                         */
-                        getWindowSubMenu : function() {
-                            var windowMenuList = [];
-                            var animationButton = new qx.ui.toolbar.MenuButton("Animation");
-                            animationButton.setMenu(this._initShowMenuWindow());
-                            windowMenuList.push(animationButton);
-                            return windowMenuList;
-                        },
-
-                        /**
-                         * Initializes animator specific items for the context
-                         * menu.
-                         */
-                        _initDisplaySpecific : function() {
-                            this.m_showAnimationButton = new qx.ui.menu.Button("Animate");
-                            this.m_showAnimationButton.setMenu(this._initShowMenu());
-                            this.m_contextMenu.add(this.m_showAnimationButton);
-                        },
-                        
-                        /**
-                         * Add a callback to the main window shared variable to deal with animation
-                         * related changes.
-                         */
-                        _initSharedVarAnim : function(){
-                            this.m_sharedVar.addCB( this._animationCB.bind( this ));
-                            this._animationCB();
-                        },
-                        
-                        
-
-                        /**
-                         * Initializes a menu for the different animators that
-                         * can be displayed that is suitable for the main menu;
-                         * corresponding check boxes are coordinated with the
-                         * context menu.
-                         */
-                        _initShowMenuWindow : function() {
-                            var showMenu = new qx.ui.menu.Menu();
-                            for (var i = 0; i < this.m_supportedAnimations.length; i++) {
-                                var animId = this.m_supportedAnimations[i];
-                                var animCheck = new qx.ui.menu.CheckBox(animId);
-                                animCheck.setValue( this.m_checks[i].getValue());
-                                showMenu.add(animCheck);
-                                this.m_checks[i].bind("value", animCheck,
-                                        "value");
-                                animCheck.bind( "value", this.m_checks[i], "value");
-                            }
-                            return showMenu;
-                        },
-                        
-                        /**
-                         * Initialize the context menu check boxes that indicate which animators
-                         * are displayed.
-                         */
-                        _initChecks : function(){
-                            if ( this.m_checks === null ){
-                                this.m_checks = [];
-                            
-                                for (var i = 0; i < this.m_supportedAnimations.length; i++) {
-                                    var animId = this.m_supportedAnimations[i];
-                                    if ( this.m_checks.length <= i ){
-                                        var check = new qx.ui.menu.CheckBox( animId);
-                                        check.setValue( false );
-                                        this.m_checks.push( check );
-                                        this.m_checks[i].listener = this.m_checks[i].addListener("changeValue", this._addRemoveAnimators, this);
-                                    }
-                                }
-                            }
-                        },
-
-                        /**
-                         * Initializes the context menu for the different animators that can
-                         * be displayed.
-                         */
-                        _initShowMenu : function() {
-                            var showMenu = new qx.ui.menu.Menu();
-                            this._initChecks();
-                            for ( var i = 0; i < this.m_checks.length; i++ ){
-                                showMenu.add(this.m_checks[i]);
-                            }
-                            return showMenu;
-                        },
-                        
-
-                        
                         /**
                          * Adds or removes a specific animator from the display
                          * based on what the user has selected from the menu.
                          */
-                        _showHideAnimation : function() {
+                        _showHideAnimation : function( animObj ) {
                             if ( this.m_animators === null ){
                                 this.m_animators = {};
                             }
-                            if ( this.m_checks.length === 0 ){
-                                this._initChecks();
+                            if ( this.m_supportedAnimations === null ){
+                                return;
                             }
-                            for (var i = 0; i < this.m_checks.length; i++) {
-
-                                var animId = this.m_checks[i].getLabel();
-                                var animVisible = this.m_checks[i].getValue();
+                            if ( this.m_identifier === null || this.m_identifier.length === 0 ){
+                                return;
+                            }
+                            for (var i = 0; i < this.m_supportedAnimations.length; i++) {
+                                var animId = this.m_supportedAnimations[i];
+                                var animVisible = false;
+                                var index = animObj.animators.indexOf( animId );
+                                if ( index >= 0 ){
+                                    animVisible = true;
+                                }
+                                var oldVisible = this.isVisible( animId );
                                 if (animVisible) {
                                     if (this.m_animators[animId] === undefined ) {
                                         this.m_animators[animId] = new skel.boundWidgets.Animator(animId, this.m_identifier);
                                     }
                                       
-                                    if (this.m_content.indexOf(this.m_animators[animId]) < 0) {
+                                    if ( !oldVisible) {
                                         this.m_content.add(this.m_animators[animId]);
                                     }
                                 } 
                                 else {
-                                    if (this.m_content.indexOf(this.m_animators[animId]) >= 0) {
+                                    if ( oldVisible ) {
                                         this.m_content.remove(this.m_animators[animId]);
                                     }
                                 }
                             }
                         },
                         
+                        
                         /**
-                         * Implemented to remove the title.
+                         * Update the commands about which animation is visible..
                          */
-                        windowIdInitialized : function() {
-                            arguments.callee.base.apply(this, arguments );
-                            this._initDisplaySpecific();
-                            this._initSharedVarAnim();
+                        updateCmds : function(){
+                            var animAllCmd = skel.Command.Animate.CommandAnimations.getInstance();
+                            if ( this.m_supportedAnimations !== null ){
+                                for (var i = 0; i < this.m_supportedAnimations.length; i++) {
+                                    var animId = this.m_supportedAnimations[i];
+                                    var animCmd = animAllCmd.getCmd( animId );
+                                    var visible = this.isVisible( animId );
+                                    animCmd.setValue( visible );
+                                }
+                            }
                         },
                         
+                        /**
+                         * Show/hide animators based on server information.
+                         * @param animObj {Object} server side information about the animators that
+                         *      are visible.
+                         */
+                        windowSharedVarUpdate : function( animObj ){
+                            this._showHideAnimation( animObj );
+                        },
                         
-                        m_showAnimationButton : null,
-                        m_supportedAnimations : [ "Channel", "Image"/*, "Region"*/ ],
-                        m_checks : null,
+                        //Shared variable containing all animations.
+                        m_sharedVarAnimations : null,
+                        
+                        //List of all animators that are available
+                        m_supportedAnimations : null,
+                        
+                        //Tape deck widgets
                         m_animators : null
                     }
 
