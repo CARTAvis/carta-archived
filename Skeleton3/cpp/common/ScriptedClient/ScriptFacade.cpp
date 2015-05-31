@@ -581,7 +581,7 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     return resultList;
 }
 
-void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, const QString& aspectRatioMode ){
+void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
     Carta::State::CartaObject* obj = objMan->getObject( id );

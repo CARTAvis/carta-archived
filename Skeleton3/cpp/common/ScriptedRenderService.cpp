@@ -30,16 +30,8 @@ void ScriptedRenderService::setOutputSize( QSize size ){
     m_outputSize = size;
 }
 
-void ScriptedRenderService::setAspectRatioMode( QString mode ){
-    if ( mode == "keep" ){
-        m_aspectRatioMode = Qt::KeepAspectRatio;
-    }
-    else if (mode == "expand" ){
-        m_aspectRatioMode = Qt::KeepAspectRatioByExpanding;
-    }
-    else {
-        m_aspectRatioMode = Qt::IgnoreAspectRatio;
-    }
+void ScriptedRenderService::setAspectRatioMode( Qt::AspectRatioMode mode ){
+    m_aspectRatioMode = mode;
 }
 
 void ScriptedRenderService::saveFullImage(){

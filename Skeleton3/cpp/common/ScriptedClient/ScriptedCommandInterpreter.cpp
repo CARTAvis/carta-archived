@@ -448,7 +448,17 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
         int width = args["width"].toInt();
         int height = args["height"].toInt();
         double scale = args["scale"].toDouble();
-        QString aspectRatioMode = args["aspectRatioMode"].toString();
+        QString aspectStr = args["aspectRatioMode"].toString();
+        Qt::AspectRatioMode aspectRatioMode;
+        if ( aspectStr == "keep" ){
+            aspectRatioMode = Qt::KeepAspectRatio;
+        }
+        else if ( aspectStr == "expand" ){
+            aspectRatioMode = Qt::KeepAspectRatioByExpanding;
+        }
+        else {
+            aspectRatioMode = Qt::IgnoreAspectRatio;
+        }
         m_scriptFacade->saveFullImage( imageView, filename, width, height, scale, aspectRatioMode );
     }
 
