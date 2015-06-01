@@ -12,6 +12,10 @@
 #include <iostream>
 #include <memory>
 
+#ifndef CARTA_RUNTIME_CHECKS
+#define CARTA_RUNTIME_CHECKS 0
+#endif
+
 /// all carta code lives here (or will eventually)
 namespace Carta
 {
