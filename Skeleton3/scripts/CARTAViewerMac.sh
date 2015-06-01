@@ -25,7 +25,7 @@ fi
 logfilename=$HOME/.cartavis/log/$(date +"%Y_%m_%d").log
 imagefile=$HOME/CARTA/Images/green.fits
 
-if [ ! -e $HOME/data/ephemerides -o ! -e $HOME/data/geodetic -o ! -d $HOME/CARTA/Images -o ! -f $imagefile -o ! -d $HOME/.cartavis -o ! -d $HOME/.cartavis/log  -o ! -f $HOME/.cartavis/config.json ]; then
+if [ ! -d $HOME/CARTA/Images -o ! -f $imagefile -o ! -d $HOME/.cartavis -o ! -d $HOME/.cartavis/log  -o ! -f $HOME/.cartavis/config.json ]; then
 	$dirname/setupcartavis.sh 2>&1  > /dev/null
 fi
 

@@ -41,26 +41,6 @@ if [ ! -f $HOME/.cartavis/config.json ]; then
 	cp $dirname/config/config.json $HOME/.cartavis
 fi
 
-# check that data directory exists
-if [ ! -d $HOME/data ]; then
-	echo "creating $HOME/data directory..."
-	mkdir $HOME/data
-fi
-
-# check that $HOME/data/ephemerides directory exists
-if [ ! -e $HOME/data/ephemerides ]; then
-	echo "creating link to $HOME/data/ephemerides directory..."
-	rm $HOME/data/ephemerides
-	ln -s $dirname/data/ephemerides $HOME/data/ephemerides
-fi
-
-# check that $HOME/data/geodetic directory exists
-if [ ! -e $HOME/data/geodetic ]; then
-	echo "creating link to $HOME/data/geodetic directory..."
-	rm $HOME/data/geodetic
-	ln -s $dirname/data/geodetic $HOME/data/geodetic
-fi
-
 # check that $HOME/CARTA directory exists
 if [ ! -d $HOME/CARTA ]; then
 	echo "creating $HOME/CARTA directory..."
