@@ -21,14 +21,14 @@ class Image(CartaView):
         Parameters
         ----------
         filename: string
-            A path, relative to /scratch/Images, identifying the file to be
-            loaded.
+            A path, relative to /scratch/Images, identifying the file to
+            be loaded.
 
         Returns
         -------
         list
-            An error message if there was a problem loading the file, and
-            nothing otherwise.
+            An error message if there was a problem loading the file,
+            and nothing otherwise.
         """
         result = self.con.cmdTagList("loadFile", imageView=self.getId(),
                                      fname="/RootDirectory/"+filename)
@@ -46,8 +46,8 @@ class Image(CartaView):
         Returns
         -------
         list
-            An error message if there was a problem loading the file, and
-            nothing otherwise.
+            An error message if there was a problem loading the file,
+            and nothing otherwise.
         """
         result = self.con.cmdTagList("loadLocalFile", imageView=self.getId(),
                                      fname=fileName)
@@ -174,11 +174,11 @@ class Image(CartaView):
     def centerWithRadius(self, x, y, radius, dim='width'):
         """
         A convenience function:
-            something that takes a centre and a radius and computes a ZoomLevel
-            to put the centre at the centre of the viewer window and have the
-            distance to the edge of the window be the "radius".
-        Note that this function is defined entirely in terms of other, lower
-        level Python functions.
+            something that takes a centre and a radius and computes a
+            ZoomLevel to put the centre at the centre of the viewer
+            window and have the distance to the edge of the window be
+            the "radius".  Note that this function is defined entirely
+            in terms of other, lower level Python functions.
 
         Parameters
         ----------
@@ -187,8 +187,8 @@ class Image(CartaView):
         y: integer
             The y value of the pixel to center on.
         radius: integer
-            The desired distance, in pixels, from the center pixel to the edge
-            of the window.
+            The desired distance, in pixels, from the center pixel to
+            the edge of the window.
         dim: string
             The dimension of the image viewer to use for the radius.
             Can be equal to either 'width' or 'height'.
@@ -213,8 +213,8 @@ class Image(CartaView):
 
     def fitToViewer(self):
         """
-        Centers the image and sets the zoom level so that the entire image
-        fits within the viewer.
+        Centers the image and sets the zoom level so that the entire
+        image fits within the viewer.
         A convenience function that is actually a special case of
         centerWithRadius().
 
@@ -236,8 +236,8 @@ class Image(CartaView):
 
     def zoomToPixel(self, x, y):
         """
-        Sets the zoom level so that a single pixel fills the entire image
-        viewer.
+        Sets the zoom level so that a single pixel fills the entire
+        image viewer.
         A convenience function that is actually a special case of
         centerWithRadius().
 
@@ -267,15 +267,15 @@ class Image(CartaView):
 
     def setZoomLevel(self, zoom):
         """
-        Sets the zoom level, which is defined as the rendered size of a single
-        data pixel in the image on the screen.
+        Sets the zoom level, which is defined as the rendered size of a
+        single data pixel in the image on the screen.
 
-        e.g. a zoom level of 1e-9 means that a single data pixel in the image
-        would occupy 1e-9 of a screen pixel, i.e. it would allow you to zoom
-        out an image with dimensions of 1,000,000,000 x 1,000,000,000 pixels
-        so that it would fit into a single pixel on the screen. A zoom level
-        of 1e+9 would expand a single data pixel to a billion by a billion
-        screen pixels.
+        e.g. a zoom level of 1e-9 means that a single data pixel in the
+        image would occupy 1e-9 of a screen pixel, i.e. it would allow
+        you to zoom out an image with dimensions of 1,000,000,000 x
+        1,000,000,000 pixels so that it would fit into a single pixel on
+        the screen. A zoom level of 1e+9 would expand a single data
+        pixel to a billion by a billion screen pixels.
 
         Parameters
         ----------
@@ -298,7 +298,8 @@ class Image(CartaView):
         Returns
         -------
         list
-            The zoom level, or error information if it could not be obtained.
+            The zoom level, or error information if it could not be
+            obtained.
         """
         result = self.con.cmdTagList("getZoomLevel", imageView=self.getId())
         if (result[0] != "error"):
@@ -309,7 +310,8 @@ class Image(CartaView):
 
     def addLink(self, dest):
         """
-        Establish a link between this image viewer and a destination object.
+        Establish a link between this image viewer and a destination
+        object.
 
         Parameters
         ----------
@@ -330,7 +332,8 @@ class Image(CartaView):
 
     def removeLink(self, dest):
         """
-        Remove a link between this image viewer and a destination object.
+        Remove a link between this image viewer and a destination
+        object.
 
         Parameters
         ----------
@@ -340,8 +343,8 @@ class Image(CartaView):
         Returns
         -------
         list
-            An error message if the link removal does not succeed, and nothing
-            otherwise.
+            An error message if the link removal does not succeed, and
+            nothing otherwise.
         """
         # Note that this method needs to override the base class method
         # because the source and destination are flipped.
@@ -373,8 +376,8 @@ class Image(CartaView):
     def saveFullImage(self, dest, width=-1, height=-1, scale=1,
                       aspectRatioMode='ignore'):
         """
-        Save a copy of the entire image (not just what is visible in the image
-        viewer).
+        Save a copy of the entire image (not just what is visible in the
+        image viewer).
 
         Parameters
         ----------
@@ -393,8 +396,9 @@ class Image(CartaView):
             The default value is 1.
         aspectRatioMode: string
             Can be one of three possible values: 'ignore', 'keep', or
-            'expand'. See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum
-            for an explanation of these options.
+            'expand'. See
+            http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for an
+            explanation of these options.
 
         Returns
         -------
@@ -418,9 +422,9 @@ class Image(CartaView):
         Returns
         -------
         list
-            A list of integers representing the x, y, and z dimensions of the
-            image, or error information if the dimensions could not be
-            obtained.
+            A list of integers representing the x, y, and z dimensions
+            of the image, or error information if the dimensions could
+            not be obtained.
         """
         result = self.con.cmdTagList("getImageDimensions",
                                      imageView=self.getId())
@@ -431,13 +435,15 @@ class Image(CartaView):
     def getChannelCount(self):
         """
         Get the number of channels in the image.
-        A convenience function (defined in terms of other Python commands).
+        A convenience function (defined in terms of other Python
+        commands).
 
         Returns
         -------
         integer
             The number of channels in the image.
-            Error information if the number of channels could not be obtained.
+            Error information if the number of channels could not be
+            obtained.
         """
         result = 1
         dimensions = self.getImageDimensions()
@@ -454,10 +460,10 @@ class Image(CartaView):
         Returns
         -------
         list
-            A list of integers representing the x and y dimensions of the
-            image viewer.
-            Error information if the image viewer dimensions could not be
-            obtained.
+            A list of integers representing the x and y dimensions of
+            the image viewer.
+            Error information if the image viewer dimensions could not
+            be obtained.
         """
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         if (result[0] != "error"):
@@ -482,8 +488,8 @@ class Image(CartaView):
         Returns
         -------
         list
-            The intensity value or an error message if the intensity could not
-            be obtained.
+            The intensity value or an error message if the intensity
+            could not be obtained.
         """
         result = self.con.cmdTagList("getIntensity", imageView=self.getId(),
                                      frameLow=frameLow, frameHigh=frameHigh,
@@ -514,4 +520,27 @@ class Image(CartaView):
                                      ra=skyCoord.ra.radian,
                                      dec=skyCoord.dec.radian)
         self.centerOnPixel(float(result[0]), float(result[1]))
+        return result
+
+    def getPixelValue(self, x, y):
+        """
+        Get the value of a pixel.
+
+        Parameters
+        ----------
+        x: integer
+            The x value of the desired pixel.
+        y: integer
+            The y value of the desired pixel.
+
+        Returns
+        -------
+        list
+            The value of the pixel at (x, y), or an empty string if
+            there is no valid value at (x, y).
+        """
+        dim = self.getImageDimensions()
+        yVal = dim[1] - y - 1
+        result = self.con.cmdTagList("getPixelValue", imageView=self.getId(),
+                                     x=x, y=y)
         return result

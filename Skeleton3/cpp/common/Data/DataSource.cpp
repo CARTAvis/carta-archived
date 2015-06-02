@@ -76,14 +76,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
             };
         out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
-        QString pixelValue = "";
-        if ( imgX >= 0 && imgX < m_image->dims()[0] && imgY >= 0 && imgY < m_image->dims()[1] ) {
-            NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
-            if ( rawData != nullptr ){
-                NdArray::TypedView<double> view( rawData, false );
-                pixelValue = QString::number( view.get( {imgX, imgY} ) );
-            }
-        }
+        QString pixelValue = getPixelValue( imgX, imgY );
         out << "Value:" << pixelValue << "\n";
     
         for ( auto cs : css ) {
@@ -478,6 +471,19 @@ QStringList DataSource::getPixelCoordinates( double ra, double dec ){
         result.append( QString::number( pixel[1] ) );
     }
     return result;
+}
+
+QString DataSource::getPixelValue( int x, int y ){
+    QString pixelValue = "";
+    if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
+        NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
+        if ( rawData != nullptr ){
+            NdArray::TypedView<double> view( rawData, false );
+            // y-flipping for now until a broader fix for the y-flipping issue is implemented.
+            pixelValue = QString::number( view.get( {x, m_image->dims()[1] - y - 1} ) );
+        }
+    }
+    return pixelValue;
 }
 
 DataSource::~DataSource() {

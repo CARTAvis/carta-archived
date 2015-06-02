@@ -282,6 +282,14 @@ public:
      */
     QStringList getPixelCoordinates( double ra, double dec );
 
+    /**
+     * Return the value of the pixel at (x, y).
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @return the value of the pixel at (x, y), or blank if it could not be obtained.
+     */
+    QString getPixelValue( int x, int y );
+
     virtual ~DataSource();
 
 signals:
