@@ -128,6 +128,5 @@ const QStringList & DesktopPlatform::initialFileList()
 
 QString DesktopPlatform::getCARTADirectory()
 {
-   struct passwd *pw = getpwuid(getuid());
-   return QString("%1/%2/").arg(pw->pw_dir, "CARTA");
+	return QDir::homePath().append("/CARTA/");
 }
