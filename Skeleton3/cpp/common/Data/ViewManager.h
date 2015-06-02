@@ -21,9 +21,10 @@ class Histogram;
 class Colormap;
 class Layout;
 class Statistics;
+class Snapshots;
 class ViewPlugins;
 
-class ViewManager : public QObject, public CartaObject {
+class ViewManager : public QObject, public Carta::State::CartaObject {
 
     Q_OBJECT
 
@@ -103,15 +104,7 @@ public:
     void setAnalysisView();
 
     /**
-     * Set the number of rows and columns in the layout grid.
-     * @param rows the number of rows in the grid.
-     * @param cols the number of columns in the grid.
-     * @return a possible error message or an empty QString if there is no error.
-     */
-    QString setCustomView( int rows, int cols );
-
-     /**
-     * Reset the layout to show objects under active development.
+     * Reset the layout to a predefined developer layout.
      */
     void setDeveloperView();
 
@@ -133,8 +126,10 @@ public:
      * Destructor.
      */
     virtual ~ViewManager();
+
 private slots:
     void _pluginsChanged( const QStringList& names, const QStringList& oldNames );
+
 private:
     ViewManager( const QString& path, const QString& id);
     class Factory;
@@ -146,8 +141,7 @@ private:
     void _clearHistograms( int startIndex );
     void _clearStatistics( int startIndex );
 
-    int _findColorMap( const QString& id ) const;
-    int _findAnimator( const QString& id ) const;
+    //int _findColorMap( const QString& id ) const;
 
     void _initCallbacks();
 
@@ -161,6 +155,7 @@ private:
     QString _makeController( int index );
     QString _makeHistogram( int index );
     QString _makeColorMap( int index );
+    QString _makeSnapshots();
     QString _makeStatistics( int index );
     void _makeDataLoader();
 
@@ -173,40 +168,6 @@ private:
      * the state and gives the object a second chance to establish their links.
      */
     void _refreshState();
-
-    /**
-     * Read and restore state for a particular sessionId from a file.
-     * @param sessionId - an identifier for a user session.
-     * @param fileName - the name of a saved session state.
-     * @return true if the state was read and restored; false otherwise.
-     */
-    bool _readState( const QString& sessionId, const QString& fileName );
-
-    /**
-     * Read and restore the layout state for a particular sessionId from a file.
-     * @param sessionId - an identifier for a user session.
-     * @param saveName - the name of a file containing the layout state.
-     * @return true if the layout state was read and restored; false otherwise.
-     */
-    bool _readStateLayout( const QString& sessionId, const QString& saveName );
-
-    /**
-     * Read and restore state for a particular sessionId from a string.
-     * @param stateStr - a string representation of the state.
-     * @param type - the type of state.
-     * @return true if the state was read and restored; false otherwise.
-     */
-    bool _readState( const QString& stateStr, SnapshotType type );
-
-    /**
-     * Save the current state.
-     * @param fileName - an identifier for the state to be saved.
-     * @param layoutSave - true if the layout should be saved; false otherwise.
-     * @param preferencesSave -true if the preferences should be saved; false otherwise.
-     * @param dataSave - true if the data should be saved; false otherwise.
-     * @return an error message if there was a problem saving state; an empty string otherwise.
-     */
-    QString saveState( const QString& sessionId, const QString& fileName, bool layoutSave, bool preferencesSave, bool dataSave );
 
     //A list of Controllers requested by the client.
     QList <Controller* > m_controllers;
@@ -227,6 +188,7 @@ private:
     Layout* m_layout;
     DataLoader* m_dataLoader;
     ViewPlugins* m_pluginsLoaded;
+    Snapshots* m_snapshots;
 
     const static QString SOURCE_ID;
     const static QString DEST_ID;

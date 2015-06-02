@@ -11,8 +11,7 @@ qx.Class.define("skel.Command.Session.CommandRestore", {
      */
     construct : function() {
         var path = skel.widgets.Path.getInstance();
-        var cmd = path.getCommandRestoreState();
-        this.base( arguments, "Restore...", cmd );
+        this.base( arguments, "Manage/Restore...", null );
         this.m_toolBarVisible = false;
     },
     

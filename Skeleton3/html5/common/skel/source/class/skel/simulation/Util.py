@@ -3,6 +3,16 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
+def animation_to_image_window( unittest, driver):
+    animWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
+    unittest.assertIsNotNone( animWindow, "Could not find animation window")
+    ActionChains(driver).context_click(animWindow).send_keys( Keys.ARROW_RIGHT ).send_keys(Keys.ARROW_RIGHT).send_keys( Keys.ENTER ).perform()
+
+def get_window_count( unittest, driver):
+     windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
+     windowCount = len( windowList )
+     return windowCount
+ 
 def load_image(unittest, driver, imageName ):    
     
     # Find a window capable of loading an image.
@@ -43,4 +53,5 @@ def load_image(unittest, driver, imageName ):
     unittest.assertIsNotNone(viewElement, "Could not find view element on page.")
     imageElement = driver.find_element_by_id("pwUID0")
     unittest.assertIsNotNone(imageElement, "Could not find image on the page")
+    
     

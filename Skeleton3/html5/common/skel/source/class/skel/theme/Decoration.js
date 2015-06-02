@@ -127,29 +127,16 @@ qx.Theme.define( "skel.theme.Decoration", {
                 widthTop : 0
             }
         },
-
-        "window-captionbar-active" :
+        
+        "window-pane-selected" :
         {
-            style : {
-                width : 0,
-                color : "window-border",
-                colorBottom : "window-border-caption",
-                radius : [0, 0, 0, 0],
-                gradientStart : ["window-caption-active-start", 30],
-                gradientEnd : ["window-caption-active-end", 70]
-            }
-        },
-
-        "window-captionbar-inactive" :
-        {
-            include : "window-captionbar-active",
-            style : {
-                radius : [0, 0, 0, 0],
-                gradientStart : ["window-caption-inactive-start", 30],
-                gradientEnd : ["window-caption-inactive-end", 70]
+            style :
+            {
+                backgroundColor : "background-pane",
+                width : 2,
+                color : "selection",
+                widthTop : 2
             }
         }
-
-
     }
 } );

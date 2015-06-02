@@ -20,6 +20,7 @@ qx.Class.define("skel.widgets.Path", {
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.REGION = this.BASE_PATH + "region" + this.SEP;
+        this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
@@ -63,7 +64,11 @@ qx.Class.define("skel.widgets.Path", {
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",
+        SETTINGS : "",
         SNAPSHOTS : "",
+        STATE_LAYOUT : "Layout",
+        STATE_SESSION : "Session",
+        STATE_PREFERENCES : "Preferences",
         STATISTICS : "Statistics",
         TRANSFORMS_DATA : "",
         TRANSFORMS_IMAGE : "",
@@ -128,12 +133,14 @@ qx.Class.define("skel.widgets.Path", {
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "refreshState";
         },
         
+        
+        
         /**
-         * Returns the command for restoring state.
-         * @return {String} command for restoring state.
+         * Returns the command to register snapshots.
+         * @return {String} command for registering snapshots.
          */
-        getCommandRestoreState : function(){
-            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "restoreState";
+        getCommandRegisterSnapshots : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "registerSnapshots";
         },
         
         /**
@@ -158,17 +165,7 @@ qx.Class.define("skel.widgets.Path", {
          */
         getCommandShapeChanged : function(shapeId){
             return shapeId + this.SEP_COMMAND +"shapeChanged";
-        },
-        
-        /**
-         * Returns the command for saving state.
-         * @return {String} command for saving state.
-         */
-        getCommandSaveState : function(){
-            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "saveState";
         }
-        
- 
 
 
     }

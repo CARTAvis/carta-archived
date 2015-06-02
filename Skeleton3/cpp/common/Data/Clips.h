@@ -13,7 +13,7 @@ namespace Carta {
 
 namespace Data {
 
-class Clips : public CartaObject {
+class Clips : public Carta::State::CartaObject {
 
 public:
 
@@ -36,6 +36,7 @@ public:
     virtual ~Clips();
 
 private:
+
     void _initializeDefaultState();
 
     static bool m_registered;

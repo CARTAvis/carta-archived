@@ -1,5 +1,6 @@
 #include "Data/ChannelUnits.h"
 #include "CartaLib/CartaLib.h"
+#include "State/UtilState.h"
 #include <QDebug>
 #include <cmath>
 
@@ -11,14 +12,14 @@ const QString ChannelUnits::UNIT_LIST = "channelUnitList";
 const QString ChannelUnits::CLASS_NAME = "ChannelUnits";
 const QString ChannelUnits::UNIT_COUNT = "channelUnitCount";
 
-class ChannelUnits::Factory : public CartaObjectFactory {
+class ChannelUnits::Factory : public Carta::State::CartaObjectFactory {
     public:
 
         Factory():
             CartaObjectFactory(CLASS_NAME){
         };
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new ChannelUnits (path, id);
         }
@@ -27,7 +28,7 @@ class ChannelUnits::Factory : public CartaObjectFactory {
 
 
 bool ChannelUnits::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME, new ChannelUnits::Factory());
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new ChannelUnits::Factory());
 
 ChannelUnits::ChannelUnits( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
@@ -67,7 +68,7 @@ void ChannelUnits::_initializeDefaultState(){
     m_state.insertValue<int>( UNIT_COUNT, unitCount );
     m_state.insertArray( UNIT_LIST, unitCount );
     for ( int i = 0; i < unitCount; i++ ){
-        QString arrayIndexStr = UNIT_LIST + StateInterface::DELIMITER + QString::number(i);
+        QString arrayIndexStr = Carta::State::UtilState::getLookup(UNIT_LIST, i);
         m_state.setValue<QString>(arrayIndexStr, m_unitList[i] );
     }
     m_state.flushState();

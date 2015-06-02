@@ -14,14 +14,14 @@ namespace Carta {
 
 namespace Data {
 
-class DataLoader::Factory : public CartaObjectFactory {
+class DataLoader::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
     Factory():
         CartaObjectFactory( "DataLoader" ){};
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new DataLoader (path, id);
     }
@@ -30,7 +30,7 @@ public:
 QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
 bool DataLoader::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataLoader::Factory());
 
 

@@ -13,11 +13,11 @@ namespace Carta {
 
 namespace Data {
 
-class Statistics::Factory : public CartaObjectFactory {
+class Statistics::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new Statistics (path, id);
     }
@@ -25,7 +25,7 @@ public:
 
 const QString Statistics::CLASS_NAME = "Statistics";
 bool Statistics::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Statistics::Factory());
 
 Statistics::Statistics( const QString& path, const QString& id ) :
@@ -35,7 +35,7 @@ Statistics::Statistics( const QString& path, const QString& id ) :
      _initializeState();
 }
 
-QString Statistics::addLink( CartaObject* cartaObject ){
+QString Statistics::addLink( Carta::State::CartaObject* cartaObject ){
     Controller* target = dynamic_cast<Controller*>( cartaObject);
     QString result;
     if ( target != nullptr){
@@ -53,12 +53,12 @@ QString Statistics::getStateString( const QString& /*sessionId*/, SnapshotType t
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString();
+        result = m_linkImpl->getStateString(getIndex(), getType( type));
     }
     return result;
 }
 
-QString Statistics::removeLink( CartaObject* cartaObject ){
+QString Statistics::removeLink( Carta::State::CartaObject* cartaObject ){
     QString result;
     bool objRemoved = m_linkImpl->removeLink( cartaObject );
     if ( !objRemoved ){

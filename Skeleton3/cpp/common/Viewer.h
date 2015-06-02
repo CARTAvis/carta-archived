@@ -6,7 +6,6 @@
 
 #include <QObject>
 #include <memory>
-#include "ScriptedClient/ScriptFacade.h"
 #include <rapidjson/document.h>
 
 class ScriptedCommandListener;
@@ -48,8 +47,6 @@ protected:
     /// pointer to scripted command listener
     /// @todo make it unique ptr for auto-delete niceness
     ScriptedCommandListener * m_scl = nullptr;
-
-    ScriptFacade* m_scriptFacade = nullptr;
 
 private:
 
