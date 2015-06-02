@@ -197,7 +197,7 @@ public:
     QStringList setDataTransform( const QString& colormapId, const QString& transformString );
 
     /**
-     * Set plugins for each of the views in the layout
+     * Set plugins for each of the views in the layout.
      * @param names a list of plugin names.
      * @return error information if plugins could not be set.
      */
@@ -237,20 +237,60 @@ public:
     QStringList saveImage( const QString& controlId, const QString& fileName );
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
+     * Save a copy of the full image in the current image view.
      * @param controlId the unique server-side id of an object managing a controller.
-     * @param fileName the full path where the file is to be saved.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width of the saved image.
+     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& controlId, const QString& fileName, double scale );
+    void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
 
-//    /**
-//     * Save the current layout to a .json file in the /tmp directory.
-//     * @param fileName the base name of the file. The layout will be saved to
-//     * /tmp/fileName.json.
-//     * @return whether the operation was a success or not.
-//     */
-//    QStringList saveState( const QString& saveName );
+    /**
+     * Save the current state.
+     * @param fileName - an identifier for the state to be saved.
+     * @param layoutSave - true if the layout should be saved; false otherwise.
+     * @param preferencesSave -true if the preferences should be saved; false otherwise.
+     * @param dataSave - true if the data should be saved; false otherwise.
+     * @param saveDescription - notes about the state being saved.
+     * @return an error message if there was a problem saving state; an empty list otherwise.
+     */
+    QStringList saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout,
+            bool savePreferences, bool saveData, const QString& description );
+
+    /**
+     * Returns a list of the names of available snapshots
+     * @param sessionId - an identifier for a user session.
+     * @return a list of the names of supported snapshots.
+     */
+    QStringList getSnapshots(const QString& sessionId );
+
+    /**
+     * Returns a list of the available snapshots
+     * @param sessionId - an identifier for a user session.
+     * @return a list of supported snapshots.
+     */
+    QStringList getSnapshotObjects(const QString& sessionId );
+
+    /**
+     * Delete the snapshot with the given identifier.
+     * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to delete.
+     * @return an empty list if the snapshot was deleted; an error message if
+     *      there was a problem deleting the snapshot.
+     */
+    QStringList deleteSnapshot( const QString& sessionId, const QString& saveName );
+
+    /**
+     * Read and restore state for a particular sessionId from a string.
+     * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to restore.
+     * @return an empty list if the snapshot was restored; an error message if
+     *      there was a problem restoring the snapshot.
+     */
+    QStringList restoreSnapshot( const QString& sessionId, const QString& saveName );
 
     /**
      * Get the animators that are linked to the given image view.
@@ -438,7 +478,7 @@ public:
     QStringList setLogCount( const QString& histogramId, const QString& logCountStr );
 
     /**
-     * Set where or not the histogram should be colored by intensity.
+     * Set whether or not the histogram should be colored by intensity.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param colored true if the histogram should be colored by intensity; false otherwise.
      *  Can also be equal to "toggle" to turn the coloring on or off depending on its

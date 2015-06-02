@@ -10,19 +10,58 @@ from animator import Animator
 from colormap import Colormap
 
 class Image(CartaView):
-    """Represents an image view"""
+    """
+    Represents an image view.
+    """
 
-    def loadFile(self, fileName):
+    def loadFile(self, filename):
+        """
+        Load a file from /scratch/Images into the image view.
+
+        Parameters
+        ----------
+        filename: string
+            A path, relative to /scratch/Images, identifying the file to
+            be loaded.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem loading the file,
+            and nothing otherwise.
+        """
         result = self.con.cmdTagList("loadFile", imageView=self.getId(),
-                                     fname="/RootDirectory/"+fileName)
+                                     fname="/RootDirectory/"+filename)
         return result
 
     def loadLocalFile(self, fileName):
+        """
+        Load a file into the image view.
+
+        Parameters
+        ----------
+        filename: string
+            A path identifying the file to be loaded.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem loading the file,
+            and nothing otherwise.
+        """
         result = self.con.cmdTagList("loadLocalFile", imageView=self.getId(),
                                      fname=fileName)
         return result
 
     def getLinkedColormaps(self):
+        """
+        Get the colormaps that are linked to this image view.
+
+        Returns
+        -------
+        list
+            A list of Colormap objects.
+        """
         resultList = self.con.cmdTagList("getLinkedColormaps",
                                          imageView=self.getId())
         linkedColormapViews = []
@@ -33,6 +72,14 @@ class Image(CartaView):
         return linkedColormapViews
 
     def getLinkedAnimators(self):
+        """
+        Get the animators that are linked to this image view.
+
+        Returns
+        -------
+        list
+            A list of Animator objects.
+        """
         resultList = self.con.cmdTagList("getLinkedAnimators",
                                          imageView=self.getId())
         linkedAnimatorViews = []
@@ -43,6 +90,14 @@ class Image(CartaView):
         return linkedAnimatorViews
 
     def getLinkedHistograms(self):
+        """
+        Get the histograms that are linked to this image view.
+
+        Returns
+        -------
+        list
+            A list of Histogram objects.
+        """
         resultList = self.con.cmdTagList("getLinkedHistograms",
                                          imageView=self.getId())
         linkedHistogramViews = []
@@ -53,6 +108,14 @@ class Image(CartaView):
         return linkedHistogramViews
 
     def getLinkedStatistics(self):
+        """
+        Get the statistics that are linked to this image view.
+
+        Returns
+        -------
+        list
+            A list of Statistics objects.
+        """
         resultList = self.con.cmdTagList("getLinkedStatistics",
                                          imageView=self.getId())
         linkedStatisticsViews = []
@@ -63,14 +126,42 @@ class Image(CartaView):
         return linkedStatisticsViews
 
     def setClipValue(self, index):
+        """
+        Set the histogram to show the specified percentage of the data.
+
+        Parameters
+        ----------
+        index: float
+            The percentage of data to be shown.
+
+        Returns
+        -------
+        list
+            Error information if the clip value could not be set.
+        """
         result = self.con.cmdTagList("setClipValue", imageView=self.getId(),
                                      clipValue=index)
         return result
 
     def centerOnPixel(self, x, y, z=0):
         """
-        Centers the viewer on the pixel at (x, y).
-        z is used to select the dimension in a data cube.
+        Centers the viewer on a pixel.
+
+        Parameters
+        ----------
+        x: integer
+            The x value of the pixel to center on.
+        y: integer
+            The y value of the pixel to center on.
+        z: integer
+            The z value of the pixel to center on.
+            The default value is 0, which causes the parameter to be
+            ignored.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
         """
         result = self.con.cmdTagList("centerOnPixel", imageView=self.getId(),
                                      xval=x, yval=y)
@@ -83,11 +174,31 @@ class Image(CartaView):
     def centerWithRadius(self, x, y, radius, dim='width'):
         """
         A convenience function:
-            something that takes a centre and a radius and computes a ZoomLevel
-            to put the centre at the centre of the viewer window and have the
-            distance to the edge of the window be the "radius".
-        Note that this function is defined entirely in terms of other, lower
-        level Python functions.
+            something that takes a centre and a radius and computes a
+            ZoomLevel to put the centre at the centre of the viewer
+            window and have the distance to the edge of the window be
+            the "radius".
+        Note that this function is defined entirely in terms of other,
+        lower level Python functions.
+
+        Parameters
+        ----------
+        x: integer
+            The x value of the pixel to center on.
+        y: integer
+            The y value of the pixel to center on.
+        radius: integer
+            The desired distance, in pixels, from the center pixel to
+            the edge of the window.
+        dim: string
+            The dimension of the image viewer to use for the radius.
+            Can be equal to either 'width' or 'height'.
+            The default value is 'width'.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
         """
         viewerDim = self.getOutputSize()
         if (len(viewerDim) != 2):
@@ -102,6 +213,17 @@ class Image(CartaView):
         self.setZoomLevel(zoom)
 
     def fitToViewer(self):
+        """
+        Centers the image and sets the zoom level so that the entire
+        image fits within the viewer.
+        A convenience function that is actually a special case of
+        centerWithRadius().
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
         oDim = self.getOutputSize()
         iDim = self.getImageDimensions()
         if (iDim[0] != "error" and oDim[0] != "error"):
@@ -114,6 +236,24 @@ class Image(CartaView):
             return ["Could not fit image to viewer."]
 
     def zoomToPixel(self, x, y):
+        """
+        Sets the zoom level so that a single pixel fills the entire
+        image viewer.
+        A convenience function that is actually a special case of
+        centerWithRadius().
+
+        Parameters
+        ----------
+        x: integer
+            The x value of the pixel to center on.
+        y: integer
+            The y value of the pixel to center on.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
         iDim = self.getImageDimensions()
         oDim = self.getOutputSize()
         if (iDim[0] != "error" and oDim[0] != "error"):
@@ -127,11 +267,41 @@ class Image(CartaView):
                     + str(x) + "," + str(y) + ")"]
 
     def setZoomLevel(self, zoom):
+        """
+        Sets the zoom level, which is defined as the rendered size of a
+        single data pixel in the image on the screen.
+
+        e.g. a zoom level of 1e-9 means that a single data pixel in the
+        image would occupy 1e-9 of a screen pixel, i.e. it would allow
+        you to zoom out an image with dimensions of 1,000,000,000 x
+        1,000,000,000 pixels so that it would fit into a single pixel on
+        the screen. A zoom level of 1e+9 would expand a single data
+        pixel to a billion by a billion screen pixels.
+
+        Parameters
+        ----------
+        zoom: float
+            The desired zoom level.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
         result = self.con.cmdTagList("setZoomLevel", imageView=self.getId(),
                                      zoomLevel=zoom)
         return result
 
     def getZoomLevel(self):
+        """
+        Get the current zoom level.
+
+        Returns
+        -------
+        list
+            The zoom level, or error information if it could not be
+            obtained.
+        """
         result = self.con.cmdTagList("getZoomLevel", imageView=self.getId())
         if (result[0] != "error"):
             result = float(result[0])
@@ -140,30 +310,124 @@ class Image(CartaView):
         return result
 
     def addLink(self, dest):
-        """ Note that this method needs to override the base class method
-            because the source and destination are flipped."""
+        """
+        Establish a link between this image viewer and a destination
+        object.
+
+        Parameters
+        ----------
+        dest: Carta object
+            The object to link to this image viewer.
+
+        Returns
+        -------
+        list
+            An error message if the link does not succeed, and nothing
+            otherwise.
+        """
+        # Note that this method needs to override the base class method
+        # because the source and destination are flipped.
         result = self.con.cmdTagList("addLink", sourceView=dest.getId(),
                                      destView=self.getId())
         return result
 
     def removeLink(self, dest):
-        """ Note that this method needs to override the base class method
-            because the source and destination are flipped."""
+        """
+        Remove a link between this image viewer and a destination
+        object.
+
+        Parameters
+        ----------
+        dest: Carta object
+            The object to remove the link from.
+
+        Returns
+        -------
+        list
+            An error message if the link removal does not succeed, and
+            nothing otherwise.
+        """
+        # Note that this method needs to override the base class method
+        # because the source and destination are flipped.
         result = self.con.cmdTagList("removeLink", sourceView=dest.getId(),
                                      destView=self.getId())
         return result
 
     def saveImage(self, dest):
+        """
+        Save a screenshot of the current image view.
+
+        Parameters
+        ----------
+
+
+         dest: string
+            The full path where the file is to be saved.
+
+        Returns
+        -------
+        list
+            An error message if the file could not be saved, and nothing
+            otherwise.
+        """
         result = self.con.cmdTagList("saveImage", imageView=self.getId(),
                                      filename=dest)
         return result
 
-    def saveFullImage(self, dest, saveScale=1):
+    def saveFullImage(self, dest, width=-1, height=-1, scale=1,
+                      aspectRatioMode='ignore'):
+        """
+        Save a copy of the entire image (not just what is visible in the
+        image viewer).
+
+        Parameters
+        ----------
+        dest: string
+            The full path of the destination filename.
+        width: integer
+            The width of the saved image.
+            The default value is -1, which causes the parameter to be
+            ignored.
+        height: integer
+            The height of the saved image.
+            The default value is -1, which causes the parameter to be
+            ignored.
+        scale: float
+            The desired zoom level of the saved image.
+            The default value is 1.
+        aspectRatioMode: string
+            Can be one of three possible values: 'ignore', 'keep', or
+            'expand'. See
+            http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for an
+            explanation of these options.
+            The default value is 'ignore'.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        if (width < 0 or height < 0):
+            currentDim = self.getImageDimensions()
+            width = currentDim[0]
+            height = currentDim[1]
         result = self.con.cmdAsyncList("saveFullImage", imageView=self.getId(),
-                                     filename=dest, scale=saveScale)
+                                     filename=dest, width=width, height=height,
+                                     scale=scale,
+                                     aspectRatioMode=aspectRatioMode)
         return result
 
     def getImageDimensions(self):
+        """
+        Get the dimensions of the image.
+
+        Returns
+        -------
+        list
+            A list of integers representing the x, y, and z dimensions
+            of the image, or error information if the dimensions could
+            not be obtained.
+        """
         result = self.con.cmdTagList("getImageDimensions",
                                      imageView=self.getId())
         if (result[0] != "error"):
@@ -172,8 +436,16 @@ class Image(CartaView):
 
     def getChannelCount(self):
         """
-        A convenience function.
-        Returns the number of channels in the image.
+        Get the number of channels in the image.
+        A convenience function (defined in terms of other Python
+        commands).
+
+        Returns
+        -------
+        integer
+            The number of channels in the image.
+            Error information if the number of channels could not be
+            obtained.
         """
         result = 1
         dimensions = self.getImageDimensions()
@@ -184,6 +456,17 @@ class Image(CartaView):
         return result
 
     def getOutputSize(self):
+        """
+        Get the dimensions of the image viewer (window size).
+
+        Returns
+        -------
+        list
+            A list of integers representing the x and y dimensions of
+            the image viewer.
+            Error information if the image viewer dimensions could not
+            be obtained.
+        """
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         if (result[0] != "error"):
             result = [int(i) for i in result]
@@ -191,8 +474,25 @@ class Image(CartaView):
             result = result[1]
         return result
 
-
     def getIntensity(self, frameLow, frameHigh, percentile):
+        """
+        Returns the intensity corresponding to a given percentile.
+
+        Parameters
+        ----------
+        frameLow: integer
+            A lower bound for the image channels.
+        frameHigh: integer
+            An upper bound for the image channels.
+        percentile: double
+            A number [0,1] for which an intensity is desired.
+
+        Returns
+        -------
+        list
+            The intensity value or an error message if the intensity
+            could not be obtained.
+        """
         result = self.con.cmdTagList("getIntensity", imageView=self.getId(),
                                      frameLow=frameLow, frameHigh=frameHigh,
                                      percentile=percentile)
@@ -206,10 +506,20 @@ class Image(CartaView):
     def centerOnCoordinate(self, skyCoord):
         """
         Centers the image on an astropy Sky Coordinate object.
+
+        Parameters
+        ----------
+        skyCoord: astropy Sky Coordinate object
+            The object to center the image on.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
         """
         result = self.con.cmdTagList("getPixelCoordinates",
                                      imageView=self.getId(),
                                      ra=skyCoord.ra.radian,
                                      dec=skyCoord.dec.radian)
-        self.centerOnPixel( float(result[0]), float(result[1]) )
+        self.centerOnPixel(float(result[0]), float(result[1]))
         return result

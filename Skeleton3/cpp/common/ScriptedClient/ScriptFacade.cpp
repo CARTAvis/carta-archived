@@ -1,4 +1,5 @@
 #include "ScriptFacade.h"
+#include "Data/Snapshot/Snapshots.h"
 #include "Data/ViewManager.h"
 #include "Data/Animator/Animator.h"
 #include "Data/Animator/AnimatorType.h"
@@ -13,7 +14,7 @@
 #include <QDebug>
 
 using Carta::State::ObjectManager;
-using Carta::State::CartaObject;
+//using Carta::State::CartaObject;
 
 QString ScriptFacade::TOGGLE = "toggle";
 
@@ -25,7 +26,7 @@ ScriptFacade * ScriptFacade::getInstance (){
 
 ScriptFacade::ScriptFacade(){
     QString vmLookUp = Carta::Data::ViewManager::CLASS_NAME;
-    CartaObject* obj = Carta::Data::Util::findSingletonObject( vmLookUp );
+    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( vmLookUp );
     m_viewManager = dynamic_cast<Carta::Data::ViewManager*>(obj);
 
     int numControllers = m_viewManager->getControllerCount();
@@ -33,7 +34,7 @@ ScriptFacade::ScriptFacade(){
         QString imageView = getImageViewId( i );
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( imageView );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
             if ( controller != nullptr ){
@@ -49,7 +50,7 @@ QString ScriptFacade::getColorMapId( int index ) const {
 
 QStringList ScriptFacade::getColorMaps() const {
     QString cmLookUp = Carta::Data::Colormaps::CLASS_NAME;
-    CartaObject* obj = Carta::Data::Util::findSingletonObject( cmLookUp );
+    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( cmLookUp );
     Carta::Data::Colormaps* maps = dynamic_cast<Carta::Data::Colormaps*>(obj);
     return maps->getColorMaps();
 }
@@ -227,7 +228,7 @@ QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString&
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -250,7 +251,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -287,7 +288,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -310,7 +311,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -333,7 +334,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -356,7 +357,7 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -393,7 +394,7 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, do
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -416,7 +417,7 @@ QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -439,7 +440,7 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( colormapId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -462,7 +463,7 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( animatorId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
@@ -485,7 +486,7 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( animatorId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
@@ -513,7 +514,7 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( animatorId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
@@ -535,7 +536,7 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -559,7 +560,7 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -580,14 +581,14 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     return resultList;
 }
 
-void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, double scale ) {
+void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            controller->saveFullImage( filename, scale );
+            controller->saveFullImage( filename, width, height, scale, aspectRatioMode );
         }
     }
 }
@@ -597,13 +598,59 @@ void ScriptFacade::saveImageResultCB( bool result ){
 }
 
 
-/*
-QStringList ScriptFacade::saveState( const QString& saveName ) {
-    QString result = m_viewManager->saveState( "fakeSessionId", saveName, true, true, true );
+QStringList ScriptFacade::saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData, const QString& description ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QString result = m_snapshots->saveSnapshot( sessionId, saveName, saveLayout, savePreferences, saveData, description );
     QStringList resultList(result);
     return resultList;
 }
-*/
+
+QStringList ScriptFacade::getSnapshots( const QString& sessionId ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QStringList resultList;
+    QList<Carta::Data::Snapshot> snapshotList = m_snapshots->getSnapshots( sessionId );
+    int count = snapshotList.size();
+    if ( count == 0 ) {
+        resultList = QStringList("");
+    }
+    for ( int i = 0; i < count; i++ ){
+        resultList.append( snapshotList[i].getName() );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::getSnapshotObjects( const QString& sessionId ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QStringList resultList;
+    QList<Carta::Data::Snapshot> snapshotList = m_snapshots->getSnapshots( sessionId );
+    int count = snapshotList.size();
+    if ( count == 0 ) {
+        resultList = QStringList("");
+    }
+    for ( int i = 0; i < count; i++ ){
+        resultList.append( snapshotList[i].toString() );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::deleteSnapshot( const QString& sessionId, const QString& saveName ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QString result = m_snapshots->deleteSnapshot( sessionId, saveName );
+    QStringList resultList(result);
+    return resultList;
+}
+
+QStringList ScriptFacade::restoreSnapshot( const QString& sessionId, const QString& saveName ){
+    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
+    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    QString result = m_snapshots->restoreSnapshot( sessionId, saveName );
+    QStringList resultList(result);
+    return resultList;
+}
 
 QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
     QStringList resultList;
@@ -611,7 +658,7 @@ QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
     for ( int i = 0; i < m_viewManager->getColormapCount(); i++ ){
         QString colormapId = getColorMapId( i );
         QString id = objMan->parseId( colormapId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
             QList<QString> oldLinks = colormap->getLinks();
@@ -636,7 +683,7 @@ QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
     for ( int i = 0; i < m_viewManager->getAnimatorCount(); i++ ){
         QString animatorId = getAnimatorViewId( i );
         QString id = objMan->parseId( animatorId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
             QList<QString> oldLinks = animator->getLinks();
@@ -661,7 +708,7 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
     for ( int i = 0; i < m_viewManager->getHistogramCount(); i++ ){
         QString histogramId = getHistogramViewId( i );
         QString id = objMan->parseId( histogramId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             QList<QString> oldLinks = histogram->getLinks();
@@ -686,7 +733,7 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
     for ( int i = 0; i < m_viewManager->getStatisticsCount(); i++ ){
         QString statisticsId = getStatisticsViewId( i );
         QString id = objMan->parseId( statisticsId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Statistics* statistics = dynamic_cast<Carta::Data::Statistics*>(obj);
             QList<QString> oldLinks = statistics->getLinks();
@@ -709,7 +756,7 @@ QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, dou
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -731,7 +778,7 @@ QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLev
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -753,7 +800,7 @@ QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -776,7 +823,7 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -798,7 +845,7 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -820,7 +867,7 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -842,7 +889,7 @@ QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferA
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -868,7 +915,7 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
     if ( validBool || useBufferStr.toLower() == "toggle" ) {
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( histogramId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
@@ -899,7 +946,7 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -923,7 +970,7 @@ QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMin
     QString result = "";
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -959,7 +1006,7 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
     bool valid;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -989,7 +1036,7 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1012,7 +1059,7 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1035,7 +1082,7 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1058,7 +1105,7 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1081,7 +1128,7 @@ QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QStr
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1104,7 +1151,7 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1130,7 +1177,7 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
     if ( validBool || logCountStr.toLower() == "toggle" ) {
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( histogramId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
@@ -1164,7 +1211,7 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
     if ( validBool || coloredStr.toLower() == "toggle" ) {
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( histogramId );
-        CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
@@ -1195,7 +1242,7 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
-    CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){

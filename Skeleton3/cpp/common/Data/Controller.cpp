@@ -620,9 +620,9 @@ bool Controller::saveImage( const QString& filename ) {
     return result;
 }
 
-void Controller::saveFullImage( const QString& filename, double scale ) {
+void Controller::saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
     int imageIndex = m_selectImage->getIndex();
-    m_datas[imageIndex]->saveFullImage( filename, scale );
+    m_datas[imageIndex]->saveFullImage( filename, width, height, scale, aspectRatioMode );
 }
 
 void Controller::saveImageResultCB( bool result ){
