@@ -326,6 +326,7 @@ public:
 
     /**
      * Center the image on the pixel with coordinates (x, y).
+     * @param controlId the unique server-side id of an object managing a controller.
      * @param x the x-coordinate for the center of the pan.
      * @param y the y-coordinate for the center of the pan.
      * @return error information if the image could not be centered on the given pixel.
@@ -372,6 +373,15 @@ public:
      *  corresponding to the given world coordinates.
      */
     QStringList getPixelCoordinates( const QString& controlId, double ra, double dec );
+
+    /**
+     * Return the value of the pixel at (x, y).
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @return the value of the pixel at (x, y), or blank if it could not be obtained.
+     */
+    QStringList getPixelValue( const QString& controlId, int x, int y );
 
     /**
      * Set the amount of extra space on each side of the clip bounds.

@@ -56,7 +56,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
-    
+
     bool valid = false;
     QPointF imgPt = getImagePt( lastMouse, &valid );
     if ( valid ){
@@ -74,10 +74,12 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
                 KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
                 KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
             };
-         out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
-         out << "Image cursor:" << imgX << "," << imgY << "\n";
+        out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
+        out << "Image cursor:" << imgX << "," << imgY << "\n";
+        QString pixelValue = getPixelValue( imgX, imgY );
+        out << "Value:" << pixelValue << "\n";
     
-         for ( auto cs : css ) {
+        for ( auto cs : css ) {
             cf-> setSkyCS( cs );
             out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
             std::vector < Carta::Lib::AxisInfo > ais;
@@ -89,7 +91,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
             pixel[0] = imgX;
             pixel[1] = imgY;
             if( pixel.size() > 2) {
-               pixel[2] = frameIndex;
+                pixel[2] = frameIndex;
             }
             auto list = cf-> formatFromPixelCoordinate( pixel );
             for ( size_t i = 0 ; i < ais.size() ; i++ ) {
@@ -469,6 +471,19 @@ QStringList DataSource::getPixelCoordinates( double ra, double dec ){
         result.append( QString::number( pixel[1] ) );
     }
     return result;
+}
+
+QString DataSource::getPixelValue( int x, int y ){
+    QString pixelValue = "";
+    if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
+        NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
+        if ( rawData != nullptr ){
+            NdArray::TypedView<double> view( rawData, false );
+            // y-flipping for now until a broader fix for the y-flipping issue is implemented.
+            pixelValue = QString::number( view.get( {x, m_image->dims()[1] - y - 1} ) );
+        }
+    }
+    return pixelValue;
 }
 
 DataSource::~DataSource() {

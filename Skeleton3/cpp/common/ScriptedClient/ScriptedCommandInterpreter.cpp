@@ -296,6 +296,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getPixelCoordinates( imageView, ra, dec );
     }
 
+    else if ( cmd == "getpixelvalue" ) {
+        QString imageView = args["imageView"].toString();
+        int x = args["x"].toInt();
+        int y = args["y"].toInt();
+        result = m_scriptFacade->getPixelValue( imageView, x, y );
+    }
+
     /// animator commands
 
     else if ( cmd == "setchannel" ) {

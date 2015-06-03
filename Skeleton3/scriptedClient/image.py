@@ -523,3 +523,24 @@ class Image(CartaView):
                                      dec=skyCoord.dec.radian)
         self.centerOnPixel(float(result[0]), float(result[1]))
         return result
+
+    def getPixelValue(self, x, y):
+        """
+        Get the value of a pixel.
+
+        Parameters
+        ----------
+        x: integer
+            The x value of the desired pixel.
+        y: integer
+            The y value of the desired pixel.
+
+        Returns
+        -------
+        list
+            The value of the pixel at (x, y), or an empty string if
+            there is no valid value at (x, y).
+        """
+        result = self.con.cmdTagList("getPixelValue", imageView=self.getId(),
+                                     x=x, y=y)
+        return result
