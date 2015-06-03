@@ -539,8 +539,6 @@ class Image(CartaView):
             The value of the pixel at (x, y), or an empty string if
             there is no valid value at (x, y).
         """
-        dim = self.getImageDimensions()
-        yVal = dim[1] - y - 1
         result = self.con.cmdTagList("getPixelValue", imageView=self.getId(),
                                      x=x, y=y)
         return result
