@@ -104,10 +104,37 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->removeLink(source, dest);
     }
 
-//    else if ( cmd == "savestate" ) {
-//        QString name = args["name"].toString();
-//        result = m_scriptFacade->saveState(name);
-//    }
+    else if ( cmd == "savesnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        bool saveLayout = args["saveLayout"].toBool();
+        bool savePreferences = args["savePreferences"].toBool();
+        bool saveData = args["saveData"].toBool();
+        QString description = args["description"].toString();
+        result = m_scriptFacade->saveSnapshot(sessionId, saveName, saveLayout, savePreferences, saveData, description);
+    }
+
+    else if ( cmd == "getsnapshots" ) {
+        QString sessionId = args["sessionId"].toString();
+        result = m_scriptFacade->getSnapshots(sessionId);
+    }
+
+    else if ( cmd == "getsnapshotobjects" ) {
+        QString sessionId = args["sessionId"].toString();
+        result = m_scriptFacade->getSnapshotObjects(sessionId);
+    }
+
+    else if ( cmd == "deletesnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        result = m_scriptFacade->deleteSnapshot(sessionId, saveName);
+    }
+
+    else if ( cmd == "restoresnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        result = m_scriptFacade->restoreSnapshot(sessionId, saveName);
+    }
 
     else if ( cmd == "getcolormaps" ) {
         result = m_scriptFacade->getColorMaps();
@@ -418,8 +445,21 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
     if ( cmd == "savefullimage" ) {
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
+        int width = args["width"].toInt();
+        int height = args["height"].toInt();
         double scale = args["scale"].toDouble();
-        m_scriptFacade->saveFullImage( imageView, filename, scale );
+        QString aspectStr = args["aspectRatioMode"].toString();
+        Qt::AspectRatioMode aspectRatioMode;
+        if ( aspectStr == "keep" ){
+            aspectRatioMode = Qt::KeepAspectRatio;
+        }
+        else if ( aspectStr == "expand" ){
+            aspectRatioMode = Qt::KeepAspectRatioByExpanding;
+        }
+        else {
+            aspectRatioMode = Qt::IgnoreAspectRatio;
+        }
+        m_scriptFacade->saveFullImage( imageView, filename, width, height, scale, aspectRatioMode );
     }
 
 } // asyncMessageReceivedCB

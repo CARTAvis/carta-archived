@@ -45,6 +45,16 @@ public:
     explicit
     ScriptedRenderService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
 
+    ///
+    /// \brief set the desired output size of the image
+    /// \param size the size to output
+    ///
+    void
+    setOutputSize( QSize size );
+
+    /// set the scaling options if an output size is set.
+    void setAspectRatioMode( Qt::AspectRatioMode mode );
+
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
     void
@@ -90,6 +100,12 @@ private:
 
     /// Full path of the output image
     QString m_outputFilename;
+
+    /// The size of the output image
+    QSize m_outputSize;
+
+    /// Determines how the output image will be scaled if an output size is set.
+    Qt::AspectRatioMode m_aspectRatioMode;
 
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_imageCopy;

@@ -10,6 +10,7 @@
 
 #include <QtWidgets>
 #include <QWebSettings>
+
 #include <unistd.h>
 
 std::string warningColor, criticalColor, fatalColor, resetColor;
@@ -122,4 +123,9 @@ void DesktopPlatform::goFullScreen()
 const QStringList & DesktopPlatform::initialFileList()
 {
     return m_initialFileList;
+}
+
+QString DesktopPlatform::getCARTADirectory()
+{
+	return QDir::homePath().append("/CARTA/");
 }

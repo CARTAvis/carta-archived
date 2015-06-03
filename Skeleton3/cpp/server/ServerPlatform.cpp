@@ -57,3 +57,9 @@ const QStringList & ServerPlatform::initialFileList()
     }
     return m_initialFileList;
 }
+
+QString ServerPlatform::getCARTADirectory()
+{
+   return "/scratch/";
+}
+
