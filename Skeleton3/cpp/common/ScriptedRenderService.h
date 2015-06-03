@@ -53,7 +53,7 @@ public:
     setOutputSize( QSize size );
 
     /// set the scaling options if an output size is set.
-    void setAspectRatioMode( QString mode );
+    void setAspectRatioMode( Qt::AspectRatioMode mode );
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen

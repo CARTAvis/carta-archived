@@ -177,8 +177,9 @@ class Image(CartaView):
             something that takes a centre and a radius and computes a
             ZoomLevel to put the centre at the centre of the viewer
             window and have the distance to the edge of the window be
-            the "radius".  Note that this function is defined entirely
-            in terms of other, lower level Python functions.
+            the "radius".
+        Note that this function is defined entirely in terms of other,
+        lower level Python functions.
 
         Parameters
         ----------
@@ -399,6 +400,7 @@ class Image(CartaView):
             'expand'. See
             http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for an
             explanation of these options.
+            The default value is 'ignore'.
 
         Returns
         -------

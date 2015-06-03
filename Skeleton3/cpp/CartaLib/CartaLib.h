@@ -12,6 +12,10 @@
 #include <iostream>
 #include <memory>
 
+#ifndef CARTA_RUNTIME_CHECKS
+#define CARTA_RUNTIME_CHECKS 0
+#endif
+
 /// all carta code lives here (or will eventually)
 namespace Carta
 {
@@ -114,12 +118,12 @@ enum class SkyFormatting
 };
 
 /// QString streaming helper (to output QStrings)
-template < typename STREAM >
+/*template < typename STREAM >
 STREAM &
 operator<< ( STREAM & stream, const QString & str )
 {
     return stream << str.toStdString();
-}
+}*/
 
 /// QString streaming helper (to read in QStrings)
 //template < typename STREAM >

@@ -246,7 +246,7 @@ public:
      * @param aspectRatioMode can be either "ignore", "keep", or "expand".
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, const QString& aspectRatioMode );
+    void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
 
     /**
      * Save the current state.
