@@ -30,6 +30,9 @@ public:
     /// return the list of files to load
     virtual const QStringList & initialFileList() Q_DECL_OVERRIDE;
 
+    /// return the CARTA Root directory
+    virtual QString getCARTADirectory() Q_DECL_OVERRIDE;
+
 public slots:
 
     void goFullScreen();

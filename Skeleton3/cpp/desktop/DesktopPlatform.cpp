@@ -1,16 +1,18 @@
 /**
  *
  **/
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
+#include <QtWidgets>
+#include <QWebSettings>
 
 #include "DesktopPlatform.h"
 #include "DesktopConnector.h"
 #include "MainWindow.h"
 #include "common/CmdLine.h"
 #include "common/Globals.h"
-
-#include <QtWidgets>
-#include <QWebSettings>
-#include <unistd.h>
 
 std::string warningColor, criticalColor, fatalColor, resetColor;
 static void initializeColors() {
@@ -122,4 +124,9 @@ void DesktopPlatform::goFullScreen()
 const QStringList & DesktopPlatform::initialFileList()
 {
     return m_initialFileList;
+}
+
+QString DesktopPlatform::getCARTADirectory()
+{
+	return QDir::homePath().append("/CARTA/");
 }
