@@ -893,7 +893,8 @@ QStringList ScriptFacade::getPixelValue( const QString& controlId, int x, int y 
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getPixelValue( x, y );
+            QString resultStr = controller->getPixelValue( x, y );
+            resultList = QStringList( resultStr );
         }
         else {
             resultList = QStringList( "error" );

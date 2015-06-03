@@ -269,7 +269,7 @@ public:
      * @param y the y-coordinate of the desired pixel.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
-    QStringList getPixelValue( int x, int y );
+    QString getPixelValue( int x, int y );
 
     virtual ~Controller();
 

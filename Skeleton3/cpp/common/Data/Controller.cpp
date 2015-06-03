@@ -907,14 +907,13 @@ QStringList Controller::getPixelCoordinates( double ra, double dec ){
     return result;
 }
 
-QStringList Controller::getPixelValue( int x, int y ){
-    QStringList result("");
+QString Controller::getPixelValue( int x, int y ){
+    QString result("");
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
         int yDimension = m_datas[imageIndex]->getDimension( 1 );
         // y-flipping for now until a broader fix for the y-flipping issue is implemented.
-        QString resultStr = m_datas[imageIndex]->getPixelValue( x, yDimension - y - 1 );
-        result = QStringList( resultStr );
+        result = m_datas[imageIndex]->getPixelValue( x, yDimension - y - 1 );
     }
     return result;
 }
