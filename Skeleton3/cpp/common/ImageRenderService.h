@@ -36,6 +36,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QCache>
+#include <QTimer>
 
 namespace Carta
 {
@@ -50,7 +51,8 @@ typedef Lib::PixelPipeline::IClippedPixelPipeline IClippedPixelPipeline;
 /// job id
 typedef int64_t JobId;
 
-/*
+/* Please don't delete the commented code below. I want to revisit this later (Pavol)
+
 ///
 /// \brief Describes rendering parameters for the image rendering service
 ///
@@ -109,7 +111,16 @@ struct PixelPipelineCacheSettings {
 /// Implementation of the rendering service
 /// \warning this object could potentially live it a separate thread, so make all connections
 /// to it as explicitly queued
-/// \todo start refactoring the pure API of this to ready this for plugins...
+/// \note All pixel coordinates are in "casa-pixel" coordinates, which happens to be
+/// the same as FITS standard, but numbering starts from 0 instead of 1.
+///
+/// For example:
+/// (0,0) is the _CENTER_ of the first pixel (bottom-left pixel!!!)
+/// (-1/2,-1/2) is the bottom left corner of the bottom left pixel
+/// (1/2,1/2) is the top right corner of the bottom left pixel
+
+/// \todo start refactoring the pure API of this to ready this for plugins..., i.e.
+/// IService with only pure virtual functions
 class Service : public QObject
 {
     CLASS_BOILERPLATE( Service );
@@ -117,6 +128,20 @@ class Service : public QObject
     Q_OBJECT
 
 public:
+
+    /// constructor
+    explicit
+    Service( QObject * parent = 0 );
+
+    /// no copy constructor
+    Service( const Service & ) = delete;
+
+    /// no assignment
+    Service &
+    operator= ( const Service & ) = delete;
+
+    /// destructor
+    ~Service();
 
     ///
     /// \brief sets the input data (view) for rendering
@@ -136,10 +161,10 @@ public:
     setOutputSize( QSize size );
 
     ///
-    /// \brief return the output size of the image
+    /// \brief return the last output size requested
+    /// \return
     ///
-    QSize
-    getOutputSize();
+    QSize outputSize() const;
 
     /// set coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
@@ -175,52 +200,37 @@ public:
     const PixelPipelineCacheSettings &
     pixelPipelineCacheSettings() const;
 
-    /// ask the service to render using the current settings and use the given
-    /// jobId when notifying us of the results
-    /// any previous rendering will most likely be canceled, unless the results
-    /// have already been queued up for delivery
-    void
-    render( JobId jobId );
-
-    /// get the last used render parameters
-//    Input
-//    lastJobParameters()
-//    {
-//        return m_currentInput;
-//    }
-
-    /// constructor
-    explicit
-    Service( QObject * parent = 0 );
-
-    /// no copy constructor
-    Service( const Service & ) = delete;
-
-    /// no assignment
-    Service &
-    operator= ( const Service & ) = delete;
-
-    /// destructor
-    ~Service();
-
     /// convert image coordinates to screen coordinates
-    /// \param p point to convert
-    /// \return translated point
+    /// \param p coordinates to convert
+    /// \return converted coordinates
     ///
     QPointF
     img2screen( const QPointF & p );
 
     /// the inverse of img2screen()
-    /// \param p point to convert
-    /// \return translated point
+    /// \param p coordinates to convert
+    /// \return converted coordinates
     ///
     QPointF
     screen2img( const QPointF & p );
 
-protected slots:
+public slots:
 
-    /// internal helper, this will execute in our own thread
-    void internalRenderSlot( JobId );
+    /// ask the service to render using the current settings and use the given
+    /// jobId when notifying us of the results
+    /// any previous rendering will most likely be canceled, unless the results
+    /// have already been queued up for delivery
+    ///
+    /// \param jobId id assigned to the rendering request, which will be reported back
+    /// witht the done() signal, which can be used to make sure the arrived done() signal
+    /// corresponds to the latest request. It should be a positive number. If unspecified
+    /// (or negative number is supplied, a new id will be generated, which will
+    /// the previous one + 1)
+    ///
+    /// \return the jobId to expect when the rendering is done (useful for unspecified
+    /// jobId)
+    JobId
+    render( JobId jobId = -1 );
 
 signals:
 
@@ -236,7 +246,12 @@ signals:
     /// \warning connect to this using queued connection
     void error( QStringList, JobId );
 
-    void internalRenderSignal( JobId );
+//    void internalRenderSignal( );
+
+protected slots:
+
+    /// internal helper, this will execute in our own thread
+    void internalRenderSlot();
 
 private:
 
@@ -264,11 +279,15 @@ private:
     /// pan/zoom to work faster
     QImage m_frameImage;
 
-    /// render the frame if needed
-    void _renderFrame();
-
     /// cache for individual frames (to make movie playing little bit faster)
     QCache < QString, QImage > m_frameCache;
+
+    /// last requested job id
+    JobId m_lastSubmittedJobId = -1;
+
+    /// timer to make sure we only fire one render signal even if multiple requests
+    /// are submitted
+    QTimer m_renderTimer;
 };
 }
 }

@@ -46,6 +46,15 @@ public:
         return m_val;
     }
 
+//    /// returns a reference to the stored value
+//    T & val() {
+//        if( isNull()) {
+//            throw std::logic_error( "Trying to get value of Nullable<> with no value set");
+//        }
+//        return m_val;
+//    }
+
+
 protected:
 
     /// is the value set?

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CartaLib/IPlugin.h"
+#include "CartaLib/Hooks/LoadPlugin.h"
 
 ///
 /// this is a plugin returned as a result of the hook call when loading a python plugin
@@ -17,11 +18,11 @@ class PyCppPlug : public QObject, public IPlugin
 
 public:
 
-    PyCppPlug( const LoadPlugin::Params & params);
+    PyCppPlug( const Carta::Lib::Hooks::LoadPlugin::Params & params);
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
     virtual void initialize( const InitInfo & InitInfo) override;
 
-    LoadPlugin::Params m_params;
+    Carta::Lib::Hooks::LoadPlugin::Params m_params;
     int m_pyModId = -1;
 };

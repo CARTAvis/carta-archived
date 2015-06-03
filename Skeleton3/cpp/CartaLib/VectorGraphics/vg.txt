@@ -1,0 +1,50 @@
+Functionality we need from vector graphics:
+
+- easily create (stateful, hierarchical, extendible)
+- rasterize in c++ (on server side)
+- convertible to PDF/EPS/... others?
+- serializable so that in can be transferred to client side
+- rasterize in html5
+- support diff
+  - an object representing VG needs the ability to modify only parts of it
+    and record the changes
+      e.g. when user change just the color of a grid, only the color command is changed
+- support interactivity on client side
+
+
+Easy creation:
+==============
+API should allow simple things to be done easily. For example, if we want to define
+- modeled after opengl (stateful)
+  e.g. set line color to blue
+       draw line
+       draw another line
+
+       ... both lines will be blue ...
+
+- hierarchical/extendible
+  e.g. define box
+       draw line
+       draw line
+       draw line
+       draw line
+       end define
+       call box
+       scale 0.5
+       call box
+       ... will draw 2 boxes, one big, another 1/2 size
+  or:  save state
+       push point (4,4)
+       push double (10)
+       call circle
+       restore state
+       save state
+       push point (5,5)
+       push double (3)
+       call circle
+       restore state
+       ... will draw 2 circles
+           circle1: center 4,4 radius 10
+           circle2: center 5,5 radius 3
+
+
