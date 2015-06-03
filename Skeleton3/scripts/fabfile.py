@@ -84,6 +84,7 @@ def deploy():
     checkLocalDirectory()
     makeClean()
     puts("Executing on %(host)s as %(user)s" % env)
+    puts("Destination: %s" % remoteDeployDir )
     if not confirm("You are about to deploy to %(host)s. Continue?" % env,default=False):
         abort("Ok, aborting")
     checkServerUp()

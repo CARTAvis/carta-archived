@@ -80,6 +80,43 @@ cartaAssertAbort( const char * assertion, const char * file, const char * func, 
     std::cerr << "Aborting now!\n";
     std::abort();
 }
+
+/// known sky coordinate systems
+/// \warning make sure the first entry is =0, and the last entry is Error
+enum class KnownSkyCS
+{
+    Unknown = 0, ///< intended as a return value
+    Default, ///< intended as input value (requested system = default)
+    J2000,
+    B1950,
+    ICRS,
+    Galactic,
+    Ecliptic,
+    Error ///< intended as an indication of error
+};
+
+/// convenience function to convert KnownSkyCS to int
+int knownSkyCS2int( KnownSkyCS cs);
+
+/// convenience function to convert int to KnownSkyCS
+/// in case the input int is invalid, we return error
+KnownSkyCS int2knownSkyCS( int cs);
+
+/// clamp a value to be in range [v1..v2]
+template < typename T >
+inline
+T
+clamp( const T & v, const T & v1, const T & v2 )
+{
+    if ( v < v1 ) {
+        return v1;
+    }
+    if ( v > v2 ) {
+        return v2;
+    }
+    return v;
+}
+
 }
 }
 
@@ -90,6 +127,7 @@ cartaAssertAbort( const char * assertion, const char * file, const char * func, 
                                                 __LINE__, msg ) : qt_noop() )
 
 /// assert macro that is compiled out in release, with additional message
+/// \note the CARTA_RUNTIME_CHECKS is defined in common.pri, depending on the type of build
 #ifdef CARTA_RUNTIME_CHECKS
 #define CARTA_ASSERT_X( cond, msg ) CARTA_ASSERT_ALWAYS_X( cond, msg )
 #else
@@ -102,11 +140,6 @@ cartaAssertAbort( const char * assertion, const char * file, const char * func, 
 
 /// @todo move everything below to Carta::Lib namespace
 
-/// known sky coordinate systems
-enum class KnownSkyCS
-{
-    Unknown, J2000, B1950, ICRS, Galactic, Ecliptic
-};
 
 /// sky formatting option
 enum class SkyFormatting
@@ -135,21 +168,6 @@ operator<< ( STREAM & stream, const QString & str )
 //    str = tmpstr.c_str();
 //    return stream;
 //}
-
-/// clamp a value to be in range [v1..v2]
-template < typename T >
-inline
-T
-clamp( const T & v, const T & v1, const T & v2 )
-{
-    if ( v < v1 ) {
-        return v1;
-    }
-    if ( v > v2 ) {
-        return v2;
-    }
-    return v;
-}
 
 /// just like std::swap, but only if v1 > v2
 template < typename T >

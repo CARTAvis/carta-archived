@@ -8,6 +8,7 @@
 #include <csignal>
 
 static struct sigaction oldSigIntAction;
+typedef Carta::Lib::Hooks::LoadPlugin LoadPlugin;
 
 static void mySigintHandler( int sig)
 {

@@ -13,7 +13,6 @@ HEADERS += \
     IPlatform.h \
     Viewer.h \
     IView.h \
-    LinearMap.h \
     MyQApp.h \
     CallbackList.h \
     PluginManager.h \
@@ -62,7 +61,6 @@ HEADERS += \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     GrayColormap.h \
-    HackViewer.h \
     ImageRenderService.h \
     ScriptedRenderService.h \
     Histogram/HistogramGenerator.h \
@@ -70,19 +68,22 @@ HEADERS += \
     Histogram/HistogramPlot.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
-    Hacks/ImageViewController.h \
-    Hacks/MainModel.h \
     Algorithms/quantileAlgorithms.h \
-    ILayeredView.h \
     ScriptedClient/Listener.h \
     ScriptedClient/ScriptedCommandInterpreter.h \
     ScriptedClient/VarLengthMessage.h \
     ScriptedClient/TagMessage.h \
-    ScriptedClient/JsonMessage.h
+    ScriptedClient/JsonMessage.h \
+    Hacks/HackViewer.h \
+    Hacks/ImageViewController.h \
+    Hacks/MainModel.h \
+    Hacks/ILayeredView.h \
+    Hacks/IVectorGraphicsView.h \
+    Hacks/WcsGridOptionsController.h \
+    Hacks/SharedState.h
 
 SOURCES += \
     Viewer.cpp \
-    LinearMap.cpp \
     MyQApp.cpp \
     CallbackList.cpp \
     PluginManager.cpp \
@@ -125,7 +126,6 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    HackViewer.cpp \
     Algorithms/RawView2QImageConverter.cpp \
     Histogram/HistogramGenerator.cpp \
     Histogram/HistogramSelection.cpp \
@@ -134,15 +134,19 @@ SOURCES += \
     ScriptedClient/ScriptFacade.cpp \
     ImageRenderService.cpp \
     ScriptedRenderService.cpp \
-    Hacks/ImageViewController.cpp \
-    Hacks/MainModel.cpp \
     Algorithms/quantileAlgorithms.cpp \
-    ILayeredView.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \
     ScriptedClient/VarLengthMessage.cpp \
     ScriptedClient/TagMessage.cpp \
-    ScriptedClient/JsonMessage.cpp
+    ScriptedClient/JsonMessage.cpp \
+    Hacks/HackViewer.cpp \
+    Hacks/ImageViewController.cpp \
+    Hacks/MainModel.cpp \
+    Hacks/ILayeredView.cpp \
+    Hacks/IVectorGraphicsView.cpp \
+    Hacks/WcsGridOptionsController.cpp \
+    Hacks/SharedState.cpp
 
 
 #message( "common            PWD=$$PWD")

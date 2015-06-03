@@ -49,7 +49,7 @@ void ScriptedRenderService::_prepareData( int frameIndex, double /*minClipPercen
         frameIndex = 0;
     }
     else {
-        frameIndex = clamp( frameIndex, 0, m_imageCopy-> dims()[2] - 1 );
+        frameIndex = Carta::Lib::clamp( frameIndex, 0, m_imageCopy-> dims()[2] - 1 );
     }
 
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]

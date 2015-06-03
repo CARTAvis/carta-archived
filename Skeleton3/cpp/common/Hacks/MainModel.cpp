@@ -33,7 +33,8 @@ Model::MainModel & GlobalsH::mainModel()
 {
     CARTA_ASSERT( m_pluginManager);
     if( ! m_mainModel) {
-        m_mainModel = std::make_shared<Model::MainModel>( m_pluginManager);
+//        m_mainModel = std::make_shared<Model::MainModel>( m_pluginManager);
+        m_mainModel.reset( new Model::MainModel( m_pluginManager));
     }
     return * m_mainModel;
 }

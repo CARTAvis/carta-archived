@@ -3,11 +3,8 @@
  **/
 
 #include "DesktopConnector.h"
-#include "common/LinearMap.h"
+#include "CartaLib/LinearMap.h"
 #include "common/MyQApp.h"
-//#include "common/State/StateXmlRestorer.h"
-//#include "common/State/StateReader.h"
-//#include "DesktopStateWriter.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -32,7 +29,7 @@ struct DesktopConnector::ViewInfo
     QSize clientSize;
 
     /// linear maps convert x,y from client to image coordinates
-    LinearMap1D tx, ty;
+    Carta::Lib::LinearMap1D tx, ty;
 
     /// refresh timer for this object
     QTimer refreshTimer;
@@ -75,22 +72,13 @@ void DesktopConnector::setState(const QString& path, const QString & newValue)
         return;
     }
 
-    // if we did find it, but the value is different, set it to new value (optimized)
-    // and emit signal
+    // if we did find it, but the value is different, set it to new value and emit signal
     if( it-> second != newValue) {
         it-> second = newValue;
         emit stateChangedSignal( path, newValue);
     }
 
-    // otherwise don't do anything at all
-
-//    if( it != m_state.end() && it-> second == newValue) {
-//        // if we alredy have an entry for this path and the stored value is
-//        // the same as the incoming value, we don't want to do anything
-//        return;
-//    }
-//    m_state[path] = newValue;
-//    emit stateChangedSignal( path, newValue);
+    // otherwise there was no change to state, so do dothing
 }
 
 
@@ -102,7 +90,7 @@ QString DesktopConnector::getState(const QString & path  )
 
 /// Return the location where the state is saved.
 QString DesktopConnector::getStateLocation( const QString& saveName ) const {
-	//TODO: Generalize this.
+	// \todo Generalize this.
 	return "/tmp/"+saveName+".json";
 }
 
@@ -278,16 +266,16 @@ void DesktopConnector::refreshViewNow(IView *view)
 
         // remember the transformations we did to the image in the viewInfo so that we can
         // properly translate mouse events etc
-        viewInfo-> tx = LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
+        viewInfo-> tx = Carta::Lib::LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
                                      0, origImage.width()-1);
-        viewInfo-> ty = LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
+        viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
         emit jsViewUpdatedSignal( view-> name(), pix);
     }
     else {
-        viewInfo-> tx = LinearMap1D( 0, 1, 0, 1);
-        viewInfo-> ty = LinearMap1D( 0, 1, 0, 1);
+        viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
+        viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
         emit jsViewUpdatedSignal( view-> name(), origImage);
     }

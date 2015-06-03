@@ -1,7 +1,8 @@
 TEMPLATE = aux
 
 OTHER_FILES += \
-    fabfile.py
+    fabfile.py \
+    fabfile2.py
 
 MYFILES = $$files($${PWD}/*.py)
 copy_files.name = copy project files

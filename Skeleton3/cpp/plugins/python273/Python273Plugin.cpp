@@ -1,8 +1,11 @@
 #include "Python273Plugin.h"
 #include "PyCppPlugin.h"
+#include "CartaLib/Hooks/LoadPlugin.h"
 #include <QDebug>
 #include <QPainter>
 
+
+typedef Carta::Lib::Hooks::LoadPlugin LoadPlugin;
 
 Python273Plugin::Python273Plugin(QObject *parent) :
     QObject(parent)

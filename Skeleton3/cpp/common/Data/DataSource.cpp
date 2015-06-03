@@ -66,22 +66,33 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
     
-        std::vector < QString > knownSCS2str {
-                "Unknown", "J2000", "B1950", "ICRS", "Galactic",
-                "Ecliptic"
-            };
-        std::vector < KnownSkyCS > css {
-                KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-                KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
-            };
-        out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
+        auto cs2str = [] ( Carta::Lib::KnownSkyCS cs) {
+            switch (cs) {
+            case Carta::Lib::KnownSkyCS::J2000: return "J2000"; break;
+            case Carta::Lib::KnownSkyCS::B1950: return "B1950"; break;
+            case Carta::Lib::KnownSkyCS::ICRS: return "ICRS"; break;
+            case Carta::Lib::KnownSkyCS::Galactic: return "Galactic"; break;
+            case Carta::Lib::KnownSkyCS::Ecliptic: return "Ecliptic"; break;
+            default:
+                return "Unknown";
+            }
+        };
+
+        std::vector < Carta::Lib::KnownSkyCS > css {
+            Carta::Lib::KnownSkyCS::J2000,
+                    Carta::Lib::KnownSkyCS::B1950,
+                    Carta::Lib::KnownSkyCS::Galactic,
+                    Carta::Lib::KnownSkyCS::Ecliptic,
+                    Carta::Lib::KnownSkyCS::ICRS
+        };
+        out << "Default sky cs:" << cs2str( cf-> skyCS() ) << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
         QString pixelValue = getPixelValue( imgX, imgY );
         out << "Value:" << pixelValue << "\n";
     
         for ( auto cs : css ) {
             cf-> setSkyCS( cs );
-            out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+            out << cs2str( cf-> skyCS() ) << ": ";
             std::vector < Carta::Lib::AxisInfo > ais;
             for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
                 const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
@@ -274,7 +285,7 @@ double DataSource::getZoom() const {
 }
 
 QSize DataSource::getOutputSize() const {
-    return m_renderService->getOutputSize();
+    return m_renderService-> outputSize();
 }
 
 void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
@@ -286,7 +297,7 @@ void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double 
         frameIndex = 0;
     }
     else {
-        frameIndex = clamp( frameIndex, 0, m_image-> dims()[2] - 1 );
+        frameIndex = Carta::Lib::clamp( frameIndex, 0, m_image-> dims()[2] - 1 );
     }
 
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]

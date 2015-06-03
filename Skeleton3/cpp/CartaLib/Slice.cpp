@@ -196,7 +196,7 @@ void Slice1D::positiveCase(Slice1D::ApplyResult & res, Slice1D::Index n, Slice1D
         if( res.start < 0) res.start = n + res.start;
         res.start += off;
         // make sure 0 <= start <= n
-        res.start = clamp<Index>( res.start, 0, n);
+        res.start = Carta::Lib::clamp<Index>( res.start, 0, n);
     }
     // if start was not defined, assign a default
     else {
@@ -209,7 +209,7 @@ void Slice1D::positiveCase(Slice1D::ApplyResult & res, Slice1D::Index n, Slice1D
         if( end < 0) end = n + end;
         end += off;
         // make sure start <= end <= n
-        end = clamp<Index>( end, res.start, n);
+        end = Carta::Lib::clamp<Index>( end, res.start, n);
     }
     // if end was not defined, assign default
     else {

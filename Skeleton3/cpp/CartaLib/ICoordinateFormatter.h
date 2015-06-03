@@ -22,6 +22,9 @@ class CoordinateFormatterInterface {
 
 public:
 
+    // \todo temporary typedef until we move this entire class to Carta::Lib
+    typedef Carta::Lib::KnownSkyCS KnownSkyCS;
+
     /// \todo we can remove this once we put this class into carta namespace
     typedef Carta::Lib::TextFormat TextFormat;
 

@@ -6,7 +6,7 @@
 #include "PluginManager.h"
 #include "Algorithms/Graphs/TopoSort.h"
 #include "CartaLib/HtmlString.h"
-static Carta::Lib::HtmlString s;
+#include "CartaLib/Hooks/LoadPlugin.h"
 #include <QDirIterator>
 #include <QImage>
 #include <QPluginLoader>
@@ -16,6 +16,7 @@ static Carta::Lib::HtmlString s;
 #include <QJsonParseError>
 #include <QJsonObject>
 #include <QJsonArray>
+
 
 PluginManager::PluginManager()
 {
@@ -126,8 +127,10 @@ void PluginManager::loadPlugins()
                 }
             }
             else {
-                // TODO: this is where we want to call plugin hook to load this plugin
-                Nullable<IPlugin *> iPlug = prepare<LoadPlugin>( pInfo.dirPath, pInfo.json).first();
+                // let's see if any of the existing plugins can load this plugin
+                // via the LoadPlugin hook
+                Nullable<IPlugin *> iPlug = prepare<Carta::Lib::Hooks::LoadPlugin>(
+                                                pInfo.dirPath, pInfo.json).first();
                 if( iPlug.isSet()) {
                     pInfo.rawPlugin = iPlug.val();
                 }
@@ -141,7 +144,7 @@ void PluginManager::loadPlugins()
                 continue;
             }
 
-            // call plugins' initialize
+            // call plugins' initialize()
             qDebug() << "Calling plugin's initialize";
             IPlugin::InitInfo initInfo;
             initInfo.pluginPath = pInfo.dirPath;
