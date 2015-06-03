@@ -1,6 +1,6 @@
 {
     "api"        : "1",
-    "name"       : "casaLoader",
+    "name"       : "casatest1",
     "version"    : "1",
     "type"       : "C++",
     "description": "Adds ability to load casa and fits files as QImages",

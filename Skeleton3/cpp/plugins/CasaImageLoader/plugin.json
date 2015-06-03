@@ -9,5 +9,5 @@
         "CasaCore to do the work."
     ],
     "about"      : "Part of skeleton4. Written by Pavol",
-    "depends"    : [ "casaCore"]
+    "depends"    : [ "casaCore-2.0.1"]
 }

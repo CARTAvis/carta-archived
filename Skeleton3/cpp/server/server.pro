@@ -25,6 +25,7 @@ SOURCES       = \
 PUREWEB_LIBS=$$absolute_path("../../../ThirdParty/pureweb-4.1.1-sdk/Redistributable/Libs")
 
 unix:INCLUDEPATH += $${PUREWEB_LIBS}/C++/include
+INCLUDEPATH += $$absolute_path(../../../ThirdParty/rapidjson/include)
 
 unix:QMAKE_CXXFLAGS += -isystem $${PUREWEB_LIBS}/C++/include
 

@@ -63,7 +63,7 @@ unix:macx {
 	LIBS+=-L/usr/local/lib
 }
 else{
-	casacoreLIBS += -lcasa_images -lcasa_components -lcasa_coordinates -lcasa_fits -lcasa_measures
+        casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
     PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.so
 	INCLUDEPATH += $${CASACOREDIR}/include/casacore
 }

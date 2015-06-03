@@ -31,7 +31,8 @@ void ScriptedRenderService::saveFullImage(){
     m_renderService->render( 0 );
 }
 
-void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercentile, double maxClipPercentile ){
+/// \todo not all parameters are being used?
+void ScriptedRenderService::_prepareData( int frameIndex, double /*minClipPercentile*/, double /*maxClipPercentile*/ ){
 
     if ( frameIndex < 0 ) {
         frameIndex = 0;
