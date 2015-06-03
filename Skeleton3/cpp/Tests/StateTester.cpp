@@ -12,7 +12,7 @@
 
 using namespace std;
 
-class StateInterfaceTestImpl : public StateInterface {
+class StateInterfaceTestImpl : public Carta::State::StateInterface {
 
 public:
 
@@ -40,7 +40,7 @@ private:
 TEST_CASE( "Carta state test", "[testname]" ) {
 
     StateInterfaceTestImpl tester;
-    QString del( StateInterface::DELIMITER);
+    QString del( Carta::State::StateInterface::DELIMITER);
     QString subZ( "sub" + del + "z");
     SECTION( "Test setting state via JSON") {
         tester.setStateString ("{\"a\":\"abc\",\"i\":123,\"pi\":3.14159, "

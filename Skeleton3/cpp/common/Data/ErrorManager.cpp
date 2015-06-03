@@ -11,21 +11,21 @@ const QString ErrorManager::CLASS_NAME = "ErrorManager";
 const QChar ErrorManager::ERROR_SEPARATOR = '#';
 const QString ErrorManager::ERRORS_EXIST = "errorsExist";
 
-class ErrorManager::Factory : public CartaObjectFactory {
+class ErrorManager::Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
         Factory():
          CartaObjectFactory( CLASS_NAME ){};
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new ErrorManager (path, id);
         }
     };
 
 bool ErrorManager::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ErrorManager::Factory());
 
 

@@ -12,7 +12,7 @@ namespace Carta {
 
 namespace Data {
 
-class Preferences : public CartaObject {
+class Preferences : public Carta::State::CartaObject {
 
 public:
 

@@ -6,16 +6,18 @@
 
 #pragma once
 #include <QString>
+#include <QObject>
 
-class ObjectManager;
+
 namespace Carta {
     namespace Data {
         class ViewManager;
-        class Animator;
     }
 }
 
-class ScriptFacade {
+class ScriptFacade: public QObject {
+
+    Q_OBJECT
 
 public:
 
@@ -142,7 +144,7 @@ public:
      * @param cacheStr should be equal to either "true" or "false"
      * @return error information if the cache size was not successfully set.
      */
-    QStringList setCacheColormap( const QString& colormapId, const QString& cacheStr );
+    //QStringList setCacheColormap( const QString& colormapId, const QString& cacheStr );
 
     /**
      * Set the cache size of the colormap
@@ -150,7 +152,7 @@ public:
      * @param cacheSize the desired cache size.
      * @return error information if the cache size was not successfully set.
      */
-    QStringList setCacheSize( const QString& colormapId, const QString& cacheSize );
+    //QStringList setCacheSize( const QString& colormapId, const QString& cacheSize );
 
     /**
      * Interpolate the current colormap.
@@ -158,7 +160,7 @@ public:
      * @param interpolateStr should be equal to either "true" or "false".
      * @return error information if the color map was not successfully interpolated.
      */
-    QStringList setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
+    //QStringList setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr );
 
     /**
      * Invert the current colormap.
@@ -171,10 +173,12 @@ public:
     /**
      * Set a color mix.
      * @param colormapId the unique server-side id of an object managing a color map.
-     * @param percentString a formatted string specifying the blue, green, and red percentanges.
+     * @param red the amount of red in the mix [0,1].
+     * @param green the amount of green in the mix [0,1].
+     * @param blue the amount of blue in the mix [0,1].
      * @return error information if the color mix was not successfully set.
      */
-    QStringList setColorMix( const QString& colormapId, const QString& percentString );
+    QStringList setColorMix( const QString& colormapId, double red, double green, double blue );
 
     /**
      * Set the gamma color map parameter.
@@ -193,7 +197,7 @@ public:
     QStringList setDataTransform( const QString& colormapId, const QString& transformString );
 
     /**
-     * Set plugins for each of the views in the layout
+     * Set plugins for each of the views in the layout.
      * @param names a list of plugin names.
      * @return error information if plugins could not be set.
      */
@@ -221,7 +225,7 @@ public:
      * @param clipValue the percentage of data to be shown.
      * @return error information if the clip value could not be set.
      */
-    QStringList setClipValue( const QString& controlId, const QString& clipValue );
+    QStringList setClipValue( const QString& controlId, double clipValue );
 
     /**
      * Save a screenshot of the current image view.
@@ -233,22 +237,60 @@ public:
     QStringList saveImage( const QString& controlId, const QString& fileName );
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
+     * Save a copy of the full image in the current image view.
      * @param controlId the unique server-side id of an object managing a controller.
-     * @param fileName the full path where the file is to be saved.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width of the saved image.
+     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    QStringList saveFullImage( const QString& controlId, const QString& fileName, double scale );
+    void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
 
-//    /**
-//     * Save the current layout to a .json file in the /tmp directory.
-//     * @param fileName the base name of the file. The layout will be saved to
-//     * /tmp/fileName.json.
-//     * @return whether the operation was a success or not.
-//     */
-//    QStringList saveState( const QString& saveName );
+    /**
+     * Save the current state.
+     * @param fileName - an identifier for the state to be saved.
+     * @param layoutSave - true if the layout should be saved; false otherwise.
+     * @param preferencesSave -true if the preferences should be saved; false otherwise.
+     * @param dataSave - true if the data should be saved; false otherwise.
+     * @param saveDescription - notes about the state being saved.
+     * @return an error message if there was a problem saving state; an empty list otherwise.
+     */
+    QStringList saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout,
+            bool savePreferences, bool saveData, const QString& description );
+
+    /**
+     * Returns a list of the names of available snapshots
+     * @param sessionId - an identifier for a user session.
+     * @return a list of the names of supported snapshots.
+     */
+    QStringList getSnapshots(const QString& sessionId );
+
+    /**
+     * Returns a list of the available snapshots
+     * @param sessionId - an identifier for a user session.
+     * @return a list of supported snapshots.
+     */
+    QStringList getSnapshotObjects(const QString& sessionId );
+
+    /**
+     * Delete the snapshot with the given identifier.
+     * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to delete.
+     * @return an empty list if the snapshot was deleted; an error message if
+     *      there was a problem deleting the snapshot.
+     */
+    QStringList deleteSnapshot( const QString& sessionId, const QString& saveName );
+
+    /**
+     * Read and restore state for a particular sessionId from a string.
+     * @param sessionId an identifier for a user session.
+     * @param saveName an identifier for the snapshot to restore.
+     * @return an empty list if the snapshot was restored; an error message if
+     *      there was a problem restoring the snapshot.
+     */
+    QStringList restoreSnapshot( const QString& sessionId, const QString& saveName );
 
     /**
      * Get the animators that are linked to the given image view.
@@ -320,6 +362,16 @@ public:
      *      information if the output size could not be obtained.
      */
     QStringList getOutputSize( const QString& controlId );
+
+    /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList getPixelCoordinates( const QString& controlId, double ra, double dec );
 
     /**
      * Set the amount of extra space on each side of the clip bounds.
@@ -426,7 +478,7 @@ public:
     QStringList setLogCount( const QString& histogramId, const QString& logCountStr );
 
     /**
-     * Set where or not the histogram should be colored by intensity.
+     * Set whether or not the histogram should be colored by intensity.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param colored true if the histogram should be colored by intensity; false otherwise.
      *  Can also be equal to "toggle" to turn the coloring on or off depending on its
@@ -452,6 +504,17 @@ public:
      */
     static ScriptFacade * getInstance ();
     virtual ~ScriptFacade(){}
+
+signals:
+
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
+
+private slots:
+
+    // Asynchronous result from saveFullImage().
+    void saveImageResultCB( bool result );
 
 private:
     Carta::Data::ViewManager* m_viewManager; //Used
@@ -504,5 +567,8 @@ private:
      * @return the unique server side id of the object managing the statistics view.
      */
     QString getStatisticsViewId( int index = -1 ) const;
+
+private:
+    static QString TOGGLE;
 };
 

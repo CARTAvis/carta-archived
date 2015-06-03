@@ -1,6 +1,7 @@
 #include "Region.h"
 #include "RegionRectangle.h"
 #include "Util.h"
+#include "State/UtilState.h"
 
 #include <QDebug>
 
@@ -16,7 +17,7 @@ Region::Region(const QString& className, const QString& path, const QString& id 
 QString Region::makeRegion( const QString& type ){
     QString regionPath;
     if ( type == RegionRectangle::CLASS_NAME ){
-        ObjectManager* objManager = ObjectManager::objectManager();
+        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
         regionPath = objManager->createObject( type );
     }
     else {
@@ -31,7 +32,7 @@ void Region::_initializeCallbacks(){
     addCommandCallback( "shapeChanged", [=] (const QString & /*cmd*/,
                                     const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = { "info"};
-        std::map<QString,QString> dataValues = Util::parseParamMap( params, keys );
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         resetStateData( dataValues[ *keys.begin()]);
         return "";
     });

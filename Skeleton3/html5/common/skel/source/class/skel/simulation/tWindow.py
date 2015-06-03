@@ -1,4 +1,5 @@
 import unittest
+import Util
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -56,8 +57,7 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).click(colorWindow).perform();
         
         #For later use, determine the number of DisplayWindows.
-        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( windowList )
+        windowCount = Util.get_window_count(self,driver )
         print "Window Count=", windowCount
         
         # Click the Window button
@@ -78,8 +78,7 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         
         # Verify that there is one less window than was there originally and the colormap window is not in the list.
-        newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        newWindowCount = len( newWindowList)
+        newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount+1, "Window was not removed")
         try: 
@@ -97,8 +96,7 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).click(colorWindow).perform();
         
         #For later use, determine the number of DisplayWindows.
-        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( windowList )
+        windowCount = Util.get_window_count( self, driver )
         print "Window Count=", windowCount
         
         # Click the Window button
@@ -119,8 +117,7 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
         
         # Verify that there are exactly the same number of windows as was there originally and the colormap window is present.
-        newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        newWindowCount = len( newWindowList)
+        newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount, "Window count has changed")
         colorWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")
@@ -131,8 +128,7 @@ class tWindow(unittest.TestCase):
         driver = self.driver
         
         #For later use, determine the number of DisplayWindows.
-        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( windowList )
+        windowCount = Util.get_window_count( self, driver )
         print "Window Count=", windowCount
         
         #For later use, we also determine the number of DisplayWindows displaying a statistics plugin
@@ -160,8 +156,7 @@ class tWindow(unittest.TestCase):
         # Check that we now have a generic empty window in the display and that the window count has gone up by one.
         emptyWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowGenericPlugin']")
         self.assertIsNotNone( emptyWindow, "Could not find empty display window")
-        newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        newWindowCount = len( newWindowList )
+        newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount+1, newWindowCount, "Window count did not go up")
         
@@ -189,8 +184,7 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).click(colorWindow).perform();
         
         #For later use, determine the number of DisplayWindows.
-        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( windowList )
+        windowCount = Util.get_window_count( self, driver )
         print "Window Count=", windowCount
         
         # Click the Window button
@@ -204,8 +198,7 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).click(removeButton).perform()
         
         # Verify that there is one less window than was there originally and the colormap window is not in the list.
-        newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        newWindowCount = len( newWindowList)
+        newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount+1, "Window was not removed")
         try: 

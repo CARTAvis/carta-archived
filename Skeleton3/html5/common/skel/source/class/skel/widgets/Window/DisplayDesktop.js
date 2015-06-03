@@ -424,6 +424,7 @@ qx.Class
                        
                             if ( this.m_window !== null ){
                                 this.add(this.m_window);
+                                this.m_window.setLocation( rowIndex, colIndex );
                                 this.m_window.open();
                                 if ( existingWindow ){
                                     this.m_window.initID( index );
@@ -464,6 +465,7 @@ qx.Class
                                     this.show();
                                 }
                             }
+                            
                             return true;
                         },
                         

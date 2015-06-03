@@ -21,6 +21,10 @@
 using namespace rapidjson;
 using namespace std;
 
+namespace Carta {
+
+namespace State {
+
 class StateInterfaceImpl {
 
     friend class StateInterface;
@@ -81,14 +85,15 @@ private:
 
 const QString StateInterface::DELIMITER("/");
 const QString StateInterface::STATE_DATA( "data");
-
+const QString StateInterface::OBJECT_TYPE( "type");
+const QString StateInterface::INDEX = "index";
 
 StateInterface::StateInterface (const QString & path, const QString& type, const QString& initialState )
 : impl_p (new StateInterfaceImpl (path) )
 {
-    if ( type.trimmed().size() > 0  ){
-        insertValue<QString>( "type", type );
-    }
+    insertValue<QString>( OBJECT_TYPE, type );
+    insertValue<int>(INDEX, 0 );
+
     if ( initialState.trimmed().size() > 0 ){
         flushStateImpl( initialState );
     }
@@ -116,6 +121,7 @@ StateInterface::~StateInterface ()
 void StateInterface::setState( const QString& jsonStr  ){
     _restoreState( jsonStr );
 }
+
 
 void
 StateInterface::fetchState ()
@@ -283,8 +289,7 @@ StateInterface::insertObject (const QString & keyString)
 
 }
 
-void
-StateInterface::resizeArray (const QString & keyString,
+void StateInterface::resizeArray (const QString & keyString,
                              int size,
                              Preservation preservation)
 {
@@ -670,5 +675,6 @@ StateInterface::getMemberNames (const QString & keyString) const {
     }
     return result;
 }
-
+}
+}
 

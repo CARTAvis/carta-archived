@@ -1,14 +1,15 @@
 #include "DataSource.h"
-#include "Colormaps.h"
+#include "Colormap/Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
-#include "Data/Util.h"
-#include "Data/TransformsData.h"
+#include "Util.h"
+#include "Colormap/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
+#include "../ScriptedRenderService.h"
 #include "../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QDir>
@@ -30,7 +31,6 @@ DataSource::DataSource() :
         m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
         connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
                  this, & DataSource::_renderingDone);
-
 
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
@@ -360,8 +360,8 @@ bool DataSource::setFileName( const QString& fileName ){
 }
 
 void DataSource::setColorMap( const QString& name ){
-    ObjectManager* objManager = ObjectManager::objectManager();
-    CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
+    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+    Carta::State::CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
     m_pixelPipeline-> setColormap( maps->getColorMap( name ) );
     m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
@@ -391,7 +391,7 @@ void DataSource::setPan( double imgX, double imgY ){
 }
 
 void DataSource::setTransformData( const QString& name ){
-    CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
+    Carta::State::CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
     TransformsData* transformData = dynamic_cast<TransformsData*>(transformDataObj);
     Carta::Lib::PixelPipeline::ScaleType scaleType = transformData->getScaleType( name );
     m_pixelPipeline->setScale( scaleType );
@@ -403,23 +403,7 @@ void DataSource::setZoom( double zoomAmount){
     m_renderService-> setZoom( zoomAmount );
 }
 
-void DataSource::setPixelCaching( bool cachePixels ){
-    Carta::Core::ImageRenderService::PixelPipelineCacheSettings settings = m_renderService-> pixelPipelineCacheSettings();
-    settings.enabled = cachePixels;
-    m_renderService->setPixelPipelineCacheSettings( settings );
-}
 
-void DataSource::setCacheInterpolation( bool enabled ){
-    Carta::Core::ImageRenderService::PixelPipelineCacheSettings settings = m_renderService-> pixelPipelineCacheSettings();
-    settings.interpolated = enabled;
-    m_renderService->setPixelPipelineCacheSettings( settings );
-}
-
-void DataSource::setCacheSize( int cacheSize ){
-    Carta::Core::ImageRenderService::PixelPipelineCacheSettings settings = m_renderService-> pixelPipelineCacheSettings();
-    settings.size = cacheSize;
-    m_renderService->setPixelPipelineCacheSettings( settings );
-}
 
 void DataSource::setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
@@ -456,8 +440,35 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-bool DataSource::saveFullImage( const QString& filename, double scale ){
-    return false;
+void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, const Qt::AspectRatioMode aspectRatioMode ){
+    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
+    if ( width > 0 && height > 0 ) {
+        m_scriptedRenderService->setOutputSize( QSize( width, height ) );
+        m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
+    }
+    m_scriptedRenderService->setZoom( scale );
+
+    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::saveImageResultCB );
+
+    m_scriptedRenderService->saveFullImage();
+}
+
+void DataSource::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
+    m_scriptedRenderService->deleteLater();
+}
+
+QStringList DataSource::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    const CoordinateFormatterInterface::VD world { ra, dec };
+    CoordinateFormatterInterface::VD pixel;
+    bool valid = cf->toPixel( world, pixel );
+    if ( valid ){
+        result = QStringList( QString::number( pixel[0] ) );
+        result.append( QString::number( pixel[1] ) );
+    }
+    return result;
 }
 
 DataSource::~DataSource() {

@@ -1,6 +1,4 @@
 #include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
 
 #include <QDebug>
 #include <QDirIterator>
@@ -8,20 +6,22 @@
 #include <QJsonObject>
 
 #include "DataLoader.h"
+#include "Globals.h"
+#include "IPlatform.h"
 
 
 namespace Carta {
 
 namespace Data {
 
-class DataLoader::Factory : public CartaObjectFactory {
+class DataLoader::Factory : public Carta::State::CartaObjectFactory {
 
 public:
 
     Factory():
         CartaObjectFactory( "DataLoader" ){};
 
-    CartaObject * create (const QString & path, const QString & id)
+    Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new DataLoader (path, id);
     }
@@ -30,7 +30,7 @@ public:
 QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
 bool DataLoader::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataLoader::Factory());
 
 
@@ -124,12 +124,7 @@ void DataLoader::makeFileNode(QJsonArray& parentArray,
 }
 
 QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
-   struct passwd *pw = getpwuid(getuid());
-#ifdef DESKTOPVERSION
-   return QString("%1/%2/%3").arg(pw->pw_dir, "CARTA", "Images");
-#else
-   return "/scratch/Images";
-#endif
+    return Globals::instance()-> platform()-> getCARTADirectory().append("Images");
 }
 }
 }

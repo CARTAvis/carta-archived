@@ -8,7 +8,7 @@ namespace Data {
 const QString RegionRectangle::CLASS_NAME = "RegionRectangle";
 
 bool RegionRectangle::m_registered =
-    ObjectManager::objectManager()->registerClass (CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new RegionRectangle::Factory());
 
 RegionRectangle::RegionRectangle(const QString& path, const QString& id ):

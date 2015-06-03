@@ -16,27 +16,6 @@ qx.Theme.define( "skel.theme.Appearance", {
     extend: qx.theme.modern.Appearance,
 
     appearances: {
-        "display-window": {
-            alias  : "window",
-            include: "window",
-            style  : function()
-            {
-                return {
-                    decorator: "win"
-                };
-            }
-        },
-
-        "display-window-selected": {
-            alias  : "window",
-            include: "window",
-            style  : function( states )
-            {
-                return {
-                    decorator: "window-pane-active"
-                };
-            }
-        },
         
         "errorTextField" : {
             style : function(states)
@@ -48,23 +27,6 @@ qx.Theme.define( "skel.theme.Appearance", {
                    };
             }
         },
-
-        "window/captionbar" :
-        {
-            style : function(states)
-            {
-                return {
-                    decorator : (states.winsel ? "window-captionbar-active" :
-                        "window-captionbar-inactive"),
-                    textColor : states.winsel ? "window-caption-active-text" : "text-gray",
-                    minHeight : 20,
-                    paddingRight : 2
-                };
-            }
-        },
-
-
-
 
         "splitpane": {
             style: function( states )
@@ -142,6 +104,16 @@ qx.Theme.define( "skel.theme.Appearance", {
                     decorator: "status-bar"
                 };
             }
+        },
+        
+        "window/pane" :
+        {
+          style : function(states)
+          {
+            return {
+                decorator : states.winSel ? "window-pane-selected" : "window-pane"
+            };
+          }
         }
     }
 } );

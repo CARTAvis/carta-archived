@@ -15,7 +15,7 @@ namespace Carta {
 namespace Data {
 
 
-class ErrorManager : public CartaObject {
+class ErrorManager : public Carta::State::CartaObject {
 
 public:
 

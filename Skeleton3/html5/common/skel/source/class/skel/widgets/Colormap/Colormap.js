@@ -27,6 +27,15 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
     },
 
     members : {
+        
+        /**
+         * Return the number of significant digits used in the histogram display fields.
+         * @return {Number} the significant digits to display.
+         */
+        getSignificantDigits : function(){
+            return this.m_significantDigits;
+        },
+        
         /**
          * Initialize the GUI.
          */
@@ -34,8 +43,8 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this.m_content.setLayout(new qx.ui.layout.VBox());
             this._initView();
             this._initSettings( );
-            this._layoutControls( );
-            this.layout();
+            //this._layoutControls( );
+            this._layoutContent( false );
         },
         
 
@@ -48,7 +57,11 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this.m_settingsComposite.setAllowGrowY( true );
             this.m_settingsComposite.setLayout( new qx.ui.layout.Flow());
            
-            this.m_content.add( this.m_settingsComposite);
+            this.m_scaleSettings = new skel.widgets.Colormap.ColorScale();
+            this.m_transformSettings = new skel.widgets.Colormap.ColorTransform();
+            this.m_modelSettings = new skel.widgets.Colormap.ColorModel();
+            this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
+            //this.m_content.add( this.m_settingsComposite);
         },
         
         /**
@@ -63,20 +76,36 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         },
         
         /**
-         * Layout the main area displaying the colormap and color controls.
+         * Returns whether or not the color mix settings are currently visible.
+         * @return true if the color mix settings are visible; false otherwise.
          */
-        layout : function( ){
-            //Toggle the settings.
-            var showSettings = false;
-            if ( this.m_content.indexOf( this.m_settingsComposite) < 0 ){
-                showSettings = true;
+        _isColorMixVisible : function(){
+            var colorMixVisible = false;
+            if ( this.m_content.indexOf( this.m_colorMixSettings) >= 0 ){
+                colorMixVisible = true;
             }
+            return colorMixVisible;
+        },
+        
+        /**
+         * Layout the content based on which configuration settings are
+         * visible.
+         * @param colorMixVisible {boolean} true if the sliders controlling the color
+         *      mix should be visible; false otherwise.
+         */
+        _layoutContent : function( colorMixVisible ){
             this.m_content.removeAll();
-            if ( showSettings ){
+            var layoutItems = this.m_settingsComposite.getChildren();
+            var settingsCount = layoutItems.length;
+            if ( colorMixVisible || settingsCount >= 1 ){
                 this.m_content.setLayout( new qx.ui.layout.VBox());
-                this.m_content.add( this.m_colorMixSettings );
+                if ( colorMixVisible ){
+                    this.m_content.add( this.m_colorMixSettings );
+                }
                 this.m_content.add( this.m_view );
-                this.m_content.add( this.m_settingsComposite);
+                if ( settingsCount >= 1 ){
+                    this.m_content.add( this.m_settingsComposite);
+                }
             }
             else {
                 this.m_content.setLayout( new qx.ui.layout.Grow());
@@ -87,40 +116,30 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         /**
          * Add/remove color map settings based on user preferences.
          */
-        _layoutControls : function( ){
-            
-            //Display combo for map choices added on top of the gradient
-            if ( this.m_scaleSettings === null ){
-                this.m_scaleSettings = new skel.widgets.Colormap.ColorScale();
-                this.m_settingsComposite.add( this.m_scaleSettings );
+        _layoutControls : function( widget, visible ){
+            if ( visible ){
+                
+                //Add the widget if it is not already there.
+                if ( this.m_settingsComposite.indexOf( widget ) < 0 ){
+                    this.m_settingsComposite.add( widget );
+                }
+                //Make sure the settings composite is added to the content.
+                var mixVisible = this._isColorMixVisible();
+                this._layoutContent( mixVisible );
             }
-        
-            //Transform settings
-            if ( this.m_transformSettings === null ){
-                this.m_transformSettings = new skel.widgets.Colormap.ColorTransform();
-                this.m_settingsComposite.add( this.m_transformSettings );
+            else {
+                //Remove the widget from the settings container.
+                if ( this.m_settingsComposite.indexOf( widget ) >= 0 ){
+                    this.m_settingsComposite.remove( widget );
+                }
+                //If this is the last widget in the container, then remove the container.
+                var layoutItems = this.m_settingsComposite.getChildren();
+                var childCount = layoutItems.length;
+                if ( childCount === 0 ){
+                    var colorMixVisible = this._isColorMixVisible();
+                    this._layoutContent( colorMixVisible );
+                }
             }
-
-            //Model displaying the grid
-            if ( this.m_modelSettings === null ){
-                this.m_modelSettings = new skel.widgets.Colormap.ColorModel();
-                this.m_settingsComposite.add( this.m_modelSettings );
-            }
-            
-            //Red,blue,green sliders in color panel.
-            if ( this.m_colorMixSettings === null ){
-                this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
-            }
-            //Caching for the map.
-            /*if ( this.m_cacheSettings === null ){
-                this.m_cacheSettings = new skel.widgets.Colormap.ColorCache();
-                this.m_settingsComposite.add( this.m_cacheSettings);
-            }*/
-            /*if ( this.m_view !== null ){
-                this.m_view.setGradientOnly( !this.m_colorMixVisible.getValue());
-            }*/
-            
-            
         },
         
         
@@ -155,6 +174,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                             this.m_view.setReverse( cMap.reverse );
                             this.m_view.setScales( cMap.colorMix.redPercent, cMap.colorMix.greenPercent, cMap.colorMix.bluePercent );
                         }
+                        this.m_significantDigits = cMap.significantDigits;
                     }
                     catch( err ){
                         console.log( "Could not parse: "+val );
@@ -191,12 +211,61 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 }
             }
         },
+        
+        /**
+         * Set the number of significant digits to use for display purposes.
+         * @param digits {Number} a positive integer indicating significant digits.
+         */
+        setSignificantDigits : function( digits ){
+            if ( this.m_connector !== null ){
+                //Notify the server of the new value.
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setSignificantDigits";
+                var params = "significantDigits:"+digits;
+                this.m_connector.sendCommand( cmd, params, null);
+            }
+        },
+        
+        /**
+         * Show/hide the color mix settings.
+         * @param visible {boolean} true if the color mix settings should be visible;
+         *      false otherwise.
+         */
+        showHideColorMix : function( visible ){
+            this._layoutContent( visible );
+        },
+        
+        /**
+         * Show/hide the color transform settings.
+         * @param visible {boolean} true if the color transform settings should be visible;
+         *      false otherwise.
+         */
+        showHideColorTransform : function( visible ){
+            this._layoutControls( this.m_transformSettings, visible );
+        },
+        
+        /**
+         * Show/hide the color model settings.
+         * @param visible {boolean} true if the color model settings should be visible;
+         *      false otherwise.
+         */
+        showHideColorModel : function( visible ){
+            this._layoutControls( this.m_modelSettings, visible );
+        },
+        
+        /**
+         * Show/hide the color scale settings.
+         * @param visible {boolean} true if the color scale settings should be visible;
+         *      false otherwise.
+         */
+        showHideColorScale : function( visible ){
+            this._layoutControls( this.m_scaleSettings, visible );
+        },
        
         //Layout for the settings
         m_settingsComposite : null,
 
-        //Layout for the permanent parts gradient, lines, etc.
-        m_colorComposite : null,
+        //Layout for the permanent parts gradient, lines, etc
         m_content : null,
         
         //Colormap
@@ -208,6 +277,8 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         m_transformSettings : null,
         m_modelSettings : null,
         m_scaleSettings : null,
+        
+        m_significantDigits : null,
         
        
         m_connector : null,

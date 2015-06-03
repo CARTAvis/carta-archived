@@ -15,7 +15,7 @@ const QString Selection::IMAGE = "Image";
 const QString Selection::CHANNEL = "Channel";
 
 bool Selection::m_registered =
-    ObjectManager::objectManager()->registerClass ( CLASS_NAME,
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new Selection::Factory());
 
 Selection::Selection( const QString& prefix, const QString& identifier ):

@@ -29,10 +29,9 @@ class tSnapshot(unittest.TestCase):
             
     # Click the Restore... option in the Sessions submenu
     def _clickSessionRestoreButton(self,driver):
-        restoreButton = driver.find_element_by_xpath( "//div[text()='Restore...']/..")
+        restoreButton = driver.find_element_by_xpath( "//div[text()='Manage/Restore...']/..")
         self.assertIsNotNone( restoreButton, "Could not find restore session button in submenu")
         ActionChains(driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        #ActionChains(driver).click( restoreButton).perform()
             
     # Click the Save... option in the Sessions submenu
     def _clickSessionSaveButton(self,driver):        
@@ -62,10 +61,10 @@ class tSnapshot(unittest.TestCase):
         
     # Select the name of the snapshot to restore
     def _selectRestoreSnapshot(self, driver, restoreName):
-        restoreCombo = driver.find_element_by_xpath( "//div[starts-with(@id,'snapshotRestoreName')]/input")
-        self.assertIsNotNone( restoreCombo, "Could not find the restore name combo")
-        restoreCombo.clear()
-        restoreCombo.send_keys( restoreName )
+        tableRowLocator = "//div[text()='" + restoreName+ "']/.."
+        tableRow = driver.find_element_by_xpath( tableRowLocator )
+        self.assertIsNotNone( tableRow, "Could not find the restore name combo")
+        ActionChains(driver).click( tableRow ).perform()
     
     # Set the type of state that should be saved
     def _setSaveOptions(self, driver, savePreferences, saveLayout, saveData ):
@@ -73,12 +72,12 @@ class tSnapshot(unittest.TestCase):
         prefCheck = prefDiv.find_element_by_xpath( "./div[@class='qx-checkbox']")
         self.assertIsNotNone( prefCheck, "Could not find preferences check")
         self._setChecked( driver, prefCheck, savePreferences )
-        dataDiv = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Data']/..")
+        dataDiv = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Session']/..")
+        self.assertIsNotNone( dataDiv, "Could not find data div")
         dataCheck = dataDiv.find_element_by_xpath( "./div[@class='qx-checkbox']")
         self.assertIsNotNone( dataCheck, "Could not find data check")
         self._setChecked( driver, dataCheck, saveData )
-        layoutDiv = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Layout']/..")
-        layoutCheck = layoutDiv.find_element_by_xpath( "./div[@class='qx-checkbox']")
+        layoutCheck = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Layout']/following-sibling::div")
         self.assertIsNotNone( layoutCheck, "Could not find layout check")
         self._setChecked( driver, layoutCheck, saveLayout )
         

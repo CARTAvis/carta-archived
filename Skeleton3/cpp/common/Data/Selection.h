@@ -14,7 +14,7 @@ namespace Carta {
 
 namespace Data {
 
-class Selection : public QObject, public CartaObject {
+class Selection : public QObject, public Carta::State::CartaObject {
 
     Q_OBJECT
 
@@ -95,11 +95,11 @@ private:
      */
     Selection( const QString& prefix, const QString& identifier);
 
-    class Factory : public CartaObjectFactory {
+    class Factory : public Carta::State::CartaObjectFactory {
 
     public:
 
-        CartaObject * create (const QString & path, const QString & id)
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
             return new Selection (path, id);
         }

@@ -287,12 +287,12 @@ Service::internalRenderSlot( JobId jobId )
     emit done( QImage(img), jobId );
 
 //    stamp the image about to be inserted with
-#ifdef CARTA_RUNTIME_CHECKS
-    static int counter = 0;
-    counter++;
-    //p.setPen( QColor( "yellow" ) );
-    //p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
-#endif
+    if ( CARTA_RUNTIME_CHECKS ) {
+        static int counter = 0;
+        counter++;
+        //p.setPen( QColor( "yellow" ) );
+        //p.drawText( img.rect(), Qt::AlignCenter, "Cached" );
+    }
 
     // insert this image into frame cache
     qDebug() << "byteCount=" << img.byteCount();

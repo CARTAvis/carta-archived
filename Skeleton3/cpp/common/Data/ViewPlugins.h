@@ -12,13 +12,15 @@ namespace Carta {
 
 namespace Data {
 
-class ViewPlugins : public CartaObject {
+class ViewPlugins : public Carta::State::CartaObject {
 
 public:
 
     virtual ~ViewPlugins();
     const static QString CLASS_NAME;
+
 private:
+
     void _initializeDefaultState();
     void _insertPlugin( int ind, const QString& name, const QString& description,
                         const QString& type, const QString& version, const QString& errors );

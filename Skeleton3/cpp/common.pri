@@ -78,11 +78,6 @@ contains( CARTA_CONFIG, addrSanit) {
     message( "- no address sanitization")
 }
 
-!isEmpty(NOSERVER) {
-    QMAKE_CXXFLAGS += -DDESKTOPVERSION
-    QMAKE_CFLAGS += -DDESKTOPVERSION
-}
-
 # use gcc 4.8.1
 CONFIG += gcc481
 

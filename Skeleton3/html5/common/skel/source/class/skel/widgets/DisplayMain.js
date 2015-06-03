@@ -253,6 +253,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          *      should be displayed.
          */
         _resetDisplayedPlugins : function( layoutObj, windows ) {
+            
             var index = 0;
             var row = 0;
             var col = 0;
@@ -359,10 +360,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                         if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
                             this.m_gridRowCount = layout.rows;
                             this.m_gridColCount = layout.cols;
-                            var gridData = {
-                                    "rows" : this.m_gridRowCount,
-                                    "cols" : this.m_gridColCount
-                                };
                             this.layout(this.m_gridRowCount, this.m_gridColCount);
                         }
                         this._resetDisplayedPlugins( layout, windows );
