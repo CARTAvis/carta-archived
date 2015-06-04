@@ -55,6 +55,10 @@ qx.Class.define( "skel.hacks.BoundSkyCSSelector", {
             if( this.m_ignoreSharedVarCB ) {
                 return;
             }
+            // skip nulls
+            if( ! val) {
+                return;
+            }
             var symbol = val;
             // find the symbol in our list of items
             var item = null;
