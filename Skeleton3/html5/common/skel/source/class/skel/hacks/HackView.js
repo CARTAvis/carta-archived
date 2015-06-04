@@ -2,7 +2,7 @@
  * Created by pfederl on 05/01/15.
  */
 
-/*global qx, mImport, skel */
+/*global qx, mImport, skel, console */
 
 /**
  @ignore( mImport)

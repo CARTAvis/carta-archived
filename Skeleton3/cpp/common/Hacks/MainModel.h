@@ -161,7 +161,7 @@ public:
 private:
 
     static GlobalsH * m_instance;
-    Model::MainModel::SharedPtr m_mainModel = nullptr;
+    Model::MainModel::UniquePtr m_mainModel = nullptr;
 
     // private constructor
     GlobalsH();

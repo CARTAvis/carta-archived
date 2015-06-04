@@ -12,6 +12,7 @@ DEFINES += CARTALIB_LIBRARY
 SOURCES += \
     CartaLib.cpp \
     HtmlString.cpp \
+    LinearMap.cpp \
     Hooks/ColormapsScalar.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
@@ -24,12 +25,15 @@ SOURCES += \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
-    PWLinear.cpp
+    PWLinear.cpp \
+    VectorGraphics/VGList.cpp \
+    VectorGraphics/BetterQPainter.cpp
 
 HEADERS += \
     CartaLib.h\
     cartalib_global.h \
     HtmlString.h \
+    LinearMap.h \
     Hooks/ColormapsScalar.h \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
@@ -47,7 +51,11 @@ HEADERS += \
     TPixelPipeline/IScalar2Scalar.h \
     PixelPipeline/IPixelPipeline.h \
     PixelPipeline/CustomizablePixelPipeline.h \
-    PWLinear.h
+    PWLinear.h \
+    VectorGraphics/VGList.h \
+    Hooks/GetWcsGridRenderer.h \
+    Hooks/LoadPlugin.h \
+    VectorGraphics/BetterQPainter.h
 
 unix {
     target.path = /usr/lib
@@ -56,3 +64,6 @@ unix {
 
 OTHER_FILES += \
     readme.txt
+
+DISTFILES += \
+    VectorGraphics/vg.txt

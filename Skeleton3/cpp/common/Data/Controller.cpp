@@ -844,8 +844,7 @@ void Controller::setZoomLevel( double zoomFactor ){
 }
 
 double Controller::getZoomLevel( ){
-    double zoom;
-    QString result;
+    double zoom = 1.0;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
         zoom = m_datas[imageIndex]->getZoom( );

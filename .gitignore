@@ -2,16 +2,14 @@
 # Makefile
 # moc*.cpp
 
-# qt creator
-# to be fixed
-
 # C++ byproducts
 *.a
 *.o
-*.so
-*.so.*
 *.log
 *.i
+
+# emacs by-products
+*~
 
 # git mergetool byproducts
 *.orig
@@ -25,8 +23,4 @@
 # vi backup files
 *.swp
 
-# shared library files (cross-platform friendly)
-*.so
-*.dylib
-
-createlinks.sh
+*createlinks.sh

@@ -73,17 +73,9 @@ qx.Class.define( "skel.Application",
                 }
 
                 // activate experimental code
-                var hacksVar = connector.getSharedVar( "/hacks/enabled" );
-                var initHacks = function() {
-                    if( hacksVar.get() !== "1") return;
-                    this.m_hacks = new skel.hacks.Hacks( this);
-                    this.getRoot().add( this.m_hacks, {left: 20, top: 220} );
-                    this.m_hacks.open();
-                }.bind(this);
-                hacksVar.addCB( initHacks);
-                initHacks();
+                this._pavolHacks = new skel.hacks.Hacks();
 
-                this.m_mainContainer = new qx.ui.container.Composite( /*new qx.ui.layout.Canvas()*/new qx.ui.layout.VBox(0) );
+                this.m_mainContainer = new qx.ui.container.Composite( new qx.ui.layout.VBox(0) );
                 this.m_mainContainer.setAppearance( "display-main" );
                 this.getRoot().add( this.m_mainContainer, {
                     left  : "0%",

@@ -68,7 +68,7 @@ quantiles2pixels(
     // for every input quantile, do quickselect and store the result
     std::vector < Scalar > result;
     for ( double q : quant ) {
-        size_t x1 = clamp<size_t>( allValues.size() * q, 0, allValues.size()-1);
+        size_t x1 = Carta::Lib::clamp<size_t>( allValues.size() * q, 0, allValues.size()-1);
         CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
         std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
         result.push_back( allValues[x1] );

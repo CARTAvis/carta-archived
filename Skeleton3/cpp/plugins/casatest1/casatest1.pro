@@ -29,7 +29,7 @@ unix:macx {
 	casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures -L/usr/local/lib
 }
 else{
-	casacoreLIBS += -lcasa_images -lcasa_components -lcasa_coordinates -lcasa_fits -lcasa_measures
+        casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
 }
 
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib

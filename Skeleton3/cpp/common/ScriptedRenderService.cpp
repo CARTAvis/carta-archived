@@ -39,7 +39,8 @@ void ScriptedRenderService::saveFullImage(){
     m_renderService->render( 0 );
 }
 
-void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercentile, double maxClipPercentile ){
+/// \todo not all parameters are being used?
+void ScriptedRenderService::_prepareData( int frameIndex, double /*minClipPercentile*/, double /*maxClipPercentile*/ ){
 
     if ( frameIndex < 0 ) {
         frameIndex = 0;
@@ -48,7 +49,7 @@ void ScriptedRenderService::_prepareData( int frameIndex, double minClipPercenti
         frameIndex = 0;
     }
     else {
-        frameIndex = clamp( frameIndex, 0, m_imageCopy-> dims()[2] - 1 );
+        frameIndex = Carta::Lib::clamp( frameIndex, 0, m_imageCopy-> dims()[2] - 1 );
     }
 
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]

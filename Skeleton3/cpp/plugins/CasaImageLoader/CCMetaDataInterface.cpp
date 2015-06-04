@@ -24,10 +24,10 @@ CoordinateFormatterInterface::SharedPtr CCMetaDataInterface::coordinateFormatter
 //    qFatal( "not implemented");
 }
 
-CoordinateGridPlotterInterface::SharedPtr CCMetaDataInterface::coordinateGridPlotter()
-{
-    qFatal( "not implemented");
-}
+//CoordinateGridPlotterInterface::SharedPtr CCMetaDataInterface::coordinateGridPlotter()
+//{
+//    qFatal( "not implemented");
+//}
 
 PlotLabelGeneratorInterface::SharedPtr CCMetaDataInterface::plotLabelGenerator()
 {
