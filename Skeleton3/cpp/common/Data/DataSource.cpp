@@ -65,7 +65,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
-    
+
         auto cs2str = [] ( Carta::Lib::KnownSkyCS cs) {
             switch (cs) {
             case Carta::Lib::KnownSkyCS::J2000: return "J2000"; break;
@@ -88,7 +88,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
         out << "Default sky cs:" << cs2str( cf-> skyCS() ) << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
         QString pixelValue = getPixelValue( imgX, imgY );
-        out << "Value:" << pixelValue << "\n";
+        out << "Value:" << pixelValue << " " << m_image->getPixelUnit().toStr() << "\n";
     
         for ( auto cs : css ) {
             cf-> setSkyCS( cs );
