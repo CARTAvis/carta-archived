@@ -826,10 +826,7 @@ void Controller::updatePan( double centerX , double centerY){
 void Controller::centerOnPixel( double centerX, double centerY ){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        // Currently (0, 0) is at the top left of the image. We want it to be the
-        // bottom left, so we need to flip the y-coordinate.
-        int yDimension = m_datas[imageIndex]->getDimension( 1 );
-        m_datas[imageIndex]->setPan( centerX, yDimension - centerY );
+        m_datas[imageIndex]->setPan( centerX, centerY );
         _render();
     }
 }
@@ -906,13 +903,12 @@ QStringList Controller::getPixelCoordinates( double ra, double dec ){
     return result;
 }
 
-QString Controller::getPixelValue( int x, int y ){
+QString Controller::getPixelValue( double x, double y ){
     QString result("");
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
         int yDimension = m_datas[imageIndex]->getDimension( 1 );
-        // y-flipping for now until a broader fix for the y-flipping issue is implemented.
-        result = m_datas[imageIndex]->getPixelValue( x, yDimension - y - 1 );
+        result = m_datas[imageIndex]->getPixelValue( x, y );
     }
     return result;
 }

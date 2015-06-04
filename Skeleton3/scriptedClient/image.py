@@ -149,9 +149,9 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the pixel to center on.
-        y: integer
+        y: float
             The y value of the pixel to center on.
         z: integer
             The z value of the pixel to center on.
@@ -183,11 +183,11 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the pixel to center on.
-        y: integer
+        y: float
             The y value of the pixel to center on.
-        radius: integer
+        radius: float
             The desired distance, in pixels, from the center pixel to
             the edge of the window.
         dim: string
@@ -244,9 +244,9 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the pixel to center on.
-        y: integer
+        y: float
             The y value of the pixel to center on.
 
         Returns
@@ -258,9 +258,9 @@ class Image(CartaView):
         oDim = self.getOutputSize()
         if (iDim[0] != "error" and oDim[0] != "error"):
             if (oDim[0] < oDim[1]):
-                self.centerWithRadius(x+0.5, y+0.5, 0.5, 'width')
+                self.centerWithRadius(x, y, 0.5, 'width')
             else:
-                self.centerWithRadius(x+0.5, y+0.5, 0.5, 'height')
+                self.centerWithRadius(x, y, 0.5, 'height')
             return []
         else:
             return ["Could not zoom to pixel ("
@@ -530,9 +530,9 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the desired pixel.
-        y: integer
+        y: float
             The y value of the desired pixel.
 
         Returns
