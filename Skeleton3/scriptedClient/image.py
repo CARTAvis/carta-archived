@@ -545,3 +545,17 @@ class Image(CartaView):
         result = self.con.cmdTagList("getPixelValue", imageView=self.getId(),
                                      x=x, y=y)
         return result
+
+    def getPixelUnits(self):
+        """
+        Get the units of the pixels.
+
+        Returns
+        -------
+        list
+            The units of the pixels, or an empty string if no units are
+            defined.
+        """
+        result = self.con.cmdTagList("getPixelUnits",
+                                     imageView=self.getId())
+        return result

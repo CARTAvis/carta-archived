@@ -384,6 +384,13 @@ public:
     QStringList getPixelValue( const QString& controlId, double x, double y );
 
     /**
+     * Return the units of the pixels.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QStringList getPixelUnits( const QString& controlId );
+
+    /**
      * Set the amount of extra space on each side of the clip bounds.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param bufferAmount a percentage in [0,100) representing the amount of extra space.

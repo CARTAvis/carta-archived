@@ -290,6 +290,12 @@ public:
      */
     QString getPixelValue( double x, double y );
 
+    /**
+     * Return the units of the pixels.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QString getPixelUnits();
+
     virtual ~DataSource();
 
 signals:

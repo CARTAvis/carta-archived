@@ -303,6 +303,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getPixelValue( imageView, x, y );
     }
 
+    else if ( cmd == "getpixelunits" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getPixelUnits( imageView );
+    }
+
     /// animator commands
 
     else if ( cmd == "setchannel" ) {

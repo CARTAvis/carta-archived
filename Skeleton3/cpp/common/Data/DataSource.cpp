@@ -88,7 +88,8 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
         out << "Default sky cs:" << cs2str( cf-> skyCS() ) << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
         QString pixelValue = getPixelValue( imgX, imgY );
-        out << "Value:" << pixelValue << " " << m_image->getPixelUnit().toStr() << "\n";
+        QString pixelUnits = getPixelUnits();
+        out << "Value:" << pixelValue << " " << pixelUnits << "\n";
     
         for ( auto cs : css ) {
             cf-> setSkyCS( cs );
@@ -494,6 +495,11 @@ QString DataSource::getPixelValue( double x, double y ){
         }
     }
     return pixelValue;
+}
+
+QString DataSource::getPixelUnits() {
+    QString units = m_image->getPixelUnit().toStr();
+    return units;
 }
 
 DataSource::~DataSource() {
