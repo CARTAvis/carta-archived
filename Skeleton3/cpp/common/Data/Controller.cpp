@@ -907,7 +907,7 @@ QString Controller::getPixelValue( double x, double y ){
     QString result("");
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
-        int yDimension = m_datas[imageIndex]->getDimension( 1 );
+//        int yDimension = m_datas[imageIndex]->getDimension( 1 );
         result = m_datas[imageIndex]->getPixelValue( x, y );
     }
     return result;

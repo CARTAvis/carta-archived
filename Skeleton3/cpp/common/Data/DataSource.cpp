@@ -490,7 +490,7 @@ QString DataSource::getPixelValue( double x, double y ){
         NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
-            pixelValue = QString::number( view.get( {x, y} ) );
+            pixelValue = QString::number( view.get( { int(x), int(y) } ) );
         }
     }
     return pixelValue;
