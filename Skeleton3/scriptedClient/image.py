@@ -450,7 +450,8 @@ class Image(CartaView):
         result = 1
         dimensions = self.getImageDimensions()
         if (dimensions[0] != "error"):
-            result = dimensions[1]
+            if (len(dimensions) == 3):
+                result = dimensions[2]
         else:
             result = dimensions
         return result
