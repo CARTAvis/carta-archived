@@ -381,7 +381,7 @@ public:
      * @param y the y-coordinate of the desired pixel.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
-    QStringList getPixelValue( const QString& controlId, int x, int y );
+    QStringList getPixelValue( const QString& controlId, double x, double y );
 
     /**
      * Set the amount of extra space on each side of the clip bounds.

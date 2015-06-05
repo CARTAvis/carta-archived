@@ -60,12 +60,12 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     bool valid = false;
     QPointF imgPt = getImagePt( lastMouse, &valid );
     if ( valid ){
-        int imgX = imgPt.x();
-        int imgY = imgPt.y();
+        double imgX = imgPt.x();
+        double imgY = imgPt.y();
     
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
-    
+
         auto cs2str = [] ( Carta::Lib::KnownSkyCS cs) {
             switch (cs) {
             case Carta::Lib::KnownSkyCS::J2000: return "J2000"; break;
@@ -88,7 +88,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
         out << "Default sky cs:" << cs2str( cf-> skyCS() ) << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
         QString pixelValue = getPixelValue( imgX, imgY );
-        out << "Value:" << pixelValue << "\n";
+        out << "Value:" << pixelValue << " " << m_image->getPixelUnit().toStr() << "\n";
     
         for ( auto cs : css ) {
             cf-> setSkyCS( cs );
@@ -484,14 +484,13 @@ QStringList DataSource::getPixelCoordinates( double ra, double dec ){
     return result;
 }
 
-QString DataSource::getPixelValue( int x, int y ){
+QString DataSource::getPixelValue( double x, double y ){
     QString pixelValue = "";
     if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
         NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
-            // y-flipping for now until a broader fix for the y-flipping issue is implemented.
-            pixelValue = QString::number( view.get( {x, m_image->dims()[1] - y - 1} ) );
+            pixelValue = QString::number( view.get( {x, y} ) );
         }
     }
     return pixelValue;

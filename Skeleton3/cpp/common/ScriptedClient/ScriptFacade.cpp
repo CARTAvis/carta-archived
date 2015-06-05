@@ -885,7 +885,7 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
     return resultList;
 }
 
-QStringList ScriptFacade::getPixelValue( const QString& controlId, int x, int y ){
+QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, double y ){
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
