@@ -298,8 +298,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getpixelvalue" ) {
         QString imageView = args["imageView"].toString();
-        int x = args["x"].toInt();
-        int y = args["y"].toInt();
+        double x = args["x"].toDouble();
+        double y = args["y"].toDouble();
         result = m_scriptFacade->getPixelValue( imageView, x, y );
     }
 
