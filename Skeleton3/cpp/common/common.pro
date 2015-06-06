@@ -45,7 +45,11 @@ HEADERS += \
     Data/IColoredView.h \
     Data/ILinkable.h \
     Data/Selection.h \
-    Data/Layout.h \
+    Data/Layout/Layout.h \
+    Data/Layout/LayoutNode.h \
+    Data/Layout/LayoutNodeComposite.h \
+    Data/Layout/LayoutNodeLeaf.h \
+    Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
     Data/Preferences.h \
     Data/Region.h \
@@ -112,7 +116,11 @@ SOURCES += \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/DataSource.cpp \
-    Data/Layout.cpp \
+    Data/Layout/Layout.cpp \
+    Data/Layout/LayoutNode.cpp \
+    Data/Layout/LayoutNodeComposite.cpp \
+    Data/Layout/LayoutNodeLeaf.cpp \
+    Data/Layout/NodeFactory.cpp \
     Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \

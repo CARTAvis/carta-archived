@@ -73,7 +73,7 @@ private:
 
 
 	Settings( const Settings& other);
-	Settings operator=( const Settings& other );
+	Settings& operator=( const Settings& other );
 };
 }
 }

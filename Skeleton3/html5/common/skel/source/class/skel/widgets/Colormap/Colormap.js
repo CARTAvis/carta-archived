@@ -77,7 +77,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         
         /**
          * Returns whether or not the color mix settings are currently visible.
-         * @return true if the color mix settings are visible; false otherwise.
+         * @return {boolean} true if the color mix settings are visible; false otherwise.
          */
         _isColorMixVisible : function(){
             var colorMixVisible = false;

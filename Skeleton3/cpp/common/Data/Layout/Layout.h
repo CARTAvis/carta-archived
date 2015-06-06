@@ -15,6 +15,8 @@ namespace Carta {
 
 namespace Data {
 
+class LayoutNode;
+
 class Layout : public QObject, public Carta::State::CartaObject {
     friend class ViewManager;
 
@@ -23,11 +25,11 @@ class Layout : public QObject, public Carta::State::CartaObject {
 public:
     /**
      * Add a new window at the given position in the layout.
-     * @param rowIndex the index of a row in the grid.
-     * @param colIndex the index of a column in the grid.
+     * @param nodeId - a list of one or more window identifiers where the window should be added.
+     * @param position - an identifier for where the window should be added (top,bottom,etc).
      * @return an errorMsg or an empty string if there was not error.
      */
-    QString addWindow( int rowIndex, int colIndex );
+    QString addWindow( const QStringList& nodeId, const QString& position );
 
     /**
      * Clear the layout state.
@@ -59,14 +61,6 @@ public:
     bool isLayoutImage() const;
 
     /**
-     * Remove the grid cell at the given row and column from the grid.
-     * @param rowIndex the row of the cell to remove.
-     * @param colIndex the column of the cell to remove.
-     * @return an error message if there was a problem removing the cell; otherwise, and empty string.
-     */
-    QString removeWindow( int rowIndex, int colIndex );
-
-    /**
      * Restore a saved layout.
      * @param savedState the layout state that should be restored.
      */
@@ -80,8 +74,10 @@ public:
     /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
+     * @return an error message if there was a problem setting the plugins; an empty
+     *      string otherwise.
      */
-    void setPlugins( const QStringList& names);
+    QString setPlugins( const QStringList& names);
 
      /**
      * Set a layout showing widgets currently under development.
@@ -101,6 +97,8 @@ public:
      * @return a possible error message or an empty QString if there is no error.
      */
     QString setLayoutSize( int rows, int cols, const QString& layoutType = TYPE_CUSTOM );
+
+
     virtual ~Layout();
     const static QString CLASS_NAME;
     static const QString LAYOUT;
@@ -115,15 +113,20 @@ signals:
     void pluginListChanged( const QStringList& newPlugins, const QStringList& oldPlugins );
 
 private:
-
-    int _getArrayIndex( int rowIndex, int colIndex ) const;
-    QString _getPlugin( int rowIndex, int colIndex ) const;
-    int _getColumnCount( int colIndex ) const;
-    int _getMaxRowColumn() const;
-    int _findEmptyRow( int colIndex, int targetRowIndex ) const;
+    int _getIndex( const QString& plugin, const QString& locationId );
     void _initializeCommands();
     void _initializeDefaultState();
-    void _moveCell( int sourceRow, int sourceCol, int destRow, int destCol );
+    void _initLayout( LayoutNode* root, int rowCount, int colCount );
+
+    void _makeRoot( bool horizontal = true );
+
+    /**
+     * Remove the layout cell with the indicated id.
+     * @param nodeId - an identifier for a layout cell.
+     * @return an errorMessage if there was a problem removing the cell; an empty string otherwise.
+     */
+    QString _removeWindow( const QString& nodeId );
+
     /**
      * Set the list of plugins to be displayed.
      * @param name - the list of plugins to be displayed ordered in reading order.
@@ -131,7 +134,14 @@ private:
      */
     //Assume the list size matches the grid size.
     bool _setPlugin( const QStringList& name, bool custom=false );
-    bool _setPlugin( int rowIndex, int colIndex, const QString& name, bool insert = false );
+
+    /**
+     * Set the plugin for the layout cell identified by the nodeId.
+     */
+    bool _setPlugin( const QString& nodeId, const QString& nodeType );
+    LayoutNode* _splitNode( int rowCount, int colCount,  bool horizontal );
+
+    std::unique_ptr<LayoutNode> m_layoutRoot;
 
 
     static bool m_registered;
@@ -139,19 +149,18 @@ private:
 
     class Factory;
 
-    static const QString COLUMN;
-    static const QString EMPTY;
-    static const QString HIDDEN;
+    static const QString ID;
     static const QString LAYOUT_ROWS;
     static const QString LAYOUT_COLS;
+    static const QString LAYOUT_NODE;
     static const QString LAYOUT_PLUGINS;
-    static const QString ROW;
+    static const QString POSITION;
     static const QString TYPE_SELECTED;
     static const QString TYPE_IMAGE;
     static const QString TYPE_ANALYSIS;
     static const QString TYPE_CUSTOM;
     Layout( const Layout& other);
-    Layout operator=( const Layout& other );
+    Layout& operator=( const Layout& other );
 };
 }
 }

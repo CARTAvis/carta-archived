@@ -1,5 +1,5 @@
 /**
- * Command to show/hide the menu bar.
+ * Command to show/hide the link overlay.
  */
 
 qx.Class.define("skel.Command.Link.CommandLink", {
@@ -20,7 +20,7 @@ qx.Class.define("skel.Command.Link.CommandLink", {
     members : {
         
         doAction : function( vals, undoCB ){
-            if ( this.getValue != vals ){
+            if ( this.getValue() != vals ){
                 this.setValue( vals );
             }
             if ( this.getValue() ){

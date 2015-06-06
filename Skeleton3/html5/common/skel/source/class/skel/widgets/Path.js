@@ -111,6 +111,14 @@ qx.Class.define("skel.widgets.Path", {
         },
         
         /**
+         * Returns the command for changing a window location.
+         * @return {String} command for changing a window location.
+         */
+        getCommandMoveWindow : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "moveWindow";
+        },
+        
+        /**
          * Returns the command for indicating which object the animator should control.
          * @return {String} command for linking the animator with a controlled object.
          */

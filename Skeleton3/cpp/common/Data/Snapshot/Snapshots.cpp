@@ -2,7 +2,7 @@
 #include "SnapshotsFile.h"
 #include "Data/LinkableImpl.h"
 #include "Data/ILinkable.h"
-#include "Data/Layout.h"
+#include "Data/Layout/Layout.h"
 #include "Data/Preferences.h"
 #include "Data/Util.h"
 #include <QDebug>

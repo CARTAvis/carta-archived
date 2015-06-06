@@ -7,7 +7,7 @@
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Util.h"
 #include "Data/Histogram/Histogram.h"
-#include "Data/Layout.h"
+#include "Data/Layout/Layout.h"
 #include "Data/Statistics.h"
 
 #include <QDebug>

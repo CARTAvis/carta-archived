@@ -544,6 +544,14 @@ void Controller::_removeData( int index ){
     else if ( index < selectedImage ){
        m_selectImage->setIndex( selectedImage - 1);
     }
+    //Update the channel upper bound and index if necessary
+    int targetImage = m_selectImage->getIndex();
+    int frameCount = m_datas[targetImage]->getFrameCount();
+    int oldIndex = m_selectChannel->getIndex();
+    if ( oldIndex >= frameCount ){
+        setFrameChannel( frameCount - 1);
+    }
+    m_selectChannel->setUpperBound( frameCount );
     this->_loadView();
 
     saveState();

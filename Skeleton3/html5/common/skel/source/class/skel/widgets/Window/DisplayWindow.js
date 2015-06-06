@@ -14,20 +14,19 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
      * Constructor.
      * 
      * @param pluginId {String} the name of the plugin that will be displayed.
-     * @param row {Number} a row in the screen grid.
-     * @param col {Number} a column in the screen grid.
      * @param index {Number} an identification index for the case where we have more than one window for a given pluginId;
+     * @param detached {boolean} - true if this will not be a layout inline window; false otherwise.
      */
-    construct : function(pluginId, row, col, index, detached ) {
+    construct : function(pluginId, index, detached ) {
         this.base(arguments, detached );
         this.m_pluginId = pluginId;
         this.m_supportedCmds = [];
-        this.m_row = row;
-        this.m_col = col;
+        
         var pathDict = skel.widgets.Path.getInstance();
         this._init();
-        this.getChildControl( "captionbar").setVisibility( "excluded");
-        //this._initWindowBar();
+        if ( !detached ){
+            this.getChildControl( "captionbar").setVisibility( "excluded");
+        }
         
         this._initSupportedCommands();
         this._initContextMenu();
@@ -141,12 +140,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
 
         /**
-         * Return the window title.
+         * Return the unique server-side identifier for this window.
+         * @return {String} the server-side identifier.
          */
         getIdentifier : function() {
             return this.m_identifier;
         },
-
+        
         /**
          * Returns this window's information concerning establishing a link from
          * the window identified by the sourceWinId to this window.
@@ -180,23 +180,36 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
 
             return linkInfo;
         },
-        
-        /**
-         * Return this window's row location in the grid.
-         * @return {Number} the window's row location.
-         */
-        getCol : function(){
-            return this.m_col;
-        },
-        
-        /**
-         * Return this window's column location in the grid.
-         * @return {Number} the window's column location.
-         */
-        getRow : function(){
-            return this.m_row;
-        },
 
+        /**
+         * Returns this window's information concerning using it as a possible
+         * move location.
+         * 
+         * @param sourceWinId  {String} an identifier for the window wanting to move to this
+         *      window's location.
+         */
+        getMoveInfo : function( sourceWinId) {
+            var linkInfo = new skel.widgets.Link.LinkInfo();
+            if (this.m_identifier == sourceWinId) {
+                linkInfo.source = true;
+            }
+           
+            var midPoint = skel.widgets.Util.getCenter(this);
+            linkInfo.locationX = midPoint[0];
+            linkInfo.locationY = midPoint[1];
+            linkInfo.linked = false;
+            linkInfo.winId = this.m_identifier;
+            linkInfo.pluginId = this.getPlugin();
+            linkInfo.locationId = this.getLocation();
+            linkInfo.linkable = true;
+            linkInfo.twoWay = false;
+            return linkInfo;
+        },
+        
+        getLocation : function(){
+            return this.m_locationId;
+        },
+        
         /**
          * Returns the name of the plug-in this window is displaying.
          */
@@ -509,9 +522,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param row {Number} the grid row index.
          * @param col {Number} the grid column index.
          */
-        setLocation : function (row, col ){
-            this.m_row = row;
-            this.m_col = col;
+        setLocation : function ( locationId ){
+            this.m_locationId = locationId;
         },
 
         /**
@@ -579,8 +591,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         
         //Server side object id
         m_identifier : "",
-        m_row : 0,
-        m_col : 0
+        m_locationId : ""
     }
 
 });

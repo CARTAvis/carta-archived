@@ -12,7 +12,8 @@
 #include "Data/ErrorManager.h"
 #include "Data/Histogram/Histogram.h"
 #include "Data/ILinkable.h"
-#include "Data/Layout.h"
+#include "Data/Layout/Layout.h"
+#include "Data/Layout/NodeFactory.h"
 #include "Data/Preferences.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics.h"
@@ -40,7 +41,11 @@ public:
 
 const QString ViewManager::CLASS_NAME = "ViewManager";
 const QString ViewManager::SOURCE_ID = "sourceId";
+const QString ViewManager::SOURCE_PLUGIN = "sourcePlugin";
+const QString ViewManager::SOURCE_LOCATION_ID = "sourceLocateId";
 const QString ViewManager::DEST_ID = "destId";
+const QString ViewManager::DEST_PLUGIN = "destPlugin";
+const QString ViewManager::DEST_LOCATION_ID = "destLocateId";
 
 bool ViewManager::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
@@ -68,7 +73,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
 void ViewManager::_adjustSize( int count, const QString& name, const QVector<int> & insertionIndices ){
     int existingCount = 0;
-    if ( name == Layout::HIDDEN ){
+    if ( name == NodeFactory::HIDDEN ){
         return;
     }
     else if ( name == Colormap::CLASS_NAME ){
@@ -262,17 +267,23 @@ void ViewManager::_initCallbacks(){
 
     addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
-            const QString NAMES( "names");
-            std::set<QString> keys = { NAMES };
+            std::set<QString> keys = { DEST_PLUGIN, SOURCE_LOCATION_ID };
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QStringList names = dataValues[NAMES].split(".");
-            bool valid = setPlugins( names );
-            QString result;
-            if ( !valid ){
-                result="Could not set plugins";
-            }
+            QString result = _setPlugin( dataValues[SOURCE_LOCATION_ID], dataValues[DEST_PLUGIN]);
+            Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "moveWindow", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {SOURCE_PLUGIN, SOURCE_LOCATION_ID, DEST_PLUGIN, DEST_LOCATION_ID};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        int sourceIndex = m_layout->_getIndex( dataValues[SOURCE_PLUGIN], dataValues[SOURCE_LOCATION_ID]);
+        int destIndex = m_layout->_getIndex( dataValues[DEST_PLUGIN], dataValues[DEST_LOCATION_ID]);
+        QString result = moveWindow( dataValues[SOURCE_PLUGIN], sourceIndex, dataValues[DEST_PLUGIN], destIndex );
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     _makeLayout();
     addStateCallback( m_layout->getPath(), [=] ( const QString& /*path*/, const QString& /*value*/ ) {
@@ -335,10 +346,125 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
     return result;
 }
 
+int ViewManager::_findListIndex( const QString& sourcePlugin, int pluginIndex, const QStringList& plugins ) const{
+    int pluginCount = -1;
+    int listIndex = -1;
+    for ( int i = 0; i < plugins.size(); i++ ){
+        if ( plugins[i] == sourcePlugin ){
+            pluginCount++;
+        }
+        if ( pluginCount == pluginIndex ){
+            listIndex = i;
+            break;
+        }
+    }
+    return listIndex;
+}
+
+
+QString ViewManager::moveWindow( const QString& sourcePlugin, int sourcePluginIndex,
+        const QString& destPlugin, int destPluginIndex ){
+    //Remove the view object at the current destination.
+    _removeView( destPlugin, destPluginIndex );
+    QString msg;
+    QStringList oldPlugins = m_layout->getPluginList();
+
+    //Look through the list of plugins.  Make a new list of plugins, replacing the one at destination Index,
+    //with the source one.
+    //Replace where the source used to be with EMPTY.
+    int newSourcePluginIndex = -1;
+    int destPluginCount = -1;
+    int sourcePluginCount = -1;
+    QStringList newPlugins;
+    for ( int i = 0; i < oldPlugins.size(); i++ ){
+        if ( oldPlugins[i] == sourcePlugin ){
+            if ( i <= destPluginIndex ){
+
+                newSourcePluginIndex++;
+            }
+            sourcePluginCount++;
+        }
+        if ( oldPlugins[i]  == destPlugin ){
+            destPluginCount++;
+        }
+        if ( oldPlugins[i] == sourcePlugin && sourcePluginCount == sourcePluginIndex ){
+            newPlugins.append( NodeFactory::EMPTY );
+        }
+        else if ( oldPlugins[i] == destPlugin && destPluginCount == destPluginIndex ){
+            newPlugins.append( sourcePlugin );
+        }
+        else {
+            newPlugins.append( oldPlugins[i]);
+        }
+    }
+
+    //if the new location of the source, changes it's index.  If
+    //it does, reorder the view objects putting the source at the new index.
+    if ( newSourcePluginIndex != sourcePluginIndex ){
+        _moveView( sourcePlugin, sourcePluginIndex, newSourcePluginIndex );
+    }
+
+    //Call setPlugins with the new list.  The should update the view objects removing the old destPlugin view.
+    msg = m_layout->setPlugins( newPlugins );
+    return msg;
+}
+
+
+void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex ){
+    if ( oldIndex != newIndex && oldIndex >= 0 && newIndex >= 0 ){
+        if ( plugin == Controller::PLUGIN_NAME ){
+            int controlCount = m_controllers.size();
+            if ( oldIndex < controlCount && newIndex < controlCount ){
+                Controller* controller = m_controllers[oldIndex];
+                m_controllers.removeAt(oldIndex );
+                m_controllers.insert( newIndex, controller );
+            }
+        }
+        else if ( plugin == Animator::CLASS_NAME ){
+            int animCount = m_animators.size();
+            if ( oldIndex < animCount && newIndex < animCount ){
+                Animator* animator = m_animators[oldIndex];
+                m_animators.removeAt(oldIndex );
+                m_animators.insert( newIndex, animator );
+            }
+        }
+        else if ( plugin == Colormap::CLASS_NAME ){
+            int colorCount = m_colormaps.size();
+            if ( oldIndex < colorCount && newIndex < colorCount ){
+                Colormap* colormap = m_colormaps[oldIndex];
+                m_colormaps.removeAt(oldIndex );
+                m_colormaps.insert( newIndex, colormap );
+            }
+        }
+        else if ( plugin == Histogram::CLASS_NAME ){
+            int histCount = m_histograms.size();
+            if ( oldIndex < histCount && newIndex < histCount ){
+                Histogram* histogram = m_histograms[oldIndex];
+                m_histograms.removeAt(oldIndex );
+                m_histograms.insert( newIndex, histogram );
+            }
+        }
+        else if ( plugin == Statistics::CLASS_NAME ){
+            int statCount = m_statistics.size();
+            if ( oldIndex < statCount && newIndex < statCount ){
+                Statistics* statistics = m_statistics[oldIndex];
+                m_statistics.removeAt(oldIndex );
+                m_statistics.insert( newIndex, statistics );
+            }
+        }
+        else {
+            qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
+        }
+    }
+    else {
+        qWarning() << "Move view insert indices don't make sense "<<oldIndex<<" and "<<newIndex;
+    }
+}
+
 void ViewManager::_removeView( const QString& plugin, int index ){
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    if ( plugin == Layout::HIDDEN ){
+    if ( plugin == NodeFactory::HIDDEN ){
         return;
     }
     else if ( plugin == Controller::PLUGIN_NAME ){
@@ -447,13 +573,38 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     else if ( plugin == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
     }
-    else if ( plugin == Layout::EMPTY || plugin == Layout::HIDDEN ){
+    else if ( plugin == NodeFactory::EMPTY || plugin == NodeFactory::HIDDEN ){
         //Do nothing
     }
     else {
         qDebug() << "Unrecognized top level window type: "<<plugin;
     }
     return viewId;
+}
+
+int ViewManager::getControllerCount() const {
+    int controllerCount = m_controllers.size();
+    return controllerCount;
+}
+
+int ViewManager::getColormapCount() const {
+    int colorMapCount = m_colormaps.size();
+    return colorMapCount;
+}
+
+int ViewManager::getAnimatorCount() const {
+    int animatorCount = m_animators.size();
+    return animatorCount;
+}
+
+int ViewManager::getHistogramCount() const {
+    int histogramCount = m_histograms.size();
+    return histogramCount;
+}
+
+int ViewManager::getStatisticsCount() const {
+    int statisticsCount = m_statistics.size();
+    return statisticsCount;
 }
 
 bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
@@ -488,30 +639,7 @@ bool ViewManager::loadLocalFile( const QString& controlId, const QString& fileNa
     return result;
 }
 
-int ViewManager::getControllerCount() const {
-    int controllerCount = m_controllers.size();
-    return controllerCount;
-}
 
-int ViewManager::getColormapCount() const {
-    int colorMapCount = m_colormaps.size();
-    return colorMapCount;
-}
-
-int ViewManager::getAnimatorCount() const {
-    int animatorCount = m_animators.size();
-    return animatorCount;
-}
-
-int ViewManager::getHistogramCount() const {
-    int histogramCount = m_histograms.size();
-    return histogramCount;
-}
-
-int ViewManager::getStatisticsCount() const {
-    int statisticsCount = m_statistics.size();
-    return statisticsCount;
-}
 
 QString ViewManager::_makeAnimator( int index ){
     int currentCount = m_animators.size();
@@ -716,6 +844,29 @@ void ViewManager::setImageView(){
     }
 }
 
+QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& destPluginType ){
+    QString msg;
+    if ( destPluginType != Controller::PLUGIN_NAME && destPluginType != Animator::CLASS_NAME &&
+            destPluginType != Statistics::CLASS_NAME && destPluginType != Colormap::CLASS_NAME &&
+            destPluginType != Histogram::CLASS_NAME && destPluginType != ViewPlugins::CLASS_NAME &&
+            destPluginType != NodeFactory::HIDDEN ){
+        msg = "Unrecognized plugin: "+destPluginType;
+    }
+    else {
+        //Replace the plugin.
+        _makeLayout();
+        QStringList oldNames = m_layout->getPluginList();
+        bool pluginSet = m_layout->_setPlugin( sourceNodeId, destPluginType);
+        if ( !pluginSet ){
+            msg = "Unable to set plugin "+destPluginType;
+        }
+        else {
+            QStringList names = m_layout->getPluginList();
+            _pluginsChanged( names, oldNames );
+        }
+    }
+    return msg;
+}
 
 
 bool ViewManager::setPlugins( const QStringList& names ){
@@ -724,14 +875,13 @@ bool ViewManager::setPlugins( const QStringList& names ){
         QStringList oldNames = m_layout->getPluginList();
         bool valid = m_layout->_setPlugin( names, true);
         if ( !valid ){
-            qDebug() << "Invalid plugins for layout size";
+            qDebug() << "Invalid plugins: "<<names;
         }
         else {
             _pluginsChanged( names, oldNames );
             pluginsSet = true;
         }
     }
-
     else {
         qWarning() << "A layout for the plugins is missing";
     }

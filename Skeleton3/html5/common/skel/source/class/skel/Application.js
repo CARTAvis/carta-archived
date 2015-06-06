@@ -137,15 +137,10 @@ qx.Class.define( "skel.Application",
         _showLayoutPopup : function( message ){
             if( this.m_layoutPopup === null ) {
                 this.m_layoutPopup = new skel.widgets.CustomLayoutPopup();
-                this.m_layoutPopup.addListener( "layoutRowCount", function( message )
-                        {
+                this.m_layoutPopup.addListener( "layoutSizeChanged", function( message ){
                             this._hideWindows();
-                            this.m_desktop.setRowCount( message.getData() );
-                        }, this );
-                this.m_layoutPopup.addListener( "layoutColCount", function( message )
-                        {
-                            this._hideWindows();
-                            this.m_desktop.setColCount( message.getData() );
+                            var data = message.getData();
+                            this.m_desktop.setLayoutSize( data.rows, data.cols );
                         }, this );
                 this.m_layoutPopup.addListener("closeCustomLayout", function(ev){
                     this._hideWidget( this.m_layoutPopup );
@@ -279,6 +274,14 @@ qx.Class.define( "skel.Application",
             qx.event.message.Bus.subscribe( "linkingFinished", function( ev ){
                 this._hideWindows();
             }, this );
+            qx.event.message.Bus.subscribe( "showMoves", function( message ){
+                this._showMoves( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "moveFinished", function( ev ){
+                this._hideWindows();
+            }, this );
+            
+            
             qx.event.message.Bus.subscribe( "showPopupWindow", function(message){
                 this._showPopup( message );
             }, this );
@@ -355,6 +358,7 @@ qx.Class.define( "skel.Application",
          */
         _hideWindows: function(){
             this._hideWindow( this.m_windowLink );
+            this._hideWindow( this.m_windowMove );
             this.m_statusBar.clearMessages();
         },
 
@@ -369,23 +373,20 @@ qx.Class.define( "skel.Application",
          * A linkage between displays has either been added or removed.
          * @param addLink {boolean} whether the link is being added or removed.
          */
-        _linksChanged: function( addLink, ev )
-            {
+        _linksChanged: function( addLink, ev ){
                 var data = ev.getData();
-                var linkSource = data.source;
-                var linkDest = data.destination;
+                var linkSource = data.getSource();
+                var linkDest = data.getDestination();
                 this.m_desktop.link( linkSource, linkDest, addLink );
         },
 
 
-
         /**
          * Restore the window at the given layout row and column to its original position.
-         * @param row {Number} the layout row index of the window to be restored.
-         * @param col {Number} the layout column index of the window to be restored.
+         * @param locationId {String} an identifier for the location where the window should be restored.
          */
-        restoreWindow : function( row, col){
-            this.m_desktop.restoreWindow( row, col );
+        restoreWindow : function( locationId ){
+            this.m_desktop.restoreWindow( locationId );
         },
         
         /**
@@ -424,6 +425,34 @@ qx.Class.define( "skel.Application",
             var bottomPos = this._getLinkBottomOffset();
             this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
        },
+       
+       /**
+        * Show an overlay window displaying linkage between windows that allows
+        * the user to edit links.
+        */
+       _showMoves : function( ev ){
+           var linkSource = ev.getData();
+           var winId = linkSource.window;
+           var moveInfo = this.m_desktop.getMoveInfo( winId );
+           if ( this.m_windowMove === null ){
+               this.m_windowMove = skel.widgets.Link.MoveCanvas.getInstance();
+               var resizeMoveWindow = function( anObject, moveWindow ){
+                   var left = 0;
+                   var top = anObject._getLinkTopOffset();
+                   moveWindow.setLinkOffsets( left, top );
+               };
+               resizeMoveWindow( this, this.m_windowMove );
+               this.m_desktop.addListener( "resize", function(){
+                   resizeMoveWindow( this, this.m_windowMove );
+               }, this );
+           }
+          
+           this.m_windowMove.setDrawInfo( moveInfo );
+           this.m_statusBar.showInformation( this.m_windowMove.getHelp());
+           var topPos = this._getLinkTopOffset();
+           var bottomPos = this._getLinkBottomOffset();
+           this.getRoot().add( this.m_windowMove, {left:0, top:topPos, bottom:bottomPos, right:0});
+      },
             
         /**
          * Return the total height in pixels of display elements like a possible menu or toolbar
@@ -471,7 +500,7 @@ qx.Class.define( "skel.Application",
          */
         _showPopup : function( message ){
             var data = message.getData();
-            var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
+            var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, true );
             win.addListener( "registered", function(){
                 var sourceId = win.getIdentifier();
                 var addLinkCmd = skel.Command.Link.CommandLinkAdd.getInstance();
@@ -513,6 +542,7 @@ qx.Class.define( "skel.Application",
         m_statusBar     : null,
         m_mainContainer : null,
         m_windowLink    : null,
+        m_windowMove    : null,
         m_fileBrowser   : null,
         m_customizeDialog : null,
         m_layoutPopup : null,

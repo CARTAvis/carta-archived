@@ -28,8 +28,7 @@ qx.Class.define("skel.Command.View.CommandView", {
                 //For now use the first active window.
                 var winInfo = skel.Command.Command.m_activeWins[0];
                 var data = {
-                    row : winInfo.getRow(),
-                    col : winInfo.getCol(),
+                    location : winInfo.getLocation(),
                     plugin : pluginName
                 };
                 //Changing the view will change to a custom layout, but we don't want to show

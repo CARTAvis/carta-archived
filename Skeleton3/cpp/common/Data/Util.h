@@ -59,7 +59,13 @@ public:
       */
      static void commandPostProcess( const QString& errorMsg );
 
-
+     /**
+      * Returns true if the lists have the same length and elements; false otherwise.
+      * @param list1 - {QStringList} the first list to compare.
+      * @param list2 - {QStringList} the second list to compare.
+      * @return true if the lists are equal; false otherwise.
+      */
+     static bool isListMatch( const QStringList& list1, const QStringList& list2 );
 
      /**
       * Round the value to the given number of significant digits.

@@ -315,7 +315,7 @@ private:
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
     
     DataSource(const DataSource& other);
-    DataSource operator=(const DataSource& other);
+    DataSource& operator=(const DataSource& other);
 };
 }
 }

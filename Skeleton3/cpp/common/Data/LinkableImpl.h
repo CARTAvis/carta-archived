@@ -93,7 +93,7 @@ private:
     Carta::State::StateInterface m_state;
 
     LinkableImpl( const LinkableImpl& other);
-    LinkableImpl operator=( const LinkableImpl& other );
+    LinkableImpl& operator=( const LinkableImpl& other );
 };
 
 }

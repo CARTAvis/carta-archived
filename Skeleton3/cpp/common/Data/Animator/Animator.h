@@ -157,7 +157,7 @@ private:
     static bool m_registered;
 
     Animator( const Animator& other);
-    Animator operator=( const Animator& other );
+    Animator& operator=( const Animator& other );
 };
 }
 }

@@ -65,6 +65,23 @@ void Util::commandPostProcess( const QString& errorMsg){
     }
 }
 
+bool Util::isListMatch( const QStringList& list1, const QStringList& list2 ){
+    bool listEqual = true;
+    int listSize = list1.size();
+    if ( listSize != list2.size() ){
+        listEqual = false;
+    }
+    else {
+        for ( int i = 0; i < listSize; i++ ){
+            if ( list1[i] != list2[i] ){
+                listEqual = false;
+                break;
+            }
+        }
+    }
+    return listEqual;
+}
+
 double Util::roundToDigits(double value, int digits)
 {
     double factor = pow(10.0, digits - ceil(log10(fabs(value))));

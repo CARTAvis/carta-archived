@@ -692,7 +692,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( interval < 10 ){
                 interval = 10;
             }
-            if (this.m_timer) {
+            interval = Math.round( interval );
+            if (this.m_timer !== null ) {
                 this.m_timer.setInterval(interval);
             }
         },
@@ -701,7 +702,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Stop the animation.
          */
         _stop : function() {
-            if (this.m_timer) {
+            if (this.m_timer !== null) {
                 this.m_playButton.setValue(false);
                 this.m_revPlayButton.setValue(false);
                 this.m_timer.stop();

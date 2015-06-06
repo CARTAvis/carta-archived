@@ -200,7 +200,7 @@ private:
     double m_errorMargin;
 
 	Colormap( const Colormap& other);
-	Colormap operator=( const Colormap& other );
+	Colormap& operator=( const Colormap& other );
 };
 }
 }

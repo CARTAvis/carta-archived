@@ -99,6 +99,17 @@ public:
     bool loadLocalFile( const QString& objectId, const QString& fileName);
 
     /**
+     * Replace the destination plug-in identified by its type and index with the source
+     * plug-in identified by its type and index.
+     * @param sourcePlugin - an identifier for the plug-in to move.
+     * @param sourcePluginIndex - the index of the plug-in to move within plug-ins of its type.
+     * @param destPlugin - an identifier for the plug-in to replace.
+     * @param destPluginIndex - the index of the plug-in to replace within plug-ins of its type.
+     * @return an error if there was a problem doing the move; an empty string otherwise.
+     */
+    QString moveWindow( const QString& sourcePlugin, int sourcePluginIndex,
+            const QString& destPlugin, int destPluginIndex );
+    /**
      * Reset the layout to a predefined analysis view.
      */
     void setAnalysisView();
@@ -141,7 +152,15 @@ private:
     void _clearHistograms( int startIndex );
     void _clearStatistics( int startIndex );
 
-    //int _findColorMap( const QString& id ) const;
+    /**
+     * Given the plugin and the index of the plugin among plugins of its type, find the index of the plugin
+     * in the QStringList.
+     * @param sourcePlugin - an identifier for the type of plugin.
+     * @param pluginIndex - the index of the plugin amoung plugins of matching type.
+     * @param plugins - a QStringList of plugins to search.
+     * @return the index of the identifier plugin in the QStringList.
+     */
+    int _findListIndex( const QString& sourcePlugin, int pluginIndex, const QStringList& plugins ) const;
 
     void _initCallbacks();
 
@@ -159,8 +178,16 @@ private:
     QString _makeStatistics( int index );
     void _makeDataLoader();
 
+    /**
+     * Move the identified plugin from the oldIndex to the newIndex.
+     */
+    void _moveView( const QString& plugin, int oldIndex, int newIndex );
 
+    /**
+     * Remove the pluin with the identified index.
+     */
     void _removeView( const QString& plugin, int index );
+
     /**
      * Written because there is no guarantee what order the javascript side will use
      * to create view objects.  When there are linked views, the links may not get
@@ -168,6 +195,8 @@ private:
      * the state and gives the object a second chance to establish their links.
      */
     void _refreshState();
+
+    QString _setPlugin( const QString& sourceNodeId, const QString& destPluginType );
 
     //A list of Controllers requested by the client.
     QList <Controller* > m_controllers;
@@ -191,10 +220,14 @@ private:
     Snapshots* m_snapshots;
 
     const static QString SOURCE_ID;
+    const static QString SOURCE_PLUGIN;
+    const static QString SOURCE_LOCATION_ID;
     const static QString DEST_ID;
+    const static QString DEST_PLUGIN;
+    const static QString DEST_LOCATION_ID;
 
     ViewManager( const ViewManager& other);
-    ViewManager operator=( const ViewManager& other );
+    ViewManager& operator=( const ViewManager& other );
 };
 
 }

@@ -63,7 +63,7 @@ private:
 
 
 	ChannelUnits( const ChannelUnits& other);
-	ChannelUnits operator=( const ChannelUnits& other );
+	ChannelUnits& operator=( const ChannelUnits& other );
 };
 }
 }

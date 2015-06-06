@@ -62,7 +62,7 @@ private:
     void makeFileNode(QJsonArray& parentArray, const QString& fileName);
     DataLoader( const QString& path, const QString& id);
     DataLoader( const DataLoader& other);
-    DataLoader operator=( const DataLoader& other );
+    DataLoader& operator=( const DataLoader& other );
 };
 }
 }

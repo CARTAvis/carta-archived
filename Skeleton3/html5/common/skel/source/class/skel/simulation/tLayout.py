@@ -1,4 +1,5 @@
 import unittest
+import Util
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -37,8 +38,7 @@ class tLayout(unittest.TestCase):
         self.assertIsNotNone( imageWindow, "Could not find an image window")
         
         #Check that there are no other Windows
-        desktopList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( desktopList )
+        windowCount = Util.get_window_count( self, driver )
         self.assertEqual( windowCount, 1, "Image Layout should have only one window")
         
         
@@ -77,17 +77,12 @@ class tLayout(unittest.TestCase):
         self.assertIsNotNone( animatorWindow, "Could not find an animator window")
         
         #Check that there are the correct number of Windows
-        desktopList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( desktopList )
+        windowCount = Util.get_window_count( self, driver )
         print windowCount
         self.assertEqual( windowCount, 5, "Image Layout does not have the correct number of window")
         
-    
-    #Test that we can set a custom layout with 5 rows and 3 columns
-    def test_layout_custom(self):
-        driver = self.driver
-        #Getting element not found in cache without this.
-        driver.implicitly_wait(10)
+    #Test set a custom layout with the given number of rows and columns
+    def layout_custom(self, driver, rows, cols ):
         
         # Find the layout button on the menu bar and click it.
         self._clickLayoutButton( driver )
@@ -101,25 +96,87 @@ class tLayout(unittest.TestCase):
         rowSpin = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutRows')]/input")
         self.assertIsNotNone( rowSpin, "Could not find custom layout row indicator")
         rowSpin.send_keys( Keys.BACK_SPACE )
-        rowSpin.send_keys('5')
+        rowSpin.send_keys(str(rows))
         
         #Get the column count spin and set its value.
         colSpin = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutCols')]/input")
         self.assertIsNotNone( colSpin, "Could not find custom layout column indicator")
-        colSpin.send_keys('3')
+        colSpin.send_keys(str(cols))
         colSpin.send_keys(Keys.ARROW_LEFT)
+        if ( cols > 3 ) :
+            colSpin.send_keys(Keys.ARROW_LEFT)
         colSpin.send_keys( Keys.BACK_SPACE )
         
         #Close the custom layout dialog
         closeButton = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutClose')]")
         self.assertIsNotNone( closeButton, "Could not find custom layout close button")
         ActionChains(driver).click(closeButton).perform()
+            
+    
+    #Test that we can set a custom layout with 5 rows and 3 columns
+    def test_layout_custom35(self):
+        driver = self.driver
+        #Getting element not found in cache without this.
+        driver.implicitly_wait(10)
+        
+        self.layout_custom( driver, 3, 5 )
         
         #Check that there are the correct number of Windows
-        desktopList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( desktopList )
+        windowCount = Util.get_window_count( self, driver )
         print windowCount
-        self.assertEqual( windowCount, 15, "Image Layout does not have the correct number of window")
+        self.assertEqual( windowCount, 15, "Custom Layout does not have 3 rows and 5 columns")
+    
+    #Test that we can set a custom layout with 1 rows and 1 columns
+    def test_layout_custom11(self):
+        driver = self.driver
+        #Getting element not found in cache without this.
+        driver.implicitly_wait(10)
+        
+        self.layout_custom( driver, 1, 1 )
+        
+        #Check that there are the correct number of Windows
+        windowCount = Util.get_window_count( self, driver )
+        print windowCount
+        self.assertEqual( windowCount, 11, "Custom Layout does not have 1 row and 1 column")
+        
+    #Test that we can set a custom layout with 1 rows and 2 columns
+    def test_layout_custom12(self):
+        driver = self.driver
+        #Getting element not found in cache without this.
+        driver.implicitly_wait(10)
+        
+        self.layout_custom( driver, 1, 2 )
+        
+        #Check that there are the correct number of Windows
+        windowCount = Util.get_window_count( self, driver )
+        print windowCount
+        self.assertEqual( windowCount, 2, "Custom Layout does not have 1 row and 2 column")
+        
+    #Test that we can set a custom layout with 1 rows and 2 columns
+    def test_layout_custom21(self):
+        driver = self.driver
+        #Getting element not found in cache without this.
+        driver.implicitly_wait(10)
+        
+        self.layout_custom( driver, 2, 1 )
+        
+        #Check that there are the correct number of Windows
+        windowCount = Util.get_window_count( self, driver )
+        print windowCount
+        self.assertEqual( windowCount, 2, "Custom Layout does not have 2 row and 1 column")
+        
+    #Test that we can set a custom layout with 5 rows and 3 columns
+    def test_layout_custom53(self):
+        driver = self.driver
+        #Getting element not found in cache without this.
+        driver.implicitly_wait(10)
+        
+        self.layout_custom( driver, 5, 3 )
+        
+        #Check that there are the correct number of Windows
+        windowCount = Util.get_window_count( self, driver )
+        print windowCount
+        self.assertEqual( windowCount, 15, "Custom Layout does not have 5 row and 3 column")
     
     def tearDown(self):
         self.driver.close()

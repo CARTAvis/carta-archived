@@ -14,13 +14,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
 
         /**
          * Constructor.
-         * @param row {Number} the row location.
-         * @param col {Number} the column location.
          * @param index {Number} an index in case of multiple windows displaying color maps.
          * @param detached {boolean} true for a pop-up; false for an in-line display.
          */
-        construct : function(row, col, index, detached ) {
-            this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, row, col, index, detached );
+        construct : function( index, detached ) {
+            this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, index, detached );
             this.m_content.setLayout( new qx.ui.layout.HBox(0));
             this.m_links = [];
         },

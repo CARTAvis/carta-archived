@@ -55,7 +55,8 @@ QString Animator::addLink( CartaObject* cartaObject ){
     }
 
     if ( linkAdded ){
-        _resetAnimationParameters( -1);
+        //_resetAnimationParameters( -1);
+        _adjustStateController( controller );
     }
     return result;
 }
@@ -324,9 +325,20 @@ QString Animator::removeLink( CartaObject* cartaObject ){
 void Animator::_resetAnimationParameters( int selectedImage ){
     if ( m_animators.contains( Selection::IMAGE) ){
         int maxImages = _getMaxImageCount();
-        m_animators[Selection::IMAGE]->setUpperBound(maxImages);
+        if ( maxImages == 0 ){
+            m_animators[Selection::IMAGE]->setUpperBound( 1 );
+        }
+        else {
+            m_animators[Selection::IMAGE]->setUpperBound(maxImages);
+        }
         if ( selectedImage >= 0 ){
             m_animators[Selection::IMAGE]->setFrame( selectedImage );
+        }
+        else {
+            int index = m_animators[Selection::IMAGE]->getFrame();
+            if ( index > maxImages ){
+                m_animators[Selection::IMAGE]->setIndex( 0 );
+            }
         }
     }
     if ( m_animators.contains( Selection::CHANNEL)){

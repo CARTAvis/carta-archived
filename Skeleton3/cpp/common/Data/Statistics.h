@@ -63,7 +63,7 @@ private:
 
 
 	Statistics( const Statistics& other);
-	Statistics operator=( const Statistics& other );
+	Statistics& operator=( const Statistics& other );
 };
 }
 }

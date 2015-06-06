@@ -30,10 +30,9 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
                 customLayoutCmd.setValue( true );
                 var path = skel.widgets.Path.getInstance();
                 for ( var i = 0; i < activeWins.length; i++ ){
-                    var row = activeWins[i].getRow();
-                    var col = activeWins[i].getCol();
+                    var locationId = activeWins[i].getLocation();
                     activeWins[i].closeWindow();
-                    var params = "row:"+row+",col:"+col;
+                    var params = "id:"+locationId;
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
                 layoutCmd.setActive( true );

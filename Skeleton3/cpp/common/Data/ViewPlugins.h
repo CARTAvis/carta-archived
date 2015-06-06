@@ -38,7 +38,7 @@ private:
     static const QString ERRORS;
     static const QString STAMP;
     ViewPlugins( const ViewPlugins& other);
-    ViewPlugins operator=( const ViewPlugins& other );
+    ViewPlugins& operator=( const ViewPlugins& other );
 };
 }
 }

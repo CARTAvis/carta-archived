@@ -9,7 +9,7 @@ def animation_to_image_window( unittest, driver):
     ActionChains(driver).context_click(animWindow).send_keys( Keys.ARROW_RIGHT ).send_keys(Keys.ARROW_RIGHT).send_keys( Keys.ENTER ).perform()
 
 def get_window_count( unittest, driver):
-     windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
+     windowList = driver.find_elements_by_xpath("//div[@class='qx-window']")
      windowCount = len( windowList )
      return windowCount
  

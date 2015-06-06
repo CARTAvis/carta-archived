@@ -368,7 +368,7 @@ private:
     bool m_repaintFrameQueued;
 
     Controller(const Controller& other);
-    Controller operator=(const Controller& other);
+    Controller& operator=(const Controller& other);
 
 };
 

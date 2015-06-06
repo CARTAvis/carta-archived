@@ -16,8 +16,8 @@ qx.Class
                     /**
                      * Constructor.
                      */
-                    construct : function(row, col, index, detached ) {
-                        this.base(arguments, skel.widgets.Path.getInstance().ANIMATOR, row, col, index, detached );
+                    construct : function(index, detached ) {
+                        this.base(arguments, skel.widgets.Path.getInstance().ANIMATOR, index, detached );
                         this.setLayout(new qx.ui.layout.VBox(5));
                         this.m_links = [];
                         this._initSupportedAnimations();

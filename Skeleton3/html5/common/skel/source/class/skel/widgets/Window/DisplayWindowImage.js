@@ -13,8 +13,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
     /**
      * Constructor.
      */
-    construct : function(row, col, index, detached) {
-        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, row, col, index, detached );
+    construct : function(index, detached) {
+        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, index, detached );
         this.m_links = [];
         this.m_content.setLayout(new qx.ui.layout.Canvas());
     },

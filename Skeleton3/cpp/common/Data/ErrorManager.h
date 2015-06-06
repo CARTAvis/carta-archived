@@ -57,7 +57,7 @@ private:
     const static QString ERRORS_EXIST;
     std::vector< std::shared_ptr<ErrorReport> > errorList;
     ErrorManager( const ErrorManager& other);
-    ErrorManager operator=( const ErrorManager& other );
+    ErrorManager& operator=( const ErrorManager& other );
 
 };
 }
