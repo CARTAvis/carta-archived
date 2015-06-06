@@ -3,8 +3,8 @@
  *
  * It essentially implements the algorithm from the wikipedia:
  *
- * L ← Empty list that will contain the sorted elements
- * S ← Set of all nodes with no incoming edges
+ * L  Empty list that will contain the sorted elements
+ * S  Set of all nodes with no incoming edges
  * while S is non-empty do
  *     remove a node n from S
  *     add n to tail of L
@@ -19,30 +19,34 @@
  *
  **/
 
-
 #pragma once
 
 #include <vector>
 
-namespace Algorithms {
-
-namespace Graphs {
-
+namespace Carta
+{
+namespace Core
+{
+namespace Algorithms
+{
+namespace Graphs
+{
 class TopoSort
 {
-
 public:
 
-    typedef std::vector<int> VI;
+    typedef std::vector < int > VI;
 
     /// initiate algorithm with n vertices, numbered from 0..(n-1)
-    TopoSort( int n);
+    TopoSort( int n );
 
     /// add an arrow from vertex a to b
-    void addArrow( int a, int b);
+    void
+    addArrow( int a, int b );
 
     /// compute and return the sorted vertices
-    VI compute();
+    VI
+    compute();
 
 protected:
 
@@ -50,9 +54,9 @@ protected:
     VI m_counts;
 
     /// for each vertex we keep a list of outgoing arrows
-    std::vector< VI > m_arrows;
+    std::vector < VI > m_arrows;
 };
-
-
+}
+}
 }
 }

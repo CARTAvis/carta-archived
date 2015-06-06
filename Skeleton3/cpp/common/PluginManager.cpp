@@ -17,7 +17,6 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-
 PluginManager::PluginManager()
 {
 //    qDebug() << "Initializing PluginManager...";
@@ -58,7 +57,7 @@ void PluginManager::loadPlugins()
     //
     // figure out loading dependencies
     //
-    Algorithms::Graphs::TopoSort tsort( m_discoveredPlugins.size());
+    Carta::Core::Algorithms::Graphs::TopoSort tsort( m_discoveredPlugins.size());
     // for every native plugin, insert arrows into toposort graph for every dependency
     // it has
     for( size_t i = 0 ; i < m_discoveredPlugins.size() ; i ++ ) {

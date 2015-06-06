@@ -17,6 +17,7 @@ HEADERS += \
     CallbackList.h \
     PluginManager.h \
     Globals.h \
+    Algorithms/Graphs/TopoSort.h \
     Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
