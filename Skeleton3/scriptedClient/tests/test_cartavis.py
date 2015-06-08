@@ -55,3 +55,18 @@ def test_zoomLevel():
     oldZoom = i[0].getZoomLevel()
     i[0].setZoomLevel(1.1 * oldZoom)
     assert i[0].getZoomLevel() == 1.1 * oldZoom
+
+def test_getCoordinates():
+    """
+    Test that the coordinate values are being returned properly in each
+    coordinate system.
+    Also try a fake coordinate system to ensure that error checking is
+    working.
+    """
+    i[0].loadLocalFile('/scratch/Images/mexinputtest.fits')
+    assert i[0].getCoordinates(0, 0, 'j2000') == ['+3:32:15.956', '-27:42:46.800']
+    assert i[0].getCoordinates(0, 0, 'b1950') == ['+3:30:10.257', '-27:52:52.719']
+    assert i[0].getCoordinates(0, 0, 'galactic') == ['+223.400deg', '-54.467deg']
+    assert i[0].getCoordinates(0, 0, 'ecliptic') == ['+41.113deg', '-45.085deg']
+    assert i[0].getCoordinates(0, 0, 'icrs') == ['+3:32:15.954', '-27:42:46.784']
+    assert i[0].getCoordinates(0, 0, 'fakesystem')[0] == 'error'
