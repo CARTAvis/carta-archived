@@ -20,7 +20,9 @@ def cartavisInstance(request):
     port = request.config.getoption("--port")
     htmlFile = request.config.getoption("--htmlFile")
     imageFile = request.config.getoption("--imageFile")
+    currentDir = os.getcwd()
     os.chdir(directory)
     v = cartavis.Cartavis(directory + '/' + executable, configFile, int(port),
                           htmlFile, imageFile)
+    os.chdir(currentDir)
     return v
