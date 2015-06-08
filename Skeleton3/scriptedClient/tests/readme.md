@@ -43,3 +43,6 @@ addopts = --directory='/home/jeff/scratch/build/cpp/desktop/'
     --htmlFile='/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html'
     --imageFile='/scratch/Images/mexinputtest.fits'
 ```
+
+Once the `pytest.ini` file has been set up, then the tests can be executed by
+simply running `py.test` or `py.test -v`.
