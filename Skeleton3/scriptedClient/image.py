@@ -228,9 +228,15 @@ class Image(CartaView):
         iDim = self.getImageDimensions()
         if (iDim[0] != "error" and oDim[0] != "error"):
             if (oDim[0] < oDim[1]):
-                self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[0]/2,'width')
+                self.centerWithRadius(iDim[0]/2 - 0.5,
+                                      iDim[1]/2 - 0.5,
+                                      iDim[0]/2,
+                                      'width')
             else:
-                self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[1]/2,'height')
+                self.centerWithRadius(iDim[0]/2 - 0.5,
+                                      iDim[1]/2-0.5,
+                                      iDim[1]/2,
+                                      'height')
             return []
         else:
             return ["Could not fit image to viewer."]
