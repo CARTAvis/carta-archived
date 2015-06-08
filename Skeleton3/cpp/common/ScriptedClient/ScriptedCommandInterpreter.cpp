@@ -493,7 +493,7 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
         int width = args["width"].toInt();
         int height = args["height"].toInt();
         double scale = args["scale"].toDouble();
-        QString aspectStr = args["aspectRatioMode"].toString();
+        QString aspectStr = args["aspectRatioMode"].toString().toLower();
         Qt::AspectRatioMode aspectRatioMode;
         if ( aspectStr == "keep" ){
             aspectRatioMode = Qt::KeepAspectRatio;
