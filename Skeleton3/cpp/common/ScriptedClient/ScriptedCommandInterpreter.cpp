@@ -308,6 +308,39 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getPixelUnits( imageView );
     }
 
+    else if ( cmd == "getcoordinates" ) {
+        QString imageView = args["imageView"].toString();
+        double x = args["x"].toDouble();
+        double y = args["y"].toDouble();
+        QString systemStr = args["system"].toString().toLower();
+        Carta::Lib::KnownSkyCS system;
+        if ( systemStr == "j2000" ){
+            system = Carta::Lib::KnownSkyCS::J2000;
+        }
+        else if ( systemStr == "b1950" ){
+            system = Carta::Lib::KnownSkyCS::B1950;
+        }
+        else if ( systemStr == "icrs" ){
+            system = Carta::Lib::KnownSkyCS::ICRS;
+        }
+        else if ( systemStr == "galactic" ){
+            system = Carta::Lib::KnownSkyCS::Galactic;
+        }
+        else if ( systemStr == "ecliptic" ){
+            system = Carta::Lib::KnownSkyCS::Ecliptic;
+        }
+        else {
+            system = Carta::Lib::KnownSkyCS::Error;
+        }
+        if ( system != Carta::Lib::KnownSkyCS::Error ) {
+            result = m_scriptFacade->getCoordinates( imageView, x, y, system );
+        }
+        else {
+            result = QStringList( "error" );
+            result.append( "Invalid coordinate system: " + systemStr );
+        }
+    }
+
     /// animator commands
 
     else if ( cmd == "setchannel" ) {

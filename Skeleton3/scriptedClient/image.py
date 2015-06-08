@@ -548,7 +548,7 @@ class Image(CartaView):
 
     def getPixelUnits(self):
         """
-        Get the units of the pixels.
+        Get the units of the pixels in the currently loaded image.
 
         Returns
         -------
@@ -556,6 +556,34 @@ class Image(CartaView):
             The units of the pixels, or an empty string if no units are
             defined.
         """
-        result = self.con.cmdTagList("getPixelUnits",
-                                     imageView=self.getId())
+        result = self.con.cmdTagList("getPixelUnits", imageView=self.getId())
+        return result
+
+    def getCoordinates(self, x, y, system):
+        """
+        Get the coordinates at a given pixel in a given coordinate
+        system.
+
+        Parameters
+        ----------
+        x: float
+            The x value of the desired pixel.
+        y: float
+            The y value of the desired pixel.
+        system: string
+            The desired coordinate system.
+            Acceptable systems are:
+                * J2000
+                * B1950
+                * ICRS
+                * Galactic
+                * Ecliptic
+
+        Returns
+        -------
+        list
+            The x- and y-coordinates in the desired coordinate system.
+        """
+        result = self.con.cmdTagList("getCoordinates", imageView=self.getId(),
+                                     x=x, y=y, system=system)
         return result

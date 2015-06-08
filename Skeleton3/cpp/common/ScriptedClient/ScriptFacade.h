@@ -7,7 +7,7 @@
 #pragma once
 #include <QString>
 #include <QObject>
-
+#include "CartaLib/CartaLib.h"
 
 namespace Carta {
     namespace Data {
@@ -389,6 +389,16 @@ public:
      * @return the units of the pixels, or blank if units could not be obtained.
      */
     QStringList getPixelUnits( const QString& controlId );
+
+    /**
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @return the coordinates at pixel (x, y).
+     */
+    QStringList getCoordinates( const QString& controlId, double x, double y, Carta::Lib::KnownSkyCS system );
 
     /**
      * Set the amount of extra space on each side of the clip bounds.

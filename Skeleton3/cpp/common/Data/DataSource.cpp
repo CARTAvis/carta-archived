@@ -105,9 +105,8 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
             if( pixel.size() > 2) {
                 pixel[2] = frameIndex;
             }
-            auto list = cf-> formatFromPixelCoordinate( pixel );
             for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+                out << ais[i].shortLabel().html() << ":" << getCoordinates( imgX, imgY, cs, i ) << " ";
             }
             out << "\n";
         }
@@ -495,6 +494,17 @@ QString DataSource::getPixelValue( double x, double y ){
         }
     }
     return pixelValue;
+}
+
+QString DataSource::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ){
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    cf-> setSkyCS( system );
+    std::vector < double > pixel( m_image-> dims().size(), 0.0 );
+    pixel[0] = x;
+    pixel[1] = y;
+    auto list = cf-> formatFromPixelCoordinate( pixel );
+    QString result = list[axis];
+    return result;
 }
 
 QString DataSource::getPixelUnits() {

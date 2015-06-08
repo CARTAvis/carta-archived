@@ -931,6 +931,28 @@ QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
     return resultList;
 }
 
+QStringList ScriptFacade::getCoordinates( const QString& controlId, double x, double y, const Carta::Lib::KnownSkyCS system ){
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getCoordinates( x, y, system );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferAmount ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();

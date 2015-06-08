@@ -921,6 +921,17 @@ QString Controller::getPixelUnits(){
     return result;
 }
 
+QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        for ( int i = 0; i <= 1; i++ ){
+            result.append( m_datas[imageIndex]->getCoordinates( x, y, system, i ) );
+        }
+    }
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->viewResize( newSize );
