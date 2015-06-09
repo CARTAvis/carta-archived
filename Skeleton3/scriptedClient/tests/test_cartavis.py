@@ -1,5 +1,6 @@
 import os
 import cartavis
+from PIL import Image, ImageChops
 
 def test_getPixelValue(cartavisInstance):
     """
@@ -73,3 +74,29 @@ def test_getCoordinates(cartavisInstance):
     assert i[0].getCoordinates(0, 0, 'icrs') ==\
         ['+3:32:15.954', '-27:42:46.784']
     assert i[0].getCoordinates(0, 0, 'fakesystem')[0] == 'error'
+
+def test_saveFullImage(cartavisInstance, tempImageDir):
+    """
+    Test that the saveFullImage() command works properly.
+    """
+    imageName = 'saveFullImage.png'
+    i = cartavisInstance.getImageViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/saveFullImage.png')
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_setColormap(cartavisInstance, tempImageDir):
+    """
+    Test that a colormap is being applied properly.
+    """
+    imageName = 'setColormapCubehelix.png'
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('cubehelix')
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/setColormapCubehelix.png')
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())

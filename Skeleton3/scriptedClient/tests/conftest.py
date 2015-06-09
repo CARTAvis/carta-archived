@@ -34,4 +34,29 @@ def cartavisInstance(request):
     v = cartavis.Cartavis(directory + '/' + executable, configFile, int(port),
                           htmlFile, imageFile)
     os.chdir(currentDir)
+    def fin():
+        v.quit()
+    request.addfinalizer(fin)
     return v
+
+@pytest.fixture(scope="module")
+def tempImageDir(request):
+    """
+    Create a temporary directory for saving images.
+    Return the directory name.
+    When all tests using this fixture are done, remove this directory
+    and its contents.
+    """
+    imageDir = '/tmp/cartavis-test'
+    if not os.path.isdir(imageDir):
+        print "Making tempImageDir"
+        os.makedirs(imageDir)
+    def fin():
+        print "fin()"
+        print "imageDir = " + imageDir
+        for file in os.listdir(imageDir):
+            print "deleting " + imageDir + '/' + file
+            os.remove(imageDir + '/' + file)
+        os.rmdir(imageDir)
+    request.addfinalizer(fin)
+    return imageDir
