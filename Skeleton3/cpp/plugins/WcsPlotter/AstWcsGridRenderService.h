@@ -6,7 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-#include "CartaLib/ICoordinateGridPlotter.h"
+#include "CartaLib/IWcsGridRenderService.h"
 #include <QColor>
 #include <QObject>
 #include <QTimer>

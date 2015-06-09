@@ -1,5 +1,5 @@
 /**
- *
+ * API for drawing WCS grids.
  **/
 
 #pragma once
@@ -8,43 +8,6 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include <memory>
-
-#ifdef DONT_COMPILE
-
-class QPainter;
-
-/// API for drawing grids of coordinate systems.
-///
-/// \warning this is most likely not going to be used at all.
-class CoordinateGridPlotterInterface
-{
-    CLASS_BOILERPLATE( CoordinateGridPlotterInterface );
-
-public:
-
-    /// set line width
-    virtual CoordinateGridPlotterInterface &
-    setLineWidth( double width ) = 0;
-
-    /// change to a different sky CS (if applicable)
-    virtual void
-    setSkyCS( const KnownSkyCS & cs ) = 0;
-
-    /// change which axes to plot (first one is horizontal, second is vertical)
-    virtual void
-    setAxes( int axis1, int axis2 ) = 0;
-
-    /// plot the grid with the current settings
-    virtual void
-    plot( QPainter & img ) = 0;
-
-    /// virtual destructor
-    virtual
-    ~CoordinateGridPlotterInterface()
-    { }
-};
-
-#endif // ifdef DONT_COMPILE
 
 namespace Carta
 {

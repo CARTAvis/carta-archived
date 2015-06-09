@@ -14,7 +14,8 @@ isEmpty(NOSERVER) {
 	SUBDIRS +=server
 }
 
-# explicit dependencies, much better for make -j4...
+# explicit dependencies, to make sure parallel make works (i.e. make -j4...)
+common.depends = CartaLib
 desktop.depends = common
 server.depends = common
 plugins.depends = common

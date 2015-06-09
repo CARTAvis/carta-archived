@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "CartaLib/ICoordinateGridPlotter.h"
+#include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/CartaLib.h"
 #include "common/IConnector.h"
 #include "common/Hacks/SharedState.h"

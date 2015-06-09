@@ -3,7 +3,7 @@
  **/
 
 
-#include "ICoordinateGridPlotter.h"
+#include "IWcsGridRenderService.h"
 
 
 

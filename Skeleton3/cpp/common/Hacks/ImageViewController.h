@@ -10,17 +10,21 @@
 #include "WcsGridOptionsController.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
-#include "../ImageRenderService.h"
-#include "../IView.h"
+#include "CartaLib/Algorithms/ContourConrec.h"
 #include "CartaLib/Nullable.h"
 #include "CartaLib/Hooks/GetWcsGridRenderer.h"
-#include "common/Hacks/SharedState.h"
+#include "../ImageRenderService.h"
+#include "../IView.h"
+#include "SharedState.h"
 #include <QTimer>
 #include <QObject>
 
 namespace Hacks
 {
-/// grid render service that does nothing
+/// grid render service that does nothing except reports empty grid back
+///
+/// this can be useful if real grid render service is not available, as it can simplify
+/// the logic...
 class DummyGridRenderer
     : public Carta::Lib::IWcsGridRenderService
 {
@@ -139,25 +143,6 @@ public:
         m_grs = gridRendererService;
     }
 
-//    JobId
-//    listenFor( Carta::Core::ImageRenderService::JobId id1,
-//               Carta::Lib::IWcsGridRenderService::JobId id2,
-//               JobId jobId = - 1 )
-//    {
-//        qDebug() << "expect xyz" << id1 << id2;
-//        m_irsJobId = id1;
-//        m_grsJobId = id2;
-//        m_irsDone = false;
-//        m_grsDone = false;
-//        if ( jobId < 0 ) {
-//            m_myJobId++;
-//        }
-//        else {
-//            m_myJobId = jobId;
-//        }
-//        return m_myJobId;
-//    }
-
     JobId
     start( JobId jobId = - 1 )
     {
@@ -232,6 +217,7 @@ private:
     GRS::SharedPtr m_grs = nullptr;
 };
 
+/// image controller with grid overlays and contour overlays
 class ImageViewController : public QObject, public IView
 {
     Q_OBJECT
@@ -281,8 +267,6 @@ public:
     PPCsettings
     getPPCsettings();
 
-signals:
-
 public slots:
 
     /// load the requested image from a local file
@@ -303,6 +287,8 @@ public slots:
 
     void
     playMovie( bool flag );
+
+signals:
 
 private slots:
 
@@ -403,5 +389,8 @@ private:
 
     /// image-and-grid-service result synchronizer
     ImageGridServiceSynchronizer::UniquePtr m_igSync = nullptr;
+
+    /// contours
+    Carta::Lib::Algorithms::ContourConrec::Result m_contours;
 };
 }

@@ -141,7 +141,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     auto ptrMoveCB = [&] ( CSR, CSR par ) -> void {
         auto coords = Impl::s2vd( par );
         if ( coords.size() >= 2 ) {
-            qDebug() << "ptrmove" << coords[0] << coords[1];
+//            qDebug() << "ptrmove" << coords[0] << coords[1];
         }
     };
 
@@ -185,7 +185,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
              this, & Me::frameVarCB );
 
     // set the current frame to 0
-    m_frameVar-> set( 0 );
+//    m_frameVar-> set( 0 );
 }
 
 void
@@ -373,6 +373,7 @@ ImageViewController::handleResizeRequest( const QSize & size )
 void
 ImageViewController::loadImage( QString fname )
 {
+//    qDebug() << "xyz ImageViewController::loadImage" << fname;
     m_fileName = fname;
 
     qDebug() << "loadImage() Trying to load astroImage...";
@@ -399,23 +400,27 @@ ImageViewController::loadImage( QString fname )
     m_quantileCache.resize( nf );
 
     // set the frame to first one
-//    loadFrame( 0 );
     m_frameVar-> set( 0 );
 } // loadImage
 
 void
 ImageViewController::frameVarCB()
 {
-    qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
+//    qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
     if ( m_astroImage-> dims().size() < 2 ) {
         return;
     }
 
+    int nf = 1;
+    if( m_astroImage-> dims().size() > 2) {
+        nf = m_astroImage-> dims()[2];
+    }
+
     // convert from 0..999999 to integer frame number
-    int frame = m_frameVar-> get() * m_astroImage-> dims()[2] / 1000000.0;
+    int frame = m_frameVar-> get() * nf / 1000000.0;
 
     // make sure frame integer is valid
-    frame = Carta::Lib::clamp < int > ( frame, 0, m_astroImage-> dims()[2] - 1 );
+    frame = Carta::Lib::clamp < int > ( frame, 0, nf - 1 );
 
     // load the actual frame
     if ( frame != m_currentFrame ) {
@@ -478,105 +483,84 @@ ImageViewController::loadFrame( int frame )
     // update the GUI
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
 
-//    qDebug() << "loadFrame done" << frame << "xyz";
+    // update contours
+    {
+        Carta::Lib::Algorithms::ContourConrec cc;
+        NdArray::Double doubleView( view.get(), false );
+        cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
+        cc.setLevels({ (clips[0] + clips[1])/2});
+        Carta::Lib::Algorithms::ContourConrec::DataAccessor da =
+                [ & doubleView]( int row, int col) { return doubleView.get( { col, row}); };
+        m_contours = cc.compute( da);
+        qDebug() << "xyz contours" << m_contours.size();
+        if( m_contours.size() > 0) {
+            qDebug() << "   xyz[0]->" << m_contours[0].size();
+        }
+    }
 } // loadFrame
 
 void
 ImageViewController::loadNextFrame()
 {
-    qDebug() << "loadNextFrame() xyz" << m_frameVar-> get();
     int nf = 1;
     if ( m_astroImage-> dims().size() > 2 ) {
         nf = m_astroImage-> dims()[2];
     }
     int currFrame = std::round( m_frameVar-> get() * nf / 1e6 );
     int nextFrame = ( currFrame + 1 ) % nf;
-    qDebug() << "curr" << currFrame << "next" << nextFrame << nextFrame * 1e6 / nf << "xyz";
 
     m_frameVar-> set( nextFrame * 1e6 / nf );
 } // loadFrame
-
-//void
-//ImageViewController::combineImageAndGrid()
-//{
-//    // first paint the rendered astro image (if we have it)
-//    if ( ! m_renderedAstroImage.isNull() ) {
-//        m_renderBuffer = m_renderedAstroImage;
-//    }
-
-//    // draw the grid over top
-//    if ( ! m_gridVG.isNull() && m_gridToggle ) {
-//        QTime t;
-//        t.restart();
-//        QPainter p( & m_renderBuffer );
-//        p.setRenderHint( QPainter::Antialiasing, true );
-//        Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
-//        if ( ! vgRenderer.render( m_gridVG.val(), p ) ) {
-//            qWarning() << "could not render grid vector graphics";
-//        }
-//        qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
-//    }
-
-//    // schedule a repaint with the connector
-//    m_connector-> refreshView( this );
-//} // combineImageAndGrid
-
-//void
-//ImageViewController::irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId )
-//{
-//    Q_UNUSED( jobId );
-//    m_renderedAstroImage = img;
-
-//    // update colormap preview for the clients
-//    // this does not really belong here, but since we are just hacking...
-//    QStringList list;
-//    double clipMin, clipMax;
-//    m_pixelPipeline-> getClips( clipMin, clipMax );
-//    int n = 300;
-//    for ( int i = 0 ; i <= n ; i++ ) {
-//        double x = ( clipMax - clipMin ) / n * i + clipMin;
-//        QRgb col;
-//        m_pixelPipeline-> convertq( x, col );
-//        list << QColor( col ).name().mid( 1 );
-//    }
-//    m_connector-> setState( "/hacks/cm-preview", list.join( "," ) );
-
-//    // combine the result with grid and render
-//    combineImageAndGrid();
-//} // irsDoneSlot
-
-//void
-//ImageViewController::wcsGridSlot( Carta::Lib::VectorGraphics::VGList vglist,
-//                                  Carta::Lib::IWcsGridRenderService::JobId jobId )
-//{
-//    Q_UNUSED( jobId );
-//    qDebug() << "wcsgrid: wcsGridSlot" << vglist.entries().size() << "entries";
-//    m_gridVG = vglist;
-
-//    combineImageAndGrid();
-//}
 
 void
 ImageViewController::imageAndGridDoneSlot(
         QImage image,
         Carta::Lib::VectorGraphics::VGList vgList,
-        ImageGridServiceSynchronizer::JobId jobId)
+        ImageGridServiceSynchronizer::JobId /*jobId*/)
 {
-    /// \todo we should make sure the jobId matches the last submitted job...
+    /// \todo we should make sure the jobId matches the last submitted job, otherwise
+    /// we are wasting CPU rendering old job...
 
-    qDebug() << "imageAndGridDoneSlot" << jobId << "xyz";
+//    qDebug() << "imageAndGridDoneSlot" << jobId << "xyz";
     m_renderBuffer = image;
 
     // draw the grid over top
     QTime t;
     t.restart();
-    QPainter p( & m_renderBuffer );
-    p.setRenderHint( QPainter::Antialiasing, true );
+    QPainter painter( & m_renderBuffer );
+    painter.setRenderHint( QPainter::Antialiasing, true );
     Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
-    if ( ! vgRenderer.render( vgList, p ) ) {
+    if ( ! vgRenderer.render( vgList, painter ) ) {
         qWarning() << "could not render grid vector graphics";
     }
     qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
+
+    // paint contours
+    painter.setPen( QColor( "red"));
+    // where does 0.5, 0.5 map to?
+    QPointF p1 = m_renderService-> img2screen({ 0.5, 0.5});
+    // where does 1.5, 1.5 map to?
+    QPointF p2 = m_renderService-> img2screen({ 1.5, 1.5});
+    QTransform tf;
+    double m11 = p2.x() - p1.x();
+    double m22 = p2.y() - p1.y();
+    double m33 = 1; // no projection
+    double m13 = 0; // no projection
+    double m23 = 0; // no projection
+    double m12 = 0; // no shearing
+    double m21 = 0; // no shearing
+    double m31 = p1.x() - m11 * 0.5;
+    double m32 = p1.y() - m22 * 0.5;
+    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33);
+
+    painter.setTransform( tf);
+    for( size_t k = 0 ; k < m_contours.size() ; ++ k) {
+        std::vector< QPolygonF > con = m_contours[k];
+        for( size_t i = 0 ; i < con.size() ; ++ i) {
+            QPolygonF & poly = con[i];
+            painter.drawPolyline( poly);
+        }
+    }
 
     // schedule a repaint with the connector
     m_connector-> refreshView( this );
