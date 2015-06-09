@@ -48,10 +48,6 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     // create an image render service and connect it to ourselves
     m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
 
-//    connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
-//             this, & ImageViewController::irsDoneSlot,
-//             Qt::QueuedConnection );
-
     // create a new wcs grid renderer (take the first one that plugins provide), and
     // connect it
     {
@@ -64,30 +60,10 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
         }
         else {
             m_wcsGridRenderer = res.val();
-
-//            qDebug() << "wcsgrid: connecting wcs grid renderer to core";
-//            auto conn2 = connect(
-//                m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderService::done,
-//                this, & Me::wcsGridSlot,
-//                Qt::QueuedConnection );
-//            if ( ! conn2 ) {
-//                qWarning() << "wcsgrid: wcs grid renderer failed to connect!!!";
-
-//                // get rid of the renderer as it's unusable
-//                m_wcsGridRenderer = nullptr;
-//            }
-
-//            if ( m_wcsGridRenderer ) {
-//                qDebug( "wcsgrid: WCS grid renderer activated" );
-//            }
         }
         if ( ! m_wcsGridRenderer ) {
             qWarning( "wcsgrid: Creating dummy grid renderer" );
             m_wcsGridRenderer.reset( new DummyGridRenderer() );
-//            connect(
-//                m_wcsGridRenderer.get(), & Carta::Lib::IWcsGridRenderService::done,
-//                this, & Me::wcsGridSlot,
-//                Qt::QueuedConnection );
         }
     }
 
@@ -126,17 +102,6 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_connector-> setState( m_statePrefix + "/frame", "n/a" );
 
     typedef const QString & CSR;
-
-    // hook-up mini movie player slider
-//    auto mmpSliderCB = [&] ( CSR, CSR par, CSR ) -> QString {
-//        auto frame = Impl::s2vd( par );
-//        if ( frame.size() > 0 && m_astroImage-> dims().size() > 2 ) {
-//            qDebug() << "Slider" << frame[0];
-//            loadFrame( frame[0] * m_astroImage-> dims()[2] );
-//        }
-//        return "";
-//    };
-//    m_connector-> addCommandCallback( m_statePrefix + "/setFrame", mmpSliderCB );
 
     auto ptrMoveCB = [&] ( CSR, CSR par ) -> void {
         auto coords = Impl::s2vd( par );
@@ -183,6 +148,15 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_frameVar.reset( new Carta::Lib::SharedState::DoubleVar( prefix.with( "frameSlider" ) ) );
     connect( m_frameVar.get(), & SS::BoolVar::valueChanged,
              this, & Me::frameVarCB );
+
+    // shared state var for contour levels
+    m_contourLevelsVar.reset( new SS::StringVar( prefix.with( "contourLevels")));
+//    connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
+//             [&](){
+//        qDebug() << "contourLevels:" << m_contourLevelsVar-> get();
+//    } );
+    connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
+             this, & Me::contourVarCB);
 
     // set the current frame to 0
 //    m_frameVar-> set( 0 );
@@ -426,7 +400,69 @@ ImageViewController::frameVarCB()
     if ( frame != m_currentFrame ) {
         loadFrame( frame );
     }
-} // frameVarCB
+}
+
+void ImageViewController::contourVarCB()
+{
+    recalculateContours();
+
+    // this is a hack at the moment, just to repaint... very inefficient
+    requestImageAndGridUpdate();
+}
+
+void ImageViewController::recalculateContours()
+{
+    // if we don't have an image yet, don't do anything
+    if( ! m_astroImage) {
+        return;
+    }
+
+    // clear the current contours
+    m_contours.clear();
+
+    QString s = m_contourLevelsVar-> get();
+    s.replace( ',', ' ');
+    s = s.simplified();
+    QStringList list = s.split( ' ', QString::SkipEmptyParts);
+    std::vector<double> levels;
+    for( QString & s : list) {
+        bool ok;
+        double x = s.toDouble( & ok);
+        if( ! ok) {
+            qWarning() << "Contour levels syntax error:" << m_contourLevelsVar-> get();
+            return;
+        }
+        levels.push_back( x);
+    }
+    std::sort( levels.begin(), levels.end());
+    qDebug() << "levels: " << levels.size();
+    // if no levels detected, we are done
+    if( levels.size() == 0) {
+        return;
+    }
+
+    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
+    auto frameSlice = SliceND().next();
+    for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
+        frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
+    }
+
+    // get a view of the data using the slice description and make a shared pointer out of it
+    NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
+
+    Carta::Lib::Algorithms::ContourConrec cc;
+    NdArray::Double doubleView( view.get(), false );
+    cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
+    cc.setLevels( levels);
+    Carta::Lib::Algorithms::ContourConrec::DataAccessor da =
+            [ & doubleView]( int row, int col) { return doubleView.get( { col, row}); };
+    m_contours = cc.compute( da);
+    qDebug() << "xyz contours" << m_contours.size();
+    if( m_contours.size() > 0) {
+        qDebug() << "   xyz[0]->" << m_contours[0].size();
+    }
+
+}
 
 void
 ImageViewController::loadFrame( int frame )
@@ -484,7 +520,7 @@ ImageViewController::loadFrame( int frame )
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
 
     // update contours
-    {
+    if(false){
         Carta::Lib::Algorithms::ContourConrec cc;
         NdArray::Double doubleView( view.get(), false );
         cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
@@ -497,6 +533,9 @@ ImageViewController::loadFrame( int frame )
             qDebug() << "   xyz[0]->" << m_contours[0].size();
         }
     }
+
+    recalculateContours();
+
 } // loadFrame
 
 void
@@ -536,7 +575,9 @@ ImageViewController::imageAndGridDoneSlot(
     qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
 
     // paint contours
-    painter.setPen( QColor( "red"));
+    QPen lineColor( QColor( "red"), 1);
+    lineColor.setCosmetic(true);
+    painter.setPen( lineColor);
     // where does 0.5, 0.5 map to?
     QPointF p1 = m_renderService-> img2screen({ 0.5, 0.5});
     // where does 1.5, 1.5 map to?

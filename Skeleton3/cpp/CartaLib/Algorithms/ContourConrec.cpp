@@ -4,6 +4,9 @@
 
 #include "ContourConrec.h"
 
+#include <QString>
+#include <QDebug>
+
 typedef std::vector<double> VD;
 
 /*
@@ -35,6 +38,9 @@ conrec( double * * data,
          )
 {
     Carta::Lib::Algorithms::ContourConrec::Result result;
+    if( nc < 1) {
+        return result;
+    }
     result.resize(nc);
 
     Carta::Lib::Algorithms::ContourConrec::DataAccessor acc;
@@ -62,6 +68,7 @@ conrec( double * * data,
     double temp1, temp2;
 
     for ( j = ( jub - 1 ) ; j >= jlb ; j-- ) {
+        qDebug() << "xyz rows remaining" << j;
         for ( i = ilb ; i <= iub - 1 ; i++ ) {
             temp1 = std::min( acc(i,j), acc(i,j + 1) );
             temp2 = std::min( acc(i + 1,j), acc(i + 1,j + 1) );
@@ -237,6 +244,11 @@ ContourConrec::setInputDataSize( int64_t nRows, int64_t nCols )
 ContourConrec::Result
 ContourConrec::compute( ContourConrec::DataAccessor & acc )
 {
+    {
+        QString s;
+        for( auto lv : m_levels) { s += QString::number( lv) + " "; }
+        qDebug() << "xyz computing contours" << s;
+    }
     // prepare the 2d array ala c-style so we can call the original algorithm
     // the original assumes data in column/row order.... probably because it was
     // converted from fortran?
@@ -260,13 +272,13 @@ ContourConrec::compute( ContourConrec::DataAccessor & acc )
     // make x coordinates
     VD xcoords( m_nCols );
     for ( int col = 0 ; col < m_nCols ; ++col ) {
-        xcoords[col] = col + 0.5;
+        xcoords[col] = col;
     }
 
     // make y coordinates
     VD ycoords( m_nRows );
     for ( int row = 0 ; row < m_nRows ; ++row ) {
-        ycoords[row] = row + 0.5;
+        ycoords[row] = row;
     }
 
     Result result =

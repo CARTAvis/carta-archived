@@ -310,8 +310,6 @@ private slots:
     void
     requestImageAndGridUpdate();
 
-private:
-
     /// when client changes zoom, this gets called
     QString
     zoomCB( const QString &, const QString & params, const QString & );
@@ -323,6 +321,16 @@ private:
     /// callback for frame state variable
     void
     frameVarCB();
+
+    /// callback for contour state variable
+    void
+    contourVarCB();
+
+    /// recalculate contours
+    void
+    recalculateContours();
+
+private:
 
     /// this is the part of the state we are allowed to use
     QString m_statePrefix;
@@ -383,6 +391,9 @@ private:
 
     /// state variable for current frame
     Carta::Lib::SharedState::DoubleVar::UniquePtr m_frameVar;
+
+    /// state variable for contour levels
+    Carta::Lib::SharedState::StringVar::UniquePtr m_contourLevelsVar;
 
     /// current frame
     int m_currentFrame = - 1;
