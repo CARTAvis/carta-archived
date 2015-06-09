@@ -60,3 +60,18 @@ def tempImageDir(request):
         os.rmdir(imageDir)
     request.addfinalizer(fin)
     return imageDir
+
+@pytest.fixture(scope="function")
+def cleanSlate(request, cartavisInstance):
+    """
+    Reset certain features of the GUI to some default values.
+    This helps the tests to become more independent of running order;
+    for example, if one test modifies the colormap before another test
+    that depends on the colormap being Gray, the second test may fail
+    if the colormap is not reset first.
+    Right now it's just resetting the colormap, but in the future we
+    may want to include things like zoom level, pan, etc.
+    """
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    c[0].setColormap('Gray')

@@ -1,6 +1,7 @@
 import os
 import cartavis
 from PIL import Image, ImageChops
+from astropy.coordinates import SkyCoord
 
 def test_getPixelValue(cartavisInstance):
     """
@@ -75,7 +76,7 @@ def test_getCoordinates(cartavisInstance):
         ['+3:32:15.954', '-27:42:46.784']
     assert i[0].getCoordinates(0, 0, 'fakesystem')[0] == 'error'
 
-def test_saveFullImage(cartavisInstance, tempImageDir):
+def test_saveFullImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the saveFullImage() command works properly.
     """
@@ -83,11 +84,11 @@ def test_saveFullImage(cartavisInstance, tempImageDir):
     i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
     i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/saveFullImage.png')
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
-def test_setColormap(cartavisInstance, tempImageDir):
+def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that a colormap is being applied properly.
     """
@@ -97,6 +98,38 @@ def test_setColormap(cartavisInstance, tempImageDir):
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('cubehelix')
     i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/setColormapCubehelix.png')
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+# Putting this test on hold because SkyCoord cannot find COMBO-17 44244 all of
+# a sudden.
+def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Center an image on the coordinates of a nearby object, take a snapshot of
+    the image view, and compare it to a reference snapshot.
+    """
+    imageName = 'centerOnCoordinate.png'
+    i = cartavisInstance.getImageViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c = SkyCoord.from_name("COMBO-17 44244")
+    i[0].centerOnCoordinate(c)
+    i[0].saveImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_saveImage(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the saveImage() command works properly.
+    NOTE: this test currently needs to be run in release mode because in
+    dev mode the "Cached" text sometimes appears on the image, causing
+    the test to fail.
+    """
+    imageName = 'saveImage.png'
+    i = cartavisInstance.getImageViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].saveImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
