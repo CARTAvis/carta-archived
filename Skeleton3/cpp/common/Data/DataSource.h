@@ -272,7 +272,7 @@ public:
      * @param aspectRatioMode can be either "ignore", "keep", or "expand".
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& savename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
+    void saveFullImage( const QString& savename, int width, int height, double scale, int frameIndex, Qt::AspectRatioMode aspectRatioMode );
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.

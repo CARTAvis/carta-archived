@@ -30,12 +30,16 @@ void ScriptedRenderService::setOutputSize( QSize size ){
     m_outputSize = size;
 }
 
+void ScriptedRenderService::setFrameIndex( int index ){
+    m_frameIndex = index;
+}
+
 void ScriptedRenderService::setAspectRatioMode( Qt::AspectRatioMode mode ){
     m_aspectRatioMode = mode;
 }
 
 void ScriptedRenderService::saveFullImage(){
-    _prepareData( 0, 0.0, 1.0 );
+    _prepareData( m_frameIndex, 0.0, 1.0 );
     m_renderService->render( 0 );
 }
 

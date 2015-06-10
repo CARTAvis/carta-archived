@@ -453,11 +453,12 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, const Qt::AspectRatioMode aspectRatioMode ){
+void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, int frameIndex, const Qt::AspectRatioMode aspectRatioMode ){
     m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
     if ( width > 0 && height > 0 ) {
         m_scriptedRenderService->setOutputSize( QSize( width, height ) );
         m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
+        m_scriptedRenderService->setFrameIndex( frameIndex );
     }
     m_scriptedRenderService->setZoom( scale );
 
