@@ -154,46 +154,19 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->reverseColorMap( colormapId, reverseString );
     }
 
-    /*else if ( cmd == "setcachecolormap" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString cacheString = args["cacheString"].toString().toLower();
-        result = m_scriptFacade->setCacheColormap( colormapId, cacheString );
-    }
-
-    else if ( cmd == "setcachesize" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString size = args["size"].toString();
-        result = m_scriptFacade->setCacheSize( colormapId, size );
-    }
-
-    else if ( cmd == "setinterpolatedcolormap" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString interpolatedString = args["interpolatedString"].toString().toLower();
-        result = m_scriptFacade->setInterpolatedColorMap( colormapId, interpolatedString );
-    }*/
-
     else if ( cmd == "invertcolormap" ) {
         QString colormapId = args["colormapId"].toString();
         QString invertString = args["invertString"].toString().toLower();
         result = m_scriptFacade->invertColorMap( colormapId, invertString );
     }
 
-    /*else if ( cmd == "setcolormix" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString red = args["red"].toString();
-        QString green = args["green"].toString();
-        QString blue = args["blue"].toString();
-        QString percentString;
-        percentString = "redPercent:" + red + ",greenPercent:" + green + ",bluePercent:" + blue;
-        result = m_scriptFacade->setColorMix( colormapId, percentString );
-    }*/
     else if ( cmd == "setcolormix" ) {
-            QString colormapId = args["colormapId"].toString();
-            double red = args["red"].toDouble();
-            double green = args["green"].toDouble();
-            double blue = args["blue"].toDouble();
-            result = m_scriptFacade->setColorMix( colormapId, red, green,blue );
-        }
+        QString colormapId = args["colormapId"].toString();
+        double red = args["red"].toDouble();
+        double green = args["green"].toDouble();
+        double blue = args["blue"].toDouble();
+        result = m_scriptFacade->setColorMix( colormapId, red, green,blue );
+    }
 
     else if ( cmd == "setgamma" ) {
         QString colormapId = args["colormapId"].toString();
@@ -339,6 +312,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
             result = QStringList( "error" );
             result.append( "Invalid coordinate system: " + systemStr );
         }
+    }
+
+    else if ( cmd == "getimagenames" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getImageNames( imageView );
     }
 
     /// animator commands

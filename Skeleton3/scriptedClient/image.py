@@ -593,3 +593,19 @@ class Image(CartaView):
         result = self.con.cmdTagList("getCoordinates", imageView=self.getId(),
                                      x=x, y=y, system=system)
         return result
+
+    def getImageNames(self):
+        """
+        Returns a list of images open in this image view.
+
+        Returns
+        -------
+        list
+            The names of the images that are currently open in this
+            image view.
+        """
+        result = self.con.cmdTagList("getImageNames", imageView=self.getId())
+        imageNames = []
+        if (result[0] != ""):
+            imageNames = result
+        return imageNames

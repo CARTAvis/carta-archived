@@ -401,6 +401,13 @@ public:
     QStringList getCoordinates( const QString& controlId, double x, double y, Carta::Lib::KnownSkyCS system );
 
     /**
+     * Return a list of the images open in the specified image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return the names of the images that are currently open in the specified image view.
+     */
+    QStringList getImageNames( const QString& controlId );
+
+    /**
      * Set the amount of extra space on each side of the clip bounds.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param bufferAmount a percentage in [0,100) representing the amount of extra space.
