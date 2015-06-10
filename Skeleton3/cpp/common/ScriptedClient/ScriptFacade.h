@@ -408,6 +408,14 @@ public:
     QStringList getImageNames( const QString& controlId );
 
     /**
+     * Close the specified image.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList closeImage( const QString& controlId, const QString& imageName );
+
+    /**
      * Set the amount of extra space on each side of the clip bounds.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param bufferAmount a percentage in [0,100) representing the amount of extra space.

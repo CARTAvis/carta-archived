@@ -609,3 +609,22 @@ class Image(CartaView):
         if (result[0] != ""):
             imageNames = result
         return imageNames
+
+    def closeImage(self, imageName):
+        """
+        Close the specified image.
+
+        Parameters
+        ----------
+        imageName: string
+            The filename of the image to close.
+
+        Returns
+        -------
+        list
+            Error information if the specified image could not be
+            closed.
+        """
+        result = self.con.cmdTagList("closeImage", imageView=self.getId(),
+                                     imageName=imageName)
+        return result

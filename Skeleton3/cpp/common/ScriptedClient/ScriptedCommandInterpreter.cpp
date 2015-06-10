@@ -319,6 +319,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getImageNames( imageView );
     }
 
+    else if ( cmd == "closeimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->closeImage( imageView, imageName );
+    }
+
     /// animator commands
 
     else if ( cmd == "setchannel" ) {
