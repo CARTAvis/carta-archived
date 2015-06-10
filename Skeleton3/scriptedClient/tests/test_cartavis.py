@@ -107,7 +107,7 @@ def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
     Center an image on the coordinates of a nearby object, take a
     snapshot of the image view, and compare it to a reference snapshot.
     NOTE: this test was failing for me at one point because SkyCoord
-    could find COMBO-17 44244.
+    could not find COMBO-17 44244.
     """
     imageName = 'centerOnCoordinate.png'
     i = cartavisInstance.getImageViews()
@@ -146,3 +146,23 @@ def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the animator is setting the channel properly.
+    """
+    image1 = 'setChannel1.png'
+    image2 = 'setChannel2.png'
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/WFPC2u5780205r_c0fx.fits')
+    a[0].setChannel(0)
+    i[0].saveFullImage(tempImageDir + '/' + image1)
+    a[0].setChannel(1)
+    i[0].saveFullImage(tempImageDir + '/' + image2)
+    reference1 = Image.open(os.getcwd() + '/data/' + image1)
+    comparison1 = Image.open(tempImageDir + '/' + image1)
+    reference2 = Image.open(os.getcwd() + '/data/' + image2)
+    comparison2 = Image.open(tempImageDir + '/' + image2)
+    assert list(reference1.getdata()) == list(comparison1.getdata())
+    assert list(reference2.getdata()) == list(comparison2.getdata())

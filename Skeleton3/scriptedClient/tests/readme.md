@@ -25,7 +25,13 @@ run `py.test` with the following options:
 The `-v` option can also be included for more verbose output. So a sample run
 might look like this:
 
-`py.test -v --directory='/home/jeff/scratch/build/cpp/desktop/' --executable='desktop' --configFile='/home/jeff/.cartavis/config.json' --port=9999 --htmlFile='/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html' --imageFile='/scratch/Images/mexinputtest.fits'`
+```shell
+py.test -v --directory='/home/jeff/scratch/build/cpp/desktop/'
+--executable='desktop' --configFile='/home/jeff/.cartavis/config.json'
+--port=9999
+--htmlFile='/home/jeff/dev/CARTAvis/Skeleton3/VFS/DesktopDevel/desktop/desktopIndex.html'
+--imageFile='/scratch/Images/mexinputtest.fits'
+```
 
 # Sample pytest.ini file
 
@@ -34,7 +40,7 @@ of the above options. I did not include this file in the repository because its
 contents would be different for everyone who runs the tests, but I have
 included a sample `pytest.ini` file below:
 
-```py
+```ini
 [pytest]
 addopts = --directory='/home/jeff/scratch/build/cpp/desktop/'
     --executable='desktop'
