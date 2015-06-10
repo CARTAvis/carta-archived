@@ -102,12 +102,12 @@ def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
-# Putting this test on hold because SkyCoord cannot find COMBO-17 44244 all of
-# a sudden.
 def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
     """
-    Center an image on the coordinates of a nearby object, take a snapshot of
-    the image view, and compare it to a reference snapshot.
+    Center an image on the coordinates of a nearby object, take a
+    snapshot of the image view, and compare it to a reference snapshot.
+    NOTE: this test was failing for me at one point because SkyCoord
+    could find COMBO-17 44244.
     """
     imageName = 'centerOnCoordinate.png'
     i = cartavisInstance.getImageViews()
@@ -129,6 +129,19 @@ def test_saveImage(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'saveImage.png'
     i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].saveImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the centerOnPixel() command works properly.
+    """
+    imageName = 'centerOnPixel.png'
+    i = cartavisInstance.getImageViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].centerOnPixel(0,0)
     i[0].saveImage(tempImageDir + '/' + imageName)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
