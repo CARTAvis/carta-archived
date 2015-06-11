@@ -325,7 +325,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
     double greenValue = dataValues[GREEN_PERCENT].toDouble(&validGreen);
 
     if ( validRed && validBlue && validGreen ){
-        result = setColorMix( redValue, blueValue, greenValue );
+        result = setColorMix( redValue, greenValue, blueValue );
     }
     else {
         result = "Color mix values must be numbers: "+params;
@@ -334,7 +334,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
     return result;
 }
 
-QString Colormap::setColorMix( double redValue, double blueValue, double greenValue ){
+QString Colormap::setColorMix( double redValue, double greenValue, double blueValue ){
     QString result;
     bool greenChanged = _setColorMix( COLOR_MIX_GREEN, greenValue, result );
     bool redChanged = _setColorMix( COLOR_MIX_RED, redValue, result );

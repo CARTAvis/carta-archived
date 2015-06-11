@@ -165,7 +165,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         double red = args["red"].toDouble();
         double green = args["green"].toDouble();
         double blue = args["blue"].toDouble();
-        result = m_scriptFacade->setColorMix( colormapId, red, green,blue );
+        result = m_scriptFacade->setColorMix( colormapId, red, green, blue );
     }
 
     else if ( cmd == "setgamma" ) {
