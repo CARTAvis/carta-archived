@@ -26,8 +26,8 @@ unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
 DEPENDPATH += $$PROJECT_ROOT/common
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
-#QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../common\''
-QMAKE_LFLAGS += '-Wl,-rpath,\'../CartaLib:../common\''
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../common\''
+#QMAKE_LFLAGS += '-Wl,-rpath,\'../CartaLib:../common\''
 
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 unix:macx {

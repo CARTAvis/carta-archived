@@ -84,15 +84,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             _preferencesCB : function(){
                 if ( this.m_sharedVarPrefs !== null ){
                     var val = this.m_sharedVarPrefs.get();
-                    try {
-                        var setObj = JSON.parse( val );
-                        this._showHideColorMix( setObj.colorMix );
-                        this._showHideColorModel( setObj.colorModel );
-                        this._showHideColorScale( setObj.colorScale );
-                        this._showHideColorTransform( setObj.colorTransform );
-                    }
-                    catch( err ){
-                        console.log( "Histogram could not parse settings");
+                    if ( val !== null ){
+                        try {
+                            var setObj = JSON.parse( val );
+                            this._showHideColorMix( setObj.colorMix );
+                            this._showHideColorModel( setObj.colorModel );
+                            this._showHideColorScale( setObj.colorScale );
+                            this._showHideColorTransform( setObj.colorTransform );
+                        }
+                        catch( err ){
+                            console.log( "Colormap could not parse settings");
+                        }
                     }
                 }
             },

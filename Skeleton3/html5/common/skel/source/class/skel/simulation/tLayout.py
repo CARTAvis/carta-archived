@@ -103,14 +103,12 @@ class tLayout(unittest.TestCase):
         self.assertIsNotNone( colSpin, "Could not find custom layout column indicator")
         colSpin.send_keys(str(cols))
         colSpin.send_keys(Keys.ARROW_LEFT)
-        if ( cols > 3 ) :
-            colSpin.send_keys(Keys.ARROW_LEFT)
         colSpin.send_keys( Keys.BACK_SPACE )
         
-        #Close the custom layout dialog
-        closeButton = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutClose')]")
-        self.assertIsNotNone( closeButton, "Could not find custom layout close button")
-        ActionChains(driver).click(closeButton).perform()
+        #Hit the ok button
+        okButton = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutOK')]")
+        self.assertIsNotNone( okButton, "Could not find custom layout ok button")
+        ActionChains(driver).click(okButton).perform()
             
     
     #Test that we can set a custom layout with 5 rows and 3 columns
@@ -137,7 +135,7 @@ class tLayout(unittest.TestCase):
         #Check that there are the correct number of Windows
         windowCount = Util.get_window_count( self, driver )
         print windowCount
-        self.assertEqual( windowCount, 11, "Custom Layout does not have 1 row and 1 column")
+        self.assertEqual( windowCount, 1, "Custom Layout does not have 1 row and 1 column")
         
     #Test that we can set a custom layout with 1 rows and 2 columns
     def test_layout_custom12(self):

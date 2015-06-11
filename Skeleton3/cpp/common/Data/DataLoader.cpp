@@ -1,9 +1,14 @@
-#include "DataLoader.h"
+#include <unistd.h>
 
 #include <QDebug>
 #include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "DataLoader.h"
+#include "Globals.h"
+#include "IPlatform.h"
+
 
 namespace Carta {
 
@@ -119,7 +124,10 @@ void DataLoader::makeFileNode(QJsonArray& parentArray,
 }
 
 QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
-    return "/scratch/Images";
+    return Globals::instance()-> platform()-> getCARTADirectory().append("Images");
+}
+
+DataLoader::~DataLoader(){
 }
 }
 }

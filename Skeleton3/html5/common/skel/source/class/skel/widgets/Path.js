@@ -47,6 +47,7 @@ qx.Class.define("skel.widgets.Path", {
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         ERROR_HANDLER : "",
+        GRID_PLUGIN : "GridControls",
         HIDDEN : "Hidden",
         HISTOGRAM_PLUGIN : "Histogram",
         LAYOUT : "",

@@ -51,7 +51,7 @@ public:
     //ILinkable
     QString addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
-    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
      * Applies clips to image.
@@ -78,9 +78,9 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
-     * Send a new state update to the client.
+     * Reload the server state.
      */
-    void refreshState();
+    virtual void refreshState() Q_DECL_OVERRIDE;
 
     /**
      * Reset the data dependent state of the histogram.

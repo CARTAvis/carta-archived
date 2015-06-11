@@ -39,10 +39,11 @@ qx.Class.define("skel.widgets.Link.MoveCanvas",{
              * @param pt {Object} - where the user clicked on the screen.
              */
             linkCompleted : function( link, pt ){
+                this.m_link = link;
                 if (this.m_confirmMoveDialog === null) {
                     this.m_confirmMoveDialog = new skel.widgets.Link.MoveConfirmDialog();
                     this.m_confirmMoveDialog.addListener( "moveConfirmed", function(){
-                        this._sendMoveCmd( link );
+                        this._sendMoveCmd( );
                         this._quit();
                     }, this );
                     this.m_confirmMoveDialog.addListener( "moveCanceled", function(){
@@ -64,12 +65,12 @@ qx.Class.define("skel.widgets.Link.MoveCanvas",{
              * @param link {skel.widgets.Link.Link} identification of the source and destination move
              *          windows.
              */
-            _sendMoveCmd : function( link ){
+            _sendMoveCmd : function(){
                 var connector = mImport( "connector");
                 var path = skel.widgets.Path.getInstance();
                 var cmd = path.getCommandMoveWindow();
                 var destLinkIndex = -1;
-                var destTarget = link.getDestination();
+                var destTarget = this.m_link.getDestination();
                 console.log( "Looking for:"+ destTarget + ": dest count="+this.m_destLinks.length);
                 for ( var i = 0; i < this.m_destLinks.length; i++ ){
                     console.log( "i="+i+" winId="+this.m_destLinks[i].winId+":" );
@@ -98,7 +99,7 @@ qx.Class.define("skel.widgets.Link.MoveCanvas",{
                 qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "moveFinished", ""));
             },
-            
+            m_link : null,
             m_confirmMoveDialog : null
         }
     });

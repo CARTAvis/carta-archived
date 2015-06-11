@@ -39,7 +39,7 @@ public:
     //ILinkable
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -71,10 +71,6 @@ public:
      */
     bool isInverted() const;
 
-    /**
-     * Force a flush of state to the client.
-     */
-    void refreshState();
 
     /**
      * Set the name of the current color map.
@@ -82,6 +78,11 @@ public:
      * @return error information if the color map was not successfully set.
      */
     QString setColorMap( const QString& colorMapName );
+
+    /**
+     * Force a state reload.
+     */
+    void refreshState() Q_DECL_OVERRIDE;
 
     /**
      * Reverse the current colormap.

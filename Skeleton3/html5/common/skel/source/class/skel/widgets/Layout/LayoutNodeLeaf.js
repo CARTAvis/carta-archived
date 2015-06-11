@@ -221,27 +221,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
             return win;
         },
 
-
-        /**
-         * Returns the identifier for the window this desktop
-         * manages if the passed in location matches the
-         * location of its window; otherwise, returns an empty
-         * string.
-         * 
-         * @param locationId {String} an identifier for the window.
-         * @return {String} the identifier for the window at the specified
-         *      location or an empty string if there is no such window.
-         */
-        getWinId : function( locationId ) {
-            var winId = "";
-            if (this.m_id == locationId) {
-                if (this.m_window !== null) {
-                    winId = this.m_window.getIdentifier();
-                }
-            }
-            return winId;
-        },
-
         
         /**
          * Factory method for making window specialized to
@@ -294,7 +273,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
          */
         restoreWindow : function( locationId ) {
             var restored = false;
-            if (this.m_window !== null  ) {
+            if (this.m_window !== null ) {
                 if ( this.m_id == locationId ){
                     restored = true;
                     var appRoot = this.m_desktop.getApplicationRoot();
@@ -316,7 +295,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
          */
         serverUpdate : function( obj ){
             this.m_index = obj.index;
-            this.setView( obj.plugin, 0, this.m_id );
+            this._setView( obj.plugin );
         },
         
         /**
@@ -386,16 +365,11 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
          * location matches the rowIndex and colIndex passed in.
          * 
          * @param pluginId {String} a new plug-in identifier.
-         * @param index {Number} an index to indicate which one in the case of views having the same plugin.
-         * @param locationId {String} an identifier for a layout location.
          * @return {boolean} true if the plugin was reassigned; false otherwise.
          */
-        setView : function(pluginId, index, locationId ) {
-            // If this is not the target, return.
-            if ( locationId != this.m_id ) {
-                return false;
-            }
-            if ( index < 0 && pluginId ){
+        _setView : function(pluginId ) {
+          
+            if ( pluginId === null || pluginId === undefined || pluginId.length === 0 ){
                 return false;
             }
             var existingWindow = false;
@@ -422,7 +396,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
                 this.m_window.setLocation( this.m_id );
                 this.m_window.open();
                 if ( existingWindow ){
-                    this.m_window.initID( index );
+                    this.m_window.initID( this.m_index );
                 }
                 //In case the window is excluded
                 this.m_desktop.show();
@@ -431,38 +405,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
             return true;
         },
         
-        /**
-         * Display the given window if the grid location matches that of
-         * this desktop; otherwise, do nothing.
-         * @param window {skel.widgets.Window.DisplayWindow} the window to display.
-         * @param locationId {String} identifier for the layout location of the window.
-         * @return {boolean} true if this desktop will be displaying the window;
-         *      false otherwise.
-         */
-        setWindow : function( window, locationId ){
-            if ( locationId != this.m_id) {
-                return false;
-            }
 
-            if ( this.m_window === null ||this.m_window.getPlugin() != window.getPlugin() ){
-                if ( this.m_window !== null ){
-                    this.removeAll();
-                }
-                this.m_window = window;
-                this._addWindowListeners();
-                this.m_window.setLocation( this.m_id );
-                this.add( this.m_window );
-                this._resetWindowSize();
-            }
-            else {
-                if ( this.isExcluded() ){
-                    this.show();
-                }
-            }
-            
-            return true;
-        },
-        
         /**
          * Resets selected status.
          * 

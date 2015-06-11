@@ -41,6 +41,14 @@ private slots:
     void
     tagMessageReceivedCB( TagMessage tm );
 
+    /// interpret commands with asynchronous results
+    void
+    asyncMessageReceivedCB( TagMessage tm );
+
+    // Asynchronous result from saveFullImage().
+    void
+    saveImageResultCB( bool result );
+
 private:
 
     std::unique_ptr < MessageListener > m_messageListener = nullptr;

@@ -67,6 +67,9 @@ bool LayoutNode::isComposite() const {
     return false;
 }
 
+void LayoutNode::releaseChild( const QString& /*key*/ ){
+
+}
 
 bool LayoutNode::removeWindow( const QString& /*nodeId*/ ){
     return false;

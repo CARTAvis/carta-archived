@@ -82,17 +82,32 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             _preferencesCB : function(){
                 if ( this.m_sharedVarPrefs !== null ){
                     var val = this.m_sharedVarPrefs.get();
-                    try {
-                        var setObj = JSON.parse( val );
-                        this._showHideBinCount( setObj.histogramBinCount );
-                        this._showHideClips( setObj.histogramClips );
-                        this._showHideCube( setObj.histogramCube );
-                        this._showHideRange( setObj.histogramRange );
-                        this._showHideDisplay( setObj.histogramDisplay );
-                        this._showHide2D( setObj.histogram2D );
-                    }
-                    catch( err ){
-                        console.log( "Histogram could not parse settings");
+                    if ( val !== null ){
+                        console.log( "val="+val);
+                        try {
+                            var setObj = JSON.parse( val );
+                            if ( setObj.histogramBinCount !== null ){
+                                this._showHideBinCount( setObj.histogramBinCount );
+                            }
+                            if ( setObj.histogramClips !== null ){
+                                this._showHideClips( setObj.histogramClips );
+                            }
+                            if ( setObj.histogramCube !== null ){
+                                this._showHideCube( setObj.histogramCube );
+                            }
+                            if ( setObj.histogramRange !== null ){
+                                this._showHideRange( setObj.histogramRange );
+                            }
+                            if ( setObj.histogramDisplay !== null ){
+                                this._showHideDisplay( setObj.histogramDisplay );
+                            }
+                            if ( setObj.histogram2D !== null ){
+                                this._showHide2D( setObj.histogram2D );
+                            }
+                        }
+                        catch( err ){
+                            console.log( "Histogram could not parse settings");
+                        }
                     }
                 }
             },

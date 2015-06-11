@@ -132,15 +132,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         _getSplitterLocation : function() {
             return [];
         },
-
-        /**
-         * Returns the window identifier for the window at the given location.
-         * @param sourceLocationId {String} an identifier for a source location.
-         * @return {String} an identifier for the window at the specified grid location.
-         */
-        getWinId : function(sourceLocationId) {
-            return "";
-        },
+        
         
         /**
          * Initialize the shared variable that contains layout information
@@ -169,24 +161,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             }
         },
 
-
-        /**
-         * Links the window located at the source row and column
-         * to the window located at the destination row and
-         * column.
-         * 
-         * @param sourceLocationId {String} an identifier for a source location.
-         * @param destLocationId {String} an identifier for a destination location.
-         */
-        link : function(sourceLocationId, destLocationId) {
-            var winId = this.getWinId( sourceLocationId);
-            if (winId.length > 0) {
-                this.setLinkId(destLocationId, winId);
-            }
-        },
-        
-
-       
         
         /**
          * Returns whether or not the window with the given id
@@ -226,15 +200,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             return target;
         },
         
-        /**
-         * Display the given window at the given location in the grid.
-         * @param window {skel.widgets.Window.DisplayWindow} the window to display.
-         * @param locationId {String} an identifier for the location where the window should be added.
-         */
-        setWindow : function( window, locationId ){
-            var windowSet = this.m_areaFirst.setWindow( window, locationId );
-            return false;
-        },
+        
         
         /**
          * Returns a list of windows displayed by this area and its children.
@@ -292,19 +258,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             return false;
         },
 
-
-        /**
-         * Returns whether or not a different plug-in was reassigned to this LayoutNode
-         * based on whether its location matches the location identifier passed in.
-         * @param pluginId {String} a new plug-in identifier.
-         * @param locationId {String} an identifier for a layout location.
-         * @return {boolean} true if either the right or left child will be displaying this plugin,
-         *      false otherwise.
-         */
-        setView : function(pluginId, locationId ) {
-            return false;
-        },
-
         /**
          * Sets the height of the window located at the given row and column.
          * @param height {Number} the new height in pixels.
@@ -326,6 +279,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             return false;
         },
         
+
 
         /**
          * Notifies children that the given window was selected.

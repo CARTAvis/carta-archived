@@ -37,6 +37,7 @@ qx.Class.define("skel.Command.View.CommandView", {
                 layoutCmd.setActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
                 customLayoutCmd.setValue( true );
+                skel.widgets.Window.WindowFactory.setExistingWindows( []);
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
                 layoutCmd.setActive( true );
             }

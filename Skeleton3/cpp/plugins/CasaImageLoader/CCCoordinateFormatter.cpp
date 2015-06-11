@@ -97,13 +97,13 @@ protected:
 };
 
 static SkyFormatting
-getDefaultForSkyCS( const KnownSkyCS & skyCS )
+getDefaultForSkyCS( const Carta::Lib::KnownSkyCS & skyCS )
 {
     switch ( skyCS )
     {
-    case KnownSkyCS::B1950 :
-    case KnownSkyCS::J2000 :
-    case KnownSkyCS::ICRS :
+    case Carta::Lib::KnownSkyCS::B1950 :
+    case Carta::Lib::KnownSkyCS::J2000 :
+    case Carta::Lib::KnownSkyCS::ICRS :
         return SkyFormatting::Sexagesimal;
 
     default :
@@ -198,9 +198,11 @@ bool
 CCCoordinateFormatter::toPixel( const CoordinateFormatterInterface::VD & world,
                                 CoordinateFormatterInterface::VD & pixel ) const
 {
-    Q_UNUSED( pixel );
-    Q_UNUSED( world );
-    qFatal( "not implemented" );
+    casa::Vector < casa::Double > worldD = world;
+    casa::Vector < casa::Double > pixelD = pixel;
+    bool valid = m_casaCS->toPixel( pixelD, worldD );
+    pixel = { pixelD[0], pixelD[1] };
+    return valid;
 }
 
 void
@@ -230,7 +232,7 @@ CCCoordinateFormatter::enableAxis( int ind )
     qFatal( "not implemented" );
 }
 
-KnownSkyCS
+Carta::Lib::KnownSkyCS
 CCCoordinateFormatter::skyCS()
 {
     if ( ! m_casaCS->hasDirectionCoordinate() ) {

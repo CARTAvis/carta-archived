@@ -4,6 +4,7 @@
 
 #include "Listener.h"
 #include "ScriptedCommandInterpreter.h"
+#include "Data/DataSource.h"
 
 namespace Carta
 {
@@ -20,6 +21,9 @@ ScriptedCommandInterpreter::ScriptedCommandInterpreter( int port, QObject * pare
 
     connect( m_messageListener.get(), & MessageListener::received,
              this, & ScriptedCommandInterpreter::tagMessageReceivedCB );
+
+    connect( m_messageListener.get(), & MessageListener::receivedAsync,
+             this, & ScriptedCommandInterpreter::asyncMessageReceivedCB );
 }
 
 /// this is just a quick demo how to listen to TagMessage, convert them to Json,
@@ -100,10 +104,37 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->removeLink(source, dest);
     }
 
-//    else if ( cmd == "savestate" ) {
-//        QString name = args["name"].toString();
-//        result = m_scriptFacade->saveState(name);
-//    }
+    else if ( cmd == "savesnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        bool saveLayout = args["saveLayout"].toBool();
+        bool savePreferences = args["savePreferences"].toBool();
+        bool saveData = args["saveData"].toBool();
+        QString description = args["description"].toString();
+        result = m_scriptFacade->saveSnapshot(sessionId, saveName, saveLayout, savePreferences, saveData, description);
+    }
+
+    else if ( cmd == "getsnapshots" ) {
+        QString sessionId = args["sessionId"].toString();
+        result = m_scriptFacade->getSnapshots(sessionId);
+    }
+
+    else if ( cmd == "getsnapshotobjects" ) {
+        QString sessionId = args["sessionId"].toString();
+        result = m_scriptFacade->getSnapshotObjects(sessionId);
+    }
+
+    else if ( cmd == "deletesnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        result = m_scriptFacade->deleteSnapshot(sessionId, saveName);
+    }
+
+    else if ( cmd == "restoresnapshot" ) {
+        QString sessionId = args["sessionId"].toString();
+        QString saveName = args["saveName"].toString();
+        result = m_scriptFacade->restoreSnapshot(sessionId, saveName);
+    }
 
     else if ( cmd == "getcolormaps" ) {
         result = m_scriptFacade->getColorMaps();
@@ -222,17 +253,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->saveImage( imageView, filename );
     }
 
-    else if ( cmd == "savefullimage" ) {
-        QString imageView = args["imageView"].toString();
-        QString filename = args["filename"].toString();
-        double scale = args["scale"].toDouble();
-        result = m_scriptFacade->saveFullImage( imageView, filename, scale );
-        if (result[0] == "false") {
-            key = "error";
-            result[0] = "Could not save image to " + filename;
-        }
-    }
-
     else if ( cmd == "centeronpixel" ) {
         QString imageView = args["imageView"].toString();
         double x = args["xval"].toDouble();
@@ -267,6 +287,20 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         int frameHigh = args["frameHigh"].toInt();
         double percentile = args["percentile"].toDouble();
         result = m_scriptFacade->getIntensity( imageView, frameLow, frameHigh, percentile );
+    }
+
+    else if ( cmd == "getpixelcoordinates" ) {
+        QString imageView = args["imageView"].toString();
+        double ra = args["ra"].toDouble();
+        double dec = args["dec"].toDouble();
+        result = m_scriptFacade->getPixelCoordinates( imageView, ra, dec );
+    }
+
+    else if ( cmd == "getpixelvalue" ) {
+        QString imageView = args["imageView"].toString();
+        double x = args["x"].toDouble();
+        double y = args["y"].toDouble();
+        result = m_scriptFacade->getPixelValue( imageView, x, y );
     }
 
     /// animator commands
@@ -394,6 +428,65 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
     m_messageListener->send( rjm.toTagMessage() );
 } // tagMessageReceivedCB
+
+void
+ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
+{
+    m_scriptFacade = ScriptFacade::getInstance();
+    if ( tm.tag() != "async" ) {
+        qWarning() << "I don't handle tag" << tm.tag();
+        return;
+    }
+    JsonMessage jm = JsonMessage::fromTagMessage( tm );
+    if ( ! jm.doc().isObject() ) {
+        qWarning() << "Received json is not object...";
+        return;
+    }
+
+    connect( m_scriptFacade, & ScriptFacade::saveImageResult,
+             this, & ScriptedCommandInterpreter::saveImageResultCB );
+
+    QJsonObject jo = jm.doc().object();
+    QString cmd = jo["cmd"].toString().toLower();
+    auto args = jo["args"].toObject();
+    if ( cmd == "savefullimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString filename = args["filename"].toString();
+        int width = args["width"].toInt();
+        int height = args["height"].toInt();
+        double scale = args["scale"].toDouble();
+        QString aspectStr = args["aspectRatioMode"].toString();
+        Qt::AspectRatioMode aspectRatioMode;
+        if ( aspectStr == "keep" ){
+            aspectRatioMode = Qt::KeepAspectRatio;
+        }
+        else if ( aspectStr == "expand" ){
+            aspectRatioMode = Qt::KeepAspectRatioByExpanding;
+        }
+        else {
+            aspectRatioMode = Qt::IgnoreAspectRatio;
+        }
+        m_scriptFacade->saveFullImage( imageView, filename, width, height, scale, aspectRatioMode );
+    }
+
+} // asyncMessageReceivedCB
+
+void ScriptedCommandInterpreter::saveImageResultCB( bool saveResult ){
+    disconnect( m_scriptFacade, & ScriptFacade::saveImageResult,
+             this, & ScriptedCommandInterpreter::saveImageResultCB );
+
+    QJsonObject rjo;
+    QStringList result("");
+    QString key = "result";
+    if ( saveResult == false ) {
+        key = "error";
+        result[0] = "Could not save image.";
+    }
+    rjo.insert( key, QJsonValue::fromVariant( result ) );
+    JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
+    m_messageListener->send( rjm.toTagMessage() );
+}
+
 }
 }
 }

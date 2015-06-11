@@ -143,7 +143,7 @@ int Animator::getLinkCount() const {
     return m_linkImpl->getLinkCount();
 }
 
-QList<QString> Animator::getLinks() {
+QList<QString> Animator::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 
@@ -279,15 +279,17 @@ void Animator::_initializeCallbacks(){
 
 void Animator::_initializeState(){
     m_state.insertArray( AnimatorType::ANIMATIONS, 0);
-    m_state.insertValue<bool>( Util::STATE_FLUSH, false );
     QString animId;
     addAnimator( Selection::CHANNEL, animId);
 }
 
 void Animator::refreshState(){
-    m_state.setValue<bool>(Util::STATE_FLUSH, true );
-    m_state.flushState();
-    m_state.setValue<bool>(Util::STATE_FLUSH, false );
+    CartaObject::refreshState();
+    QList<QString> animKeys = m_animators.keys();
+    for ( int i = 0; i < animKeys.size(); i++ ){
+        m_animators[animKeys[i]]->refreshState();
+    }
+    m_linkImpl->refreshState();
 }
 
 QString Animator::removeAnimator( const QString& type ){
@@ -410,9 +412,9 @@ Animator::~Animator(){
     int animationCount = m_animators.size();
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
-        QString id = m_animators[keys[i]]->getId();
-        if ( id.size() > 0 ){
-            objMan->destroyObject( id );
+        if ( m_animators[keys[i]] != nullptr ){
+            objMan->destroyObject( m_animators[keys[i]]->getId() );
+            m_animators[keys[i]] = nullptr;
         }
     }
     m_animators.clear();

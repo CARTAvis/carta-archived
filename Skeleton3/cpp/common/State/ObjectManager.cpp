@@ -64,6 +64,10 @@ CartaObject::CartaObject (const QString & className,
   m_path (path){
     }
 
+void CartaObject::refreshState(){
+    m_state.refreshState();
+}
+
 int CartaObject::getIndex() const {
     return m_state.getValue<int>(StateInterface::INDEX);
 }
@@ -256,7 +260,6 @@ ObjectManager::createObject (const QString & className)
     // This shouldn't be called until the PW State has been initialized.
 
     ClassRegistry::iterator i = m_classes.find (className);
-
     QString result; // empty string on failure
 
     if (i != m_classes.end()){
@@ -281,12 +284,18 @@ ObjectManager::createObject (const QString & className)
 
         assert (m_objects.find (id) == m_objects.end());
         m_objects [id] = ObjectRegistryEntry (className, id, path, object);
-
         result = id;
 
     }
 
     return result;
+}
+
+void ObjectManager::printObjects(){
+    for(map<QString,ObjectRegistryEntry>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+        QString firstId = it->first;
+        QString classId = it->second.getClassName();
+    }
 }
 
 CartaObject* ObjectManager::removeObject( const QString& id ){

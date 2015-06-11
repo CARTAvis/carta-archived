@@ -392,7 +392,6 @@ void Histogram::_initializeDefaultState(){
     m_stateData.insertValue<QString>(FREQUENCY_UNIT, m_channelUnits->getDefaultUnit());
     m_stateData.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_stateData.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
-    m_stateData.insertValue<bool>(Util::STATE_FLUSH, false );
     m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -892,10 +891,10 @@ void Histogram::_loadData( Controller* controller ){
     }
 }
 
-void Histogram::refreshState(){
-    m_stateData.setValue<bool>(Util::STATE_FLUSH, true );
-    m_stateData.flushState();
-    m_stateData.setValue<bool>(Util::STATE_FLUSH, false );
+void Histogram::refreshState() {
+    CartaObject::refreshState();
+    m_stateData.refreshState();
+    m_preferences->refreshState();
 }
 
 void Histogram::_refreshView(){
@@ -1707,8 +1706,7 @@ void Histogram::_updateSize( const QSize& size ){
     _generateHistogram( false );
 }
 
-//QList<QString> Histogram::getLinks() const {
-QList<QString> Histogram::getLinks() {
+QList<QString> Histogram::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 

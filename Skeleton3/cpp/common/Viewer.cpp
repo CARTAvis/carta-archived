@@ -95,10 +95,15 @@ Viewer::start()
 	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
 		fname = Globals::instance()-> platform()-> initialFileList() [0];
 	}
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
-    Carta::State::CartaObject* vmObj = objManager->getObject( vmId );
-    m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
+	Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+	if ( m_viewManager == nullptr ){
+        QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
+        Carta::State::CartaObject* vmObj = objManager->getObject( vmId );
+        m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
+	}
+	else {
+	    m_viewManager->reload();
+	}
     if ( m_devView ){
        m_viewManager->setDeveloperView();
     }
@@ -107,8 +112,6 @@ Viewer::start()
         QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
         m_viewManager->loadFile( controlId, fname );
     }
-
-    m_scriptFacade = ScriptFacade::getInstance();
 
     qDebug() << "Viewer has been initialized.";
 }

@@ -26,29 +26,33 @@ public:
     virtual bool getIndex( const QString& plugin, const QString& locationId, int* index ) const Q_DECL_OVERRIDE;
     virtual LayoutNode* getChildFirst() const  Q_DECL_OVERRIDE;
     virtual LayoutNode* getChildSecond() const  Q_DECL_OVERRIDE;
+    virtual QString getPlugin( const QString& locationId ) const Q_DECL_OVERRIDE;
 
     virtual QStringList getPluginList() const Q_DECL_OVERRIDE;
     virtual QString getStateString() const Q_DECL_OVERRIDE;
     virtual bool isComposite() const Q_DECL_OVERRIDE;
 
-
+    void releaseChild( const QString& key ) Q_DECL_OVERRIDE;
     virtual bool removeWindow( const QString& nodeId ) Q_DECL_OVERRIDE;
     virtual void resetState( const QString& state, QMap<QString,int>& usedPlugins ) Q_DECL_OVERRIDE;
     virtual void setHorizontal( bool horizontal ) Q_DECL_OVERRIDE;
     virtual void setChildFirst( LayoutNode* node ) Q_DECL_OVERRIDE;
     virtual void setChildSecond( LayoutNode* node ) Q_DECL_OVERRIDE;
     virtual bool setPlugin( const QString& nodeId, const QString& nodeType, int index ) Q_DECL_OVERRIDE;
-    virtual bool setPlugins( QStringList& names, QMap<QString,int>& usedPlugins ) Q_DECL_OVERRIDE;
+    virtual bool setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ) Q_DECL_OVERRIDE;
     virtual ~LayoutNodeComposite();
     const static QString CLASS_NAME;;
 
     virtual QString toString() const  Q_DECL_OVERRIDE;
-
+    const static QString PLUGIN_LEFT;
+    const static QString PLUGIN_RIGHT;
 
 private:
     bool _addWindow( const QString& nodeId, const QString& position,
             const QString& childKey, std::unique_ptr<LayoutNode>& child );
     QStringList _checkChild( LayoutNode* child, const QStringList & nodeIds ) const;
+    LayoutNode* _findAncestorChild( const QStringList& nodeIds, QString& childId,
+            LayoutNode* child );
     bool _removeWindow( const QString& nodeId,
             const QString& childKey, std::unique_ptr<LayoutNode>& child );
     void _initializeDefaultState();
@@ -69,8 +73,7 @@ private:
     const static QString HORIZONTAL;
     const static QString ID;
     const static QString COMPOSITE;
-    const static QString PLUGIN_LEFT;
-    const static QString PLUGIN_RIGHT;
+
 
     LayoutNodeComposite( const QString& path, const QString& id );
 

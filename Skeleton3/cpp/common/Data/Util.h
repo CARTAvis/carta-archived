@@ -83,7 +83,6 @@ public:
       */
      static std::vector < double > string2VectorDouble( QString s, QString sep = " " );
 
-     static const QString STATE_FLUSH;
 private:
     Util();
     virtual ~Util();

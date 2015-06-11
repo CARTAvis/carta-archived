@@ -40,6 +40,8 @@ public:
      */
     void clear();
 
+    virtual QString getPlugin( const QString& locationId ) const = 0;
+
     /**
      * Returns the list of plugins displayed by this LayoutNode and its
      * descendents.
@@ -91,7 +93,7 @@ public:
 -     * @return true if this layout node is composite; false otherwise.
 -     */
     virtual bool isComposite() const;
-
+    virtual void releaseChild( const QString& key );
     /**
      * Remove the layout cell with the given nodeId.
      * @param nodeId - an identifier for the layout cell to remove.
@@ -132,7 +134,7 @@ public:
      *      the same plugin.
      * @return true if the list of plug-ins were correctly set; false if there was an error setting them.
      */
-    virtual bool setPlugins( QStringList& names, QMap<QString,int>& usedPlugins ) = 0;
+    virtual bool setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ) = 0;
 
     /**
      * Set the plugin and index for the node with the given identifier.

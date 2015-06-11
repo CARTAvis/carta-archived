@@ -36,7 +36,7 @@ public:
      * @return a list of identifiers for objects under the control of this
      * CartaObject.
      */
-    virtual QList<QString> getLinks() = 0;
+    virtual QList<QString> getLinks() const = 0;
 
 };
 }

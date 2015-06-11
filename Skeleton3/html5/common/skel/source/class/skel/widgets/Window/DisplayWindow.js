@@ -189,9 +189,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          *      window's location.
          */
         getMoveInfo : function( sourceWinId) {
+            
             var linkInfo = new skel.widgets.Link.LinkInfo();
             if (this.m_identifier == sourceWinId) {
                 linkInfo.source = true;
+                //Because we are potentially going to move this window, we need to store it in
+                //the window factory so the new destination will be able to reuse it and not make
+                //another one.
+                var wins = [];
+                wins[0] = this;
+                skel.widgets.Window.WindowFactory.setExistingWindows( wins );
             }
            
             var midPoint = skel.widgets.Util.getCenter(this);

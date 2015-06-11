@@ -25,6 +25,10 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             allowGrowX : true,
             allowGrowY : true
         });
+        qx.event.message.Bus.subscribe( "nodeFound", function( message ){
+            var data = message.getData();
+            this.setNode( data.nodeId, data.childId, data.child );
+        }, this );
     },
 
     events : {
@@ -230,53 +234,15 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
         },
         
         /**
-         * Returns the window identifier for the window at the
-         * given row and column.
-         * 
-         * @param sourceRow {number} a row in the screen grid.
-         * @param sourceCol {number} a column in the screen grid.
-         * @return {String} an identifier for the window at the specified grid location.
-         */
-        getWinId : function(sourceRow, sourceCol) {
-            var winId = this.m_areaFirst.getWinId(sourceRow,
-                    sourceCol);
-            if (winId.length === 0) {
-                winId = this.m_areaSecond.getWinId(sourceRow, sourceCol);
-            }
-            return winId;
-        },
-
-        /**
-         * Links the window located at the source row and column
-         * to the window located at the destination row and
-         * column.
-         * 
-         * @param sourceRow {Number} a row in the screen grid.
-         * @param sourceCol {Number} a column in the screen grid.
-         * @param destRow {Number} a row in the screen grid.
-         * @param destCol {Number} a column in the screen grid.
-         */
-        link : function(sourceRow, sourceCol, destRow, destCol) {
-            var winId = this.getWinId(sourceRow, sourceCol);
-            if (winId.length > 0) {
-                this.setLinkId(destRow, destCol, winId);
-            }
-        },
-       
-        
-        /**
          * Returns whether or not the window with the given id
          * was restored.
-         * @param row {Number} the layout row of the window
-         *                to be restored.
-         * @param col {Number} the layout column of the
-         *                window to be restored.
+         * @param locationId {String} an identifier for the layout cell that should be restored.
          * @return {boolean} true if the window was restored; false otherwise.
          */
-        restoreWindow : function(row, col) {
-            var restored = this.m_areaFirst.restoreWindow(row,col);
+        restoreWindow : function(locationId) {
+            var restored = this.m_areaFirst.restoreWindow(locationId);
             if (!restored) {
-                restored = this.m_areaSecond.restoreWindow(row, col);
+                restored = this.m_areaSecond.restoreWindow(locationId);
             }
             return restored;
         },
@@ -289,19 +255,18 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             this.m_areaSecond.removeWindows();
         },
         
-        /**
-         * Set a particular child of this node.
-         * @param childId {String} an identifier indication which child should
-         *      be replaced/set.
-         * @param node {skel.widgets.Layout.LayoutNode} - the replacement node.
-         */
-        setChild : function( childId, node ){
-            if ( childId == this.m_FIRST){
-                this.m_areaFirst = node;
+        _clearContentAreas : function(){
+            //Remove the children from the pane since we may replace them.
+            var oldChildren = this.m_pane.getChildren();
+           
+            console.log( "Doing remove count="+oldChildren.length+" id="+this.m_id);
+            //Note::order must be backward since the oldChildren array is dynamically
+            //updated as children are removed.
+            for ( var i = oldChildren.length-1; i>= 0; i-- ){
+                console.log( "i="+i+" child="+oldChildren[i]);
+                this.m_pane.remove( oldChildren[i]);
             }
-            else {
-                this.m_areaSecond = node;
-            }
+            console.log( "After children="+oldChildren.length+" id="+this.m_id);
         },
         
         /**
@@ -316,44 +281,48 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             else {
                 this.m_pane.setOrientation( "vertical");
             }
-            
-            //Remove the children from the pane since we may replace them.
-            var oldChildren = this.m_pane.getChildren();
-            for ( var i = 0; i < oldChildren.length; i++ ){
-                this.m_pane.remove( oldChildren[i]);
-            }
-            
+            console.log( " ");
+            console.log( " ");
+            console.log( "Server comp update id="+this.m_id );
+            this._clearContentAreas();
+
             
             if ( this.m_areaFirst===null || obj.layoutLeft.id !== this.m_areaFirst.getId() ){
-                //See if there happens to be an existing node with this id and make that the child.
+                //See if there happens to be an existing node with this id and make that the first child.
                 var data = {
-                        source: this,
+                        sourceId: this.m_id,
                         findId : obj.layoutLeft.id,
                         childId : this.m_FIRST
                 };
                 this.fireDataEvent( "findChild", data );
-                
-                //No such child so make a new one.
-                if ( this.m_areaFirst === null || this.m_areaFirst.getId() != obj.layoutLeft.id ){
-                    this.m_areaFirst = this._initializeChild( obj.layoutLeft.id, obj.layoutLeft.composite );
-                }
             }
             
             if ( this.m_areaSecond ===null || obj.layoutRight.id !== this.m_areaSecond.getId() ){
-                //See if there happens to be an existing node with this id and make that the child.
+                //See if there happens to be an existing node with this id and make that the second child.
                 var data2 = {
-                        source: this,
+                        sourceId: this.m_id,
                         findId : obj.layoutRight.id,
                         childId : this.m_SECOND
                 };
                 this.fireDataEvent( "findChild", data2 );
-                //No existing one so making new one.
-                if ( this.m_areaSecond === null || this.m_areaSecond.getId() != obj.layoutRight.id ){
-                    this.m_areaSecond = this._initializeChild( obj.layoutRight.id, obj.layoutRight.composite );
-                }
             }
-           
+            
+            //No matching first child so make a new one.
+            if ( this.m_areaFirst === null || this.m_areaFirst.getId() != obj.layoutLeft.id ){
+                this.m_areaFirst = this._initializeChild( obj.layoutLeft.id, obj.layoutLeft.composite );
+            }
+            
+            
+            //No matching second child so make a new one.
+            if ( this.m_areaSecond === null || this.m_areaSecond.getId() != obj.layoutRight.id ){
+                this.m_areaSecond = this._initializeChild( obj.layoutRight.id, obj.layoutRight.composite );
+            }
+            
             //Re-add the children to the pane.
+            var children1 = this.m_pane.getChildren();
+            if ( children1.length > 0 ){
+                console.log( "ChildCount="+children1.length+" for "+this.m_id );
+            }
             var flex = 1;
             var firstArea = this.m_areaFirst.getDisplayArea();
             this.m_pane.add( firstArea, flex);
@@ -379,7 +348,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                     this.m_areaFirst = node;
                 }
                 else {
-                    this.m_areaSeond = node;
+                    this.m_areaSecond = node;
                 }
                 nodeSet = true;
             }
@@ -394,20 +363,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             return nodeSet;
         },
 
-        
-        /**
-         * Display the given window at the given location in the grid.
-         * @param window {skel.widgets.Window.DisplayWindow} the window to display.
-         * @param row {Number} the grid row where the window should be located.
-         * @param col {Number} the grid column where the window should be located.
-         */
-        setWindow : function( window, row, col ){
-            var windowSet = this.m_areaFirst.setWindow( window, row, col );
-            if ( !windowSet ){
-                this.m_areaSecond.setWindow( window, row, col );
-            }
-            return windowSet;
-        },
         
         /**
          * Returns a list of windows displayed by this area and its children.
@@ -477,32 +432,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             }
         },
 
-
-        /**
-         * Returns whether or not a different plug-in was reassigned to this DisplayArea
-         * based on whether its location matches the rowIndex and colIndex passed in.
-         * @param pluginId {String} a new plug-in identifier.
-         * @param index {Number} the index of the plug-in for cases where there are multiple plug-ins
-         *      of the same type.
-         * @param rowIndex {Number} a row index in the layout.
-         * @param colIndex {Number} a column index in the layout.
-         * @return {boolean} true if either the right or left child will be displaying this plugin,
-         *      false otherwise.
-         */
-        setView : function(pluginId, index, rowIndex, colIndex) {
-            var pluginAssigned = false;
-            if (this.m_areaFirst !== null) {
-                pluginAssigned = this.m_areaFirst.setView(
-                        pluginId, index, rowIndex, colIndex);
-            }
-            if (!pluginAssigned) {
-                if (this.m_areaSecond !== null) {
-                    pluginAssigned = this.m_areaSecond.setView(
-                            pluginId, index, rowIndex, colIndex);
-                }
-            }
-            return pluginAssigned;
-        },
 
         /**
          * Sets the height of the window located at the given row and column.

@@ -44,6 +44,15 @@ bool LayoutNodeLeaf::getIndex( const QString& plugin, const QString& locationId,
     return targetFound;
 }
 
+QString LayoutNodeLeaf::getPlugin( const QString& locationId ) const {
+    QString plugin;
+    if ( locationId == this->getPath()){
+        plugin = m_state.getValue<QString>( PLUGIN );
+    }
+    return plugin;
+}
+
+
 QStringList LayoutNodeLeaf::getPluginList() const {
     QStringList plugins;
     plugins.append( m_state.getValue<QString>( PLUGIN));
@@ -65,7 +74,7 @@ void LayoutNodeLeaf::resetState( const QString& stateStr, QMap<QString,int>& use
     leafState.setState( stateStr );
     QString newPlugin = leafState.getValue<QString>(PLUGIN);
     QStringList newPluginList(newPlugin);
-    setPlugins( newPluginList, usedPlugins );
+    setPlugins( newPluginList, usedPlugins, false );
 }
 
 bool LayoutNodeLeaf::setPlugin( const QString& nodeId, const QString& nodeType, int index ){
@@ -90,14 +99,17 @@ bool LayoutNodeLeaf::setPlugin( const QString& nodeId, const QString& nodeType, 
     return nodeChanged;
 }
 
-bool LayoutNodeLeaf::setPlugins( QStringList& names, QMap<QString,int>& usedPlugins ){
+bool LayoutNodeLeaf::setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ){
     QString oldPlugin = m_state.getValue<QString>(PLUGIN);
     bool pluginSet = true;
     if ( oldPlugin != NodeFactory::HIDDEN ){
         //First see if there is a plugin in the list that matches the old one.
-        int pluginIndex = names.indexOf( oldPlugin );
-        if ( pluginIndex < 0 ){
-            pluginIndex = 0;
+        int pluginIndex = 0;
+        if ( !useFirst ){
+            pluginIndex = names.indexOf( oldPlugin );
+            if ( pluginIndex < 0 ){
+                pluginIndex = 0;
+            }
         }
         if ( names.size() > 0 ){
             bool stateChanged = false;

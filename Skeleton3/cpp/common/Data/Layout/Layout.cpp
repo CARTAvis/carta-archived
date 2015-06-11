@@ -2,14 +2,15 @@
 #include "LayoutNodeComposite.h"
 #include "LayoutNodeLeaf.h"
 #include "NodeFactory.h"
-#include "../Animator/Animator.h"
-#include "../Colormap/Colormap.h"
-#include "../../State/UtilState.h"
-#include "../../State/StateInterface.h"
-#include "../Controller.h"
-#include "../Histogram/Histogram.h"
-#include "../Statistics.h"
-#include "../Util.h"
+#include "Data/Animator/Animator.h"
+#include "Data/Colormap/Colormap.h"
+#include "State/UtilState.h"
+#include "State/StateInterface.h"
+#include "Data/Controller.h"
+//#include "Data/GridControls.h"
+#include "Data/Histogram/Histogram.h"
+#include "Data/Statistics.h"
+#include "Data/Util.h"
 #include <QtCore/qmath.h>
 #include <QDebug>
 
@@ -126,6 +127,7 @@ void Layout::clear(){
     }
 }
 
+
 QString Layout::getStateString() const {
     Carta::State::StateInterface layoutState("");
     layoutState.setState( m_state.toString());
@@ -135,7 +137,7 @@ QString Layout::getStateString() const {
 
 
 
-int Layout::_getIndex( const QString& plugin, const QString& locationId ){
+int Layout::_getIndex( const QString& plugin, const QString& locationId ) const {
     int index = -1;
     bool targetFound  = m_layoutRoot->getIndex( plugin, locationId, &index );
     if ( !targetFound ){
@@ -144,11 +146,38 @@ int Layout::_getIndex( const QString& plugin, const QString& locationId ){
     return index;
 }
 
+QString Layout::_getPlugin( const QString& locationId ) const {
+    QString plugin;
+    if ( m_layoutRoot.get() != nullptr ){
+        plugin = m_layoutRoot->getPlugin( locationId );
+    }
+    return plugin;
+}
 
+int Layout::_getPluginCount( const QString& nodeType ) const {
+    int count = 0;
+    if ( m_layoutRoot.get() != nullptr ){
+        QStringList names = m_layoutRoot->getPluginList();
+        for ( int i = 0; i < names.size(); i++ ){
+            if ( names[i] == nodeType ){
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+int Layout::_getPluginIndex( const QString& nodeId, const QString& pluginId ) const{
+    int index = -1;
+    if ( m_layoutRoot.get() != nullptr ){
+        m_layoutRoot->getIndex( pluginId, nodeId, &index );
+    }
+    return index;
+}
 
 QStringList Layout::getPluginList() const {
     QStringList plugins;
-    if ( m_layoutRoot != nullptr ){
+    if ( m_layoutRoot.get() != nullptr ){
         plugins = m_layoutRoot->getPluginList();
     }
     return plugins;
@@ -208,7 +237,6 @@ void Layout::_initializeCommands(){
 
 void Layout::_initializeDefaultState(){
    m_state.insertValue<QString>(LAYOUT_NODE, "");
-   m_state.insertValue<bool>(Util::STATE_FLUSH, false);
    m_state.insertValue<QString>(TYPE_SELECTED, TYPE_CUSTOM );
 }
 
@@ -314,7 +342,24 @@ void Layout::_makeRoot( bool horizontal ){
     m_state.setValue<QString>(LAYOUT_NODE, main->getPath());
 }
 
+bool Layout::_replaceRoot( LayoutNode* otherNode, const QString& childReplacement ){
+    bool rootReplaced = false;
+    if ( otherNode != nullptr ){
+        if ( otherNode->isComposite()){
+            rootReplaced = true;
+            LayoutNode* oldRoot = m_layoutRoot.get();
+            //Put in a null child for the one we are going to use as a root
+            //so it won't get destroyed when we destroy the root.
+            oldRoot->releaseChild( childReplacement );
 
+            //Put the otherNode in as the new root.
+            m_layoutRoot.reset( otherNode );
+            m_state.setValue<QString>(LAYOUT_NODE, otherNode->getPath());
+            m_state.flushState();
+        }
+    }
+    return rootReplaced;
+}
 
 void Layout::resetState( const Carta::State::StateInterface& savedState ){
     QString layoutLookup = CLASS_NAME;
@@ -340,10 +385,25 @@ QString Layout::_removeWindow( const QString& locationId ){
     QString result;
     bool windowRemoved = false;
     if ( m_layoutRoot != nullptr ){
-        windowRemoved = m_layoutRoot->removeWindow( locationId );
+        LayoutNode* firstChild = m_layoutRoot->getChildFirst();
+        LayoutNode* secondChild = m_layoutRoot->getChildSecond();
+        if ( firstChild != nullptr &&
+                !firstChild->isComposite() &&
+                firstChild->getPath() == locationId ){
+            windowRemoved = _replaceRoot( secondChild, LayoutNodeComposite::PLUGIN_RIGHT );
+        }
+        else if ( secondChild!= nullptr &&
+                !secondChild->isComposite() &&
+                secondChild->getPath() == locationId ){
+            windowRemoved = _replaceRoot( firstChild, LayoutNodeComposite::PLUGIN_LEFT );
+        }
+        else {
+            windowRemoved = m_layoutRoot->removeWindow( locationId );
+        }
     }
     if ( !windowRemoved ){
-        result = "There was a problem removing the window at " + locationId;
+        result = "There was a problem removing the window.";
+        qDebug() << "There was a problem removing the window at " + locationId;
     }
     return result;
 }
@@ -437,9 +497,9 @@ void Layout::setLayoutImage(){
     m_state.flushState();
 }
 
-QString Layout::setPlugins( const QStringList& names) {
+QString Layout::setPlugins( const QStringList& names, bool useFirst) {
     QString msg;
-    bool validList = _setPlugin( names );
+    bool validList = _setPlugin( names, useFirst );
     if ( !validList ){
         msg = "There was an error setting the plugins.";
     }
@@ -462,7 +522,7 @@ QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
         _makeRoot();
         LayoutNode* currNode = m_layoutRoot.get();
         _initLayout( currNode, rows, cols );
-        _setPlugin( oldNames, true );
+        _setPlugin( oldNames, false );
         m_state.setValue<QString>(TYPE_SELECTED, layoutType );
         m_state.flushState();
     }
@@ -473,31 +533,28 @@ QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
     return errorMsg;
 }
 
+
+
 bool Layout::_setPlugin( const QString& nodeId, const QString& nodeType ){
-    QStringList oldPluginList = getPluginList();
-    int destCount = 0;
-    for ( int i = 0; i < oldPluginList.size(); i++ ){
-        if ( oldPluginList[i] == nodeType ){
-            destCount++;
-        }
-    }
+    int destCount = _getPluginCount( nodeType );
     bool pluginSet = m_layoutRoot->setPlugin( nodeId, nodeType, destCount );
     return pluginSet;
 }
 
-bool Layout::_setPlugin( const QStringList& names, bool /*custom*/ ){
+bool Layout::_setPlugin( const QStringList& names, bool useFirst ){
     QStringList plugins( names );
     QStringList oldPlugins = getPluginList();
     bool pluginsChanged = !Util::isListMatch( names, oldPlugins );
     bool validList = true;
     if ( pluginsChanged ){
         QMap<QString,int> usedPluginCounts;
-        validList = m_layoutRoot->setPlugins( plugins, usedPluginCounts );
+        validList = m_layoutRoot->setPlugins( plugins, usedPluginCounts, useFirst );
     }
     return validList;
 }
 
 Layout::~Layout(){
+
 }
 }
 }

@@ -103,6 +103,7 @@ bool Controller::addData(const QString& fileName) {
         DataSource* targetSource = new DataSource();
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
+        connect( targetSource, & DataSource::saveImageResult, this, & Controller::saveImageResultCB );
         m_datas.append(targetSource);
         targetSource->viewResize( m_viewSize );
 
@@ -627,10 +628,13 @@ bool Controller::saveImage( const QString& filename ) {
     return result;
 }
 
-bool Controller::saveFullImage( const QString& filename, double scale ) {
+void Controller::saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
     int imageIndex = m_selectImage->getIndex();
-    bool result = m_datas[imageIndex]->saveFullImage( filename, scale );
-    return result;
+    m_datas[imageIndex]->saveFullImage( filename, width, height, scale, aspectRatioMode );
+}
+
+void Controller::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
 }
 
 void Controller::_saveRegions(){
@@ -830,10 +834,7 @@ void Controller::updatePan( double centerX , double centerY){
 void Controller::centerOnPixel( double centerX, double centerY ){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        // Currently (0, 0) is at the top left of the image. We want it to be the
-        // bottom left, so we need to flip the y-coordinate.
-        int yDimension = m_datas[imageIndex]->getDimension( 1 );
-        m_datas[imageIndex]->setPan( centerX, yDimension - centerY );
+        m_datas[imageIndex]->setPan( centerX, centerY );
         _render();
     }
 }
@@ -848,8 +849,7 @@ void Controller::setZoomLevel( double zoomFactor ){
 }
 
 double Controller::getZoomLevel( ){
-    double zoom;
-    QString result;
+    double zoom = 1.0;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
         zoom = m_datas[imageIndex]->getZoom( );
@@ -898,6 +898,24 @@ QString Controller::setClipValue( double clipVal  ) {
     }
     else {
         result = "Clip value must be in [0,1).";
+    }
+    return result;
+}
+
+QStringList Controller::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelCoordinates( ra, dec );
+    }
+    return result;
+}
+
+QString Controller::getPixelValue( double x, double y ){
+    QString result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelValue( x, y );
     }
     return result;
 }

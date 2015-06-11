@@ -108,7 +108,6 @@ QString Selection::setIndex(int frameValue) {
     QString result;
     int upperBound = getUpperBound();
     int lowerBound = getLowerBound();
-    qDebug() << "upperBound = " << upperBound << "; lowerBound = " << lowerBound;
     if ( lowerBound <= frameValue && frameValue < upperBound ){
         bool valChanged = _setFrameBoundsCheck( INDEX_KEY, frameValue );
         if ( valChanged ){

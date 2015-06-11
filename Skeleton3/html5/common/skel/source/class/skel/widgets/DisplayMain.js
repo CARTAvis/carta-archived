@@ -178,9 +178,14 @@ qx.Class.define("skel.widgets.DisplayMain",
                         }, this);
                 this.m_pane.addListener( "findChild",function(ev){
                     var data = ev.getData();
-                    var child = this.m_pane.getNode( data.findId );
-                    if ( child !== null ){
-                        data.source.setChild( data.childId, child );
+                    var childNode = this.m_pane.getNode( data.findId );
+                    if ( childNode !== null ){
+                        var childInfo = {
+                            nodeId : data.sourceId,
+                            childId : data.childId,
+                            child : childNode
+                        };
+                        qx.event.message.Bus.dispatch( new qx.event.message.Message( "nodeFound", childInfo));
                     }
                 }, this );
                 this.m_pane.initSharedVar();
@@ -249,7 +254,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          */
         _resetLayoutCB : function() {
             var layoutObjJSON = this.m_layout.get();
-            if ( layoutObjJSON ){
+            if ( layoutObjJSON !== null ){
                 try {
                     var layout = JSON.parse( layoutObjJSON );
                     var windows = [];

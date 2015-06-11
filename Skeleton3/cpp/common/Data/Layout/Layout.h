@@ -74,10 +74,12 @@ public:
     /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.
+     * @param useFirst - true if the first plugin in the list should be used; false if an
+     *      attempt should be made to retain an existing plugin.
      * @return an error message if there was a problem setting the plugins; an empty
      *      string otherwise.
      */
-    QString setPlugins( const QStringList& names);
+    QString setPlugins( const QStringList& names, bool useFirst = false);
 
      /**
      * Set a layout showing widgets currently under development.
@@ -113,7 +115,10 @@ signals:
     void pluginListChanged( const QStringList& newPlugins, const QStringList& oldPlugins );
 
 private:
-    int _getIndex( const QString& plugin, const QString& locationId );
+    int _getIndex( const QString& plugin, const QString& locationId ) const;
+    QString _getPlugin( const QString& locationId ) const;
+    int _getPluginCount( const QString& nodeType ) const;
+    int _getPluginIndex( const QString& nodeId, const QString& pluginId ) const;
     void _initializeCommands();
     void _initializeDefaultState();
     void _initLayout( LayoutNode* root, int rowCount, int colCount );
@@ -126,14 +131,15 @@ private:
      * @return an errorMessage if there was a problem removing the cell; an empty string otherwise.
      */
     QString _removeWindow( const QString& nodeId );
-
+    bool _replaceRoot( LayoutNode* otherNode, const QString& childReplacement );
     /**
      * Set the list of plugins to be displayed.
      * @param name - the list of plugins to be displayed ordered in reading order.
-     * @param custom - true if this is a custom layout false, if it is one of the recognized types.
+     * @param useFirst - true if the first plugin in the list should be used; false if an attempt should
+     *      be made to retain the existing plugin.
      */
     //Assume the list size matches the grid size.
-    bool _setPlugin( const QStringList& name, bool custom=false );
+    bool _setPlugin( const QStringList& name, bool useFirst );
 
     /**
      * Set the plugin for the layout cell identified by the nodeId.

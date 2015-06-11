@@ -40,6 +40,8 @@ public:
     QString getId () const;
     QString getPath () const;
 
+    virtual void refreshState();
+
     /**
      * Reset the state of this object.
      * @param state a QString representing a new state for this object.
@@ -212,6 +214,7 @@ public:
      */
     QString getStateString( const QString& sessionId, const QString& snapName, CartaObject::SnapshotType type ) const;
     void initialize ();
+    void printObjects();
     bool registerClass (const QString & className, CartaObjectFactory * factory);
 
     /**
@@ -279,6 +282,7 @@ public:
 
 private:
 
+
     /// stores a pair< QString, CartaObjectFactory >
     class ClassRegistryEntry {
 
@@ -318,7 +322,9 @@ private:
           m_path (path)
         {}
 
-        const QString & getClassName () const;
+        const QString & getClassName () const {
+            return m_className;
+        }
         const QString & getId () const;
         CartaObject * getObject () const {
             return m_object;

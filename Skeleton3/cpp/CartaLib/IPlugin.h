@@ -182,67 +182,6 @@ public:
     Params * paramsPtr;
 };
 
-/// load a plugin of unknown type
-class LoadPlugin : public BaseHook
-{
-    CARTA_HOOK_BOILER1(LoadPlugin);
-
-public:
-    typedef IPlugin * ResultType;
-    struct Params {
-        Params( const QString & p_pluginDir, const PluginJson & p_json )
-        {
-            pluginDir = p_pluginDir;
-            json      = p_json;
-        }
-
-        QString    pluginDir;
-        PluginJson json;
-    };
-    enum { StaticHookId = 6 };
-    LoadPlugin( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }
-
-    ResultType result;
-    Params * paramsPtr;
-};
-
 // this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
 // must be outside of any namespace
 Q_DECLARE_INTERFACE( IPlugin, "org.cartaviewer.IPlugin" )
-
-#ifdef DONT_COMPILE
-
-/// give hooks IDs
-#define CARTA_HOOK_REGISTER(name) \
-    namespace Carta { \
-    namespace Lib { \
-    namespace Hooks { \
-    \
-    template<> \
-    struct GetStaticHookId<::name> { \
-        enum { id = static_cast<int64_t>(UniqueHookIDs::name) }; \
-    }; \
-    \
-    } \
-    } \
-    }
-
-CARTA_HOOK_REGISTER(LoadAstroImage)
-CARTA_HOOK_REGISTER(Initialize)
-CARTA_HOOK_REGISTER(PreRender)
-#undef CARTA_HOOK_REGISTER
-
-namespace Carta {
-namespace Lib {
-namespace Hooks {
-
-template<>
-struct GetStaticHookId<::LoadAstroImage> {
-    enum { id = static_cast<int64_t>(UniqueHookIDs::LoadAstroImage) };
-};
-
-}
-}
-}
-
-#endif

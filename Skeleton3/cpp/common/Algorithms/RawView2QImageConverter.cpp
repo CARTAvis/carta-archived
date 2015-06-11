@@ -4,8 +4,6 @@
 /// the cached pixel transfer function case.
 
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
-#include "CartaLib/TPixelPipeline/IScalar2Scalar.h"
-
 #include "CartaLib/CartaLib.h"
 #include "GrayColormap.h"
 #include "RawView2QImageConverter.h"
@@ -14,164 +12,77 @@
 #include <array>
 #include <QColor>
 
-struct RawView2QImageConverter::CachedImage {
-    QImage img;
-    double clip1, clip2, perc;
-    bool   specificToFrame;
-
-    CachedImage( QImage pImg, double c1, double c2, bool spec, double p )
-    {
-        img = pImg;
-        clip1 = c1;
-        clip2 = c2;
-        specificToFrame = spec;
-        perc = p;
-    }
-};
-
-RawView2QImageConverter::RawView2QImageConverter()
+template < typename Scalar >
+static
+typename std::tuple < Scalar, Scalar >
+computeClips(
+    NdArray::TypedView < Scalar > & view,
+    double perc
+    )
 {
-    // set cache size (in MB)
-//    m_cache.reset( new QCache < int, CachedImage > () );
-    m_cache.setMaxCost( 6 * 1024 );
-    m_cmap = std::make_shared < Carta::Core::GrayColormap > ();
+    qDebug() << "perc=" << perc;
+    perc = (1 - perc) / 2;
+    std::vector<Scalar> res = Carta::Core::Algorithms::quantiles2pixels(
+                                  view, { perc, 1 - perc});
+    return std::make_tuple( res[0], res[1]);
 }
 
-RawView2QImageConverter::~RawView2QImageConverter()
-{ }
 
-RawView2QImageConverter::Me &
-RawView2QImageConverter::setView( NdArray::RawViewInterface * rawView )
+/// algorithm for converting an instance of image interface to qimage
+/// using the pixel pipeline
+///
+/// \tparam Pipeline
+/// \param m_rawView
+/// \param pipe
+/// \param m_qImage
+template < class Pipeline >
+static void
+rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
-    if ( ! rawView ) {
-        throw std::runtime_error( "iimage is null" );
-    }
-    if ( rawView->dims().size() < 2 ) {
-        throw std::runtime_error( "need at least 2 dimensions" );
-    }
-    m_rawView = rawView;
-    return * this;
-}
+    qDebug() << "rv2qi" << rawView-> dims();
+    typedef double Scalar;
+    QSize size( rawView->dims()[0], rawView->dims()[1] );
 
-//RawView2QImageConverter::Me &
-//RawView2QImageConverter::setFrame( int frame )
-//{
-//    if ( frame > 0 ) {
-//        int nFrames = 0;
-//        if ( m_rawView->dims().size() > 2 ) {
-//            nFrames = m_rawView->dims()[2];
-//        }
-//        if ( frame >= nFrames ) {
-//            throw std::runtime_error( "not enough frames in this image" );
-//        }
-//    }
-//    return * this;
-//}
-
-RawView2QImageConverter::Me &
-RawView2QImageConverter::setAutoClip( double val )
-{
-    m_autoClip = val;
-    return * this;
-}
-
-RawView2QImageConverter::Me &
-RawView2QImageConverter::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap )
-{
-    m_cmap = cmap;
-    m_cache.clear();
-    return * this;
-}
-
-const QImage &
-RawView2QImageConverter::go( int frame, bool recomputeClip )
-{
-    // let's see if we have the result in cache
-    CachedImage * img = m_cache.object( frame );
-    if ( img ) {
-        bool match = false;
-
-        // we have something in cache, let's see if it matches what we want
-        if ( recomputeClip ) {
-            if ( img->specificToFrame && img->perc == m_autoClip ) {
-                match = true;
-            }
-        }
-        else if ( img->clip1 == m_clip1 && img->clip2 == m_clip2 ) {
-            match = true;
-        }
-
-        // if we found a match, return it and we're done
-        if ( match ) {
-            qDebug() << "Cache hit #" << frame;
-            return img->img;
-        }
-    }
-    qDebug() << "Cache miss #" << frame;
-
-    NdArray::TypedView < Scalar > view( m_rawView, false );
-
-    if ( ! std::isfinite( m_clip1 ) || recomputeClip ) {
-        std::tie( m_clip1, m_clip2 ) = computeClips < Scalar > ( view, m_autoClip );
-    }
-    int width = m_rawView->dims()[0];
-    int height = m_rawView->dims()[1];
-
-    // make sure there is at least 1 finite value, if not, return a black image
-    if ( ! std::isfinite( m_clip1 ) ) {
-        // there were no values.... return a black image
-        m_qImage = QImage( width, height, QImage::Format_ARGB32 );
-        m_qImage.fill( 0 );
-        return m_qImage;
+    if ( qImage.format() != QImage::Format_ARGB32_Premultiplied ||
+         qImage.size() != size ) {
+        qImage = QImage( size, QImage::Format_ARGB32_Premultiplied );
     }
 
-    // construct image using clips (clipd, clipinv)
-    m_qImage = QImage( width, height, QImage::Format_ARGB32 );
-    auto bytesPerLine = m_qImage.bytesPerLine();
-    if ( bytesPerLine != width * 4 ) {
-        throw std::runtime_error( "qimage does not have consecutive memory..." );
-    }
-    QRgb * outPtr = reinterpret_cast < QRgb * > ( m_qImage.bits() + width * ( height - 1 ) * 4 );
+    // construct image
+    auto bytesPerLine = qImage.bytesPerLine();
+    CARTA_ASSERT( bytesPerLine == size.width() * 4 );
 
-    // precalculate linear transformation coeff.
-    Scalar clipdinv = 1.0 / ( m_clip2 - m_clip1 );
+    // start with a pointer to the beginning of last row (we are constructing image
+    // bottom-up)
+    QRgb * outPtr = reinterpret_cast < QRgb * > (
+        qImage.bits() + size.width() * ( size.height() - 1 ) * 4 );
 
-    // apply the clips
-    CARTA_ASSERT( m_cmap != nullptr );
+    // make a double view
+    NdArray::TypedView < Scalar > typedView( rawView, false );
+
+    /// @todo for more efficiency we should switch to the higher performance view apis
+    /// and apply some basic openmp/cilk
     int64_t counter = 0;
-    Carta::Lib::PixelPipeline::NormRgb normRgb;
+    QRgb nanColor = qRgb( 255, 0, 0);
     auto lambda = [&] ( const Scalar & ival )
     {
-        if ( std::isfinite( ival ) ) {
-            Scalar val = ( ival - m_clip1 ) * clipdinv;
-            val = clamp < Scalar > ( val, 0.0, 1.0 );
-
-//            * outPtr = m_cmap->convert( val );
-            m_cmap->convert( val, normRgb );
-            Carta::Lib::PixelPipeline::normRgb2QRgb( normRgb, * outPtr );
+        if( ! std::isnan( ival)) {
+            pipe.convertq( ival, * outPtr );
         }
         else {
-            * outPtr = qRgb( 255, 0, 0 );
+             * outPtr = nanColor;
         }
         outPtr++;
         counter++;
 
         // build the image bottom-up
-        if ( counter % width == 0 ) {
-            outPtr -= width * 2;
+        if ( counter % size.width() == 0 ) {
+            outPtr -= size.width() * 2;
         }
     };
-    view.forEach( lambda );
+    typedView.forEach( lambda );
+} // rawView2QImage
 
-    // stick this into the cache so we don't need to recompute it
-    m_cache.insert( frame,
-                    new CachedImage( m_qImage, m_clip1, m_clip2, recomputeClip, m_autoClip ),
-                    width * height * 4 / 1024 / 1024 );
-
-    qDebug() << "cache total=" << m_cache.totalCost() << "MB";
-
-    return m_qImage;
-} // go
 
 namespace Carta
 {
@@ -195,7 +106,6 @@ RawView2QImageConverter3 & RawView2QImageConverter3::setReverse(bool flag)
     m_customPipeline->setReverse( flag );
     return * this;
 }
-
 
 QString
 RawView2QImageConverter3::getCmapPreview( int n )

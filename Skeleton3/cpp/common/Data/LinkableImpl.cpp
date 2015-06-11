@@ -117,6 +117,10 @@ void LinkableImpl::_initializeState( const QString& parentPath ){
     m_state.flushState();
 }
 
+void LinkableImpl::refreshState(){
+    m_state.refreshState();
+}
+
 bool LinkableImpl::removeLink( Carta::State::CartaObject* cartaObj ){
     bool linkRemoved = false;
     if ( cartaObj ){

@@ -25,6 +25,9 @@ qx.Class.define("skel.Command.Window.WindowAddDirection", {
                 layoutCmd.setActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
                 customLayoutCmd.setValue( true );
+                
+                
+                //Send the command to the server
                 var path = skel.widgets.Path.getInstance();
                 var idList = "";
                 var windowCount = skel.Command.Command.m_activeWins.length;

@@ -9,6 +9,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../ImageRenderService.h"
+#include "../ScriptedRenderService.h"
 #include "../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QDir>
@@ -30,7 +31,6 @@ DataSource::DataSource() :
         m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
         connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
                  this, & DataSource::_renderingDone);
-
 
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
@@ -56,30 +56,43 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
-    
+
     bool valid = false;
     QPointF imgPt = getImagePt( lastMouse, &valid );
     if ( valid ){
-        int imgX = imgPt.x();
-        int imgY = imgPt.y();
+        double imgX = imgPt.x();
+        double imgY = imgPt.y();
     
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
+
+        auto cs2str = [] ( Carta::Lib::KnownSkyCS cs) {
+            switch (cs) {
+            case Carta::Lib::KnownSkyCS::J2000: return "J2000"; break;
+            case Carta::Lib::KnownSkyCS::B1950: return "B1950"; break;
+            case Carta::Lib::KnownSkyCS::ICRS: return "ICRS"; break;
+            case Carta::Lib::KnownSkyCS::Galactic: return "Galactic"; break;
+            case Carta::Lib::KnownSkyCS::Ecliptic: return "Ecliptic"; break;
+            default:
+                return "Unknown";
+            }
+        };
+
+        std::vector < Carta::Lib::KnownSkyCS > css {
+            Carta::Lib::KnownSkyCS::J2000,
+                    Carta::Lib::KnownSkyCS::B1950,
+                    Carta::Lib::KnownSkyCS::Galactic,
+                    Carta::Lib::KnownSkyCS::Ecliptic,
+                    Carta::Lib::KnownSkyCS::ICRS
+        };
+        out << "Default sky cs:" << cs2str( cf-> skyCS() ) << "\n";
+        out << "Image cursor:" << imgX << "," << imgY << "\n";
+        QString pixelValue = getPixelValue( imgX, imgY );
+        out << "Value:" << pixelValue << " " << m_image->getPixelUnit().toStr() << "\n";
     
-        std::vector < QString > knownSCS2str {
-                "Unknown", "J2000", "B1950", "ICRS", "Galactic",
-                "Ecliptic"
-            };
-        std::vector < KnownSkyCS > css {
-                KnownSkyCS::J2000, KnownSkyCS::B1950, KnownSkyCS::Galactic,
-                KnownSkyCS::Ecliptic, KnownSkyCS::ICRS
-            };
-         out << "Default sky cs:" << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << "\n";
-         out << "Image cursor:" << imgX << "," << imgY << "\n";
-    
-         for ( auto cs : css ) {
+        for ( auto cs : css ) {
             cf-> setSkyCS( cs );
-            out << knownSCS2str[static_cast < int > ( cf-> skyCS() )] << ": ";
+            out << cs2str( cf-> skyCS() ) << ": ";
             std::vector < Carta::Lib::AxisInfo > ais;
             for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
                 const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
@@ -89,7 +102,7 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
             pixel[0] = imgX;
             pixel[1] = imgY;
             if( pixel.size() > 2) {
-               pixel[2] = frameIndex;
+                pixel[2] = frameIndex;
             }
             auto list = cf-> formatFromPixelCoordinate( pixel );
             for ( size_t i = 0 ; i < ais.size() ; i++ ) {
@@ -272,7 +285,7 @@ double DataSource::getZoom() const {
 }
 
 QSize DataSource::getOutputSize() const {
-    return m_renderService->getOutputSize();
+    return m_renderService-> outputSize();
 }
 
 void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
@@ -284,7 +297,7 @@ void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double 
         frameIndex = 0;
     }
     else {
-        frameIndex = clamp( frameIndex, 0, m_image-> dims()[2] - 1 );
+        frameIndex = Carta::Lib::clamp( frameIndex, 0, m_image-> dims()[2] - 1 );
     }
 
     // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
@@ -440,8 +453,47 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-bool DataSource::saveFullImage( const QString& /*filename*/, double /*scale*/ ){
-    return false;
+void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, const Qt::AspectRatioMode aspectRatioMode ){
+    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
+    if ( width > 0 && height > 0 ) {
+        m_scriptedRenderService->setOutputSize( QSize( width, height ) );
+        m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
+    }
+    m_scriptedRenderService->setZoom( scale );
+
+    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::saveImageResultCB );
+
+    m_scriptedRenderService->saveFullImage();
+}
+
+void DataSource::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
+    m_scriptedRenderService->deleteLater();
+}
+
+QStringList DataSource::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    const CoordinateFormatterInterface::VD world { ra, dec };
+    CoordinateFormatterInterface::VD pixel;
+    bool valid = cf->toPixel( world, pixel );
+    if ( valid ){
+        result = QStringList( QString::number( pixel[0] ) );
+        result.append( QString::number( pixel[1] ) );
+    }
+    return result;
+}
+
+QString DataSource::getPixelValue( double x, double y ){
+    QString pixelValue = "";
+    if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
+        NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
+        if ( rawData != nullptr ){
+            NdArray::TypedView<double> view( rawData, false );
+            pixelValue = QString::number( view.get( {x, y} ) );
+        }
+    }
+    return pixelValue;
 }
 
 DataSource::~DataSource() {

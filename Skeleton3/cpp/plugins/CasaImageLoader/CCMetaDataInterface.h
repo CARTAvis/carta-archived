@@ -22,8 +22,8 @@ public:
     virtual CoordinateFormatterInterface::SharedPtr
     coordinateFormatter() override;
 
-    virtual CoordinateGridPlotterInterface::SharedPtr
-    coordinateGridPlotter() override;
+//    virtual CoordinateGridPlotterInterface::SharedPtr
+//    coordinateGridPlotter() override;
 
     virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() override;

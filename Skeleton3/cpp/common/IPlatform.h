@@ -2,6 +2,7 @@
 
 class IConnector; // #include "IConnector.h"
 class QStringList;
+class QString;
 
 /**
  * @brief The IPlatform class. Central place to define APIs that will be implemented
@@ -20,6 +21,11 @@ public:
     /// On desktop this will probably come from command line, on server
     /// this will probably come somehow via url encoded arguments...
     virtual const QStringList & initialFileList() = 0;
+
+
+	/// returns CARTA data directory this is where snapshots and images are stored
+    /// On desktop this will be $HOME/CARTA on server /scratch
+	virtual QString getCARTADirectory() = 0;
 
     /// empty virtual destructor
     virtual ~IPlatform() {;}

@@ -109,6 +109,12 @@ public:
      */
     QString moveWindow( const QString& sourcePlugin, int sourcePluginIndex,
             const QString& destPlugin, int destPluginIndex );
+
+    /**
+     * Reset the state back to initial values.
+     */
+    void reload();
+
     /**
      * Reset the layout to a predefined analysis view.
      */
@@ -146,11 +152,11 @@ private:
     class Factory;
     void _adjustSize( int count, const QString& name, const QVector<int>& insertionIndices);
     void _clear();
-    void _clearAnimators( int startIndex );
-    void _clearColormaps( int startIndex );
-    void _clearControllers( int startIndex );
-    void _clearHistograms( int startIndex );
-    void _clearStatistics( int startIndex );
+    void _clearAnimators( int startIndex, int upperBound );
+    void _clearColormaps( int startIndex, int upperBound );
+    void _clearControllers( int startIndex, int upperBound );
+    void _clearHistograms( int startIndex, int upperBound );
+    void _clearStatistics( int startIndex, int upperBound );
 
     /**
      * Given the plugin and the index of the plugin among plugins of its type, find the index of the plugin
@@ -187,7 +193,7 @@ private:
      * Remove the pluin with the identified index.
      */
     void _removeView( const QString& plugin, int index );
-
+    int _removeViews( const QString& name, int startIndex, int endIndex );
     /**
      * Written because there is no guarantee what order the javascript side will use
      * to create view objects.  When there are linked views, the links may not get
@@ -195,6 +201,7 @@ private:
      * the state and gives the object a second chance to establish their links.
      */
     void _refreshState();
+    void _refreshStateSingletons();
 
     QString _setPlugin( const QString& sourceNodeId, const QString& destPluginType );
 

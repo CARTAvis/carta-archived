@@ -11,7 +11,6 @@ namespace Data {
 
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
-const QString Util::STATE_FLUSH = "stateFlush";
 
 Util::Util( ) {
 

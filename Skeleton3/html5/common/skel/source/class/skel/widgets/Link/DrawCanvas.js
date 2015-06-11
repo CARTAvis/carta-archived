@@ -396,7 +396,6 @@ qx.Class.define("skel.widgets.Link.DrawCanvas",{
                         if (!matchingLink.linked) {
                             var sourceId = this.m_sourceLink.winId;
                             var destId = matchingLink.winId;
-                            var twoWay = matchingLink.twoWay;
                             var link = new skel.widgets.Link.Link( sourceId, destId );
                             matchingLink.linked = true;
                             this.linkCompleted( link, pt );

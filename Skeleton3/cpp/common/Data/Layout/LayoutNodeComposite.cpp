@@ -1,7 +1,7 @@
 #include "LayoutNodeComposite.h"
 #include "LayoutNodeLeaf.h"
 #include "State/UtilState.h"
-#include "../Util.h"
+#include "Data/Util.h"
 #include "NodeFactory.h"
 
 #include <QDebug>
@@ -64,7 +64,7 @@ bool LayoutNodeComposite::_addWindow( const QString& nodeId, const QString& posi
             if ( newComp != nullptr ){
                 windowAdded = true;
                 LayoutNode* emptyChild = NodeFactory::makeLeaf();
-                //Make the old child a child of the composite.
+                //Make the old child a child of the composite as well as the empty leaf.
                 if ( position == NodeFactory::POSITION_TOP || position == NodeFactory::POSITION_LEFT ){
                     newComp->setChildSecond( oldComp );
                     newComp->setChildFirst( emptyChild );
@@ -96,7 +96,7 @@ QStringList LayoutNodeComposite::_checkChild( LayoutNode* child, const QStringLi
     if ( child != nullptr ){
         bool ancestorNode = true;
         for ( int i = 0; i < nodeIds.size(); i++ ){
-            bool ancestorNode = child->containsNode( nodeIds[i] );
+            ancestorNode = child->containsNode( nodeIds[i] );
             if ( ancestorNode ){
                 foundChildren.append( nodeIds[i] );
             }
@@ -118,29 +118,37 @@ bool LayoutNodeComposite::containsNode( const QString& nodeId ) const {
     return commonAncestor;
 }
 
+LayoutNode* LayoutNodeComposite::_findAncestorChild( const QStringList& nodeIds, QString& childId,
+        LayoutNode* child ){
+    LayoutNode* ancestor = nullptr;
+    if ( child != nullptr ){
+        if ( child->getType() == CLASS_NAME ){
+            ancestor = child -> findAncestor( nodeIds, childId );
+        }
+        if ( ancestor == nullptr ){
+            QStringList childNodeIds = _checkChild( child, nodeIds );
+            bool allnodesFound = Util::isListMatch( childNodeIds, nodeIds );
+            if ( allnodesFound ){
+                ancestor = this;
+                childId = child->getPath();
+            }
+        }
+    }
+    return ancestor;
+}
+
 LayoutNode* LayoutNodeComposite::findAncestor( const QStringList& nodeIds, QString& childId){
     //Try to delegate the ancestor job to the children if we can.
     LayoutNode* ancestor = nullptr;
     if ( nodeIds.size() == 0 ){
         return ancestor;
     }
-    if ( m_firstChild.get() != nullptr ){
-        if ( m_firstChild->getType() == CLASS_NAME){
-            ancestor = m_firstChild->findAncestor( nodeIds, childId );
-            childId = PLUGIN_LEFT;
-        }
-    }
-
+    ancestor = _findAncestorChild( nodeIds, childId, m_firstChild.get());
     if ( ancestor == nullptr ){
-        if ( m_secondChild.get() != nullptr ){
-            if ( m_secondChild->getType() == CLASS_NAME ){
-                ancestor = m_secondChild -> findAncestor( nodeIds, childId );
-                childId = PLUGIN_RIGHT;
-            }
-        }
+        ancestor = _findAncestorChild( nodeIds, childId, m_secondChild.get());
     }
     //Okay, the children aren't ancestors, see if we can to the job.
-    if ( ancestor == nullptr ){
+    /*if ( ancestor == nullptr && nodeIds.size() > 1 ){
         QStringList childFirstNodeIds = _checkChild( m_firstChild.get(), nodeIds );
         QStringList childSecondNodeIds = _checkChild( m_secondChild.get(), nodeIds );
         QStringList childNodeIds;
@@ -151,7 +159,7 @@ LayoutNode* LayoutNodeComposite::findAncestor( const QStringList& nodeIds, QStri
             ancestor = this;
             childId = "";
         }
-    }
+    }*/
     return ancestor;
 }
 
@@ -177,6 +185,18 @@ bool LayoutNodeComposite::getIndex( const QString& plugin, const QString& locati
     }
     return targetFound;
 }
+
+QString LayoutNodeComposite::getPlugin( const QString& locationId ) const {
+    QString plugin;
+    if ( m_firstChild.get() != nullptr ){
+        plugin = m_firstChild->getPlugin( locationId );
+    }
+    if ( plugin.isEmpty() && m_secondChild.get() != nullptr ){
+        plugin = m_secondChild->getPlugin( locationId );
+    }
+    return plugin;
+}
+
 
 QStringList LayoutNodeComposite::getPluginList() const {
     QStringList plugins;
@@ -222,9 +242,11 @@ void LayoutNodeComposite::_initializeDefaultState(){
 }
 
 bool LayoutNodeComposite::removeWindow( const QString& nodeId ){
-    //See if one of the children has a child with matching id, in which case we need to replace the
+    //See if one of the children has a child with matching id,
+    //in which case we need to replace the
     //child with the grand child that does not have a matching id.
     bool windowRemoved = _removeWindow( nodeId, PLUGIN_LEFT, m_firstChild );
+
     if ( !windowRemoved ){
         windowRemoved = _removeWindow( nodeId, PLUGIN_RIGHT, m_secondChild );
     }
@@ -275,7 +297,15 @@ bool LayoutNodeComposite::_removeWindow( const QString& nodeId,
     }
     return windowRemoved;
 }
-
+void LayoutNodeComposite::resetState( const QString& state, QMap<QString,int>& usedPlugins ){
+    Carta::State::StateInterface newState( "" );
+    newState.setState( state );
+    bool newHorizontal = newState.getValue<bool>( HORIZONTAL );
+    setHorizontal( newHorizontal );
+    _resetStateChild( PLUGIN_LEFT, m_firstChild, newState, usedPlugins );
+    _resetStateChild( PLUGIN_RIGHT, m_secondChild, newState, usedPlugins );
+    m_state.flushState();
+}
 
 void LayoutNodeComposite::_resetStateChild( const QString& childKey, std::unique_ptr<LayoutNode>& child,
         const Carta::State::StateInterface& newState, QMap<QString,int>& usedPlugins ){
@@ -311,15 +341,7 @@ void LayoutNodeComposite::_resetStateChild( const QString& childKey, std::unique
 }
 
 
-void LayoutNodeComposite::resetState( const QString& state, QMap<QString,int>& usedPlugins ){
-    Carta::State::StateInterface newState( "" );
-    newState.setState( state );
-    bool newHorizontal = newState.getValue<bool>( HORIZONTAL );
-    setHorizontal( newHorizontal );
-    _resetStateChild( PLUGIN_LEFT, m_firstChild, newState, usedPlugins );
-    _resetStateChild( PLUGIN_RIGHT, m_secondChild, newState, usedPlugins );
-    m_state.flushState();
-}
+
 
 void LayoutNodeComposite::_setChild( const QString& key,
         std::unique_ptr<LayoutNode>& child, LayoutNode* node, bool destroy ){
@@ -334,24 +356,24 @@ void LayoutNodeComposite::_setChild( const QString& key,
                 child.release();
             }
             child.reset( node );
+
             _updateChildState( key, node->getPath(), node->isComposite());
             m_state.flushState();
         }
     }
 }
-
-void LayoutNodeComposite::_updateChildState( const QString& childKey, const QString& id, bool composite ){
-    QString idLookup = Carta::State::UtilState::getLookup( childKey, ID);
-    QString oldId = m_state.getValue<QString>( idLookup );
-    if ( oldId != id ){
-        m_state.setValue<QString>( idLookup, id );
+void LayoutNodeComposite::releaseChild( const QString& key ){
+    if ( key == PLUGIN_LEFT ){
+        m_firstChild.release();
+        m_firstChild.reset( nullptr);
     }
-    QString compLookup = Carta::State::UtilState::getLookup( childKey, COMPOSITE );
-    bool oldComposite = m_state.getValue<bool>( compLookup );
-    if ( oldComposite != composite ){
-        m_state.setValue<bool>( compLookup, composite);
+    else if ( key == PLUGIN_RIGHT ){
+        m_secondChild.release();
+        m_secondChild.reset( nullptr );
     }
 }
+
+
 
 void LayoutNodeComposite::setChildFirst( LayoutNode* node ){
    _setChild( PLUGIN_LEFT, m_firstChild, node, true );
@@ -369,6 +391,8 @@ void LayoutNodeComposite::setHorizontal( bool horizontal ){
     }
 }
 
+
+
 bool LayoutNodeComposite::setPlugin( const QString& nodeId, const QString& nodeType, int index ){
     bool pluginSet = false;
     if ( m_firstChild.get() != nullptr ){
@@ -382,14 +406,14 @@ bool LayoutNodeComposite::setPlugin( const QString& nodeId, const QString& nodeT
     return pluginSet;
 }
 
-bool LayoutNodeComposite::setPlugins( QStringList& names, QMap<QString,int>& usedPlugins ){
+bool LayoutNodeComposite::setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ){
     bool pluginSetOne = true;
     if ( m_firstChild.get() != nullptr ){
-        pluginSetOne = m_firstChild->setPlugins( names, usedPlugins );
+        pluginSetOne = m_firstChild->setPlugins( names, usedPlugins, useFirst );
     }
     bool pluginSetTwo = true;
     if ( m_secondChild.get() != nullptr ){
-        pluginSetTwo = m_secondChild->setPlugins( names, usedPlugins );
+        pluginSetTwo = m_secondChild->setPlugins( names, usedPlugins, useFirst );
     }
     return pluginSetOne && pluginSetTwo;
 }
@@ -406,8 +430,20 @@ QString LayoutNodeComposite::toString() const {
     return result;
 }
 
-LayoutNodeComposite::~LayoutNodeComposite(){
+void LayoutNodeComposite::_updateChildState( const QString& childKey, const QString& id, bool composite ){
+    QString idLookup = Carta::State::UtilState::getLookup( childKey, ID);
+    QString oldId = m_state.getValue<QString>( idLookup );
+    if ( oldId != id ){
+        m_state.setValue<QString>( idLookup, id );
+    }
+    QString compLookup = Carta::State::UtilState::getLookup( childKey, COMPOSITE );
+    bool oldComposite = m_state.getValue<bool>( compLookup );
+    if ( oldComposite != composite ){
+        m_state.setValue<bool>( compLookup, composite);
+    }
+}
 
+LayoutNodeComposite::~LayoutNodeComposite(){
 }
 }
 }

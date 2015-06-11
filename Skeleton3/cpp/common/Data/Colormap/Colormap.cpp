@@ -116,7 +116,6 @@ void Colormap::_initializeDefaultState(){
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<QString>(TRANSFORM_IMAGE, "Gamma");
     m_state.insertValue<QString>(TRANSFORM_DATA, "None");
-    m_state.insertValue<bool>(Util::STATE_FLUSH, false );
     m_state.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -412,11 +411,7 @@ bool Colormap::_setColorMix( const QString& key, double colorPercent, QString& e
     return colorChanged;
 }
 
-void Colormap::refreshState(){
-    m_state.setValue<bool>(Util::STATE_FLUSH, true );
-    m_state.flushState();
-    m_state.setValue<bool>(Util::STATE_FLUSH, false );
-}
+
 
 QString Colormap::removeLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
@@ -503,8 +498,14 @@ QString Colormap::setDataTransform( const QString& transformString ){
     return result;
 }
 
-QList<QString> Colormap::getLinks() {
+QList<QString> Colormap::getLinks() const {
     return m_linkImpl->getLinkIds();
+}
+
+void Colormap::refreshState(){
+    CartaObject::refreshState();
+    m_settings->refreshState();
+    m_linkImpl->refreshState();
 }
 
 void Colormap::_setColorProperties( Controller* target ){

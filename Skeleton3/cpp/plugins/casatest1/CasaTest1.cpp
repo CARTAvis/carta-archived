@@ -218,7 +218,7 @@ bool CasaTest1::loadImage( const QString & fname, int channel, QImage & result)
     // make sure there is at least 1 non-nan value, if not, return a black image
     if( allValues.size() == 0) {
         // there were no values.... return a black image
-        result = QImage( width, height, QImage::Format_ARGB32);
+        result = QImage( width, height, QImage::Format_ARGB32_Premultiplied);
         result.fill( 0);
         return true;
     }

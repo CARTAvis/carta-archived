@@ -174,13 +174,15 @@ public:
     bool saveImage( const QString& filename );
 
     /**
-     * Save a copy of the full image in the current image view at its native resolution.
-     * @param fileName the full path where the file is to be saved.
+     * Save a copy of the full image in the current image view.
+     * @param filename the full path where the file is to be saved.
+     * @param width the width of the saved image.
+     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    bool saveFullImage( const QString& filename, double scale );
+    void saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
 
     /**
      * Reset the images that are loaded and other data associated state.
@@ -252,6 +254,23 @@ public:
      */
     int getStackedImageCount() const;
 
+    /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList getPixelCoordinates( double ra, double dec );
+
+    /**
+     * Return the value of the pixel at (x, y).
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @return the value of the pixel at (x, y), or blank if it could not be obtained.
+     */
+    QString getPixelValue( double x, double y );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
@@ -272,6 +291,10 @@ signals:
      * @param controller this Controller.
      */
     void channelChanged( Controller* controller );
+
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
 
 protected:
     virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
@@ -300,6 +323,9 @@ private slots:
      * Repaint the image.
      */
     void _repaintFrameNow();
+
+    // Asynchronous result from saveFullImage().
+    void saveImageResultCB( bool result );
 
 private:
 

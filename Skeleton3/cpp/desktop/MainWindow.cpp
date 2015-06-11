@@ -44,9 +44,6 @@ MainWindow::MainWindow( )
              & QWebFrame::javaScriptWindowObjectCleared,
              this,
              & MainWindow::addToJavaScript );
-
-//    m_img = QImage( 500, 500, QImage::Format_RGB888);
-
 }
 
 void MainWindow::loadUrl(const QUrl & url)

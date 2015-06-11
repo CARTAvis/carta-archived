@@ -47,7 +47,7 @@ public:
     static QString fakeRootDirName;
     const static QString CLASS_NAME;
 
-    virtual ~DataLoader(){};
+    virtual ~DataLoader();
 
 private:
 

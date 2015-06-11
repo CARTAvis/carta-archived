@@ -17,7 +17,6 @@ qx.Class.define("skel.Command.Histogram.SettingsBinCount", {
         var cmd = path.SEP_COMMAND + "setVisibleHistogramBinCount";
         this.base( arguments, "Histogram Bin Count Settings", cmd);
         this.setToolTipText( "Show/hide histogram bin count settings.");
-        console.log( "Constructed bin count");
     },
     
     members : {

@@ -21,6 +21,9 @@ public:
     /// the list comes from url encoded parameters
     virtual const QStringList & initialFileList() Q_DECL_OVERRIDE;
 
+    /// return the CARTA Root directory
+    virtual QString getCARTADirectory() Q_DECL_OVERRIDE;
+
 protected:
 
     ServerConnector * m_connector;
