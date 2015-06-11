@@ -69,9 +69,11 @@ def cleanSlate(request, cartavisInstance):
     for example, if one test modifies the colormap before another test
     that depends on the colormap being Gray, the second test may fail
     if the colormap is not reset first.
-    Right now it's just resetting the colormap, but in the future we
-    may want to include things like zoom level, pan, etc.
     """
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
+    # Reset the colormap
     c[0].setColormap('Gray')
+    # Close all open images
+    for imageName in i[0].getImageNames():
+        i[0].closeImage(imageName)

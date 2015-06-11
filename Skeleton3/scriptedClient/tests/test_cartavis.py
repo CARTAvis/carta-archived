@@ -80,7 +80,7 @@ def test_saveFullImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the saveFullImage() command works properly.
     """
-    imageName = 'saveFullImage.png'
+    imageName = 'mexinputtest.png'
     i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
     i[0].saveFullImage(tempImageDir + '/' + imageName)
@@ -92,7 +92,7 @@ def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that a colormap is being applied properly.
     """
-    imageName = 'setColormapCubehelix.png'
+    imageName = 'mexinputtest_cubehelix.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
@@ -109,7 +109,7 @@ def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
     NOTE: this test was failing for me at one point because SkyCoord
     could not find COMBO-17 44244.
     """
-    imageName = 'centerOnCoordinate.png'
+    imageName = 'mexinputtest_centerOnCoordinate.png'
     i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
     c = SkyCoord.from_name("COMBO-17 44244")
@@ -126,7 +126,7 @@ def test_saveImage(cartavisInstance, tempImageDir, cleanSlate):
     dev mode the "Cached" text sometimes appears on the image, causing
     the test to fail.
     """
-    imageName = 'saveImage.png'
+    imageName = 'mexinputtest_saveImage.png'
     i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
     i[0].saveImage(tempImageDir + '/' + imageName)
@@ -138,7 +138,7 @@ def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the centerOnPixel() command works properly.
     """
-    imageName = 'centerOnPixel.png'
+    imageName = 'mexinputtest_centerOnPixel.png'
     i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
     i[0].centerOnPixel(0,0)
@@ -151,14 +151,35 @@ def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the channel properly.
     """
-    image1 = 'setChannel1.png'
-    image2 = 'setChannel2.png'
+    image1 = 'WFPC2u5780205r_c0fx_channel1.png'
+    image2 = 'WFPC2u5780205r_c0fx_channel2.png'
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
     i[0].loadLocalFile(os.getcwd() + '/data/WFPC2u5780205r_c0fx.fits')
     a[0].setChannel(0)
     i[0].saveFullImage(tempImageDir + '/' + image1)
     a[0].setChannel(1)
+    i[0].saveFullImage(tempImageDir + '/' + image2)
+    reference1 = Image.open(os.getcwd() + '/data/' + image1)
+    comparison1 = Image.open(tempImageDir + '/' + image1)
+    reference2 = Image.open(os.getcwd() + '/data/' + image2)
+    comparison2 = Image.open(tempImageDir + '/' + image2)
+    assert list(reference1.getdata()) == list(comparison1.getdata())
+    assert list(reference2.getdata()) == list(comparison2.getdata())
+
+def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the animator is setting the image properly.
+    """
+    image1 = 'mexinputtest.png'
+    image2 = 'WFPC2u5780205r_c0fx_channel1.png'
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadLocalFile(os.getcwd() + '/data/WFPC2u5780205r_c0fx.fits')
+    a[0].setImage(0)
+    i[0].saveFullImage(tempImageDir + '/' + image1)
+    a[0].setImage(1)
     i[0].saveFullImage(tempImageDir + '/' + image2)
     reference1 = Image.open(os.getcwd() + '/data/' + image1)
     comparison1 = Image.open(tempImageDir + '/' + image1)
