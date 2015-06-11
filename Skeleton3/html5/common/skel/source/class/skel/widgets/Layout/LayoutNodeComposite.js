@@ -20,8 +20,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
     construct : function(id) {
         this.base(arguments, id );
 
-        this.m_pane = new qx.ui.splitpane.Pane(
-        "horizontal").set({
+        this.m_pane = new qx.ui.splitpane.Pane( this.m_HORIZONTAL ).set({
             allowGrowX : true,
             allowGrowY : true
         });
@@ -119,6 +118,18 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             }
         },
 
+        /**
+         * Removes the pased in display area from the split pane.
+         * @param displayArea {qx.ui.core.Widget} - the content to remove.
+         */
+        _removeChild : function( displayArea ){
+            var children = this.m_pane.getChildren();
+            for ( var i = 0; i < children.length; i++ ){
+                if ( children[i] == displayArea ){
+                    this.m_pane.remove( displayArea );
+                }
+            }
+        },
         
         /**
          * Returns the child of the passed in node with the given identifier, if there is one;
@@ -132,10 +143,23 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             var target = null;
             if ( this.m_areaFirst !== null ){
                 target = this.m_areaFirst.getNode( id );
+                if ( target !== null && this.m_areaFirst.getId() == id ){
+                    //Someone is kidnapping this child for their own display so
+                    //remove it from ours.
+                    var displayArea= this.m_areaFirst.getDisplayArea();
+                    this._removeChild( displayArea );
+                   
+                }
             }
             if ( target === null ){
                 if ( this.m_areaSecond !== null ){
                     target = this.m_areaSecond.getNode( id );
+                    if ( target !== null && this.m_areaSecond.getId() == id ){
+                        //Child is being kidnapped to bee displayed elsewhere so remove
+                        //it from our display.
+                        var displayArea2 = this.m_areaSecond.getDisplayArea();
+                        this._removeChild( displayArea2 );
+                    }
                 }
             }
             if ( target === null ){
@@ -255,18 +279,26 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             this.m_areaSecond.removeWindows();
         },
         
+        /**
+         * Remove the two split pane content areas if they exist.
+         */
         _clearContentAreas : function(){
-            //Remove the children from the pane since we may replace them.
-            var oldChildren = this.m_pane.getChildren();
-           
-            console.log( "Doing remove count="+oldChildren.length+" id="+this.m_id);
-            //Note::order must be backward since the oldChildren array is dynamically
-            //updated as children are removed.
-            for ( var i = oldChildren.length-1; i>= 0; i-- ){
-                console.log( "i="+i+" child="+oldChildren[i]);
-                this.m_pane.remove( oldChildren[i]);
+            var clearedAreas = false;
+            try {
+                //Remove the children from the pane since we may replace them.
+                var oldChildren = this.m_pane.getChildren();
+                //Note::order must be backward since the oldChildren array is dynamically
+                //updated as children are removed.
+                for ( var i = oldChildren.length-1; i>= 0; i-- ){
+                    this.m_pane.remove( oldChildren[i]);
+                }
+                clearedAreas = true;
             }
-            console.log( "After children="+oldChildren.length+" id="+this.m_id);
+            catch( error ){
+                console.log( "Could not clear content areas error" );
+                console.log( error);
+            }
+            return clearedAreas;
         },
         
         /**
@@ -276,16 +308,20 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
         serverUpdate : function( obj ){
             //Reset the orientation
             if ( obj.horizontal ){
-                this.m_pane.setOrientation( "horizontal");
+                if ( this.m_pane.getOrientation() != this.m_HORIZONTAL){
+                    this.m_pane.setOrientation( this.m_HORIZONTAL );
+                }
             }
             else {
-                this.m_pane.setOrientation( "vertical");
+                if ( this.m_pane.getOrientation() != this.m_VERTICAL){
+                    this.m_pane.setOrientation( this.m_VERTICAL);
+                }
             }
-            console.log( " ");
-            console.log( " ");
-            console.log( "Server comp update id="+this.m_id );
-            this._clearContentAreas();
 
+            var cleared = this._clearContentAreas();
+            if ( !cleared ){
+                return;
+            }
             
             if ( this.m_areaFirst===null || obj.layoutLeft.id !== this.m_areaFirst.getId() ){
                 //See if there happens to be an existing node with this id and make that the first child.
@@ -312,17 +348,11 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 this.m_areaFirst = this._initializeChild( obj.layoutLeft.id, obj.layoutLeft.composite );
             }
             
-            
             //No matching second child so make a new one.
             if ( this.m_areaSecond === null || this.m_areaSecond.getId() != obj.layoutRight.id ){
                 this.m_areaSecond = this._initializeChild( obj.layoutRight.id, obj.layoutRight.composite );
             }
             
-            //Re-add the children to the pane.
-            var children1 = this.m_pane.getChildren();
-            if ( children1.length > 0 ){
-                console.log( "ChildCount="+children1.length+" for "+this.m_id );
-            }
             var flex = 1;
             var firstArea = this.m_areaFirst.getDisplayArea();
             this.m_pane.add( firstArea, flex);
@@ -497,6 +527,8 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
         },
         m_FIRST : "first",
         m_SECOND : "second",
+        m_HORIZONTAL : "horizontal",
+        m_VERTICAL : "vertical",
         m_pane : null,
         m_areaFirst : null,
         m_areaSecond : null

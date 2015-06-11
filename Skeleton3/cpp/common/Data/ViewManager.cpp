@@ -908,13 +908,12 @@ QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& des
     else {
         //Replace the plugin.
         _makeLayout();
-
         //Remove the replaced plugin from the view objects.
         QString replacedPlugin = m_layout->_getPlugin( sourceNodeId );
         if ( !replacedPlugin.isEmpty() ){
             int replacedIndex = m_layout->_getPluginIndex( sourceNodeId, replacedPlugin );
             if ( replacedIndex >= 0 ){
-                _removeViews( replacedPlugin, replacedIndex, replacedIndex + 1);
+                _removeViews( replacedPlugin, replacedIndex, replacedIndex);
             }
         }
 
