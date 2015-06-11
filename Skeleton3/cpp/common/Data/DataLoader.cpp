@@ -127,6 +127,18 @@ QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
     return Globals::instance()-> platform()-> getCARTADirectory().append("Images");
 }
 
+QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
+    QString sessionId( "");
+    QString rootDir = getRootDir( sessionId );
+    int rootLength = rootDir.length();
+    QStringList shortNames;
+    for ( int i = 0; i < longNames.size(); i++ ){
+        QString shortName = longNames[i].right( longNames[i].size() - rootLength - 1);
+        shortNames.append( shortName );
+    }
+    return shortNames;
+}
+
 DataLoader::~DataLoader(){
 }
 }

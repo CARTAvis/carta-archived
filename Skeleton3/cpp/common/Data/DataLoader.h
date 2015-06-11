@@ -44,6 +44,14 @@ public:
      */
     QString getRootDir(const QString& sessionId) const;
 
+    /**
+     * Strips the top level directory from the list of file names and
+     * returns them.
+     * @param longNames - a list of absolute file path locations.
+     * @return the file names with the root directory stripped off.
+     */
+    QStringList getShortNames( const QStringList& longNames ) const;
+
     static QString fakeRootDirName;
     const static QString CLASS_NAME;
 

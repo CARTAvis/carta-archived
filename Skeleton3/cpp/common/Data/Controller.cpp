@@ -603,15 +603,27 @@ void Controller::saveState() {
         m_stateData.setValue<int>( DATA_COUNT, dataCount );
         //Insert the names of the data items for display purposes.
         m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveAll );
+        QStringList longNames;
         for (int i = 0; i < dataCount; i++) {
-            QString imageViewName = m_datas[i]->getImageViewName();
+            longNames.append( m_datas[i]->getFileName() );
+        }
+        QStringList shortNames;
+        CartaObject* obj = Util::findSingletonObject( DataLoader::CLASS_NAME );
+        if ( obj != nullptr ){
+            DataLoader* dataLoader = dynamic_cast<DataLoader*>( obj );
+            if ( dataLoader != nullptr ){
+                shortNames = dataLoader->getShortNames( longNames );
+            }
+        }
+        int shortNameCount = shortNames.size();
+        for ( int i = 0; i < shortNameCount; i++ ){
             QString dataKey = UtilState::getLookup( DATA, i);
             QString oldViewName;
             if ( i < oldDataCount ){
                 oldViewName = m_stateData.getValue<QString>(dataKey);
             }
-            if ( imageViewName != oldViewName ){
-                m_stateData.setValue<QString>( dataKey, imageViewName );
+            if ( shortNames[i] != oldViewName ){
+                m_stateData.setValue<QString>( dataKey, shortNames[i] );
             }
         }
     }

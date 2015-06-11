@@ -183,14 +183,7 @@ std::shared_ptr<Image::ImageInterface> DataSource::getImage(){
     return m_image;
 }
 
-QString DataSource::getImageViewName() const {
-    QString shortName = m_fileName;
-    int sepIndex = m_fileName.lastIndexOf( QDir::separator() );
-    if ( sepIndex >= 0 ){
-        shortName = m_fileName.right( m_fileName.length() - sepIndex - 1 );
-    }
-    return shortName;
-}
+
 
 std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> DataSource::getPipeline() const {
     return m_pixelPipeline;

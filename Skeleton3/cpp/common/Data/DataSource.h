@@ -213,12 +213,6 @@ public:
     QString getFileName() const;
     
     /**
-     * Returns a name suitable for display.
-     * @return a display name for the image.
-     */
-    QString getImageViewName() const;
-
-    /**
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
