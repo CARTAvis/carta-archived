@@ -249,3 +249,17 @@ def test_setDataTransform(cartavisInstance, tempImageDir, cleanSlate):
     assert list(reference.getdata()) == list(comparison.getdata())
     # Check that invalid values cause error information to be returned.
     assert c[0].setDataTransform('squarepants')[0] != ''
+
+def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the gamma value can be set properly.
+    """
+    imageName = 'mexinputtest_gamma.png'
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setGamma(0.25)
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
