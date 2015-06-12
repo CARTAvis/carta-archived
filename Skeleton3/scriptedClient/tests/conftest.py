@@ -74,6 +74,9 @@ def cleanSlate(request, cartavisInstance):
     c = cartavisInstance.getColormapViews()
     # Reset the colormap
     c[0].setColormap('Gray')
+    c[0].invertColormap(False)
+    c[0].reverseColormap(False)
+    c[0].setColorMix(1,1,1)
     # Close all open images
     for imageName in i[0].getImageNames():
         i[0].closeImage(imageName)

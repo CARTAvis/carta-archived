@@ -187,3 +187,65 @@ def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
     comparison2 = Image.open(tempImageDir + '/' + image2)
     assert list(reference1.getdata()) == list(comparison1.getdata())
     assert list(reference2.getdata()) == list(comparison2.getdata())
+
+def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the colormap is inverted properly.
+    """
+    imageName = 'mexinputtest_cubehelix_inverted.png'
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('cubehelix')
+    c[0].invertColormap(True)
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_reverseColormap(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the colormap is reversed properly.
+    """
+    imageName = 'mexinputtest_cubehelix_reversed.png'
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('cubehelix')
+    c[0].reverseColormap(True)
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_setColorMix(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the color mix is being set properly.
+    """
+    imageName = 'mexinputtest_colormix.png'
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColorMix(0.7, 0.3, 0.8)
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+    # Check that invalid values cause error information to be returned.
+    assert c[0].setColorMix(-1,-1,-1)[0] != ''
+
+def test_setDataTransform(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that data transforms can be set properly.
+    """
+    imageName = 'mexinputtest_datatransform.png'
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setDataTransform('square root')
+    i[0].saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+    # Check that invalid values cause error information to be returned.
+    assert c[0].setDataTransform('squarepants')[0] != ''
