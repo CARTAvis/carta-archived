@@ -150,6 +150,7 @@ private:
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
+    QString _commandSetDataTransform( const QString& transformString );
 
     bool _setColorMix( const QString& key, double colorPercent, QString& errorMsg );
     void _initializeDefaultState();
