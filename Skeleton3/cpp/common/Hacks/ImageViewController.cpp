@@ -448,19 +448,29 @@ void ImageViewController::recalculateContours()
     }
 
     // get a view of the data using the slice description and make a shared pointer out of it
-    NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
+//    NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
 
+//    Carta::Lib::Algorithms::ContourConrec cc;
+//    NdArray::Double doubleView( view.get(), false );
+//    cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
+//    cc.setLevels( levels);
+//    Carta::Lib::Algorithms::ContourConrec::DataAccessor da =
+//            [ & doubleView]( int row, int col) { return doubleView.get( { col, row}); };
+//    m_contours = cc.compute( da);
+//    qDebug() << "xyz contours" << m_contours.size();
+//    if( m_contours.size() > 0) {
+//        qDebug() << "   xyz[0]->" << m_contours[0].size();
+//    }
+
+    NdArray::RawViewInterface::UniquePtr view( m_astroImage-> getDataSlice( frameSlice ) );
     Carta::Lib::Algorithms::ContourConrec cc;
-    NdArray::Double doubleView( view.get(), false );
-    cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
     cc.setLevels( levels);
-    Carta::Lib::Algorithms::ContourConrec::DataAccessor da =
-            [ & doubleView]( int row, int col) { return doubleView.get( { col, row}); };
-    m_contours = cc.compute( da);
+    m_contours = cc.compute2( view.get());
     qDebug() << "xyz contours" << m_contours.size();
     if( m_contours.size() > 0) {
         qDebug() << "   xyz[0]->" << m_contours[0].size();
     }
+
 
 }
 
@@ -520,20 +530,6 @@ ImageViewController::loadFrame( int frame )
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
 
     // update contours
-    if(false){
-        Carta::Lib::Algorithms::ContourConrec cc;
-        NdArray::Double doubleView( view.get(), false );
-        cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
-        cc.setLevels({ (clips[0] + clips[1])/2});
-        Carta::Lib::Algorithms::ContourConrec::DataAccessor da =
-                [ & doubleView]( int row, int col) { return doubleView.get( { col, row}); };
-        m_contours = cc.compute( da);
-        qDebug() << "xyz contours" << m_contours.size();
-        if( m_contours.size() > 0) {
-            qDebug() << "   xyz[0]->" << m_contours[0].size();
-        }
-    }
-
     recalculateContours();
 
 } // loadFrame

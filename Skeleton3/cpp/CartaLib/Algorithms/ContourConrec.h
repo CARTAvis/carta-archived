@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "CartaLib/IImage.h"
 #include <vector>
 #include <functional>
 #include <QPolygonF>
@@ -26,7 +27,7 @@ public:
     /// level. Each contour set is in turn a list of poly-lines.
     typedef std::vector < std::vector < QPolygonF > > Result;
 
-    /// the data is accessed via
+    /// the data is accessed via this function pointer
     typedef std::function < double ( int, int ) > DataAccessor;
 
     /// initiate algorithm
@@ -37,17 +38,20 @@ public:
     setLevels( const std::vector < double > & levels );
 
     /// specify input data size
-    void
-    setInputDataSize( int64_t nRows, int64_t nCols );
+//    void
+//    setInputDataSize( int64_t nRows, int64_t nCols );
 
     /// compute and return the sorted vertices
+//    Result
+//    compute( DataAccessor & acc );
+
     Result
-    compute( DataAccessor & acc );
+    compute2( NdArray::RawViewInterface * );
 
 private:
 
-    int m_nRows = 0;
-    int m_nCols = 0;
+//    int m_nRows = 0;
+//    int m_nCols = 0;
     std::vector < double > m_levels;
 };
 }
