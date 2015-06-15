@@ -6,6 +6,9 @@
 /// we may decide to use this...
 ///
 /// \author Pavol Federl
+///
+/// \todo this could potentially be useful in other parts of carta or other plugins, so
+/// we should probably move it to Carta::Lib::Algorithms or some such place.
 
 #pragma once
 

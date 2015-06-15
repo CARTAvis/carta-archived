@@ -140,9 +140,6 @@ CCRawView < PType >::CCRawView( CCImage < PType > * ccimage, const SliceND & sli
     // figure out what data to extract for each of the dimensions
     m_appliedSlice = sliceInfo.apply( m_ccimage-> dims() );
 
-    //    qDebug() << sliceInfo.toStr() << "applied to" << m_ccimage->dims() << "="
-//             << m_appliedSlice.toStr();
-
     // cache the dimensions of the result
     for ( auto & x : m_appliedSlice.dims() ) {
         m_viewDims.push_back( x.count );
@@ -220,7 +217,7 @@ CCRawView < PType >::forEach(
     int imgDims     = casaII-> ndim();
     auto imageShape = casaII-> shape();
 
-    qDebug() << "CCRawView::forEach=" << m_appliedSlice.toStr()  ;
+//    qDebug() << "CCRawView::forEach=" << m_appliedSlice.toStr()  ;
 
     /// \todo I guessed wrong as to what the cursor shape meant when using subSection()
     /// \todo the shape refers to the shape within the subsection... so there is no need

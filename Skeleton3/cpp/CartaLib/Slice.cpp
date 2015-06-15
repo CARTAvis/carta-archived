@@ -417,7 +417,7 @@ SliceND::ApplyResult::combine(const SliceND::ApplyResult & r1, const SliceND::Ap
         res.m_single = res.m_single && comb.isSingle();
     }
 
-    qDebug() << "combine" << r1.toStr() << "+" << r2.toStr() << "=" << res.toStr();
+//    qDebug() << "combine" << r1.toStr() << "+" << r2.toStr() << "=" << res.toStr();
 
     return res;
 }

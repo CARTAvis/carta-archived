@@ -25,8 +25,6 @@
 
 namespace WcsPlotterPluginNS {
 
-#define dbg(level) qDebug()
-
 using namespace std;
 
 int SimpleFitsParser::HeaderInfo::dims(int ind) const {
@@ -451,7 +449,7 @@ bool
 SimpleFitsParser::loadFile(
     const FitsFileLocation & fLocation)
 {
-    dbg(1) << "SimpleFitsParser::loadFile( " << fLocation << ")\n";
+    qDebug() << "SimpleFitsParser::loadFile( " << fLocation << ")\n";
     // if we had a file open previously, get rid of it
     if( m_file != 0) delete m_file;
     m_file = 0;
@@ -469,7 +467,7 @@ SimpleFitsParser::loadFile(
 
         if( ! m_file-> open( QFile::ReadOnly))
             throw QString( "Could not open input file %1").arg( m_fname);
-        dbg(1) << "File " << m_fname << " open.\n";
+        qDebug() << "File " << m_fname << " open.\n";
 
         // parse the header
         FitsHeader hdr = FitsHeader::parse( * m_file);
@@ -498,7 +496,6 @@ SimpleFitsParser::loadFile(
             int ind = 1;
             while(1) {
                 QString keyword = QString("NAXIS%1").arg(ind);
-                dbg(1) << "keyword = " << keyword;
                 if( hdr.findLine( keyword) < 0) break;
                 int val = hdr.intValue( keyword, -1);
                 if( val < 1) {
@@ -507,7 +504,6 @@ SimpleFitsParser::loadFile(
                             arg(hdr.stringValue(keyword, "n/a"));
                 }
                 headerInfo_.m_dims.push_back(val);
-                dbg(1) << "m_dims.push_back " << val << " " << ind;
                 ind ++;
             }
         }
@@ -518,8 +514,8 @@ SimpleFitsParser::loadFile(
             headerInfo_.hasBlank = true;
             // blank is only supported for BITPIX > 0
             if( headerInfo_.bitpix < 0) {
-                dbg(0) << QString("Invalid use of BLANK = %1 keyword with BITPIX = %2.").arg( headerInfo_.blank).arg( headerInfo_.bitpix)
-                       << "\n";
+                qWarning() << QString("Invalid use of BLANK = %1 keyword with BITPIX = %2.").arg( headerInfo_.blank).arg( headerInfo_.bitpix)
+                           << "\n";
                 headerInfo_.hasBlank = false;
             }
         } else {
@@ -593,7 +589,7 @@ SimpleFitsParser::loadFile(
             headerInfo_.scalingRequired = false;
     }
     catch( const QString & err) {
-        dbg(0) << err;
+        qWarning() << err;
         return false;
     }
     catch( ...) {
@@ -609,7 +605,6 @@ SimpleFitsParser::loadFile(
 std::vector<double> & SimpleFitsParser::cacheFrame(int z)
 {
     if( m_cachedFrameNum == z) return m_cachedFrameData;
-    dbg(1) << "caching frame " << z << "\n";
     m_cachedFrameNum = z;
     m_cachedFrameData.resize( headerInfo_.naxis1 * headerInfo_.naxis2);
     size_t ind = 0;
@@ -622,7 +617,6 @@ std::vector<double> & SimpleFitsParser::cacheFrame(int z)
             ind ++;
         }
     }
-    dbg(1) << "caching done\n";
     return m_cachedFrameData;
 }
 

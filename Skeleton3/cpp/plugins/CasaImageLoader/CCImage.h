@@ -120,11 +120,8 @@ public:
     static CCImage::SharedPtr
     create( casa::ImageInterface < PType > * casaImage )
     {
-        qDebug() << "create running" << casaImage;
-
         // create an image interface instance and populate it with various
         // values from casa::ImageInterface
-//        CCImage * img = new CCImage < PType >;
         CCImage::SharedPtr img = std::make_shared < CCImage < PType > > ();
         img-> m_pixelType = Image::CType2PixelType < PType >::type;
         img-> m_dims      = casaImage-> shape().asStdVector();
