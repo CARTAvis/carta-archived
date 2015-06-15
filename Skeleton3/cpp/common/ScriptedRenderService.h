@@ -52,6 +52,13 @@ public:
     void
     setOutputSize( QSize size );
 
+    ///
+    /// \brief set the desired frame index/channel of the image
+    /// \param index the frame index/channel
+    ///
+    void
+    setFrameIndex( int index );
+
     /// set the scaling options if an output size is set.
     void setAspectRatioMode( Qt::AspectRatioMode mode );
 
@@ -103,6 +110,9 @@ private:
 
     /// The size of the output image
     QSize m_outputSize;
+
+    /// The frame of the output image
+    int m_frameIndex;
 
     /// Determines how the output image will be scaled if an output size is set.
     Qt::AspectRatioMode m_aspectRatioMode;

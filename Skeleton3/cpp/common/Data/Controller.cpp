@@ -622,7 +622,7 @@ bool Controller::saveImage( const QString& filename ) {
 
 void Controller::saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
     int imageIndex = m_selectImage->getIndex();
-    m_datas[imageIndex]->saveFullImage( filename, width, height, scale, aspectRatioMode );
+    m_datas[imageIndex]->saveFullImage( filename, width, height, scale, m_selectChannel->getIndex(), aspectRatioMode );
 }
 
 void Controller::saveImageResultCB( bool result ){
@@ -907,8 +907,27 @@ QString Controller::getPixelValue( double x, double y ){
     QString result("");
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 ){
-        int yDimension = m_datas[imageIndex]->getDimension( 1 );
         result = m_datas[imageIndex]->getPixelValue( x, y );
+    }
+    return result;
+}
+
+QString Controller::getPixelUnits(){
+    QString result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->getPixelUnits();
+    }
+    return result;
+}
+
+QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        for ( int i = 0; i <= 1; i++ ){
+            result.append( m_datas[imageIndex]->getCoordinates( x, y, system, i ) );
+        }
     }
     return result;
 }

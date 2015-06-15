@@ -7,6 +7,7 @@
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <Data/IColoredView.h>
+#include "CartaLib/CartaLib.h"
 
 #include <QString>
 #include <QList>
@@ -270,6 +271,21 @@ public:
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
     QString getPixelValue( double x, double y );
+
+    /**
+     * Return the units of the pixels.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QString getPixelUnits();
+
+    /**
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @return the coordinates at pixel (x, y).
+     */
+    QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system );
 
     virtual ~Controller();
 

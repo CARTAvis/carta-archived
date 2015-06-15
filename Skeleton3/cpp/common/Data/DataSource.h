@@ -8,6 +8,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "Data/IColoredView.h"
+#include "CartaLib/CartaLib.h"
 
 #include <QImage>
 #include <memory>
@@ -271,7 +272,7 @@ public:
      * @param aspectRatioMode can be either "ignore", "keep", or "expand".
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& savename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
+    void saveFullImage( const QString& savename, int width, int height, double scale, int frameIndex, Qt::AspectRatioMode aspectRatioMode );
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -289,6 +290,21 @@ public:
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
     QString getPixelValue( double x, double y );
+
+    /**
+     * Return the units of the pixels.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QString getPixelUnits();
+
+    /**
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @return the coordinates at pixel (x, y).
+     */
+    QString getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis );
 
     virtual ~DataSource();
 

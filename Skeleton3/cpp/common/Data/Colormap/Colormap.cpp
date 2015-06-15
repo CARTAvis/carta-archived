@@ -140,7 +140,7 @@ void Colormap::_initializeCallbacks(){
         std::set<QString> keys = {TRANSFORM_DATA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString dataTransformStr = dataValues[*keys.begin()];
-        QString result = setDataTransform( dataTransformStr );
+        QString result = _commandSetDataTransform( dataTransformStr );
         return result;
    });
 
@@ -325,7 +325,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
     double greenValue = dataValues[GREEN_PERCENT].toDouble(&validGreen);
 
     if ( validRed && validBlue && validGreen ){
-        result = setColorMix( redValue, blueValue, greenValue );
+        result = setColorMix( redValue, greenValue, blueValue );
     }
     else {
         result = "Color mix values must be numbers: "+params;
@@ -334,7 +334,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
     return result;
 }
 
-QString Colormap::setColorMix( double redValue, double blueValue, double greenValue ){
+QString Colormap::setColorMix( double redValue, double greenValue, double blueValue ){
     QString result;
     bool greenChanged = _setColorMix( COLOR_MIX_GREEN, greenValue, result );
     bool redChanged = _setColorMix( COLOR_MIX_RED, redValue, result );
@@ -477,9 +477,9 @@ QString Colormap::setGamma( double gamma ){
     return result;
 }
 
-QString Colormap::setDataTransform( const QString& transformString ){
+QString Colormap::setDataTransform( const QString& transformString){
+    QString result("");
     QString transformName = m_state.getValue<QString>(TRANSFORM_DATA);
-    QString result;
     if ( m_dataTransforms != nullptr ){
         QString actualTransform;
         bool recognizedTransform = m_dataTransforms->isTransform( transformString, actualTransform );
@@ -494,11 +494,16 @@ QString Colormap::setDataTransform( const QString& transformString ){
                 }
                 emit colorMapChanged( this );
             }
-            else {
-               result = "Invalid data transform: " + transformString;
-            }
+        }
+        else {
+           result = "Invalid data transform: " + transformString;
         }
     }
+    return result;
+}
+
+QString Colormap::_commandSetDataTransform( const QString& transformString ){
+    QString result = setDataTransform( transformString );
     Util::commandPostProcess( result );
     return result;
 }
