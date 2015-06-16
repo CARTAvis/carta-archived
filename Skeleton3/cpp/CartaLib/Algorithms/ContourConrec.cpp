@@ -296,7 +296,7 @@ ContourConrec::setLevels( const std::vector < double > & levels )
 }
 
 ContourConrec::Result
-ContourConrec::compute2( NdArray::RawViewInterface * view )
+ContourConrec::compute( NdArray::RawViewInterface * view )
 {
     auto m_nRows = view-> dims()[1];
     auto m_nCols = view-> dims()[0];

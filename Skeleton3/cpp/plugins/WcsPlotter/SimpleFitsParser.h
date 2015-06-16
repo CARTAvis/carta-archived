@@ -36,19 +36,24 @@ struct FitsLine {
         _raw = rawLine;
     }
 
+    /// return the raw line (verbatim)
     QString
     raw() { return _raw; }
 
+    /// extract the keyword from the line
     QString
     key() { QString k, v, c; parse( k, v, c ); return k; }
 
+    /// extract a value from the line
     QString
     value() { QString k, v, c; parse( k, v, c ); return v; }
 
+    /// extract a comment from the line
     QString
     comment() { QString k, v, c; parse( k, v, c ); return c; }
 
-    // parse the line into key/value/comment
+    /// parse the line into key/value/comment
+    /// \warning throws on syntax error!
     void
     parse( QString & key, QString & value, QString & comment );
 

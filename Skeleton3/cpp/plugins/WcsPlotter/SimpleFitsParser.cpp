@@ -159,7 +159,7 @@ FitsHeader FitsHeader::parse( QFile & f)
         // but they are not \0 terminated!!!)
         QString rawLine = QByteArray( (char *) block, sizeof( block) );
         // add this line to the header
-        hdr._lines.push_back( rawLine);
+        hdr._lines.push_back( FitsLine( rawLine));
         // if this is the 'END' line, terminate the parse
         if( rawLine.startsWith( "END     " ))
             break;

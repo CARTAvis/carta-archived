@@ -57,7 +57,8 @@ HEADERS += \
     Hooks/LoadPlugin.h \
     VectorGraphics/BetterQPainter.h \
     Algorithms/ContourConrec.h \
-    IWcsGridRenderService.h
+    IWcsGridRenderService.h \
+    IContourGeneratorService.h
 
 unix {
     target.path = /usr/lib

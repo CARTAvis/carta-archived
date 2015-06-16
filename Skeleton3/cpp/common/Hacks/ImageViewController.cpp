@@ -465,7 +465,7 @@ void ImageViewController::recalculateContours()
     NdArray::RawViewInterface::UniquePtr view( m_astroImage-> getDataSlice( frameSlice ) );
     Carta::Lib::Algorithms::ContourConrec cc;
     cc.setLevels( levels);
-    m_contours = cc.compute2( view.get());
+    m_contours = cc.compute( view.get());
     qDebug() << "xyz contours" << m_contours.size();
     if( m_contours.size() > 0) {
         qDebug() << "   xyz[0]->" << m_contours[0].size();
