@@ -6,7 +6,7 @@
 #include "IPlatform.h"
 #include "State/ObjectManager.h"
 #include "Data/ViewManager.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
 #include "MyQApp.h"

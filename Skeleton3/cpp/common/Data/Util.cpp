@@ -1,6 +1,6 @@
 #include "Util.h"
 #include "State/ObjectManager.h"
-#include "Data/ErrorManager.h"
+#include "Data/Error/ErrorManager.h"
 #include <QStringList>
 #include <QDebug>
 #include <cmath>

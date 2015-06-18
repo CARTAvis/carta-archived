@@ -6,14 +6,13 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include "Data/ErrorReport.h"
+#include "ErrorReport.h"
 #include <queue>
 #include <memory>
 
 namespace Carta {
 
 namespace Data {
-
 
 class ErrorManager : public Carta::State::CartaObject {
 

@@ -35,7 +35,7 @@ public:
      * @param type an identifier for the type of state to be returned.
      * @return a QString representing this object's state.
      */
-    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const;
+    virtual QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const;
     QString getClassName () const;
     QString getId () const;
     QString getPath () const;

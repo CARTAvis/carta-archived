@@ -35,14 +35,21 @@ HEADERS += \
     Data/Colormap/Settings.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
-    Data/Controller.h \
     Data/DataLoader.h \
-    Data/ErrorReport.h \
-    Data/ErrorManager.h \
+    Data/Error/ErrorReport.h \
+    Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/HistogramPreferences.h \
     Data/IColoredView.h \
     Data/ILinkable.h \
+    Data/Image/Controller.h \
+    Data/Image/CoordinateSystems.h \
+    Data/Image/DataGrid.h \
+    Data/Image/DataSource.h \
+    Data/Image/Fonts.h \
+    Data/Image/GridControls.h \
+    Data/Image/ImageSettings.h \
+    Data/Image/ImageGridServiceSynchronizer.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -52,7 +59,6 @@ HEADERS += \
     Data/LinkableImpl.h \
     Data/Preferences.h \
     Data/Region.h \
-    Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -109,15 +115,21 @@ SOURCES += \
     Data/Colormap/Settings.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
-    Data/Controller.cpp \
+    Data/Image/Controller.cpp \
+    Data/Image/CoordinateSystems.cpp \
+    Data/Image/DataGrid.cpp \
+    Data/Image/DataSource.cpp \
+    Data/Image/Fonts.cpp \
+    Data/Image/GridControls.cpp \
+    Data/Image/ImageSettings.cpp \
+    Data/Image/ImageGridServiceSynchronizer.cpp \
     Data/DataLoader.cpp \
-    Data/ErrorReport.cpp \
-    Data/ErrorManager.cpp \
+    Data/Error/ErrorReport.cpp \
+    Data/Error/ErrorManager.cpp \
     Data/Histogram/Histogram.cpp \
     Data/Histogram/HistogramPreferences.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
-    Data/DataSource.cpp \
     Data/Layout/Layout.cpp \
     Data/Layout/LayoutNode.cpp \
     Data/Layout/LayoutNodeComposite.cpp \

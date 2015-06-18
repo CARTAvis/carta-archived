@@ -1,8 +1,6 @@
 #include "Data/Statistics.h"
-#include "Data/Controller.h"
-//#include "Data/DataSource.h"
+#include "Data/Image/Controller.h"
 #include "Data/LinkableImpl.h"
-//#include "Data/Util.h"
 
 #include <QtCore/QDebug>
 

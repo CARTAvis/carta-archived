@@ -1,7 +1,7 @@
 #include "Colormap.h"
 #include "Colormaps.h"
 #include "Settings.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
 #include "TransformsData.h"
 #include "Data/IColoredView.h"
 #include "Data/Util.h"
@@ -82,6 +82,33 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         result = "Color map only supports linking to images.";
     }
     return result;
+}
+
+void Colormap::clear(){
+    m_linkImpl->clear();
+}
+
+
+
+QString Colormap::_commandInvertColorMap( const QString& params ){
+    QString result;
+    std::set<QString> keys = {INVERT};
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    QString invertStr = dataValues[*keys.begin()];
+    bool validBool = false;
+    bool invert = Util::toBool( invertStr, &validBool );
+    if ( validBool ){
+        result = invertColorMap( invert );
+    }
+    else {
+        result = "Invert color map parameters must be true/false: "+params;
+    }
+    Util::commandPostProcess( result );
+    return result;
+}
+
+QList<QString> Colormap::getLinks() const {
+    return m_linkImpl->getLinkIds();
 }
 
 QString Colormap::getPreferencesId() const {
@@ -245,44 +272,9 @@ void Colormap::_initializeStatics(){
     }
 }
 
-void Colormap::clear(){
-    m_linkImpl->clear();
-}
 
 
 
-QString Colormap::_commandInvertColorMap( const QString& params ){
-    QString result;
-    std::set<QString> keys = {INVERT};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString invertStr = dataValues[*keys.begin()];
-    bool validBool = false;
-    bool invert = Util::toBool( invertStr, &validBool );
-    if ( validBool ){
-        result = invertColorMap( invert );
-    }
-    else {
-        result = "Invert color map parameters must be true/false: "+params;
-    }
-    Util::commandPostProcess( result );
-    return result;
-}
-
-QString Colormap::reverseColorMap( bool reverse ){
-    QString result;
-    bool oldReverse = m_state.getValue<bool>(REVERSE);
-    if ( reverse != oldReverse ){
-        m_state.setValue<bool>(REVERSE, reverse );
-        m_state.flushState();
-        int linkCount = m_linkImpl->getLinkCount();
-        for( int i = 0; i < linkCount; i++ ){
-            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-            controller -> setColorReversed( reverse );
-        }
-        emit colorMapChanged( this );
-    }
-    return result;
-}
 
 bool Colormap::isReversed() const {
     return m_state.getValue<bool>( REVERSE );
@@ -396,22 +388,28 @@ Controller* Colormap::getControllerSelected() const {
     return target;
 }
 
-bool Colormap::_setColorMix( const QString& key, double colorPercent, QString& errorMsg ){
-    bool colorChanged = false;
-    if ( colorPercent<0 || colorPercent > 1 ){
-        errorMsg = errorMsg + key + " mix must be in [0,1]. ";
-    }
-    else {
-        double oldColorPercent = m_state.getValue<double>( key );
-        if ( abs( colorPercent - oldColorPercent ) >= 0.001f ){
-            m_state.setValue<double>(key, colorPercent );
-            colorChanged = true;
-        }
-    }
-    return colorChanged;
+
+void Colormap::refreshState(){
+    CartaObject::refreshState();
+    m_settings->refreshState();
+    m_linkImpl->refreshState();
 }
 
-
+QString Colormap::reverseColorMap( bool reverse ){
+    QString result;
+    bool oldReverse = m_state.getValue<bool>(REVERSE);
+    if ( reverse != oldReverse ){
+        m_state.setValue<bool>(REVERSE, reverse );
+        m_state.flushState();
+        int linkCount = m_linkImpl->getLinkCount();
+        for( int i = 0; i < linkCount; i++ ){
+            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+            controller -> setColorReversed( reverse );
+        }
+        emit colorMapChanged( this );
+    }
+    return result;
+}
 
 QString Colormap::removeLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
@@ -427,6 +425,21 @@ QString Colormap::removeLink( CartaObject* cartaObject ){
         result = "Color map could not remove link; only links to images supported.";
     }
     return result;
+}
+
+bool Colormap::_setColorMix( const QString& key, double colorPercent, QString& errorMsg ){
+    bool colorChanged = false;
+    if ( colorPercent<0 || colorPercent > 1 ){
+        errorMsg = errorMsg + key + " mix must be in [0,1]. ";
+    }
+    else {
+        double oldColorPercent = m_state.getValue<double>( key );
+        if ( abs( colorPercent - oldColorPercent ) >= 0.001f ){
+            m_state.setValue<double>(key, colorPercent );
+            colorChanged = true;
+        }
+    }
+    return colorChanged;
 }
 
 QString Colormap::setColorMap( const QString& colorMapStr ){
@@ -498,15 +511,8 @@ QString Colormap::setDataTransform( const QString& transformString ){
     return result;
 }
 
-QList<QString> Colormap::getLinks() const {
-    return m_linkImpl->getLinkIds();
-}
 
-void Colormap::refreshState(){
-    CartaObject::refreshState();
-    m_settings->refreshState();
-    m_linkImpl->refreshState();
-}
+
 
 void Colormap::_setColorProperties( Controller* target ){
     target->setColorMap( m_state.getValue<QString>(COLOR_MAP_NAME));

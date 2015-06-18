@@ -1,6 +1,6 @@
 #include "Animator.h"
 #include "Data/Selection.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "CartaLib/CartaLib.h"

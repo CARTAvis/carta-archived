@@ -1,19 +1,24 @@
 #include "DataSource.h"
-#include "Colormap/Colormaps.h"
+#include "DataGrid.h"
+#include "ImageGridServiceSynchronizer.h"
+#include "Data/Colormap/Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
-#include "Util.h"
-#include "Colormap/TransformsData.h"
+#include "Data/Util.h"
+#include "Data/Colormap/TransformsData.h"
+#include "CartaLib/Hooks/GetWcsGridRenderer.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
-#include "../ImageRenderService.h"
-#include "../ScriptedRenderService.h"
-#include "../Algorithms/quantileAlgorithms.h"
+#include "../../ImageRenderService.h"
+#include "../../ScriptedRenderService.h"
+#include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QDir>
 #include <QImageWriter>
+#include <QTime>
 
 namespace Carta {
 
@@ -22,15 +27,29 @@ namespace Data {
 const QString DataSource::DATA_PATH = "dataPath";
 
 DataSource::DataSource() :
-    m_image( nullptr )
+    m_image( nullptr ),
+    m_wcsGridRenderer( nullptr ),
+    m_igSync( nullptr )
     {
         m_cmapUseCaching = true;
         m_cmapUseInterpolatedCaching = true;
         m_cmapCacheSize = 1000;
 
+        //Initialize the rendering service
         m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
-        connect( m_renderService.get(), & Carta::Core::ImageRenderService::Service::done,
-                 this, & DataSource::_renderingDone);
+
+        Carta::State::CartaObject* gridObj = Util::createObject( DataGrid::CLASS_NAME );
+        m_dataGrid.reset( dynamic_cast<DataGrid*>(gridObj) );
+        m_dataGrid->_initializeGridRenderer();
+
+        m_wcsGridRenderer = m_dataGrid->_getRenderer();
+
+        // create the synchronizer
+        m_igSync.reset( new ImageGridServiceSynchronizer( m_renderService, m_wcsGridRenderer, this ) );
+
+        // connect its done() slot to our imageAndGridDoneSlot()
+        connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
+                 this, & DataSource::imageAndGridDoneSlot );
 
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
@@ -132,6 +151,19 @@ QPointF DataSource::getImagePt( QPointF screenPt, bool* valid ) const {
     }
     return imagePt;
 }
+
+QString DataSource::getPixelValue( double x, double y ){
+    QString pixelValue = "";
+    if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
+        NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
+        if ( rawData != nullptr ){
+            NdArray::TypedView<double> view( rawData, false );
+            pixelValue = QString::number( view.get( {(int)(x), int(y)} ) );
+        }
+    }
+    return pixelValue;
+}
+
 
 QPointF DataSource::getScreenPt( QPointF imagePt, bool* valid ) const {
     QPointF screenPt;
@@ -246,6 +278,19 @@ double DataSource::getPercentile( int frameLow, int frameHigh, double intensity 
     return percentile;
 }
 
+QStringList DataSource::getPixelCoordinates( double ra, double dec ){
+    QStringList result("");
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    const CoordinateFormatterInterface::VD world { ra, dec };
+    CoordinateFormatterInterface::VD pixel;
+    bool valid = cf->toPixel( world, pixel );
+    if ( valid ){
+        result = QStringList( QString::number( pixel[0] ) );
+        result.append( QString::number( pixel[1] ) );
+    }
+    return result;
+}
+
 NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int channelEnd ) const {
     NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
@@ -281,6 +326,15 @@ QSize DataSource::getOutputSize() const {
     return m_renderService-> outputSize();
 }
 
+void DataSource::gridChanged( const Carta::State::StateInterface& state ){
+    bool stateChanged = m_dataGrid->_resetState( state );
+    qDebug() << "DataSource::Grid state changed "<<stateChanged;
+    if ( stateChanged ){
+        qDebug() << "Data source calling render";
+        render();
+    }
+}
+
 void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
 
     if ( frameIndex < 0 ) {
@@ -310,17 +364,84 @@ void DataSource::load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double 
     // tell the render service to render this job
     QString argStr = QString( "%1//%2").arg(m_fileName).arg(frameIndex);
     m_renderService-> setInputView( view, argStr);
+    // if grid is active, request a grid rendering as well
+
+    if ( m_wcsGridRenderer ) {
+        m_wcsGridRenderer-> setInputImage( m_image );
+    }
     render();
 
 }
 
 void DataSource::render(){
-    m_renderService-> render( 0 );
+    //m_renderService-> render( 0 );
+    // erase current grid
+
+    auto renderSize = m_renderService-> outputSize();
+    m_wcsGridRenderer-> setOutputSize( renderSize );
+
+    int leftMargin = 50;
+    int rightMargin = 10;
+    int bottomMargin = 50;
+    int topMargin = 10;
+
+    QRectF outputRect( leftMargin, topMargin,
+                       renderSize.width() - leftMargin - rightMargin,
+                       renderSize.height() - topMargin - bottomMargin );
+    QRectF inputRect(
+        m_renderService-> screen2img( outputRect.topLeft() ),
+        m_renderService-> screen2img( outputRect.bottomRight() ) );
+
+    m_wcsGridRenderer-> setImageRect( inputRect );
+    m_wcsGridRenderer-> setOutputRect( outputRect );
+
+    m_igSync-> start();
 }
 
-void DataSource::_renderingDone( QImage img, int64_t jobId ){
-    Q_UNUSED( jobId );
-    emit renderingDone( img );
+
+
+void DataSource::imageAndGridDoneSlot(
+        QImage image,
+        Carta::Lib::VectorGraphics::VGList vgList,
+        int64_t /*jobId*/){
+    /// \todo we should make sure the jobId matches the last submitted job...
+    qDebug() << "Image and grid done slot";
+
+    m_qimage = image;
+    // draw the grid over top
+    QTime t;
+    t.restart();
+    QPainter painter( & m_qimage );
+    painter.setRenderHint( QPainter::Antialiasing, true );
+    Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
+    if ( ! vgRenderer.render( vgList, painter ) ) {
+        qWarning() << "could not render grid vector graphics";
+    }
+
+    // schedule a repaint with the connector
+    emit renderingDone( m_qimage );
+
+}
+
+
+
+void DataSource::saveFullImage( const QString& savename, int width, int height, double scale,
+        const Qt::AspectRatioMode aspectRatioMode ){
+    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
+    if ( width > 0 && height > 0 ) {
+        m_scriptedRenderService->setOutputSize( QSize( width, height ) );
+        m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
+    }
+    m_scriptedRenderService->setZoom( scale );
+
+    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::saveImageResultCB );
+
+    m_scriptedRenderService->saveFullImage();
+}
+
+void DataSource::saveImageResultCB( bool result ){
+    emit saveImageResult( result );
+    m_scriptedRenderService->deleteLater();
 }
 
 bool DataSource::setFileName( const QString& fileName ){
@@ -416,6 +537,12 @@ void DataSource::setGamma( double gamma ){
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
+
+
+
+
+
+
 void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
         double minClipPercentile, double maxClipPercentile ){
     std::vector<double> clips = m_quantileCache[ frameIndex];
@@ -446,48 +573,6 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, const Qt::AspectRatioMode aspectRatioMode ){
-    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
-    if ( width > 0 && height > 0 ) {
-        m_scriptedRenderService->setOutputSize( QSize( width, height ) );
-        m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
-    }
-    m_scriptedRenderService->setZoom( scale );
-
-    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::saveImageResultCB );
-
-    m_scriptedRenderService->saveFullImage();
-}
-
-void DataSource::saveImageResultCB( bool result ){
-    emit saveImageResult( result );
-    m_scriptedRenderService->deleteLater();
-}
-
-QStringList DataSource::getPixelCoordinates( double ra, double dec ){
-    QStringList result("");
-    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
-    const CoordinateFormatterInterface::VD world { ra, dec };
-    CoordinateFormatterInterface::VD pixel;
-    bool valid = cf->toPixel( world, pixel );
-    if ( valid ){
-        result = QStringList( QString::number( pixel[0] ) );
-        result.append( QString::number( pixel[1] ) );
-    }
-    return result;
-}
-
-QString DataSource::getPixelValue( double x, double y ){
-    QString pixelValue = "";
-    if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
-        NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
-        if ( rawData != nullptr ){
-            NdArray::TypedView<double> view( rawData, false );
-            pixelValue = QString::number( view.get( {x, y} ) );
-        }
-    }
-    return pixelValue;
-}
 
 DataSource::~DataSource() {
 

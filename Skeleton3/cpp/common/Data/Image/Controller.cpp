@@ -1,9 +1,11 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
-#include "Data/Controller.h"
+#include "Controller.h"
+#include "GridControls.h"
+#include "ImageSettings.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/Colormap.h"
-#include "Data/DataSource.h"
+#include "DataSource.h"
 #include "Data/Histogram/Histogram.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
@@ -79,6 +81,13 @@ Controller::Controller( const QString& path, const QString& id ) :
 
      registerView(m_view.get());
      connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_viewResize(const QSize&)));
+
+     Carta::State::CartaObject* gridObj = Util::createObject( GridControls::CLASS_NAME );
+     m_gridControls.reset(dynamic_cast<GridControls*>(gridObj) );
+     connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&)), this, SLOT(_gridChanged( const Carta::State::StateInterface& )));
+
+     Carta::State::CartaObject* settingsObj = Util::createObject( ImageSettings::CLASS_NAME );
+     m_settings.reset(dynamic_cast<ImageSettings*>(settingsObj) );
 
      //Load the view.
      _scheduleFrameReload();
@@ -269,6 +278,14 @@ std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller
     return pipeline;
 }
 
+QString Controller::getPreferencesId() const {
+    QString id;
+    if ( m_settings.get() != nullptr ){
+        id = m_settings->getPath();
+    }
+    return id;
+}
+
 int Controller::getStackedImageCount() const {
     return m_selectImage->getUpperBound();
 }
@@ -332,6 +349,24 @@ QString Controller::getType(CartaObject::SnapshotType snapType) const {
         objType = objType + Carta::State::StateInterface::STATE_DATA;
     }
     return objType;
+}
+
+void Controller::_gridChanged( const StateInterface& state ){
+    int imageIndex = 0;
+    if (m_selectImage != nullptr) {
+        imageIndex = m_selectImage->getIndex();
+    }
+    qDebug()<<"imageIndex="<<imageIndex<<" dataCount="<<m_datas.size();
+
+    if (imageIndex >= 0 && imageIndex < m_datas.size()) {
+        if (m_datas[imageIndex] != nullptr) {
+            qDebug() << "Controller telling data state gridChanged";
+            m_datas[imageIndex]->gridChanged( state );
+        }
+    }
+    else {
+        qDebug() <<"Controller_gridChanged problem with index";
+    }
 }
 
 void Controller::_initializeCallbacks(){
@@ -417,6 +452,22 @@ void Controller::_initializeCallbacks(){
         }
         return "";
     });
+
+    addCommandCallback( "registerGridControls", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        QString result;
+        if ( m_gridControls.get() != nullptr ){
+            result = m_gridControls->getPath();
+        }
+        qDebug() << "Registered grid controls: "<<result;
+        return result;
+    });
+
+    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
+                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                        QString result = getPreferencesId();
+                        return result;
+        });
 
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -565,7 +616,7 @@ void Controller::_render(){
     }
 }
 
-void Controller::_renderingDone( QImage img ){
+void Controller::_renderingDone( QImage img){
     _scheduleFrameRepaint( img );
 }
 
@@ -667,7 +718,8 @@ void Controller::_scheduleFrameRepaint( const QImage& img ){
         if ( m_repaintFrameQueued ) {
             return;
         }
-        m_view->resetImage( img );
+
+        m_view->resetImage( img);
         m_repaintFrameQueued = true;
         QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     }

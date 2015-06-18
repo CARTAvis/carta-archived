@@ -4,12 +4,13 @@
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/Colormap/Colormaps.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
+#include "Data/Image/CoordinateSystems.h"
 #include "Data/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
 #include "Data/Colormap/TransformsImage.h"
-#include "Data/ErrorManager.h"
+#include "Data/Error/ErrorManager.h"
 #include "Data/Histogram/Histogram.h"
 #include "Data/ILinkable.h"
 #include "Data/Layout/Layout.h"
@@ -68,6 +69,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject( ErrorManager::CLASS_NAME );
     Util::findSingletonObject( Preferences::CLASS_NAME );
     Util::findSingletonObject( ChannelUnits::CLASS_NAME );
+    Util::findSingletonObject( CoordinateSystems::CLASS_NAME );
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();

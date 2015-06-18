@@ -19,7 +19,7 @@ namespace Carta {
 namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits",
-        "Clips", "Colormaps","DataLoader","TransformsImage","TransformsData",
+        "Clips", "Colormaps","CoordinateSystems","DataLoader","Fonts","TransformsImage","TransformsData",
         "ErrorManager","Layout","Preferences","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
@@ -31,7 +31,7 @@ QString CartaObject::addIdToCommand (const QString & command) const {
 }
 
 QString CartaObject::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
-    return "";
+    return m_state.toString();
 }
 
 

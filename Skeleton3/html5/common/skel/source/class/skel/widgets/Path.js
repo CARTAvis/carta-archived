@@ -12,8 +12,10 @@ qx.Class.define("skel.widgets.Path", {
         this.CHANNEL_UNITS = this.BASE_PATH + "ChannelUnits";
         this.CLIPS = this.BASE_PATH + "Clips";
         this.COLORMAPS = this.BASE_PATH + "Colormaps";
+        this.COORDINATE_SYSTEMS = this.BASE_PATH + "CoordinateSystems";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
+        this.FONTS = this.BASE_PATH + "Fonts";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
@@ -27,7 +29,9 @@ qx.Class.define("skel.widgets.Path", {
     },
     
     statics : {
-        CHANGE_VALUE : "changeValue"
+        CHANGE_VALUE : "changeValue",
+        HORIZONTAL : "horizontal",
+        VERTICAL : "vertical"
     },
     
     members : {
@@ -44,9 +48,11 @@ qx.Class.define("skel.widgets.Path", {
         CLOSE_IMAGE : "closeImage",
         COLORMAP_PLUGIN : "Colormap",
         COLORMAPS : "",
+        COORDINATE_SYSTEMS : "",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         ERROR_HANDLER : "",
+        FONTS : "",
         GRID_PLUGIN : "GridControls",
         HIDDEN : "Hidden",
         HISTOGRAM_PLUGIN : "Histogram",

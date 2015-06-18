@@ -8,7 +8,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "Data/IColoredView.h"
-
+#include "CartaLib/VectorGraphics/VGList.h"
 #include <QImage>
 #include <memory>
 
@@ -23,32 +23,25 @@ namespace Image {
 class CoordinateFormatterInterface;
 
 namespace Carta {
-    namespace Lib {
-        namespace PixelPipeline {
-            class CustomizablePixelPipeline;
-        }
+namespace Lib {
+    class IWcsGridRenderService;
+    namespace PixelPipeline {
+        class CustomizablePixelPipeline;
     }
 }
-
-namespace Carta {
-    namespace Core {
-        namespace ImageRenderService {
-            class Service;
-        }
+namespace Core {
+    namespace ImageRenderService {
+        class Service;
+    }
+    namespace ScriptedClient {
+        class ScriptedRenderService;
     }
 }
-
-namespace Carta {
-    namespace Core {
-        namespace ScriptedClient {
-            class ScriptedRenderService;
-        }
-    }
-}
-
-namespace Carta {
 
 namespace Data {
+
+class ImageGridServiceSynchronizer;
+class DataGrid;
 
 class DataSource : public QObject, public IColoredView {
 
@@ -180,6 +173,8 @@ public:
      * @return the image viewer dimensions.
      */
     QSize getOutputSize() const;
+    
+    void gridChanged( const Carta::State::StateInterface& state );
 
     /**
      * Set the center for this image's display.
@@ -298,7 +293,12 @@ signals:
 private slots:
 
     //Notification from the rendering service that a new image has been produced.
-    void _renderingDone( QImage img, int64_t jobId );
+    //void _renderingDone( QImage img, int64_t jobId );
+
+    void imageAndGridDoneSlot( QImage image,
+                          Carta::Lib::VectorGraphics::VGList vgList,
+                          int64_t jobId );
+
 
     // Asynchronous result from saveFullImage().
     void saveImageResultCB( bool result );
@@ -314,6 +314,7 @@ private:
     NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
 
     void _initializeState();
+
 
     void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
             double minClipPercentile, double maxClipPercentile );
@@ -336,13 +337,21 @@ private:
     std::vector< std::vector<double> > m_quantileCache;
 
     /// the rendering service
-    std::unique_ptr<Carta::Core::ImageRenderService::Service> m_renderService;
+    std::shared_ptr<Carta::Core::ImageRenderService::Service> m_renderService;
+    
+    /// wcs grid render service
+    std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_wcsGridRenderer;
+
+     /// image-and-grid-service result synchronizer
+    std::unique_ptr<ImageGridServiceSynchronizer> m_igSync;
+    
+    std::unique_ptr<DataGrid> m_dataGrid;
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
 
     Carta::Core::ScriptedClient::ScriptedRenderService *m_scriptedRenderService;
-    
+    QImage m_qimage;
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);
 };

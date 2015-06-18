@@ -3,7 +3,7 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator/Animator.h"
 #include "Data/Animator/AnimatorType.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Util.h"

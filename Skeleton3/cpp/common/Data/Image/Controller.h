@@ -31,8 +31,9 @@ namespace Carta {
 
 namespace Carta {
 namespace Data {
-
 class DataSource;
+class GridControls;
+class ImageSettings;
 class Region;
 class RegionRectangle;
 class Selection;
@@ -248,6 +249,10 @@ public:
      */
     QStringList getOutputSize( );
 
+
+    QString getPreferencesId() const;
+
+
     /**
      * Return a count of the number of images in the stack.
      * @return the number of images in the stack.
@@ -300,6 +305,8 @@ protected:
     virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
+
+    void _gridChanged( const Carta::State::StateInterface& state );
 
     //Refresh the view based on the latest data selection information.
     void _loadView();
@@ -374,9 +381,14 @@ private:
     //Data View
     std::shared_ptr<ImageView> m_view;
 
+    std::unique_ptr<GridControls> m_gridControls;
+
+
+    std::unique_ptr<ImageSettings> m_settings;
+
+
     //Data available to and managed by this controller.
     QList<DataSource* > m_datas;
-
 
 
     QList<Region* > m_regions;
