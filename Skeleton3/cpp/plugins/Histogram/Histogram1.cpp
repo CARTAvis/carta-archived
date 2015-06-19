@@ -50,66 +50,76 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
         CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
         if ( ptr1 ){
             if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
-                casa::ImageInterface<casa::Float> * casaImage =
-                        dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
-                casa::CoordinateSystem cSys = casaImage->coordinates();
-                casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL);
-                if ( specAx >= 0 ){
-                    casa::IPosition imgShape = casaImage->shape();
-                    int maxChannel = imgShape[specAx] - 1;
-                    casa::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
+                casa::ImageInterface<casa::Float> * casaImage = nullptr;
+                #ifndef Q_OS_MAC
+                    casaImage = dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                #else
+                    casaImage = static_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                #endif
+                if( casaImage != nullptr)
+                {
+                    casa::CoordinateSystem cSys = casaImage->coordinates();
+                    casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL);
+                    if ( specAx >= 0 ){
+                        casa::IPosition imgShape = casaImage->shape();
+                        int maxChannel = imgShape[specAx] - 1;
+                        casa::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
 
-                    //Minimum frequency
-                    casa::MVFrequency minMV(casa::Quantity(0, units.c_str()));
-                    specCoord.toWorld(minMV, 0 );
-                    casa::Quantity minQuantity = minMV.get( units.c_str() );
-                    double lowBound = minQuantity.getValue();
+                        //Minimum frequency
+                        casa::MVFrequency minMV(casa::Quantity(0, units.c_str()));
+                        specCoord.toWorld(minMV, 0 );
+                        casa::Quantity minQuantity = minMV.get( units.c_str() );
+                        double lowBound = minQuantity.getValue();
 
-                    //Maximum frequency
-                    casa::MVFrequency maxMV( casa::Quantity(0, units.c_str()));
-                    specCoord.toWorld(maxMV, maxChannel);
-                    casa::Quantity maxQuantity = maxMV.get( units.c_str());
-                    double highBound = maxQuantity.getValue();
+                        //Maximum frequency
+                        casa::MVFrequency maxMV( casa::Quantity(0, units.c_str()));
+                        specCoord.toWorld(maxMV, maxChannel);
+                        casa::Quantity maxQuantity = maxMV.get( units.c_str());
+                        double highBound = maxQuantity.getValue();
 
-                    if ( highBound < lowBound ){
-                        double tmp = lowBound;
-                        lowBound = highBound;
-                        highBound = tmp;
-                    }
-                    double frequencyMin = freqMin;
-                    double frequencyMax = freqMax;
-                    if ( frequencyMin < lowBound ){
+                        if ( highBound < lowBound ){
+                            double tmp = lowBound;
+                            lowBound = highBound;
+                            highBound = tmp;
+                        }
+                        double frequencyMin = freqMin;
+                        double frequencyMax = freqMax;
+                        if ( frequencyMin < lowBound ){
                         frequencyMin = lowBound;
-                    }
-                    if ( frequencyMax > highBound ){
-                        frequencyMax = highBound;
-                    }
+                        }
+                        if ( frequencyMax > highBound ){
+                            frequencyMax = highBound;
+                        }
 
-                    //Lower bound
-                    casa::Quantity freqQuantity( frequencyMin, units.c_str());
-                    casa::MVFrequency mvFreq( freqQuantity );
-                    casa::Double pixel = -1;
-                    casa::Bool result = specCoord.toPixel( pixel, mvFreq );
-                    if ( result ){
-                        channelLow = qRound( pixel );
-                        if ( channelLow > maxChannel ){
-                            channelLow = maxChannel;
+                        //Lower bound
+                        casa::Quantity freqQuantity( frequencyMin, units.c_str());
+                        casa::MVFrequency mvFreq( freqQuantity );
+                        casa::Double pixel = -1;
+                        casa::Bool result = specCoord.toPixel( pixel, mvFreq );
+                        if ( result ){
+                            channelLow = qRound( pixel );
+                            if ( channelLow > maxChannel ){
+                                channelLow = maxChannel;
+                            }
+                        }
+
+                        casa::Quantity freqQuantityMax( frequencyMax, units.c_str());
+                        casa::MVFrequency mvFreqMax( freqQuantityMax );
+                        casa::Double pixelMax = -1;
+                        casa::Bool result2 = specCoord.toPixel( pixelMax, mvFreqMax );
+                        if ( result2 ){
+                            channelHigh = qRound( pixelMax );
+                            if ( channelHigh > maxChannel ){
+                                channelHigh = maxChannel;
+                            }
                         }
                     }
-
-                    casa::Quantity freqQuantityMax( frequencyMax, units.c_str());
-                    casa::MVFrequency mvFreqMax( freqQuantityMax );
-                    casa::Double pixelMax = -1;
-                    casa::Bool result2 = specCoord.toPixel( pixelMax, mvFreqMax );
-                    if ( result2 ){
-                        channelHigh = qRound( pixelMax );
-                        if ( channelHigh > maxChannel ){
-                            channelHigh = maxChannel;
-                        }
+                    else {
+                        qWarning() << "Image did not have a spectral coordinate";
                     }
                 }
                 else {
-                    qWarning() << "Image did not have a spectral coordinate";
+                    qWarning() << "casaImage is nullptr, casting failed";
                 }
 
             }
@@ -145,45 +155,55 @@ std::pair<double,double> Histogram1::_getFrequencyBounds( int channelMin, int ch
         CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
         if ( ptr1 ){
             if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
-                casa::ImageInterface<casa::Float> * casaImage =
-                        dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
-                casa::CoordinateSystem cSys = casaImage->coordinates();
-                casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL);
-                if ( specAx >= 0 ){
-                    casa::IPosition imgShape = casaImage->shape();
-                    int channelLow = 0;
-                    int channelHigh = imgShape[specAx] - 1;
-                    casa::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
-                    int chanMin = channelMin;
-                    int chanMax = channelMax;
-                    if ( chanMin < channelLow ){
-                        chanMin = channelLow;
-                    }
-                    if ( chanMax > channelHigh ){
-                        chanMax = channelHigh;
-                    }
+                casa::ImageInterface<casa::Float> * casaImage = nullptr;
+                #ifndef Q_OS_MAC
+                    casaImage = dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                #else
+                    casaImage = static_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                #endif
+                if(casaImage != nullptr)
+                {    
+                    casa::CoordinateSystem cSys = casaImage->coordinates();
+                    casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL);
+                    if ( specAx >= 0 ){
+                        casa::IPosition imgShape = casaImage->shape();
+                        int channelLow = 0;
+                        int channelHigh = imgShape[specAx] - 1;
+                        casa::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
+                        int chanMin = channelMin;
+                        int chanMax = channelMax;
+                        if ( chanMin < channelLow ){
+                            chanMin = channelLow;
+                        }
+                        if ( chanMax > channelHigh ){
+                            chanMax = channelHigh;
+                        }
 
-                    //Lower bound
-                    casa::Quantity freqQuantity( 0, units.c_str());
-                    casa::MVFrequency mvFreq( freqQuantity );
-                    casa::Double pixel = chanMin;
-                    casa::Bool result = specCoord.toWorld( mvFreq, pixel );
-                    if ( result ){
-                        casa::Quantity freqLowQuantity = mvFreq.get( units.c_str() );
-                        freqLow = freqLowQuantity.getValue();
-                    }
+                        //Lower bound
+                        casa::Quantity freqQuantity( 0, units.c_str());
+                        casa::MVFrequency mvFreq( freqQuantity );
+                        casa::Double pixel = chanMin;
+                        casa::Bool result = specCoord.toWorld( mvFreq, pixel );
+                        if ( result ){
+                            casa::Quantity freqLowQuantity = mvFreq.get( units.c_str() );
+                            freqLow = freqLowQuantity.getValue();
+                        }
 
-                    casa::Quantity freqQuantityMax( 0, units.c_str() );
-                    casa::MVFrequency mvFreqMax( freqQuantityMax );
-                    casa::Double pixelMax = chanMax;
-                    casa::Bool result2 = specCoord.toWorld( mvFreqMax, pixelMax );
-                    if ( result2 ){
-                        casa::Quantity freqHighQuantity = mvFreqMax.get( units.c_str() );
-                        freqHigh = freqHighQuantity.getValue();
+                        casa::Quantity freqQuantityMax( 0, units.c_str() );
+                        casa::MVFrequency mvFreqMax( freqQuantityMax );
+                        casa::Double pixelMax = chanMax;
+                        casa::Bool result2 = specCoord.toWorld( mvFreqMax, pixelMax );
+                        if ( result2 ){
+                            casa::Quantity freqHighQuantity = mvFreqMax.get( units.c_str() );
+                            freqHigh = freqHighQuantity.getValue();
+                        }
+                    }
+                    else {
+                        qWarning() << "Image did not have a spectral coordinate";
                     }
                 }
                 else {
-                    qWarning() << "Image did not have a spectral coordinate";
+                    qWarning() << "casaImage is nullptr, casting failed";
                 }
 
             }
@@ -230,11 +250,16 @@ bool Histogram1::handleHook( BaseHook & hookData ){
 
             if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
 
-                casa::ImageInterface<casa::Float> * casaImage =
-                        dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                casa::ImageInterface<casa::Float> * casaImage = nullptr;
+                #ifndef Q_OS_MAC
+                    casaImage = dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                #else
+                    casaImage = static_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
+                #endif
                 ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
                 m_histogram.reset( hist );
-                hist->setImage( casaImage );
+                if( casaImage != nullptr)
+                    hist->setImage( casaImage );
             }
         }
 

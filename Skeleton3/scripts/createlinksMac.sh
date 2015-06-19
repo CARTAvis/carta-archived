@@ -44,8 +44,9 @@ ln -s ${QOOXDOO35LOCATION} qooxdoo-sdk
 # libfistio  installation location
 # do not change is unless you ibstalled it in your own directory
 #
-rmsymlink cfitsio-shared
 mkdir -p cfitsio-shared
+rmsymlink cfitsio-3360-shared
+ln -s ./cfitsio-shared ./cfitsio-3360-shared
 export CFITSIO_INCLUDE=/usr/local/opt/cfitsio/include
 export CFITSIO_LIB=/usr/local/opt/cfitsio/lib
 
@@ -58,8 +59,9 @@ ln -s $CFITSIO_INCLUDE cfitsio-shared/include
 # wcslib  installation location
 # do not change is unless you ibstalled it in your own directory
 #
-rmsymlink wcslib-shared
 mkdir -p wcslib-shared
+rmsymlink wcslib-4.23-shared
+ln -s wcslib-shared ./wcslib-4.23-shared
 export LIBWCS_INCLUDE=/usr/local/opt/wcslib/include
 export LIBWCS_LIB=/usr/local/opt/wcslib/lib
 
@@ -81,12 +83,23 @@ rmsymlink pureweb-4.1.1-sdk
 ln -s $PUREWEBSDK pureweb-4.1.1-sdk
 
 # CASACORE installation directories
-rmsymlink  casacore-shared
 mkdir -p casacore-shared
+rmsymlink casacore-2.0.1-shared 
+ln -s casacore-shared ./casacore-2.0.1-shared
 
-export CASACORE_INCLUDE=/usr/local/opt/casacore/include
-export CASACORE_LIB=/usr/local/opt/casacore/lib
+export CASACORE=/opt/packages/casacore-2.0.1
 rmsymlink  casacore-shared/include
 rmsymlink  casacore-shared/lib
-ln -s $CASACORE_INCLUDE ./casacore-shared/include 
-ln -s $CASACORE_LIB ./casacore-shared/lib
+ln -s $CASACORE/include ./casacore-shared/include 
+ln -s $CASACORE/lib ./casacore-shared/lib
+
+
+# AST installation directories
+mkdir -p ast
+rmsymlink ast-8.0.2
+ln -s ast ./ast-8.0.2
+export AST=/usr/local
+rmsymlink  ast/include
+rmsymlink  ast/lib
+ln -s $AST/include ./ast/include
+ln -s $AST/lib ./ast/lib

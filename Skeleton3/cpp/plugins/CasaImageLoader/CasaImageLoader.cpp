@@ -37,6 +37,7 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
     else if( hookData.is<LoadAstroImage>()) {
         LoadAstroImage & hook = static_cast<LoadAstroImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
+		qDebug() << fname;
         hook.result = loadImage( fname);
         // return true if result is not null
         return hook.result != nullptr;
