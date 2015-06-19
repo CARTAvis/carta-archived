@@ -101,11 +101,11 @@ public:
     /**
      * Set a color mix.
      * @param redValue a number in [0,1] representing the amount of red in the mix.
-     * @param blueValue a number in [0,1] representing the amount of blue in the mix.
      * @param greenValue a number in [0,1] representing the amount of green in the mix.
+     * @param blueValue a number in [0,1] representing the amount of blue in the mix.
      * @return error information if the color mix was not successfully set.
      */
-    QString setColorMix( double redValue, double blueValue, double greenValue );
+    QString setColorMix( double redValue, double greenValue, double blueValue );
 
     /**
      * Set the name of the data transform.
@@ -150,6 +150,7 @@ private:
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
+    QString _commandSetDataTransform( const QString& transformString );
 
     bool _setColorMix( const QString& key, double colorPercent, QString& errorMsg );
     void _initializeDefaultState();

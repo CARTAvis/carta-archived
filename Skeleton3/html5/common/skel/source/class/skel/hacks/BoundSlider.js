@@ -45,7 +45,11 @@ qx.Class.define( "skel.hacks.BoundSlider", {
             if( this.m_ignoreSharedVarCB) return;
             var newValue = this.m_config.val2slider( Number(val));
             this.m_ignoreChangeValueCB = true;
-            this.setValue( newValue);
+            try {
+                this.setValue( newValue);
+            } catch ( err) {
+                console.warn( err);
+            }
             this.m_ignoreChangeValueCB = false;
         },
 

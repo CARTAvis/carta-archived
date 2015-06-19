@@ -149,9 +149,9 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the pixel to center on.
-        y: integer
+        y: float
             The y value of the pixel to center on.
         z: integer
             The z value of the pixel to center on.
@@ -183,11 +183,11 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the pixel to center on.
-        y: integer
+        y: float
             The y value of the pixel to center on.
-        radius: integer
+        radius: float
             The desired distance, in pixels, from the center pixel to
             the edge of the window.
         dim: string
@@ -228,9 +228,15 @@ class Image(CartaView):
         iDim = self.getImageDimensions()
         if (iDim[0] != "error" and oDim[0] != "error"):
             if (oDim[0] < oDim[1]):
-                self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[0]/2,'width')
+                self.centerWithRadius(iDim[0]/2 - 0.5,
+                                      iDim[1]/2 - 0.5,
+                                      iDim[0]/2,
+                                      'width')
             else:
-                self.centerWithRadius(iDim[0]/2,iDim[1]/2,iDim[1]/2,'height')
+                self.centerWithRadius(iDim[0]/2 - 0.5,
+                                      iDim[1]/2-0.5,
+                                      iDim[1]/2,
+                                      'height')
             return []
         else:
             return ["Could not fit image to viewer."]
@@ -244,9 +250,9 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the pixel to center on.
-        y: integer
+        y: float
             The y value of the pixel to center on.
 
         Returns
@@ -258,9 +264,9 @@ class Image(CartaView):
         oDim = self.getOutputSize()
         if (iDim[0] != "error" and oDim[0] != "error"):
             if (oDim[0] < oDim[1]):
-                self.centerWithRadius(x+0.5, y+0.5, 0.5, 'width')
+                self.centerWithRadius(x, y, 0.5, 'width')
             else:
-                self.centerWithRadius(x+0.5, y+0.5, 0.5, 'height')
+                self.centerWithRadius(x, y, 0.5, 'height')
             return []
         else:
             return ["Could not zoom to pixel ("
@@ -450,7 +456,8 @@ class Image(CartaView):
         result = 1
         dimensions = self.getImageDimensions()
         if (dimensions[0] != "error"):
-            result = dimensions[1]
+            if (len(dimensions) == 3):
+                result = dimensions[2]
         else:
             result = dimensions
         return result
@@ -530,9 +537,9 @@ class Image(CartaView):
 
         Parameters
         ----------
-        x: integer
+        x: float
             The x value of the desired pixel.
-        y: integer
+        y: float
             The y value of the desired pixel.
 
         Returns
@@ -543,4 +550,81 @@ class Image(CartaView):
         """
         result = self.con.cmdTagList("getPixelValue", imageView=self.getId(),
                                      x=x, y=y)
+        return result
+
+    def getPixelUnits(self):
+        """
+        Get the units of the pixels in the currently loaded image.
+
+        Returns
+        -------
+        list
+            The units of the pixels, or an empty string if no units are
+            defined.
+        """
+        result = self.con.cmdTagList("getPixelUnits", imageView=self.getId())
+        return result
+
+    def getCoordinates(self, x, y, system):
+        """
+        Get the coordinates at a given pixel in a given coordinate
+        system.
+
+        Parameters
+        ----------
+        x: float
+            The x value of the desired pixel.
+        y: float
+            The y value of the desired pixel.
+        system: string
+            The desired coordinate system.
+            Acceptable systems are:
+                * J2000
+                * B1950
+                * ICRS
+                * Galactic
+                * Ecliptic
+
+        Returns
+        -------
+        list
+            The x- and y-coordinates in the desired coordinate system.
+        """
+        result = self.con.cmdTagList("getCoordinates", imageView=self.getId(),
+                                     x=x, y=y, system=system)
+        return result
+
+    def getImageNames(self):
+        """
+        Returns a list of images open in this image view.
+
+        Returns
+        -------
+        list
+            The names of the images that are currently open in this
+            image view.
+        """
+        result = self.con.cmdTagList("getImageNames", imageView=self.getId())
+        imageNames = []
+        if (result[0] != ""):
+            imageNames = result
+        return imageNames
+
+    def closeImage(self, imageName):
+        """
+        Close the specified image.
+
+        Parameters
+        ----------
+        imageName: string
+            The filename of the image to close.
+
+        Returns
+        -------
+        list
+            Error information if the specified image could not be
+            closed.
+        """
+        result = self.con.cmdTagList("closeImage", imageView=self.getId(),
+                                     imageName=imageName)
         return result

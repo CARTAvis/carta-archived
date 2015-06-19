@@ -154,46 +154,19 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->reverseColorMap( colormapId, reverseString );
     }
 
-    /*else if ( cmd == "setcachecolormap" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString cacheString = args["cacheString"].toString().toLower();
-        result = m_scriptFacade->setCacheColormap( colormapId, cacheString );
-    }
-
-    else if ( cmd == "setcachesize" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString size = args["size"].toString();
-        result = m_scriptFacade->setCacheSize( colormapId, size );
-    }
-
-    else if ( cmd == "setinterpolatedcolormap" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString interpolatedString = args["interpolatedString"].toString().toLower();
-        result = m_scriptFacade->setInterpolatedColorMap( colormapId, interpolatedString );
-    }*/
-
     else if ( cmd == "invertcolormap" ) {
         QString colormapId = args["colormapId"].toString();
         QString invertString = args["invertString"].toString().toLower();
         result = m_scriptFacade->invertColorMap( colormapId, invertString );
     }
 
-    /*else if ( cmd == "setcolormix" ) {
-        QString colormapId = args["colormapId"].toString();
-        QString red = args["red"].toString();
-        QString green = args["green"].toString();
-        QString blue = args["blue"].toString();
-        QString percentString;
-        percentString = "redPercent:" + red + ",greenPercent:" + green + ",bluePercent:" + blue;
-        result = m_scriptFacade->setColorMix( colormapId, percentString );
-    }*/
     else if ( cmd == "setcolormix" ) {
-            QString colormapId = args["colormapId"].toString();
-            double red = args["red"].toDouble();
-            double green = args["green"].toDouble();
-            double blue = args["blue"].toDouble();
-            result = m_scriptFacade->setColorMix( colormapId, red, green,blue );
-        }
+        QString colormapId = args["colormapId"].toString();
+        double red = args["red"].toDouble();
+        double green = args["green"].toDouble();
+        double blue = args["blue"].toDouble();
+        result = m_scriptFacade->setColorMix( colormapId, red, green, blue );
+    }
 
     else if ( cmd == "setgamma" ) {
         QString colormapId = args["colormapId"].toString();
@@ -298,9 +271,58 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "getpixelvalue" ) {
         QString imageView = args["imageView"].toString();
-        int x = args["x"].toInt();
-        int y = args["y"].toInt();
+        double x = args["x"].toDouble();
+        double y = args["y"].toDouble();
         result = m_scriptFacade->getPixelValue( imageView, x, y );
+    }
+
+    else if ( cmd == "getpixelunits" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getPixelUnits( imageView );
+    }
+
+    else if ( cmd == "getcoordinates" ) {
+        QString imageView = args["imageView"].toString();
+        double x = args["x"].toDouble();
+        double y = args["y"].toDouble();
+        QString systemStr = args["system"].toString().toLower();
+        Carta::Lib::KnownSkyCS system;
+        if ( systemStr == "j2000" ){
+            system = Carta::Lib::KnownSkyCS::J2000;
+        }
+        else if ( systemStr == "b1950" ){
+            system = Carta::Lib::KnownSkyCS::B1950;
+        }
+        else if ( systemStr == "icrs" ){
+            system = Carta::Lib::KnownSkyCS::ICRS;
+        }
+        else if ( systemStr == "galactic" ){
+            system = Carta::Lib::KnownSkyCS::Galactic;
+        }
+        else if ( systemStr == "ecliptic" ){
+            system = Carta::Lib::KnownSkyCS::Ecliptic;
+        }
+        else {
+            system = Carta::Lib::KnownSkyCS::Error;
+        }
+        if ( system != Carta::Lib::KnownSkyCS::Error ) {
+            result = m_scriptFacade->getCoordinates( imageView, x, y, system );
+        }
+        else {
+            result = QStringList( "error" );
+            result.append( "Invalid coordinate system: " + systemStr );
+        }
+    }
+
+    else if ( cmd == "getimagenames" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getImageNames( imageView );
+    }
+
+    else if ( cmd == "closeimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->closeImage( imageView, imageName );
     }
 
     /// animator commands
@@ -455,7 +477,7 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
         int width = args["width"].toInt();
         int height = args["height"].toInt();
         double scale = args["scale"].toDouble();
-        QString aspectStr = args["aspectRatioMode"].toString();
+        QString aspectStr = args["aspectRatioMode"].toString().toLower();
         Qt::AspectRatioMode aspectRatioMode;
         if ( aspectStr == "keep" ){
             aspectRatioMode = Qt::KeepAspectRatio;

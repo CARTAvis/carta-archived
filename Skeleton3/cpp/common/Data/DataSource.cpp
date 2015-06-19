@@ -60,12 +60,12 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
     bool valid = false;
     QPointF imgPt = getImagePt( lastMouse, &valid );
     if ( valid ){
-        int imgX = imgPt.x();
-        int imgY = imgPt.y();
+        double imgX = imgPt.x();
+        double imgY = imgPt.y();
     
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
-    
+
         auto cs2str = [] ( Carta::Lib::KnownSkyCS cs) {
             switch (cs) {
             case Carta::Lib::KnownSkyCS::J2000: return "J2000"; break;
@@ -87,8 +87,9 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
         };
         out << "Default sky cs:" << cs2str( cf-> skyCS() ) << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
-        QString pixelValue = getPixelValue( imgX, imgY );
-        out << "Value:" << pixelValue << "\n";
+        QString pixelValue = getPixelValue( round(imgX), round(imgY) );
+        QString pixelUnits = getPixelUnits();
+        out << "Value:" << pixelValue << " " << pixelUnits << "\n";
     
         for ( auto cs : css ) {
             cf-> setSkyCS( cs );
@@ -104,9 +105,8 @@ QString DataSource::getCursorText( int mouseX, int mouseY, int frameIndex){
             if( pixel.size() > 2) {
                 pixel[2] = frameIndex;
             }
-            auto list = cf-> formatFromPixelCoordinate( pixel );
             for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+                out << ais[i].shortLabel().html() << ":" << getCoordinates( imgX, imgY, cs, i ) << " ";
             }
             out << "\n";
         }
@@ -453,11 +453,12 @@ void DataSource::viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, const Qt::AspectRatioMode aspectRatioMode ){
+void DataSource::saveFullImage( const QString& savename, int width, int height, double scale, int frameIndex, const Qt::AspectRatioMode aspectRatioMode ){
     m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, m_fileName );
     if ( width > 0 && height > 0 ) {
         m_scriptedRenderService->setOutputSize( QSize( width, height ) );
         m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
+        m_scriptedRenderService->setFrameIndex( frameIndex );
     }
     m_scriptedRenderService->setZoom( scale );
 
@@ -484,17 +485,32 @@ QStringList DataSource::getPixelCoordinates( double ra, double dec ){
     return result;
 }
 
-QString DataSource::getPixelValue( int x, int y ){
+QString DataSource::getPixelValue( double x, double y ){
     QString pixelValue = "";
     if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
         NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
-            // y-flipping for now until a broader fix for the y-flipping issue is implemented.
-            pixelValue = QString::number( view.get( {x, m_image->dims()[1] - y - 1} ) );
+            pixelValue = QString::number( view.get( {x, y} ) );
         }
     }
     return pixelValue;
+}
+
+QString DataSource::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ){
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    cf-> setSkyCS( system );
+    std::vector < double > pixel( m_image-> dims().size(), 0.0 );
+    pixel[0] = x;
+    pixel[1] = y;
+    auto list = cf-> formatFromPixelCoordinate( pixel );
+    QString result = list[axis];
+    return result;
+}
+
+QString DataSource::getPixelUnits() {
+    QString units = m_image->getPixelUnit().toStr();
+    return units;
 }
 
 DataSource::~DataSource() {
