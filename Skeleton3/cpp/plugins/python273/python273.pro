@@ -74,6 +74,3 @@ cythonheader.CONFIG += target_predeps no_link
 cythonheader.depends += ${QMAKE_FILE_BASE}.cpp
 
 QMAKE_EXTRA_COMPILERS += cythonheader
-
-
-
