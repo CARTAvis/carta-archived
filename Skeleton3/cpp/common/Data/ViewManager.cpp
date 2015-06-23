@@ -6,6 +6,7 @@
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
+#include "Data/Image/Themes.h"
 #include "Data/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
@@ -70,6 +71,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject( Preferences::CLASS_NAME );
     Util::findSingletonObject( ChannelUnits::CLASS_NAME );
     Util::findSingletonObject( CoordinateSystems::CLASS_NAME );
+    Util::findSingletonObject( Themes::CLASS_NAME );
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();

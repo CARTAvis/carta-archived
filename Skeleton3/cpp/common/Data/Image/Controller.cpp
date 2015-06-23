@@ -356,11 +356,9 @@ void Controller::_gridChanged( const StateInterface& state ){
     if (m_selectImage != nullptr) {
         imageIndex = m_selectImage->getIndex();
     }
-    qDebug()<<"imageIndex="<<imageIndex<<" dataCount="<<m_datas.size();
 
     if (imageIndex >= 0 && imageIndex < m_datas.size()) {
         if (m_datas[imageIndex] != nullptr) {
-            qDebug() << "Controller telling data state gridChanged";
             m_datas[imageIndex]->gridChanged( state );
         }
     }

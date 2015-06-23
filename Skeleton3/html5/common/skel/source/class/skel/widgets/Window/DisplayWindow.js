@@ -539,30 +539,32 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            this.setActive( selected );
-            if( selected) {
-                this.getChildControl("pane").addState( "winSel" );
-            }
-            else {
-            	this.getChildControl("pane").removeState( "winSel");
-            }
-            
-            //Notify window has been selected.
-            if ( !multiple && selected ) {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                    "windowSelected", this));
-            }
-            
-            //Reset the context menu based on functionality specific to this window.
-            if ( selected ){
-                if ( !multiple ){
+            if ( selected != this.isActive()){
+                this.setActive( selected );
+                if( selected) {
+                    this.getChildControl("pane").addState( "winSel" );
+                }
+                else {
+                	this.getChildControl("pane").removeState( "winSel");
+                }
+                
+                //Notify window has been selected.
+                if ( !multiple && selected ) {
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "windowSelected", this));
+                }
+                
+                //Reset the context menu based on functionality specific to this window.
+                if ( selected ){
+                    if ( !multiple ){
+                        skel.Command.Command.clearActiveWindows();
+                    }
+                    skel.Command.Command.addActiveWindow( this );
+                    this._initContextMenu();
+                }
+                else {
                     skel.Command.Command.clearActiveWindows();
                 }
-                skel.Command.Command.addActiveWindow( this );
-                this._initContextMenu();
-            }
-            else {
-                skel.Command.Command.clearActiveWindows();
             }
         },
         

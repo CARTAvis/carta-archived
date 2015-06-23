@@ -12,8 +12,6 @@ qx.Mixin.define("skel.Command.Settings.SettingsMixin", {
     
     members : {
         
-        
-        
         /**
          * Determines the active window (user show/hide settings) and notifies 
          * child commands.
@@ -24,7 +22,9 @@ qx.Mixin.define("skel.Command.Settings.SettingsMixin", {
             var activeWins = skel.Command.Command.m_activeWins;
             if ( activeWins !== null && activeWins.length > 0 ){
                 for ( var i = 0; i < activeWins.length; i++ ){
-                    if ( activeWins[i].isCmdSupported( this.getParent() ) ){
+                    var parentCmd = this.getParent();
+                    var cmdSupported = activeWins[i].isCmdSupported( this.getParent());
+                    if ( cmdSupported  ){
                         var prefs = activeWins[i].getPreferences();
                         var prefId = activeWins[i].getPreferencesId();
                         try {

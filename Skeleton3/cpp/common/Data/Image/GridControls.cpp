@@ -14,8 +14,7 @@ namespace Carta {
 namespace Data {
 
 const QString GridControls::CLASS_NAME = "GridControls";
-const QString GridControls::ALL = "allImages";
-const QString GridControls::GRID = "grid";
+const QString GridControls::ALL = "applyAll";
 
 class GridControls::Factory : public Carta::State::CartaObjectFactory {
 
@@ -43,11 +42,30 @@ GridControls::GridControls( const QString& path, const QString& id):
 
 void GridControls::_initializeDefaultState(){
     m_state.insertValue<bool>( ALL, true  );
-    m_state.insertObject( GRID, m_dataGrid->getStateString());
+    m_state.insertObject( DataGrid::GRID, m_dataGrid->getStateString());
     m_state.flushState();
 }
 
 void GridControls::_initializeCallbacks(){
+
+    addCommandCallback( "setApplyAll", [=] (const QString & /*cmd*/,
+                   const QString & params, const QString & /*sessionId*/) -> QString {
+               QString result;
+               std::set<QString> keys = {ALL};
+               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+               QString applyAllStr = dataValues[ALL];
+               bool validBool = false;
+               bool applyAll = Util::toBool( applyAllStr, &validBool );
+               if ( validBool ){
+                   setApplyAll( applyAll  );
+               }
+               else {
+                   result = "Whether or not to apply grid changes to all images must be true/false:"+params;
+               }
+               Util::commandPostProcess( result );
+               return result;
+           });
+
 
     addCommandCallback( "setAxesColor", [=] (const QString & /*cmd*/,
                                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -66,6 +84,43 @@ void GridControls::_initializeCallbacks(){
         return errors;
     });
 
+    addCommandCallback( "setAxesThickness", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+       QString result;
+       std::set<QString> keys = {DataGrid::AXES};
+       std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+       QString thicknessStr = dataValues[DataGrid::AXES];
+       bool validDouble = false;
+       double thickness = thicknessStr.toDouble( &validDouble );
+       if ( validDouble ){
+           result = setAxesThickness( thickness  );
+       }
+       else {
+           result = "Axes thickness must be a number:"+params;
+       }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setAxesTransparency", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {DataGrid::ALPHA};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString transparencyStr = dataValues[DataGrid::ALPHA];
+        bool validInt = false;
+        int transparency = transparencyStr.toInt( &validInt );
+        if ( validInt ){
+            result = setAxesTransparency( transparency );
+        }
+        else {
+            result = "Axes transparency must be an integer:"+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+
     addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
                 std::set<QString> keys = {DataGrid::COORD_SYSTEM};
@@ -81,7 +136,7 @@ void GridControls::_initializeCallbacks(){
             int redAmount = 0;
             int greenAmount = 0;
             int blueAmount = 0;
-            QStringList result = _parseColorParams( params, "Grid", &redAmount, &greenAmount, &blueAmount);
+            QStringList result = _parseColorParams( params, DataGrid::GRID, &redAmount, &greenAmount, &blueAmount);
             if ( result.size() == 0 ){
                 result = setGridColor( redAmount, greenAmount, blueAmount );
             }
@@ -158,38 +213,38 @@ void GridControls::_initializeCallbacks(){
 
     addCommandCallback( "setGridTransparency", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-                            QString result;
-                            std::set<QString> keys = {DataGrid::TRANSPARENCY};
-                            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                            QString transparencyStr = dataValues[DataGrid::TRANSPARENCY];
-                            bool validDouble = false;
-                            double transparency = transparencyStr.toDouble( &validDouble );
-                            if ( validDouble ){
-                                result = setGridTransparency( transparency );
-                            }
-                            else {
-                                result = "Grid transparency must be a number:"+params;
-                            }
-                            Util::commandPostProcess( result );
-                            return result;
-                        });
+            QString result;
+            std::set<QString> keys = {DataGrid::ALPHA};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString transparencyStr = dataValues[DataGrid::ALPHA];
+            bool validInt = false;
+            int transparency = transparencyStr.toInt( &validInt );
+            if ( validInt ){
+                result = setGridTransparency( transparency );
+            }
+            else {
+                result = "Grid transparency must be an integer:"+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setLabelColor", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-                int redAmount = 0;
-                int greenAmount = 0;
-                int blueAmount = 0;
-                QStringList result = _parseColorParams( params, "Label", &redAmount, &greenAmount, &blueAmount);
-                if ( result.size() == 0 ){
-                    result = setLabelColor( redAmount, greenAmount, blueAmount );
-                }
-                QString errors;
-                if ( result.size() > 0 ){
-                    errors = result.join( ",");
-                }
-                Util::commandPostProcess( errors );
-                return errors;
-            });
+            int redAmount = 0;
+            int greenAmount = 0;
+            int blueAmount = 0;
+            QStringList result = _parseColorParams( params, "Label", &redAmount, &greenAmount, &blueAmount);
+            if ( result.size() == 0 ){
+                result = setLabelColor( redAmount, greenAmount, blueAmount );
+            }
+            QString errors;
+            if ( result.size() > 0 ){
+                errors = result.join( ",");
+            }
+            Util::commandPostProcess( errors );
+            return errors;
+        });
 
     addCommandCallback( "setShowAxis", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -208,6 +263,25 @@ void GridControls::_initializeCallbacks(){
             Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "setShowCoordinateSystem", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                QString result;
+                std::set<QString> keys = {DataGrid::SHOW_COORDS};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString showCoordsStr = dataValues[DataGrid::SHOW_COORDS];
+                bool validBool = false;
+                bool showCoord = Util::toBool( showCoordsStr, &validBool );
+                if ( validBool ){
+                    result = setShowCoordinateSystem( showCoord );
+                }
+                else {
+                    result = "Whether or not to show the coordinate system must be true/false:"+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
+
 
     addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -244,6 +318,86 @@ void GridControls::_initializeCallbacks(){
                     Util::commandPostProcess( result );
                     return result;
                 });
+
+    addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                QString result;
+                std::set<QString> keys = {DataGrid::SHOW_TICKS};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString showTicksStr = dataValues[DataGrid::SHOW_TICKS];
+                bool validBool = false;
+                bool showTicks = Util::toBool( showTicksStr, &validBool );
+                if ( validBool ){
+                    result = setShowTicks( showTicks  );
+                }
+                else {
+                    result = "Making ticks visible/invisible must be true/false:"+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "setTickColor", [=] (const QString & /*cmd*/,
+                                           const QString & params, const QString & /*sessionId*/) -> QString {
+               int redAmount = 0;
+               int greenAmount = 0;
+               int blueAmount = 0;
+               QStringList result = _parseColorParams( params, DataGrid::TICK, &redAmount, &greenAmount, &blueAmount);
+               if ( result.size() == 0 ){
+                   result = setTickColor( redAmount, greenAmount, blueAmount );
+               }
+               QString errors;
+               if ( result.size() > 0 ){
+                   errors = result.join( ",");
+               }
+               Util::commandPostProcess( errors );
+               return errors;
+           });
+
+    addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+                        QString result;
+                        std::set<QString> keys = {DataGrid::TICK};
+                        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                        QString thicknessStr = dataValues[DataGrid::TICK];
+                        bool validDouble = false;
+                        double thickness = thicknessStr.toDouble( &validDouble );
+                        if ( validDouble ){
+                            result = setTickThickness( thickness  );
+                        }
+                        else {
+                            result = "Tick thickness must be a number:"+params;
+                        }
+                        Util::commandPostProcess( result );
+                        return result;
+                    });
+    addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
+                                        const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {DataGrid::ALPHA};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString transparencyStr = dataValues[DataGrid::ALPHA];
+            bool validInt = false;
+            int transparency = transparencyStr.toInt( &validInt );
+            if ( validInt ){
+                result = setTickTransparency( transparency );
+            }
+            else {
+                result = "Tick transparency must be an integer:"+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setTheme", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+                        std::set<QString> keys = {DataGrid::THEME};
+                        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                        QString themeStr = dataValues[DataGrid::THEME];
+                        QString result = setTheme( themeStr );
+                        Util::commandPostProcess( result );
+                        return result;
+                    });
 }
 
 QStringList GridControls::_parseColorParams( const QString& params, const QString& label,
@@ -271,12 +425,36 @@ QStringList GridControls::_parseColorParams( const QString& params, const QStrin
     return result;
 }
 
+void GridControls::setApplyAll( bool applyAll ){
+    bool oldApplyAll = m_state.getValue<bool>(ALL );
+    if ( oldApplyAll != applyAll ){
+        m_state.setValue<bool>(ALL, applyAll );
+    }
+}
 
 
 QStringList GridControls::setAxesColor( int redAmount, int greenAmount, int blueAmount ){
     bool axesColorChanged = false;
     QStringList result = m_dataGrid->_setAxesColor( redAmount, greenAmount, blueAmount, &axesColorChanged );
     if ( axesColorChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setAxesThickness( double thickness ){
+    bool thicknessChanged = false;
+    QString result = m_dataGrid->_setAxesThickness( thickness, &thicknessChanged );
+    if ( thicknessChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setAxesTransparency( int transparency ){
+    bool transparencyChanged = false;
+    QString result = m_dataGrid->_setAxesTransparency( transparency, &transparencyChanged );
+    if ( transparencyChanged ){
         _updateGrid();
     }
     return result;
@@ -336,7 +514,7 @@ QString GridControls::setGridThickness( double thickness ){
     return result;
 }
 
-QString GridControls::setGridTransparency( double transparency ){
+QString GridControls::setGridTransparency( int transparency ){
     bool transparencyChanged = false;
     QString result = m_dataGrid->_setGridTransparency( transparency, &transparencyChanged );
     if ( transparencyChanged ){
@@ -363,6 +541,16 @@ QString GridControls::setShowAxis( bool showAxis ){
     return result;
 }
 
+QString GridControls::setShowCoordinateSystem( bool showCoordinateSystem ){
+    bool visibilityChanged = false;
+    QString result = m_dataGrid->_setShowCoordinateSystem( showCoordinateSystem, & visibilityChanged );
+    if ( visibilityChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+
 QString GridControls::setShowGridLines( bool showLines ){
     bool linesChanged = false;
     QString result = m_dataGrid->_setShowGridLines( showLines, &linesChanged );
@@ -381,9 +569,55 @@ QString GridControls::setShowInternalLabels( bool showInternalLabels ){
     return result;
 }
 
+QString GridControls::setShowTicks( bool showTicks ){
+    bool ticksChanged = false;
+    QString result = m_dataGrid->_setShowTicks( showTicks, & ticksChanged );
+    if ( ticksChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QStringList GridControls::setTickColor( int redAmount, int greenAmount, int blueAmount ){
+    bool tickColorChanged = false;
+    QStringList result = m_dataGrid->_setTickColor( redAmount, greenAmount, blueAmount, &tickColorChanged );
+    if ( tickColorChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+
+QString GridControls::setTickThickness( double tickThickness ){
+    bool thicknessChanged = false;
+    QString result = m_dataGrid->_setTickThickness( tickThickness, &thicknessChanged );
+    if ( thicknessChanged ){
+       _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setTickTransparency( int transparency ){
+    bool transparencyChanged = false;
+    QString result = m_dataGrid->_setTickTransparency( transparency, &transparencyChanged );
+    if ( transparencyChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setTheme( const QString& theme ){
+    bool themeChanged = false;
+    QString result = m_dataGrid->_setTheme( theme, &themeChanged );
+    if ( themeChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
 void GridControls::_updateGrid(){
     emit gridChanged( m_dataGrid->_getState() );
-    m_state.setObject( GRID, m_dataGrid->getStateString() );
+    m_state.setObject( DataGrid::GRID, m_dataGrid->getStateString() );
     m_state.flushState();
 }
 

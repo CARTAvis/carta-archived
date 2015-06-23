@@ -29,6 +29,29 @@ public:
     QStringList setAxesColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
+     * Set axis thickness.
+     * @param thickness - a nonnegative value between 0 and 1.
+     * @return an error message if the thickness could not be set or an empty string
+     *  if the thickness was successfully set.
+     */
+    QString setAxesThickness( double thickness );
+
+    /**
+     * Set the axis transparency.
+     * @param transparency - a nonnegative integer between 0 and 255, with 255 opaque.
+     * @return an error message if the transparency could not be set or an empty string
+     *      if it was successfully set.
+     */
+    QString setAxesTransparency( int transparency );
+
+    /**
+     * Set whether or not grid control settings should apply to all images on the set.
+     * @param applyAll - true if the settings apply to all images on the stack;
+     *      false otherwise.
+     */
+    void setApplyAll( bool applyAll );
+
+    /**
      * Set the grid coordinate system.
      * @param coordSystem - an identifier for a grid coordinate system.
      * @return an error message if there was a problem setting the coordinate system;
@@ -79,11 +102,11 @@ public:
 
     /**
      * Set the transparency of the grid.
-     * @param transparency - the amount of transparency in [0,1] with 1 completely opaque.
+     * @param transparency - the amount of transparency in [0,255] with 255 completely opaque.
      * @return an error message if there was a problem setting the transparency; an empty
      *      string otherwise.
      */
-    QString setGridTransparency( double transparency );
+    QString setGridTransparency( int transparency );
 
     /**
      * Set the color of grid labels color.
@@ -103,6 +126,15 @@ public:
     QString setShowAxis( bool showAxis );
 
     /**
+     * Set whether or not the coordinate system should be visible.
+     * @param showCoordinateSystem - true if the coordinate system should be shown;
+     *      false otherwise.
+     * @return an error message if there was a problem setting the coordinate system;
+     *      an empty string otherwise.
+     */
+    QString setShowCoordinateSystem( bool showCoordinateSystem );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the
@@ -117,6 +149,49 @@ public:
      *      false otherwise.
      */
     QString setShowInternalLabels( bool showInternalLabels );
+
+    /**
+     * Set whether or not to show axis ticks.
+     * @param showTicks - true if the axis ticks should be shown; false otherwise.
+     * @return an error message if there was a problem setting the visibility of axis
+     *      ticks; and empty string otherwise.
+     */
+    QString setShowTicks( bool showTicks );
+
+    /**
+     * Set the color of the tick marks.
+     * @param redAmount - a nonnegative integer in [0,255].
+     * @param greenAmount - a nonnegative integer in [0,255].
+     * @param blueAmount - a nonnegative integer in [0,255].
+     * @return a list of error message(s) if there was a problem setting the tick
+     *      color; an empty list otherwise.
+     */
+    QStringList setTickColor( int redAmount, int greenAmount, int blueAmount );
+
+    /**
+     * Set the length of the ticks.
+     * @param tickThickness - a number between 0 and 1.
+     * @return an error message if the tick thickness was not successfully set;
+     *      an empty string otherwise.
+     */
+    QString setTickThickness( double tickThickness );
+
+    /**
+     * Set the transparency of the tick marks.
+     * @param transparency - a nonnegative integer between 0 and 255 with 255 being
+     *      opaque.
+     * @return an error message if the transparency was not successfully set; an
+     *      empty string otherwise.
+     */
+    QString setTickTransparency( int transparency );
+
+    /**
+     * Set the canvas theme.
+     * @param theme - an identifier for a canvas theme.
+     * @return an error message if the theme was not successfully set; an empty
+     *      string otherwise.
+     */
+    QString setTheme( const QString& theme );
 
     virtual ~GridControls();
     const static QString CLASS_NAME;
@@ -134,7 +209,6 @@ private:
     void _updateGrid();
 
     const static QString ALL;
-    const static QString GRID;
     static bool m_registered;
 
     GridControls( const QString& path, const QString& id );
@@ -142,8 +216,6 @@ private:
     class Factory;
 
     std::unique_ptr<DataGrid> m_dataGrid;
-
-
 
 	GridControls( const GridControls& other);
 	GridControls& operator=( const GridControls& other );

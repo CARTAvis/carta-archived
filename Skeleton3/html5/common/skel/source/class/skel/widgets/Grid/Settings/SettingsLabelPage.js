@@ -1,19 +1,19 @@
 /**
- * Displays controls for customizing the grid font.
+ * Displays controls for customizing the grid labels.
  */
 /*global mImport */
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Grid.GridFont", {
-    extend : qx.ui.core.Widget, 
+qx.Class.define("skel.widgets.Grid.Settings.SettingsLabelPage", {
+    extend : qx.ui.tabview.Page,
 
     /**
      * Constructor.
      */
-    construct : function(  ) {
-        this.base(arguments);
+    construct : function( ) {
+        this.base(arguments, "Settings", "");
         this.m_connector = mImport("connector");
         this._init();
         
@@ -48,12 +48,14 @@ qx.Class.define("skel.widgets.Grid.GridFont", {
          * Initializes the UI.
          */
         _init : function( ) {
+            this.setPadding( 0, 0, 0, 0 );
             this._setLayout(new qx.ui.layout.VBox(2));
-            this.m_content = new qx.ui.groupbox.GroupBox( "Font");
-            this.m_content.setContentPadding( 0, 0, 0, 0 );
-            this._add( this.m_content );
+            this.m_content = new qx.ui.container.Composite();
+            this._add( this.m_content, {flex:1} );
             this.m_content.setLayout(new qx.ui.layout.VBox());
+            this.m_content.add( new qx.ui.core.Spacer(5), {flex:1});
             this._initControls();
+            this.m_content.add( new qx.ui.core.Spacer(5), {flex:1});
         },
         
         /**
@@ -61,29 +63,38 @@ qx.Class.define("skel.widgets.Grid.GridFont", {
          */
         _initControls : function(){
             var familyContainer = new qx.ui.container.Composite();
-            familyContainer.setLayout( new qx.ui.layout.HBox());
-            this.m_familyCombo = new skel.boundWidgets.ComboBox( "setFontFamily", "family");
-            var familyLabel = new qx.ui.basic.Label( "Family:");
-            familyContainer.add( familyLabel );
-            familyContainer.add( this.m_familyCombo );
-            this.m_content.add( familyContainer );
+            var gridLayout = new qx.ui.layout.Grid( 2, 2 );
+            familyContainer.setLayout( gridLayout );
+            gridLayout.setColumnAlign( 0, "right", "middle");
             
-            var sizeContainer = new qx.ui.container.Composite();
-            sizeContainer.setLayout( new qx.ui.layout.HBox());
+            this.m_familyCombo = new skel.boundWidgets.ComboBox( "setFontFamily", "family");
+            this.m_familyCombo.setToolTipText( "Select a label font.");
+            var familyLabel = new qx.ui.basic.Label( "Family:");
+            familyContainer.add( familyLabel, {row:0, column:0} );
+            familyContainer.add( this.m_familyCombo, {row:0, column:1} );
+            
             this.m_sizeCombo = new skel.boundWidgets.ComboBox( "setFontSize", "size");
+            this.m_sizeCombo.setToolTipText( "Select a font size.");
             var sizeLabel = new qx.ui.basic.Label( "Size:");
-            sizeContainer.add( sizeLabel );
-            sizeContainer.add( this.m_sizeCombo );
-            this.m_content.add( sizeContainer );
+            familyContainer.add( sizeLabel, {row:1, column:0} );
+            familyContainer.add( this.m_sizeCombo, {row:1, column:1} );
+            
+            var horContainer = new qx.ui.container.Composite();
+            horContainer.setLayout( new qx.ui.layout.HBox());
+            
+            horContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            horContainer.add( familyContainer );
+            horContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            this.m_content.add( horContainer );
         },
         
         /**
-         * Update from the server when the font has changed.
-         * @param font {Object} - information about the font from the server.
+         * Update from the server when the grid control settings have changed.
+         * @param controls {Object} - information about the grid control settings from the server.
          */
-        setControls : function( font ){
-            this.m_sizeCombo.setComboValue( font.size );
-            this.m_familyCombo.setComboValue( font.family );
+        setControls : function( controls ){
+            this.m_sizeCombo.setComboValue( controls.grid.font.size );
+            this.m_familyCombo.setComboValue( controls.grid.font.family );
         },
         
         /**
@@ -102,14 +113,5 @@ qx.Class.define("skel.widgets.Grid.GridFont", {
         
         m_sizeCombo : null,
         m_familyCombo : null
-    },
-    
-    properties : {
-        appearance : {
-            refine : true,
-            init : "internal-area"
-        }
     }
-
-
 });

@@ -24,6 +24,7 @@ qx.Class.define("skel.widgets.Path", {
         this.REGION = this.BASE_PATH + "region" + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
+        this.THEMES = this.BASE_PATH + "Themes";
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
     },
@@ -31,7 +32,8 @@ qx.Class.define("skel.widgets.Path", {
     statics : {
         CHANGE_VALUE : "changeValue",
         HORIZONTAL : "horizontal",
-        VERTICAL : "vertical"
+        VERTICAL : "vertical",
+        MAX_RGB : 255
     },
     
     members : {
@@ -77,6 +79,7 @@ qx.Class.define("skel.widgets.Path", {
         STATE_SESSION : "Session",
         STATE_PREFERENCES : "Preferences",
         STATISTICS : "Statistics",
+        THEMES : "",
         TRANSFORMS_DATA : "",
         TRANSFORMS_IMAGE : "",
         ZOOM : "zoom",

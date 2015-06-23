@@ -328,9 +328,7 @@ QSize DataSource::getOutputSize() const {
 
 void DataSource::gridChanged( const Carta::State::StateInterface& state ){
     bool stateChanged = m_dataGrid->_resetState( state );
-    qDebug() << "DataSource::Grid state changed "<<stateChanged;
     if ( stateChanged ){
-        qDebug() << "Data source calling render";
         render();
     }
 }
@@ -405,7 +403,7 @@ void DataSource::imageAndGridDoneSlot(
         Carta::Lib::VectorGraphics::VGList vgList,
         int64_t /*jobId*/){
     /// \todo we should make sure the jobId matches the last submitted job...
-    qDebug() << "Image and grid done slot";
+    //qDebug() << "Image and grid done slot";
 
     m_qimage = image;
     // draw the grid over top

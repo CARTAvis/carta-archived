@@ -7,12 +7,8 @@ namespace Carta {
 
 namespace Data {
 
-
-const QString ImageSettings::GRID_CONTROL = "grid";
-const QString ImageSettings::GRID_FONT = "gridFont";
-const QString ImageSettings::GRID_COLOR = "gridColor";
+const QString ImageSettings::SETTINGS = "settings";
 const QString ImageSettings::CLASS_NAME = "ImageSettings";
-
 const QString ImageSettings::VISIBLE = "visible";
 
 
@@ -45,22 +41,20 @@ QString ImageSettings::getStateString( const QString& /*sessionId*/, SnapshotTyp
 }
 
 void ImageSettings::_initializeDefaultState(){
-    m_state.insertValue<bool>( GRID_CONTROL, false );
-    m_state.insertValue<bool>( GRID_FONT, false );
-    m_state.insertValue<bool>( GRID_COLOR, true );
+    m_state.insertValue<bool>( SETTINGS, true );
     m_state.flushState();
 }
 
 void ImageSettings::_initializeCallbacks(){
 
 
-    addCommandCallback( "setVisibleGrid", [=] (const QString & /*cmd*/,
+    addCommandCallback( "setSettingsVisible", [=] (const QString & /*cmd*/,
                                             const QString & params, const QString & /*sessionId*/) -> QString {
                bool visible = false;
                bool validBool = _processParams( params, &visible );
                QString result;
                if ( validBool ){
-                   setVisibleGrid( visible );
+                   setVisible( visible );
                }
                else {
                    result = "Grid setting visibility must be a bool : " + params;
@@ -69,35 +63,7 @@ void ImageSettings::_initializeCallbacks(){
                return result;
         });
 
-    addCommandCallback( "setVisibleGridColor", [=] (const QString & /*cmd*/,
-                                                const QString & params, const QString & /*sessionId*/) -> QString {
-               bool visible = false;
-               bool validBool = _processParams( params, &visible );
-               QString result;
-               if ( validBool ){
-                   setVisibleColor( visible );
-               }
-               else {
-                   result = "Grid color setting visibility must be a bool : " + params;
-               }
-               Util::commandPostProcess( result );
-               return result;
-        });
 
-    addCommandCallback( "setVisibleGridFont", [=] (const QString & /*cmd*/,
-                                                    const QString & params, const QString & /*sessionId*/) -> QString {
-           bool visible = false;
-           bool validBool = _processParams( params, &visible );
-           QString result;
-           if ( validBool ){
-               setVisibleFont( visible );
-           }
-           else {
-               result = "Grid font setting visibility must be a bool : " + params;
-           }
-           Util::commandPostProcess( result );
-           return result;
-    });
 }
 
 bool ImageSettings::_processParams( const QString& params, bool* value ) const {
@@ -108,24 +74,13 @@ bool ImageSettings::_processParams( const QString& params, bool* value ) const {
     return validValue;
 }
 
-void ImageSettings::_setVisibility( const QString& key, bool visible ){
-    if ( m_state.getValue<bool>(key) != visible ){
-        m_state.setValue<bool>(key, visible );
+void ImageSettings::setVisible( bool visible ){
+    if ( m_state.getValue<bool>(SETTINGS) != visible ){
+        m_state.setValue<bool>(SETTINGS, visible );
         m_state.flushState();
     }
 }
 
-void ImageSettings::setVisibleGrid( bool visible ){
-    _setVisibility( GRID_CONTROL, visible );
-}
-
-void ImageSettings::setVisibleColor( bool visible ){
-    _setVisibility( GRID_COLOR, visible );
-}
-
-void ImageSettings::setVisibleFont( bool visible ){
-    _setVisibility( GRID_FONT, visible );
-}
 
 ImageSettings::~ImageSettings(){
 

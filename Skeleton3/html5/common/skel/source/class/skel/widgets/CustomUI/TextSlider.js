@@ -38,6 +38,10 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         this._init( defaultValue, maxValue, textLabel, labelLeft, textHelp, sliderHelp,
                 textTestId, sliderTestId);
     },
+    
+    statics : {
+        MAX_SLIDER : 1000
+    },
 
     members : {
         /**

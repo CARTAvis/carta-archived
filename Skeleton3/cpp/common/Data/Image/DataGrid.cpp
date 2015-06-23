@@ -1,6 +1,7 @@
 #include "DataGrid.h"
 #include "CoordinateSystems.h"
 #include "Fonts.h"
+#include "Themes.h"
 #include "Globals.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
@@ -26,15 +27,20 @@ const QString DataGrid::LABEL_COLOR = "labels";
 const QString DataGrid::PEN_WIDTH = "width";
 const QString DataGrid::RED = "red";
 const QString DataGrid::SHOW_AXIS = "showAxis";
+const QString DataGrid::SHOW_COORDS = "showCoordinateSystem";
 const QString DataGrid::SHOW_INTERNAL_LABELS = "showInternalLabels";
 const QString DataGrid::SHOW_GRID_LINES = "showGridLines";
+const QString DataGrid::SHOW_TICKS = "showTicks";
 const QString DataGrid::SPACING = "spacing";
 const QString DataGrid::GRID = "grid";
-const QString DataGrid::TRANSPARENCY = "transparency";
+const QString DataGrid::THEME = "theme";
+const QString DataGrid::TICK = "tick";
 const int DataGrid::PEN_FACTOR = 10;
+const int DataGrid::MAX_COLOR = 255;
 
 CoordinateSystems* DataGrid::m_coordSystems = nullptr;
 Fonts* DataGrid::m_fonts = nullptr;
+Themes* DataGrid::m_themes = nullptr;
 
 class DataGrid::Factory : public Carta::State::CartaObjectFactory {
 
@@ -125,20 +131,20 @@ void DataGrid::_initializeDefaultState(){
     //Transparency seems to go from 0 to 1
     //Spacing goes from 0.250 to 3
 
-    //Plan is to store all the state as ints from 0 to 1000 and
-    //then translate on the c++ to the actual values.
     m_state.insertValue<bool>( SHOW_AXIS, true );
     m_state.insertValue<bool>( SHOW_GRID_LINES, true );
+    m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
+    m_state.insertValue<bool>( SHOW_COORDS, true );
 
     //Pens
-    _initializeDefaultPen( GRID, 255, 0, 0, 255, .2 );
-    _initializeDefaultPen( AXES, 0,255,0,255, .2 );
-    m_state.insertValue<double>( TRANSPARENCY, .33 );
+    _initializeDefaultPen( GRID, MAX_COLOR, 0, 0, MAX_COLOR, .2 );
+    _initializeDefaultPen( AXES, 0, MAX_COLOR,0, MAX_COLOR, .2 );
+    _initializeDefaultPen( TICK, 0, MAX_COLOR,0, MAX_COLOR, .2 );
     m_state.insertValue<double>( SPACING, .33 );
 
     //Label Color
-    _initializeDefaultPen( LABEL_COLOR, 0, 0,255,255, 1 );
+    _initializeDefaultPen( LABEL_COLOR, 0, 0, MAX_COLOR, MAX_COLOR, 1 );
 
     //Fonts
     m_state.insertObject( FONT );
@@ -147,6 +153,8 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<QString>( familyLookup, m_fonts->getDefaultFamily());
     QString sizeLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_SIZE );
     m_state.insertValue<int>( sizeLookup, m_fonts->getDefaultSize());
+
+    m_state.insertValue<QString>(THEME,m_themes->getDefaultTheme());
 
     m_state.flushState();
 }
@@ -165,11 +173,20 @@ void DataGrid::_initializeSingletons( ){
         m_fonts = dynamic_cast<Fonts*>( obj );
 
     }
+    //Available themes
+    if ( m_themes == nullptr ){
+        CartaObject* obj = Util::findSingletonObject( Themes::CLASS_NAME );
+        m_themes = dynamic_cast<Themes*>( obj );
+
+    }
 }
 
 
 void DataGrid::_resetGridRenderer(){
     if ( m_wcsGridRenderer.get() != nullptr){
+
+        bool showCoords = m_state.getValue<bool>( SHOW_COORDS );
+        m_wcsGridRenderer-> setEmptyGrid( !showCoords );
 
         //Internal Labels
         bool internalLabels = m_state.getValue<bool>( SHOW_INTERNAL_LABELS );
@@ -187,24 +204,27 @@ void DataGrid::_resetGridRenderer(){
         if ( !showGrid ){
             penColor.setAlpha( 0 );
         }
-        else {
-            double transparency = m_state.getValue<double>( TRANSPARENCY );
-            penColor.setAlphaF( transparency );
-        }
+
         gridPen.setColor( penColor );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines1,
                                             gridPen);
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines2,
                                            gridPen);
 
-        QPen tickLine1Pen( QColor( "white"));
-        tickLine1Pen.setWidth( 1 );
+        QPen tickPen = _getPen( TICK, m_state );
+        bool showTick = m_state.getValue<bool>( SHOW_TICKS );
+        QColor tickPenColor = tickPen.color();
+        if ( !showTick ){
+            tickPenColor.setAlpha( 0 );
+        }
+        else {
+
+        }
+        tickPen.setColor( tickPenColor );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines1,
-                                    tickLine1Pen );
-        QPen tickLine2Pen( QColor( "yellow"));
-        tickLine2Pen.setWidth( 1 );
+                                    tickPen );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines2,
-                                    tickLine2Pen);
+                                    tickPen);
 
         //AXES
         QPen axesPen = _getPen( AXES, m_state );
@@ -224,7 +244,6 @@ void DataGrid::_resetGridRenderer(){
         //Label
         QPen labelPen = _getPen( LABEL_COLOR, m_state );
         QColor labelColor = labelPen.color();
-        qDebug() << "Label color red="<<labelColor.red()<<" green="<<labelColor.green()<<" blue="<<labelColor.blue();
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::NumText1,
                                     labelPen);
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::NumText2,
@@ -262,6 +281,8 @@ void DataGrid::_resetGridRenderer(){
     }
 }
 
+
+
 bool DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     bool stateChanged = false;
 
@@ -277,23 +298,29 @@ bool DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     bool newGridLines = otherState.getValue<bool>( SHOW_GRID_LINES );
     _setShowGridLines( newGridLines, &gridLinesChanged );
 
+    bool coordVisibilityChanged = false;
+    bool showCoords = otherState.getValue<bool>(SHOW_COORDS);
+    _setShowCoordinateSystem( showCoords, &coordVisibilityChanged );
+
     //Coordinate system
     bool coordChanged = false;
     QString newCoords = otherState.getValue<QString>(COORD_SYSTEM);
     _setCoordinateSystem( newCoords, &coordChanged);
 
+    QPen otherGridPen = _getPen( GRID, otherState );
     bool gridThicknessChanged = false;
-    QString thicknessLookup = Carta::State::UtilState::getLookup( GRID, PEN_WIDTH);
-    double newThickness = otherState.getValue<double>( thicknessLookup );
-    _setGridThickness( newThickness, &gridThicknessChanged );
+    double otherWidth = otherGridPen.widthF() / PEN_FACTOR;
+    _setGridThickness( otherWidth, &gridThicknessChanged );
+    bool gridColorChanged = false;
+    QColor gridColor = otherGridPen.color();
+    _setGridColor( gridColor.red(), gridColor.green(), gridColor.blue(), &gridColorChanged);
+    bool gridTransparencyChanged = false;
+    _setGridTransparency( gridColor.alpha(), & gridTransparencyChanged );
 
     bool spacingChanged = false;
     double newSpacing = otherState.getValue<double>( SPACING );
     _setGridSpacing( newSpacing, &spacingChanged );
 
-    bool transparencyChanged = false;
-    double newTransparency = otherState.getValue<double>( TRANSPARENCY );
-    _setGridTransparency( newTransparency, &transparencyChanged );
 
     bool fontFamilyChanged = false;
     QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
@@ -305,25 +332,53 @@ bool DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     int fontSize = otherState.getValue<int>( sizeLookup );
     _setFontSize( fontSize, &fontSizeChanged );
 
+    bool themeChanged = false;
+    QString newTheme = otherState.getValue<QString>( THEME );
+    _setTheme( newTheme, & themeChanged );
+
     bool labelColorChanged = false;
     QPen labelPen = _getPen( LABEL_COLOR, otherState );
     QColor labelColor = labelPen.color();
     _setLabelColor( labelColor.red(), labelColor.green(), labelColor.blue(), &labelColorChanged );
 
-    bool gridColorChanged = false;
-    QPen gridPen = _getPen( GRID, otherState );
-    QColor gridColor = gridPen.color();
-    _setGridColor( gridColor.red(), gridColor.green(), gridColor.blue(), & gridColorChanged );
 
+    QPen otherAxesPen = _getPen( AXES, otherState );
+    bool axesThicknessChanged = false;
+    double otherAxesWidth = otherAxesPen.widthF() / PEN_FACTOR;
+    _setAxesThickness( otherAxesWidth, &axesThicknessChanged );
     bool axesColorChanged = false;
-    QPen axesPen = _getPen( AXES, otherState );
-    QColor axesColor = axesPen.color();
-    _setAxesColor( axesColor.red(), axesColor.green(), axesColor.blue(), & axesColorChanged );
+    QColor axesColor = otherAxesPen.color();
+    _setAxesColor( axesColor.red(), axesColor.green(), axesColor.blue(), &axesColorChanged);
+    bool axesTransparencyChanged = false;
+    _setAxesTransparency( axesColor.alpha(), & axesTransparencyChanged );
 
-    stateChanged = internalChanged || coordChanged || axesChanged  ||
-            gridLinesChanged || gridThicknessChanged || spacingChanged ||
-            transparencyChanged || fontFamilyChanged || fontSizeChanged ||
-            labelColorChanged || gridColorChanged || axesColorChanged;
+    bool showTicksChanged = false;
+    bool showTicks = otherState.getValue<bool>( SHOW_TICKS );
+    _setShowTicks( showTicks, &showTicksChanged );
+
+    QPen otherTickPen = _getPen( TICK, otherState );
+    bool tickThicknessChanged = false;
+    double otherTickWidth = otherTickPen.widthF() / PEN_FACTOR;
+    _setTickThickness( otherTickWidth, &tickThicknessChanged );
+    bool tickColorChanged = false;
+    QColor tickColor = otherTickPen.color();
+    _setTickColor( tickColor.red(), tickColor.green(), tickColor.blue(), &tickColorChanged);
+    bool tickTransparencyChanged = false;
+    _setTickTransparency( tickColor.alpha(), & tickTransparencyChanged );
+
+
+
+    stateChanged = internalChanged || coordChanged ||
+            showTicksChanged ||
+            coordVisibilityChanged ||
+            gridLinesChanged ||
+            gridThicknessChanged || gridColorChanged || gridTransparencyChanged ||
+            spacingChanged ||
+            axesThicknessChanged || axesColorChanged || axesTransparencyChanged ||
+            tickThicknessChanged || tickColorChanged || tickTransparencyChanged ||
+            fontFamilyChanged || fontSizeChanged ||
+            labelColorChanged ||
+            themeChanged;
     if ( stateChanged ){
         _resetGridRenderer();
     }
@@ -336,16 +391,50 @@ QStringList DataGrid::_setAxesColor( int redAmount, int greenAmount, int blueAmo
     return result;
 }
 
+QString DataGrid::_setAxesTransparency( int transparency, bool* transparencyChanged ){
+    *transparencyChanged = false;
+    QString result;
+    if ( transparency < 0 || transparency > MAX_COLOR ){
+        result = "Axes transparency must be in [0,255]: "+ QString::number( transparency );
+    }
+    else {
+        QString lookup = Carta::State::UtilState::getLookup( AXES, ALPHA );
+        double oldTransparency = m_state.getValue<double>(lookup);
+        if ( transparency != oldTransparency ){
+            m_state.setValue<int>( lookup, transparency);
+            *transparencyChanged = true;
+        }
+    }
+    return result;
+}
+
+QString DataGrid::_setAxesThickness( double thickness, bool* thicknessChanged ){
+    *thicknessChanged = false;
+    QString result;
+    if ( thickness < 0 || thickness > 1 ){
+        result = "Axes thickness must be in [0,1]: "+QString::number(thickness);
+    }
+    else {
+        QString lookup = Carta::State::UtilState::getLookup( AXES, PEN_WIDTH );
+        double oldThickness = m_state.getValue<double>(lookup);
+        if ( fabs( oldThickness - thickness ) > m_errorMargin ){
+            m_state.setValue<double>( lookup, thickness);
+            *thicknessChanged = true;
+        }
+    }
+    return result;
+}
+
 QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
         bool* colorChanged ){
     QStringList result;
-    if ( redAmount < 0 || redAmount > 255 ){
+    if ( redAmount < 0 || redAmount > MAX_COLOR ){
         result.append("Red must be in [0,255]: "+QString::number( redAmount ));
     }
-    if ( greenAmount < 0 || greenAmount > 255 ){
+    if ( greenAmount < 0 || greenAmount > MAX_COLOR ){
         result.append("Green must be in [0,255]: "+QString::number( greenAmount ));
     }
-    if ( blueAmount < 0 || blueAmount > 255 ){
+    if ( blueAmount < 0 || blueAmount > MAX_COLOR ){
         result.append("Blue amount must be in [0,255]: "+QString::number( blueAmount ));
     }
     if ( result.size() == 0 ){
@@ -424,6 +513,7 @@ QString DataGrid::_setFontSize( int fontSize, bool* sizeChanged ){
     return result;
 }
 
+
 QStringList DataGrid::_setGridColor( int redAmount, int greenAmount, int blueAmount,
         bool* gridColorChanged ){
     QStringList result = _setColor( GRID, redAmount, greenAmount, blueAmount, gridColorChanged );
@@ -469,16 +559,17 @@ QStringList DataGrid::_setLabelColor( int redAmount, int greenAmount, int blueAm
     return result;
 }
 
-QString DataGrid::_setGridTransparency( double transparency, bool* transparencyChanged ){
+QString DataGrid::_setGridTransparency( int transparency, bool* transparencyChanged ){
     *transparencyChanged = false;
     QString result;
-    if ( transparency < 0 || transparency > 1 ){
-        result = "Grid transparency must be in [0,1]: "+ QString::number( transparency );
+    if ( transparency < 0 || transparency > MAX_COLOR ){
+        result = "Grid transparency must be in [0,255]: "+ QString::number( transparency );
     }
     else {
-        double oldTransparency = m_state.getValue<double>(TRANSPARENCY);
-        if ( fabs( oldTransparency - transparency ) > m_errorMargin ){
-            m_state.setValue<double>( TRANSPARENCY, transparency);
+        QString lookup = Carta::State::UtilState::getLookup( GRID, ALPHA );
+        double oldTransparency = m_state.getValue<double>(lookup);
+        if ( transparency != oldTransparency ){
+            m_state.setValue<int>( lookup, transparency);
             *transparencyChanged = true;
         }
     }
@@ -493,7 +584,16 @@ QString DataGrid::_setShowAxis( bool showAxis, bool* coordChanged ){
         m_state.setValue<bool>(SHOW_AXIS, showAxis );
         *coordChanged = true;
     }
+    return result;
+}
 
+QString DataGrid::_setShowCoordinateSystem( bool showCoordinateSystem, bool* coordChanged ){
+    QString result;
+    *coordChanged = false;
+    if ( m_state.getValue<bool>(SHOW_COORDS) != showCoordinateSystem ){
+        m_state.setValue<bool>( SHOW_COORDS, showCoordinateSystem );
+        *coordChanged = true;
+    }
     return result;
 }
 
@@ -516,6 +616,72 @@ QString DataGrid::_setShowInternalLabels( bool showInternalLabels, bool* coordCh
     if ( oldValue != showInternalLabels ){
         *coordChanged = true;
         m_state.setValue<bool>( SHOW_INTERNAL_LABELS, showInternalLabels );
+    }
+    return result;
+}
+
+QString DataGrid::_setShowTicks( bool showTicks, bool* ticksChanged ){
+    *ticksChanged = false;
+    QString result;
+    bool oldValue = m_state.getValue<bool>( SHOW_TICKS );
+    if ( oldValue != showTicks ){
+        *ticksChanged = true;
+        m_state.setValue<bool>( SHOW_TICKS, showTicks );
+    }
+    return result;
+}
+
+QStringList DataGrid::_setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged ){
+    QStringList result = _setColor( TICK, redAmount, greenAmount, blueAmount, colorChanged );
+    return result;
+}
+
+QString DataGrid::_setTickThickness( double tickThickness, bool* thicknessChanged ){
+    *thicknessChanged = false;
+    QString result;
+    if ( tickThickness < 0 || tickThickness > 1 ){
+        result = "Tick thickness must be in [0,1]: "+QString::number(tickThickness);
+    }
+    else {
+        QString lookup = Carta::State::UtilState::getLookup( TICK, PEN_WIDTH );
+        double oldThickness = m_state.getValue<double>(lookup);
+        if ( fabs( oldThickness - tickThickness ) > m_errorMargin ){
+            m_state.setValue<double>( lookup, tickThickness);
+            *thicknessChanged = true;
+        }
+    }
+    return result;
+}
+
+QString DataGrid::_setTickTransparency( int transparency, bool* transparencyChanged ){
+    *transparencyChanged = false;
+    QString result;
+    if ( transparency < 0 || transparency > MAX_COLOR ){
+        result = "Tick transparency must be in [0,255]: "+ QString::number( transparency );
+    }
+    else {
+        QString lookup = Carta::State::UtilState::getLookup( TICK, ALPHA );
+        double oldTransparency = m_state.getValue<double>(lookup);
+        if ( transparency != oldTransparency ){
+            m_state.setValue<int>( lookup, transparency);
+            *transparencyChanged = true;
+        }
+    }
+    return result;
+}
+
+QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
+    *themeChanged = false;
+    QString result;
+    if ( m_themes->isTheme( theme )){
+        QString oldTheme = m_state.getValue<QString>( THEME );
+        if ( oldTheme != theme ){
+            m_state.setValue<QString>( THEME, theme );
+            *themeChanged = true;
+        }
+    }
+    else {
+        result = "The theme "+theme+" was not recognized";
     }
     return result;
 }

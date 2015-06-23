@@ -23,6 +23,7 @@ namespace Data {
 
 class CoordinateSystems;
 class Fonts;
+class Themes;
 
 class DataGrid : public Carta::State::CartaObject {
 
@@ -38,17 +39,25 @@ private:
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> _getRenderer();
     bool _resetState( const Carta::State::StateInterface& otherState );
     QStringList _setAxesColor( int redAmount, int greenAmount, int blueAmount, bool* axesColorChanged );
+    QString _setAxesThickness( double thickness, bool* thicknessChanged );
+    QString _setAxesTransparency( int transparency, bool* transparencyChanged );
     QString _setCoordinateSystem( const QString& coordSystem, bool* coordChanged );
     QString _setFontFamily( const QString& fontFamily, bool* familyChanged );
     QString _setFontSize( int fontSize, bool* sizeChanged );
     QStringList _setGridColor( int redAmount, int greenAmount, int blueAmount, bool* gridColorChanged );
     QString _setGridSpacing( double spacing, bool* spacingChanged );
-    QString _setGridTransparency( double transparency, bool* transparencyChanged );
+    QString _setGridTransparency( int transparency, bool* transparencyChanged );
     QString _setGridThickness( double thickness, bool* coordChanged );
     QStringList _setLabelColor( int redAmount, int greenAmount, int blueAmount, bool* labelColorChanged );
     QString _setShowAxis( bool showAxis, bool* gridChanged );
+    QString _setShowCoordinateSystem( bool showCoordinateSystem, bool* coordChanged );
     QString _setShowGridLines( bool showLines, bool* gridChanged );
     QString _setShowInternalLabels( bool showInternalLabels, bool * gridChanged );
+    QString _setShowTicks( bool showTicks, bool* ticksChanged );
+    QString _setTickThickness( double tickThickness, bool* thicknessChanged );
+    QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
+    QString _setTickTransparency( int transparency, bool* transparencyChanged );
+    QString _setTheme( const QString& theme, bool* themeChanged );
 
 
     Carta::State::StateInterface _getState();
@@ -73,12 +82,17 @@ private:
     const static QString PEN_WIDTH;
     const static QString RED;
     const static QString SHOW_AXIS;
+    const static QString SHOW_COORDS;
     const static QString SHOW_INTERNAL_LABELS;
     const static QString SHOW_GRID_LINES;
+    const static QString SHOW_TICKS;
     const static QString SPACING;
     const static QString GRID;
-    const static QString TRANSPARENCY;
+    const static QString THEME;
+    const static QString TICK;
+    //const static QString TRANSPARENCY;
     const static int PEN_FACTOR;
+    const static int MAX_COLOR;
 
     static bool m_registered;
 
@@ -91,6 +105,7 @@ private:
 
     static CoordinateSystems* m_coordSystems;
     static Fonts* m_fonts;
+    static Themes* m_themes;
     double m_errorMargin;
 
 	DataGrid( const DataGrid& other);

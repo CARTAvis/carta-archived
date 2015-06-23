@@ -177,9 +177,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 if ( val !== null ){
                     try {
                         var setObj = JSON.parse( val );
-                        this._showHideGrid( setObj.grid );
-                        this._showHideGridColor( setObj.gridColor );
-                        this._showHideGridFont( setObj.gridFont );
+                        this._adjustControlVisibility( setObj.settings );
                     }
                     catch( err ){
                         console.log( "ImageDisplay could not parse settings");
@@ -191,9 +189,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         /**
          * Add or remove the grid control settings based on whether the user
          * had configured any of the settings visible.
+         * @param content {boolean} - true if the content should be visible; false otherwise.
          */
-        _adjustControlVisibility : function(){
-            var content = this.m_gridControls.isContent();
+        _adjustControlVisibility : function(content){
             if ( content ){
                 if ( this.m_content.indexOf( this.m_gridControls) < 0){
                    this.m_content.add( this.m_gridControls );
@@ -207,39 +205,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
         
         /**
-         * Show/hide grid user settings.
-         * @param visible {boolean} true if the grid settings should be 
-         *          visible; false otherwise.
+         * Show/hide the grid control settings.
+         * @param visible - true if the settings should be visibile; false otherwise.
          */
-        _showHideGrid : function( visible ){
-            if ( this.m_gridControls !== null ){
-                this.m_gridControls.showHideGrid( visible );
-                this._adjustControlVisibility();
-            }
-        },
-        
-        /**
-         * Show/hide grid color settings.
-         * @param visible {boolean} true if the grid color settings should be 
-         *          visible; false otherwise.
-         */
-        _showHideGridColor : function( visible ){
-            if ( this.m_gridControls !== null ){
-                this.m_gridControls.showHideGridColor( visible );
-                this._adjustControlVisibility();
-            }
-        },
-        
-        /**
-         * Show/hide grid font settings.
-         * @param visible {boolean} true if the grid font settings should be 
-         *          visible; false otherwise.
-         */
-        _showHideGridFont : function( visible ){
-            if ( this.m_gridControls !== null ){
-                this.m_gridControls.showHideGridFont( visible );
-                this._adjustControlVisibility();
-            }
+        _showHideSettings : function( visible ){
+            this._adjustControlVisibility();
         },
 
         setDrawMode : function(drawInfo) {

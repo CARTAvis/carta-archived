@@ -50,6 +50,7 @@ HEADERS += \
     Data/Image/GridControls.h \
     Data/Image/ImageSettings.h \
     Data/Image/ImageGridServiceSynchronizer.h \
+    Data/Image/Themes.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -123,6 +124,7 @@ SOURCES += \
     Data/Image/GridControls.cpp \
     Data/Image/ImageSettings.cpp \
     Data/Image/ImageGridServiceSynchronizer.cpp \
+    Data/Image/Themes.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \
