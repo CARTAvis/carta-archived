@@ -48,6 +48,20 @@ public:
     Carta::Lib::KnownSkyCS getIndex( const QString& name) const;
 
     /**
+     * Returns the indices of supported coordinate systems.
+     * @return a list of indices of the recognized coordinated systems.
+     */
+    QList<Carta::Lib::KnownSkyCS> getIndices() const;
+
+    /**
+     * Returns the name of the coordinate string matching the identifier.
+     * @param skyCS - an index of a coordinate system.
+     * @return the name of the coordinate system or an empty string if no such coordinate
+     *      system exists.
+     */
+    QString getName(Carta::Lib::KnownSkyCS skyCS ) const;
+
+    /**
      * Returns the name of the default coordinate system.
      * @return the name of the default coordinate system.
      */
@@ -61,6 +75,7 @@ private:
 
     void _initializeDefaultState();
     void _initializeCallbacks();
+    void _initializeSingletons();
 
     static bool m_registered;
     QMap < Carta::Lib::KnownSkyCS, QString > m_coordSystems;
@@ -72,6 +87,9 @@ private:
     const static QString ICRS;
     const static QString GALACTIC;
     const static QString ECLIPTIC;
+    const static QString NATIVE;
+    const static QString SUPERGALACTIC;
+
     CoordinateSystems( const QString& path, const QString& id );
 
     class Factory;

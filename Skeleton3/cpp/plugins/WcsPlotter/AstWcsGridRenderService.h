@@ -13,6 +13,9 @@
 
 namespace WcsPlotterPluginNS
 {
+
+class AstGridPlotter;
+
 /// implementation of Carta::Lib::IWcsGridRenderService APIs
 class AstWcsGridRenderService : public Carta::Lib::IWcsGridRenderService
 {
@@ -41,7 +44,13 @@ public:
     startRendering( JobId jobId = 0) override;
 
     virtual void
+    setAxes( bool flag ) override;
+
+    virtual void
     setGridDensityModifier( double density ) override;
+
+    virtual void
+    setGridLines( bool flag ) override;
 
     virtual void
     setInternalLabels(bool flag ) override;
@@ -61,6 +70,9 @@ public:
     virtual void
     setEmptyGrid( bool flag) override;
 
+    virtual void
+    setTicks( bool flag ) override;
+
 private slots:
 
     // internal slot - does the actual rendering
@@ -74,6 +86,8 @@ private slots:
 //    dbgSlot();
 
 private:
+    //Don't draw tick marks.
+    void _turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp);
 
     Carta::Lib::VectorGraphics::VGComposer m_vgc;
 //    VGList m_vgList;
@@ -102,6 +116,14 @@ private:
 
     // flag to indicate whether the currently stored VGlist is valid
     bool m_vgValid = false;
+    // flag for whether or not to show grid lines.
+    bool m_gridLines = true;
+    // flag to indicate whether to draw the axes/border.
+    bool m_axes = true;
+    // flag to indicate whether or not to draw tick marks.
+    bool m_ticks = true;
+
+    bool m_axisLabels = false;
 
     // another debug timer
 //    QTimer m_dbgTimer2;

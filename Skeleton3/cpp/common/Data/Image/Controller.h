@@ -143,7 +143,7 @@ public:
 
     /**
      *  Make a data selection.
-     *  @param val a String representing the index of a specific data selection.
+     *  @param imageIndex - a String representing the index of a specific data selection.
      */
     void setFrameImage(int imageIndex);
 
@@ -306,7 +306,7 @@ protected:
 
 private slots:
 
-    void _gridChanged( const Carta::State::StateInterface& state );
+    void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
     //Refresh the view based on the latest data selection information.
     void _loadView();
@@ -367,7 +367,6 @@ private:
     static const QString CLOSE_IMAGE;
     static const QString AUTO_CLIP;
     static const QString DATA;
-    static const QString DATA_COUNT;
     static const QString DATA_PATH;
     static const QString REGIONS;
     static const QString CENTER;

@@ -71,8 +71,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
             this.m_allImages = new qx.ui.form.CheckBox( "All Images");
             this.m_allImages.setToolTipText( "Apply grid control settings to all images in the stack.");
             this.m_allImages.setValue( false );
-            this.m_allImages.setEnabled( false );
-            this.m_allImages.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendApplyAllCmd, this );
+            this.m_allListenerId = this.m_allImages.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._sendApplyAllCmd, this );
             var allContainer = new qx.ui.container.Composite();
             allContainer.setLayout( new qx.ui.layout.HBox());
             allContainer.add( new qx.ui.core.Spacer(5), {flex:1});
@@ -83,7 +83,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
             this.m_showSystem = new qx.ui.form.CheckBox( "Show Coordinate System");
             this.m_showSystem.setToolTipText( "Show the grid coordinate system.");
             this.m_showSystem.setValue( true );
-            this.m_showSystem.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendShowSystemCmd, this);
+            this.m_showListenerId = this.m_showSystem.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._sendShowSystemCmd, this);
             var sysContainer = new qx.ui.container.Composite();
             sysContainer.setLayout( new qx.ui.layout.HBox());
             sysContainer.add( new qx.ui.core.Spacer(5), {flex:1});
@@ -140,7 +141,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
          */
         _setShowSystem : function ( showSystem ){
             if ( this.m_showSystem.getValue() != showSystem ){
+                this.m_showSystem.removeListenerById( this.m_showListenerId );
                 this.m_showSystem.setValue( showSystem );
+                this.m_showListenerId = this.m_showSystem.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._sendShowSystemCmd, this);
             }
         },
         
@@ -152,7 +156,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
          */
         _setApplyAll : function ( applyAll ){
             if ( this.m_allImages.getValue() != applyAll ){
+                this.m_allImages.removeListenerById( this.m_allListenerId );
                 this.m_allImages.setValue( applyAll );
+                this.m_allListenerId = this.m_allImages.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._sendApplyAllCmd, this );
             }
         },
         
@@ -199,6 +206,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
         
         m_showSystem : null,
         m_allImages : null,
+        m_showListenerId : null,
+        m_allListenerId : null,
         
         m_sharedVar : null
     }

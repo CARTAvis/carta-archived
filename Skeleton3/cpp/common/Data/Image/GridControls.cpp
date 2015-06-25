@@ -42,7 +42,7 @@ GridControls::GridControls( const QString& path, const QString& id):
 
 void GridControls::_initializeDefaultState(){
     m_state.insertValue<bool>( ALL, true  );
-    m_state.insertObject( DataGrid::GRID, m_dataGrid->getStateString());
+    m_state.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString());
     m_state.flushState();
 }
 
@@ -90,9 +90,9 @@ void GridControls::_initializeCallbacks(){
        std::set<QString> keys = {DataGrid::AXES};
        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
        QString thicknessStr = dataValues[DataGrid::AXES];
-       bool validDouble = false;
-       double thickness = thicknessStr.toDouble( &validDouble );
-       if ( validDouble ){
+       bool validInt = false;
+       int thickness = thicknessStr.toInt( &validInt );
+       if ( validInt ){
            result = setAxesThickness( thickness  );
        }
        else {
@@ -181,9 +181,9 @@ void GridControls::_initializeCallbacks(){
                     std::set<QString> keys = {DataGrid::GRID};
                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                     QString thicknessStr = dataValues[DataGrid::GRID];
-                    bool validDouble = false;
-                    double thickness = thicknessStr.toDouble( &validDouble );
-                    if ( validDouble ){
+                    bool validInt = false;
+                    int thickness = thicknessStr.toInt( &validInt );
+                    if ( validInt ){
                         result = setGridThickness( thickness  );
                     }
                     else {
@@ -360,9 +360,9 @@ void GridControls::_initializeCallbacks(){
                         std::set<QString> keys = {DataGrid::TICK};
                         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                         QString thicknessStr = dataValues[DataGrid::TICK];
-                        bool validDouble = false;
-                        double thickness = thicknessStr.toDouble( &validDouble );
-                        if ( validDouble ){
+                        bool validInt = false;
+                        int thickness = thicknessStr.toInt( &validInt );
+                        if ( validInt ){
                             result = setTickThickness( thickness  );
                         }
                         else {
@@ -425,10 +425,19 @@ QStringList GridControls::_parseColorParams( const QString& params, const QStrin
     return result;
 }
 
+void GridControls::_resetState( const Carta::State::StateInterface& otherState ){
+    m_dataGrid->_resetState( otherState );
+    m_state.setObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
+    m_state.flushState();
+}
+
 void GridControls::setApplyAll( bool applyAll ){
     bool oldApplyAll = m_state.getValue<bool>(ALL );
     if ( oldApplyAll != applyAll ){
         m_state.setValue<bool>(ALL, applyAll );
+        if ( applyAll ){
+            _updateGrid();
+        }
     }
 }
 
@@ -442,7 +451,7 @@ QStringList GridControls::setAxesColor( int redAmount, int greenAmount, int blue
     return result;
 }
 
-QString GridControls::setAxesThickness( double thickness ){
+QString GridControls::setAxesThickness( int thickness ){
     bool thicknessChanged = false;
     QString result = m_dataGrid->_setAxesThickness( thickness, &thicknessChanged );
     if ( thicknessChanged ){
@@ -505,7 +514,7 @@ QString GridControls::setGridSpacing( double spacing ){
     return result;
 }
 
-QString GridControls::setGridThickness( double thickness ){
+QString GridControls::setGridThickness( int thickness ){
     bool thicknessChanged = false;
     QString result = m_dataGrid->_setGridThickness( thickness, &thicknessChanged );
     if ( thicknessChanged ){
@@ -588,7 +597,7 @@ QStringList GridControls::setTickColor( int redAmount, int greenAmount, int blue
 }
 
 
-QString GridControls::setTickThickness( double tickThickness ){
+QString GridControls::setTickThickness( int tickThickness ){
     bool thicknessChanged = false;
     QString result = m_dataGrid->_setTickThickness( tickThickness, &thicknessChanged );
     if ( thicknessChanged ){
@@ -616,13 +625,17 @@ QString GridControls::setTheme( const QString& theme ){
 }
 
 void GridControls::_updateGrid(){
-    emit gridChanged( m_dataGrid->_getState() );
-    m_state.setObject( DataGrid::GRID, m_dataGrid->getStateString() );
+    bool applyAll = m_state.getValue<bool>( ALL );
+    emit gridChanged( m_dataGrid->_getState(), applyAll );
+    m_state.setObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
     m_state.flushState();
 }
 
 GridControls::~GridControls(){
-
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    if ( m_dataGrid != nullptr){
+        objMan->removeObject(m_dataGrid->getId());
+    }
 }
 }
 }

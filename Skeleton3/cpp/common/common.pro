@@ -28,7 +28,6 @@ HEADERS += \
     Data/Animator/Animator.h \
     Data/Animator/AnimatorType.h \
     Data/Animator/AnimationTypes.h \
-    Data/ChannelUnits.h \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
@@ -39,6 +38,7 @@ HEADERS += \
     Data/Error/ErrorReport.h \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
+    Data/Histogram/ChannelUnits.h \
     Data/Histogram/HistogramPreferences.h \
     Data/IColoredView.h \
     Data/ILinkable.h \
@@ -109,7 +109,6 @@ SOURCES += \
     Data/Animator/Animator.cpp \
     Data/Animator/AnimatorType.cpp \
     Data/Animator/AnimationTypes.cpp \
-    Data/ChannelUnits.cpp \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
@@ -129,6 +128,7 @@ SOURCES += \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \
     Data/Histogram/Histogram.cpp \
+    Data/Histogram/ChannelUnits.cpp \
     Data/Histogram/HistogramPreferences.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \

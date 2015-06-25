@@ -42,10 +42,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsAxesPage", {
             var sliderContainer = new qx.ui.container.Composite();
             sliderContainer.setLayout( new qx.ui.layout.HBox(2));
             this.m_thickness = new skel.widgets.CustomUI.TextSlider("setAxesThickness", "axes",
-                    skel.widgets.CustomUI.TextSlider.MAX_SLIDER, 25, "Thickness", false, "Set axes thickness.", "Slide to set axes thickness.",
-                    "axesThicknessTextField", "axesThicknessSlider", true);
+                    1, 10, 1, "Thickness", false, "Set axes thickness.", "Slide to set axes thickness.",
+                    "axesThicknessTextField", "axesThicknessSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setAxesTransparency", "alpha",
-                    skel.widgets.Path.MAX_RGB, 25, "Transparency", false, 
+                    0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, 
                     "Set the axes transparency.", "Slide to set the axes transparency.",
                     "axesTransparencyTextField", "axesTransparencySlider", false);
          
@@ -70,16 +70,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsAxesPage", {
             this.m_showInternalLabels.setToolTipText( "Use internal axes as opposed to external ones.");
             this.m_showAxes.setValue( true );
             this.m_showInternalLabels.setValue( true );
-            this.m_showAxes.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
-                var showAxes = this.m_showAxes.getValue();
-                this.m_showInternalLabels.setEnabled( showAxes );
-                if ( !showAxes ){
-                    this.m_showInternalLabels.setValue( false );
-                }
-                this._sendShowAxisCmd();
-            }, this);
+            this.m_showListenerId = this.m_showAxes.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._showAxesChanged, this);
            
-            this.m_showInternalLabels.addListener( skel.widgets.Path.CHANGE_VALUE, 
+            this.m_internalListenerId = this.m_showInternalLabels.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     this._sendShowInternalLabelsCmd, this );
             
             
@@ -131,7 +125,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsAxesPage", {
          */
         _setShowAxes : function ( showAxes ){
             if ( this.m_showAxes.getValue() != showAxes ){
+                this.m_showAxes.removeListenerById( this.m_showListenerId );
                 this.m_showAxes.setValue( showAxes );
+                this.m_showListenerId = this.m_showAxes.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._showAxesChanged, this);
             }
         },
        
@@ -143,8 +140,20 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsAxesPage", {
          */
         _setShowInternalLabels : function( showInternalLabels ){
             if ( this.m_showInternalLabels.getValue() != showInternalLabels ){
+                this.m_showInternalLabels.removeListenerById( this.m_internalListenerId );
                 this.m_showInternalLabels.setValue( showInternalLabels );
+                this.m_internalListenerId = this.m_showInternalLabels.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._sendShowInternalLabelsCmd, this );
             }
+        },
+        
+        /**
+         * User has toggled show/hide axes.
+         */
+        _showAxesChanged : function(){
+            var showAxes = this.m_showAxes.getValue();
+            this.m_showInternalLabels.setEnabled( showAxes );
+            this._sendShowAxisCmd();
         },
 
         /**
@@ -152,10 +161,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsAxesPage", {
          * @param thickness {Number} the axes thickness.
          */
         _setThickness : function( thickness ){
-            var thickFloat = thickness * skel.widgets.CustomUI.TextSlider.MAX_SLIDER;
-            var normThickness = Math.round( thickFloat );
-            if ( this.m_thickness.getValue() != normThickness ){
-                this.m_thickness.setValue( normThickness );
+            if ( this.m_thickness.getValue() != thickness ){
+                this.m_thickness.setValue( thickness );
             }
         },
         
@@ -186,6 +193,9 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsAxesPage", {
         
         m_showAxes : null,
         m_showInternalLabels : null,
+        
+        m_showListenerId : null,
+        m_internalListenerId : null,
         
         m_thickness : null,
         m_transparency : null

@@ -539,13 +539,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            if ( selected != this.isActive()){
-                this.setActive( selected );
+            if ( selected != this.m_active ){
+                this.m_active= selected;
                 if( selected) {
                     this.getChildControl("pane").addState( "winSel" );
                 }
                 else {
-                	this.getChildControl("pane").removeState( "winSel");
+                    this.getChildControl("pane").removeState( "winSel");
                 }
                 
                 //Notify window has been selected.
@@ -582,6 +582,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         windowSharedVarUpdate : function( winObj ){
         },
 
+        m_active : false,
         m_closed : false,
         m_contextMenu : null,
         m_scrollArea : null,

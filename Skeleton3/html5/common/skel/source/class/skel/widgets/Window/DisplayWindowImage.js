@@ -206,7 +206,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         
         /**
          * Show/hide the grid control settings.
-         * @param visible - true if the settings should be visibile; false otherwise.
+         * @param visible {boolean}- true if the settings should be visibile; false otherwise.
          */
         _showHideSettings : function( visible ){
             this._adjustControlVisibility();
@@ -266,11 +266,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     console.log( "Could not parse: "+val );
                 }
             }
-            
-            
-            
-            
-            
         },
 
 

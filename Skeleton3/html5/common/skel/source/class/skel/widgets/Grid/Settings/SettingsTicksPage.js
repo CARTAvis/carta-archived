@@ -16,7 +16,6 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsTicksPage", {
         this.base(arguments, "Settings", "");
         this.m_connector = mImport("connector");
         this._init();
-        
     },
 
     members : {
@@ -43,10 +42,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsTicksPage", {
             var sliderContainer = new qx.ui.container.Composite();
             sliderContainer.setLayout( new qx.ui.layout.HBox(2));
             this.m_thickness = new skel.widgets.CustomUI.TextSlider("setTickThickness", "tick",
-                    skel.widgets.CustomUI.TextSlider.MAX_SLIDER, 25, "Thickness", false, "Set tick thickness.", "Slide to set tick thickness.",
-                    "tickThicknessTextField", "tickThicknessSlider", true);
+                    1, 10, 1, "Thickness", false, "Set tick thickness.", "Slide to set tick thickness.",
+                    "tickThicknessTextField", "tickThicknessSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setTickTransparency", "alpha",
-                    skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the tick transparency.", "Slide to set the tick transparency.",
+                    0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the tick transparency.", "Slide to set the tick transparency.",
                     "tickTransparencyTextField", "tickTransparencySlider", false);
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             sliderContainer.add( this.m_thickness );
@@ -67,7 +66,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsTicksPage", {
             this.m_showTicks = new qx.ui.form.CheckBox( "Show Ticks");
             this.m_showTicks.setToolTipText( "Show/hide axis ticks.");
             this.m_showTicks.setValue( true );
-            this.m_showTicks.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendShowTicksCmd, this );
+            this.m_showListenerId = this.m_showTicks.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._sendShowTicksCmd, this );
 
             visibleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             visibleContainer.add( this.m_showTicks);
@@ -102,7 +102,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsTicksPage", {
          */
         _setShowTicks : function ( showTicks ){
             if ( this.m_showTicks.getValue() != showTicks ){
+                this.m_showTicks.removeListenerById( this.m_showListenerId );
                 this.m_showTicks.setValue( showTicks );
+                this.m_showListenerId = this.m_showTicks.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._sendShowTicksCmd, this );
             }
         },
         
@@ -112,10 +115,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsTicksPage", {
          * @param thickness {Number} the tick thickness.
          */
         _setThickness : function( thickness ){
-            var thickFloat = thickness * skel.widgets.CustomUI.TextSlider.MAX_SLIDER;
-            var normThickness = Math.round( thickFloat );
-            if ( this.m_thickness.getValue() != normThickness ){
-                this.m_thickness.setValue( normThickness );
+            if ( this.m_thickness.getValue() != thickness ){
+                this.m_thickness.setValue( thickness );
             }
         },
         
@@ -146,6 +147,7 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsTicksPage", {
         m_connector : null,
         
         m_showTicks : null,
+        m_showListenerId : null,
         m_thickness : null,
         m_transparency : null
     }

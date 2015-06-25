@@ -42,13 +42,13 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsGridPage", {
             var sliderContainer = new qx.ui.container.Composite();
             sliderContainer.setLayout( new qx.ui.layout.HBox(2));
             this.m_thickness = new skel.widgets.CustomUI.TextSlider("setGridThickness", "grid",
-                    skel.widgets.CustomUI.TextSlider.MAX_SLIDER, 25, "Thickness", false, "Set grid thickness.", "Slide to set grid thickness.",
-                    "gridThicknessTextField", "gridThicknessSlider", true);
+                    1, 10, 1, "Thickness", false, "Set grid thickness.", "Slide to set grid thickness.",
+                    "gridThicknessTextField", "gridThicknessSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setGridTransparency", "alpha",
-                    skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the grid transparency.", "Slide to set the grid transparency.",
+                    0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the grid transparency.", "Slide to set the grid transparency.",
                     "gridTransparencyTextField", "gridTransparencySlider", false);
             this.m_spacing = new skel.widgets.CustomUI.TextSlider("setGridSpacing", "spacing",
-                    skel.widgets.CustomUI.TextSlider.MAX_SLIDER, 25, "Spacing", false, "Set grid spacing.", "Slide to set grid spacing.",
+                    0, skel.widgets.CustomUI.TextSlider.MAX_SLIDER, 25, "Spacing", false, "Set grid spacing.", "Slide to set grid spacing.",
                     "gridSpacingTextField", "gridSpacingSlider", true );
             
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
@@ -72,7 +72,7 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsGridPage", {
             this.m_showGridLines = new qx.ui.form.CheckBox( "Grid Lines");
             this.m_showGridLines.setValue( true );
             this.m_showGridLines.setToolTipText( "Show/hide grid lines.");
-            this.m_showGridLines.addListener( skel.widgets.Path.CHANGE_VALUE, 
+            this.m_showListenerId = this.m_showGridLines.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     this._sendShowGridLinesCmd, this );
             
             visibleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
@@ -111,7 +111,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsGridPage", {
          */
         _setShowGridLines : function ( showGridLines ){
             if ( this.m_showGridLines.getValue() != showGridLines ){
+                this.m_showGridLines.removeListenerById( this.m_showListenerId );
                 this.m_showGridLines.setValue( showGridLines );
+                this.m_showListenerId = this.m_showGridLines.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._sendShowGridLinesCmd, this );
             }
         },
 
@@ -120,10 +123,8 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsGridPage", {
          * @param thickness {Number} the grid line thickness.
          */
         _setThickness : function( thickness ){
-            var thickFloat = thickness * skel.widgets.CustomUI.TextSlider.MAX_SLIDER;
-            var normThickness = Math.round( thickFloat );
-            if ( this.m_thickness.getValue() != normThickness ){
-                this.m_thickness.setValue( normThickness );
+            if ( this.m_thickness.getValue() != thickness ){
+                this.m_thickness.setValue( thickness );
             }
         },
 
@@ -166,6 +167,7 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsGridPage", {
         m_connector : null,
         
         m_showGridLines : null,
+        m_showListenerId : null,
         
         m_thickness : null,
         m_spacing : null,

@@ -7,7 +7,7 @@
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
 #include "Data/Image/Themes.h"
-#include "Data/ChannelUnits.h"
+#include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
 #include "Data/Colormap/TransformsImage.h"
@@ -607,7 +607,7 @@ QString ViewManager::_makeController( int index ){
 
 void ViewManager::_makeDataLoader(){
     if ( m_dataLoader == nullptr ){
-        Carta::State::CartaObject* dataLoaderObj = Util::createObject( DataLoader::CLASS_NAME );
+        Carta::State::CartaObject* dataLoaderObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
         m_dataLoader =dynamic_cast<DataLoader*>( dataLoaderObj );
     }
 }

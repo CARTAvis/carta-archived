@@ -15,6 +15,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
      * Constructor.
      * @param serverCmd {String} - the command to set the value on the server.
      * @param paramId {String} - the identifier for the value to be set on the server.
+     * @param minValue {Number} - the minimum slider value.
      * @param maxValue {Number} - the maximum slider value.
      * @param defaultValue {Number} - the default value of the slider.
      * @param textLabel {String} - a user displayable label for the text field.
@@ -26,7 +27,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
      * @param sliderTestId {String} - a test identifier for the slider.
      * @param normalize {boolean} - make the value into a percentage before sending to server.
      */
-    construct : function( serverCmd, paramId, maxValue, defaultValue,
+    construct : function( serverCmd, paramId, minValue, maxValue, defaultValue,
             textLabel, labelLeft, textHelp, sliderHelp, textTestId, sliderTestId, normalize ) {
         this.base(arguments);
         this.m_cmd = serverCmd;
@@ -35,7 +36,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
         }
-        this._init( defaultValue, maxValue, textLabel, labelLeft, textHelp, sliderHelp,
+        this._init( defaultValue, minValue, maxValue, textLabel, labelLeft, textHelp, sliderHelp,
                 textTestId, sliderTestId);
     },
     
@@ -74,6 +75,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
 
         /**
          * Initializes the UI.
+         * @param minValue {Number} - the minimum slider value.
          * @param maxValue {Number} - the maximum slider value.
          * @param defaultValue {Number} - the default value of the slider.
          * @param textLabel {String} - a user displayable label for the text field.
@@ -84,7 +86,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
          * @param textTestId {String} - a test identifier for the text field.
          * @param sliderTestId {String} - a test identifier for the slider.
          */
-        _init : function( defaultValue, maxValue, textLabel, labelLeft, textHelp, sliderHelp,
+        _init : function( defaultValue, minValue, maxValue, textLabel, labelLeft, textHelp, sliderHelp,
                 textTestId, sliderTestId ) {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
@@ -97,7 +99,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
             container.setLayout( gridLayout );
             
             //TextField
-            this.m_text = new skel.widgets.CustomUI.NumericTextField(0, maxValue);
+            this.m_text = new skel.widgets.CustomUI.NumericTextField(minValue, maxValue);
             this.m_text.setToolTipText( textHelp );
             this.m_text.addListener("textChanged",
                     function(ev) {
@@ -117,7 +119,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
             
             //Slider
             this.m_slider = new qx.ui.form.Slider();
-            this.m_slider.setMinimum( 0 );
+            this.m_slider.setMinimum( minValue );
             this.m_slider.setMaximum( maxValue );
             this.m_slider.setValue( defaultValue );
             this.m_slider.setToolTipText( sliderHelp );
@@ -147,7 +149,8 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 var value = this.m_slider.getValue();
                 var percentValue = value;
                 if ( this.m_normalize ){
-                    percentValue = ( value - this.m_slider.getMinimum() ) / (this.m_slider.getMaximum() - this.m_slider.getMinimum());
+                    percentValue = ( value - this.m_slider.getMinimum() ) / 
+                        (this.m_slider.getMaximum() - this.m_slider.getMinimum());
                 }
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;

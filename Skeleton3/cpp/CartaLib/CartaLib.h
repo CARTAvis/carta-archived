@@ -161,7 +161,7 @@ operator<< ( STREAM & stream, const QString & str )
 inline std::ostream &
 operator<< (std::ostream& stream, const QString& str ){
     return stream << str.toStdString();
-}*/
+}
 
 /// QString streaming helper (to read in QStrings)
 //template < typename STREAM >

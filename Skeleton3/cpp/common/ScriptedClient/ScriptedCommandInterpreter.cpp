@@ -4,7 +4,6 @@
 
 #include "Listener.h"
 #include "ScriptedCommandInterpreter.h"
-#include "Data/DataSource.h"
 
 namespace Carta
 {

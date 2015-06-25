@@ -31,7 +31,7 @@ QString CartaObject::addIdToCommand (const QString & command) const {
 }
 
 QString CartaObject::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
-    return m_state.toString();
+    return "";
 }
 
 
@@ -179,8 +179,7 @@ bool ObjectManager::restoreSnapshot(const QString stateStr, CartaObject::Snapsho
         int stateCount = state.getArraySize( STATE_ARRAY );
         for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
             CartaObject* obj = it->second.getObject();
-
-            //Try to assign by (row,col) and matching type.  Note:  May want to remove the assigning by id.
+            //Try to assign by index and matching type.  Note:  May want to remove the assigning by id.
             int targetIndex = obj->getIndex();
             QString targetType = obj->getType( snapType );
             bool restored = false;
@@ -212,7 +211,7 @@ bool ObjectManager::restoreSnapshot(const QString stateStr, CartaObject::Snapsho
                 }
             }
             if ( !restored ){
-                qDebug() << "Unable to restore "<<targetType<<" snapType="<<snapType;
+                //qDebug() << "Unable to restore "<<targetType<<" snapType="<<snapType;
             }
         }
         stateRestored = true;

@@ -75,8 +75,10 @@ class tWindow(unittest.TestCase):
         self.assertIsNotNone( colorWindow, "Could not find color map window")
         
         # Now right click the context menu to remove the colormap window
-        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        
+        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(
+                Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(
+                Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+    
         # Verify that there is one less window than was there originally and the colormap window is not in the list.
         newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
@@ -126,6 +128,7 @@ class tWindow(unittest.TestCase):
     # Test that we can add a window and change it into a statistics view.
     def test_add_window(self):
         driver = self.driver
+        self.driver.implicitly_wait(10)
         
         #For later use, determine the number of DisplayWindows.
         windowCount = Util.get_window_count( self, driver )
@@ -162,7 +165,7 @@ class tWindow(unittest.TestCase):
         newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount+1, newWindowCount, "Window count did not go up")
-        
+
         # Select the empty window
         ActionChains(driver).click(emptyWindow).perform()
         
@@ -201,7 +204,7 @@ class tWindow(unittest.TestCase):
         removeButton = driver.find_element_by_xpath("//div[text()='Remove']/..")
         self.assertIsNotNone(removeButton, "Could not find remove button on window subcontext menu.")
         ActionChains(driver).click(removeButton).perform()
-       
+
        #Verify the colormap window is gone.
         try: 
             colorWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")

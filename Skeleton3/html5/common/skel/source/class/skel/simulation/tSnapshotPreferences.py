@@ -97,8 +97,10 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         # Verify that there are now no animation windows.
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
         animWindowCount = len( animWindowList )
+        print 'New animation count ', animWindowCount
         self.assertEqual( animWindowCount, 0, "An animator is still present")
         
+
         # Restore the preferences
         self._restorePreferences( driver )
         

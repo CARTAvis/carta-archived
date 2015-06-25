@@ -16,6 +16,7 @@ class DataGrid;
 
 class GridControls : public QObject, public Carta::State::CartaObject{
 
+    friend class Controller;
     Q_OBJECT
 
 public:
@@ -30,11 +31,11 @@ public:
 
     /**
      * Set axis thickness.
-     * @param thickness - a nonnegative value between 0 and 1.
+     * @param thickness - a positive integer.
      * @return an error message if the thickness could not be set or an empty string
      *  if the thickness was successfully set.
      */
-    QString setAxesThickness( double thickness );
+    QString setAxesThickness( int thickness );
 
     /**
      * Set the axis transparency.
@@ -94,11 +95,11 @@ public:
 
     /**
      * Set the thickness of the grid lines.
-     * @param thickness - the grid line thickness in [0,1] with 1 having maximum thickness.
+     * @param thickness -a positive integer.
      * @return an error message if there was a problem setting the grid line thickness; an empty
      *      string otherwise.
      */
-    QString setGridThickness( double thickness );
+    QString setGridThickness( int thickness );
 
     /**
      * Set the transparency of the grid.
@@ -170,11 +171,11 @@ public:
 
     /**
      * Set the length of the ticks.
-     * @param tickThickness - a number between 0 and 1.
+     * @param tickThickness - a positive integer.
      * @return an error message if the tick thickness was not successfully set;
      *      an empty string otherwise.
      */
-    QString setTickThickness( double tickThickness );
+    QString setTickThickness( int tickThickness );
 
     /**
      * Set the transparency of the tick marks.
@@ -197,7 +198,8 @@ public:
     const static QString CLASS_NAME;
 
 signals:
-    void gridChanged( const Carta::State::StateInterface& gridState );
+
+    void gridChanged( const Carta::State::StateInterface& gridState, bool applyAll );
 
 private:
 
@@ -206,6 +208,7 @@ private:
     void _initializeCallbacks();
     QStringList _parseColorParams( const QString& params, const QString& label,
             int* red, int* green, int* blue ) const;
+    void _resetState( const Carta::State::StateInterface& otherState );
     void _updateGrid();
 
     const static QString ALL;

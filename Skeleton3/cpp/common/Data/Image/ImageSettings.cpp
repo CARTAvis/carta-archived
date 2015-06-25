@@ -41,7 +41,7 @@ QString ImageSettings::getStateString( const QString& /*sessionId*/, SnapshotTyp
 }
 
 void ImageSettings::_initializeDefaultState(){
-    m_state.insertValue<bool>( SETTINGS, true );
+    m_state.insertValue<bool>( SETTINGS, false );
     m_state.flushState();
 }
 

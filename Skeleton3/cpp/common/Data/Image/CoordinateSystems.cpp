@@ -18,6 +18,8 @@ const QString CoordinateSystems::B1950 = "B1950";
 const QString CoordinateSystems::ICRS = "ICRS";
 const QString CoordinateSystems::GALACTIC = "Galactic";
 const QString CoordinateSystems::ECLIPTIC = "Ecliptic";
+const QString CoordinateSystems::NATIVE = "Native";
+const QString CoordinateSystems::SUPERGALACTIC = "Supergalactic";
 
 class CoordinateSystems::Factory : public Carta::State::CartaObjectFactory {
 
@@ -39,18 +41,20 @@ bool CoordinateSystems::m_registered =
 
 CoordinateSystems::CoordinateSystems( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
+    //m_coordSystems.insert(Carta::Lib::KnownSkyCS::Default, NATIVE );
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::J2000, J2000);
-    m_coordSystems.insert(Carta::Lib::KnownSkyCS::B1950, B1950 );
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::Galactic, GALACTIC);
-    m_coordSystems.insert(Carta::Lib::KnownSkyCS::Ecliptic, ECLIPTIC);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::ICRS, ICRS);
+    m_coordSystems.insert(Carta::Lib::KnownSkyCS::Ecliptic, ECLIPTIC);
+    m_coordSystems.insert(Carta::Lib::KnownSkyCS::B1950, B1950 );
+    //m_coordSystems.insert(Carta::Lib::KnownSkyCS::Supergalactic, SUPERGALACTIC);
 
     _initializeDefaultState();
     _initializeCallbacks();
 }
 
 QString CoordinateSystems::getDefault() const {
-    return m_coordSystems[ Carta::Lib::KnownSkyCS::Galactic ];
+    return m_coordSystems[ Carta::Lib::KnownSkyCS::J2000 ];
 }
 
 QStringList CoordinateSystems::getCoordinateSystems() const {
@@ -75,6 +79,19 @@ Carta::Lib::KnownSkyCS CoordinateSystems::getIndex( const QString& name ) const 
     }
     return index;
 }
+
+QList<Carta::Lib::KnownSkyCS> CoordinateSystems::getIndices() const{
+    return m_coordSystems.keys();
+}
+
+QString CoordinateSystems::getName(Carta::Lib::KnownSkyCS skyCS ) const {
+    QString name;
+    if ( m_coordSystems.contains( skyCS )){
+        name = m_coordSystems[skyCS];
+    }
+    return name;
+}
+
 
 void CoordinateSystems::_initializeDefaultState(){
     int coordCount = m_coordSystems.size();
