@@ -212,7 +212,6 @@ private:
      * @retun the pipeline responsible for rendering the image.
      */
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
-    
 
     /**
      * Return the zoom factor for this image.
@@ -233,7 +232,7 @@ private:
      * @return a list consisting of the x- and y-coordinates of the pixel
      *  corresponding to the given world coordinates.
      */
-    QStringList _getPixelCoordinates( double ra, double dec );
+    QStringList _getPixelCoordinates( double ra, double dec ) const;
 
     /**
      * Return the value of the pixel at (x, y).
@@ -241,7 +240,22 @@ private:
      * @param y the y-coordinate of the desired pixel.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
-    QString _getPixelValue( double x, double y );
+    QString _getPixelValue( double x, double y ) const;
+
+    /**
+     * Return the units of the pixels.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QString _getPixelUnits() const;
+
+    /**
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @return the coordinates at pixel (x, y).
+     */
+    QString _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ) const;
 
     
 
@@ -292,11 +306,12 @@ private:
      * @param width the width of the saved image.
      * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
+     * @param frameIndex the channel index.
      * @param aspectRatioMode can be either "ignore", "keep", or "expand".
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void _saveFullImage( const QString& savename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
-
+    void _saveFullImage( const QString& savename, int width, int height, double scale, int frameIndex,
+            const Qt::AspectRatioMode aspectRatioMode );
     /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.

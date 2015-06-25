@@ -83,6 +83,9 @@ bool Util::isListMatch( const QStringList& list1, const QStringList& list2 ){
 
 double Util::roundToDigits(double value, int digits)
 {
+    if ( value == 0 ) {
+        return 0;
+    }
     double factor = pow(10.0, digits - ceil(log10(fabs(value))));
     return round(value * factor) / factor;
 }

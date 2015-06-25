@@ -908,6 +908,102 @@ QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, dou
     return resultList;
 }
 
+QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString resultStr = controller->getPixelUnits();
+            resultList = QStringList( resultStr );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::getCoordinates( const QString& controlId, double x, double y, const Carta::Lib::KnownSkyCS system ){
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getCoordinates( x, y, system );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::getImageNames( const QString& controlId ) {
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            int imageCount = controller->getStackedImageCount();
+            if ( imageCount == 0 ) {
+                resultList = QStringList("");
+            }
+            for ( int i = 0; i < imageCount; i++ ) {
+                resultList.append( controller->getImageName( i ) );
+            }
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::closeImage( const QString& controlId, const QString& imageName ) {
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->closeImage( imageName );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferAmount ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();

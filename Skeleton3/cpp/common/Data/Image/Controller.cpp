@@ -279,6 +279,45 @@ std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller
     return pipeline;
 }
 
+QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
+    QStringList result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->_getPixelCoordinates( ra, dec );
+    }
+    return result;
+}
+
+QString Controller::getPixelValue( double x, double y ) const {
+    QString result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->_getPixelValue( x, y );
+    }
+    return result;
+}
+
+QString Controller::getPixelUnits() const {
+    QString result("");
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        result = m_datas[imageIndex]->_getPixelUnits();
+    }
+    return result;
+}
+
+QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system) const {
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 ){
+        for ( int i = 0; i <= 1; i++ ){
+            result.append( m_datas[imageIndex]->_getCoordinates( x, y, system, i ) );
+        }
+    }
+    return result;
+}
+
+
 QString Controller::getPreferencesId() const {
     QString id;
     if ( m_settings.get() != nullptr ){
@@ -709,7 +748,10 @@ bool Controller::saveImage( const QString& filename ) {
 
 void Controller::saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
     int imageIndex = m_selectImage->getIndex();
-    m_datas[imageIndex]->_saveFullImage( filename, width, height, scale, aspectRatioMode );
+    int frameIndex = m_selectChannel->getIndex();
+    if ( 0<= imageIndex && imageIndex < m_datas.size()){
+        m_datas[imageIndex]->_saveFullImage( filename, width, height, scale, frameIndex, aspectRatioMode );
+    }
 }
 
 void Controller::saveImageResultCB( bool result ){
@@ -984,23 +1026,6 @@ QString Controller::setClipValue( double clipVal  ) {
     return result;
 }
 
-QStringList Controller::getPixelCoordinates( double ra, double dec ){
-    QStringList result("");
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
-        result = m_datas[imageIndex]->_getPixelCoordinates( ra, dec );
-    }
-    return result;
-}
-
-QString Controller::getPixelValue( double x, double y ){
-    QString result("");
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
-        result = m_datas[imageIndex]->_getPixelValue( x, y );
-    }
-    return result;
-}
 
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){

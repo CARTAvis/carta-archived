@@ -113,8 +113,9 @@ QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
         QString coordName = m_coords->getName( cf->skyCS() );
         out << "Default sky cs:" << coordName << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
-        QString pixelValue = _getPixelValue( imgX, imgY );
-        out << "Value:" << pixelValue << " " << m_image->getPixelUnit().toStr() << "\n";
+        QString pixelValue = _getPixelValue( round(imgX), round(imgY) );
+        QString pixelUnits = _getPixelUnits();
+        out << "Value:" << pixelValue << " " << pixelUnits << "\n";
     
         QList<Carta::Lib::KnownSkyCS> css = m_coords->getIndices();
         for ( Carta::Lib::KnownSkyCS cs : css ) {
@@ -131,9 +132,8 @@ QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
             if( pixel.size() > 2) {
                 pixel[2] = frameIndex;
             }
-            auto list = cf-> formatFromPixelCoordinate( pixel );
             for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-                out << ais[i].shortLabel().html() << ":" << list[i] << " ";
+                out << ais[i].shortLabel().html() << ":" << _getCoordinates( imgX, imgY, cs, i ) << " ";
             }
             out << "\n";
         }
@@ -164,13 +164,13 @@ QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
-QString DataSource::_getPixelValue( double x, double y ){
+QString DataSource::_getPixelValue( double x, double y ) const {
     QString pixelValue = "";
     if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
         NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
-            pixelValue = QString::number( view.get( {(int)(x), int(y)} ) );
+            pixelValue = QString::number( view.get( {(int)(round(x)), (int)(round(y)) } ) );
         }
     }
     return pixelValue;
@@ -290,7 +290,7 @@ double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity
     return percentile;
 }
 
-QStringList DataSource::_getPixelCoordinates( double ra, double dec ){
+QStringList DataSource::_getPixelCoordinates( double ra, double dec ) const{
     QStringList result("");
     CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
     const CoordinateFormatterInterface::VD world { ra, dec };
@@ -301,6 +301,11 @@ QStringList DataSource::_getPixelCoordinates( double ra, double dec ){
         result.append( QString::number( pixel[1] ) );
     }
     return result;
+}
+
+QString DataSource::_getPixelUnits() const {
+    QString units = m_image->getPixelUnit().toStr();
+    return units;
 }
 
 NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int channelEnd ) const {
@@ -455,12 +460,13 @@ void DataSource::_render(){
 
 
 void DataSource::_saveFullImage( const QString& savename, int width, int height, double scale,
-        const Qt::AspectRatioMode aspectRatioMode ){
+        int frameIndex, const Qt::AspectRatioMode aspectRatioMode ){
     QString fileName = _getFileName();
     m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, fileName );
     if ( width > 0 && height > 0 ) {
         m_scriptedRenderService->setOutputSize( QSize( width, height ) );
         m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
+        m_scriptedRenderService->setFrameIndex( frameIndex );
     }
     m_scriptedRenderService->setZoom( scale );
 
@@ -598,6 +604,19 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
 void DataSource::_viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
+
+
+QString DataSource::_getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ) const{
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    cf-> setSkyCS( system );
+    std::vector < double > pixel( m_image-> dims().size(), 0.0 );
+    pixel[0] = x;
+    pixel[1] = y;
+    auto list = cf-> formatFromPixelCoordinate( pixel );
+    QString result = list[axis];
+    return result;
+}
+
 
 
 DataSource::~DataSource() {

@@ -141,9 +141,9 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<bool>( SHOW_COORDS, true );
 
     //Pens
-    _initializeDefaultPen( GRID, MAX_COLOR, 0, 0, MAX_COLOR, 1 );
-    _initializeDefaultPen( AXES, 0, MAX_COLOR,0, MAX_COLOR, 1 );
-    _initializeDefaultPen( TICK, 0, MAX_COLOR,0, MAX_COLOR, 1 );
+    _initializeDefaultPen( GRID, MAX_COLOR, MAX_COLOR, MAX_COLOR, MAX_COLOR, 1 );
+    _initializeDefaultPen( AXES, MAX_COLOR, MAX_COLOR, MAX_COLOR, MAX_COLOR, 1 );
+    _initializeDefaultPen( TICK, MAX_COLOR, MAX_COLOR, MAX_COLOR, MAX_COLOR, 1 );
     m_state.insertValue<double>( SPACING, .33 );
 
     //Label Color

@@ -30,12 +30,16 @@ void ScriptedRenderService::setOutputSize( QSize size ){
     m_outputSize = size;
 }
 
+void ScriptedRenderService::setFrameIndex( int index ){
+    m_frameIndex = index;
+}
+
 void ScriptedRenderService::setAspectRatioMode( Qt::AspectRatioMode mode ){
     m_aspectRatioMode = mode;
 }
 
 void ScriptedRenderService::saveFullImage(){
-    _prepareData( 0, 0.0, 1.0 );
+    _prepareData( m_frameIndex, 0.0, 1.0 );
     m_renderService->render( 0 );
 }
 
@@ -68,7 +72,7 @@ void ScriptedRenderService::_prepareData( int frameIndex, double /*minClipPercen
 
     double zoom = m_renderService->zoom();
     m_renderService->setOutputSize( QSize( zoom * m_imageCopy->dims()[0], zoom * m_imageCopy->dims()[1] ) );
-    m_renderService->setPan( { m_imageCopy->dims()[0] / 2.0, m_imageCopy->dims()[1] / 2.0 });
+    m_renderService->setPan( { m_imageCopy->dims()[0] / 2.0 - 0.5, m_imageCopy->dims()[1] / 2.0 - 0.5 });
 }
 
 void ScriptedRenderService::_saveFullImageCB( QImage img ){
