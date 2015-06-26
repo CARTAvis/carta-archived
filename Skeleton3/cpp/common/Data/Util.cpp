@@ -1,7 +1,5 @@
 #include "Util.h"
-#include "State/ObjectManager.h"
 #include "Data/Error/ErrorManager.h"
-#include <QStringList>
 #include <QDebug>
 #include <cmath>
 
@@ -38,28 +36,10 @@ QString Util::toString( bool val ){
     return result;
 }
 
-Carta::State::CartaObject* Util::createObject( const QString& objectName ){
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    QString objectId = objManager->createObject( objectName );
-    Carta::State::CartaObject* cartaObj = objManager->getObject( objectId );
-    return cartaObj;
-}
-
-Carta::State::CartaObject* Util::findSingletonObject( const QString& objectName ){
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    Carta::State::CartaObject* obj = objManager->getObject( objectName );
-    if ( obj == NULL ){
-        obj = createObject( objectName );
-    }
-    return obj;
-}
-
-
 
 void Util::commandPostProcess( const QString& errorMsg){
     if ( errorMsg.trimmed().length() > 0 ){
-        Carta::State::CartaObject* obj = Util::findSingletonObject( ErrorManager::CLASS_NAME );
-        ErrorManager* errorMan = dynamic_cast<ErrorManager*>(obj);
+        ErrorManager* errorMan = Util::findSingletonObject<ErrorManager>();
         errorMan->registerWarning( errorMsg );
     }
 }

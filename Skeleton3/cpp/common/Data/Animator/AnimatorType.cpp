@@ -157,9 +157,9 @@ QString AnimatorType::_makeSelection(){
     if ( m_select != nullptr ){
         objManager->destroyObject( m_select->getId());
     }
-    QString selId = objManager->createObject( Selection::CLASS_NAME );
-    m_select = dynamic_cast<Selection*>(objManager->getObject( selId ));
-    return m_select->getPath();
+    m_select = objManager->createObject<Selection>();
+    QString path = m_select->getPath();
+    return path;
 }
 
 void AnimatorType::resetStateData( const QString& state ){

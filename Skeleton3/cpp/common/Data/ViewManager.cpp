@@ -62,16 +62,16 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     objMan->printObjects();
-    Util::findSingletonObject( AnimationTypes::CLASS_NAME );
-    Util::findSingletonObject( Clips::CLASS_NAME );
-    Util::findSingletonObject( Colormaps::CLASS_NAME );
-    Util::findSingletonObject( TransformsData::CLASS_NAME);
-    Util::findSingletonObject( TransformsImage::CLASS_NAME);
-    Util::findSingletonObject( ErrorManager::CLASS_NAME );
-    Util::findSingletonObject( Preferences::CLASS_NAME );
-    Util::findSingletonObject( ChannelUnits::CLASS_NAME );
-    Util::findSingletonObject( CoordinateSystems::CLASS_NAME );
-    Util::findSingletonObject( Themes::CLASS_NAME );
+    Util::findSingletonObject<AnimationTypes>();
+    Util::findSingletonObject<Clips>();
+    Util::findSingletonObject<Colormaps>();
+    Util::findSingletonObject<TransformsData>();
+    Util::findSingletonObject<TransformsImage>();
+    Util::findSingletonObject<ErrorManager>();
+    Util::findSingletonObject<Preferences>();
+    Util::findSingletonObject<ChannelUnits>();
+    Util::findSingletonObject<CoordinateSystems>();
+    Util::findSingletonObject<Themes>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -572,8 +572,9 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
 QString ViewManager::_makeAnimator( int index ){
     int currentCount = m_animators.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    Carta::State::CartaObject* animObj = Util::createObject( Animator::CLASS_NAME );
-    m_animators.insert( index, dynamic_cast<Animator*>(animObj));
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Animator* animObj = objMan->createObject<Animator>();
+    m_animators.insert( index, animObj);
     for ( int i = index; i < currentCount + 1; i++ ){
         m_animators[i]->setIndex( i );
     }
@@ -584,8 +585,9 @@ QString ViewManager::_makeAnimator( int index ){
 QString ViewManager::_makeColorMap( int index ){
     int currentCount = m_colormaps.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    Carta::State::CartaObject* controlObj = Util::createObject( Colormap::CLASS_NAME );
-    m_colormaps.insert( index, dynamic_cast<Colormap*>(controlObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Colormap* colormap = objMan->createObject<Colormap>();
+    m_colormaps.insert( index, colormap );
     for ( int i = index; i < currentCount + 1; i++ ){
         m_colormaps[i]->setIndex( i );
     }
@@ -596,8 +598,9 @@ QString ViewManager::_makeColorMap( int index ){
 QString ViewManager::_makeController( int index ){
     int currentCount = m_controllers.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    Carta::State::CartaObject* controlObj = Util::createObject( Controller::CLASS_NAME );
-    m_controllers.insert( index, dynamic_cast<Controller*>(controlObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Controller* controlObj = objMan->createObject<Controller>();
+    m_controllers.insert( index, controlObj );
     for ( int i = index; i < currentCount + 1; i++ ){
         m_controllers[i]->setIndex( i );
     }
@@ -607,16 +610,16 @@ QString ViewManager::_makeController( int index ){
 
 void ViewManager::_makeDataLoader(){
     if ( m_dataLoader == nullptr ){
-        Carta::State::CartaObject* dataLoaderObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
-        m_dataLoader =dynamic_cast<DataLoader*>( dataLoaderObj );
+        m_dataLoader = Util::findSingletonObject<DataLoader>();
     }
 }
 
 QString ViewManager::_makeHistogram( int index ){
     int currentCount = m_histograms.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    Carta::State::CartaObject* controlObj = Util::createObject( Histogram::CLASS_NAME );
-    m_histograms.insert( index, dynamic_cast<Histogram*>(controlObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Histogram* histObj = objMan->createObject<Histogram>();
+    m_histograms.insert( index, histObj );
     for ( int i = index; i < currentCount + 1; i++ ){
         m_histograms[i]->setIndex( i );
     }
@@ -625,8 +628,8 @@ QString ViewManager::_makeHistogram( int index ){
 
 QString ViewManager::_makeLayout(){
     if ( !m_layout ){
-        Carta::State::CartaObject* layoutObj = Util::createObject( Layout::CLASS_NAME );
-        m_layout = dynamic_cast<Layout*>(layoutObj );
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        m_layout = objMan->createObject<Layout>();
         connect( m_layout, SIGNAL(pluginListChanged(const QStringList&, const QStringList&)),
                 this, SLOT( _pluginsChanged( const QStringList&, const QStringList&)));
     }
@@ -637,8 +640,8 @@ QString ViewManager::_makeLayout(){
 QString ViewManager::_makePluginList(){
     if ( !m_pluginsLoaded ){
         //Initialize a view showing the plugins that have been loaded
-        Carta::State::CartaObject* pluginsObj = Util::createObject( ViewPlugins::CLASS_NAME );
-        m_pluginsLoaded = dynamic_cast<ViewPlugins*>(pluginsObj);
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        m_pluginsLoaded = objMan->createObject<ViewPlugins>();
     }
     QString pluginsPath = m_pluginsLoaded->getPath();
     return pluginsPath;
@@ -646,8 +649,8 @@ QString ViewManager::_makePluginList(){
 
 QString ViewManager::_makeSnapshots(){
     if ( !m_snapshots ){
-        Carta::State::CartaObject* snapObj = Util::createObject( Snapshots::CLASS_NAME );
-        m_snapshots = dynamic_cast<Snapshots*>(snapObj );
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        m_snapshots = objMan->createObject<Snapshots>();
     }
     QString snapPath = m_snapshots->getPath();
     return snapPath;
@@ -656,8 +659,9 @@ QString ViewManager::_makeSnapshots(){
 QString ViewManager::_makeStatistics( int index ){
     int currentCount = m_statistics.size();
     CARTA_ASSERT( 0 <= index && index <= currentCount );
-    Carta::State::CartaObject* controlObj = Util::createObject( Statistics::CLASS_NAME );
-    m_statistics.insert( index, dynamic_cast<Statistics*>(controlObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Statistics* stats = objMan->createObject<Statistics>();
+    m_statistics.insert( index, stats );
     for ( int i = index; i < currentCount + 1; i++ ){
         m_statistics[i]->setIndex( i );
     }
@@ -755,21 +759,21 @@ void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& 
 }
 
 void ViewManager::_refreshStateSingletons(){
-    CartaObject* obj = Util::findSingletonObject( AnimationTypes::CLASS_NAME );
+    CartaObject* obj = Util::findSingletonObject<AnimationTypes>();
     obj->refreshState();
-    obj = Util::findSingletonObject( Clips::CLASS_NAME );
+    obj = Util::findSingletonObject<Clips>();
     obj->refreshState();
-    obj = Util::findSingletonObject( Colormaps::CLASS_NAME );
+    obj = Util::findSingletonObject<Colormaps>();
     obj->refreshState();
-    obj = Util::findSingletonObject( TransformsData::CLASS_NAME);
+    obj = Util::findSingletonObject<TransformsData>();
     obj->refreshState();
-    obj = Util::findSingletonObject( TransformsImage::CLASS_NAME);
+    obj = Util::findSingletonObject<TransformsImage>();
     obj->refreshState();
-    obj = Util::findSingletonObject( ErrorManager::CLASS_NAME );
+    obj = Util::findSingletonObject<ErrorManager>();
     obj->refreshState();
-    obj = Util::findSingletonObject( Preferences::CLASS_NAME );
+    obj = Util::findSingletonObject<Preferences>();
     obj->refreshState();
-    obj = Util::findSingletonObject( ChannelUnits::CLASS_NAME );
+    obj = Util::findSingletonObject<ChannelUnits>();
     obj->refreshState();
 }
 

@@ -25,9 +25,7 @@ ScriptFacade * ScriptFacade::getInstance (){
 
 
 ScriptFacade::ScriptFacade(){
-    QString vmLookUp = Carta::Data::ViewManager::CLASS_NAME;
-    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( vmLookUp );
-    m_viewManager = dynamic_cast<Carta::Data::ViewManager*>(obj);
+    m_viewManager = Carta::Data::Util::findSingletonObject<Carta::Data::ViewManager>();
 
     int numControllers = m_viewManager->getControllerCount();
     for (int i = 0; i < numControllers; i++) {
@@ -49,9 +47,7 @@ QString ScriptFacade::getColorMapId( int index ) const {
 }
 
 QStringList ScriptFacade::getColorMaps() const {
-    QString cmLookUp = Carta::Data::Colormaps::CLASS_NAME;
-    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( cmLookUp );
-    Carta::Data::Colormaps* maps = dynamic_cast<Carta::Data::Colormaps*>(obj);
+    Carta::Data::Colormaps* maps = Carta::Data::Util::findSingletonObject<Carta::Data::Colormaps>();
     return maps->getColorMaps();
 }
 
@@ -201,23 +197,10 @@ QStringList ScriptFacade::setAnalysisLayout(){
 
 QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
     QStringList resultList;
-    QString layoutLookUp = Carta::Data::Layout::CLASS_NAME;
-    Carta::State::CartaObject* obj = Carta::Data::Util::findSingletonObject( layoutLookUp );
-    if ( obj != nullptr ){
-       Carta::Data::Layout* layout = dynamic_cast<Carta::Data::Layout*>(obj);
-       if ( layout != nullptr ){
-           QString resultStr = layout->setLayoutSize( rows, cols );
-           resultList = QStringList( resultStr );
-       }
-       else {
-           resultList = QStringList( "error" );
-           resultList.append( "An unknown error has occurred." );
-       }
-    }
-    else {
-       resultList = QStringList( "error" );
-       resultList.append( "The layout could not be found." );
-    }
+    Carta::Data::Layout* layout = Carta::Data::Util::findSingletonObject<Carta::Data::Layout>();
+    QString resultStr = layout->setLayoutSize( rows, cols );
+    resultList = QStringList( resultStr );
+
     //QString resultStr = m_viewManager->setCustomView( rows, cols );
     //QStringList result( resultStr );
     //return result;
@@ -599,18 +582,18 @@ void ScriptFacade::saveImageResultCB( bool result ){
 
 
 QStringList ScriptFacade::saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout, bool savePreferences, bool saveData, const QString& description ){
-    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
-    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    Carta::State::ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::Data::Snapshots* m_snapshots = objMan->createObject<Carta::Data::Snapshots>();
     QString result = m_snapshots->saveSnapshot( sessionId, saveName, saveLayout, savePreferences, saveData, description );
     QStringList resultList(result);
     return resultList;
 }
 
 QStringList ScriptFacade::getSnapshots( const QString& sessionId ){
-    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
-    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    Carta::State::ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::Data::Snapshots* snapshots = objMan->createObject<Carta::Data::Snapshots>();
     QStringList resultList;
-    QList<Carta::Data::Snapshot> snapshotList = m_snapshots->getSnapshots( sessionId );
+    QList<Carta::Data::Snapshot> snapshotList = snapshots->getSnapshots( sessionId );
     int count = snapshotList.size();
     if ( count == 0 ) {
         resultList = QStringList("");
@@ -622,10 +605,10 @@ QStringList ScriptFacade::getSnapshots( const QString& sessionId ){
 }
 
 QStringList ScriptFacade::getSnapshotObjects( const QString& sessionId ){
-    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
-    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
+    Carta::State::ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::Data::Snapshots* snapshots = objMan->createObject<Carta::Data::Snapshots>();
     QStringList resultList;
-    QList<Carta::Data::Snapshot> snapshotList = m_snapshots->getSnapshots( sessionId );
+    QList<Carta::Data::Snapshot> snapshotList = snapshots->getSnapshots( sessionId );
     int count = snapshotList.size();
     if ( count == 0 ) {
         resultList = QStringList("");
@@ -637,17 +620,17 @@ QStringList ScriptFacade::getSnapshotObjects( const QString& sessionId ){
 }
 
 QStringList ScriptFacade::deleteSnapshot( const QString& sessionId, const QString& saveName ){
-    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
-    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
-    QString result = m_snapshots->deleteSnapshot( sessionId, saveName );
+    Carta::State::ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::Data::Snapshots* snapshots = objMan->createObject<Carta::Data::Snapshots>();
+    QString result = snapshots->deleteSnapshot( sessionId, saveName );
     QStringList resultList(result);
     return resultList;
 }
 
 QStringList ScriptFacade::restoreSnapshot( const QString& sessionId, const QString& saveName ){
-    Carta::State::CartaObject* snapObj = Carta::Data::Util::createObject( Carta::Data::Snapshots::CLASS_NAME );
-    Carta::Data::Snapshots* m_snapshots = dynamic_cast<Carta::Data::Snapshots*>( snapObj );
-    QString result = m_snapshots->restoreSnapshot( sessionId, saveName );
+    Carta::State::ObjectManager* objMan = ObjectManager::objectManager();
+    Carta::Data::Snapshots* snapshots = objMan->createObject<Carta::Data::Snapshots>();
+    QString result = snapshots->restoreSnapshot( sessionId, saveName );
     QStringList resultList(result);
     return resultList;
 }

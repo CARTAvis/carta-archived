@@ -244,8 +244,9 @@ void Animator::_imageIndexChanged( int selectedImage){
 QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
     QString animId;
     if ( !m_animators.contains( type ) ){
-        Carta::State::CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
-        m_animators.insert(type, dynamic_cast<AnimatorType*>(animObj) );
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        AnimatorType* animObj = objMan->createObject<AnimatorType>();
+        m_animators.insert(type, animObj );
         _adjustStateAnimatorTypes();
         *newAnimator = true;
     }

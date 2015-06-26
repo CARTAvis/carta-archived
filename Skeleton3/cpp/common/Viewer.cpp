@@ -97,13 +97,13 @@ Viewer::start()
 	}
 	Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
 	if ( m_viewManager == nullptr ){
-        QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
-        Carta::State::CartaObject* vmObj = objManager->getObject( vmId );
-        m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
+        Carta::Data::ViewManager* vm = objManager->createObject<Carta::Data::ViewManager> ();
+        m_viewManager.reset( vm );
 	}
 	else {
 	    m_viewManager->reload();
 	}
+
     if ( m_devView ){
        m_viewManager->setDeveloperView();
     }

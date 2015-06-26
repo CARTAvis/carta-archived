@@ -86,6 +86,7 @@ public:
         */
        virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
+       static const QString CLASS_NAME;
 
 
     virtual ~DataSource();
@@ -363,7 +364,6 @@ private:
     int m_cmapCacheSize;
 
     static const QString DATA_PATH;
-    static const QString CLASS_NAME;
 
     //Used pointer to coordinate systems.
     static CoordinateSystems* m_coords;

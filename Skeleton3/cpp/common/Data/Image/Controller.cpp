@@ -79,13 +79,14 @@ Controller::Controller( const QString& path, const QString& id ) :
      registerView(m_view.get());
      connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_viewResize(const QSize&)));
 
-     Carta::State::CartaObject* gridObj = Util::createObject( GridControls::CLASS_NAME );
-     m_gridControls.reset(dynamic_cast<GridControls*>(gridObj) );
+     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+     GridControls* gridObj = objMan->createObject<GridControls>();
+     m_gridControls.reset( gridObj );
      connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
              this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
 
-     Carta::State::CartaObject* settingsObj = Util::createObject( ImageSettings::CLASS_NAME );
-     m_settings.reset(dynamic_cast<ImageSettings*>(settingsObj) );
+     ImageSettings* settingsObj = objMan->createObject<ImageSettings>();
+     m_settings.reset( settingsObj );
 
      //Load the view.
      _scheduleFrameReload();
@@ -107,8 +108,8 @@ bool Controller::addData(const QString& fileName) {
 
     //Add the data if it is not already there.
     if (targetIndex == -1) {
-        Carta::State::CartaObject* obj = Util::createObject( DataSource::CLASS_NAME );
-        DataSource* targetSource =  dynamic_cast<DataSource*>(obj);
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        DataSource* targetSource = objMan->createObject<DataSource>();
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         connect( targetSource, & DataSource::saveImageResult, this, & Controller::saveImageResultCB );
@@ -356,23 +357,22 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         //Data state should include DataSource that is selected
         //Data state should include channel that is selected.
         Carta::State::StateInterface dataState("");
-        Carta::State::CartaObject* cartaObj = Util::findSingletonObject( DataLoader::CLASS_NAME );
-        DataLoader* dataLoader = dynamic_cast<DataLoader*>(cartaObj);
-        if ( dataLoader != nullptr ){
-            QString rootDir = dataLoader->getRootDir( sessionId );
-            int dataCount = m_datas.size();
-            dataState.insertArray( DATA, dataCount );
-            for ( int i = 0; i < dataCount; i++ ){
-                QString lookup = Carta::State::UtilState::getLookup( DATA, i );
-                dataState.setObject( lookup, m_datas[i]->_getStateString());
-            }
-            dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
-            dataState.setValue<int>(StateInterface::INDEX, getIndex() );
+        DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
 
-            dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
-            dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
-            result = dataState.toString();
+        QString rootDir = dataLoader->getRootDir( sessionId );
+        int dataCount = m_datas.size();
+        dataState.insertArray( DATA, dataCount );
+        for ( int i = 0; i < dataCount; i++ ){
+            QString lookup = Carta::State::UtilState::getLookup( DATA, i );
+            dataState.setObject( lookup, m_datas[i]->_getStateString());
         }
+        dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
+        dataState.setValue<int>(StateInterface::INDEX, getIndex() );
+
+        dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
+        dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+        result = dataState.toString();
+
     }
     return result;
 }
@@ -551,8 +551,8 @@ void Controller::_initializeSelections(){
 
 
 void Controller::_initializeSelection( Selection* & selection ){
-    CartaObject* selectObj = Util::createObject( Selection::CLASS_NAME );
-    selection = dynamic_cast<Selection*>(selectObj);
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    selection = objMan->createObject<Selection>();
 }
 
 
@@ -713,14 +713,10 @@ void Controller::saveState() {
         for (int i = 0; i < dataCount; i++) {
             longNames.append( m_datas[i]->_getFileName() );
         }
-        QStringList shortNames;
-        CartaObject* obj = Util::findSingletonObject( DataLoader::CLASS_NAME );
-        if ( obj != nullptr ){
-            DataLoader* dataLoader = dynamic_cast<DataLoader*>( obj );
-            if ( dataLoader != nullptr ){
-                shortNames = dataLoader->getShortNames( longNames );
-            }
-        }
+
+        DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
+        QStringList shortNames = dataLoader->getShortNames( longNames );
+
         int shortNameCount = shortNames.size();
         for ( int i = 0; i < shortNameCount; i++ ){
             QString dataKey = UtilState::getLookup( DATA, i);

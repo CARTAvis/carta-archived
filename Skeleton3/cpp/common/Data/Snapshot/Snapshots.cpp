@@ -149,8 +149,7 @@ QString Snapshots::_restoreLayout(const QString& sessionId, const QString& saveN
         //First reset the layout
         Carta::State::StateInterface state("");
         state.setState( layoutState );
-        Carta::State::CartaObject* obj = Util::findSingletonObject( Layout::CLASS_NAME );
-        Layout* layout = dynamic_cast<Layout*>(obj);
+        Layout* layout = Util::findSingletonObject<Layout>();
         layout->resetState( state );
 
         //Now go in and reset the links.
@@ -234,8 +233,7 @@ void Snapshots::_saveSelected( const QString& saveName ){
 QString Snapshots::_saveLayout(const QString& sessionId, const QString& snapName){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     //Layout state consists of both the layout and the links.
-    Carta::State::CartaObject* obj = Util::findSingletonObject( Layout::CLASS_NAME );
-    Layout* layout = dynamic_cast<Layout*>(obj);
+    Layout* layout = Util::findSingletonObject<Layout>();
     QString layoutState = layout->getStateString();
     QString linkState =objMan->getStateString( sessionId, LinkableImpl::LINK, SNAPSHOT_LAYOUT);
 

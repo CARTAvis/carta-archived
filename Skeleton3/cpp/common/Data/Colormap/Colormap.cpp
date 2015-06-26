@@ -58,8 +58,9 @@ Colormap::Colormap( const QString& path, const QString& id):
     m_linkImpl( new LinkableImpl( path ) ),
     m_stateMouse(Carta::State::UtilState::getLookup(path,ImageView::VIEW)){
 
-    Carta::State::CartaObject* prefObj = Util::createObject( Settings::CLASS_NAME );
-    m_settings.reset(dynamic_cast<Settings*>(prefObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Settings* prefObj = objMan->createObject<Settings>();
+    m_settings.reset( prefObj );
 
     _initializeDefaultState();
     _initializeCallbacks();
@@ -262,20 +263,14 @@ void Colormap::_initializeCallbacks(){
 void Colormap::_initializeStatics(){
     //Load the available color maps.
     if ( m_colors == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( Colormaps::CLASS_NAME );
-        m_colors = dynamic_cast<Colormaps*>( obj );
+        m_colors = Util::findSingletonObject<Colormaps>();
     }
 
     //Data transforms
     if ( m_dataTransforms == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( TransformsData::CLASS_NAME );
-        m_dataTransforms =dynamic_cast<TransformsData*>( obj );
+        m_dataTransforms = Util::findSingletonObject<TransformsData>();
     }
 }
-
-
-
-
 
 bool Colormap::isReversed() const {
     return m_state.getValue<bool>( REVERSE );

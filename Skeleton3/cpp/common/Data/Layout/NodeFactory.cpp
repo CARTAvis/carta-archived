@@ -23,15 +23,15 @@ NodeFactory::NodeFactory(){
 
 
 LayoutNode* NodeFactory::makeComposite( bool horizontal ){
-    Carta::State::CartaObject* nodeObj = Util::createObject( LayoutNodeComposite::CLASS_NAME );
-    LayoutNodeComposite* node = dynamic_cast<LayoutNodeComposite*>( nodeObj);
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    LayoutNodeComposite* node = objMan->createObject<LayoutNodeComposite>();
     node->setHorizontal( horizontal );
     return node;
 }
 
 LayoutNode* NodeFactory::makeLeaf( const QString& plugin ){
-    Carta::State::CartaObject* nodeObj = Util::createObject( LayoutNodeLeaf::CLASS_NAME );
-    LayoutNodeLeaf* node = dynamic_cast<LayoutNodeLeaf*>( nodeObj);
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    LayoutNodeLeaf* node = objMan->createObject<LayoutNodeLeaf>();
     node->setPluginType( plugin );
     return node;
 }

@@ -85,8 +85,9 @@ Histogram::Histogram( const QString& path, const QString& id):
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)),
             m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
 
-    Carta::State::CartaObject* prefObj = Util::createObject( HistogramPreferences::CLASS_NAME );
-    m_preferences.reset(dynamic_cast<HistogramPreferences*>(prefObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    HistogramPreferences* prefObj = objMan->createObject<HistogramPreferences>();
+    m_preferences.reset( prefObj );
 
     _initializeStatics();
     _initializeDefaultState();
@@ -104,10 +105,8 @@ Histogram::Histogram( const QString& path, const QString& id):
 
     //Load the available clips.
     if ( m_clips == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( Clips::CLASS_NAME );
-        m_clips = dynamic_cast<Clips*>(obj);
+        m_clips = Util::findSingletonObject<Clips>();
     }
-
 }
 
 
@@ -843,8 +842,7 @@ void Histogram::_initializeCallbacks(){
 
 void Histogram::_initializeStatics(){
     if ( m_channelUnits == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( ChannelUnits::CLASS_NAME );
-        m_channelUnits = dynamic_cast<ChannelUnits*>( obj );
+        m_channelUnits = Util::findSingletonObject<ChannelUnits>();
     }
 }
 
@@ -886,7 +884,7 @@ void Histogram::_loadData( Controller* controller ){
     }
     catch( char*& error ){
         QString errorStr( error );
-        ErrorManager* hr = dynamic_cast<ErrorManager*>(Util::findSingletonObject( ErrorManager::CLASS_NAME ));
+        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
         hr->registerError( errorStr );
     }
 }

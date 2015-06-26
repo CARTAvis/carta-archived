@@ -3,9 +3,9 @@
  */
 
 #pragma once
-#include <set>
-#include <map>
-#include <QString>
+
+#include <State/ObjectManager.h>
+#include <QStringList>
 #include <vector>
 
 
@@ -37,19 +37,18 @@ public:
      static QString toString( bool val );
 
      /**
-      * Creates an object of the given class.
-      * @param objectName the class name of the object to create.
-      * @return the object that was created.
+      * Returns the singleton object of the given typed class.
+      * @return the singleton object with the given typed class.
       */
-     static Carta::State::CartaObject* createObject( const QString& objectName );
-
-     /**
-      * Returns the singleton object of the given class or null if there is no such object.
-      * @param objectName the class name of the object to return.
-      * @return the singleton object with the corresponding name or null if there is no
-      *     such object.
-      */
-     static Carta::State::CartaObject* findSingletonObject( const QString& objectName );
+     template <typename T>
+     static T* findSingletonObject( ){
+         Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+         T* obj = dynamic_cast<T*>(objManager->getObject( T::CLASS_NAME ));
+         if ( obj == NULL ){
+             obj = objManager->createObject<T>();
+         }
+         return obj;
+     }
 
      /**
       * Posts the error message, if one exists, and returns the last valid value, if one exists

@@ -167,20 +167,17 @@ void DataGrid::_initializeDefaultState(){
 void DataGrid::_initializeSingletons( ){
     //Load the available color maps.
     if ( m_coordSystems == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( CoordinateSystems::CLASS_NAME );
-        m_coordSystems = dynamic_cast<CoordinateSystems*>( obj );
+        m_coordSystems = Util::findSingletonObject<CoordinateSystems>();
     }
+
     //Available fonts
     if ( m_fonts == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( Fonts::CLASS_NAME );
-        m_fonts = dynamic_cast<Fonts*>( obj );
-
+        m_fonts = Util::findSingletonObject<Fonts>();
     }
+
     //Available themes
     if ( m_themes == nullptr ){
-        CartaObject* obj = Util::findSingletonObject( Themes::CLASS_NAME );
-        m_themes = dynamic_cast<Themes*>( obj );
-
+        m_themes = Util::findSingletonObject<Themes>();
     }
 }
 

@@ -334,8 +334,8 @@ bool Layout::isLayoutImage() const {
 
 
 void Layout::_makeRoot( bool horizontal ){
-    Carta::State::CartaObject* mainObj = Util::createObject( LayoutNodeComposite::CLASS_NAME );
-    LayoutNodeComposite* main = dynamic_cast<LayoutNodeComposite*>( mainObj);
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    LayoutNodeComposite* main = objMan->createObject<LayoutNodeComposite>();
     main->setHorizontal( horizontal );
     m_layoutRoot.reset( main );
     m_state.setValue<QString>(LAYOUT_NODE, main->getPath());

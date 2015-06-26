@@ -60,8 +60,9 @@ DataSource::DataSource(const QString& path, const QString& id) :
         //Initialize the rendering service
         m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
 
-        Carta::State::CartaObject* gridObj = Util::createObject( DataGrid::CLASS_NAME );
-        m_dataGrid.reset( dynamic_cast<DataGrid*>(gridObj) );
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        DataGrid* gridObj = objMan->createObject<DataGrid>();
+        m_dataGrid.reset( gridObj );
         m_dataGrid->_initializeGridRenderer();
         _initializeState();
 
@@ -383,8 +384,7 @@ void DataSource::_imageAndGridDoneSlot(
 void DataSource::_initializeSingletons( ){
     //Load the available color maps.
     if ( m_coords == nullptr ){
-        Carta::State::CartaObject* obj = Util::findSingletonObject( CoordinateSystems::CLASS_NAME );
-        m_coords = dynamic_cast<CoordinateSystems*>( obj );
+        m_coords = Util::findSingletonObject<CoordinateSystems>();
     }
 }
 
@@ -557,8 +557,7 @@ void DataSource::_setPan( double imgX, double imgY ){
 }
 
 void DataSource::_setTransformData( const QString& name ){
-    Carta::State::CartaObject* transformDataObj = Util::findSingletonObject( TransformsData::CLASS_NAME );
-    TransformsData* transformData = dynamic_cast<TransformsData*>(transformDataObj);
+    TransformsData* transformData = Util::findSingletonObject<TransformsData>();
     Carta::Lib::PixelPipeline::ScaleType scaleType = transformData->getScaleType( name );
     m_pixelPipeline->setScale( scaleType );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId() );

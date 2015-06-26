@@ -253,43 +253,6 @@ QString ObjectManager::parseId( const QString& path ) const {
     return id;
 }
 
-QString
-ObjectManager::createObject (const QString & className)
-{
-    // This shouldn't be called until the PW State has been initialized.
-
-    ClassRegistry::iterator i = m_classes.find (className);
-    QString result; // empty string on failure
-
-    if (i != m_classes.end()){
-
-        // Generate the object's id and path
-        // Create the object
-        CartaObjectFactory* factory = i->second.getFactory();
-        QString id = factory->getGlobalId();
-        if ( id.length() == 0 ){
-            m_nextId ++;
-            id = "c"+QString::number( m_nextId);
-        }
-        QString path (m_sep + m_root + m_sep + id);
-
-
-        CartaObject* object = factory->create( path, id );
-        //CartaObject * object = i->second.getFactory() (path, id);
-
-        assert (object != 0);
-
-        // Install the newly created object in the object registry.
-
-        assert (m_objects.find (id) == m_objects.end());
-        m_objects [id] = ObjectRegistryEntry (className, id, path, object);
-        result = id;
-
-    }
-
-    return result;
-}
-
 void ObjectManager::printObjects(){
     for(map<QString,ObjectRegistryEntry>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
         QString firstId = it->first;
@@ -344,7 +307,7 @@ CartaObject* ObjectManager::getObject( int index, const QString & typeStr ){
 }
 
 void
-ObjectManager::initialize ()
+ObjectManager::initialize()
 {
 
     // Register command handler(s) for create, etc.

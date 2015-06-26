@@ -32,8 +32,9 @@ bool GridControls::m_registered =
 GridControls::GridControls( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
 
-    Carta::State::CartaObject* gridObj = Util::createObject( DataGrid::CLASS_NAME );
-     m_dataGrid.reset( dynamic_cast<DataGrid*>(gridObj) );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    DataGrid* gridObj = objMan->createObject<DataGrid>();
+     m_dataGrid.reset( gridObj );
 
     _initializeDefaultState();
     _initializeCallbacks();
