@@ -100,6 +100,12 @@ public:
     QString invertColorMap( bool invert );
 
     /**
+     * Restore the state from a string representation.
+     * @param state- a json representation of state.
+     */
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
      * Set a color mix.
      * @param redValue a number in [0,1] representing the amount of red in the mix.
      * @param greenValue a number in [0,1] representing the amount of green in the mix.

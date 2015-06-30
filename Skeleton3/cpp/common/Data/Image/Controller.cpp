@@ -2,7 +2,7 @@
 #include "State/UtilState.h"
 #include "Controller.h"
 #include "GridControls.h"
-#include "ImageSettings.h"
+#include "Data/Settings.h"
 #include "Data/DataLoader.h"
 #include "DataSource.h"
 #include "DataGrid.h"
@@ -64,19 +64,19 @@ Controller::Controller( const QString& path, const QString& id ) :
         m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA )),
         m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)),
         m_viewSize( 400, 400){
-
     m_view.reset( new ImageView( path, QColor("pink"), QImage(), &m_stateMouse));
+    
     m_reloadFrameQueued = false;
     m_repaintFrameQueued = false;
-
+    
     _initializeSelections();
 
      connect( m_selectChannel, SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
      connect( m_selectImage, SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
 
      _initializeState();
-
      registerView(m_view.get());
+
      connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_viewResize(const QSize&)));
 
      Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -85,7 +85,7 @@ Controller::Controller( const QString& path, const QString& id ) :
      connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
              this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
 
-     ImageSettings* settingsObj = objMan->createObject<ImageSettings>();
+     Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
 
      //Load the view.
@@ -350,7 +350,11 @@ int Controller::getState( const QString& type, const QString& key ){
 QString Controller::getStateString( const QString& sessionId, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
-        result = m_state.toString();
+        StateInterface prefState( "");
+        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+        prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
+        prefState.insertValue<QString>(Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
+        result = prefState.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
         //Data state should include an array of data of all DataSources (images loaded & grid controls)
@@ -668,6 +672,18 @@ void Controller::_repaintFrameNow(){
     m_repaintFrameQueued = false;
 }
 
+void Controller::resetState( const QString& state ){
+    StateInterface restoredState( "");
+    restoredState.setState( state );
+
+    QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
+    m_settings->resetStateString( settingStr );
+
+    QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
+    m_state.setState( prefStr );
+    m_state.flushState();
+}
+
 void Controller::resetStateData( const QString& state ){
     //First we reset the data this controller is displaying
     _clearData();
@@ -872,6 +888,7 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
     if ( m_datas.size() == 0 ){
         return;
     }
+
     int oldMouseX = m_stateMouse.getValue<int>( ImageView::MOUSE_X );
     int oldMouseY = m_stateMouse.getValue<int>( ImageView::MOUSE_Y );
     if ( oldMouseX != mouseX || oldMouseY != mouseY ){

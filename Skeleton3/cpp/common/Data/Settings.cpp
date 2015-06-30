@@ -1,4 +1,4 @@
-#include "ImageSettings.h"
+#include "Settings.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include <QDebug>
@@ -7,32 +7,32 @@ namespace Carta {
 
 namespace Data {
 
-const QString ImageSettings::SETTINGS = "settings";
-const QString ImageSettings::CLASS_NAME = "ImageSettings";
-const QString ImageSettings::VISIBLE = "visible";
+const QString Settings::SETTINGS = "settings";
+const QString Settings::CLASS_NAME = "Settings";
+const QString Settings::VISIBLE = "visible";
 
 
-class ImageSettings::Factory : public Carta::State::CartaObjectFactory {
+class Settings::Factory : public Carta::State::CartaObjectFactory {
     public:
 
         Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
-            return new ImageSettings (path, id);
+            return new Settings (path, id);
         }
     };
 
 
 
-bool ImageSettings::m_registered =
-        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new ImageSettings::Factory());
+bool Settings::m_registered =
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Settings::Factory());
 
-ImageSettings::ImageSettings( const QString& path, const QString& id):
+Settings::Settings( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
     _initializeDefaultState();
     _initializeCallbacks();
 }
 
-QString ImageSettings::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+QString Settings::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
         result = m_state.toString();
@@ -40,14 +40,12 @@ QString ImageSettings::getStateString( const QString& /*sessionId*/, SnapshotTyp
     return result;
 }
 
-void ImageSettings::_initializeDefaultState(){
+void Settings::_initializeDefaultState(){
     m_state.insertValue<bool>( SETTINGS, false );
     m_state.flushState();
 }
 
-void ImageSettings::_initializeCallbacks(){
-
-
+void Settings::_initializeCallbacks(){
     addCommandCallback( "setSettingsVisible", [=] (const QString & /*cmd*/,
                                             const QString & params, const QString & /*sessionId*/) -> QString {
                bool visible = false;
@@ -57,16 +55,14 @@ void ImageSettings::_initializeCallbacks(){
                    setVisible( visible );
                }
                else {
-                   result = "Grid setting visibility must be a bool : " + params;
+                   result = "Setting visibility must be a bool : " + params;
                }
                Util::commandPostProcess( result );
                return result;
         });
-
-
 }
 
-bool ImageSettings::_processParams( const QString& params, bool* value ) const {
+bool Settings::_processParams( const QString& params, bool* value ) const {
     bool validValue = false;
     std::set<QString> keys = {VISIBLE};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
@@ -74,7 +70,16 @@ bool ImageSettings::_processParams( const QString& params, bool* value ) const {
     return validValue;
 }
 
-void ImageSettings::setVisible( bool visible ){
+void Settings::resetState( const QString& /*stateStr*/ ){
+    //Implemented to do nothing so that the owning object can set the state.
+}
+
+void Settings::resetStateString( const QString& stateStr ){
+    m_state.setState( stateStr );
+    m_state.flushState();
+}
+
+void Settings::setVisible( bool visible ){
     if ( m_state.getValue<bool>(SETTINGS) != visible ){
         m_state.setValue<bool>(SETTINGS, visible );
         m_state.flushState();
@@ -82,7 +87,7 @@ void ImageSettings::setVisible( bool visible ){
 }
 
 
-ImageSettings::~ImageSettings(){
+Settings::~Settings(){
 
 }
 }

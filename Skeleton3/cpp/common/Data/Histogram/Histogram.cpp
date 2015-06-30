@@ -2,7 +2,7 @@
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "ChannelUnits.h"
-#include "HistogramPreferences.h"
+#include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
 #include "Data/Error/ErrorManager.h"
@@ -86,7 +86,7 @@ Histogram::Histogram( const QString& path, const QString& id):
             m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    HistogramPreferences* prefObj = objMan->createObject<HistogramPreferences>();
+    Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
 
     _initializeStatics();
@@ -253,10 +253,14 @@ void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller )
     _refreshView();
 }
 
-QString Histogram::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+QString Histogram::getStateString( const QString& sessionId, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
-        result = m_stateData.toString();
+        StateInterface prefState( "");
+        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+        prefState.insertValue<QString>( Util::PREFERENCES, m_state.toString());
+        prefState.insertValue<QString>( Settings::SETTINGS, m_preferences->getStateString(sessionId, type) );
+        result = prefState.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
         StateInterface dataCopy( m_stateData );
@@ -936,6 +940,18 @@ void Histogram::_resetBinCountBasedOnWidth(){
     }
 }
 
+void Histogram::resetState( const QString& state ){
+    StateInterface restoredState( "");
+    restoredState.setState( state );
+
+    QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
+    m_preferences->resetStateString( settingStr );
+
+    QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
+    m_state.setState( prefStr );
+    m_state.flushState();
+}
+
 void Histogram::resetStateData( const QString& state ){
     m_stateData.setState( state );
     m_stateData.flushState();
@@ -1391,16 +1407,16 @@ QString Histogram::setBinWidth( double binWidth ){
 
 QString Histogram::setBinCount( int binCount ){
     QString result;
-    int oldBinCount = m_stateData.getValue<int>(BIN_COUNT );
+    int oldBinCount = m_state.getValue<int>(BIN_COUNT );
     if ( binCount > 0  ){
         if ( binCount != oldBinCount ){
             m_state.setValue<int>(BIN_COUNT, binCount );
             double binWidth = _toBinWidth( binCount );
+
             int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
             m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
             m_state.flushState();
             _generateHistogram( true );
-
         }
     }
     else {

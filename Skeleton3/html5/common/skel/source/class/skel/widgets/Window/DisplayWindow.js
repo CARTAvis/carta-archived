@@ -266,11 +266,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 var vals = cmds.getValue();
                 var emptyFunc = function(){};
                 for ( var i = 0; i < vals.length; i++ ){
+                    var supported = this.isCmdSupported( vals[i] );
                     var cmdType = vals[i].getType();
                     if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
                             cmdType === skel.Command.Command.TYPE_GROUP ){
                         //Only add top-level commands specific to this window.
-                        var supported = this.isCmdSupported( vals[i] );
                         if ( supported ){
                             var menu = skel.widgets.Util.makeMenu( vals[i]);
                             var menuButton = new qx.ui.menu.Button( vals[i].getLabel() );
@@ -281,6 +281,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
                         var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, false, true );
                         this.m_contextMenu.add( button );
+                    }
+                    else if ( cmdType === skel.Command.Command.TYPE_BOOL ){
+                        if ( supported ){
+                            var check = skel.widgets.Util.makeCheck( vals[i], emptyFunc, false);
+                            this.m_contextMenu.add( check );
+                        }
                     }
                     else {
                         console.log( "Menu unsupported top level command type="+ cmdType );

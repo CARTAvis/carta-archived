@@ -21,21 +21,10 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         this.m_menuPart = new skel.widgets.Menu.MenuBarPart();
         this.add(this.m_menuPart);
         this._initMenu();
-
         this.addSpacer();
         
         this._initSubscriptions();
         this._initContextMenu();
-        
-    },
-
-    events : {
-        //"menuAlwaysVisible" : "qx.event.type.Data",
-        //"menuMoved" : "qx.event.type.Data",
-        //"shareSession" : "qx.event.type.Data",
-        //"statusAlwaysVisible" : "qx.event.type.Data",
-        /// emitted when cursor window toggle is clicked
-        //"showCursorWindow" : "qx.event.type.Data"
     },
 
     members : {
@@ -85,6 +74,10 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                         else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
                             var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, true, true );
                             this.m_menuPart.add( button );
+                        }
+                        else if ( cmdType === skel.Command.Command.TYPE_BOOL ){
+                            var check = skel.widgets.Util.makeCheck( vals[i], emptyFunc, true );
+                            this.m_menuPart.add( check );
                         }
                         else {
                             console.log( "Menu unsupported top level command type="+ cmdType );

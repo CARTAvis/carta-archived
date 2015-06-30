@@ -133,7 +133,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( dataCmd.getLabel() );
             var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
             this.m_supportedCmds.push( popupCmd.getLabel() );
-            var gridCmd = skel.Command.Grid.GridControls.getInstance();
+            var gridCmd = skel.Command.Settings.SettingsGrid.getInstance();
             this.m_supportedCmds.push( gridCmd.getLabel());
         },
         
@@ -180,7 +180,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         this._adjustControlVisibility( setObj.settings );
                     }
                     catch( err ){
-                        console.log( "ImageDisplay could not parse settings");
+                        console.log( "ImageDisplay could not parse settings: "+val);
+                        console.log( "err="+err);
                     }
                 }
             }

@@ -8,7 +8,7 @@
 
 qx.Class.define("skel.widgets.Colormap.ColorModel", {
     extend : qx.ui.core.Widget,
-    
+
     /**
      * Constructor.
      */
@@ -30,8 +30,8 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
             var widgetLayout = new qx.ui.layout.VBox(2);
             this._setLayout(widgetLayout);
             
-            this.m_gammaContainer = new qx.ui.groupbox.GroupBox("Gamma");
-            this.m_gammaContainer.setContentPadding( 0, 0, 0, 0 );
+            this.m_gammaContainer = new qx.ui.groupbox.GroupBox( "");
+            this.m_gammaContainer.setContentPadding( 0, 0, 0, 0);
             this.m_gammaContainer.setLayout( new qx.ui.layout.VBox(2));
             
             this.m_gammaGrid = new skel.widgets.Colormap.TwoDSlider();
@@ -75,12 +75,5 @@ qx.Class.define("skel.widgets.Colormap.ColorModel", {
         m_connector : null,
         m_gammaGrid : null,
         m_gammaContainer : null
-    },
-    
-    properties : {
-        appearance : {
-            refine : true,
-            init : "internal-area"
-        }
     }
 });

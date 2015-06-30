@@ -9,6 +9,7 @@ namespace Data {
 
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
+const QString Util::PREFERENCES = "preferences";
 
 Util::Util( ) {
 

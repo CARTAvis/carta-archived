@@ -1,6 +1,6 @@
 #include "Colormap.h"
 #include "Colormaps.h"
-#include "Settings.h"
+#include "Data/Settings.h"
 #include "Data/Image/Controller.h"
 #include "TransformsData.h"
 #include "Data/IColoredView.h"
@@ -116,10 +116,14 @@ QString Colormap::getPreferencesId() const {
     return m_settings->getPath();
 }
 
-QString Colormap::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
-        result = m_state.toString();
+        Carta::State::StateInterface prefState( "");
+        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+        prefState.insertValue<QString>( Util::PREFERENCES, m_state.toString());
+        prefState.insertValue<QString>( Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
+        result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
         result = m_linkImpl->getStateString(getIndex(), getType( type ));
@@ -389,6 +393,18 @@ void Colormap::refreshState(){
     CartaObject::refreshState();
     m_settings->refreshState();
     m_linkImpl->refreshState();
+}
+
+void Colormap::resetState( const QString& state ){
+    Carta::State::StateInterface restoredState( "");
+    restoredState.setState( state );
+
+    QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
+    m_settings->resetStateString( settingStr );
+
+    QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
+    m_state.setState( prefStr );
+    m_state.flushState();
 }
 
 QString Colormap::reverseColorMap( bool reverse ){

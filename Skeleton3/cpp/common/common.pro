@@ -31,7 +31,6 @@ HEADERS += \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
-    Data/Colormap/Settings.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
     Data/DataLoader.h \
@@ -39,16 +38,15 @@ HEADERS += \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
-    Data/Histogram/HistogramPreferences.h \
     Data/IColoredView.h \
     Data/ILinkable.h \
+    Data/Settings.h \
     Data/Image/Controller.h \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataGrid.h \
     Data/Image/DataSource.h \
     Data/Image/Fonts.h \
     Data/Image/GridControls.h \
-    Data/Image/ImageSettings.h \
     Data/Image/ImageGridServiceSynchronizer.h \
     Data/Image/Themes.h \
     Data/Selection.h \
@@ -106,13 +104,13 @@ SOURCES += \
     State/StateInterface.cpp \
     State/UtilState.cpp \
     ImageView.cpp \
+    Data/Settings.cpp \
     Data/Animator/Animator.cpp \
     Data/Animator/AnimatorType.cpp \
     Data/Animator/AnimationTypes.cpp \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
-    Data/Colormap/Settings.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
@@ -121,7 +119,6 @@ SOURCES += \
     Data/Image/DataSource.cpp \
     Data/Image/Fonts.cpp \
     Data/Image/GridControls.cpp \
-    Data/Image/ImageSettings.cpp \
     Data/Image/ImageGridServiceSynchronizer.cpp \
     Data/Image/Themes.cpp \
     Data/DataLoader.cpp \
@@ -129,7 +126,6 @@ SOURCES += \
     Data/Error/ErrorManager.cpp \
     Data/Histogram/Histogram.cpp \
     Data/Histogram/ChannelUnits.cpp \
-    Data/Histogram/HistogramPreferences.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/Layout/Layout.cpp \

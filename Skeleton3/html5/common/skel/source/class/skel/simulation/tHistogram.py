@@ -21,10 +21,7 @@ class tHistogram(unittest.TestCase):
         ActionChains( driver ).context_click( histWindow ).perform()
         ActionChains( driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN
                  ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-                 Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_UP
-                 ).send_keys(Keys.ARROW_UP).send_keys(Keys.ARROW_RIGHT
-                 ).send_keys(Keys.ARROW_UP).send_keys(Keys.ARROW_UP).send_keys(
-                 Keys.ARROW_UP).send_keys(Keys.ARROW_UP).send_keys(Keys.ENTER).perform()
+                 Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         
         
     #Find the histogram window either as an inline display if it is already present or as a popup
@@ -59,7 +56,7 @@ class tHistogram(unittest.TestCase):
     
     #Test that if we set the value in the bin count text field, the slider updates
     #its value accordingly
-    def stest_binCountChange(self):   
+    def test_binCountChange(self):   
         driver = self.driver
         
         #Find and select the histogram window
@@ -68,6 +65,12 @@ class tHistogram(unittest.TestCase):
         
         # Click the settings button to expose the settings.
         self._openHistogramSettings( driver, histWindow )
+        
+        # Select the display tab
+        displayTab = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Display')]/..");
+        self.assertIsNotNone( displayTab, "Could not find histogram display tab" );
+        driver.execute_script( "arguments[0].scrollIntoView(true);", displayTab)
+        ActionChains( driver ).click( displayTab ).perform()
         
         # Look for the binCountText field.
         binCountText = driver.find_element_by_xpath( "//input[starts-with(@id,'histogramBinCountTextField')]" )
@@ -79,7 +82,7 @@ class tHistogram(unittest.TestCase):
         
         #Calculate percent difference from center.  Note this will fail if the upper
         #bound of the slider changes.
-        textScrollPercent = (500 - int(float(textValue))) / 1000.0
+        textScrollPercent = (5000 - int(float(textValue))) / 10000.0
         print "scrollPercent=",textScrollPercent
        
         
@@ -107,7 +110,7 @@ class tHistogram(unittest.TestCase):
         # Check that the value goes to the server and gets set in the text field.
         newText = binCountText.get_attribute( "value")
         print 'Text=',newText
-        self.assertAlmostEqual( int(float(newText)), 500 ,None,"Failed to scroll halfway",30)
+        self.assertAlmostEqual( int(float(newText)), 5000 ,None,"Failed to scroll halfway",300)
         
     def test_zoom(self):
         driver = self.driver

@@ -15,24 +15,23 @@ qx.Mixin.define("skel.Command.Settings.SettingsMixin", {
         /**
          * Determines the active window (user show/hide settings) and notifies 
          * child commands.
-         * @param cmds {Array} the list of child show/hide user settings cmds.
          */
-        resetPrefs : function( cmds ){
+        resetPrefs : function(){
             var enabled = false;
             var activeWins = skel.Command.Command.m_activeWins;
             if ( activeWins !== null && activeWins.length > 0 ){
                 for ( var i = 0; i < activeWins.length; i++ ){
-                    var parentCmd = this.getParent();
-                    var cmdSupported = activeWins[i].isCmdSupported( this.getParent());
+                    var cmdSupported = activeWins[i].isCmdSupported( this);
                     if ( cmdSupported  ){
                         var prefs = activeWins[i].getPreferences();
                         var prefId = activeWins[i].getPreferencesId();
                         try {
                             var setObj = JSON.parse( prefs );
-                            this.setCmdSettings( prefId, setObj, cmds );
+                            this.setCmdSettings( prefId, setObj/*, cmds*/ );
                         }
                         catch( err ){
-                            console.log( "Could not parse histogram settings");
+                            console.log( "Could not parse settings");
+                            console.log( "Error: "+err);
                         }
                         enabled = true;
                         break;
@@ -50,11 +49,7 @@ qx.Mixin.define("skel.Command.Settings.SettingsMixin", {
          * @param cmds {Array} the list of child user preference settings.
          */
         setCmdSettings : function( id, obj, cmds ){
-            //Wait do do All Settings until the individual ones have been set.
-            for ( var i = 1; i < cmds.length; i++ ){
-                cmds[i].setSettings( id, obj );
-            }
-            cmds[0].setSettings( id, obj );
+            this.setSettings( id, obj );
         }
     }
 });

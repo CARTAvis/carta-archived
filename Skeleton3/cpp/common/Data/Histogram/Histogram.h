@@ -40,7 +40,7 @@ class Clips;
 class Colormap;
 class Controller;
 class LinkableImpl;
-class HistogramPreferences;
+class Settings;
 
 class Histogram : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -81,6 +81,12 @@ public:
      * Reload the server state.
      */
     virtual void refreshState() Q_DECL_OVERRIDE;
+
+    /**
+     * Restore the state from a string representation.
+     * @param state- a json representation of state.
+     */
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Reset the data dependent state of the histogram.
@@ -443,7 +449,7 @@ private:
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     //Preferences
-    std::unique_ptr<HistogramPreferences> m_preferences;
+    std::unique_ptr<Settings> m_preferences;
 
     Carta::Histogram::HistogramGenerator* m_histogram;
 

@@ -1,14 +1,15 @@
 /**
- * Command to show/hide the image grid settings.
+ * Command to show/hide the colormap settings.
  */
 /*global mImport */
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.Command.Grid.SettingsGrid", {
+qx.Class.define("skel.Command.Settings.SettingsColor", {
     extend : skel.Command.Settings.Setting,
     include : skel.Command.Settings.SettingsMixin,
+    type : "singleton",
 
     /**
      * Constructor.
@@ -16,25 +17,22 @@ qx.Class.define("skel.Command.Grid.SettingsGrid", {
     construct : function( ) {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setSettingsVisible";
-        this.base( arguments, "Grid Settings", cmd);
-        this.setToolTipText( "Show/hide grid settings.");
+        this.base( arguments, "Colormap Settings", cmd);
+        this.setToolTipText( "Show/hide colormap settings.");
+        this.m_global = false;
+        this.setEnabled( false );
+        this.setValue( false );
     },
     
     members : {
         
         _resetEnabled : function(){
             arguments.callee.base.apply(this, arguments);
-            var cmds = [];
-            cmds.push( this );
-            var enabled = this.resetPrefs( cmds );
-            if ( this.isEnabled() != enabled ){
-                this.setEnabled( enabled );
-            }
+            var enabled = this.resetPrefs();
+           
         },
         
-        getParent : function(){
-            return skel.Command.Grid.GridControls.getInstance();
-        },
+
         
         /**
          * Update the visibility of the grid settings based on server state.
@@ -42,8 +40,8 @@ qx.Class.define("skel.Command.Grid.SettingsGrid", {
          *      user configuration settings.
          */
         resetValueFromServer : function( obj ){
-            if ( this.getValue() != obj.grid ){
-                this.setValue( obj.grid );
+            if ( this.getValue() != obj.settings ){
+                this.setValue( obj.settings );
             }
         }
     }

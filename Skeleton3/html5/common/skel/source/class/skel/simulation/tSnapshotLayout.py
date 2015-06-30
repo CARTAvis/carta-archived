@@ -11,6 +11,7 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
     # the analysis layout
     def test_analysis_saveRestore(self):    
         driver = self.driver
+        driver.implicitly_wait(10)
         
         #For later use, determine the number of DisplayWindow
         windowCount = Util.get_window_count( self, driver)

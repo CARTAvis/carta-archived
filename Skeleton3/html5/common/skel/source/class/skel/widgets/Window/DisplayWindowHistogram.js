@@ -26,19 +26,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             
             
             /**
-             * Return the number of significant digits to display.
-             * @return {Number} the number of significant digits the user wants to see.
-             */
-            getSignificantDigits : function(){
-                var digits = 6;
-                if ( this.m_histogram !== null ){
-                    digits = this.m_histogram.getSignificantDigits();
-                }
-                return digits;
-            },
-
-            
-            /**
              * Display specific UI initialization.
              */
             _initDisplaySpecific : function() {
@@ -57,7 +44,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 var clipCmd = skel.Command.Clip.CommandClip.getInstance();
                 this.m_supportedCmds.push( clipCmd.getLabel() );
                
-                var histCmd = skel.Command.Histogram.Histogram.getInstance();
+                var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
                 this.m_supportedCmds.push( histCmd.getLabel() );
                
             },
@@ -83,30 +70,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 if ( this.m_sharedVarPrefs !== null ){
                     var val = this.m_sharedVarPrefs.get();
                     if ( val !== null ){
-                        console.log( "val="+val);
                         try {
                             var setObj = JSON.parse( val );
-                            if ( setObj.histogramBinCount !== null ){
-                                this._showHideBinCount( setObj.histogramBinCount );
+                            if ( setObj.settings !== null ){
+                                this.m_histogram.showHideSettings( setObj.settings );
                             }
-                            if ( setObj.histogramClips !== null ){
-                                this._showHideClips( setObj.histogramClips );
-                            }
-                            if ( setObj.histogramCube !== null ){
-                                this._showHideCube( setObj.histogramCube );
-                            }
-                            if ( setObj.histogramRange !== null ){
-                                this._showHideRange( setObj.histogramRange );
-                            }
-                            if ( setObj.histogramDisplay !== null ){
-                                this._showHideDisplay( setObj.histogramDisplay );
-                            }
-                            if ( setObj.histogram2D !== null ){
-                                this._showHide2D( setObj.histogram2D );
-                            }
+                           
                         }
                         catch( err ){
-                            console.log( "Histogram could not parse settings");
+                            console.log( "Histogram could not parse settings: "+val);
+                            console.log( "Error: "+err);
                         }
                     }
                 }
@@ -122,72 +95,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 }
             },
             
-            /**
-             * Show/hide bin count user settings.
-             * @param visible {boolean} true if the bin count settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideBinCount : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideBinCount( visible );
-                }
-            },
-            
-            /**
-             * Show/hide cube user settings.
-             * @param visible {boolean} true if the cube settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideClips : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideClips( visible );
-                }
-            },
-            
-            /**
-             * Show/hide cube user settings.
-             * @param visible {boolean} true if the cube settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideCube : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideCube( visible );
-                }
-            },
-            
-            /**
-             * Show/hide two-dimensional user settings.
-             * @param visible {boolean} true if the 2D settings should be 
-             *          visible; false otherwise.
-             */
-            _showHide2D : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHide2D( visible );
-                }
-            },
-            
-            /**
-             * Show/hide range user settings.
-             * @param visible {boolean} true if the range settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideRange : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideRange( visible );
-                }
-            },
-            
-            /**
-             * Show/hide display user settings.
-             * @param visible {boolean} true if the display settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideDisplay : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideDisplay( visible );
-                }
-            },
-            
+
             
             /**
              * Implemented to initialize a context menu.

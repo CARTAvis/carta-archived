@@ -197,46 +197,7 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_sessionSaveDialog, layoutObj );
         },
-        
-        /**
-         * Show a dialog allowing the user to make adjustments to colormap preferences.
-         * @param message {qx.event.message.Message}
-         */
-        _showColormapPreferences : function( message ){
-            if( this.m_colormapPreferences === null ) {
-                this.m_colormapPreferences = new skel.widgets.Colormap.Preferences( message.getData());
-                this.m_colormapPreferences.addListener("closeColormapPreferences", function(ev){
-                    this._hideWidget( this.m_colormapPreferences );
-                }, this );
-            }
-            var layoutObj = {
-                    left  : "0%",
-                    right : "75%",
-                    top   : "0%",
-                    bottom: "75%"
-            };
-            this._showWidget( this.m_colormapPreferences, layoutObj );
-        },
-        
-        /**
-         * Show a dialog allowing the user to make adjustments to histogram preferences.
-         * @param message {qx.event.message.Message}
-         */
-        _showHistogramPreferences : function( message ){
-            if( this.m_histogramPreferences === null ) {
-                this.m_histogramPreferences = new skel.widgets.Histogram.Preferences( message.getData());
-                this.m_histogramPreferences.addListener("closeHistogramPreferences", function(ev){
-                    this._hideWidget( this.m_histogramPreferences );
-                }, this );
-            }
-            var layoutObj = {
-                    left  : "0%",
-                    right : "75%",
-                    top   : "0%",
-                    bottom: "75%"
-            };
-            this._showWidget( this.m_histogramPreferences, layoutObj );
-        },
+       
         
         _showWidget : function( widget, layoutObj ){
             var root = this.getRoot();
@@ -527,8 +488,6 @@ qx.Class.define( "skel.Application",
         },
 
         m_desktop       : null,
-        m_colormapPreferences : null,
-        m_histogramPreferences : null,
         m_menuBar       : null,
         m_toolBar : null,
         m_statusBar     : null,

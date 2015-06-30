@@ -34,7 +34,7 @@ namespace Carta {
 namespace Data {
 class DataSource;
 class GridControls;
-class ImageSettings;
+class Settings;
 class Region;
 class RegionRectangle;
 class Selection;
@@ -292,6 +292,12 @@ public:
      */
     QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
 
+    /**
+     * Restore the state from a string representation.
+     * @param state- a json representation of state.
+     */
+    void resetState( const QString& state );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
@@ -399,7 +405,7 @@ private:
     std::unique_ptr<GridControls> m_gridControls;
 
 
-    std::unique_ptr<ImageSettings> m_settings;
+    std::unique_ptr<Settings> m_settings;
 
 
     //Data available to and managed by this controller.
