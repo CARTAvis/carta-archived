@@ -16,6 +16,7 @@
 namespace Impl
 {
 /// convert string to array of doubles
+static
 std::vector < double >
 s2vd( QString s, QString sep = " " )
 {
@@ -67,8 +68,29 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
         }
     }
 
+    // contour editor controller
+    m_contourEditorController.reset( new Hacks::ContourEditorController( this,
+                                                                         "/hacks/contourEditor/ce1" ) );
+    connect( m_contourEditorController.get(),
+             & ContourEditorController::updated,
+             [&] () {
+                 qDebug() << "contourEditorController updated";
+
+//                 m_contourEditorController-> startRendering();
+                 requestImageAndGridUpdate();
+             }
+             );
+
+//    connect( m_contourEditorController.get(),
+//             & ContourEditorController::done,
+//             [&] ( Carta::Lib::VectorGraphics::VGList vg, int64_t ) {
+//                 qDebug() << "contour vg:" << vg.entries().size() << "entries";
+//             }
+//             );
+
     // create the synchronizer
-    m_igSync.reset( new ImageGridServiceSynchronizer( m_renderService, m_wcsGridRenderer, this ) );
+    m_igSync.reset( new ImageGridServiceSynchronizer(
+                        m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
 
     // connect its done() slot to our imageAndGridDoneSlot()
     connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
@@ -140,7 +162,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             m_wcsGridRenderer
             ) );
     connect( m_wcsGridOptionsController.get(), & WcsGridOptionsController::updated,
-             this, & Me::requestImageAndGridUpdate);
+             this, & Me::requestImageAndGridUpdate );
 
     // create a shared state var for the frame slider
     namespace SS = Carta::Lib::SharedState;
@@ -150,13 +172,9 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
              this, & Me::frameVarCB );
 
     // shared state var for contour levels
-    m_contourLevelsVar.reset( new SS::StringVar( prefix.with( "contourLevels")));
-//    connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
-//             [&](){
-//        qDebug() << "contourLevels:" << m_contourLevelsVar-> get();
-//    } );
+    m_contourLevelsVar.reset( new SS::StringVar( prefix.with( "contourLevels" ) ) );
     connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
-             this, & Me::contourVarCB);
+             this, & Me::contourVarCB );
 
     // set the current frame to 0
 //    m_frameVar-> set( 0 );
@@ -177,12 +195,7 @@ void
 ImageViewController::requestImageAndGridUpdate()
 {
     // erase current grid
-    m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
-
-    // if grid drawing is not enabled, we are done (are we?)
-//    if ( ! ( m_gridToggle && m_wcsGridRenderer ) ) {
-//        return;
-//    }
+//    m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
 
     auto renderSize = m_renderService-> outputSize();
     m_wcsGridRenderer-> setOutputSize( renderSize );
@@ -202,10 +215,7 @@ ImageViewController::requestImageAndGridUpdate()
     m_wcsGridRenderer-> setImageRect( inputRect );
     m_wcsGridRenderer-> setOutputRect( outputRect );
 
-//    m_igSync-> listenFor( m_renderService-> render(), m_wcsGridRenderer-> startRendering() );
-
     m_igSync-> start();
-
 } // updateGridAfterPanZoom
 
 QString
@@ -386,7 +396,7 @@ ImageViewController::frameVarCB()
     }
 
     int nf = 1;
-    if( m_astroImage-> dims().size() > 2) {
+    if ( m_astroImage-> dims().size() > 2 ) {
         nf = m_astroImage-> dims()[2];
     }
 
@@ -400,9 +410,10 @@ ImageViewController::frameVarCB()
     if ( frame != m_currentFrame ) {
         loadFrame( frame );
     }
-}
+} // frameVarCB
 
-void ImageViewController::contourVarCB()
+void
+ImageViewController::contourVarCB()
 {
     recalculateContours();
 
@@ -410,10 +421,13 @@ void ImageViewController::contourVarCB()
     requestImageAndGridUpdate();
 }
 
-void ImageViewController::recalculateContours()
+void
+ImageViewController::recalculateContours()
 {
+    return;
+
     // if we don't have an image yet, don't do anything
-    if( ! m_astroImage) {
+    if ( ! m_astroImage ) {
         return;
     }
 
@@ -421,23 +435,28 @@ void ImageViewController::recalculateContours()
     m_contours.clear();
 
     QString s = m_contourLevelsVar-> get();
-    s.replace( ',', ' ');
+    s.replace( ',', ' ' );
     s = s.simplified();
-    QStringList list = s.split( ' ', QString::SkipEmptyParts);
-    std::vector<double> levels;
-    for( QString & s : list) {
-        bool ok;
-        double x = s.toDouble( & ok);
-        if( ! ok) {
-            qWarning() << "Contour levels syntax error:" << m_contourLevelsVar-> get();
-            return;
-        }
-        levels.push_back( x);
-    }
-    std::sort( levels.begin(), levels.end());
+
+//    QStringList list = s.split( ' ', QString::SkipEmptyParts );
+//    std::vector < double > levels;
+//    for ( QString & s : list ) {
+//        bool ok;
+//        double x = s.toDouble( & ok );
+//        if ( ! ok ) {
+//            qWarning() << "Contour levels syntax error:" << m_contourLevelsVar-> get();
+//            return;
+//        }
+//        levels.push_back( x );
+//    }
+
+    auto levels = Impl::s2vd( s, " " );
+
+//    std::sort( levels.begin(), levels.end());
     qDebug() << "levels: " << levels.size();
+
     // if no levels detected, we are done
-    if( levels.size() == 0) {
+    if ( levels.size() == 0 ) {
         return;
     }
 
@@ -446,33 +465,21 @@ void ImageViewController::recalculateContours()
     for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
         frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
     }
+    NdArray::RawViewInterface::UniquePtr view( m_astroImage-> getDataSlice( frameSlice ) );
 
-    // get a view of the data using the slice description and make a shared pointer out of it
-//    NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
+    // calculate the contours
+    Carta::Lib::Algorithms::ContourConrec cc;
+    cc.setLevels( levels );
+    m_contours = cc.compute( view.get() );
+    qDebug() << "xyz contours" << m_contours.size();
+    for ( size_t i = 0 ; i < levels.size() ; ++i ) {
+        qDebug() << "   xyz[" << levels[i] << "]->" << m_contours[i].size();
+    }
 
-//    Carta::Lib::Algorithms::ContourConrec cc;
-//    NdArray::Double doubleView( view.get(), false );
-//    cc.setInputDataSize( doubleView.dims()[1], doubleView.dims()[0]);
-//    cc.setLevels( levels);
-//    Carta::Lib::Algorithms::ContourConrec::DataAccessor da =
-//            [ & doubleView]( int row, int col) { return doubleView.get( { col, row}); };
-//    m_contours = cc.compute( da);
-//    qDebug() << "xyz contours" << m_contours.size();
 //    if( m_contours.size() > 0) {
 //        qDebug() << "   xyz[0]->" << m_contours[0].size();
 //    }
-
-    NdArray::RawViewInterface::UniquePtr view( m_astroImage-> getDataSlice( frameSlice ) );
-    Carta::Lib::Algorithms::ContourConrec cc;
-    cc.setLevels( levels);
-    m_contours = cc.compute( view.get());
-    qDebug() << "xyz contours" << m_contours.size();
-    if( m_contours.size() > 0) {
-        qDebug() << "   xyz[0]->" << m_contours[0].size();
-    }
-
-
-}
+} // recalculateContours
 
 void
 ImageViewController::loadFrame( int frame )
@@ -517,14 +524,13 @@ ImageViewController::loadFrame( int frame )
     // tell the render service to render this job
     m_renderService-> setInputView( view, QString( "%1//%2" ).arg( m_fileName ).arg( m_currentFrame ) );
 
+    // tell the contour module about the changed input
+    m_contourEditorController-> setInput( view );
+
     // if grid is active, request a grid rendering as well
     if ( m_wcsGridRenderer ) {
         m_wcsGridRenderer-> setInputImage( m_astroImage );
     }
-
-    // request repaint
-//    m_renderService-> render( 0 );
-    requestImageAndGridUpdate();
 
     // update the GUI
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
@@ -532,6 +538,8 @@ ImageViewController::loadFrame( int frame )
     // update contours
     recalculateContours();
 
+    // request repaint
+    requestImageAndGridUpdate();
 } // loadFrame
 
 void
@@ -549,9 +557,10 @@ ImageViewController::loadNextFrame()
 
 void
 ImageViewController::imageAndGridDoneSlot(
-        QImage image,
-        Carta::Lib::VectorGraphics::VGList vgList,
-        ImageGridServiceSynchronizer::JobId /*jobId*/)
+    QImage image,
+    Carta::Lib::VectorGraphics::VGList gridVG,
+    Carta::Lib::VectorGraphics::VGList contourVG,
+    ImageGridServiceSynchronizer::JobId /*jobId*/ )
 {
     /// \todo we should make sure the jobId matches the last submitted job, otherwise
     /// we are wasting CPU rendering old job...
@@ -565,39 +574,74 @@ ImageViewController::imageAndGridDoneSlot(
     QPainter painter( & m_renderBuffer );
     painter.setRenderHint( QPainter::Antialiasing, true );
     Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
-    if ( ! vgRenderer.render( vgList, painter ) ) {
+    if ( ! vgRenderer.render( gridVG, painter ) ) {
         qWarning() << "could not render grid vector graphics";
     }
     qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
 
-    // paint contours
-    QPen lineColor( QColor( "red"), 1);
-    lineColor.setCosmetic(true);
-    painter.setPen( lineColor);
-    // where does 0.5, 0.5 map to?
-    QPointF p1 = m_renderService-> img2screen({ 0.5, 0.5});
-    // where does 1.5, 1.5 map to?
-    QPointF p2 = m_renderService-> img2screen({ 1.5, 1.5});
-    QTransform tf;
-    double m11 = p2.x() - p1.x();
-    double m22 = p2.y() - p1.y();
-    double m33 = 1; // no projection
-    double m13 = 0; // no projection
-    double m23 = 0; // no projection
-    double m12 = 0; // no shearing
-    double m21 = 0; // no shearing
-    double m31 = p1.x() - m11 * 0.5;
-    double m32 = p1.y() - m22 * 0.5;
-    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33);
+    t.restart();
+    {
+        QPen lineColor( QColor( "red" ), 1 );
+        lineColor.setCosmetic( true );
+        painter.setPen( lineColor );
 
-    painter.setTransform( tf);
-    for( size_t k = 0 ; k < m_contours.size() ; ++ k) {
-        std::vector< QPolygonF > con = m_contours[k];
-        for( size_t i = 0 ; i < con.size() ; ++ i) {
-            QPolygonF & poly = con[i];
-            painter.drawPolyline( poly);
-        }
+        // where does 0.5, 0.5 map to?
+        QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
+                                                   );
+
+        // where does 1.5, 1.5 map to?
+        QPointF p2 = m_renderService-> img2screen( { 1.5, 1.5 }
+                                                   );
+        QTransform tf;
+        double m11 = p2.x() - p1.x();
+        double m22 = p2.y() - p1.y();
+        double m33 = 1; // no projection
+        double m13 = 0; // no projection
+        double m23 = 0; // no projection
+        double m12 = 0; // no shearing
+        double m21 = 0; // no shearing
+        double m31 = p1.x() - m11 * 0.5;
+        double m32 = p1.y() - m22 * 0.5;
+        tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+        painter.setTransform( tf );
     }
+    if ( ! vgRenderer.render( contourVG, painter ) ) {
+        qWarning() << "could not render contour vector graphics";
+    }
+    qDebug() << "Contour VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
+
+//    // paint contours
+//    QPen lineColor( QColor( "red" ), 1 );
+//    lineColor.setCosmetic( true );
+//    painter.setPen( lineColor );
+
+//    // where does 0.5, 0.5 map to?
+//    QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
+//                                               );
+
+//    // where does 1.5, 1.5 map to?
+//    QPointF p2 = m_renderService-> img2screen( { 1.5, 1.5 }
+//                                               );
+//    QTransform tf;
+//    double m11 = p2.x() - p1.x();
+//    double m22 = p2.y() - p1.y();
+//    double m33 = 1; // no projection
+//    double m13 = 0; // no projection
+//    double m23 = 0; // no projection
+//    double m12 = 0; // no shearing
+//    double m21 = 0; // no shearing
+//    double m31 = p1.x() - m11 * 0.5;
+//    double m32 = p1.y() - m22 * 0.5;
+//    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+//    painter.setTransform( tf );
+
+//    for ( size_t k = 0 ; k < m_contours.size() ; ++k ) {
+//        std::vector < QPolygonF > con = m_contours[k];
+//        for ( size_t i = 0 ; i < con.size() ; ++i ) {
+//            QPolygonF & poly = con[i];
+//            painter.drawPolyline( poly );
+//        }
+//    }
 
     // schedule a repaint with the connector
     m_connector-> refreshView( this );

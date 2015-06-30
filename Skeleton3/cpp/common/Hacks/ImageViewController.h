@@ -7,12 +7,13 @@
 
 #pragma once
 
-#include "WcsGridOptionsController.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/Algorithms/ContourConrec.h"
 #include "CartaLib/Nullable.h"
 #include "CartaLib/Hooks/GetWcsGridRenderer.h"
+#include "WcsGridOptionsController.h"
+#include "ContourEditorController.h"
 #include "../ImageRenderService.h"
 #include "../IView.h"
 #include "SharedState.h"
@@ -116,6 +117,9 @@ private:
 
 /// an example of a class that is capable of synchronizing results coming from
 /// ImageRenderService & IWcsGridRenderService
+///
+/// still needs work: needs the ability to separately request image/grid redraws
+/// as currently it always requests both even if it's not needed
 class ImageGridServiceSynchronizer : public QObject
 {
     Q_OBJECT
@@ -126,9 +130,11 @@ public:
     typedef int64_t JobId;
     typedef Carta::Core::ImageRenderService::Service IRS;
     typedef Carta::Lib::IWcsGridRenderService GRS;
+    typedef ContourEditorController CEC;
 
     ImageGridServiceSynchronizer( IRS::Service::SharedPtr imageRendererService,
                                   GRS::SharedPtr gridRendererService,
+                                  CEC::SharedPtr contourController,
                                   QObject * parent = nullptr )
         : QObject( parent )
     {
@@ -138,9 +144,13 @@ public:
         if ( ! connect( gridRendererService.get(), & GRS::done, this, & Me::wcsGridSlot ) ) {
             qCritical() << "Could not connect gridRenderService done slot";
         }
+        if ( ! connect( contourController.get(), & CEC::done, this, & Me::contourSlot ) ) {
+            qCritical() << "Could not connect contour editor controller done slot";
+        }
 
         m_irs = imageRendererService;
         m_grs = gridRendererService;
+        m_cec = contourController;
     }
 
     JobId
@@ -157,7 +167,8 @@ public:
         }
         m_irsJobId = m_irs-> render();
         m_grsJobId = m_grs-> startRendering();
-        qDebug() << "  waiting for xyz" << m_irsJobId << m_grsJobId << "as" << m_myJobId;
+        m_cecJobId = m_cec-> startRendering();
+        qDebug() << "  waiting for xyz" << m_irsJobId << m_grsJobId << m_cecJobId << "as" << m_myJobId;
         return m_myJobId;
     }
 
@@ -167,7 +178,7 @@ public:
 signals:
 
     void
-    done( QImage img, Carta::Lib::VectorGraphics::VGList, JobId );
+    done( QImage img, Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, JobId );
 
 private slots:
 
@@ -181,8 +192,8 @@ private slots:
         if ( jobId != m_irsJobId ) { return; }
         m_irsDone = true;
         m_irsImage = img;
-        if ( m_grsDone ) {
-            emit done( m_irsImage, m_grsVGList, m_myJobId );
+        if ( m_grsDone && m_irsDone && m_cecDone ) {
+            emit done( m_irsImage, m_grsVGList, m_cecVGList, m_myJobId );
         }
     }
 
@@ -197,8 +208,23 @@ private slots:
         if ( jobId != m_grsJobId ) { return; }
         m_grsDone = true;
         m_grsVGList = vgList;
-        if ( m_irsDone ) {
-            emit done( m_irsImage, m_grsVGList, m_myJobId );
+        if ( m_grsDone && m_irsDone && m_cecDone ) {
+            emit done( m_irsImage, m_grsVGList, m_cecVGList, m_myJobId );
+        }
+    }
+
+    void
+    contourSlot( Carta::Lib::VectorGraphics::VGList vgList,
+                 ContourEditorController::JobId jobId )
+    {
+        qDebug() << "contourDone xyz" << jobId;
+
+        // if this is not the expected job, do nothing
+        if ( jobId != m_cecJobId ) { return; }
+        m_cecDone = true;
+        m_cecVGList = vgList;
+        if ( m_grsDone && m_irsDone && m_cecDone ) {
+            emit done( m_irsImage, m_grsVGList, m_cecVGList, m_myJobId );
         }
     }
 
@@ -206,15 +232,19 @@ private:
 
     Carta::Core::ImageRenderService::JobId m_irsJobId = - 1;
     GRS::JobId m_grsJobId = - 1;
+    ContourEditorController::JobId m_cecJobId = -1;
 
     JobId m_myJobId = - 1;
     bool m_irsDone = false;
     bool m_grsDone = false;
+    bool m_cecDone = false;
     QImage m_irsImage;
     Carta::Lib::VectorGraphics::VGList m_grsVGList;
+    Carta::Lib::VectorGraphics::VGList m_cecVGList;
 
     IRS::Service::SharedPtr m_irs = nullptr;
     GRS::SharedPtr m_grs = nullptr;
+    ContourEditorController::SharedPtr m_cec = nullptr;
 };
 
 /// image controller with grid overlays and contour overlays
@@ -302,8 +332,9 @@ private slots:
 
     /// combined image & grid slot
     void
-    imageAndGridDoneSlot( QImage image,
-                          Carta::Lib::VectorGraphics::VGList vgList,
+    imageAndGridDoneSlot(QImage image,
+                         Carta::Lib::VectorGraphics::VGList gridVG,
+                         Carta::Lib::VectorGraphics::VGList contourVG,
                           ImageGridServiceSynchronizer::JobId jobId );
 
     /// schedule a grid update after pan/zoom were modified
@@ -381,13 +412,19 @@ private:
     bool m_gridToggle = false;
 
     /// results of grid drawing
-    Nullable < Carta::Lib::VectorGraphics::VGList > m_gridVG;
+//    Nullable < Carta::Lib::VectorGraphics::VGList > m_gridVG;
+
+    /// results of contour drawing
+    Nullable < Carta::Lib::VectorGraphics::VGList > m_contourVG;
 
     /// wcs grid render service
     Carta::Lib::IWcsGridRenderService::SharedPtr m_wcsGridRenderer = nullptr;
 
     /// wcs grid options controller
-    WcsGridOptionsController::UniquePtr m_wcsGridOptionsController;
+    WcsGridOptionsController::UniquePtr m_wcsGridOptionsController = nullptr;
+
+    /// contour editor controller
+    ContourEditorController::SharedPtr m_contourEditorController = nullptr;
 
     /// state variable for current frame
     Carta::Lib::SharedState::DoubleVar::UniquePtr m_frameVar;

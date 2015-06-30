@@ -75,13 +75,15 @@ HEADERS += \
     ScriptedClient/VarLengthMessage.h \
     ScriptedClient/TagMessage.h \
     ScriptedClient/JsonMessage.h \
+    DefaultContourGeneratorService.h \
     Hacks/HackViewer.h \
     Hacks/ImageViewController.h \
     Hacks/MainModel.h \
     Hacks/ILayeredView.h \
     Hacks/IVectorGraphicsView.h \
     Hacks/WcsGridOptionsController.h \
-    Hacks/SharedState.h
+    Hacks/SharedState.h \
+    Hacks/ContourEditorController.h
 
 SOURCES += \
     Viewer.cpp \
@@ -141,13 +143,15 @@ SOURCES += \
     ScriptedClient/VarLengthMessage.cpp \
     ScriptedClient/TagMessage.cpp \
     ScriptedClient/JsonMessage.cpp \
+    DefaultContourGeneratorService.cpp \
     Hacks/HackViewer.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
     Hacks/ILayeredView.cpp \
     Hacks/IVectorGraphicsView.cpp \
     Hacks/WcsGridOptionsController.cpp \
-    Hacks/SharedState.cpp
+    Hacks/SharedState.cpp \
+    Hacks/ContourEditorController.cpp
 
 
 #message( "common            PWD=$$PWD")

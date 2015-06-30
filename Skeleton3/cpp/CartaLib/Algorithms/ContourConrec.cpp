@@ -298,6 +298,31 @@ ContourConrec::setLevels( const std::vector < double > & levels )
 ContourConrec::Result
 ContourConrec::compute( NdArray::RawViewInterface * view )
 {
+    // if no input view was set, we are done
+    if( ! view || m_levels.size() == 0) {
+        Result result( m_levels.size());
+        return result;
+    }
+
+    // the c-algorithm conrec() needs the levels in sorted order (to make things little
+    // bit faster), but we would like to report the results in the same order that the
+    // levels were requested. So we need to sort the levels, call the conrec(), and
+    // then we need to 'unsort' the results...
+    typedef std::pair < double, size_t > DI;
+    std::vector < DI > tmpLevels( m_levels.size());
+    for ( size_t i = 0 ; i < m_levels.size() ; ++i ) {
+        tmpLevels[i].first = m_levels[i];
+        tmpLevels[i].second = i;
+    }
+    auto sort1 = []( const DI&a, const DI&b) {
+        return a.first < b.first;
+    };
+    std::sort( tmpLevels.begin(), tmpLevels.end(), sort1);
+    std::vector<double> sortedRawLevels( m_levels.size());
+    for( size_t i = 0 ; i < m_levels.size(); ++ i) {
+        sortedRawLevels[i] = tmpLevels[i].first;
+    }
+
     auto m_nRows = view-> dims()[1];
     auto m_nCols = view-> dims()[0];
 
@@ -323,9 +348,15 @@ ContourConrec::compute( NdArray::RawViewInterface * view )
             xcoords,
             ycoords,
             m_levels.size(),
-            & m_levels[0] );
+            & sortedRawLevels[0] );
 
-    return result;
+    // now we 'unsort' the contours based on the requested order
+    Result unsortedResult( m_levels.size());
+    for( size_t i = 0 ; i < m_levels.size() ; ++ i) {
+        unsortedResult[ tmpLevels[i].second] = result[i];
+    }
+
+    return unsortedResult;
 } // compute
 }
 }

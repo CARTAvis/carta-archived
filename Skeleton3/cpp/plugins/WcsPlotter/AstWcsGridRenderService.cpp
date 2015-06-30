@@ -47,16 +47,15 @@ AstWcsGridRenderService::AstWcsGridRenderService()
 {
     // initialize private members, starting with pimpl
     m_pimpl.reset( new Pimpl );
+    // make default pens
     m().pens.resize( static_cast < int > ( Element::__count ), QPen( QColor( "white" ) ) );
+    // make default fonts
     Pimpl::FontInfo tuple( 0, 10.0 );
     m().fonts.resize( static_cast < int > ( Element::__count ), tuple );
+    // make default pen entries indicating we have not set them yet
     m().penEntries.resize( static_cast < int > ( Element::__count ), - 1 );
 
-    // default pens (other than white)
-//    setPen( Element::Shadow, QPen( QColor( 0, 0, 0, 64 ) ) );
-//    setPen( Element::MarginDim, QPen( QColor( 0, 0, 0, 64 ) ) );
-
-    // setup the render timer
+    // setup render timer & hook it up
     m_renderTimer.setSingleShot( true );
     connect( & m_renderTimer, & QTimer::timeout, this, & Me::renderNow );
 }
@@ -286,6 +285,8 @@ AstWcsGridRenderService::renderNow()
 
     sgp.setShadowPenIndex( si( Element::Shadow ) );
 
+//    sgp.setPlotOption( "Format(1)=\"+tms.10\"");
+//            sgp.setPlotOption( "Format(1)=\"gtms\"");
     // grid density
     sgp.setDensityModifier( m_gridDensity );
 

@@ -1,5 +1,8 @@
 /**
  * Helper class to manage UI related to grid options.
+ *
+ * It monitors the shared state, and automatically tells the grid render service if
+ * any changes are detected.
  **/
 
 #pragma once

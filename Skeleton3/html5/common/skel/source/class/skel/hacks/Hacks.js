@@ -108,6 +108,8 @@ qx.Class.define("skel.hacks.Hacks", {
             // create grid controls window
             this.m_gridControlsWindow = new skel.hacks.GridControlsWindow( "/hacks/gridControls/c1/");
 
+            // create contour editor window
+            this.m_contourEditorWindow = new skel.hacks.ContourEditorWindow( "/hacks/contourEditor/ce1/");
         },
 
         m_connector: null,

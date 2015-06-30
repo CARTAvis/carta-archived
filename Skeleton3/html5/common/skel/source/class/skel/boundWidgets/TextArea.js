@@ -10,9 +10,9 @@
  */
 
 
-qx.Class.define( "skel.boundWidgets.TextField", {
+qx.Class.define( "skel.boundWidgets.TextArea", {
 
-    extend: qx.ui.form.TextField,
+    extend: qx.ui.form.TextArea,
 
     construct: function( varPath )
     {
@@ -49,13 +49,19 @@ qx.Class.define( "skel.boundWidgets.TextField", {
                 return;
             }
             var value = e.getData();
+            value = qx.util.Base64.encode( value, false);
             this.m_sharedVar.set( value );
         },
 
-        _sharedVarCB: function( val )
+        _sharedVarCB: function( value )
         {
             this.m_insideSharedVarCB = true;
-            this.setValue( val );
+            if( qx.lang.Type.isString(value)) {
+                value = qx.util.Base64.decode( value, false);
+            } else {
+                value = "";
+            }
+            this.setValue( value );
             this.m_insideSharedVarCB = false;
         }
     }
