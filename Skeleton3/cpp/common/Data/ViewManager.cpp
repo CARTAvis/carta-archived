@@ -459,6 +459,15 @@ QString ViewManager::_isDuplicateLink( const QString& sourceName, const QString&
             }
         }
     }
+    else if ( sourceName == Animator::CLASS_NAME ){
+        int animCount = m_animators.size();
+        for ( int i = 0; i < animCount; i++ ){
+            alreadyLinked = m_animators[i]->isLinked( destId );
+            if ( alreadyLinked ){
+                break;
+            }
+        }
+    }
     if ( alreadyLinked ){
         result = "Destination can only be linked to one "+sourceName;
     }

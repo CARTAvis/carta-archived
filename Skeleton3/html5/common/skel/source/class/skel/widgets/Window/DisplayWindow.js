@@ -105,7 +105,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         clearLink : function( winId ){
             var linkIndex = this.m_links.indexOf(winId);
             if ( linkIndex >= 0 ){
-                this.m_links.splice(linkIndex);
+                this.m_links.splice(linkIndex, 1);
             }
         },
         
@@ -170,10 +170,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             linkInfo.locationY = midPoint[1];
             var index = this.m_links.indexOf( sourceWinId );
             if ( index >= 0) {
-               
                 linkInfo.linked = true;
             }
-
             linkInfo.winId = this.m_identifier;
             linkInfo.linkable = this.isLinkable(pluginId);
             linkInfo.twoWay = this.isTwoWay(pluginId);

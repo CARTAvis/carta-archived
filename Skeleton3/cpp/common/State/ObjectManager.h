@@ -80,7 +80,9 @@ public:
      */
     //Normally the type of an object will be the class name, but for snapshots such as session snapshots
     //this method may be overriden to append an additional identifier such as 'data' after the class name.
-    virtual QString getType(CartaObject::SnapshotType snapType = CartaObject::SnapshotType::SNAPSHOT_INFO ) const;
+    virtual QString getSnapType(CartaObject::SnapshotType snapType= CartaObject::SnapshotType::SNAPSHOT_INFO) const;
+
+    QString getType() const;
 
 protected:
 

@@ -114,7 +114,7 @@ QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
         QString coordName = m_coords->getName( cf->skyCS() );
         out << "Default sky cs:" << coordName << "\n";
         out << "Image cursor:" << imgX << "," << imgY << "\n";
-        QString pixelValue = _getPixelValue( round(imgX), round(imgY) );
+        QString pixelValue = _getPixelValue( round(imgX), round(imgY), frameIndex );
         QString pixelUnits = _getPixelUnits();
         out << "Value:" << pixelValue << " " << pixelUnits << "\n";
     
@@ -165,10 +165,10 @@ QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
-QString DataSource::_getPixelValue( double x, double y ) const {
+QString DataSource::_getPixelValue( double x, double y, int frameIndex ) const {
     QString pixelValue = "";
     if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
-        NdArray::RawViewInterface* rawData = _getRawData( 0, 0 );
+        NdArray::RawViewInterface* rawData = _getRawData( frameIndex, frameIndex );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
             pixelValue = QString::number( view.get( {(int)(round(x)), (int)(round(y)) } ) );

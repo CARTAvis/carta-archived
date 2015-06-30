@@ -239,9 +239,10 @@ private:
      * Return the value of the pixel at (x, y).
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
+     * @param frameIndex - the frameIndex.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
-    QString _getPixelValue( double x, double y ) const;
+    QString _getPixelValue( double x, double y, int frameIndex ) const;
 
     /**
      * Return the units of the pixels.

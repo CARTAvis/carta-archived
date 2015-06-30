@@ -292,8 +292,9 @@ QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
 QString Controller::getPixelValue( double x, double y ) const {
     QString result("");
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
-        result = m_datas[imageIndex]->_getPixelValue( x, y );
+    int frameIndex = m_selectChannel->getIndex();
+    if ( imageIndex >= 0 && frameIndex >= 0 ){
+        result = m_datas[imageIndex]->_getPixelValue( x, y, frameIndex );
     }
     return result;
 }

@@ -72,7 +72,11 @@ int CartaObject::getIndex() const {
     return m_state.getValue<int>(StateInterface::INDEX);
 }
 
-QString CartaObject::getType(CartaObject::SnapshotType /*snapType*/) const {
+QString CartaObject::getSnapType(CartaObject::SnapshotType /*snapType*/) const {
+    return m_className;
+}
+
+QString CartaObject::getType() const {
     return m_className;
 }
 
@@ -181,7 +185,7 @@ bool ObjectManager::restoreSnapshot(const QString stateStr, CartaObject::Snapsho
             CartaObject* obj = it->second.getObject();
             //Try to assign by index and matching type.  Note:  May want to remove the assigning by id.
             int targetIndex = obj->getIndex();
-            QString targetType = obj->getType( snapType );
+            QString targetType = obj->getSnapType( snapType );
             bool restored = false;
             for ( int j = 0; j < stateCount; j++ ){
                 QString stateLookup = UtilState::getLookup( STATE_ARRAY, j );
@@ -298,7 +302,7 @@ CartaObject* ObjectManager::getObject( int index, const QString & typeStr ){
     CartaObject* target = nullptr;
     for( ObjectRegistry::iterator i = m_objects.begin(); i != m_objects.end(); ++i){
         CartaObject* obj = i->second.getObject();
-        if ( obj->getIndex() == index && typeStr == obj->getType()){
+        if ( obj->getIndex() == index && typeStr == obj->getSnapType()){
             target = obj;
             break;
         }
