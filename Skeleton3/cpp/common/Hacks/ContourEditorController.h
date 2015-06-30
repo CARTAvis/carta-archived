@@ -95,5 +95,7 @@ private:
     SS::StringVar::UniquePtr m_stringVar;
 
     Carta::Core::DefaultContourGeneratorService::UniquePtr m_contourSvc = nullptr;
+
+    std::vector<QPen> m_pens;
 };
 }

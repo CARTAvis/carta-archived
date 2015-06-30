@@ -353,14 +353,6 @@ private slots:
     void
     frameVarCB();
 
-    /// callback for contour state variable
-    void
-    contourVarCB();
-
-    /// recalculate contours
-    void
-    recalculateContours();
-
 private:
 
     /// this is the part of the state we are allowed to use
@@ -428,9 +420,6 @@ private:
 
     /// state variable for current frame
     Carta::Lib::SharedState::DoubleVar::UniquePtr m_frameVar;
-
-    /// state variable for contour levels
-    Carta::Lib::SharedState::StringVar::UniquePtr m_contourLevelsVar;
 
     /// current frame
     int m_currentFrame = - 1;

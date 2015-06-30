@@ -171,10 +171,10 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     connect( m_frameVar.get(), & SS::BoolVar::valueChanged,
              this, & Me::frameVarCB );
 
-    // shared state var for contour levels
-    m_contourLevelsVar.reset( new SS::StringVar( prefix.with( "contourLevels" ) ) );
-    connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
-             this, & Me::contourVarCB );
+//    // shared state var for contour levels
+//    m_contourLevelsVar.reset( new SS::StringVar( prefix.with( "contourLevels" ) ) );
+//    connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
+//             this, & Me::contourVarCB );
 
     // set the current frame to 0
 //    m_frameVar-> set( 0 );
@@ -413,75 +413,6 @@ ImageViewController::frameVarCB()
 } // frameVarCB
 
 void
-ImageViewController::contourVarCB()
-{
-    recalculateContours();
-
-    // this is a hack at the moment, just to repaint... very inefficient
-    requestImageAndGridUpdate();
-}
-
-void
-ImageViewController::recalculateContours()
-{
-    return;
-
-    // if we don't have an image yet, don't do anything
-    if ( ! m_astroImage ) {
-        return;
-    }
-
-    // clear the current contours
-    m_contours.clear();
-
-    QString s = m_contourLevelsVar-> get();
-    s.replace( ',', ' ' );
-    s = s.simplified();
-
-//    QStringList list = s.split( ' ', QString::SkipEmptyParts );
-//    std::vector < double > levels;
-//    for ( QString & s : list ) {
-//        bool ok;
-//        double x = s.toDouble( & ok );
-//        if ( ! ok ) {
-//            qWarning() << "Contour levels syntax error:" << m_contourLevelsVar-> get();
-//            return;
-//        }
-//        levels.push_back( x );
-//    }
-
-    auto levels = Impl::s2vd( s, " " );
-
-//    std::sort( levels.begin(), levels.end());
-    qDebug() << "levels: " << levels.size();
-
-    // if no levels detected, we are done
-    if ( levels.size() == 0 ) {
-        return;
-    }
-
-    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
-    auto frameSlice = SliceND().next();
-    for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
-        frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
-    }
-    NdArray::RawViewInterface::UniquePtr view( m_astroImage-> getDataSlice( frameSlice ) );
-
-    // calculate the contours
-    Carta::Lib::Algorithms::ContourConrec cc;
-    cc.setLevels( levels );
-    m_contours = cc.compute( view.get() );
-    qDebug() << "xyz contours" << m_contours.size();
-    for ( size_t i = 0 ; i < levels.size() ; ++i ) {
-        qDebug() << "   xyz[" << levels[i] << "]->" << m_contours[i].size();
-    }
-
-//    if( m_contours.size() > 0) {
-//        qDebug() << "   xyz[0]->" << m_contours[0].size();
-//    }
-} // recalculateContours
-
-void
 ImageViewController::loadFrame( int frame )
 {
 //    qDebug() << "loadFrame" << frame << "xyz";
@@ -534,9 +465,6 @@ ImageViewController::loadFrame( int frame )
 
     // update the GUI
     m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
-
-    // update contours
-    recalculateContours();
 
     // request repaint
     requestImageAndGridUpdate();

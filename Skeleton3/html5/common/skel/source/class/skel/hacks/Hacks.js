@@ -87,13 +87,13 @@ qx.Class.define("skel.hacks.Hacks", {
             win2.add( mp.container);
 
             // add a contour box
-            var cbox = new qx.ui.container.Composite( new qx.ui.layout.HBox(5));
-            cbox.getLayout().set({ alignY: "middle"});
-            cbox.add( new qx.ui.basic.Label( "Contours:"));
-            var contoursTF = new skel.boundWidgets.TextField( mp.prefix + "/contourLevels");
-            contoursTF.setToolTipText( "Enter contour levels here, separated by spaces or commas");
-            cbox.add( contoursTF, { flex: 1});
-            win2.add(cbox);
+            //var cbox = new qx.ui.container.Composite( new qx.ui.layout.HBox(5));
+            //cbox.getLayout().set({ alignY: "middle"});
+            //cbox.add( new qx.ui.basic.Label( "Contours:"));
+            //var contoursTF = new skel.boundWidgets.TextField( mp.prefix + "/contourLevels");
+            //contoursTF.setToolTipText( "Enter contour levels here, separated by spaces or commas");
+            //cbox.add( contoursTF, { flex: 1});
+            //win2.add(cbox);
 
             // pop up the window
             this.m_app.getRoot().add( win2, {left: 100, top: 100} );
