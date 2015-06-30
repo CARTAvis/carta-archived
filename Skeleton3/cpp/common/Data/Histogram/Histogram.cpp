@@ -269,7 +269,7 @@ QString Histogram::getStateString( const QString& sessionId, SnapshotType type )
         result = dataCopy.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getType( type ));
+        result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
     }
     return result;
 }
@@ -356,8 +356,8 @@ QString Histogram::getPreferencesId() const {
     return m_preferences->getPath();
 }
 
-QString Histogram::getType(CartaObject::SnapshotType snapType) const {
-    QString objType = CartaObject::getType( snapType );
+QString Histogram::getSnapType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getSnapType( snapType );
     if ( snapType == SNAPSHOT_DATA ){
         objType = objType + Carta::State::StateInterface::STATE_DATA;
     }
@@ -850,6 +850,14 @@ void Histogram::_initializeStatics(){
     }
 }
 
+bool Histogram::isLinked( const QString& linkId ) const {
+    bool linked = false;
+    CartaObject* obj = m_linkImpl->searchLinks( linkId );
+    if ( obj != nullptr ){
+        linked = true;
+    }
+    return linked;
+}
 
 
 void Histogram::_loadData( Controller* controller ){

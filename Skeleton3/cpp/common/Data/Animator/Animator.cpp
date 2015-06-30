@@ -202,7 +202,7 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getType( type ) );
+        result = m_linkImpl->getStateString(getIndex(), getSnapType( type ) );
     }
     else if ( type == SNAPSHOT_DATA ){
         //Data State is selections on individual animators.
@@ -229,13 +229,15 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
     return result;
 }
 
-QString Animator::getType(CartaObject::SnapshotType snapType) const {
-    QString objType = CartaObject::getType( snapType );
+QString Animator::getSnapType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getSnapType( snapType );
     if ( snapType == SNAPSHOT_DATA ){
         objType = objType + StateInterface::STATE_DATA;
     }
     return objType;
 }
+
+
 
 void Animator::_imageIndexChanged( int selectedImage){
     changeImageIndex( selectedImage );
@@ -283,6 +285,16 @@ void Animator::_initializeState(){
     QString animId;
     addAnimator( Selection::CHANNEL, animId);
 }
+
+bool Animator::isLinked( const QString& linkId ) const {
+    bool linked = false;
+    CartaObject* obj = m_linkImpl->searchLinks( linkId );
+    if ( obj != nullptr ){
+        linked = true;
+    }
+    return linked;
+}
+
 
 void Animator::refreshState(){
     CartaObject::refreshState();

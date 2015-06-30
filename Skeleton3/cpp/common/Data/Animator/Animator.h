@@ -79,6 +79,13 @@ public:
      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Returns whether or not the object with the given id is already linked to this object.
+     * @param linkId - a QString identifier for an object.
+     * @return true if this object is already linked to the one identified by the id; false otherwise.
+     */
+    virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
     void changeChannelIndex( int index );
 
     void changeImageIndex( int selectedImage );
@@ -119,7 +126,7 @@ public:
 
     virtual ~Animator();
 protected:
-    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+    virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
     //Adjusts internal state based on the state in the child controllers.

@@ -174,6 +174,10 @@ private:
     //has not saved one.
     void _initializeDefaultState();
 
+    //Returns whether or not there are any source objects of the given sourceName already linked to the
+    //destination object.
+    QString _isDuplicateLink( const QString& sourceName, const QString& destId ) const;
+
     QString _makeAnimator( int index );
     QString _makeLayout();
     QString _makePluginList();

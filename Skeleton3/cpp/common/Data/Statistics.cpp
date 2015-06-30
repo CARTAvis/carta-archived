@@ -51,10 +51,20 @@ QString Statistics::getStateString( const QString& /*sessionId*/, SnapshotType t
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getType( type));
+        result = m_linkImpl->getStateString(getIndex(), getSnapType( type));
     }
     return result;
 }
+
+bool Statistics::isLinked( const QString& linkId ) const {
+    bool linked = false;
+    CartaObject* obj = m_linkImpl->searchLinks( linkId );
+    if ( obj != nullptr ){
+        linked = true;
+    }
+    return linked;
+}
+
 
 QString Statistics::removeLink( Carta::State::CartaObject* cartaObject ){
     QString result;

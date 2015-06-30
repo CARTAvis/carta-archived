@@ -435,6 +435,34 @@ void ViewManager::_initializeDefaultState(){
     //Load the default snapshot if one exists.
     _makeSnapshots();
     m_snapshots->initializeDefaultState();
+    _refreshState();
+}
+
+QString ViewManager::_isDuplicateLink( const QString& sourceName, const QString& destId ) const {
+    QString result;
+    bool alreadyLinked = false;
+    if ( sourceName == Colormap::CLASS_NAME ){
+        int colorCount = m_colormaps.size();
+        for ( int i = 0; i < colorCount; i++  ){
+            alreadyLinked = m_colormaps[i]->isLinked( destId );
+            if ( alreadyLinked ){
+                break;
+            }
+        }
+    }
+    else if ( sourceName == Statistics::CLASS_NAME ){
+        int statCount = m_statistics.size();
+        for ( int i = 0; i < statCount; i++ ){
+            alreadyLinked = m_statistics[i]->isLinked( destId );
+            if ( alreadyLinked ){
+                break;
+            }
+        }
+    }
+    if ( alreadyLinked ){
+        result = "Destination can only be linked to one "+sourceName;
+    }
+    return result;
 }
 
 
@@ -448,7 +476,12 @@ QString ViewManager::linkAdd( const QString& sourceId, const QString& destId ){
         Carta::State::CartaObject* sourceObj = objManager->getObject( id );
         ILinkable* linkSource = dynamic_cast<ILinkable*>( sourceObj );
         if ( linkSource != nullptr ){
-            result = linkSource->addLink( destObj );
+            if ( !linkSource->isLinked( destId )){
+                result = _isDuplicateLink(sourceObj->getType(), destId );
+                if ( result.isEmpty() ){
+                    result = linkSource->addLink( destObj );
+                }
+            }
         }
         else {
             result = "Unrecognized add link source: "+sourceId;

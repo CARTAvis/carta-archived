@@ -22,11 +22,6 @@ public:
      */
     static QString makeRegion( const QString& typeStr );
 
-    /**
-     * Returns a string identifying the region type.
-     * @return an identifier for the region type.
-     */
-    virtual QString getType() const = 0;
 
 protected:
     /**

@@ -43,6 +43,13 @@ public:
      * @return a QString representing the corresponding statistics state.
      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns whether or not the object with the given id is already linked to this object.
+     * @param linkId - a QString identifier for an object.
+     * @return true if this object is already linked to the one identified by the id; false otherwise.
+     */
+    virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
     virtual ~Statistics();
     const static QString CLASS_NAME;
 

@@ -383,8 +383,8 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
 
 
 
-QString Controller::getType(CartaObject::SnapshotType snapType) const {
-    QString objType = CartaObject::getType( snapType );
+QString Controller::getSnapType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getSnapType( snapType );
     if ( snapType == SNAPSHOT_DATA ){
         objType = objType + Carta::State::StateInterface::STATE_DATA;
     }

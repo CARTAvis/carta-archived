@@ -324,7 +324,7 @@ signals:
     void saveImageResult( bool result );
 
 protected:
-    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+    virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
 

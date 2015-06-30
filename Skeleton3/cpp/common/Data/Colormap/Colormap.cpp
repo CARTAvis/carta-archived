@@ -126,10 +126,11 @@ QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) 
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getType( type ));
+        result = m_linkImpl->getStateString(getIndex(), getSnapType(type));
     }
     return result;
 }
+
 
 void Colormap::_initializeDefaultState(){
     m_state.insertValue<QString>( COLOR_MAP_NAME, "Gray" );
@@ -275,6 +276,16 @@ void Colormap::_initializeStatics(){
         m_dataTransforms = Util::findSingletonObject<TransformsData>();
     }
 }
+
+bool Colormap::isLinked( const QString& linkId ) const {
+    bool linked = false;
+    CartaObject* obj = m_linkImpl->searchLinks( linkId );
+    if ( obj != nullptr ){
+        linked = true;
+    }
+    return linked;
+}
+
 
 bool Colormap::isReversed() const {
     return m_state.getValue<bool>( REVERSE );
