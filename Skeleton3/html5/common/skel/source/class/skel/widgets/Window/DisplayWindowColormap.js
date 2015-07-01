@@ -14,31 +14,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
 
         /**
          * Constructor.
-         * @param row {Number} the row location.
-         * @param col {Number} the column location.
          * @param index {Number} an index in case of multiple windows displaying color maps.
          * @param detached {boolean} true for a pop-up; false for an in-line display.
          */
-        construct : function(row, col, index, detached ) {
-            this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, row, col, index, detached );
+        construct : function( index, detached ) {
+            this.base(arguments, skel.widgets.Path.getInstance().COLORMAP_PLUGIN, index, detached );
             this.m_content.setLayout( new qx.ui.layout.HBox(0));
             this.m_links = [];
         },
 
         members : {
-            
-            /**
-             * Return the number of significant digits to display.
-             * @return {Number} the number of significant digits the user wants to see.
-             */
-            getSignificantDigits : function(){
-                var digits = 6;
-                if ( this.m_colormap !== null ){
-                    digits = this.m_colormap.getSignificantDigits();
-                }
-                return digits;
-            },
-            
             
             /**
              * Display specific UI initialization.
@@ -49,7 +34,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                     this.m_colormap.setId( this.m_identifier );
                     this.m_content.add( this.m_colormap, {flex:1});
                 }
-               
             },
             
             /**
@@ -57,11 +41,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
              */
             _initSupportedCommands : function(){
                 arguments.callee.base.apply(this, arguments);
-                var settingsCmd = skel.Command.Colormap.Colormap.getInstance();
+                var settingsCmd = skel.Command.Settings.SettingsColor.getInstance();
                 this.m_supportedCmds.push( settingsCmd.getLabel());
             },
-            
-           
 
             /**
              * Returns whether or not this window can be linked to a window
@@ -86,15 +68,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
             _preferencesCB : function(){
                 if ( this.m_sharedVarPrefs !== null ){
                     var val = this.m_sharedVarPrefs.get();
-                    try {
-                        var setObj = JSON.parse( val );
-                        this._showHideColorMix( setObj.colorMix );
-                        this._showHideColorModel( setObj.colorModel );
-                        this._showHideColorScale( setObj.colorScale );
-                        this._showHideColorTransform( setObj.colorTransform );
-                    }
-                    catch( err ){
-                        console.log( "Histogram could not parse settings");
+                    if ( val !== null ){
+                        try {
+                            var setObj = JSON.parse( val );
+                            this.m_colormap.showHideSettings( setObj.settings );
+                        }
+                        catch( err ){
+                            console.log( "Colormap could not parse settings: "+err);
+                        }
                     }
                 }
             },
@@ -109,49 +90,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
                 }
             },
             
-            /**
-             * Show/hide color mix user settings.
-             * @param visible {boolean} true if the color mix settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideColorMix : function( visible ){
-                if ( this.m_colormap !== null ){
-                    this.m_colormap.showHideColorMix( visible );
-                }
-            },
-            
-            /**
-             * Show/hide color model settings.
-             * @param visible {boolean} true if the color model settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideColorModel : function( visible ){
-                if ( this.m_colormap !== null ){
-                    this.m_colormap.showHideColorModel( visible );
-                }
-            },
-            
-            /**
-             * Show/hide color scale user settings.
-             * @param visible {boolean} true if the color scale settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideColorScale : function( visible ){
-                if ( this.m_colormap !== null ){
-                    this.m_colormap.showHideColorScale( visible );
-                }
-            },
-            
-            /**
-             * Show/hide color transform user settings.
-             * @param visible {boolean} true if the color transform settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideColorTransform : function( visible ){
-                if ( this.m_colormap !== null ){
-                    this.m_colormap.showHideColorTransform( visible );
-                }
-            },
 
             
             /**

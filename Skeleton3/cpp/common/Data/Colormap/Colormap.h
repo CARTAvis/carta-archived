@@ -39,7 +39,7 @@ public:
     //ILinkable
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
     virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
-    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
      * Clear existing state.
@@ -60,6 +60,13 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
+     * Returns whether or not the object with the given id is already linked to this object.
+     * @param linkId - a QString identifier for an object.
+     * @return true if this object is already linked to the one identified by the id; false otherwise.
+     */
+    virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+    /**
      * Returns whether or not the colormap is reversed.
      * @return true if the colormap is reversed; false otherwise.
      */
@@ -71,10 +78,6 @@ public:
      */
     bool isInverted() const;
 
-    /**
-     * Force a flush of state to the client.
-     */
-    void refreshState();
 
     /**
      * Set the name of the current color map.
@@ -82,6 +85,11 @@ public:
      * @return error information if the color map was not successfully set.
      */
     QString setColorMap( const QString& colorMapName );
+
+    /**
+     * Force a state reload.
+     */
+    void refreshState() Q_DECL_OVERRIDE;
 
     /**
      * Reverse the current colormap.
@@ -97,6 +105,12 @@ public:
      * @return error information if the color map was not successfully inverted.
      */
     QString invertColorMap( bool invert );
+
+    /**
+     * Restore the state from a string representation.
+     * @param state- a json representation of state.
+     */
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Set a color mix.
@@ -150,7 +164,6 @@ private:
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
-    QString _commandSetDataTransform( const QString& transformString );
 
     bool _setColorMix( const QString& key, double colorPercent, QString& errorMsg );
     void _initializeDefaultState();
@@ -201,7 +214,7 @@ private:
     double m_errorMargin;
 
 	Colormap( const Colormap& other);
-	Colormap operator=( const Colormap& other );
+	Colormap& operator=( const Colormap& other );
 };
 }
 }

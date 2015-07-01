@@ -1,4 +1,5 @@
 import tSnapshot
+import Util
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -10,10 +11,10 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
     # the analysis layout
     def test_analysis_saveRestore(self):    
         driver = self.driver
+        driver.implicitly_wait(10)
         
-        #For later use, determine the number of DisplayWindows.
-        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        windowCount = len( windowList )
+        #For later use, determine the number of DisplayWindow
+        windowCount = Util.get_window_count( self, driver)
         print "Window Count=", windowCount
         
         # Find the session button on the menu bar and click it.
@@ -58,7 +59,6 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         self._closeRestore( driver )
         
         # Verify the window count is the same
-        newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
-        newWindowCount = len( newWindowList )
+        newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount, "Window count changed with restore")

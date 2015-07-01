@@ -27,7 +27,7 @@ protected:
      * Returns a string identifying the region type.
      * @return an identifier for the region type.
     */
-    virtual QString getType() const;
+    //virtual QString getType() const;
 
 private:
     void _initializeState();

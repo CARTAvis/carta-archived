@@ -60,7 +60,7 @@ private:
 
 
 	Preferences( const Preferences& other);
-	Preferences operator=( const Preferences& other );
+	Preferences& operator=( const Preferences& other );
 };
 }
 }

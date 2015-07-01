@@ -78,6 +78,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         _init : function(  ) {
             var widgetLayout = new qx.ui.layout.VBox();
             this._setLayout(widgetLayout);
+            this._add( new qx.ui.core.Spacer(), {flex:1});
             
             this.m_invertCheck = new qx.ui.form.CheckBox( "Invert");
             this.m_invertCheck.setToolTipText( "Invert the colors in the map.");
@@ -98,8 +99,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
                 this.m_connector.sendCommand( cmd, params, this._errorReverseCB( this ));
             }, this );
             
-            var mapComposite = new qx.ui.groupbox.GroupBox( "Map");
-            mapComposite.setContentPadding(1,1,1,1);
+            var mapComposite = new qx.ui.container.Composite();
             mapComposite.setLayout(new qx.ui.layout.VBox(1));
             this.m_mapCombo = new qx.ui.form.ComboBox();
             this.m_mapCombo.setToolTipText( "Select a color map.");
@@ -133,6 +133,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             
             mapComposite.add( comboComp );
             this._add( mapComposite );
+            this._add( new qx.ui.core.Spacer(), {flex:1});
         },
         
         /**
@@ -230,12 +231,5 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         m_sharedVarMaps : null
        
 
-    },
-    
-    properties : {
-        appearance : {
-            refine : true,
-            init : "internal-area"
-        }
     }
 });

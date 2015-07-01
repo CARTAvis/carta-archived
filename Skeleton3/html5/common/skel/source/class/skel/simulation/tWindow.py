@@ -75,8 +75,10 @@ class tWindow(unittest.TestCase):
         self.assertIsNotNone( colorWindow, "Could not find color map window")
         
         # Now right click the context menu to remove the colormap window
-        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        
+        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(
+                Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(
+                Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+    
         # Verify that there is one less window than was there originally and the colormap window is not in the list.
         newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
@@ -126,6 +128,7 @@ class tWindow(unittest.TestCase):
     # Test that we can add a window and change it into a statistics view.
     def test_add_window(self):
         driver = self.driver
+        self.driver.implicitly_wait(10)
         
         #For later use, determine the number of DisplayWindows.
         windowCount = Util.get_window_count( self, driver )
@@ -150,8 +153,11 @@ class tWindow(unittest.TestCase):
         
         # Look for the add button in the submenu.
         addButton = driver.find_element_by_xpath("//div/div[text()='Add']/..")
-        self.assertIsNotNone(addButton, "Could not click minimize button on window subcontext menu.")
+        self.assertIsNotNone(addButton, "Could not click add button on window subcontext menu.")
         ActionChains(driver).click(addButton).perform()
+        
+        # Choose to add at the bottom
+        ActionChains( driver).send_keys( Keys.ARROW_RIGHT ).send_keys( Keys.ENTER ).perform()
         
         # Check that we now have a generic empty window in the display and that the window count has gone up by one.
         emptyWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowGenericPlugin']")
@@ -159,14 +165,16 @@ class tWindow(unittest.TestCase):
         newWindowCount = Util.get_window_count( self, driver )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount+1, newWindowCount, "Window count did not go up")
-        
+
         # Select the empty window
         ActionChains(driver).click(emptyWindow).perform()
         
         # Change the plugin of the empty window to statistics by clicking the view menu and the statistics
         # plugin in the submenu.
-        ActionChains(driver).context_click(emptyWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        
+        ActionChains(driver).context_click(emptyWindow).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
+            ).send_keys(Keys.ENTER).perform()
+    
         #Verify that we have increased the number of statistics windows by one.
         newStatWindowList = driver.find_elements_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowStatistics']")
         newStatCount = len( newStatWindowList )
@@ -175,7 +183,7 @@ class tWindow(unittest.TestCase):
     
     
     # Test that an existing window can be removed.
-    def stest_remove(self):
+    def test_remove(self):
         driver = self.driver
         
         # Find and select the colormap window.
@@ -196,18 +204,15 @@ class tWindow(unittest.TestCase):
         removeButton = driver.find_element_by_xpath("//div[text()='Remove']/..")
         self.assertIsNotNone(removeButton, "Could not find remove button on window subcontext menu.")
         ActionChains(driver).click(removeButton).perform()
-        
-        # Verify that there is one less window than was there originally and the colormap window is not in the list.
-        newWindowCount = Util.get_window_count( self, driver )
-        print "New Window Count=", newWindowCount
-        self.assertEqual( windowCount, newWindowCount+1, "Window was not removed")
+
+       #Verify the colormap window is gone.
         try: 
             colorWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")
             self.assertTrue( False, "Colormap window should be removed")
         except Exception:
             print "Colormap window was successfully removed"
         
-        
+       
         
     def tearDown(self):
         self.driver.close()

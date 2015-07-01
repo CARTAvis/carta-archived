@@ -28,8 +28,7 @@ qx.Class.define("skel.Command.View.CommandView", {
                 //For now use the first active window.
                 var winInfo = skel.Command.Command.m_activeWins[0];
                 var data = {
-                    row : winInfo.getRow(),
-                    col : winInfo.getCol(),
+                    location : winInfo.getLocation(),
                     plugin : pluginName
                 };
                 //Changing the view will change to a custom layout, but we don't want to show
@@ -38,6 +37,7 @@ qx.Class.define("skel.Command.View.CommandView", {
                 layoutCmd.setActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
                 customLayoutCmd.setValue( true );
+                skel.widgets.Window.WindowFactory.setExistingWindows( []);
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
                 layoutCmd.setActive( true );
             }

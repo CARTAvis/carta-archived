@@ -14,20 +14,19 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
      * Constructor.
      * 
      * @param pluginId {String} the name of the plugin that will be displayed.
-     * @param row {Number} a row in the screen grid.
-     * @param col {Number} a column in the screen grid.
      * @param index {Number} an identification index for the case where we have more than one window for a given pluginId;
+     * @param detached {boolean} - true if this will not be a layout inline window; false otherwise.
      */
-    construct : function(pluginId, row, col, index, detached ) {
+    construct : function(pluginId, index, detached ) {
         this.base(arguments, detached );
         this.m_pluginId = pluginId;
         this.m_supportedCmds = [];
-        this.m_row = row;
-        this.m_col = col;
+        
         var pathDict = skel.widgets.Path.getInstance();
         this._init();
-        this.getChildControl( "captionbar").setVisibility( "excluded");
-        //this._initWindowBar();
+        if ( !detached ){
+            this.getChildControl( "captionbar").setVisibility( "excluded");
+        }
         
         this._initSupportedCommands();
         this._initContextMenu();
@@ -106,7 +105,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         clearLink : function( winId ){
             var linkIndex = this.m_links.indexOf(winId);
             if ( linkIndex >= 0 ){
-                this.m_links.splice(linkIndex);
+                this.m_links.splice(linkIndex, 1);
             }
         },
         
@@ -141,12 +140,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
 
         /**
-         * Return the window title.
+         * Return the unique server-side identifier for this window.
+         * @return {String} the server-side identifier.
          */
         getIdentifier : function() {
             return this.m_identifier;
         },
-
+        
         /**
          * Returns this window's information concerning establishing a link from
          * the window identified by the sourceWinId to this window.
@@ -170,33 +170,51 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             linkInfo.locationY = midPoint[1];
             var index = this.m_links.indexOf( sourceWinId );
             if ( index >= 0) {
-               
                 linkInfo.linked = true;
             }
-
             linkInfo.winId = this.m_identifier;
             linkInfo.linkable = this.isLinkable(pluginId);
             linkInfo.twoWay = this.isTwoWay(pluginId);
 
             return linkInfo;
         },
-        
-        /**
-         * Return this window's row location in the grid.
-         * @return {Number} the window's row location.
-         */
-        getCol : function(){
-            return this.m_col;
-        },
-        
-        /**
-         * Return this window's column location in the grid.
-         * @return {Number} the window's column location.
-         */
-        getRow : function(){
-            return this.m_row;
-        },
 
+        /**
+         * Returns this window's information concerning using it as a possible
+         * move location.
+         * 
+         * @param sourceWinId  {String} an identifier for the window wanting to move to this
+         *      window's location.
+         */
+        getMoveInfo : function( sourceWinId) {
+            
+            var linkInfo = new skel.widgets.Link.LinkInfo();
+            if (this.m_identifier == sourceWinId) {
+                linkInfo.source = true;
+                //Because we are potentially going to move this window, we need to store it in
+                //the window factory so the new destination will be able to reuse it and not make
+                //another one.
+                var wins = [];
+                wins[0] = this;
+                skel.widgets.Window.WindowFactory.setExistingWindows( wins );
+            }
+           
+            var midPoint = skel.widgets.Util.getCenter(this);
+            linkInfo.locationX = midPoint[0];
+            linkInfo.locationY = midPoint[1];
+            linkInfo.linked = false;
+            linkInfo.winId = this.m_identifier;
+            linkInfo.pluginId = this.getPlugin();
+            linkInfo.locationId = this.getLocation();
+            linkInfo.linkable = true;
+            linkInfo.twoWay = false;
+            return linkInfo;
+        },
+        
+        getLocation : function(){
+            return this.m_locationId;
+        },
+        
         /**
          * Returns the name of the plug-in this window is displaying.
          */
@@ -246,11 +264,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 var vals = cmds.getValue();
                 var emptyFunc = function(){};
                 for ( var i = 0; i < vals.length; i++ ){
+                    var supported = this.isCmdSupported( vals[i] );
                     var cmdType = vals[i].getType();
                     if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
                             cmdType === skel.Command.Command.TYPE_GROUP ){
                         //Only add top-level commands specific to this window.
-                        var supported = this.isCmdSupported( vals[i] );
                         if ( supported ){
                             var menu = skel.widgets.Util.makeMenu( vals[i]);
                             var menuButton = new qx.ui.menu.Button( vals[i].getLabel() );
@@ -261,6 +279,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
                         var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, false, true );
                         this.m_contextMenu.add( button );
+                    }
+                    else if ( cmdType === skel.Command.Command.TYPE_BOOL ){
+                        if ( supported ){
+                            var check = skel.widgets.Util.makeCheck( vals[i], emptyFunc, false);
+                            this.m_contextMenu.add( check );
+                        }
                     }
                     else {
                         console.log( "Menu unsupported top level command type="+ cmdType );
@@ -509,9 +533,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param row {Number} the grid row index.
          * @param col {Number} the grid column index.
          */
-        setLocation : function (row, col ){
-            this.m_row = row;
-            this.m_col = col;
+        setLocation : function ( locationId ){
+            this.m_locationId = locationId;
         },
 
         /**
@@ -520,30 +543,32 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            this.setActive( selected );
-            if( selected) {
-                this.getChildControl("pane").addState( "winSel" );
-            }
-            else {
-            	this.getChildControl("pane").removeState( "winSel");
-            }
-            
-            //Notify window has been selected.
-            if ( !multiple && selected ) {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                    "windowSelected", this));
-            }
-            
-            //Reset the context menu based on functionality specific to this window.
-            if ( selected ){
-                if ( !multiple ){
+            if ( selected != this.m_active ){
+                this.m_active= selected;
+                if( selected) {
+                    this.getChildControl("pane").addState( "winSel" );
+                }
+                else {
+                    this.getChildControl("pane").removeState( "winSel");
+                }
+                
+                //Notify window has been selected.
+                if ( !multiple && selected ) {
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "windowSelected", this));
+                }
+                
+                //Reset the context menu based on functionality specific to this window.
+                if ( selected ){
+                    if ( !multiple ){
+                        skel.Command.Command.clearActiveWindows();
+                    }
+                    skel.Command.Command.addActiveWindow( this );
+                    this._initContextMenu();
+                }
+                else {
                     skel.Command.Command.clearActiveWindows();
                 }
-                skel.Command.Command.addActiveWindow( this );
-                this._initContextMenu();
-            }
-            else {
-                skel.Command.Command.clearActiveWindows();
             }
         },
         
@@ -561,6 +586,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         windowSharedVarUpdate : function( winObj ){
         },
 
+        m_active : false,
         m_closed : false,
         m_contextMenu : null,
         m_scrollArea : null,
@@ -579,8 +605,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         
         //Server side object id
         m_identifier : "",
-        m_row : 0,
-        m_col : 0
+        m_locationId : ""
     }
 
 });

@@ -70,12 +70,25 @@ public:
     { }
 
     virtual void
+    setGridLines( bool ) override
+    {}
+
+    virtual void
+    setAxes( bool ) override
+    {}
+
+    virtual void
     setInternalLabels( bool ) override
     { }
 
     virtual void
     setSkyCS( Carta::Lib::KnownSkyCS ) override
     { }
+
+    virtual void
+    setTicks( bool ) override
+    {}
+
 
     virtual JobId
     startRendering( JobId jobId = - 1 ) override

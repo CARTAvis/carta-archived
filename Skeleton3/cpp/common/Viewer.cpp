@@ -6,7 +6,7 @@
 #include "IPlatform.h"
 #include "State/ObjectManager.h"
 #include "Data/ViewManager.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
 #include "PluginManager.h"
 #include "MainConfig.h"
 #include "MyQApp.h"
@@ -95,10 +95,15 @@ Viewer::start()
 	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
 		fname = Globals::instance()-> platform()-> initialFileList() [0];
 	}
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    QString vmId = objManager->createObject (Carta::Data::ViewManager::CLASS_NAME);
-    Carta::State::CartaObject* vmObj = objManager->getObject( vmId );
-    m_viewManager.reset( dynamic_cast<Carta::Data::ViewManager*>(vmObj));
+	Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+	if ( m_viewManager == nullptr ){
+        Carta::Data::ViewManager* vm = objManager->createObject<Carta::Data::ViewManager> ();
+        m_viewManager.reset( vm );
+	}
+	else {
+	    m_viewManager->reload();
+	}
+
     if ( m_devView ){
        m_viewManager->setDeveloperView();
     }

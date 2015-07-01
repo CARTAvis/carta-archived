@@ -120,7 +120,7 @@ private:
     bool _setFrameBoundsCheck(/*StateKey key*/const QString& key , int bound);
 
     Selection( const Selection& other);
-    Selection operator=( const Selection& other );
+    Selection& operator=( const Selection& other );
 };
 }
 }

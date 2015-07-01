@@ -133,7 +133,7 @@ private:
     const static QString STEP;
     const static QString VISIBLE;
     AnimatorType( const AnimatorType& other);
-    AnimatorType operator=( const AnimatorType& other );
+    AnimatorType& operator=( const AnimatorType& other );
 };
 }
 }

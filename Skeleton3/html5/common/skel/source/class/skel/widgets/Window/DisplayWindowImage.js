@@ -9,14 +9,20 @@
 
 qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
     extend : skel.widgets.Window.DisplayWindow,
-
+    include : skel.widgets.Window.PreferencesMixin,
+    
     /**
      * Constructor.
      */
-    construct : function(row, col, index, detached) {
-        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, row, col, index, detached );
+    construct : function(index, detached) {
+        this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, index, detached );
         this.m_links = [];
-        this.m_content.setLayout(new qx.ui.layout.Canvas());
+        this.m_viewContent = new qx.ui.container.Composite();
+        this.m_viewContent.setLayout(new qx.ui.layout.Canvas());
+        
+        this.m_content.add( this.m_viewContent, {flex:1} );
+        this.m_gridControls = new skel.widgets.Grid.GridControls();
+        this.m_content.add( this.m_gridControls );
     },
 
     members : {
@@ -28,8 +34,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             //Remove the view so we don't get spurious mouse events sent to a 
             //controller that no longer exists.
             if ( this.m_view !== null ){
-                if ( this.m_content.indexOf( this.m_view) >= 0 ){
-                    this.m_content.remove( this.m_view);
+                if ( this.m_viewContent.indexOf( this.m_view) >= 0 ){
+                    this.m_viewContent.remove( this.m_view);
                 }
             }
         },
@@ -43,8 +49,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             
             var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
-            if (this.m_content.indexOf(this.m_view) < 0) {
-                this.m_content.add(this.m_view, overlayMap );
+            if (this.m_viewContent.indexOf(this.m_view) < 0) {
+                this.m_viewContent.add(this.m_view, overlayMap );
             }
             this.m_view.setVisibility( "visible" );
             
@@ -65,7 +71,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Unloads the data identified by the path.
          */
         dataUnloaded : function(path) {
-            this.m_content.removeAll();
+            this.m_viewContent.removeAll();
         },
 
         /**
@@ -127,6 +133,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( dataCmd.getLabel() );
             var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
             this.m_supportedCmds.push( popupCmd.getLabel() );
+            var gridCmd = skel.Command.Settings.SettingsGrid.getInstance();
+            this.m_supportedCmds.push( gridCmd.getLabel());
         },
         
         /**
@@ -160,6 +168,50 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             return biLink;
         },
 
+        /**
+         * Callback for updating the visibility of the user settings from the server.
+         */
+        _preferencesCB : function(){
+            if ( this.m_sharedVarPrefs !== null ){
+                var val = this.m_sharedVarPrefs.get();
+                if ( val !== null ){
+                    try {
+                        var setObj = JSON.parse( val );
+                        this._adjustControlVisibility( setObj.settings );
+                    }
+                    catch( err ){
+                        console.log( "ImageDisplay could not parse settings: "+val);
+                        console.log( "err="+err);
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Add or remove the grid control settings based on whether the user
+         * had configured any of the settings visible.
+         * @param content {boolean} - true if the content should be visible; false otherwise.
+         */
+        _adjustControlVisibility : function(content){
+            if ( content ){
+                if ( this.m_content.indexOf( this.m_gridControls) < 0){
+                   this.m_content.add( this.m_gridControls );
+                }
+            }
+            else {
+                if ( this.m_content.indexOf( this.m_gridControls) >= 0 ){
+                    this.m_content.remove( this.m_gridControls );
+                }
+            }
+        },
+        
+        /**
+         * Show/hide the grid control settings.
+         * @param visible {boolean}- true if the settings should be visibile; false otherwise.
+         */
+        _showHideSettings : function( visible ){
+            this._adjustControlVisibility();
+        },
 
         setDrawMode : function(drawInfo) {
             if (this.m_drawCanvas !== null) {
@@ -177,6 +229,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
             this._sharedVarDataCB();
             this._dataLoadedCB();
+            
+            //Get the shared variable for preferences
+            this.initializePrefs();
+            this.m_gridControls.setId( this.getIdentifier());
         },
         
 
@@ -211,11 +267,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     console.log( "Could not parse: "+val );
                 }
             }
-            
-            
-            
-            
-            
         },
 
 
@@ -226,6 +277,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_sharedVarData : null,
        
         m_view : null,
+        m_viewContent : null,
+        m_gridControls : null,
         m_shapes : [ "Rectangle", "Ellipse", "Point", "Polygon" ]
     }
 

@@ -43,7 +43,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         qx.event.message.Bus.subscribe("setView", function(
                 message) {
             var data = message.getData();
-            this._setView(data.plugin, data.row, data.col);
+            this._setView(data.plugin, data.location);
         }, this);
     },
 
@@ -123,14 +123,29 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
             return linkInfo;
         },
+        
+        /**
+         * Returns a list of information concerning windows that can be replaced by
+         * the given source window showing the indicated plug-in.
+         * @param sourceId {String} an identifier for the window displaying the
+         *      plug-in that wants information about where it can be moved.
+         * @return {String} information about move locations that can be established from the specified
+         *      window/plug-in.
+         */
+        getMoveInfo : function(sourceId) {
+            var moveInfo = [];
+            if (this.m_pane !== null) {
+                moveInfo = this.m_pane.getMoveInfo(sourceId);
+            }
+            return moveInfo;
+        },
 
         /**
          * Initialize the state variables.
          */
         _initSharedVariables : function() {
             this.m_connector = mImport("connector");
-
-            // row & columns of layout
+            //layout details
             var pathDict = skel.widgets.Path.getInstance();
             this.m_layout = this.m_connector.getSharedVar( pathDict.LAYOUT );
             this.m_layout.addCB( this._resetLayoutCB.bind(this));
@@ -139,50 +154,58 @@ qx.Class.define("skel.widgets.DisplayMain",
         
         
         /**
-         * Layout the screen real estate using a square grid
-         * with the indicated number of rows and columns.
-         * 
-         * @param rows {Number} the number of rows in the grid.
-         * @param cols {Number} the number of columns in the grid.
+         * Layout the screen real estate using a root layout cell with nested
+         * children.
+         * @param id {String} an identifier for the root layout cell.
          */
-        layout : function(rows, cols) {
-            if (rows >= 1 && cols >= 1) {
-                if ( this.m_pane !== null ){
-                    var area = this.m_pane.getDisplayArea();
-                    if ( this.indexOf( area ) >= 0 ){
-                        this.remove( area );
-                    }
+        layout : function( id ) {
+            if ( this.m_pane !== null ){
+                var area = this.m_pane.getDisplayArea();
+                if ( this.indexOf( area ) >= 0 ){
+                    this.remove( area );
                 }
-                var splitterSize = 10;
-                var splitterHeight = this.m_height - (this.m_gridRowCount - 1)* splitterSize;
-                var splitterWidth = this.m_width - (this.m_gridColCount - 1)* splitterSize;
-                this.m_pane = new skel.widgets.DisplayArea(rows, cols, splitterHeight, splitterWidth, 0, 0, cols - 1);
+            }
+            //var splitterSize = 10;
+            //var splitterHeight = this.m_height - (this.m_gridRowCount - 1)* splitterSize;
+            //var splitterWidth = this.m_width - (this.m_gridColCount - 1)* splitterSize;
+            //Reinitialize the pane if the id has changed.
+            if ( this.m_pane === null || this.m_pane.getId() != id ){
+                this.m_pane = new skel.widgets.Layout.LayoutNodeComposite( id  );
+                
                 this.m_pane.addListener("iconifyWindow",
                         function(ev) {
                             this.fireDataEvent("iconifyWindow",ev.getData());
                         }, this);
-
+                this.m_pane.addListener( "findChild",function(ev){
+                    var data = ev.getData();
+                    var childNode = this.m_pane.getNode( data.findId );
+                    if ( childNode !== null ){
+                        var childInfo = {
+                            nodeId : data.sourceId,
+                            childId : data.childId,
+                            child : childNode
+                        };
+                        qx.event.message.Bus.dispatch( new qx.event.message.Message( "nodeFound", childInfo));
+                    }
+                }, this );
+                this.m_pane.initSharedVar();
                 qx.event.message.Bus.subscribe("addLink", function(ev){
                     var data = ev.getData();
-                    this.link( data.source, data.destination, true );
+                    this.link( data.getSource(), data.getDestination(), true );
                 }, this );
                 qx.event.message.Bus.subscribe("clearLinks", function(ev){
                     var data = ev.getData();
                     this.m_pane.clearLink( data.link );
                 }, this );
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
-                qx.event.message.Bus.subscribe(
-                                "windowSelected",
-                                function(message) {
-                                    var selectedWindow = message.getData();
-                                    this.m_pane.windowSelected(selectedWindow);
-                                }, this);
-
-                var displayArea = this.m_pane.getDisplayArea();
-
-                this.add(displayArea);
-               
+                qx.event.message.Bus.subscribe("windowSelected",
+                    function(message) {
+                        var selectedWindow = message.getData();
+                        this.m_pane.windowSelected(selectedWindow);
+                    }, this);
             }
+            var displayArea = this.m_pane.getDisplayArea();
+            this.add(displayArea);
         },
 
         /**
@@ -208,12 +231,11 @@ qx.Class.define("skel.widgets.DisplayMain",
         },
 
         /**
-         * Restore the window at the given layout position to its original location.
-         * @param row {Number} the row index of the window to be restored.
-         * @param col {Number} the column index of the window to be restored.
+         * Restore the window to its original location.
+         * @param locationId {String} an identifier for the location where the window should be restored.
          */
-        restoreWindow : function(row, col) {
-            this.m_pane.restoreWindow(row, col);
+        restoreWindow : function( locationId ) {
+            this.m_pane.restoreWindow( locationId );
         },
 
         /**
@@ -226,144 +248,23 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
         },
         
-        /**
-         * Returns the first window in the list displaying the plug-in or null if none
-         * exists.
-         * @param plugin {String} a plug-in identifier.
-         * @param windows {Array} a list of windows.
-         * @return {skel.widgets.Window.DisplayWindow} the first window displaying the plug-in
-         *      or null if no such plug-in exists.
-         */
-        _findWindow : function( plugin, windows ){
-            var window = null;
-            for ( var i = 0; i < windows.length; i++ ){
-                if ( windows[i].getPlugin() === plugin ){
-                    window = windows[i];
-                    //this.m_pane.removeWindow( windows[i]);
-                    windows.splice( i, 1 );
-                    break;
-                }
-            }
-            return window;
-        },
-
-        /**
-         * Resets which plugins are displayed in each window.
-         * @param layoutObj {Object} information about the plug-ins that
-         *      should be displayed.
-         */
-        _resetDisplayedPlugins : function( layoutObj, windows ) {
-            
-            var index = 0;
-            var row = 0;
-            var col = 0;
-            var name = "";
-            var origWin = null;
-            
-            //First go through and process any windows that have not changed
-            //location or plugin.
-            for (row = 0; row < this.m_gridRowCount; row++) {
-                for (col = 0; col < this.m_gridColCount; col++) {
-                    name = layoutObj.plugins[index];
-                    if ( name && typeof(name) == "string" && name.length > 0 ){
-                        if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
-                            origWin = this.m_pane.getWindow( row, col );
-                            if ( origWin !== null && origWin.getPlugin() == name ){
-                                //Don't need to do anything but remove the window from
-                                //the list of unassigned windows and make sure it is not excluded.
-                                var winIndex = -1;
-                                for ( var i = 0; i < windows.length; i++ ){
-                                    var winRow = windows[i].getRow();
-                                    var winCol = windows[i].getCol();
-                                    if ( winRow == row && winCol == col ){
-                                        winIndex = i;
-                                        break;
-                                    }
-                                }
-                                if ( winIndex >= 0 ){
-                                    windows.splice( winIndex, 1 );
-                                }
-                                //Make sure empty window is not excluded.
-                                if ( name === skel.widgets.Window.DisplayWindow.EMPTY ){
-                                    this.m_pane.setWindow( origWin, row, col );
-                                }
-                            }
-                        }
-                    }
-                    index++;
-                }
-            }
-            
-            //Any remaining windows have moved or are new.
-            var pluginMap = {};
-            index = 0;
-            for (row = 0; row < this.m_gridRowCount; row++) {
-                for (col = 0; col < this.m_gridColCount; col++) {
-                    name = layoutObj.plugins[index];
-                    if ( name && typeof(name) == "string" && name.length > 0 ){
-                        if ( name != skel.widgets.Window.DisplayWindow.EXCLUDED ){
-                            if ( pluginMap[name] ===undefined ){
-                                pluginMap[name] = -1;
-                            }
-                            pluginMap[name] = pluginMap[name] + 1;
-                            origWin = this.m_pane.getWindow( row, col );
-                            //Window never existed or has moved.
-                            if ( origWin === null || origWin.getPlugin() !== name ){
-                                //See if there is an extra window with the correct plugin
-                                var window = this._findWindow ( name, windows );
-                                //Use the existing one.
-                                if ( window !== null ){
-                                    this.m_pane.setWindow( window, row, col );
-                                }
-                                //Have to make a new window for the plugin.
-                                else {
-                                    this.m_pane.setView( name, pluginMap[name], row, col );
-                                }
-                            }
-                        }
-                        else {
-                            this.m_pane.excludeArea( row, col );
-                        }
-                    }
-                    else {
-                        this.m_pane.setView( null, -1, row, col );
-                    }
-                    index++;
-                }
-            }
-            
-            /*
-             * Because the new views are not created in any well-defined order, some
-             * links may not get initially established if the objects they link to have
-             * not been created.  Force a refresh of state now that all the views have
-             * been created so the links are correct.
-             */
-            var path = skel.widgets.Path.getInstance();
-            var cmd = path.getCommandRefreshState();
-            this.m_connector.sendCommand( cmd, "", function(){});
-        },
         
         /**
-         * Reset the layout based on changed row and column
-         * counts.
+         * Reset the layout based on changed layout information from the server.
          */
         _resetLayoutCB : function() {
             var layoutObjJSON = this.m_layout.get();
-            if ( layoutObjJSON ){
+            if ( layoutObjJSON !== null ){
                 try {
                     var layout = JSON.parse( layoutObjJSON );
-                    if ( layout.rows > 0 && layout.cols > 0 ){
-                        var windows = [];
-                        if ( this.m_pane !== null ){
-                            windows = this.m_pane.getWindows();
-                        }
-                        if ( layout.rows != this.m_gridRowCount || layout.cols != this.m_gridColCount ){
-                            this.m_gridRowCount = layout.rows;
-                            this.m_gridColCount = layout.cols;
-                            this.layout(this.m_gridRowCount, this.m_gridColCount);
-                        }
-                        this._resetDisplayedPlugins( layout, windows );
+                    var windows = [];
+                    //Store the existing windows in the factory so they
+                    //can (possibly) be recycled in the new layout.
+                    if ( this.m_pane !== null ){
+                        windows = this.m_pane.getWindows();
+                        skel.widgets.Window.WindowFactory.setExistingWindows( windows );
                     }
+                    this.layout( layout.layoutNode);
                 }
                 catch( err ){
                     console.log( "Could not parse: "+layoutObjJSON );
@@ -371,34 +272,18 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
         },
         
-       
-        
-        /**
-         * Update the number of rows in the current layout.
-         * @param gridRows {Number} the number of rows in the layout.
-         */
-        setRowCount : function(gridRows) {
-            if ( this.m_gridRowCount != gridRows ){
-                //this._clearLayout();
-                var path = skel.widgets.Path.getInstance();
-                var layoutSizeCmd = path.getCommandSetLayoutSize();
-                var params = "rows:"+gridRows + ",cols:"+this.m_gridColCount;
-                this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
-            }
-        },
 
         /**
          * Update the number of columns in the current layout.
+         * @param gridRows {Number} the number of rows in the layout.
          * @param gridCols {Number} the number of columns in the layout.
          */
-        setColCount : function(gridCols) {
-            if ( this.m_gridColCount != gridCols ){
-                //this._clearLayout();
-                var path = skel.widgets.Path.getInstance();
-                var layoutSizeCmd = path.getCommandSetLayoutSize();
-                var params = "rows:"+this.m_gridRowCount + ",cols:"+gridCols;
-                this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
-            }
+        setLayoutSize : function(gridRows, gridCols) {
+            //this._clearLayout();
+            var path = skel.widgets.Path.getInstance();
+            var layoutSizeCmd = path.getCommandSetLayoutSize();
+            var params = "rows:"+gridRows + ",cols:"+gridCols;
+            this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
         },
         
         
@@ -406,10 +291,9 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Sends a command to the server letting it know that the displayed plug-in
          * has changed.
          * @param plugin {String} the name of the new plug-in.
-         * @param row {Number} the row index of the window containing the plug-in.
-         * @param col {Number} the column index of the window containing the plug-in.
+         * @param locationId {String} an identifier for the location of the window containing the plug-in.
          */
-        _setView : function( plugin, row, col ){
+        _setView : function( plugin, locationId ){
             var path = skel.widgets.Path.getInstance();
             var layoutPath = path.LAYOUT;
             var layoutSharedVar = this.m_connector.getSharedVar(layoutPath);
@@ -417,31 +301,15 @@ qx.Class.define("skel.widgets.DisplayMain",
             if ( val ){
                 try {
                     var layoutObj = JSON.parse( val );
-                    var win = this.m_pane.getWindow( row, col );
+                    var win = this.m_pane.getWindow( locationId );
+                    var winPlugin = "";
                     if ( win !== null ){
                         win.clean();
+                        winPlugin = win.getPlugin();
                     }
-
-                    var index = row * this.m_gridColCount + col;
+                    
                     var cmd = path.getCommandSetPlugin();
-                    var params = "names:";
-                    var i = 0;
-                    for( var r = 0; r < this.m_gridRowCount; r++ ){
-                        for ( var c = 0; c < this.m_gridColCount; c++ ){
-                            if ( i != index ){
-                                if ( typeof(layoutObj.plugins[i]) =="string" ){
-                                    params = params + layoutObj.plugins[i];
-                                }
-                            }
-                            else {
-                                params = params + plugin;
-                            }
-                            if ( i != this.m_gridRowCount * this.m_gridColCount - 1 ){
-                                params = params + ".";
-                            }
-                            i++;
-                        }
-                    }
+                    var params = "destPlugin:"+plugin+",sourceLocateId:"+locationId;
                     this.m_connector.sendCommand( cmd, params, function(){} );
                 }
                 catch( err ){

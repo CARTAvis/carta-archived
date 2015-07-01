@@ -154,6 +154,7 @@ qx.Class.define("skel.widgets.Util", {
          * Make a checkable menu item for the cmd.
          * @param cmd {skel.Command.Command}
          * @param cb {Function} a callback for the command.
+         * @param tool {boolean} true if it should be a tool bar button; false for a menu button.
          */
         makeCheck : function( cmd, cb, tool ){
             var checkBox = new qx.ui.menu.CheckBox();

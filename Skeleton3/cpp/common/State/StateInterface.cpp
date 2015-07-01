@@ -85,6 +85,7 @@ private:
 
 const QString StateInterface::DELIMITER("/");
 const QString StateInterface::STATE_DATA( "data");
+const QString StateInterface::FLUSH_STATE( "flush");
 const QString StateInterface::OBJECT_TYPE( "type");
 const QString StateInterface::INDEX = "index";
 
@@ -93,10 +94,17 @@ StateInterface::StateInterface (const QString & path, const QString& type, const
 {
     insertValue<QString>( OBJECT_TYPE, type );
     insertValue<int>(INDEX, 0 );
+    insertValue<bool>(FLUSH_STATE, false );
 
     if ( initialState.trimmed().size() > 0 ){
         flushStateImpl( initialState );
     }
+}
+
+ void StateInterface::refreshState(){
+    setValue<bool>(FLUSH_STATE, true );
+    flushState();
+    setValue<bool>(FLUSH_STATE, false );
 }
 
 StateInterface::StateInterface (const StateInterface & other)

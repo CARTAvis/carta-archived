@@ -8,6 +8,7 @@
 
 qx.Class.define("skel.widgets.Colormap.ColorTransform", {
     extend : qx.ui.core.Widget,
+
     
     /**
      * Constructor.
@@ -41,22 +42,19 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
             this.setAllowGrowY( true );
             var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
+            this._add( new qx.ui.core.Spacer(), {flex:1});
+            var comp = new qx.ui.container.Composite();
+            var gridLayout = new qx.ui.layout.Grid();
+            gridLayout.setColumnAlign( 0, "right", "middle");
+            comp.setLayout( gridLayout );
             
-            var comp = new qx.ui.groupbox.GroupBox( "Transform");
-            comp.setContentPadding(1,1,1,1);
-            comp.setLayout( new qx.ui.layout.VBox(1));
-            
-            var imageComposite = new qx.ui.container.Composite();
-            imageComposite.setLayout( new qx.ui.layout.HBox(1));
             this.m_imageCombo = new qx.ui.form.ComboBox();
             this.m_imageCombo.setToolTipText( "Select an image transformation.");
             this.m_imageCombo.setEnabled( false );
             var imageLabel = new qx.ui.basic.Label( "Image:");
-            imageComposite.add( imageLabel );
-            imageComposite.add( this.m_imageCombo );
+            comp.add( imageLabel, {row:0,column:0} );
+            comp.add( this.m_imageCombo, {row:0,column:1} );
             
-            var dataComposite = new qx.ui.container.Composite();
-            dataComposite.setLayout( new qx.ui.layout.HBox(2));
             this.m_dataCombo = new qx.ui.form.ComboBox();
             this.m_dataCombo.setToolTipText( "Select a data transformation.");
             this.m_dataCombo.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
@@ -70,12 +68,11 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
                 }
             },this);
             var dataLabel = new qx.ui.basic.Label( "Data:");
-            dataComposite.add( dataLabel );
-            dataComposite.add( this.m_dataCombo );
+            comp.add( dataLabel, {row:1,column:0} );
+            comp.add( this.m_dataCombo, {row:1, column:1} );
             
-            comp.add( dataComposite);
-            comp.add( imageComposite );
             this._add( comp );
+            this._add( new qx.ui.core.Spacer(), {flex:1});
         },
         
         /**
@@ -164,12 +161,5 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
         m_connector : null,
         m_sharedVarData : null,
         m_sharedVarImage : null
-    },
-    
-    properties : {
-        appearance : {
-            refine : true,
-            init : "internal-area"
-        }
     }
 });

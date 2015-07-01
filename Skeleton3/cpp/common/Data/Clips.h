@@ -46,7 +46,7 @@ private:
 
 
 	Clips( const Clips& other);
-	Clips operator=( const Clips& other );
+	Clips& operator=( const Clips& other );
 };
 }
 }
