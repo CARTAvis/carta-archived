@@ -262,6 +262,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     }
                     var closeCmd = skel.Command.Data.CommandDataClose.getInstance();
                     closeCmd.closeChanged();
+                    this._initContextMenu();
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );

@@ -203,7 +203,7 @@ QString Controller::closeImage( const QString& name ){
         }
     }
     if ( targetIndex >= 0 ){
-        this->_removeData( targetIndex );
+        _removeData( targetIndex );
         emit dataChanged( this );
     }
     else {
@@ -642,17 +642,30 @@ void Controller::_removeData( int index ){
        m_selectImage->setIndex( 0 );
     }
     else if ( index < selectedImage ){
-       m_selectImage->setIndex( selectedImage - 1);
+       int imageCountDecreased = selectedImage - 1;
+       m_selectImage->setIndex( imageCountDecreased );
     }
     //Update the channel upper bound and index if necessary
     int targetImage = m_selectImage->getIndex();
-    int frameCount = m_datas[targetImage]->_getFrameCount();
+    int frameCount = 0;
+    if ( m_datas.size() > 0 ){
+        frameCount = m_datas[targetImage]->_getFrameCount();
+    }
     int oldIndex = m_selectChannel->getIndex();
-    if ( oldIndex >= frameCount ){
+    if ( oldIndex >= frameCount && frameCount > 0){
         setFrameChannel( frameCount - 1);
+    }
+    else {
+        setFrameChannel( 0 );
     }
     m_selectChannel->setUpperBound( frameCount );
     this->_loadView();
+
+    //Clear the statistics window if there are no images.
+    if ( m_datas.size() == 0 ){
+        m_stateMouse.setValue<QString>( CURSOR, "" );
+        m_stateMouse.flushState();
+    }
 
     saveState();
 }
