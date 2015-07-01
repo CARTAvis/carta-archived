@@ -46,6 +46,34 @@ qx.Class
                         },
                         
                         /**
+                         * Notify all the animators that the movie has stopped playing.
+                         * @param ev {qx.event.type.Data}.
+                         */
+                        _movieStopped : function( ev ){
+                            var data = ev.getData();
+                            for (var i = 0; i < this.m_supportedAnimations.length; i++) {
+                                var animId = this.m_supportedAnimations[i];
+                                if ( this.m_animators[animId] !== undefined ){
+                                    this.m_animators[animId].movieStopped( data.title );
+                                }
+                            }
+                        },
+                        
+                        /**
+                         * Notify all the animators that a movie has started playing.
+                         * @parm ev {qx.event.type.Data}.
+                         */
+                        _movieStarted : function( ev ){
+                            var data = ev.getData();
+                            for ( var i = 0; i < this.m_supportedAnimations.length; i++ ){
+                                var animId = this.m_supportedAnimations[i];
+                                if ( this.m_animators[animId] !== undefined ){
+                                    this.m_animators[animId].movieStarted( data.title );
+                                }
+                            }
+                        },
+                        
+                        /**
                          * Returns true if the animator widget with the given identifier is visible;
                          *      false otherwise.
                          * @param animId {String} an identifier for an animator.
@@ -118,6 +146,8 @@ qx.Class
                                 if (animVisible) {
                                     if (this.m_animators[animId] === undefined ) {
                                         this.m_animators[animId] = new skel.boundWidgets.Animator(animId, this.m_identifier);
+                                        this.m_animators[animId].addListener( "movieStart", this._movieStarted, this );
+                                        this.m_animators[animId].addListener( "movieStop", this._movieStopped, this );
                                     }
                                       
                                     if ( !oldVisible) {
