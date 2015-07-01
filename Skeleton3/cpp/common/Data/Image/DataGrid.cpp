@@ -199,7 +199,7 @@ void DataGrid::_resetGridRenderer(){
 
         //Grid
         bool showGrid = m_state.getValue<bool>(SHOW_GRID_LINES);
-        m_wcsGridRenderer->setGridLines( showGrid );
+        m_wcsGridRenderer->setGridLinesVisible( showGrid );
 
         QPen gridPen = _getPen( GRID, m_state );
         QColor penColor = gridPen.color();
@@ -211,7 +211,7 @@ void DataGrid::_resetGridRenderer(){
 
         //Ticks
         bool showTick = m_state.getValue<bool>( SHOW_TICKS );
-        m_wcsGridRenderer->setTicks( showTick );
+        m_wcsGridRenderer->setTicksVisible( showTick );
         QPen tickPen = _getPen( TICK, m_state );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines1,
                                     tickPen );
@@ -220,7 +220,7 @@ void DataGrid::_resetGridRenderer(){
 
         //AXES
         bool showAxes = m_state.getValue<bool>( SHOW_AXIS );
-        m_wcsGridRenderer->setAxes( showAxes );
+        m_wcsGridRenderer->setAxesVisible( showAxes );
 
         QPen axesPen = _getPen( AXES, m_state );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::AxisLines1,
@@ -571,7 +571,6 @@ QString DataGrid::_setShowAxis( bool showAxis, bool* coordChanged ){
     QString result;
     *coordChanged = false;
     if ( m_state.getValue<bool>(SHOW_AXIS) != showAxis ){
-        qDebug() << "Setting show axis="<<showAxis;
         m_state.setValue<bool>(SHOW_AXIS, showAxis );
         *coordChanged = true;
     }

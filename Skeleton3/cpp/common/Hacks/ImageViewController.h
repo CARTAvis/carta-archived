@@ -70,11 +70,11 @@ public:
     { }
 
     virtual void
-    setGridLines( bool ) override
+    setGridLinesVisible( bool ) override
     {}
 
     virtual void
-    setAxes( bool ) override
+    setAxesVisible( bool ) override
     {}
 
     virtual void
@@ -86,7 +86,7 @@ public:
     { }
 
     virtual void
-    setTicks( bool ) override
+    setTicksVisible( bool ) override
     {}
 
 
