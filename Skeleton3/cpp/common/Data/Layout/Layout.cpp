@@ -254,7 +254,6 @@ void Layout::_initLayout( LayoutNode* root, int rowCount, int colCount ){
        //Split the right one more time
        rightNode = NodeFactory::makeComposite( true );
        _initLayout( rightNode, rowCount, 2);
-       //rightNode = _splitNode( rowCount, 2, true );
        //Leave the left one as a leaf if there is nothing in the other direction;
        //otherwise, split it in the other direction.
        if ( rowCount <= 1 ){
@@ -266,7 +265,6 @@ void Layout::_initLayout( LayoutNode* root, int rowCount, int colCount ){
    }
    //Single column so we change the root to vertical
    else if ( colCount == 1 ){
-      //root->setHorizontal( false );
       //Plenty of rows so we make both the left and right into composites
       if ( rowCount >=4  ){
           int halfCount = rowCount / 2;
@@ -518,6 +516,13 @@ QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
     QString errorMsg;
     if ( rows >= 0 && cols >= 0 ){
         QStringList oldNames = getPluginList();
+        //Replace any hidden plugins with empty ones.
+        int oldNameCount = oldNames.size();
+        for ( int i = 0; i < oldNameCount; i++ ){
+            if ( oldNames[i] == NodeFactory::HIDDEN ){
+                oldNames[i] = NodeFactory::EMPTY;
+            }
+        }
         _makeRoot();
         LayoutNode* currNode = m_layoutRoot.get();
         _initLayout( currNode, rows, cols );
