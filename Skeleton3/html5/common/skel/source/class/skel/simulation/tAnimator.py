@@ -1,24 +1,22 @@
 import unittest
 import Util
+import selectBrowser
+import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
-#Test of some animator functionality
+# Animator functions
 class tAnimator(unittest.TestCase):
-    def setUp(self):
-        self.driver = webdriver.Firefox()
-        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        self.driver.implicitly_wait(10)
-        
-    #Verify the number of animators that are visible is equal to the expected count
-    def _verifyAnimationCount(self,parentWidget, expectedCount):
+
+    # Verify that the number of animators that are visible is equal to the expected count
+    def _verifyAnimationCount(self, parentWidget, expectedCount):
         animatorList = parentWidget.find_elements_by_xpath( ".//div[@qxclass='skel.boundWidgets.Animator']" )
         animatorCount = len( animatorList )
         print "Animator list count=", animatorCount
         self.assertEqual( animatorCount, expectedCount, "Animator count does not match expected count")
         
-    #Return whether or not a radio button is checked
+    # Return whether or not a radio button is checked
     def _isChecked(self, checkButton ):
         styleAtt = checkButton.get_attribute( "style")
         print "Style=", styleAtt
@@ -27,99 +25,85 @@ class tAnimator(unittest.TestCase):
             buttonChecked = True
         return buttonChecked
     
-    #Click the radio button
+    # Click the radio button
     def _click(self, driver, checkButton):
         channelParent = checkButton.find_element_by_xpath( '..')
         ActionChains(driver).click( channelParent ).perform()
-           
-           
-    #Test that we can add the add/remove animator buttons to the toolbar if they are
-    #not already there.  Then test that we can check/uncheck them and have the corresponding
-    #animator added/removed.
-    def test_animatorAddRemove(self):    
-        driver = self.driver
-        
-        #Click on the animation window so that its actions will be enabled 
-        animationWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
-        self.assertIsNotNone( animationWindow, "Could not find animation window")
-        ActionChains(driver).click( animationWindow ).perform()
-        
-         # Right click on the toolbar to bring up the context menu.
-        toolBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.ToolBar']")
-        self.assertIsNotNone( toolBar, "Could not find the tool bar")
-        actionChains = ActionChains(driver)
-        actionChains.context_click(toolBar).perform()
-        
-        #Click the customize item on the menu
-        customizeButton = driver.find_element_by_xpath( "//div[text()='Customize...']/..")
-        self.assertIsNotNone( customizeButton, "Could not find the customize button in context")
-        ActionChains(driver).click( customizeButton).perform()
-        
-        #First make sure animator is checked
-        animateButton = driver.find_element_by_xpath( "//div[text()='Animate']/preceding-sibling::div/div")
-        self.assertIsNotNone( animateButton, "Could not find animate button in customize dialog")
-        styleAtt = animateButton.get_attribute( "style");
-        if not "checked.png" in styleAtt:
-            print "Clicking animate to make buttons visible on tool bar"
-            animateParent = animateButton.find_element_by_xpath( '..')
-            ActionChains(driver).click( animateParent ).perform()
-        
-        #Verify both the channel and image checkboxes are on the toolbar
-        channelCheck = driver.find_element_by_xpath( "//div[text()='Channel']/following-sibling::div[@class='qx-checkbox']")
-        self.assertIsNotNone( channelCheck, "Could not find animate channel check box on tool bar")
-        animateCheck = driver.find_element_by_xpath( "//div[text()='Image']/following-sibling::div[@class='qx-checkbox']")
-        self.assertIsNotNone( animateCheck, "Could not find animate image check box on tool bar")
-        
-        #Uncheck both buttons
-        channelChecked = self._isChecked( channelCheck )
-        print 'Channel checked', channelChecked
-        if channelChecked:
-            self._click( driver, channelCheck )
-        animateChecked = self._isChecked( animateCheck )
-        print 'Animate checked', animateChecked
-        if animateChecked:
-            self._click( driver, animateCheck )
-            
-        #verify that the animation window has no animators.
-        self._verifyAnimationCount( animationWindow, 0)
-        
-        #Check the image animate button and verify that the image animator shows up
-        self._click( driver, animateCheck )
-        imageAnimator = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Image']")
-        self.assertIsNotNone( imageAnimator, "Image animator did not appear")
-        self._verifyAnimationCount( animationWindow, 1)
-        
-        #Check the channel animator button and verify there are now two animators, one channel, one image.
-        self._click( driver, channelCheck )
-        channelAnimator = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Channel']")
-        self.assertIsNotNone( channelAnimator, "Channel animator did not appear")
-        self._verifyAnimationCount( animationWindow, 2 )
-        
-        
-    #Test that we can increment the animator channel by one.
-    def test_animatorIncreaseFrame(self):    
-        driver = self.driver
-        
-        #Open our test image so we have something to animate.
-        origImage = "Orion.methanol.cbc.contsub.image.fits"
-        Util.load_image(self, driver, origImage)
-        
-        #Find the increment by one button on the animator and click it
-        incrementButton = driver.find_element_by_id( "ChannelTapeDeckIncrement")
-        self.assertIsNotNone( incrementButton, "Could not find button to increment the channels")
-        ActionChains(driver).click( incrementButton).perform()
-        
-        #Check that the channel text box value is now 1.
+        time.sleep(2)
+    
+    # Go to the first channel value of the test image
+    def _getFirstValue(self, driver):
+        firstValueButton = driver.find_element_by_xpath( "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][1]")
+        self.assertIsNotNone( firstValueButton, "Could not find button to go to the first valid value")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", firstValueButton)
+        ActionChains(driver).click( firstValueButton ).perform()
+        time.sleep(2)
+
+    # Go to the last channel value of the test image 
+    def _getLastValue(self, driver):    
+        lastValueButton = driver.find_element_by_xpath( "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][5]")
+        self.assertIsNotNone( lastValueButton, "Could not find button to go to the last valid value")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", lastValueButton)
+        ActionChains(driver).click( lastValueButton ).perform()
+        time.sleep(2)
+
+    # Get the current channel value of the test image 
+    def _getChannelValue(self, driver):
         channelText = driver.find_element_by_id( "ChannelIndexText")
         self.assertIsNotNone( channelText, "Could not find animator channel text")
-        currChannel = channelText.get_attribute( "value")
-        print "Channel is now", currChannel
-        self.assertEqual( int(currChannel), 1, "Failed to increment the channel animator")
-        
-        
-    def tearDown(self):
-        self.driver.close()
+        driver.execute_script( "arguments[0].scrollIntoView(true);", channelText)
+        ChannelValue = channelText.get_attribute("value")
+        return ChannelValue
 
-if __name__ == "__main__":
-    unittest.main()        
+    # Return the current image of the Image Animator
+    def _getImageValue(self, driver):
+        imageText = driver.find_element_by_id( "ImageIndexText")
+        self.assertIsNotNone( imageText, "Could not find animator image text")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", imageText)
+        ImageValue = imageText.get_attribute("value")
+        return ImageValue 
+
+    # Click the forward animation button 
+    def _animateForward(self, driver):
+        forwardAnimateButton = driver.find_element_by_xpath("//div[@class='qx-toolbar']/div[@class='qx-button'][2]")
+        self.assertIsNotNone( forwardAnimateButton, "Could not find forward animation button")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", forwardAnimateButton)
+        ActionChains(driver).click( forwardAnimateButton ).perform()
+
+    # Change the Channel Animator to an Image Animator
+    def channel_to_image_animator(self, driver):
+        # Find and click on the animation window 
+        animWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
+        self.assertIsNotNone( animWindow, "Could not find animation window")
+        ActionChains(driver).click( animWindow ).perform()   
+
+        # Make sure the animation window is enabled by clicking an element within the window
+        # From the context menu, uncheck the Channel Animator and check the Image Animator
+        channelText = driver.find_element_by_id( "ChannelIndexText")
+        ActionChains(driver).click( channelText ).perform()
+        ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( 
+            Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(
+            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        time.sleep(2)
+
+    # Set default settings
+    def _setDefaultSettings(self, driver):
+        # Click Settings to reveal animation settings
+        settingsCheckBox = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Settings...']")
+        self.assertIsNotNone( settingsCheckBox, "Could not find settings check box")
+        ActionChains(driver).click( settingsCheckBox ).perform()
+
+        # Ensure the set increment is set to 1 and the rate is set to 20 (default settings)
+        stepText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[2]/input")
+        self.assertIsNotNone( stepText, "Could not find step increment text")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", stepText)
+        stepValue = stepText.get_attribute("value")
+
+        if int(stepValue) != 1:
+            Util._changeElementText(self, driver, stepText, 1)
         
+        rateText = driver.find_element_by_xpath(" //div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[7]/input")
+        self.assertIsNotNone( rateText, "Could not find rate text to set the speed of the animation")
+        rateValue = rateText.get_attribute("value")
+        if int(rateValue) != 20:
+            Util._changeElementText(self, driver, rateText, 20)
