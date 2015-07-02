@@ -267,7 +267,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     else if ( plugin == Snapshots::CLASS_NAME ){
         viewId = _makeSnapshots();
     }
-    else if ( plugin == Statistics::CLASS_NAME ){
+    /*else if ( plugin == Statistics::CLASS_NAME ){
         if ( 0 <= index && index < m_statistics.size() && !forceCreate ){
             viewId = m_statistics[index]->getPath();
         }
@@ -277,7 +277,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
             }
             viewId = _makeStatistics(index);
         }
-    }
+    }*/
     else if ( plugin == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
     }
@@ -593,14 +593,14 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
                 m_histograms.insert( newIndex, histogram );
             }
         }
-        else if ( plugin == Statistics::CLASS_NAME ){
+        /*else if ( plugin == Statistics::CLASS_NAME ){
             int statCount = m_statistics.size();
             if ( oldIndex < statCount && newIndex < statCount ){
                 Statistics* statistics = m_statistics[oldIndex];
                 m_statistics.removeAt(oldIndex );
                 m_statistics.insert( newIndex, statistics );
             }
-        }
+        }*/
         else {
             qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
         }
@@ -902,7 +902,8 @@ void ViewManager::setAnalysisView(){
         _clearHistograms( 1, m_histograms.size() );
         _clearAnimators( 1, m_animators.size() );
         _clearColormaps( 1, m_colormaps.size() );
-        _clearStatistics( 1, m_statistics.size() );
+        //_clearStatistics( 1, m_statistics.size() );
+        _clearStatistics( 0, m_statistics.size() );
         _clearControllers( 1, m_controllers.size() );
 
         m_layout->setLayoutAnalysis();
@@ -910,7 +911,7 @@ void ViewManager::setAnalysisView(){
         //Add the links to establish reasonable defaults.
         m_animators[0]->addLink( m_controllers[0]);
         m_colormaps[0]->addLink( m_controllers[0]);
-        m_statistics[0]->addLink( m_controllers[0]);
+        //m_statistics[0]->addLink( m_controllers[0]);
         m_histograms[0]->addLink( m_controllers[0]);
         m_histograms[0]->addLink( m_colormaps[0]);
         _refreshState();
@@ -950,7 +951,7 @@ void ViewManager::setImageView(){
 QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& destPluginType ){
     QString msg;
     if ( destPluginType != Controller::PLUGIN_NAME && destPluginType != Animator::CLASS_NAME &&
-            destPluginType != Statistics::CLASS_NAME && destPluginType != Colormap::CLASS_NAME &&
+            /*destPluginType != Statistics::CLASS_NAME && */destPluginType != Colormap::CLASS_NAME &&
             destPluginType != Histogram::CLASS_NAME && destPluginType != ViewPlugins::CLASS_NAME &&
             destPluginType != NodeFactory::HIDDEN ){
         msg = "Unrecognized plugin: "+destPluginType;

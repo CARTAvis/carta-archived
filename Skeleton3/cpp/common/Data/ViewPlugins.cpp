@@ -70,14 +70,14 @@ void ViewPlugins::_initializeDefaultState(){
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
     }*/
-    m_state.insertArray( PLUGINS, 5 );
+    m_state.insertArray( PLUGINS, 4 );
     int ind = 0;
     _insertPlugin( ind, Controller::PLUGIN_NAME, "Image display", "", "", "");
     ind++;
     _insertPlugin( ind, Animator::CLASS_NAME, "Animation of data sets", "", "", "");
     ind++;
-    _insertPlugin( ind, Statistics::CLASS_NAME, "Cursor information", "", "", "");
-    ind++;
+    //_insertPlugin( ind, Statistics::CLASS_NAME, "Cursor information", "", "", "");
+    //ind++;
     _insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
     ind++;
     _insertPlugin( ind, Colormap::CLASS_NAME, "Color map", "", "", "");

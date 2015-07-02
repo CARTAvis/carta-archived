@@ -134,10 +134,10 @@ class tWindow(unittest.TestCase):
         windowCount = Util.get_window_count( self, driver )
         print "Window Count=", windowCount
         
-        #For later use, we also determine the number of DisplayWindows displaying a statistics plugin
-        statWindowList = driver.find_elements_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowStatistics']")
-        statCount = len( statWindowList )
-        print "Stat Window Count=", statCount
+        #For later use, we also determine the number of DisplayWindows displaying a histogram plugin
+        histWindowList = driver.find_elements_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
+        histCount = len( histWindowList )
+        print "Histogram Window Count=", histCount
         
         # Find a window capable of loading an image.
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
@@ -169,17 +169,17 @@ class tWindow(unittest.TestCase):
         # Select the empty window
         ActionChains(driver).click(emptyWindow).perform()
         
-        # Change the plugin of the empty window to statistics by clicking the view menu and the statistics
+        # Change the plugin of the empty window to histogram by clicking the view menu and the statistics
         # plugin in the submenu.
         ActionChains(driver).context_click(emptyWindow).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
             ).send_keys(Keys.ENTER).perform()
     
-        #Verify that we have increased the number of statistics windows by one.
-        newStatWindowList = driver.find_elements_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowStatistics']")
-        newStatCount = len( newStatWindowList )
-        print "New statistics window count=", newStatCount
-        self.assertEqual( newStatCount, statCount+1, "Statistics window count did not go up by one")
+        #Verify that we have increased the number of histogram windows by one.
+        newHistWindowList = driver.find_elements_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
+        newHistCount = len( newHistWindowList )
+        print "New histogram window count=", newHistCount
+        self.assertEqual( newHistCount, histCount+1, "Histogram window count did not go up by one")
     
     
     # Test that an existing window can be removed.

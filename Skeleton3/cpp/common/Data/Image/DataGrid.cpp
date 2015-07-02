@@ -6,7 +6,7 @@
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "State/UtilState.h"
-#include "CartaLib/Hooks/GetWcsGridRenderer.h"
+
 #include <set>
 
 #include <QDebug>
@@ -30,6 +30,7 @@ const QString DataGrid::SHOW_AXIS = "showAxis";
 const QString DataGrid::SHOW_COORDS = "showCoordinateSystem";
 const QString DataGrid::SHOW_INTERNAL_LABELS = "showInternalLabels";
 const QString DataGrid::SHOW_GRID_LINES = "showGridLines";
+const QString DataGrid::SHOW_STATISTICS = "showStatistics";
 const QString DataGrid::SHOW_TICKS = "showTicks";
 const QString DataGrid::SPACING = "spacing";
 const QString DataGrid::GRID = "grid";
@@ -63,6 +64,14 @@ DataGrid::DataGrid( const QString& path, const QString& id):
     _initializeSingletons();
     _initializeDefaultState();
 }
+
+Carta::Lib::KnownSkyCS DataGrid::getSkyCS() const {
+    // coordinate system
+    QString coordSystem = m_state.getValue<QString>( COORD_SYSTEM );
+    Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
+    return index;
+}
+
 
 QPen DataGrid::_getPen( const QString& key, const Carta::State::StateInterface& state  ){
     QString redLookup = Carta::State::UtilState::getLookup( key, RED );
@@ -139,6 +148,8 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
     m_state.insertValue<bool>( SHOW_COORDS, true );
+
+    m_state.insertValue<bool>( SHOW_STATISTICS, true );
 
     //Pens
     _initializeDefaultPen( GRID, MAX_COLOR, MAX_COLOR, MAX_COLOR, MAX_COLOR, 1 );
@@ -241,10 +252,16 @@ void DataGrid::_resetGridRenderer(){
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
                                     labelPen );
 
+        //Controls the background color of the margin around the plot.
         QPen marginDimPen( QColor( 0,0,0,64) );
         marginDimPen.setWidth(1);
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::MarginDim,
                                     marginDimPen);
+
+        QPen shadowPen( QColor( 0,0,0,64));
+        shadowPen.setWidth(3);
+        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::Shadow,
+                                        shadowPen);
 
         QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
         QString fontFamily = m_state.getValue<QString>( familyLookup );
@@ -598,7 +615,6 @@ QString DataGrid::_setShowGridLines( bool showLines, bool* coordChanged ){
 }
 
 
-
 QString DataGrid::_setShowInternalLabels( bool showInternalLabels, bool* coordChanged ){
     *coordChanged = false;
     QString result;
@@ -606,6 +622,17 @@ QString DataGrid::_setShowInternalLabels( bool showInternalLabels, bool* coordCh
     if ( oldValue != showInternalLabels ){
         *coordChanged = true;
         m_state.setValue<bool>( SHOW_INTERNAL_LABELS, showInternalLabels );
+    }
+    return result;
+}
+
+QString DataGrid::_setShowStatistics( bool showStatistics, bool* statisticsChanged ){
+    *statisticsChanged = false;
+    QString result;
+    bool oldValue = m_state.getValue<bool>( SHOW_STATISTICS );
+    if ( oldValue != showStatistics ){
+        *statisticsChanged = true;
+        m_state.setValue<bool>( SHOW_STATISTICS, showStatistics );
     }
     return result;
 }
@@ -620,6 +647,8 @@ QString DataGrid::_setShowTicks( bool showTicks, bool* ticksChanged ){
     }
     return result;
 }
+
+
 
 QStringList DataGrid::_setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged ){
     QStringList result = _setColor( TICK, redAmount, greenAmount, blueAmount, colorChanged );

@@ -60,10 +60,6 @@ class tLayout(unittest.TestCase):
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
         self.assertIsNotNone( imageWindow, "Could not find an image window")
         
-        #Check that there is a Statistics Window
-        statisticsWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowStatistics']")
-        self.assertIsNotNone( statisticsWindow, "Could not find a statistics window")
-        
         #Check that there is a Histogram Window
         histogramWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
         self.assertIsNotNone( histogramWindow, "Could not find a histogram window")
@@ -79,7 +75,7 @@ class tLayout(unittest.TestCase):
         #Check that there are the correct number of Windows
         windowCount = Util.get_window_count( self, driver )
         print windowCount
-        self.assertEqual( windowCount, 5, "Image Layout does not have the correct number of window")
+        self.assertEqual( windowCount, 4, "Image Layout does not have the correct number of window")
         
     #Test set a custom layout with the given number of rows and columns
     def layout_custom(self, driver, rows, cols ):

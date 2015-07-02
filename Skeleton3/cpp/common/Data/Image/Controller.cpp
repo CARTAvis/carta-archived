@@ -398,8 +398,6 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
         imageIndex = m_selectImage->getIndex();
     }
     if ( !applyAll ){
-
-
         if (imageIndex >= 0 && imageIndex < m_datas.size()) {
             if (m_datas[imageIndex] != nullptr) {
                 m_datas[imageIndex]->_gridChanged( state, true );
@@ -418,6 +416,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
             }
         }
     }
+    _updateCursorText( true );
 }
 
 void Controller::_initializeCallbacks(){

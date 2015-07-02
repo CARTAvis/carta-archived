@@ -80,7 +80,7 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
             allContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             
             
-            this.m_showSystem = new qx.ui.form.CheckBox( "Show Coordinate System");
+            this.m_showSystem = new qx.ui.form.CheckBox( "Coordinate System");
             this.m_showSystem.setToolTipText( "Show the grid coordinate system.");
             this.m_showSystem.setValue( true );
             this.m_showListenerId = this.m_showSystem.addListener( skel.widgets.Path.CHANGE_VALUE, 
@@ -91,9 +91,21 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
             sysContainer.add( this.m_showSystem );
             sysContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             
+            this.m_showStatistics = new qx.ui.form.CheckBox( "Cursor");
+            this.m_showStatistics.setToolTipText( "Show/hide cursor information.");
+            this.m_showStatistics.setValue( true );
+            this.m_cursorListenerId = this.m_showStatistics.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._sendShowStatisticsCmd, this);
+            var cursorContainer = new qx.ui.container.Composite();
+            cursorContainer.setLayout( new qx.ui.layout.HBox());
+            cursorContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            cursorContainer.add( this.m_showStatistics );
+            cursorContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            
             visibleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             visibleContainer.add( allContainer );
             visibleContainer.add( sysContainer );
+            visibleContainer.add( cursorContainer );
             visibleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             this.m_content.add( visibleContainer );
         },
@@ -107,6 +119,17 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
             var cmd = this.m_id + path.SEP_COMMAND + "setApplyAll";
             var applyAll = this.m_allImages.getValue();
             var params = "applyAll:"+applyAll;
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
+        
+        /**
+         * Sends a command to the server to change the visibility of the image statistics.
+         */
+        _sendShowStatisticsCmd : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setShowStatistics";
+            var showAxis = this.m_showStatistics.getValue();
+            var params = "showStatistics:"+showAxis;
             this.m_connector.sendCommand( cmd, params, function(){});
         },
 
@@ -130,7 +153,7 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
             this._setApplyAll( controls.applyAll );
             this._setShowSystem( controls.grid.showCoordinateSystem );
             this._setCoordinateSystem( controls.grid.skyCS );
-            
+            this._setShowStatistics( controls.grid.showStatistics );
         },
         
         /**
@@ -181,6 +204,19 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
         },
         
         /**
+         * Set the visibility of the axes.
+         * @param showAxes {boolean} - true if the axes should be shown; false otherwise.
+         */
+        _setShowStatistics : function ( showStatistics ){
+            if ( this.m_showStatistics.getValue() != showStatistics ){
+                this.m_showStatistics.removeListenerById( this.m_cursorListenerId );
+                this.m_showStatistics.setValue( showStatistics );
+                this.m_cursorListenerId = this.m_showStatistics.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._sendShowStatisticsCmd, this);
+            }
+        },
+        
+        /**
          * Callback for a change in the available coordinate systems.
          */
         _systemsChangedCB : function(){
@@ -204,8 +240,10 @@ qx.Class.define("skel.widgets.Grid.Settings.SettingsCanvasPage", {
         
         m_coordSystem : null,
         
+        m_showStatistics : null,
         m_showSystem : null,
         m_allImages : null,
+        m_cursorListenerId : null,
         m_showListenerId : null,
         m_allListenerId : null,
         
