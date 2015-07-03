@@ -2,6 +2,7 @@
 #include "Colormaps.h"
 #include "Data/Settings.h"
 #include "Data/Image/Controller.h"
+#include "Data/Histogram/Histogram.h"
 #include "TransformsData.h"
 #include "Data/IColoredView.h"
 #include "Data/Util.h"
@@ -75,15 +76,27 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
     if ( target != nullptr ){
         objAdded = m_linkImpl->addLink( target );
         if ( objAdded ){
-            _setColorProperties( target );
-            connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(_setColorProperties(Controller*)));
+            setColorProperties( target );
+            connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(setColorProperties(Controller*)));
         }
     }
     else {
-        result = "Color map only supports linking to images.";
+        Histogram* hist = dynamic_cast<Histogram*>(cartaObject);
+        if ( hist != nullptr ){
+            objAdded = m_linkImpl->addLink( hist );
+            if ( objAdded ){
+                connect( this, SIGNAL(colorMapChanged( Colormap*)), hist, SLOT( updateColorMap( Colormap*)));
+                hist->updateColorMap( this );
+            }
+        }
+        else {
+            result = "Colormap only supports linking to histograms and images.";
+        }
     }
     return result;
 }
+
+
 
 void Colormap::clear(){
     m_linkImpl->clear();
@@ -305,7 +318,9 @@ QString Colormap::invertColorMap( bool invert ){
         int linkCount = m_linkImpl->getLinkCount();
         for( int i = 0; i < linkCount; i++ ){
             Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-            controller -> setColorInverted ( invert );
+            if ( controller != nullptr ){
+                controller -> setColorInverted ( invert );
+            }
         }
         emit colorMapChanged( this );
     }
@@ -349,7 +364,9 @@ QString Colormap::setColorMix( double redValue, double greenValue, double blueVa
         int linkCount = m_linkImpl->getLinkCount();
         for( int i = 0; i < linkCount; i++ ){
             Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-            controller->setColorAmounts( newRed, newGreen, newBlue );
+            if ( controller != nullptr ){
+                controller->setColorAmounts( newRed, newGreen, newBlue );
+            }
         }
         emit colorMapChanged( this );
     }
@@ -383,23 +400,6 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     return result;
 }
 
-
-Controller* Colormap::getControllerSelected() const {
-    //TODO:  Add sophistication.
-    Controller* target = nullptr;
-    int linkCount = m_linkImpl->getLinkCount();
-    for ( int i = 0; i < linkCount; i++ ){
-        CartaObject* obj = m_linkImpl->getLink(i);
-        Controller* control = dynamic_cast<Controller*>(obj);
-        if ( control != nullptr ){
-            target = control;
-            break;
-        }
-    }
-    return target;
-}
-
-
 void Colormap::refreshState(){
     CartaObject::refreshState();
     m_settings->refreshState();
@@ -427,7 +427,9 @@ QString Colormap::reverseColorMap( bool reverse ){
         int linkCount = m_linkImpl->getLinkCount();
         for( int i = 0; i < linkCount; i++ ){
             Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-            controller -> setColorReversed( reverse );
+            if ( controller != nullptr ){
+                controller -> setColorReversed( reverse );
+            }
         }
         emit colorMapChanged( this );
     }
@@ -441,11 +443,20 @@ QString Colormap::removeLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         objRemoved = m_linkImpl->removeLink( controller );
         if ( objRemoved ){
-            disconnect( controller );
+            controller->disconnect( this );
         }
     }
     else {
-        result = "Color map could not remove link; only links to images supported.";
+       Histogram* hist = dynamic_cast<Histogram*>(cartaObject);
+       if ( hist != nullptr ){
+           objRemoved = m_linkImpl->removeLink( hist );
+           if ( objRemoved ){
+               this->disconnect( hist );
+           }
+       }
+       else {
+           result= "Color was unable to remove link, only histogram and image links supported.";
+       }
     }
     return result;
 }
@@ -476,7 +487,9 @@ QString Colormap::setColorMap( const QString& colorMapStr ){
               int linkCount = m_linkImpl->getLinkCount();
               for( int i = 0; i < linkCount; i++ ){
                   Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-                  controller->setColorMap( colorMapStr );
+                  if ( controller != nullptr ){
+                      controller->setColorMap( colorMapStr );
+                  }
               }
               emit colorMapChanged( this );
            }
@@ -501,7 +514,9 @@ QString Colormap::setGamma( double gamma ){
         int linkCount = m_linkImpl->getLinkCount();
         for( int i = 0; i < linkCount; i++ ){
             Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-            controller->setGamma( gamma );
+            if ( controller != nullptr ){
+                controller->setGamma( gamma );
+            }
         }
         emit colorMapChanged( this );
     }
@@ -521,7 +536,9 @@ QString Colormap::setDataTransform( const QString& transformString){
                 int linkCount = m_linkImpl->getLinkCount();
                 for( int i = 0; i < linkCount; i++ ){
                     Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-                    controller->setTransformData( actualTransform );
+                    if ( controller != nullptr ){
+                        controller->setTransformData( actualTransform );
+                    }
                 }
                 emit colorMapChanged( this );
             }
@@ -534,7 +551,7 @@ QString Colormap::setDataTransform( const QString& transformString){
 }
 
 
-void Colormap::_setColorProperties( Controller* target ){
+void Colormap::setColorProperties( Controller* target ){
     target->setColorMap( m_state.getValue<QString>(COLOR_MAP_NAME));
     target->setColorInverted( m_state.getValue<bool>(INVERT) );
     target->setColorReversed( m_state.getValue<bool>(REVERSE) );

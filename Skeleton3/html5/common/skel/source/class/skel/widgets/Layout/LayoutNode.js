@@ -39,14 +39,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         changeLink : function(sourceWinId, destWinId, addLink) {
            
         },
-        
-        /**
-         * Clear the link with the given id.
-         * @param id {String} a unique identifier for a linked window.
-         */
-        clearLink : function( winId ){
-        },
-        
 
         /**
          * Notifies children that data has been loaded.
@@ -105,11 +97,10 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          * @param pluginId {String} the name of the plug-in.
          * @param sourceWinId {String} an identifier for the window displaying the
          *      plug-in that wants information about the links that can originate from it.
-         * @return {String} information about windows that can be linked to the plug-in
-         *      displayed in the source window.
+         * @param linkInfos {Array} - list of information about windows that are currently
+         *      linked to the source or have potential to be linked to the source.
          */
-        getLinkInfo : function(pluginId, sourceWinId) {
-            return [];
+        getLinkInfo : function(pluginId, sourceWinId, linkInfos) {
         },
         
         

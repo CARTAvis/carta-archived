@@ -136,17 +136,7 @@ QString Histogram::addLink( CartaObject*  target){
         }
     }
     else {
-        Colormap* map = dynamic_cast<Colormap*>(target);
-        if ( map != nullptr ){
-            linkAdded = m_linkImpl->addLink( map );
-            if ( linkAdded ){
-                connect( map, SIGNAL(colorMapChanged( Colormap*)), this, SLOT( _updateColorMap( Colormap*)));
-                _updateColorMap( map );
-            }
-        }
-        else {
-            result = "Histogram only supports linking to colormaps and images.";
-        }
+        result = "Histogram only supports linking to images";
     }
     return result;
 }
@@ -905,6 +895,7 @@ void Histogram::refreshState() {
     CartaObject::refreshState();
     m_stateData.refreshState();
     m_preferences->refreshState();
+    m_linkImpl->refreshState();
 }
 
 void Histogram::_refreshView(){
@@ -920,21 +911,12 @@ QString Histogram::removeLink( CartaObject* cartaObject){
     if ( controller != nullptr ){
         removed = m_linkImpl->removeLink( controller );
         if ( removed ){
-            disconnect(controller);
+            controller->disconnect(this);
             m_controllerLinked = false;
         }
     }
     else {
-        Colormap* map = dynamic_cast<Colormap*>(cartaObject);
-        if ( map != nullptr ){
-            removed = m_linkImpl->removeLink( map );
-            if ( removed ){
-                disconnect( map );
-            }
-        }
-        else {
-            result= "Histogram was unable to remove link, only color map and image links supported.";
-        }
+       result = "Histogram was unable to remove link only image links are supported";
     }
     return result;
 }
@@ -1691,24 +1673,6 @@ void Histogram::_updateChannel( Controller* controller ){
     }
 }
 
-void Histogram::_updateSelection(int x){
-    m_selectionEnd = x;
-    if ( m_selectionEnabled || m_selectionEnabledColor ){
-        _generateHistogram( false );
-    }
-}
-
-
-void Histogram::_updateColorMap( Colormap* map ){
-    if ( map != nullptr ){
-        Controller* controller = map->getControllerSelected();
-        if ( controller != nullptr ){
-            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
-            m_histogram->setPipeline( pipeline );
-        }
-    }
-    _generateHistogram( false );
-}
 
 QString Histogram::saveHistogram( const QString& filename, int width, int height ){
     QString result = "";
@@ -1723,6 +1687,27 @@ QString Histogram::saveHistogram( const QString& filename, int width, int height
     }
     return result;
 }
+
+void Histogram::_updateSelection(int x){
+    m_selectionEnd = x;
+    if ( m_selectionEnabled || m_selectionEnabledColor ){
+        _generateHistogram( false );
+    }
+}
+
+
+void Histogram::updateColorMap( Colormap* map ){
+    if ( map != nullptr ){
+        Controller* controller = _getControllerSelected();
+        if ( controller != nullptr ){
+            map->setColorProperties( controller );
+            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
+            m_histogram->setPipeline( pipeline );
+        }
+    }
+    _generateHistogram( false );
+}
+
 
 void Histogram::_updateSize( const QSize& size ){
     m_histogram->setSize( size.width(), size.height());

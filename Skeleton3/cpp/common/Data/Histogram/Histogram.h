@@ -323,13 +323,17 @@ public:
     const static QString GRAPH_STYLE_OUTLINE;
     const static QString GRAPH_STYLE_FILL;
 
+public slots:
+    void updateColorMap( Colormap* );
+
+
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
     void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
     void _createHistogram( Controller* );
-    void _updateColorMap( Colormap* );
+
     void _updateSize( const QSize& size );
     void _updateChannel( Controller* controller );
     

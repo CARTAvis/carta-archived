@@ -85,16 +85,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
         },
         
         /**
-         * Remove the window with the given id from the list of links.
-         * @param winId {String} a unique server-side id for a window.
-         */
-        clearLink : function( winId ){
-            if ( this.m_window !== null ){
-                this.m_window.clearLink( winId );
-            }
-        },
-        
-        /**
          * Loads the data.
          * 
          * @param path {String} the location or lookup for the data.
@@ -159,22 +149,18 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
          * Returns a list of information concerning windows that
          * can be linked to the given source window showing the
          * indicated plug-in.
-         * 
          * @param pluginId {String} the name of the plug-in.
          * @param sourceWinId {String} an identifier for the window
          *                displaying the plug-in that wants
          *                information about the links that can
          *                originate from it.
-         * @return {String} information about links that can be established
-         *      from the given plug-in and window.
+         * @param linkInfos {Array} - list of information about windows that are currently
+         *      linked to the source or have potential to be linked to the source.
          */
-        getLinkInfo : function(pluginId, sourceWinId) {
-            var linkInfo = [];
+        getLinkInfo : function(pluginId, sourceWinId, linkInfos ) {
             if (this.m_window !== null) {
-                linkInfo.push(this.m_window.getLinkInfo(
-                        pluginId, sourceWinId));
+                this.m_window.getLinkInfo( pluginId, sourceWinId, linkInfos );
             }
-            return linkInfo;
         },
         
         /**

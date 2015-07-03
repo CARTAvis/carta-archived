@@ -82,15 +82,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             this.m_areaSecond.changeLink(sourceWinId, destWinId, addLink);
         },
         
-        /**
-         * Clear the link with the given id.
-         * @param id {String} a unique identifier for a linked window.
-         */
-        clearLink : function( winId ){
-            this.m_areaFirst.clearLink( winId );
-            this.m_areaSecond.clearLink( winId );
-        },
-        
 
         /**
          * Notifies children that data has been loaded.
@@ -211,25 +202,16 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
          * @param pluginId {String} the name of the plug-in.
          * @param sourceWinId {String} an identifier for the window displaying the
          *      plug-in that wants information about the links that can originate from it.
-         * @return {String} information about windows that can be linked to the plug-in
-         *      displayed in the source window.
+         * @param linkInfos {Array} - list of information about windows that are currently
+         *      linked to the source or have potential to be linked to the source.
          */
-        getLinkInfo : function(pluginId, sourceWinId) {
-            var linkInfo = [];
-            var i = 0;
+        getLinkInfo : function(pluginId, sourceWinId, linkInfos ) {
             if (this.m_areaFirst !== null) {
-                var firstInfo = this.m_areaFirst.getLinkInfo( pluginId, sourceWinId);
-                for ( i = 0; i < firstInfo.length; i++) {
-                    linkInfo.push(firstInfo[i]);
-                }
+                this.m_areaFirst.getLinkInfo( pluginId, sourceWinId, linkInfos );
             }
             if (this.m_areaSecond !== null) {
-                var secondInfo = this.m_areaSecond.getLinkInfo( pluginId, sourceWinId);
-                for ( i = 0; i < secondInfo.length; i++) {
-                    linkInfo.push(secondInfo[i]);
-                }
+                this.m_areaSecond.getLinkInfo( pluginId, sourceWinId, linkInfos );
             }
-            return linkInfo;
         },
         
         /**

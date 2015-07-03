@@ -241,12 +241,6 @@ qx.Class.define( "skel.Application",
             qx.event.message.Bus.subscribe( "showCustomizeDialog", function(message){
                 this._showCustomizeDialog( message );
             }, this );
-            qx.event.message.Bus.subscribe( "showColormapPreferences", function(message){
-                this._showColormapPreferences( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "showHistogramPreferences", function(message){
-                this._showHistogramPreferences( message );
-            }, this );
             qx.event.message.Bus.subscribe( "showLayoutPopup", function(message){
                 this._showLayoutPopup( message);
             }, this );
@@ -327,10 +321,10 @@ qx.Class.define( "skel.Application",
          * @param addLink {boolean} whether the link is being added or removed.
          */
         _linksChanged: function( addLink, ev ){
-                var data = ev.getData();
-                var linkSource = data.getSource();
-                var linkDest = data.getDestination();
-                this.m_desktop.link( linkSource, linkDest, addLink );
+            var data = ev.getData();
+            var linkSource = data.getSource();
+            var linkDest = data.getDestination();
+            this.m_desktop.link( linkSource, linkDest, addLink );
         },
 
 
@@ -350,7 +344,10 @@ qx.Class.define( "skel.Application",
             var linkSource = ev.getData();
             var pluginId = linkSource.plugin;
             var winId = linkSource.window;
-            var linkInfo = this.m_desktop.getLinkInfo( pluginId, winId );
+            //Get information about links that are currently established and ones
+            //that could be established.
+            var linkInfos = [];
+            this.m_desktop.getLinkInfo( pluginId, winId, linkInfos );
             if ( this.m_windowLink === null ){
                 this.m_windowLink = skel.widgets.Link.LinkCanvas.getInstance();
                 var resizeLinkWindow = function( anObject, linkWindow ){
@@ -362,7 +359,6 @@ qx.Class.define( "skel.Application",
                 this.m_desktop.addListener( "resize", function(){
                     resizeLinkWindow( this, this.m_windowLink );
                 }, this );
-
                 this.m_windowLink.addListener( "link", function( ev ){
                     this._linksChanged( true, ev );
                 }, this );
@@ -372,7 +368,7 @@ qx.Class.define( "skel.Application",
                
             }
            
-            this.m_windowLink.setDrawInfo( linkInfo );
+            this.m_windowLink.setDrawInfo( linkInfos );
             this.m_statusBar.showInformation( this.m_windowLink.getHelp());
             var topPos = this._getLinkTopOffset();
             var bottomPos = this._getLinkBottomOffset();
@@ -459,6 +455,11 @@ qx.Class.define( "skel.Application",
                 var addLinkCmd = skel.Command.Link.CommandLinkAdd.getInstance();
                 addLinkCmd.link( sourceId, data.winId, null );
             }, this);
+            win.addListener( "close", function(){
+                var sourceId = win.getIdentifier();
+                var removeLinkCmd = skel.Command.Link.CommandLinkRemove.getInstance();
+                removeLinkCmd.link( sourceId, data.winId, null );
+            }, this );
             this._setPopupWinProperties( win );
         },
             

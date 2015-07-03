@@ -325,7 +325,7 @@ QString Animator::removeLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkRemoved = m_linkImpl->removeLink( controller );
         if ( linkRemoved  ){
-            disconnect( controller);
+            controller->disconnect( this );
             _resetAnimationParameters(-1);
         }
     }

@@ -113,13 +113,15 @@ qx.Class.define("skel.widgets.DisplayMain",
          * @param pluginId {String} the name of the plug-in.
          * @param sourceId {String} an identifier for the window displaying the
          *      plug-in that wants information about the links that can originate from it.
-         * @return {String} information about links that can be established from the specified
-         *      window/plug-in.
+         * @param linkInfos {Array} - list of linked and potentially linkable window information
+         *      for the given source.
+         * @return {Array} information about links that can be established from the specified
+         *      source window/plug-in.
          */
-        getLinkInfo : function(pluginId, sourceId) {
+        getLinkInfo : function(pluginId, sourceId, linkInfos ) {
             var linkInfo = [];
             if (this.m_pane !== null) {
-                linkInfo = this.m_pane.getLinkInfo(pluginId, sourceId);
+                linkInfo = this.m_pane.getLinkInfo(pluginId, sourceId, linkInfos );
             }
             return linkInfo;
         },
@@ -189,14 +191,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                     }
                 }, this );
                 this.m_pane.initSharedVar();
-                qx.event.message.Bus.subscribe("addLink", function(ev){
-                    var data = ev.getData();
-                    this.link( data.getSource(), data.getDestination(), true );
-                }, this );
-                qx.event.message.Bus.subscribe("clearLinks", function(ev){
-                    var data = ev.getData();
-                    this.m_pane.clearLink( data.link );
-                }, this );
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
                 qx.event.message.Bus.subscribe("windowSelected",
                     function(message) {
@@ -265,6 +259,14 @@ qx.Class.define("skel.widgets.DisplayMain",
                         skel.widgets.Window.WindowFactory.setExistingWindows( windows );
                     }
                     this.layout( layout.layoutNode);
+                    //Store the available windows in the Popup command of the image
+                    //display so that it can decide whether or not it should be enabled
+                    //based on existing links to other windows.
+                    if ( this.m_pane !== null ){
+                        var newWindows = this.m_pane.getWindows();
+                        var popCmd = skel.Command.Popup.CommandPopup.getInstance();
+                        popCmd.setWindows( newWindows );
+                    }
                 }
                 catch( err ){
                     console.log( "Could not parse: "+layoutObjJSON );

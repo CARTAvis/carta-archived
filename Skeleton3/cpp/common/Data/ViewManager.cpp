@@ -77,46 +77,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     _makeDataLoader();
 }
 
-int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex ){
-    int upperBound = endIndex + 1;
-    int existingCount = 0;
-    if ( name == Colormap::CLASS_NAME ){
-        existingCount = m_colormaps.size();
-        if ( endIndex < 0 ){
-            upperBound = existingCount;
-        }
-        _clearColormaps(startIndex, upperBound );
-    }
-    else if ( name == Histogram::CLASS_NAME ){
-        existingCount = m_histograms.size();
-        if ( endIndex < 0 ){
-            upperBound = existingCount;
-        }
-        _clearHistograms(startIndex, upperBound);
-    }
-    else if ( name == Animator::CLASS_NAME ){
-        existingCount = m_animators.size();
-        if ( endIndex < 0 ){
-            upperBound = existingCount;
-        }
-        _clearAnimators(startIndex, upperBound);
-    }
-    else if ( name == Controller::PLUGIN_NAME ){
-        existingCount = m_controllers.size();
-        if ( endIndex < 0 ){
-            upperBound = existingCount;
-        }
-        _clearControllers(startIndex, upperBound);
-    }
-    else if ( name == Statistics::CLASS_NAME ){
-        existingCount = m_statistics.size();
-        if ( endIndex < 0 ){
-            upperBound = existingCount;
-        }
-        _clearStatistics(startIndex, upperBound);
-    }
-    return existingCount;
-}
+
 
 void ViewManager::_adjustSize( int count, const QString& name, const QVector<int> & insertionIndices ){
     int existingCount = 0;
@@ -179,9 +140,6 @@ void ViewManager::_clearAnimators( int startIndex, int upperBound ){
 void ViewManager::_clearColormaps( int startIndex, int upperBound ){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     for ( int i = upperBound-1; i >= startIndex; i-- ){
-        for (Histogram* hist : m_histograms ){
-            hist->removeLink( m_colormaps[i]);
-        }
         objMan->destroyObject( m_colormaps[i]->getId() );
         m_colormaps.pop_back();
     }
@@ -190,6 +148,9 @@ void ViewManager::_clearColormaps( int startIndex, int upperBound ){
 void ViewManager::_clearHistograms( int startIndex, int upperBound ){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     for ( int i = upperBound-1; i >= startIndex; i-- ){
+        for ( Colormap* map : m_colormaps ){
+            map->removeLink( m_histograms[i]);
+        }
         objMan->destroyObject( m_histograms[i]->getId() );
         m_histograms.pop_back();
     }
@@ -893,6 +854,46 @@ void ViewManager::_removeView( const QString& plugin, int index ){
     }
 }
 
+int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex ){
+    int upperBound = endIndex + 1;
+    int existingCount = 0;
+    if ( name == Colormap::CLASS_NAME ){
+        existingCount = m_colormaps.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearColormaps(startIndex, upperBound );
+    }
+    else if ( name == Histogram::CLASS_NAME ){
+        existingCount = m_histograms.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearHistograms(startIndex, upperBound);
+    }
+    else if ( name == Animator::CLASS_NAME ){
+        existingCount = m_animators.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearAnimators(startIndex, upperBound);
+    }
+    else if ( name == Controller::PLUGIN_NAME ){
+        existingCount = m_controllers.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearControllers(startIndex, upperBound);
+    }
+    else if ( name == Statistics::CLASS_NAME ){
+        existingCount = m_statistics.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearStatistics(startIndex, upperBound);
+    }
+    return existingCount;
+}
 
 void ViewManager::setAnalysisView(){
     if ( m_layout == nullptr ){
@@ -913,7 +914,7 @@ void ViewManager::setAnalysisView(){
         m_colormaps[0]->addLink( m_controllers[0]);
         //m_statistics[0]->addLink( m_controllers[0]);
         m_histograms[0]->addLink( m_controllers[0]);
-        m_histograms[0]->addLink( m_colormaps[0]);
+        m_colormaps[0]->addLink( m_histograms[0]);
         _refreshState();
     }
 }
@@ -929,7 +930,7 @@ void ViewManager::setDeveloperView(){
     m_animators[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
-    m_histograms[0]->addLink( m_colormaps[0]);
+    m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
 }
 

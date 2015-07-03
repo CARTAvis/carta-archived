@@ -46,19 +46,27 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                
                 var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
                 this.m_supportedCmds.push( histCmd.getLabel() );
+                var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+                this.m_supportedCmds.push( popupCmd.getLabel() );
                
             },
            
+          
+            
             /**
              * Returns whether or not this window can be linked to a window
              * displaying a named plug-in.
              * 
              * @param pluginId {String} a name identifying a plug-in.
-             * @return {boolean} true if this window can be linked to the plug-in;
-             *          false otherwise.
+             * @return {boolean} true if this window supports linking to the plug-in; false,
+             *          otherwise.
              */
             isLinkable : function(pluginId) {
                 var linkable = false;
+                var path = skel.widgets.Path.getInstance();
+                if (pluginId == path.COLORMAP_PLUGIN ) {
+                    linkable = true;
+                } 
                 return linkable;
             },
             
