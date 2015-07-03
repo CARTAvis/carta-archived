@@ -1,10 +1,13 @@
 import tSnapshot
 import Util
+import time
+import unittest
+import selectBrowser
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
-#Test that a preference snapshot can be saved/restored.
+# Test that a preference snapshot can be saved/restored.
 class tSnapshotPreferences(tSnapshot.tSnapshot):
     
     def _isToolbarVisible(self, driver ):
@@ -55,9 +58,11 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         
     def _setAnimatorToJump(self, driver ):
          # Find the settings button on the animator and click it.
-        settingsButton = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']//div[text()='Settings...']/..")
+        time.sleep(2)
+        settingsButton = driver.find_element_by_xpath("//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Settings...']")
         self.assertIsNotNone( settingsButton, "Could not find animator settings button")
         ActionChains( driver).click( settingsButton).perform()
+        time.sleep(2)
         
         # Find the jump radio button in the settings and click it
         jumpButton = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.RadioButton']/div[text()='Jump']/following-sibling::div")
@@ -78,11 +83,12 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
     # count remains the same with no animator.
     def test_restore_missing(self):
         driver = self.driver
+        time.sleep(5)
         
-        #Store the window count
+        # Store the window count
         windowCount = Util.get_window_count( self, driver )
         
-        #Verify that there is just one animator
+        # Verify that there is just one animator
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
         animWindowCount = len( animWindowList )
         self.assertEqual( animWindowCount, 1, "There was not exactly one animator")
@@ -93,14 +99,15 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         # Locate the animator window and bring up the right-context menu,
         # changing to a CasaImageLoader.
         Util.animation_to_image_window( self, driver )
+
+        # Wait for the window to change to a CasaImageLoader
+        time.sleep(2)
         
         # Verify that there are now no animation windows.
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
         animWindowCount = len( animWindowList )
-        print 'New animation count ', animWindowCount
         self.assertEqual( animWindowCount, 0, "An animator is still present")
         
-
         # Restore the preferences
         self._restorePreferences( driver )
         
@@ -117,6 +124,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
     # Check that the animator reverts back to jump behavior.
     def test_animator_jump(self):    
         driver = self.driver
+        time.sleep(5)
         
         # Set the animator to jump
         self._setAnimatorToJump( driver );
@@ -142,6 +150,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
     # Check the second animator is also set to jump.
     def test_global_prefs(self):
         driver = self.driver
+        time.sleep(5)
         
         # Set the animator to jump
         self._setAnimatorToJump( driver );
@@ -153,16 +162,18 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
         self.assertIsNotNone( imageWindow, "Could not find image window")
         ActionChains(driver).context_click(imageWindow).send_keys( Keys.ARROW_RIGHT ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
+        time.sleep(2)
 
         # Find the settings button on the animator and click it so jump will be visible
         settingsButton = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.form.CheckBox']//div[text()='Settings...']/..")
         self.assertIsNotNone( settingsButton, "Could not find animator settings button")
         ActionChains( driver).click( settingsButton).perform()
+        time.sleep(2)
 
-        #Restore the preferences
+        # Restore the preferences
         self._restorePreferences(driver)
         
-        #Check that both animators are now displaying jump
+        # Check that both animators are now displaying jump
         # Verify the animator jump end behavior is checked
         jumpButtons = driver.find_elements_by_xpath( "//div[@qxclass='qx.ui.form.RadioButton']/div[text()='Jump']/following-sibling::div")
         jumpButtonCount = len( jumpButtons );
@@ -177,6 +188,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
     # Check that the toolbar is hidden.
     def test_toolbar_hide(self):    
         driver = self.driver
+        time.sleep(5)
         
         # Find the preferences button on the menu bar and click it.
         menuBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.MenuBar']")
@@ -184,14 +196,17 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         preferencesButton = driver.find_element_by_xpath("//div[text()='Preferences']/..")
         self.assertIsNotNone( preferencesButton, "Could not find div with text Preferences")
         ActionChains(driver).click(preferencesButton).perform()
+        driver.implicitly_wait(10) 
         
         # Click the show button on the sub menu.
         showButton = driver.find_element_by_xpath("//div/div[text()='Show']/..")
         self.assertIsNotNone(showButton, "Could not click open button on data subcontext menu.")
         ActionChains(driver).click( showButton).perform()
+        time.sleep(2)
         showToolButton = driver.find_element_by_xpath( "//div[text()='Show Tool Bar']/..")
         self.assertIsNotNone( showToolButton, "Could not find show tool button")
         ActionChains(driver).click( showToolButton).perform()
+        time.sleep(4)
         
         # Verify the toolbar is NOT visible
         toolVisible = self._isToolbarVisible( driver )
@@ -205,10 +220,12 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         preferencesButton = driver.find_element_by_xpath("//div[text()='Preferences']/..")
         self.assertIsNotNone( preferencesButton, "Could not find div with text Preferences")
         ActionChains(driver).click(preferencesButton).perform()
+        time.sleep(2)
         
         # Click the show tool bar button on the sub menu.
         ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_RIGHT ).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ENTER ).perform()
-        
+        time.sleep(2)
+
         #Verify the toolbar is now visible
         toolBar = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Menu.ToolBar']")
         self.assertIsNotNone( toolBar, "Tool bar is not visible")
@@ -225,8 +242,11 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         
         # Close the restore dialog
         self._closeRestore( driver )
+        time.sleep(2)
         
         # Verify the toolbar is hidden again
         toolVisible = self._isToolbarVisible( driver)
         self.assertFalse( toolVisible, "Tool bar was not hidden with restore state")
 
+if __name__ == "__main__":
+    unittest.main()   

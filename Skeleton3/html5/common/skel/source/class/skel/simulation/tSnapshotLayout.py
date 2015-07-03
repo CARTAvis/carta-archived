@@ -1,5 +1,7 @@
 import tSnapshot
 import Util
+import time
+import unittest
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -11,11 +13,13 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
     # the analysis layout
     def test_analysis_saveRestore(self):    
         driver = self.driver
-        driver.implicitly_wait(10)
-        
-        #For later use, determine the number of DisplayWindow
-        windowCount = Util.get_window_count( self, driver)
+        time.sleep(5)
+ 
+        #For later use, determine the number of DisplayWindows.
+        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
+        windowCount = len( windowList )
         print "Window Count=", windowCount
+        time.sleep(2)
         
         # Find the session button on the menu bar and click it.
         self._clickSessionButton( driver )
@@ -26,7 +30,6 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         # The save popup should be visible.  Make sure preferences and data are not checked;
         # layout is checked.
         self._setSaveOptions( driver, False, True, False)
-        
         
         # Type in tSnapshotLayout for the save name.
         self._setSaveName( driver, "tSnapshotLayout")
@@ -57,8 +60,13 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         
         # Close the restore dialog
         self._closeRestore( driver )
-        
+        time.sleep(2)
+
         # Verify the window count is the same
-        newWindowCount = Util.get_window_count( self, driver )
+        newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
+        newWindowCount = len( newWindowList )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount, "Window count changed with restore")
+
+if __name__ == "__main__":
+    unittest.main()   

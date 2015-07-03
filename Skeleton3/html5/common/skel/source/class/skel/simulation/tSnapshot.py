@@ -1,4 +1,7 @@
 import unittest
+import selectBrowser
+import Util
+import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -7,9 +10,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 class tSnapshot(unittest.TestCase):
     
     def setUp(self):
-        self.driver = webdriver.Firefox()
-        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        self.driver.implicitly_wait(10)
+        browser = selectBrowser._getBrowser()
+        Util.setUp(self, browser)
         
     # Determine whether the check box is checked
     def _isChecked(self, checkBox):
@@ -26,19 +28,25 @@ class tSnapshot(unittest.TestCase):
         if checked != oldChecked :
             checkParent = checkBox.find_element_by_xpath( '..')
             ActionChains(driver).click( checkParent ).perform()
+            #Allow action to complete before continuing
+            time.sleep(1)
             
     # Click the Restore... option in the Sessions submenu
     def _clickSessionRestoreButton(self,driver):
         restoreButton = driver.find_element_by_xpath( "//div[text()='Manage/Restore...']/..")
         self.assertIsNotNone( restoreButton, "Could not find restore session button in submenu")
         ActionChains(driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-            
+        #Allow action to complete before continuing
+        time.sleep(1)
+
     # Click the Save... option in the Sessions submenu
     def _clickSessionSaveButton(self,driver):        
          # Find the save session button in the submenu and click it.
         saveButton = driver.find_element_by_xpath( "//div[text()='Save...']/..")
         self.assertIsNotNone( saveButton, "Could not find save session button in submenu")
         ActionChains(driver).click( saveButton).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
             
     # Click the "Sessions" menu item
     def _clickSessionButton(self, driver ):
@@ -46,18 +54,24 @@ class tSnapshot(unittest.TestCase):
         sessionButton = driver.find_element_by_xpath("//div[text()='Session']/..")
         self.assertIsNotNone( sessionButton, "Could not find div with text session")
         ActionChains(driver).click(sessionButton).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
         
     # Close the save session pop-up
     def _closeSave(self, driver):
         closeButton = driver.find_element_by_xpath(".//div[@qxclass='qx.ui.form.Button']/div[text()='Close']/..")
         self.assertIsNotNone( closeButton, "Could not find a button to close the snapshot popup")
         ActionChains(driver).click( closeButton).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
         
     # Close the restore session pop-up
     def _closeRestore(self, driver):
         closeButton = driver.find_element_by_xpath(".//div[@qxclass='qx.ui.form.Button']/div[text()='Close']/..")
         self.assertIsNotNone( closeButton, "Could not find a button to close the snapshot popup")
         ActionChains(driver).click( closeButton).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
         
     # Select the name of the snapshot to restore
     def _selectRestoreSnapshot(self, driver, restoreName):
@@ -65,6 +79,8 @@ class tSnapshot(unittest.TestCase):
         tableRow = driver.find_element_by_xpath( tableRowLocator )
         self.assertIsNotNone( tableRow, "Could not find the restore name combo")
         ActionChains(driver).click( tableRow ).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
     
     # Set the type of state that should be saved
     def _setSaveOptions(self, driver, savePreferences, saveLayout, saveData ):
@@ -93,16 +109,21 @@ class tSnapshot(unittest.TestCase):
         saveSnapButton = driver.find_element_by_xpath(".//div[@qxclass='qx.ui.form.Button']/div[text()='Save']/..")
         self.assertIsNotNone( saveSnapButton, "Could not find a button to save the snapshot")
         ActionChains(driver).click( saveSnapButton).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
         
     # Restore the snapshot
     def _restoreSnapshot(self, driver ):
         restoreSnapButton = driver.find_element_by_xpath(".//div[@qxclass='qx.ui.form.Button']/div[text()='Restore']/..")
         self.assertIsNotNone( restoreSnapButton, "Could not find a button to restore the snapshot")
         ActionChains(driver).click( restoreSnapButton).perform()
+        #Allow action to complete before continuing
+        time.sleep(1)
           
     def tearDown(self):
+        #Close the browser
         self.driver.close()
-
-if __name__ == "__main__":
-    unittest.main()        
-        
+        #Allow browser to fully close before continuing
+        time.sleep(2)
+        #Close the session and delete temporary files
+        self.driver.quit()        
