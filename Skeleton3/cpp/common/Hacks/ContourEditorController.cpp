@@ -2,7 +2,7 @@
 #include "common/Globals.h"
 #include <functional>
 
-
+/*
 namespace Impl
 {
 /// convert string to array of doubles
@@ -23,6 +23,7 @@ s2vd( QString s, QString sep = " " )
     return res;
 }
 }
+*/
 
 namespace Hacks
 {

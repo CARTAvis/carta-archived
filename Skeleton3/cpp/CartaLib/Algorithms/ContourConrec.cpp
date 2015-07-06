@@ -63,7 +63,7 @@ conrecFaster(
         nextRowToReadIn++;
 
         // make a double view of this raw row view
-        NdArray::Double dview( rawRowView, false );
+        NdArray::Double dview( rawRowView, true );
 
         // shift the row up
         // note: we could avoid this memory copy if we swapped row[] pointers instead,

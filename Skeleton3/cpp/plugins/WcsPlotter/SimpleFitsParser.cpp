@@ -1,15 +1,6 @@
 #include "SimpleFitsParser.h"
 #include "CartaLib/CartaLib.h"
 
-#include <iostream>
-#include <algorithm>
-#include <iomanip>
-#include <sstream>
-#include <cassert>
-#include <climits>
-#include <cmath>
-#include <vector>
-
 #include <QFile>
 #include <QString>
 #include <QTextStream>
@@ -22,10 +13,20 @@
 #include <QTime>
 #include <QVariant>
 #include <QTimer>
+#include <QDebug>
+
+#include <iostream>
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
+#include <cassert>
+#include <climits>
+#include <cmath>
+#include <vector>
 
 namespace WcsPlotterPluginNS {
 
-using namespace std;
+//using namespace std;
 
 int SimpleFitsParser::HeaderInfo::dims(int ind) const {
     CARTA_ASSERT_X( ind >= 0, "negative index!?!?!?!");
@@ -67,7 +68,7 @@ static float keywordPriority( const QString & key)
     if( key == "NAXIS3") return 5;
     if( key == "NAXIS4") return 6;
     if( key == "NAXIS5") return 7;
-    if( key == "END") return numeric_limits<float>::max();
+    if( key == "END") return std::numeric_limits<float>::max();
     return 1000000;
 }
 
@@ -103,7 +104,7 @@ static bool blockRead( QFile & f, char * ptr, qint64 s)
     while( remaining > 0 ) {
         qint64 d = f.read( (char *) ptr, remaining);
         if( d <= 0 ) {
-            cerr << "Error: blockRead(): could not read another block.\n";
+            qCritical() << "Error: blockRead(): could not read another block.\n";
             return false;
         }
         // update remaining & ptr
@@ -120,7 +121,7 @@ static bool blockWrite( QFile & f, const char * ptr, qint64 s)
     while( remaining > 0 ) {
         qint64 d = f.write( (const char *) ptr, remaining);
         if( d <= 0 ) {
-            cerr << "Error: blockWrite(): could not write another block\n";
+            qCritical() << "Error: blockWrite(): could not write another block\n";
             return false;
         }
         // update remaining & ptr
@@ -142,7 +143,7 @@ FitsHeader FitsHeader::parse( QFile & f)
         // read in another header block
         char block[80];
         if( ! blockRead( f, block, 80)) {
-            cerr << "Error: FitsHeader::parse() could not read card.\n";
+            qCritical() << "Error: FitsHeader::parse() could not read card.\n";
             return hdr;
         }
 
@@ -178,10 +179,10 @@ bool FitsHeader::write(QFile & f)
 {
     // sort the lines based on a) keword priority, b) their current order
     //vector< pair< QString, pair< double, int> > > lines;
-    typedef pair<QString, pair<double,int> > SortLine;
-    vector<SortLine> lines;
+    typedef std::pair<QString, std::pair<double,int> > SortLine;
+    std::vector<SortLine> lines;
     for( size_t i = 0 ; i < _lines.size() ; i ++ )
-        lines.push_back( make_pair(_lines[i].raw(), make_pair( keywordPriority( _lines[i].key()), i)));
+        lines.push_back( make_pair(_lines[i].raw(), std::make_pair( keywordPriority( _lines[i].key()), i)));
     // c++ does not support anonymous functions, but it does support local structures/classes with
     // static functions... go figure :)
     struct local { static bool cmp( const SortLine & v1, const SortLine & v2 ) {
@@ -528,7 +529,7 @@ SimpleFitsParser::loadFile(
         for( int i = 3 ; i <= hdr.intValue( "NAXIS") ; i ++ )
             nFrames *= hdr.intValue( QString("NAXIS%1").arg(i));
         headerInfo_.totalFrames = nFrames;
-        cerr << "This fits file has " << nFrames << " frames.\n";
+//        cerr << "This fits file has " << nFrames << " frames.\n";
 
         headerInfo_.bzero = hdr.doubleValue( "BZERO", 0);
         headerInfo_.bscale = hdr.doubleValue( "BSCALE", 1);

@@ -10,6 +10,7 @@
 
 #include "CartaLib/IImage.h"
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/ContourSet.h"
 #include <QObject>
 #include <QPolygonF>
 
@@ -17,6 +18,7 @@ namespace Carta
 {
 namespace Lib
 {
+/*
 class Contour
 {
 public:
@@ -67,6 +69,7 @@ private:
 
     std::vector < Contour > m_contours;
 };
+*/
 
 ///
 /// Purpose of IContourGeneratorService is to define an API that:
