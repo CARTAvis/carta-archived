@@ -123,6 +123,26 @@ qx.Class.define("skel.Command.Command", {
         },
         
         /**
+         * Returns whether or not any of the selected windows support this Command.
+         * @return {boolean} - true if at least one active window supports the command;
+         *      false otherwise.
+         */
+        _isCmdSupported : function(){
+            var activeWins = skel.Command.Command.m_activeWins;
+            var supported = false;
+            if ( activeWins !== null && activeWins.length > 0 ){
+                var activeWinCount = activeWins.length;
+                for ( var i = 0; i < activeWinCount; i++ ){
+                    if ( activeWins[i].isCmdSupported( this ) ){
+                        supported = true;
+                        break;
+                    }
+                }
+            }
+            return supported;
+        },
+        
+        /**
          * Returns true if this command is not window specific; false if the command is only
          * applicable when particular windows are selected.
          * @return {boolean} true if the command applies globally; false if it only applies
@@ -208,20 +228,9 @@ qx.Class.define("skel.Command.Command", {
          */
         _resetEnabled : function( ){
             if ( ! this.m_global ){
-                var wins = skel.Command.Command.m_activeWins;
-                var enable = false;
-                if ( wins !== null ){
-                    for ( var i = 0; i < wins.length; i++ ){
-                        var supported = wins[i].isCmdSupported( this );
-                        if ( supported ){
-                            enable = true;
-                            break;
-                        }
-                    }
+                var enable = this._isCmdSupported();
+                if ( this.isEnabled() != enable ){
                     this.setEnabled( enable );
-                }
-                else {
-                    console.log( "No active windows");
                 }
             }
         },

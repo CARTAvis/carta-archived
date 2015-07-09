@@ -24,10 +24,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics",
                 var path = skel.widgets.Path.getInstance();
                 this.base(arguments, path.STATISTICS, index, detached );
                 this.m_links = [];
-                qx.event.message.Bus.subscribe("addLink", function(ev){
-                    var data = ev.getData();
-                    this._updateStatSource( data.getSource(), data.getDestination());
-                }, this );
             },
 
             members : {

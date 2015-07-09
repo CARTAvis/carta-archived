@@ -203,7 +203,7 @@ QString Controller::closeImage( const QString& name ){
         }
     }
     if ( targetIndex >= 0 ){
-        this->_removeData( targetIndex );
+        _removeData( targetIndex );
         emit dataChanged( this );
     }
     else {
@@ -329,22 +329,11 @@ QString Controller::getPreferencesId() const {
 }
 
 int Controller::getStackedImageCount() const {
-    return m_selectImage->getUpperBound();
-}
-
-
-int Controller::getState( const QString& type, const QString& key ){
-    int value = -1;
-    if ( type == Selection::IMAGE ){
-        value = m_selectImage->getState( key );
+    int count = 0;
+    if ( m_selectImage != nullptr ){
+        count = m_selectImage->getUpperBound();
     }
-    else if ( type == Selection::CHANNEL ){
-        value = m_selectChannel->getState( key );
-    }
-    else {
-        qDebug() << "DataController::getState unrecognized type="<<type;
-    }
-    return value;
+    return count;
 }
 
 
@@ -398,8 +387,6 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
         imageIndex = m_selectImage->getIndex();
     }
     if ( !applyAll ){
-
-
         if (imageIndex >= 0 && imageIndex < m_datas.size()) {
             if (m_datas[imageIndex] != nullptr) {
                 m_datas[imageIndex]->_gridChanged( state, true );
@@ -418,6 +405,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
             }
         }
     }
+    _updateCursorText( true );
 }
 
 void Controller::_initializeCallbacks(){
@@ -642,17 +630,30 @@ void Controller::_removeData( int index ){
        m_selectImage->setIndex( 0 );
     }
     else if ( index < selectedImage ){
-       m_selectImage->setIndex( selectedImage - 1);
+       int imageCountDecreased = selectedImage - 1;
+       m_selectImage->setIndex( imageCountDecreased );
     }
     //Update the channel upper bound and index if necessary
     int targetImage = m_selectImage->getIndex();
-    int frameCount = m_datas[targetImage]->_getFrameCount();
+    int frameCount = 0;
+    if ( m_datas.size() > 0 ){
+        frameCount = m_datas[targetImage]->_getFrameCount();
+    }
     int oldIndex = m_selectChannel->getIndex();
-    if ( oldIndex >= frameCount ){
+    if ( oldIndex >= frameCount && frameCount > 0){
         setFrameChannel( frameCount - 1);
+    }
+    else {
+        setFrameChannel( 0 );
     }
     m_selectChannel->setUpperBound( frameCount );
     this->_loadView();
+
+    //Clear the statistics window if there are no images.
+    if ( m_datas.size() == 0 ){
+        m_stateMouse.setValue<QString>( CURSOR, "" );
+        m_stateMouse.flushState();
+    }
 
     saveState();
 }
@@ -789,7 +790,6 @@ void Controller::_scheduleFrameRepaint( const QImage& img ){
         if ( m_repaintFrameQueued ) {
             return;
         }
-
         m_view->resetImage( img);
         m_repaintFrameQueued = true;
         QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
@@ -859,6 +859,10 @@ void Controller::setFrameImage( int val) {
             if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
                 int upperBound = m_datas[imageIndex]->_getFrameCount();
                 m_selectChannel->setUpperBound( upperBound );
+                if ( m_selectChannel->getIndex() > m_selectChannel->getUpperBound()){
+                    m_selectChannel->setIndex( 0 );
+                    emit channelChanged( this );
+                }
                 Carta::State::StateInterface gridState = m_datas[imageIndex]->_getGridState();
                 m_gridControls->_resetState( gridState );
             }

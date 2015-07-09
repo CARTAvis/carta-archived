@@ -106,7 +106,7 @@ public:
 
     //Set whether or not to draw axes/border.
     virtual void
-    setAxes( bool flag ) = 0;
+    setAxesVisible( bool flag ) = 0;
 
     /// set a pen attribute for the given element
     virtual void
@@ -127,7 +127,7 @@ public:
 
     //Set whether or not grid lines should be drawn.
     virtual void
-    setGridLines( bool on ) = 0;
+    setGridLinesVisible( bool on ) = 0;
 
     /// set whether the grid labels should be external or internal
     virtual void
@@ -139,7 +139,7 @@ public:
 
     /// set whether or not tick marks should be drawn.
     virtual void
-    setTicks( bool on ) = 0;
+    setTicksVisible( bool on ) = 0;
 
 
     /// start rendering with current parameters

@@ -129,6 +129,23 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
+        
+        /**
+         * Updates the user set lower and upper bounds based on server values.
+         * @param start {Number} - the user settable lower bound.
+         * @param end {Number} - the user settable upper bound.
+         */
+        _frameBoundsUserCB : function( start, end ){
+            var lowValue = this.m_lowBoundsSpinner.getValue();
+            if ( start !=  lowValue ){
+                this.m_lowBoundsSpinner.setValue( parseInt(start) );
+            }
+            
+            var highValue = this.m_highBoundsSpinner.getValue();
+            if ( end !=  highValue ){
+                this.m_highBoundsSpinner.setValue( parseInt(end) );
+            }
+        },
 
         /**
          * Shared var callback. Read in the position of the animator and render it.
@@ -158,10 +175,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( limit != this.m_highBoundsSpinner.getMaximum()){
                 this.m_highBoundsSpinner.setMaximum( limit );
             }
-            var highSpinValue = this.m_highBoundsSpinner.getValue();
-            //if ( limit < highSpinValue || highSpinValue === 0 ){
-                this.m_highBoundsSpinner.setValue( limit );
-            //}
+            //var highSpinValue = this.m_highBoundsSpinner.getValue();
+            //this.m_highBoundsSpinner.setValue( limit );
             var valStr = this.m_frameHigh + "";
             if ( this.m_endLabel.getValue() !== valStr ){
                 this.m_endLabel.setValue( valStr);
@@ -200,9 +215,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( this.m_frameLow != this.m_lowBoundsSpinner.getMinimum() ){
                 this.m_lowBoundsSpinner.setMinimum( this.m_frameLow );
             }
-            if ( this.m_frameLow > this.m_lowBoundsSpinner.getValue()){
+            /*if ( this.m_frameLow > this.m_lowBoundsSpinner.getValue()){
                 this.m_lowBoundsSpinner.setValue( this.m_frameLow );
-            }
+            }*/
             if ( this.m_frameLow != this.m_slider.getMinimum() ){
                 this.m_slider.setMinimum( this.m_frameLow );
             }
@@ -442,18 +457,38 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initSliderControls : function() {
             this.m_lowBoundsSpinner = new qx.ui.form.Spinner(0, 0, 100);
+            this.m_lowBoundsSpinner.addListener( skel.widgets.Path.CHANGE_VALUE, function(ev){
+                //Low bound spinner value must be less than high bound spinner value.
+                var newVal = ev.getData();
+                if ( newVal > this.m_highBoundsSpinner.getValue() ){
+                    this.m_lowBoundsSpinner.setValue( ev.getOldData());
+                }
+                else {
+                    this._sendUserLowerBound();
+                }
+            }, this );
             this.m_lowBoundsSpinner.setToolTipText( "Set a lower bound for valid values.");
             this.m_slider = new qx.ui.form.Slider();
-            this.m_slider.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
+            this.m_slider.addListener(skel.widgets.Path.CHANGE_VALUE, function( ev ) {
                 if (this.m_inUpdateState) {
                     return;
                 }
+                
                 if ( this.m_frame != this.m_slider.getValue()){
                     this._sendFrame(this.m_slider.getValue());
                 }
             }, this);
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
+            this.m_highBoundsSpinner.addListener( skel.widgets.Path.CHANGE_VALUE, function(ev){
+                var newVal = ev.getData();
+                if ( newVal < this.m_lowBoundsSpinner.getValue() ){
+                    this.m_highBoundsSpinner.setValue( ev.getOldData());
+                }
+                else {
+                    this._sendUserUpperBound();
+                }
+            }, this );
             skel.widgets.TestID.addTestId( this.m_highBoundsSpinner, this.m_title+"UpperBoundSpin");
             this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();
@@ -648,9 +683,11 @@ qx.Class.define("skel.boundWidgets.Animator", {
                             this._frameStartCB();
                             this._frameEndCB( );
                             this._frameCB( );
+                            this._frameBoundsUserCB( frameObj.frameStartUser, frameObj.frameEndUser );
                         }
                         catch( err ){
-                            console.log( "Could not parse: "+val );
+                            console.log( "Selection resetCB, could not parse: "+val );
+                            console.log( err );
                         }
                     }
                 }
@@ -706,6 +743,30 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_animId + path.SEP_COMMAND + "setFrameStep";
                 var params = "frameStep:"+this.m_stepSpin.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
+         * Send the user set lower bound to the server.
+         */
+        _sendUserLowerBound : function(){
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setLowerBoundUser";
+                var params = this.m_lowBoundsSpinner.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
+         * Send the user set upper bound to the server.
+         */
+        _sendUserUpperBound : function(){
+            if ( this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_animId + path.SEP_COMMAND + "setUpperBoundUser";
+                var params = this.m_highBoundsSpinner.getValue();
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },

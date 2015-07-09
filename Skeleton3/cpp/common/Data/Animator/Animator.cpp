@@ -163,6 +163,7 @@ void Animator::changeChannelIndex( int index ){
 }
 
 void Animator::changeImageIndex( int selectedImage ){
+
     int linkCount = m_linkImpl->getLinkCount();
     for( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
@@ -325,7 +326,7 @@ QString Animator::removeLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkRemoved = m_linkImpl->removeLink( controller );
         if ( linkRemoved  ){
-            disconnect( controller);
+            controller->disconnect( this );
             _resetAnimationParameters(-1);
         }
     }
@@ -362,7 +363,7 @@ void Animator::_resetAnimationParameters( int selectedImage ){
        for ( int i = 0; i < linkCount; i++ ){
            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
            if ( controller != nullptr ){
-               int highKey = controller->getState( Selection::CHANNEL, Selection::HIGH_KEY );
+               int highKey = controller->getChannelUpperBound();
                if ( highKey > maxChannel ){
                   maxChannel = highKey;
                }

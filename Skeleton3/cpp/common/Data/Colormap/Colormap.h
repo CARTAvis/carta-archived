@@ -145,19 +145,15 @@ public:
      */
     QString setSignificantDigits( int digits );
 
-    /**
-     * Returns the selected controller for this colormap.
-     * @return the map's selected controller.
-     */
-    Controller* getControllerSelected() const;
+
     virtual ~Colormap();
     const static QString CLASS_NAME;
 
 signals:
     void colorMapChanged( Colormap* map );
 
-private slots:
-    void _setColorProperties( Controller* target );
+public slots:
+        void setColorProperties( Controller* target );
 
 private:
     QString _commandSetColorMap( const QString& params );

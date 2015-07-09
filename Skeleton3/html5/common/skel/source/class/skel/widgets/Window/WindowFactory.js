@@ -102,8 +102,6 @@ qx.Class.define("skel.widgets.Window.WindowFactory",{
             this.m_windows = windows;
         },
         
-        m_windows : null,
-        m_displayMain : null
- 
+        m_windows : null
     }
 });

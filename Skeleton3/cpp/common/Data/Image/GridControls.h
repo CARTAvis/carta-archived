@@ -152,12 +152,21 @@ public:
     QString setShowInternalLabels( bool showInternalLabels );
 
     /**
+     * Sets whether or not cursor position image statistics should be shown.
+     * @param showStatistics - true if cursor statistics should be shown; false otherwise.
+     * @return an error message if there was a problem hiding/showing cursor statistics;
+     *      an empty string otherwise.
+     */
+    QString setShowStatistics( bool showStatistics );
+
+    /**
      * Set whether or not to show axis ticks.
      * @param showTicks - true if the axis ticks should be shown; false otherwise.
      * @return an error message if there was a problem setting the visibility of axis
      *      ticks; and empty string otherwise.
      */
     QString setShowTicks( bool showTicks );
+
 
     /**
      * Set the color of the tick marks.

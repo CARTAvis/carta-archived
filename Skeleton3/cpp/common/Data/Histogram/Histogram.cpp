@@ -136,17 +136,7 @@ QString Histogram::addLink( CartaObject*  target){
         }
     }
     else {
-        Colormap* map = dynamic_cast<Colormap*>(target);
-        if ( map != nullptr ){
-            linkAdded = m_linkImpl->addLink( map );
-            if ( linkAdded ){
-                connect( map, SIGNAL(colorMapChanged( Colormap*)), this, SLOT( _updateColorMap( Colormap*)));
-                _updateColorMap( map );
-            }
-        }
-        else {
-            result = "Histogram only supports linking to colormaps and images.";
-        }
+        result = "Histogram only supports linking to images";
     }
     return result;
 }
@@ -363,6 +353,7 @@ QString Histogram::getSnapType(CartaObject::SnapshotType snapType) const {
     }
     return objType;
 }
+
 
 void Histogram::_initializeDefaultState(){
 
@@ -878,26 +869,33 @@ void Histogram::_loadData( Controller* controller ){
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
-    if ( controller != nullptr ){
+    if ( controller != nullptr && controller->getStackedImageCount() > 0 ){
         dataSources = _generateData( controller );
+    //}
+        auto result = Globals::instance()-> pluginManager()
+                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
+                                          minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
+                                          minIntensity, maxIntensity);
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
+            m_histogram->setData(data);
+            double freqLow = data.getFrequencyMin();
+            double freqHigh = data.getFrequencyMax();
+            setPlaneRange( freqLow, freqHigh);
+        };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
+        }
     }
-    auto result = Globals::instance()-> pluginManager()
-                              -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
-                                      minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
-                                      minIntensity, maxIntensity);
-    auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-        m_histogram->setData(data);
-        double freqLow = data.getFrequencyMin();
-        double freqHigh = data.getFrequencyMax();
-        setPlaneRange( freqLow, freqHigh);
-    };
-    try {
-        result.forEach( lam );
-    }
-    catch( char*& error ){
-        QString errorStr( error );
-        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        hr->registerError( errorStr );
+    else if ( controller != nullptr && controller->getStackedImageCount() == 0 ){
+        qDebug() << "Clearing data";
+        _resetDefaultStateData();
+        const Carta::Lib::Hooks::HistogramResult data;
+        m_histogram->setData( data );
     }
 }
 
@@ -905,6 +903,7 @@ void Histogram::refreshState() {
     CartaObject::refreshState();
     m_stateData.refreshState();
     m_preferences->refreshState();
+    m_linkImpl->refreshState();
 }
 
 void Histogram::_refreshView(){
@@ -920,21 +919,12 @@ QString Histogram::removeLink( CartaObject* cartaObject){
     if ( controller != nullptr ){
         removed = m_linkImpl->removeLink( controller );
         if ( removed ){
-            disconnect(controller);
+            controller->disconnect(this);
             m_controllerLinked = false;
         }
     }
     else {
-        Colormap* map = dynamic_cast<Colormap*>(cartaObject);
-        if ( map != nullptr ){
-            removed = m_linkImpl->removeLink( map );
-            if ( removed ){
-                disconnect( map );
-            }
-        }
-        else {
-            result= "Histogram was unable to remove link, only color map and image links supported.";
-        }
+       result = "Histogram was unable to remove link only image links are supported";
     }
     return result;
 }
@@ -947,6 +937,22 @@ void Histogram::_resetBinCountBasedOnWidth(){
         m_state.setValue<int>(BIN_COUNT, binCount );
     }
 }
+
+void Histogram::_resetDefaultStateData(){
+   m_stateData.setValue<double>( CLIP_MIN, 0 );
+   m_stateData.setValue<double>(CLIP_MAX, 1);
+   m_stateData.setValue<int>(CLIP_BUFFER_SIZE, 10 );
+   m_stateData.setValue<double>(COLOR_MIN, 0 );
+   m_stateData.setValue<double>(COLOR_MAX, 1 );
+   m_stateData.setValue<int>(COLOR_MIN_PERCENT, 0 );
+   m_stateData.setValue<int>(COLOR_MAX_PERCENT, 100 );
+   m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0);
+   m_stateData.setValue<double>(CLIP_MAX_PERCENT, 100);
+   m_stateData.setValue<double>(PLANE_MIN, 0 );
+   m_stateData.setValue<double>(PLANE_MAX, 1 );
+   m_stateData.flushState();
+}
+
 
 void Histogram::resetState( const QString& state ){
     StateInterface restoredState( "");
@@ -1497,6 +1503,20 @@ QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
     return result;
 }
 
+QString Histogram::saveHistogram( const QString& filename, int width, int height ){
+    QString result = "";
+    Carta::Histogram::HistogramGenerator m_histogramSaver = *m_histogram;
+    if ( width > 0 && height > 0 ) {
+        m_histogramSaver.setSize( width, height );
+    }
+    QImage * histogramImageSaver = m_histogramSaver.toImage();
+    bool resultBool = histogramImageSaver->save( filename );
+    if ( !resultBool ) {
+        result = "Error saving histogram to " + filename;
+    }
+    return result;
+}
+
 QString Histogram::_set2DFootPrint( const QString& params ){
     QString result;
     std::set<QString> keys = {FOOT_PRINT};
@@ -1691,6 +1711,9 @@ void Histogram::_updateChannel( Controller* controller ){
     }
 }
 
+
+
+
 void Histogram::_updateSelection(int x){
     m_selectionEnd = x;
     if ( m_selectionEnabled || m_selectionEnabledColor ){
@@ -1699,10 +1722,11 @@ void Histogram::_updateSelection(int x){
 }
 
 
-void Histogram::_updateColorMap( Colormap* map ){
+void Histogram::updateColorMap( Colormap* map ){
     if ( map != nullptr ){
-        Controller* controller = map->getControllerSelected();
+        Controller* controller = _getControllerSelected();
         if ( controller != nullptr ){
+            map->setColorProperties( controller );
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
             m_histogram->setPipeline( pipeline );
         }
@@ -1710,19 +1734,6 @@ void Histogram::_updateColorMap( Colormap* map ){
     _generateHistogram( false );
 }
 
-QString Histogram::saveHistogram( const QString& filename, int width, int height ){
-    QString result = "";
-    Carta::Histogram::HistogramGenerator m_histogramSaver = *m_histogram;
-    if ( width > 0 && height > 0 ) {
-        m_histogramSaver.setSize( width, height );
-    }
-    QImage * histogramImageSaver = m_histogramSaver.toImage();
-    bool resultBool = histogramImageSaver->save( filename );
-    if ( !resultBool ) {
-        result = "Error saving histogram to " + filename;
-    }
-    return result;
-}
 
 void Histogram::_updateSize( const QSize& size ){
     m_histogram->setSize( size.width(), size.height());

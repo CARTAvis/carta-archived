@@ -112,14 +112,16 @@ QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
 
 
         QString coordName = m_coords->getName( cf->skyCS() );
-        out << "Default sky cs:" << coordName << "\n";
-        out << "Image cursor:" << imgX << "," << imgY << "\n";
+        //out << "Default sky cs:" << coordName << "\n";
+
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frameIndex );
         QString pixelUnits = _getPixelUnits();
-        out << "Value:" << pixelValue << " " << pixelUnits << "\n";
-    
-        QList<Carta::Lib::KnownSkyCS> css = m_coords->getIndices();
-        for ( Carta::Lib::KnownSkyCS cs : css ) {
+        out << pixelValue << " " << pixelUnits;
+        out <<"Pixel:" << imgX << "," << imgY << "\n";
+
+        Carta::Lib::KnownSkyCS cs = m_dataGrid->getSkyCS();
+        //QList<Carta::Lib::KnownSkyCS> css = m_coords->getIndices();
+        //for ( Carta::Lib::KnownSkyCS cs : css ) {
             cf-> setSkyCS( cs );
             out << m_coords->getName( cs ) << ": ";
             std::vector < Carta::Lib::AxisInfo > ais;
@@ -137,7 +139,7 @@ QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
                 out << ais[i].shortLabel().html() << ":" << _getCoordinates( imgX, imgY, cs, i ) << " ";
             }
             out << "\n";
-        }
+        //}
 
         str.replace( "\n", "<br />" );
     }

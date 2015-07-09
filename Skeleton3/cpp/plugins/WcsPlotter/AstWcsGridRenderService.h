@@ -44,13 +44,13 @@ public:
     startRendering( JobId jobId = 0) override;
 
     virtual void
-    setAxes( bool flag ) override;
+    setAxesVisible( bool flag ) override;
 
     virtual void
     setGridDensityModifier( double density ) override;
 
     virtual void
-    setGridLines( bool flag ) override;
+    setGridLinesVisible( bool flag ) override;
 
     virtual void
     setInternalLabels(bool flag ) override;
@@ -71,7 +71,7 @@ public:
     setEmptyGrid( bool flag) override;
 
     virtual void
-    setTicks( bool flag ) override;
+    setTicksVisible( bool flag ) override;
 
 private slots:
 

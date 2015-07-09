@@ -69,7 +69,6 @@ qx.Class.define("skel.widgets.Grid.Color.ColorPage", {
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
             var params = this._getColorParams();
-            console.log( "Color cmd="+cmd+" params="+params);
             this.m_connector.sendCommand( cmd, params, function(){});
         },
         
@@ -80,7 +79,7 @@ qx.Class.define("skel.widgets.Grid.Color.ColorPage", {
          * @param controls {Object} - server side grid color values.
          */
         setControls : function( controlColor ){
-            if ( controlColor !== "undefined"){
+            if ( typeof controlColor != "undefined"){
                 this.m_red = controlColor.red;
                 this.m_green = controlColor.green;
                 this.m_blue = controlColor.blue;

@@ -338,6 +338,24 @@ void GridControls::_initializeCallbacks(){
                 return result;
             });
 
+    addCommandCallback( "setShowStatistics", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    QString result;
+                    std::set<QString> keys = {DataGrid::SHOW_STATISTICS};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString showStatisticsStr = dataValues[DataGrid::SHOW_STATISTICS];
+                    bool validBool = false;
+                    bool showStatistics = Util::toBool( showStatisticsStr, &validBool );
+                    if ( validBool ){
+                        result = setShowStatistics( showStatistics  );
+                    }
+                    else {
+                        result = "Making statistics visible/invisible must be true/false:"+params;
+                    }
+                    Util::commandPostProcess( result );
+                    return result;
+                });
+
     addCommandCallback( "setTickColor", [=] (const QString & /*cmd*/,
                                            const QString & params, const QString & /*sessionId*/) -> QString {
                int redAmount = 0;
@@ -579,6 +597,15 @@ QString GridControls::setShowInternalLabels( bool showInternalLabels ){
     return result;
 }
 
+QString GridControls::setShowStatistics( bool showStatistics ){
+    bool statisticsChanged = false;
+    QString result = m_dataGrid->_setShowStatistics( showStatistics, &statisticsChanged );
+    if ( statisticsChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
 QString GridControls::setShowTicks( bool showTicks ){
     bool ticksChanged = false;
     QString result = m_dataGrid->_setShowTicks( showTicks, & ticksChanged );
@@ -587,6 +614,8 @@ QString GridControls::setShowTicks( bool showTicks ){
     }
     return result;
 }
+
+
 
 QStringList GridControls::setTickColor( int redAmount, int greenAmount, int blueAmount ){
     bool tickColorChanged = false;

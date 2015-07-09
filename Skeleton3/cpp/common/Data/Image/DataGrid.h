@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "CartaLib/Hooks/GetWcsGridRenderer.h"
 
 namespace Carta {
 namespace Lib {
@@ -32,8 +33,13 @@ friend class GridControls;
 
 public:
 
-    virtual ~DataGrid();
+    /**
+     * Returns the currently selected coordinate system.
+     * @return the coordinate system that is selected.
+     */
+    Carta::Lib::KnownSkyCS getSkyCS() const;
 
+    virtual ~DataGrid();
 
     const static QString CLASS_NAME;
     const static QString GRID;
@@ -55,6 +61,7 @@ private:
     QString _setShowCoordinateSystem( bool showCoordinateSystem, bool* coordChanged );
     QString _setShowGridLines( bool showLines, bool* gridChanged );
     QString _setShowInternalLabels( bool showInternalLabels, bool * gridChanged );
+    QString _setShowStatistics( bool showStatistics, bool * statisticsChanged );
     QString _setShowTicks( bool showTicks, bool* ticksChanged );
     QString _setTickThickness( int tickThickness, bool* thicknessChanged );
     QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
@@ -87,11 +94,11 @@ private:
     const static QString SHOW_COORDS;
     const static QString SHOW_INTERNAL_LABELS;
     const static QString SHOW_GRID_LINES;
+    const static QString SHOW_STATISTICS;
     const static QString SHOW_TICKS;
     const static QString SPACING;
     const static QString THEME;
     const static QString TICK;
-    //const static QString TRANSPARENCY;
     const static int PEN_FACTOR;
     const static int MAX_COLOR;
 

@@ -358,7 +358,7 @@ AstWcsGridRenderService::renderNow()
     emit done( m_vgc.vgList(), m().lastSubmittedJobId );
 } // startRendering
 
-void AstWcsGridRenderService::setAxes( bool flag ){
+void AstWcsGridRenderService::setAxesVisible( bool flag ){
     if ( m_axes != flag ){
         m_vgValid = false;
         m_axes = flag;
@@ -384,7 +384,7 @@ AstWcsGridRenderService::setInternalLabels( bool flag )
 }
 
 void
-AstWcsGridRenderService::setGridLines( bool flag ){
+AstWcsGridRenderService::setGridLinesVisible( bool flag ){
     if ( m_gridLines != flag ){
         m_vgValid = false;
         m_gridLines = flag;
@@ -460,7 +460,7 @@ AstWcsGridRenderService::setEmptyGrid( bool flag )
 }
 
 void
-AstWcsGridRenderService::setTicks( bool flag )
+AstWcsGridRenderService::setTicksVisible( bool flag )
 {
     if ( m_ticks != flag ){
         m_vgValid = false;

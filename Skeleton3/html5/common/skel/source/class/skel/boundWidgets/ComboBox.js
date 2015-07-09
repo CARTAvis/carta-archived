@@ -47,7 +47,6 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
        setComboItems : function ( items ){
            this.removeAll();
            var oldValue = this.getValue();
-           console.log( "Item count="+items.length);
            for ( var i = 0; i < items.length; i++ ){
                var newValue = items[i]+"";
                var tempItem = new qx.ui.form.ListItem( newValue );

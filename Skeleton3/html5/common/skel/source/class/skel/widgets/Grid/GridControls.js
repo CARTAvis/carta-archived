@@ -18,6 +18,9 @@ qx.Class.define("skel.widgets.Grid.GridControls", {
         this._init();
     },
     
+    events : {
+        "gridControlsChanged" : "qx.event.type.Data"
+    },
 
     members : {
         
@@ -41,9 +44,14 @@ qx.Class.define("skel.widgets.Grid.GridControls", {
                     if ( this.m_labels !== null ){
                         this.m_labels.setControls( controls );
                     }
+                    
                     if ( this.m_ticks !== null ){
                         this.m_ticks.setControls( controls );
                     }
+                    var data = {
+                            grid : controls.grid
+                    };
+                    this.fireDataEvent( "gridControlsChanged", data );
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
 
