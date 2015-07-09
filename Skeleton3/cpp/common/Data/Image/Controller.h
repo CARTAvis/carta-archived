@@ -155,11 +155,6 @@ public:
      */
     void setTransformData( const QString& name );
 
-    /**
-     * Returns the state associated with the key.
-     * @param key a look up for a specific state.
-     */
-    int getState( const QString& type, const QString& key );
 
     /**
      * Save the state of this controller.

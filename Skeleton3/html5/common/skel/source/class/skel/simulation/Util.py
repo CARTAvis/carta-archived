@@ -53,10 +53,40 @@ def animation_to_image_window(unittest, driver):
     time.sleep(2)
 
 def get_window_count(unittest, driver):
-     windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
+     windowList = driver.find_elements_by_xpath("//div[@class='qx-window']")
      windowCount = len( windowList )
      return windowCount
- 
+
+#Set a custom layout with the given number of rows and columns
+def layout_custom(self, driver, rows, cols ):
+    
+    # Find the layout button on the menu bar and click it.
+    self._clickLayoutButton( driver )
+    
+    # Find the layout custom button in the submenu and click it.
+    customLayoutButton = driver.find_element_by_xpath( "//div[text()='Custom Layout']/..")
+    self.assertIsNotNone( customLayoutButton, "Could not find custom layout button in submenu")
+    ActionChains(driver).click( customLayoutButton).perform()
+    
+    #Get the row count spin and set its value.
+    rowSpin = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutRows')]/input")
+    self.assertIsNotNone( rowSpin, "Could not find custom layout row indicator")
+    rowSpin.send_keys( Keys.BACK_SPACE )
+    rowSpin.send_keys(str(rows))
+    
+    #Get the column count spin and set its value.
+    colSpin = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutCols')]/input")
+    self.assertIsNotNone( colSpin, "Could not find custom layout column indicator")
+    colSpin.send_keys(str(cols))
+    colSpin.send_keys(Keys.ARROW_LEFT)
+    colSpin.send_keys( Keys.BACK_SPACE )
+    
+    #Hit the ok button
+    okButton = driver.find_element_by_xpath( "//div[starts-with(@id,'customLayoutOK')]")
+    self.assertIsNotNone( okButton, "Could not find custom layout ok button")
+    ActionChains(driver).click(okButton).perform()
+
+
 # Load an image
 def load_image(unittest, driver, imageName): 
     # Allow browser to fully load before continuing
@@ -133,6 +163,9 @@ def load_image_different_window(unittest, driver, imageName):
     addButton = driver.find_element_by_xpath( "//div/div[text()='Add']/..")
     unittest.assertIsNotNone( addButton, "Could not click minimize button on window subcontext menu.")
     ActionChains(driver).click( addButton ).perform()
+    
+    # Choose to add at the bottom
+    ActionChains( driver).send_keys( Keys.ARROW_RIGHT ).send_keys( Keys.ENTER ).perform()
     time.sleep(2)
 
     # Check that we now have a generic empty window in the display and that the window count has gone up by one.

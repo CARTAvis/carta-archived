@@ -329,22 +329,11 @@ QString Controller::getPreferencesId() const {
 }
 
 int Controller::getStackedImageCount() const {
-    return m_selectImage->getUpperBound();
-}
-
-
-int Controller::getState( const QString& type, const QString& key ){
-    int value = -1;
-    if ( type == Selection::IMAGE ){
-        value = m_selectImage->getState( key );
+    int count = 0;
+    if ( m_selectImage != nullptr ){
+        count = m_selectImage->getUpperBound();
     }
-    else if ( type == Selection::CHANNEL ){
-        value = m_selectChannel->getState( key );
-    }
-    else {
-        qDebug() << "DataController::getState unrecognized type="<<type;
-    }
-    return value;
+    return count;
 }
 
 
@@ -801,7 +790,6 @@ void Controller::_scheduleFrameRepaint( const QImage& img ){
         if ( m_repaintFrameQueued ) {
             return;
         }
-
         m_view->resetImage( img);
         m_repaintFrameQueued = true;
         QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
@@ -871,6 +859,10 @@ void Controller::setFrameImage( int val) {
             if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
                 int upperBound = m_datas[imageIndex]->_getFrameCount();
                 m_selectChannel->setUpperBound( upperBound );
+                if ( m_selectChannel->getIndex() > m_selectChannel->getUpperBound()){
+                    m_selectChannel->setIndex( 0 );
+                    emit channelChanged( this );
+                }
                 Carta::State::StateInterface gridState = m_datas[imageIndex]->_getGridState();
                 m_gridControls->_resetState( gridState );
             }

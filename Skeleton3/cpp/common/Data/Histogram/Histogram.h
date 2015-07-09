@@ -398,6 +398,7 @@ private:
 
     void _refreshView();
     void _resetBinCountBasedOnWidth();
+    void _resetDefaultStateData();
 
     void _zoomToSelection();
 

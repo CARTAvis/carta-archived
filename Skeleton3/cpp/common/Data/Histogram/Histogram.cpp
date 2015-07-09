@@ -354,6 +354,7 @@ QString Histogram::getSnapType(CartaObject::SnapshotType snapType) const {
     return objType;
 }
 
+
 void Histogram::_initializeDefaultState(){
 
     //Data State - likely to change with a different image
@@ -868,26 +869,33 @@ void Histogram::_loadData( Controller* controller ){
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
-    if ( controller != nullptr ){
+    if ( controller != nullptr && controller->getStackedImageCount() > 0 ){
         dataSources = _generateData( controller );
+    //}
+        auto result = Globals::instance()-> pluginManager()
+                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
+                                          minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
+                                          minIntensity, maxIntensity);
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
+            m_histogram->setData(data);
+            double freqLow = data.getFrequencyMin();
+            double freqHigh = data.getFrequencyMax();
+            setPlaneRange( freqLow, freqHigh);
+        };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
+        }
     }
-    auto result = Globals::instance()-> pluginManager()
-                              -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
-                                      minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
-                                      minIntensity, maxIntensity);
-    auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-        m_histogram->setData(data);
-        double freqLow = data.getFrequencyMin();
-        double freqHigh = data.getFrequencyMax();
-        setPlaneRange( freqLow, freqHigh);
-    };
-    try {
-        result.forEach( lam );
-    }
-    catch( char*& error ){
-        QString errorStr( error );
-        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        hr->registerError( errorStr );
+    else if ( controller != nullptr && controller->getStackedImageCount() == 0 ){
+        qDebug() << "Clearing data";
+        _resetDefaultStateData();
+        const Carta::Lib::Hooks::HistogramResult data;
+        m_histogram->setData( data );
     }
 }
 
@@ -929,6 +937,22 @@ void Histogram::_resetBinCountBasedOnWidth(){
         m_state.setValue<int>(BIN_COUNT, binCount );
     }
 }
+
+void Histogram::_resetDefaultStateData(){
+   m_stateData.setValue<double>( CLIP_MIN, 0 );
+   m_stateData.setValue<double>(CLIP_MAX, 1);
+   m_stateData.setValue<int>(CLIP_BUFFER_SIZE, 10 );
+   m_stateData.setValue<double>(COLOR_MIN, 0 );
+   m_stateData.setValue<double>(COLOR_MAX, 1 );
+   m_stateData.setValue<int>(COLOR_MIN_PERCENT, 0 );
+   m_stateData.setValue<int>(COLOR_MAX_PERCENT, 100 );
+   m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0);
+   m_stateData.setValue<double>(CLIP_MAX_PERCENT, 100);
+   m_stateData.setValue<double>(PLANE_MIN, 0 );
+   m_stateData.setValue<double>(PLANE_MAX, 1 );
+   m_stateData.flushState();
+}
+
 
 void Histogram::resetState( const QString& state ){
     StateInterface restoredState( "");
@@ -1479,6 +1503,20 @@ QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
     return result;
 }
 
+QString Histogram::saveHistogram( const QString& filename, int width, int height ){
+    QString result = "";
+    Carta::Histogram::HistogramGenerator m_histogramSaver = *m_histogram;
+    if ( width > 0 && height > 0 ) {
+        m_histogramSaver.setSize( width, height );
+    }
+    QImage * histogramImageSaver = m_histogramSaver.toImage();
+    bool resultBool = histogramImageSaver->save( filename );
+    if ( !resultBool ) {
+        result = "Error saving histogram to " + filename;
+    }
+    return result;
+}
+
 QString Histogram::_set2DFootPrint( const QString& params ){
     QString result;
     std::set<QString> keys = {FOOT_PRINT};
@@ -1674,19 +1712,7 @@ void Histogram::_updateChannel( Controller* controller ){
 }
 
 
-QString Histogram::saveHistogram( const QString& filename, int width, int height ){
-    QString result = "";
-    Carta::Histogram::HistogramGenerator m_histogramSaver = *m_histogram;
-    if ( width > 0 && height > 0 ) {
-        m_histogramSaver.setSize( width, height );
-    }
-    QImage * histogramImageSaver = m_histogramSaver.toImage();
-    bool resultBool = histogramImageSaver->save( filename );
-    if ( !resultBool ) {
-        result = "Error saving histogram to " + filename;
-    }
-    return result;
-}
+
 
 void Histogram::_updateSelection(int x){
     m_selectionEnd = x;

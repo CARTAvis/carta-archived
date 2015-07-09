@@ -52,8 +52,10 @@ const QImage & ImageView::getBuffer() {
 }
 
 void ImageView::handleResizeRequest(const QSize & size) {
-    m_qimage = QImage(size, m_qimage.format());
-    emit resize( size );
+    if ( size.height() > 0 && size.width() > 0 ){
+        m_qimage = QImage(size, m_qimage.format());
+        emit resize( size );
+    }
 }
 
 void ImageView::handleMouseEvent(const QMouseEvent & ev) {
@@ -70,15 +72,17 @@ void ImageView::scheduleRedraw(){
 }
 
 void ImageView::redrawBuffer() {
-    m_qimage.fill( "#E0E0E0" );
-    {
-        QPainter p(&m_qimage);
-        p.drawImage(m_qimage.rect(), m_defaultImage);
-    }
+    if ( !m_qimage.isNull() ){
+        m_qimage.fill( "#E0E0E0" );
+        {
+            QPainter p(&m_qimage);
+            p.drawImage(m_qimage.rect(), m_defaultImage);
+        }
 
-    // execute the pre-render hook
-    Globals::instance()->pluginManager()->prepare<PreRender>(m_viewName,
-            &m_qimage).executeAll();
+        // execute the pre-render hook
+        Globals::instance()->pluginManager()->prepare<PreRender>(m_viewName,
+                &m_qimage).executeAll();
+    }
 }
 
 
