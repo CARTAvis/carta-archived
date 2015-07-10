@@ -102,7 +102,7 @@ bool LayoutNodeLeaf::setPlugin( const QString& nodeId, const QString& nodeType, 
 bool LayoutNodeLeaf::setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ){
     QString oldPlugin = m_state.getValue<QString>(PLUGIN);
     bool pluginSet = true;
-    if ( oldPlugin != NodeFactory::HIDDEN ){
+    //if ( oldPlugin != NodeFactory::HIDDEN ){
         //First see if there is a plugin in the list that matches the old one.
         int pluginIndex = 0;
         if ( !useFirst ){
@@ -123,7 +123,8 @@ bool LayoutNodeLeaf::setPlugins( QStringList& names, QMap<QString,int>& usedPlug
                 usedCount = usedPlugins[newPlugin];
                 usedCount++;
             }
-            if ( usedCount != m_state.getValue<int>( Carta::State::StateInterface::INDEX )){
+            int plugIndex = m_state.getValue<int>( Carta::State::StateInterface::INDEX );
+            if ( usedCount != plugIndex){
                 m_state.setValue<int>(Carta::State::StateInterface::INDEX, usedCount );
                 stateChanged = true;
             }
@@ -136,7 +137,7 @@ bool LayoutNodeLeaf::setPlugins( QStringList& names, QMap<QString,int>& usedPlug
         else {
             pluginSet = false;
         }
-    }
+    //}
     return pluginSet;
 }
 

@@ -346,14 +346,14 @@ qx.Class.define( "skel.Application",
             var winId = linkSource.window;
             //Get information about links that are currently established and ones
             //that could be established.
-            var linkInfos = [];
-            this.m_desktop.getLinkInfo( pluginId, winId, linkInfos );
             if ( this.m_windowLink === null ){
                 this.m_windowLink = skel.widgets.Link.LinkCanvas.getInstance();
                 var resizeLinkWindow = function( anObject, linkWindow ){
                     var left = 0;
                     var top = anObject._getLinkTopOffset();
                     linkWindow.setLinkOffsets( left, top );
+                    //Update the link locations
+                    anObject._updateLinkInfo( pluginId, winId );
                 };
                 resizeLinkWindow( this, this.m_windowLink );
                 this.m_desktop.addListener( "resize", function(){
@@ -367,8 +367,7 @@ qx.Class.define( "skel.Application",
                 }, this );
                
             }
-           
-            this.m_windowLink.setDrawInfo( linkInfos );
+            this._updateLinkInfo( pluginId, winId );
             this.m_statusBar.showInformation( this.m_windowLink.getHelp());
             var topPos = this._getLinkTopOffset();
             var bottomPos = this._getLinkBottomOffset();
@@ -382,21 +381,20 @@ qx.Class.define( "skel.Application",
        _showMoves : function( ev ){
            var linkSource = ev.getData();
            var winId = linkSource.window;
-           var moveInfo = this.m_desktop.getMoveInfo( winId );
            if ( this.m_windowMove === null ){
                this.m_windowMove = skel.widgets.Link.MoveCanvas.getInstance();
                var resizeMoveWindow = function( anObject, moveWindow ){
                    var left = 0;
                    var top = anObject._getLinkTopOffset();
                    moveWindow.setLinkOffsets( left, top );
+                   anObject._updateMoveInfo( winId );
                };
                resizeMoveWindow( this, this.m_windowMove );
                this.m_desktop.addListener( "resize", function(){
                    resizeMoveWindow( this, this.m_windowMove );
                }, this );
            }
-          
-           this.m_windowMove.setDrawInfo( moveInfo );
+           this._updateMoveInfo( winId );
            this.m_statusBar.showInformation( this.m_windowMove.getHelp());
            var topPos = this._getLinkTopOffset();
            var bottomPos = this._getLinkBottomOffset();
@@ -486,6 +484,32 @@ qx.Class.define( "skel.Application",
             this.getRoot().add(win);
             win.open();
             win.setUserBounds( leftPt, topPt, widthVal, heightVal );
+        },
+        
+        /**
+         * Provides the draw canvas with information about links from a particular
+         * plugin and window.
+         * @param pluginId {String} a plugin identifier.
+         * @param winId {String} a window identifier.
+         */
+        _updateLinkInfo : function( pluginId, winId ){
+            if ( this.m_windowLink !== null ){
+                var linkInfos = [];
+                this.m_desktop.getLinkInfo( pluginId, winId, linkInfos );
+                this.m_windowLink.setDrawInfo( linkInfos );
+            }
+        },
+        
+        /**
+         * Provides the draw canvas with information about moves from a particular
+         * plugin and window.
+         * @param winId {String} a window identifier.
+         */
+        _updateMoveInfo : function( winId ){
+            if ( this.m_windowMove !== null ){
+                var moveInfos = this.m_desktop.getMoveInfo( winId );
+                this.m_windowMove.setDrawInfo( moveInfos );
+            }
         },
 
         m_desktop       : null,
