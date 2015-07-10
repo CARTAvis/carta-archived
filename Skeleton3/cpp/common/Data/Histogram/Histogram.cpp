@@ -45,9 +45,11 @@ const QString Histogram::GRAPH_COLORED = "colored";
 const QString Histogram::PLANE_MODE="planeMode";
 const QString Histogram::PLANE_MODE_SINGLE="Current";
 const QString Histogram::PLANE_MODE_RANGE="Range";
+const QString Histogram::PLANE_MODE_RANGE_VALID = "image3D";
 const QString Histogram::PLANE_MODE_ALL="All";
 const QString Histogram::PLANE_MIN = "planeMin";
 const QString Histogram::PLANE_MAX = "planeMax";
+
 const QString Histogram::FOOT_PRINT = "twoDFootPrint";
 const QString Histogram::FOOT_PRINT_IMAGE = "Image";
 const QString Histogram::FOOT_PRINT_REGION = "Selected Region";
@@ -170,7 +172,6 @@ void Histogram::_createHistogram( Controller* controller){
     std::pair<int,int> frameBounds = _getFrameBounds();
     bool minValid = controller->getIntensity( frameBounds.first, frameBounds.second, 0, &minIntensity );
     bool maxValid = controller->getIntensity( frameBounds.first, frameBounds.second, 1, &maxIntensity );
-
     if(minValid && maxValid){
         int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
         minIntensity = Util::roundToDigits( minIntensity, significantDigits );
@@ -181,6 +182,17 @@ void Histogram::_createHistogram( Controller* controller){
         m_stateData.setValue<double>(CLIP_MAX, maxIntensity);
         m_stateData.setValue<double>(COLOR_MIN, minIntensity );
         m_stateData.setValue<double>(COLOR_MAX, maxIntensity );
+
+        int frameCount = controller->getChannelUpperBound() - 1;
+        bool planeModeValid = false;
+        if ( frameCount > 0 ){
+            planeModeValid = true;
+        }
+        bool oldPlaneModeValid = m_stateData.getValue<bool>(PLANE_MODE_RANGE_VALID );
+        if ( planeModeValid != oldPlaneModeValid ){
+            m_stateData.setValue<bool>(PLANE_MODE_RANGE_VALID, planeModeValid);
+        }
+
         m_stateData.flushState();
     }
     _generateHistogram( true, controller );
@@ -369,6 +381,7 @@ void Histogram::_initializeDefaultState(){
     m_stateData.insertValue<double>(CLIP_MAX_PERCENT, 100);
     m_stateData.insertValue<double>(PLANE_MIN, 0 );
     m_stateData.insertValue<double>(PLANE_MAX, 1 );
+    m_stateData.insertValue<bool>(PLANE_MODE_RANGE_VALID, true );
     m_stateData.flushState();
 
     //Preferences - not image specific
@@ -870,8 +883,8 @@ void Histogram::_loadData( Controller* controller ){
 
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
     if ( controller != nullptr && controller->getStackedImageCount() > 0 ){
+
         dataSources = _generateData( controller );
-    //}
         auto result = Globals::instance()-> pluginManager()
                                   -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
                                           minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
@@ -1710,8 +1723,6 @@ void Histogram::_updateChannel( Controller* controller ){
         _generateHistogram(true, controller );
     }
 }
-
-
 
 
 void Histogram::_updateSelection(int x){

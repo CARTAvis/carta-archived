@@ -428,6 +428,7 @@ private:
     const static QString PLANE_MODE;
     const static QString PLANE_MODE_SINGLE;
     const static QString PLANE_MODE_RANGE;
+    const static QString PLANE_MODE_RANGE_VALID;
     const static QString PLANE_MODE_ALL;
     const static QString PLANE_MIN;
     const static QString PLANE_MAX;
