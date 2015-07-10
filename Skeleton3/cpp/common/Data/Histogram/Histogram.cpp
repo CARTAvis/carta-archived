@@ -934,6 +934,7 @@ QString Histogram::removeLink( CartaObject* cartaObject){
         if ( removed ){
             controller->disconnect(this);
             m_controllerLinked = false;
+            _resetDefaultStateData();
         }
     }
     else {

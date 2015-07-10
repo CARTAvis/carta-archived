@@ -369,7 +369,7 @@ void Animator::_resetAnimationParameters( int selectedImage ){
                }
            }
        }
-       m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
+       m_animators[Selection::CHANNEL]->setUpperBound( maxChannel + 1);
    }
 }
 
