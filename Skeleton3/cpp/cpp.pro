@@ -8,7 +8,7 @@ SUBDIRS = \
     common \
     desktop \
     plugins \
-    Tests \
+    Tests
 
 isEmpty(NOSERVER) {
 	SUBDIRS +=server

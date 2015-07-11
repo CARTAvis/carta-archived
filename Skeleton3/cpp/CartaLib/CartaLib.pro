@@ -29,7 +29,8 @@ SOURCES += \
     VectorGraphics/BetterQPainter.cpp \
     Algorithms/ContourConrec.cpp \
     IWcsGridRenderService.cpp \
-    ContourSet.cpp
+    ContourSet.cpp \
+    Algorithms/LineCombiner.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -60,7 +61,8 @@ HEADERS += \
     Algorithms/ContourConrec.h \
     IWcsGridRenderService.h \
     IContourGeneratorService.h \
-    ContourSet.h
+    ContourSet.h \
+    Algorithms/LineCombiner.h
 
 unix {
     target.path = /usr/lib

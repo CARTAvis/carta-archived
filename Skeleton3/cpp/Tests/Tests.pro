@@ -10,7 +10,8 @@ SOURCES += \
     mainTester.cpp \
     SliceTester.cpp \
     StateTester.cpp \
-    pixelPipelineTest.cpp
+    pixelPipelineTest.cpp \
+    LineCombinerTest.cpp
 
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = catch.h
@@ -23,6 +24,7 @@ unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
 QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../common\''
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.dylib
     PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.dylib
