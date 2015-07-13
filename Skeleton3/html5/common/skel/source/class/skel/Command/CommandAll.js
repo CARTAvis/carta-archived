@@ -31,13 +31,14 @@ qx.Class.define("skel.Command.CommandAll", {
         this.m_cmds[5] = skel.Command.Window.CommandWindow.getInstance();
         this.m_cmds[6] = skel.Command.Clip.CommandClip.getInstance();
         this.m_cmds[7] = skel.Command.Data.CommandData.getInstance();
-        this.m_cmds[8] = skel.Command.Popup.CommandPopup.getInstance();
+        this.m_cmds[8] = skel.Command.Settings.SettingsGrid.getInstance();
         this.m_cmds[9] = skel.Command.Animate.CommandAnimations.getInstance();
-        this.m_cmds[10] = skel.Command.Histogram.Histogram.getInstance();
-        this.m_cmds[11] = skel.Command.Colormap.Colormap.getInstance();
+        this.m_cmds[10] = skel.Command.Settings.SettingsHistogram.getInstance();
+        this.m_cmds[11] = skel.Command.Settings.SettingsColor.getInstance();
+        this.m_cmds[12] = skel.Command.Popup.CommandPopup.getInstance();
         
         //Except that global help always comes last
-        this.m_cmds[12] = skel.Command.Help.CommandHelp.getInstance();
+        this.m_cmds[13] = skel.Command.Help.CommandHelp.getInstance();
         this.setValue( this.m_cmds );
     },
     

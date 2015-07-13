@@ -106,7 +106,7 @@ QString LinkableImpl::getStateString( int index, const QString& typeStr ) const{
         QString indexLookup = UtilState::getLookup( lookup, StateInterface::INDEX);
         QString typeLookup = UtilState::getLookup( lookup, StateInterface::OBJECT_TYPE );
         linkState.insertValue<int>( indexLookup, m_cartaObjs[i]->getIndex());
-        linkState.insertValue<QString>( typeLookup, m_cartaObjs[i]->getType(Carta::State::CartaObject::SNAPSHOT_PREFERENCES));
+        linkState.insertValue<QString>( typeLookup, m_cartaObjs[i]->getSnapType(Carta::State::CartaObject::SNAPSHOT_PREFERENCES));
     }
     return linkState.toString();
 }
@@ -115,6 +115,10 @@ void LinkableImpl::_initializeState( const QString& parentPath ){
     m_state.insertArray(LINK, 0 );
     m_state.insertValue<QString>(PARENT_ID,parentPath);
     m_state.flushState();
+}
+
+void LinkableImpl::refreshState(){
+    m_state.refreshState();
 }
 
 bool LinkableImpl::removeLink( Carta::State::CartaObject* cartaObj ){

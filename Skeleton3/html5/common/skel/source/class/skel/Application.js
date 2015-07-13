@@ -129,15 +129,10 @@ qx.Class.define( "skel.Application",
         _showLayoutPopup : function( message ){
             if( this.m_layoutPopup === null ) {
                 this.m_layoutPopup = new skel.widgets.CustomLayoutPopup();
-                this.m_layoutPopup.addListener( "layoutRowCount", function( message )
-                        {
+                this.m_layoutPopup.addListener( "layoutSizeChanged", function( message ){
                             this._hideWindows();
-                            this.m_desktop.setRowCount( message.getData() );
-                        }, this );
-                this.m_layoutPopup.addListener( "layoutColCount", function( message )
-                        {
-                            this._hideWindows();
-                            this.m_desktop.setColCount( message.getData() );
+                            var data = message.getData();
+                            this.m_desktop.setLayoutSize( data.rows, data.cols );
                         }, this );
                 this.m_layoutPopup.addListener("closeCustomLayout", function(ev){
                     this._hideWidget( this.m_layoutPopup );
@@ -202,46 +197,7 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_sessionSaveDialog, layoutObj );
         },
-        
-        /**
-         * Show a dialog allowing the user to make adjustments to colormap preferences.
-         * @param message {qx.event.message.Message}
-         */
-        _showColormapPreferences : function( message ){
-            if( this.m_colormapPreferences === null ) {
-                this.m_colormapPreferences = new skel.widgets.Colormap.Preferences( message.getData());
-                this.m_colormapPreferences.addListener("closeColormapPreferences", function(ev){
-                    this._hideWidget( this.m_colormapPreferences );
-                }, this );
-            }
-            var layoutObj = {
-                    left  : "0%",
-                    right : "75%",
-                    top   : "0%",
-                    bottom: "75%"
-            };
-            this._showWidget( this.m_colormapPreferences, layoutObj );
-        },
-        
-        /**
-         * Show a dialog allowing the user to make adjustments to histogram preferences.
-         * @param message {qx.event.message.Message}
-         */
-        _showHistogramPreferences : function( message ){
-            if( this.m_histogramPreferences === null ) {
-                this.m_histogramPreferences = new skel.widgets.Histogram.Preferences( message.getData());
-                this.m_histogramPreferences.addListener("closeHistogramPreferences", function(ev){
-                    this._hideWidget( this.m_histogramPreferences );
-                }, this );
-            }
-            var layoutObj = {
-                    left  : "0%",
-                    right : "75%",
-                    top   : "0%",
-                    bottom: "75%"
-            };
-            this._showWidget( this.m_histogramPreferences, layoutObj );
-        },
+       
         
         _showWidget : function( widget, layoutObj ){
             var root = this.getRoot();
@@ -271,17 +227,19 @@ qx.Class.define( "skel.Application",
             qx.event.message.Bus.subscribe( "linkingFinished", function( ev ){
                 this._hideWindows();
             }, this );
+            qx.event.message.Bus.subscribe( "showMoves", function( message ){
+                this._showMoves( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "moveFinished", function( ev ){
+                this._hideWindows();
+            }, this );
+            
+            
             qx.event.message.Bus.subscribe( "showPopupWindow", function(message){
                 this._showPopup( message );
             }, this );
             qx.event.message.Bus.subscribe( "showCustomizeDialog", function(message){
                 this._showCustomizeDialog( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "showColormapPreferences", function(message){
-                this._showColormapPreferences( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "showHistogramPreferences", function(message){
-                this._showHistogramPreferences( message );
             }, this );
             qx.event.message.Bus.subscribe( "showLayoutPopup", function(message){
                 this._showLayoutPopup( message);
@@ -347,6 +305,7 @@ qx.Class.define( "skel.Application",
          */
         _hideWindows: function(){
             this._hideWindow( this.m_windowLink );
+            this._hideWindow( this.m_windowMove );
             this.m_statusBar.clearMessages();
         },
 
@@ -361,23 +320,20 @@ qx.Class.define( "skel.Application",
          * A linkage between displays has either been added or removed.
          * @param addLink {boolean} whether the link is being added or removed.
          */
-        _linksChanged: function( addLink, ev )
-            {
-                var data = ev.getData();
-                var linkSource = data.source;
-                var linkDest = data.destination;
-                this.m_desktop.link( linkSource, linkDest, addLink );
+        _linksChanged: function( addLink, ev ){
+            var data = ev.getData();
+            var linkSource = data.getSource();
+            var linkDest = data.getDestination();
+            this.m_desktop.link( linkSource, linkDest, addLink );
         },
-
 
 
         /**
          * Restore the window at the given layout row and column to its original position.
-         * @param row {Number} the layout row index of the window to be restored.
-         * @param col {Number} the layout column index of the window to be restored.
+         * @param locationId {String} an identifier for the location where the window should be restored.
          */
-        restoreWindow : function( row, col){
-            this.m_desktop.restoreWindow( row, col );
+        restoreWindow : function( locationId ){
+            this.m_desktop.restoreWindow( locationId );
         },
         
         /**
@@ -388,19 +344,21 @@ qx.Class.define( "skel.Application",
             var linkSource = ev.getData();
             var pluginId = linkSource.plugin;
             var winId = linkSource.window;
-            var linkInfo = this.m_desktop.getLinkInfo( pluginId, winId );
+            //Get information about links that are currently established and ones
+            //that could be established.
             if ( this.m_windowLink === null ){
                 this.m_windowLink = skel.widgets.Link.LinkCanvas.getInstance();
                 var resizeLinkWindow = function( anObject, linkWindow ){
                     var left = 0;
                     var top = anObject._getLinkTopOffset();
                     linkWindow.setLinkOffsets( left, top );
+                    //Update the link locations
+                    anObject._updateLinkInfo( pluginId, winId );
                 };
                 resizeLinkWindow( this, this.m_windowLink );
                 this.m_desktop.addListener( "resize", function(){
                     resizeLinkWindow( this, this.m_windowLink );
                 }, this );
-
                 this.m_windowLink.addListener( "link", function( ev ){
                     this._linksChanged( true, ev );
                 }, this );
@@ -409,13 +367,39 @@ qx.Class.define( "skel.Application",
                 }, this );
                
             }
-           
-            this.m_windowLink.setDrawInfo( linkInfo );
+            this._updateLinkInfo( pluginId, winId );
             this.m_statusBar.showInformation( this.m_windowLink.getHelp());
             var topPos = this._getLinkTopOffset();
             var bottomPos = this._getLinkBottomOffset();
             this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
        },
+       
+       /**
+        * Show an overlay window displaying linkage between windows that allows
+        * the user to edit links.
+        */
+       _showMoves : function( ev ){
+           var linkSource = ev.getData();
+           var winId = linkSource.window;
+           if ( this.m_windowMove === null ){
+               this.m_windowMove = skel.widgets.Link.MoveCanvas.getInstance();
+               var resizeMoveWindow = function( anObject, moveWindow ){
+                   var left = 0;
+                   var top = anObject._getLinkTopOffset();
+                   moveWindow.setLinkOffsets( left, top );
+                   anObject._updateMoveInfo( winId );
+               };
+               resizeMoveWindow( this, this.m_windowMove );
+               this.m_desktop.addListener( "resize", function(){
+                   resizeMoveWindow( this, this.m_windowMove );
+               }, this );
+           }
+           this._updateMoveInfo( winId );
+           this.m_statusBar.showInformation( this.m_windowMove.getHelp());
+           var topPos = this._getLinkTopOffset();
+           var bottomPos = this._getLinkBottomOffset();
+           this.getRoot().add( this.m_windowMove, {left:0, top:topPos, bottom:bottomPos, right:0});
+      },
             
         /**
          * Return the total height in pixels of display elements like a possible menu or toolbar
@@ -463,12 +447,17 @@ qx.Class.define( "skel.Application",
          */
         _showPopup : function( message ){
             var data = message.getData();
-            var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, -1, -1, true );
+            var win = skel.widgets.Window.WindowFactory.makeWindow( data.pluginId, -1, true );
             win.addListener( "registered", function(){
                 var sourceId = win.getIdentifier();
                 var addLinkCmd = skel.Command.Link.CommandLinkAdd.getInstance();
                 addLinkCmd.link( sourceId, data.winId, null );
             }, this);
+            win.addListener( "close", function(){
+                var sourceId = win.getIdentifier();
+                var removeLinkCmd = skel.Command.Link.CommandLinkRemove.getInstance();
+                removeLinkCmd.link( sourceId, data.winId, null );
+            }, this );
             this._setPopupWinProperties( win );
         },
             
@@ -496,15 +485,40 @@ qx.Class.define( "skel.Application",
             win.open();
             win.setUserBounds( leftPt, topPt, widthVal, heightVal );
         },
+        
+        /**
+         * Provides the draw canvas with information about links from a particular
+         * plugin and window.
+         * @param pluginId {String} a plugin identifier.
+         * @param winId {String} a window identifier.
+         */
+        _updateLinkInfo : function( pluginId, winId ){
+            if ( this.m_windowLink !== null ){
+                var linkInfos = [];
+                this.m_desktop.getLinkInfo( pluginId, winId, linkInfos );
+                this.m_windowLink.setDrawInfo( linkInfos );
+            }
+        },
+        
+        /**
+         * Provides the draw canvas with information about moves from a particular
+         * plugin and window.
+         * @param winId {String} a window identifier.
+         */
+        _updateMoveInfo : function( winId ){
+            if ( this.m_windowMove !== null ){
+                var moveInfos = this.m_desktop.getMoveInfo( winId );
+                this.m_windowMove.setDrawInfo( moveInfos );
+            }
+        },
 
         m_desktop       : null,
-        m_colormapPreferences : null,
-        m_histogramPreferences : null,
         m_menuBar       : null,
         m_toolBar : null,
         m_statusBar     : null,
         m_mainContainer : null,
         m_windowLink    : null,
+        m_windowMove    : null,
         m_fileBrowser   : null,
         m_customizeDialog : null,
         m_layoutPopup : null,

@@ -1,6 +1,6 @@
 #include "Animator.h"
 #include "Data/Selection.h"
-#include "Data/Controller.h"
+#include "Data/Image/Controller.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "CartaLib/CartaLib.h"
@@ -55,7 +55,8 @@ QString Animator::addLink( CartaObject* cartaObject ){
     }
 
     if ( linkAdded ){
-        _resetAnimationParameters( -1);
+        //_resetAnimationParameters( -1);
+        _adjustStateController( controller );
     }
     return result;
 }
@@ -142,7 +143,7 @@ int Animator::getLinkCount() const {
     return m_linkImpl->getLinkCount();
 }
 
-QList<QString> Animator::getLinks() {
+QList<QString> Animator::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 
@@ -162,6 +163,7 @@ void Animator::changeChannelIndex( int index ){
 }
 
 void Animator::changeImageIndex( int selectedImage ){
+
     int linkCount = m_linkImpl->getLinkCount();
     for( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
@@ -201,7 +203,7 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getType( type ) );
+        result = m_linkImpl->getStateString(getIndex(), getSnapType( type ) );
     }
     else if ( type == SNAPSHOT_DATA ){
         //Data State is selections on individual animators.
@@ -228,13 +230,15 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
     return result;
 }
 
-QString Animator::getType(CartaObject::SnapshotType snapType) const {
-    QString objType = CartaObject::getType( snapType );
+QString Animator::getSnapType(CartaObject::SnapshotType snapType) const {
+    QString objType = CartaObject::getSnapType( snapType );
     if ( snapType == SNAPSHOT_DATA ){
         objType = objType + StateInterface::STATE_DATA;
     }
     return objType;
 }
+
+
 
 void Animator::_imageIndexChanged( int selectedImage){
     changeImageIndex( selectedImage );
@@ -243,8 +247,9 @@ void Animator::_imageIndexChanged( int selectedImage){
 QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
     QString animId;
     if ( !m_animators.contains( type ) ){
-        Carta::State::CartaObject* animObj = Util::createObject( AnimatorType::CLASS_NAME );
-        m_animators.insert(type, dynamic_cast<AnimatorType*>(animObj) );
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        AnimatorType* animObj = objMan->createObject<AnimatorType>();
+        m_animators.insert(type, animObj );
         _adjustStateAnimatorTypes();
         *newAnimator = true;
     }
@@ -278,15 +283,27 @@ void Animator::_initializeCallbacks(){
 
 void Animator::_initializeState(){
     m_state.insertArray( AnimatorType::ANIMATIONS, 0);
-    m_state.insertValue<bool>( Util::STATE_FLUSH, false );
     QString animId;
     addAnimator( Selection::CHANNEL, animId);
 }
 
+bool Animator::isLinked( const QString& linkId ) const {
+    bool linked = false;
+    CartaObject* obj = m_linkImpl->searchLinks( linkId );
+    if ( obj != nullptr ){
+        linked = true;
+    }
+    return linked;
+}
+
+
 void Animator::refreshState(){
-    m_state.setValue<bool>(Util::STATE_FLUSH, true );
-    m_state.flushState();
-    m_state.setValue<bool>(Util::STATE_FLUSH, false );
+    CartaObject::refreshState();
+    QList<QString> animKeys = m_animators.keys();
+    for ( int i = 0; i < animKeys.size(); i++ ){
+        m_animators[animKeys[i]]->refreshState();
+    }
+    m_linkImpl->refreshState();
 }
 
 QString Animator::removeAnimator( const QString& type ){
@@ -309,7 +326,7 @@ QString Animator::removeLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkRemoved = m_linkImpl->removeLink( controller );
         if ( linkRemoved  ){
-            disconnect( controller);
+            controller->disconnect( this );
             _resetAnimationParameters(-1);
         }
     }
@@ -324,9 +341,20 @@ QString Animator::removeLink( CartaObject* cartaObject ){
 void Animator::_resetAnimationParameters( int selectedImage ){
     if ( m_animators.contains( Selection::IMAGE) ){
         int maxImages = _getMaxImageCount();
-        m_animators[Selection::IMAGE]->setUpperBound(maxImages);
+        if ( maxImages == 0 ){
+            m_animators[Selection::IMAGE]->setUpperBound( 1 );
+        }
+        else {
+            m_animators[Selection::IMAGE]->setUpperBound(maxImages);
+        }
         if ( selectedImage >= 0 ){
             m_animators[Selection::IMAGE]->setFrame( selectedImage );
+        }
+        else {
+            int index = m_animators[Selection::IMAGE]->getFrame();
+            if ( index > maxImages ){
+                m_animators[Selection::IMAGE]->setIndex( 0 );
+            }
         }
     }
     if ( m_animators.contains( Selection::CHANNEL)){
@@ -335,13 +363,13 @@ void Animator::_resetAnimationParameters( int selectedImage ){
        for ( int i = 0; i < linkCount; i++ ){
            Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
            if ( controller != nullptr ){
-               int highKey = controller->getState( Selection::CHANNEL, Selection::HIGH_KEY );
+               int highKey = controller->getChannelUpperBound();
                if ( highKey > maxChannel ){
                   maxChannel = highKey;
                }
            }
        }
-       m_animators[Selection::CHANNEL]->setUpperBound( maxChannel );
+       m_animators[Selection::CHANNEL]->setUpperBound( maxChannel + 1);
    }
 }
 
@@ -398,9 +426,9 @@ Animator::~Animator(){
     int animationCount = m_animators.size();
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
-        QString id = m_animators[keys[i]]->getId();
-        if ( id.size() > 0 ){
-            objMan->destroyObject( id );
+        if ( m_animators[keys[i]] != nullptr ){
+            objMan->destroyObject( m_animators[keys[i]]->getId() );
+            m_animators[keys[i]] = nullptr;
         }
     }
     m_animators.clear();

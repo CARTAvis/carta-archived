@@ -104,6 +104,10 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) = 0;
 
+    //Set whether or not to draw axes/border.
+    virtual void
+    setAxesVisible( bool flag ) = 0;
+
     /// set a pen attribute for the given element
     virtual void
     setPen( Element e, const QPen & pen ) = 0;
@@ -121,6 +125,10 @@ public:
     virtual void
     setGridDensityModifier( double density ) = 0;
 
+    //Set whether or not grid lines should be drawn.
+    virtual void
+    setGridLinesVisible( bool on ) = 0;
+
     /// set whether the grid labels should be external or internal
     virtual void
     setInternalLabels( bool on ) = 0;
@@ -128,6 +136,11 @@ public:
     /// which celestial system to draw
     virtual void
     setSkyCS( KnownSkyCS cs ) = 0;
+
+    /// set whether or not tick marks should be drawn.
+    virtual void
+    setTicksVisible( bool on ) = 0;
+
 
     /// start rendering with current parameters
     /// if possible, previously scheduled rendering will be canceled

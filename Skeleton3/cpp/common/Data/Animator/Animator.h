@@ -29,7 +29,7 @@ class Animator : public QObject, public Carta::State::CartaObject, public ILinka
 public:
 
     //ILinkable
-    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks()  const Q_DECL_OVERRIDE;
 
     /**
      * Add an animator of the given type.
@@ -80,13 +80,20 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
-     * Force the connector to flush the state to the view.
+     * Returns whether or not the object with the given id is already linked to this object.
+     * @param linkId - a QString identifier for an object.
+     * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
-    void refreshState();
+    virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
 
     void changeChannelIndex( int index );
 
     void changeImageIndex( int selectedImage );
+
+    /**
+     * Force a state refresh.
+     */
+    virtual void refreshState() Q_DECL_OVERRIDE;
 
     /**
      * Removes a link to this animator.
@@ -119,7 +126,7 @@ public:
 
     virtual ~Animator();
 protected:
-    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+    virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
     //Adjusts internal state based on the state in the child controllers.
@@ -157,7 +164,7 @@ private:
     static bool m_registered;
 
     Animator( const Animator& other);
-    Animator operator=( const Animator& other );
+    Animator& operator=( const Animator& other );
 };
 }
 }

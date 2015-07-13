@@ -59,7 +59,7 @@ public:
     QString getStateString( int index, const QString& typeStr  ) const;
 
     Carta::State::CartaObject* searchLinks(const QString& link);
-
+    void refreshState();
     bool removeLink( Carta::State::CartaObject* cartaObj );
     bool addLink( Carta::State::CartaObject* cartaObj );
     virtual ~LinkableImpl();
@@ -93,7 +93,7 @@ private:
     Carta::State::StateInterface m_state;
 
     LinkableImpl( const LinkableImpl& other);
-    LinkableImpl operator=( const LinkableImpl& other );
+    LinkableImpl& operator=( const LinkableImpl& other );
 };
 
 }

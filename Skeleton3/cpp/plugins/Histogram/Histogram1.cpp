@@ -121,7 +121,6 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
                 else {
                     qWarning() << "casaImage is nullptr, casting failed";
                 }
-
             }
             else {
                 qWarning() << "Unsupported pixel type for channel bounds";
@@ -205,7 +204,6 @@ std::pair<double,double> Histogram1::_getFrequencyBounds( int channelMin, int ch
                 else {
                     qWarning() << "casaImage is nullptr, casting failed";
                 }
-
             }
             else {
                 qWarning() << "Unsupported pixel type for channel bounds";
@@ -240,6 +238,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
 
         std::vector<std::shared_ptr<Image::ImageInterface>> images = hook.paramsPtr->dataSource;
+        casa::ImageInterface<casa::Float> * casaImage = nullptr;
         if ( images.size() > 0 ){
             m_cartaImage = images.front();
 
@@ -274,9 +273,18 @@ bool Histogram1::handleHook( BaseHook & hookData ){
             int minChannel = -1;
             int maxChannel = -1;
             if ( frequencyMin < 0 || frequencyMax < 0  ){
-                minChannel = hook.paramsPtr->minChannel;
-                maxChannel = hook.paramsPtr->maxChannel;
-                m_histogram->setChannelRange(minChannel, maxChannel);
+                if ( casaImage != nullptr ){
+                    casa::CoordinateSystem cSys = casaImage->coordinates();
+                    casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL);
+                    if ( specAx >= 0 ){
+                        minChannel = hook.paramsPtr->minChannel;
+                        maxChannel = hook.paramsPtr->maxChannel;
+                        m_histogram->setChannelRange(minChannel, maxChannel);
+                    }
+                }
+                else {
+                    m_histogram->setChannelRange( -1, -1 );
+                }
                 std::pair<double,double> bounds = _getFrequencyBounds( minChannel, maxChannel, rangeUnits);
                 frequencyMin = bounds.first;
                 frequencyMax = bounds.second;

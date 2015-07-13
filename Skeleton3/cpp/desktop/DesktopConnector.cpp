@@ -248,7 +248,8 @@ void DesktopConnector::refreshViewNow(IView *view)
     // get the image from view
     const QImage & origImage = view-> getBuffer();
 
-    if( origImage.size() != viewInfo->clientSize) {
+    QSize clientImageSize = viewInfo->clientSize;
+    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 && clientImageSize.width() > 0 ) {
         qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
         // scale the image to fit the client size, in case it wasn't scaled alerady
         QImage destImage = origImage.scaled(

@@ -27,6 +27,9 @@ qx.Class.define("skel.Command.Window.CommandWindowMaximize", {
                     var window = skel.Command.Command.m_activeWins[i];
                     window.fireDataEvent("maximizeWindow", window);
                     window.maximize();
+                    //Update the context window so maximize is no longer
+                    //present.
+                    window._initContextMenu();
                 }
             }
         }

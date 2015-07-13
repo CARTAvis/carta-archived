@@ -59,7 +59,7 @@ private:
 
 
 	TransformsData( const TransformsData& other);
-	TransformsData operator=( const TransformsData & other );
+	TransformsData& operator=( const TransformsData & other );
 };
 
 }
