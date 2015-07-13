@@ -1,3 +1,4 @@
+#include <math.h>
 #include "DataGrid.h"
 #include "CoordinateSystems.h"
 #include "Fonts.h"

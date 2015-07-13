@@ -3,6 +3,10 @@ defineTest(dbg) {
 #    message( $$1)
 }
 
+! include(common_config.pri) {
+  error( "Could not find the common_config.pri file!" )
+}
+
 equals( CARTA_BUILD_TYPE, release) {
     CARTA_CONFIG =
 }

@@ -2,10 +2,6 @@
   error( "Could not find the common.pri file!" )
 }
 
-! include(../../common_config.pri) {
-  error( "Could not find the common_config.pri file!" )
-}
-
 QT       += core gui
 
 TARGET = plugin
