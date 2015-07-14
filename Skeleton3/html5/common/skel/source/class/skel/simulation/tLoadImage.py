@@ -15,14 +15,12 @@ class tLoadImage(unittest.TestCase):
     # Test that an image can be loaded and then closed.
     def test_load_image(self):    
         driver = self.driver
-        time.sleep(5)
         
         # Load a specific image.  
-        Util.load_image(self, driver, "Default")
+        imageWindow = Util.load_image(self, driver, "Default")
         
         # Click on the Data->Close->Image button to close the image.
-        imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
-        ActionChains(driver).context_click(imageWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+        ActionChains(driver).context_click( imageWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
         
     def tearDown(self):
         # Close the browser

@@ -5,6 +5,9 @@ import Util
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 
 # Tests of histogram functionality
 class tHistogram( unittest.TestCase ):
@@ -20,21 +23,20 @@ class tHistogram( unittest.TestCase ):
         return textValue
 
     def _openHistogramSettings(self, driver, histWindow):
-        ActionChains( driver ).context_click( histWindow ).perform()
+        ActionChains(driver).context_click( histWindow ).perform()
         ActionChains( driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN
                  ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
                  Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        
 
     # Find the histogram window either as an inline display if it is already present or as a popup
     def _getHistogramWindow(self, driver):
         # First see if there is a histogram window already there
-        histWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
+        histWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")))
 
         if histWindow is None:
             print "Making popup histogram"
             #Find a window capable of loading an image 
-            imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
+            imageWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
             if imageWindow is None:
                 print "No way to get a histogram window"
                 return
@@ -43,17 +45,17 @@ class tHistogram( unittest.TestCase ):
             ActionChains(driver).context_click( imageWindow ).perform()
 
             # Click the popup button 
-            popupButton = driver.find_element_by_xpath("//div[text()='Popup']/..")
+            popupButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Popup']/..")))
             self.assertIsNotNone( popupButton, "Could not click popup button in the context menu")
             ActionChains(driver).click( popupButton ).perform()
 
             # Look for the histogram button and click it to open the histogram dialog
-            histogramButton = driver.find_element_by_xpath("//div/div[text()='Histogram']/..")
+            histogramButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div/div[text()='Histogram']/..")))
             self.assertIsNotNone( histogramButton, "Could not click histogram button on popup subcontext menu")
             ActionChains(driver).click( histogramButton ).perform()
 
             # We should now see a histogram popup window 
-            histWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")
+            histWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")))
             self.assertIsNotNone( histWindow, "Could not popup a histogram")
 
         return histWindow
@@ -62,20 +64,23 @@ class tHistogram( unittest.TestCase ):
     # its value accordingly
     def test_binCountChange(self):
         driver = self.driver
-        time.sleep(5)
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Find and select the histogram window 
         histWindow = self._getHistogramWindow( driver )
         ActionChains(driver).click( histWindow )
 
         # Click the settings button to expose the settings
-        self._openHistogramSettings( driver, histWindow)
-        
-        # Select the display tab
-        displayTab = driver.find_element_by_xpath( "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Display')]/..");
+        self._openHistogramSettings( driver, histWindow )
+
+        # Navigate to Display tab of the Histogram Settings
+        displayTab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Display')]/..")))
         self.assertIsNotNone( displayTab, "Could not find histogram display tab" );
         driver.execute_script( "arguments[0].scrollIntoView(true);", displayTab)
-        ActionChains( driver ).click( displayTab ).perform()
+        ActionChains(driver).click( displayTab ).perform()
 
         # Look for the binCountText field.
         binCountText = driver.find_element_by_xpath( "//input[starts-with(@id,'histogramBinCountTextField')]" )
@@ -87,11 +92,11 @@ class tHistogram( unittest.TestCase ):
         
         # Calculate percent difference from center.  Note this will fail if the upper
         # bound of the slider changes.
-        textScrollPercent = (5000 - int(float(textValue))) / 10000.0
+        textScrollPercent = (500 - int(float(textValue))) / 1000.0
         print "scrollPercent=",textScrollPercent
        
         # Look for the bin count slider.
-        binCountSlider = driver.find_element_by_xpath( "//div[starts-with(@id, 'histogramBinCountSlider')]" )
+        binCountSlider = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[starts-with(@id, 'histogramBinCountSlider')]")))
         self.assertIsNotNone( binCountSlider, "Could not find bin count slider")
         # Width of the slider
         sliderSize = binCountSlider.size
@@ -109,18 +114,22 @@ class tHistogram( unittest.TestCase ):
         sliderScrollAmount = sliderScrollAmount - scrollSize['width'] / 2
         print 'Slider scroll adjusted=',sliderScrollAmount
         ActionChains( driver ).drag_and_drop_by_offset( sliderScroll, sliderScrollAmount, 0 ).perform()
-        time.sleep(1)
+        time.sleep( timeout )
 
         # Check that the value goes to the server and gets set in the text field.
         newText = binCountText.get_attribute( "value")
         print 'Text=',newText
-        self.assertAlmostEqual( int(float(newText)), 5000 ,None,"Failed to scroll halfway",250)
+        self.assertAlmostEqual( int(float(newText)), 500 ,None,"Failed to scroll halfway",250)
 
+    
     # Test that the Histogram min and max zoom value 
     def test_zoom(self):
         driver = self.driver
-        time.sleep(5)
+        timeout = selectBrowser._getSleep()
         
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+
         # Load an image
         Util.load_image(self, driver, "Default")
         
@@ -138,17 +147,18 @@ class tHistogram( unittest.TestCase ):
         print "Max zoom=", maxZoomValue
         
         # Find the min and max zoom percentages.  Decrease their values.
-        minPercentText = driver.find_element_by_id( "histogramZoomMinPercent")
+        minPercentText = driver.find_element_by_id("histogramZoomMinPercent")
         self.assertIsNotNone( minPercentText, "Could not find zoom min percent text field")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", minPercentText)
         minZoomPercent = minPercentText.get_attribute( "value")
-        maxPercentText = driver.find_element_by_id( "histogramZoomMaxPercent")
+        maxPercentText = driver.find_element_by_id("histogramZoomMaxPercent")
         self.assertIsNotNone( maxPercentText, "Could not find zoom max percent text field")
         maxZoomPercent = maxPercentText.get_attribute( "value")
         driver.execute_script( "arguments[0].scrollIntoView(true);", maxPercentText)
         incrementAmount = 40;
         newMinZoomPercent = Util._changeElementText(self, driver, minPercentText, int(minZoomPercent) + incrementAmount)
         newMaxZoomPercent = Util._changeElementText(self, driver, maxPercentText, int(maxZoomPercent) - incrementAmount)
-        time.sleep(4)
+        time.sleep( timeout )
 
         # Get the new min and max zoom values.
         newMinZoomValue = self._getTextValue( driver, "histogramZoomMinValue")
@@ -162,12 +172,16 @@ class tHistogram( unittest.TestCase ):
         print "oldMax=", maxZoomValue, " newMax=",newMaxZoomValue
         self.assertGreater( float(maxZoomValue), float(newMaxZoomValue), "Max did not decrease")
 
+ 
     # Test that histogram values will update when an additional image is loaded 
     # in the image window. We then remove the image and check that the initial
     # data in the histogram is restored
     def test_histogramAddImage(self):
         driver = self.driver 
-        time.sleep(5)
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Load an image
         Util.load_image(self, driver, "Default")
@@ -177,8 +191,7 @@ class tHistogram( unittest.TestCase ):
         ActionChains(driver).click( histWindow ).perform()
 
         # Click the settings button to expose the settings
-        self._openHistogramSettings(driver, histWindow )
-        time.sleep(2)
+        self._openHistogramSettings( driver, histWindow )
 
         # Get the max zoom value of the first image
         maxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
@@ -186,33 +199,19 @@ class tHistogram( unittest.TestCase ):
 
         # Load a different image in the same window 
         Util.load_image(self, driver, "aH.fits")
-        time.sleep(2)
+        time.sleep( timeout )
 
         # Check that the new max zoom value updates 
         newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
         self.assertNotEqual(float(newMaxZoomValue), float(maxZoomValue), "The histogram did not update when a new image was loaded.")
         print "Second image maxZoomValue:", newMaxZoomValue
-
-        # Remove the second image
-        imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
-        ActionChains(driver).context_click(imageWindow).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-
-        # Allow the second image to be removed
-        time.sleep(2)
-
-        # Get the new max zoom value 
-        # Check that the max zoom value is restored to the first image data values
-        newZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
-        self.assertEqual( float(maxZoomValue), float(newZoomValue), "Histogram data values should be restored.")
-        print "After the second image is removed maxZoomValue:", newZoomValue 
-
+    
     # Test that the removal of an image will restore the Histogram to default values
     def test_histogramRemoveImage(self):
         driver = self.driver
-        time.sleep(5)
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Load an image
         Util.load_image( self, driver, "Default")
@@ -224,16 +223,12 @@ class tHistogram( unittest.TestCase ):
             Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
 
-        # Allow image to fully close
-        time.sleep(2)
-
         # Find and select the Histogram window
         histWindow = self._getHistogramWindow( driver )
         ActionChains(driver).click( histWindow )
 
         # Click the settings button to expose the settings
         self._openHistogramSettings( driver, histWindow )
-        time.sleep(2)
 
         # Check that the histogram values are restored to default values
         newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
@@ -242,7 +237,10 @@ class tHistogram( unittest.TestCase ):
     # Test that the histogram updates its values when the image is changed in the image window. 
     def test_histogramChangeImage(self):
         driver = self.driver 
-        time.sleep(5)
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Load two images in the same image window
         Util.load_image( self, driver, "Default")
@@ -254,32 +252,31 @@ class tHistogram( unittest.TestCase ):
 
         # Click the settings button to expose the settings
         self._openHistogramSettings( driver, histWindow )
-        time.sleep(2)
 
         # Record the Histogram max zoom value of the second image 
         secondMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue" )
         print "Second image maxZoomValue:", secondMaxZoomValue
 
         # Find and click on the animation window 
-        animWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
+        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
         self.assertIsNotNone( animWindow, "Could not find animation window")
         ActionChains(driver).click( animWindow ).perform()   
 
         # Make sure the animation window is enabled by clicking an element within the window
         # From the context menu, uncheck the Channel Animator and check the Image Animator
-        channelText = driver.find_element_by_id( "ChannelIndexText")
+        channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
         ActionChains(driver).click( channelText ).perform()
         ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( 
-            Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT
-                ).send_keys(Keys.SPACE).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        time.sleep(2)
+            Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(
+            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        time.sleep( timeout )
 
         # Find the first value button and click the button
-        firstValueButton = driver.find_element_by_xpath( "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][1]")
+        firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][1]")))
         self.assertIsNotNone( firstValueButton, "Could not find button to go to the first valid value")
         driver.execute_script( "arguments[0].scrollIntoView(true);", firstValueButton)
         ActionChains(driver).click( firstValueButton ).perform()
-        time.sleep(2)
+        time.sleep( timeout )
 
         # Record the Histogram max zoom value of the first image
         firstMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue" )
@@ -294,7 +291,10 @@ class tHistogram( unittest.TestCase ):
     # histogram to the second image. This should fail, and the histogram values should not change. 
     def test_histogramLinking(self):
         driver = self.driver 
-        time.sleep(5)
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Load an image
         Util.load_image( self, driver, "Default")
@@ -308,111 +308,109 @@ class tHistogram( unittest.TestCase ):
 
         # Click the settings button to expose the settings
         self._openHistogramSettings( driver, histWindow )
-        time.sleep(2)
 
         # Record the max zoom value of the first image
         maxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue" )
         print "First image maxZoomValue:", maxZoomValue
+        time.sleep( timeout )
 
         # Open link settings for the histogram
-        ActionChains(driver).context_click( histWindow ).send_keys( Keys.ARROW_DOWN ).send_keys(
-            Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
+        ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
+        time.sleep( timeout )
 
-        # Change the link location of the animator to the second image
-        ActionChains(driver).move_to_element( histWindow ).click( histWindow ).drag_and_drop(
-            histWindow, imageWindow2).perform()
+        # Try to add a link from the Histogram to the second image
+        # This should fail: no link should be made from the Histogram to the second image
+        ActionChains(driver).move_to_element( histWindow ).click( histWindow ).drag_and_drop( histWindow, imageWindow2 ).perform()
+        time.sleep( timeout )
 
-        # Wait for the actions to be completely performed before continuing
-        time.sleep(2)
-
-        # Get the new max zoom value
-        # Check that it did not change
+        # Check that the second image is not linked to the Histogram
+        # Check that the max zoom value did not change from the linking attempt to the second image
         newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
         print "New maxZoomValue:", newMaxZoomValue
         self.assertEqual( float( maxZoomValue ), float( newMaxZoomValue), "Histogram should not link to second image.")
 
     # Test removal of a link from the Histogram.
-    #  Note:  This test is disabled because drag_and_drop does not remove the link.
-    def stest_histogramLinkRemoval(self):
+    # These tests work on Chrome, but not Firefox. For some reason, when right clicking the image window,
+    # the context menu for the image window appears, and not the linking context menu. 
+    def test_histogramLinkRemoval(self):
         driver = self.driver
-        time.sleep(5)
+        browser = selectBrowser._getBrowser()
+        
+        # This test only works for Chrome at the moment
+        if browser == 2:
+            # Find the Histogram window
+            histWindow = self._getHistogramWindow( driver )
 
-        # Find the Histogram window
-        histWindow = self._getHistogramWindow( driver )
+            # Open Link settings for the Histogram window
+            ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
-        # Open Link settings for the Histogram window
-        ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            imageWindow = driver.find_element_by_xpath("//div[@class='qx-window-pane']")
+            ActionChains(driver).move_to_element( imageWindow ).context_click().perform()
 
-        # Remove link from the main image window from the Histogram
-        imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
-        ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            # Remove link from the main image window from the Histogram
+            ActionChains(driver).move_to_element( imageWindow ).context_click().send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
-        # Exit Links before continuing
-        ActionChains(driver).send_keys( Keys.ESCAPE).perform();
+            # Exit Links before continuing
+            ActionChains(driver).context_click().send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
-        # Load an image
-        Util.load_image( self, driver, "Default")
+            # Load an image
+            Util.load_image( self, driver, "Default")
 
-        # Find and select the histogram window
-        histWindow = self._getHistogramWindow( driver )
-        ActionChains(driver).click( histWindow ).perform()
+            # Find and select the histogram window
+            histWindow = self._getHistogramWindow( driver )
+            ActionChains(driver).click( histWindow ).perform()
 
-        # Click the settings button to expose the settings
-        self._openHistogramSettings( driver, histWindow )
-        time.sleep(2)
+            # Click the settings button to expose the settings
+            self._openHistogramSettings( driver, histWindow )
 
-        # Check that the histogram values are default values
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
-        self.assertEqual( float(newMaxZoomValue), 1, "Histogram is linked to image after link was removed")
+            # Check that the histogram values are default values
+            newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+            self.assertEqual( float(newMaxZoomValue), 1, "Histogram is linked to image after link was removed")
 
     # Test that we can change the linked image to the Histogram
-    # Note:  This test is disabled because drag_and_drop does not remove the link
-    def stest_histogramChangeLinks(self):
+    def test_histogramChangeLinks(self):
         driver = self.driver 
-        time.sleep(5)
+        browser = selectBrowser._getBrowser()
+        
+        # This test only works for Chrome at the moment
+        if browser == 2:
+            # Wait for the image window to be present (ensures browser is fully loaded)
+            imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
-        # Load an image in a separate window
-        imageWindow2 = Util.load_image_different_window( self, driver, "aH.fits")
+            # Load an image in a separate window
+            imageWindow2 = Util.load_image_different_window( self, driver, "aH.fits")
 
-        # Find and select the Histogram window
-        histWindow = self._getHistogramWindow( driver )
-        ActionChains(driver).click( histWindow ).perform()
+            # Find and select the Histogram window
+            histWindow = self._getHistogramWindow( driver )
+            ActionChains(driver).click( histWindow ).perform()
 
-        # Click the settings button to expose the settings
-        self._openHistogramSettings( driver )
-        time.sleep(2)
+            # Click the settings button to expose the settings
+            self._openHistogramSettings( driver, histWindow )
 
-        # Open Link settings for the Histogram window
-        ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            # Open Link settings for the Histogram window
+            ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
-        # Remove the link from the Histogram to the main image window
-        imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
-        ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            # Remove the link from the Histogram to the main image window
+            imageWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+            ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(
+                Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            time.sleep( timeout )
 
-        # Exit links before continuing
-        ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            # Exit links before continuing
+            ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            # Open link settings for the Histogram 
+            ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
-        # Open link settings for the Histogram 
-        ActionChains(driver).context_click( histWindow ).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            # Link the Histogram to the second image
+            ActionChains(driver).move_to_element( histWindow ).click( histWindow ).drag_and_drop(histWindow, imageWindow2).perform()
+            time.sleep( timeout )
 
-        # Link the Histogram to the second image
-        ActionChains(driver).move_to_element( histWindow ).click( histWindow ).drag_and_drop(
-            histWindow, imageWindow2).perform()
-        time.sleep(2)
+            # Exit links before continuing
+            ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
-        # Exit links before continuing
-        ActionChains(driver).move_to_element( imageWindow ).context_click( imageWindow ).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-
-        # Check that the histogram values are not default values
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
-        self.assertNotEqual( float(newMaxZoomValue), 1, "Histogram did not update to newly linked image")
+            # Check that the histogram values are not default values
+            newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+            self.assertNotEqual( float(newMaxZoomValue), 1, "Histogram did not update to newly linked image")
 
     def tearDown(self):
         # Close the browser
