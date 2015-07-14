@@ -1,5 +1,5 @@
 #!/bin/bash
-export CARTAROOT=$HOME/dev
+export CARTAROOT=$HOME/src/CARTA
 export GNULIB=/usr/lib/x86_64-linux-gnu
 
 rmsymlink()
@@ -21,7 +21,7 @@ cd ./ThirdParty
 #
 rmsymlink qwt
 mkdir -p qwt
-export QWTLOCATION=/usr/local/qwt-6.1.2
+export QWTLOCATION=/usr/local/qwt-6.1.3-svn
 rmsymlink qwt/include
 rmsymlink qwt/lib
 ln -s $QWTLOCATION/include qwt/include
@@ -31,7 +31,7 @@ ln -s $QWTLOCATION/lib qwt/lib
 # qooxdoo installation location
 # change this to poit to your installation diretory
 #
-export QOOXDOO35LOCATION=/home/jeff/dev/qooxdoo-3.5-sdk
+export QOOXDOO35LOCATION=$CARTAROOT/qooxdoo-3.5-sdk
 rmsymlink qooxdoo-3.5-sdk 
 ln -s ${QOOXDOO35LOCATION} qooxdoo-3.5-sdk
 
@@ -42,8 +42,9 @@ ln -s ${QOOXDOO35LOCATION} qooxdoo-sdk
 # libfistio  installation location
 # do not change is unless you ibstalled it in your own directory
 #
-rmsymlink cfitsio-shared
 mkdir -p cfitsio-shared
+rmsymlink cfitsio-3360-shared
+ln -s ./cfitsio-shared ./cfitsio-3360-shared
 export LIBFITSIO=$GNULIB
 rmsymlink cfitsio-shared/lib
 rmsymlink cfitsio-shared/include
@@ -54,8 +55,9 @@ ln -s /usr/include  cfitsio-shared/include
 # wcslib  installation location
 # do not change is unless you ibstalled it in your own directory
 #
-rmsymlink wcslib-shared
 mkdir -p wcslib-shared
+rmsymlink wcslib-4.23-shared
+ln -s wcslib-shared ./wcslib-4.23-shared
 export LIBWCS=/usr/include/wcslib-4.20
 rmsymlink wcslib-shared/lib
 rmsymlink wcslib-shared/include
@@ -65,7 +67,7 @@ ln -s $GNULIB  wcslib-shared/lib
 #
 #rapidjson installation location
 #
-export RAPIDJSON=/usr/include/rapidjson
+export RAPIDJSON=$CARTAROOT/rapidjson
 rmsymlink rapidjson
 ln -s $RAPIDJSON rapidjson
 
@@ -75,10 +77,21 @@ rmsymlink pureweb-4.1.1-sdk
 ln -s $PUREWEBSDK pureweb-4.1.1-sdk
 
 # CASACORE installation directories
-rmsymlink  casacore-shared
 mkdir -p casacore-shared
-export CASACORE_1_7_0=/usr/local/include
+rmsymlink casacore-2.0.1-shared
+ln -s casacore-shared ./casacore-2.0.1-shared
+export CASACORE=$HOME/casacore-2.0.1
 rmsymlink  casacore-shared/include
 rmsymlink  casacore-shared/lib
-ln -s $CASACORE_1_7_0 ./casacore-shared/include 
-ln -s /usr/local/lib ./casacore-shared/lib
+ln -s $CASACORE/include ./casacore-shared/include 
+ln -s $CASACORE/lib ./casacore-shared/lib
+
+# CASACORE installation directories
+mkdir -p ast
+rmsymlink ast-8.0.2
+ln -s ast ./ast-8.0.2
+export AST=$HOME/ast-8.0.4
+rmsymlink  ast/include
+rmsymlink  ast/lib
+ln -s $AST/include ./ast/include 
+ln -s $AST/lib ./ast/lib
