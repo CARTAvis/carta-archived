@@ -45,6 +45,7 @@ class tAnimator(unittest.TestCase):
 
     # Go to the last channel value of the test image 
     def _getLastValue(self, driver):    
+        timeout = selectBrowser._getSleep()
         lastValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][5]"))) 
         self.assertIsNotNone( lastValueButton, "Could not find button to go to the last valid value")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastValueButton)
@@ -76,6 +77,7 @@ class tAnimator(unittest.TestCase):
 
     # Change the Channel Animator to an Image Animator
     def channel_to_image_animator(self, driver):
+        timeout = selectBrowser._getSleep()
         # Find and click on the animation window
         animWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']"))) 
         self.assertIsNotNone( animWindow, "Could not find animation window")
@@ -89,6 +91,7 @@ class tAnimator(unittest.TestCase):
         ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( 
             Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        time.sleep(timeout)
 
     # Open Settings
     def _openSettings(self, driver):

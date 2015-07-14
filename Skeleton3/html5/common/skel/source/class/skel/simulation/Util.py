@@ -13,7 +13,8 @@ def setUp(self, browser):
     if browser == 1:
         self.driver = webdriver.Firefox()
         #self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
-        self.driver.get("http://199.116.235.162:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
+        #self.driver.get("http://199.116.235.162:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
+        self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
 
     # Running on Mac (Chrome)
@@ -21,8 +22,8 @@ def setUp(self, browser):
         # Change the path to where chromedriver is located
         chromedriver = "/Users/Madhatter/Downloads/chromedriver"
         self.driver = webdriver.Chrome(chromedriver)
-        self.driver.get("http://199.116.235.162:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
-        # self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
+        #self.driver.get("http://199.116.235.162:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
+        self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
         
 # Clear text box and change value of the text box
