@@ -3,8 +3,11 @@ import Util
 import time
 import selectBrowser
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 #Test that we can view different plugins.
 class tView(unittest.TestCase):
@@ -15,10 +18,10 @@ class tView(unittest.TestCase):
     # Test that we can change an animator to a CasaImageLoader
     def test_animator_to_casaimageloader(self):    
         driver = self.driver
-        time.sleep(5)
+        timeout = selectBrowser._getSleep()
 
-        # Getting element not found in cache without this.
-        # driver.implicitly_wait(10)
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Get the animation window count and make sure it is non-zero
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
@@ -32,6 +35,7 @@ class tView(unittest.TestCase):
         # Locate an animator window and bring up the right-context menu,
         # changing to a CasaImageLoader.
         Util.animation_to_image_window( self, driver )
+        time.sleep( timeout )
         
         # Verify that the animation count has gone down by one and the image count
         # has increased by one.
