@@ -363,7 +363,21 @@ ContourConrec::compute( NdArray::RawViewInterface * view )
             }
         }
         result.push_back( lc.getPolygons());
+        qDebug() << "compress" << v.size() << "-->" << result.back().size();
     }
+
+//    Result result =
+//        conrecFaster(
+//            view,
+//            0,
+//            m_nCols - 1,
+//            0,
+//            m_nRows - 1,
+//            xcoords,
+//            ycoords,
+//            m_levels.size(),
+//            & sortedRawLevels[0] );
+
 
     // now we 'unsort' the contours based on the requested order
     Result unsortedResult( m_levels.size() );

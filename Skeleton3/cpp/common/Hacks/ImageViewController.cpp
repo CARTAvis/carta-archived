@@ -77,7 +77,8 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
                  qDebug() << "contourEditorController updated";
 
 //                 m_contourEditorController-> startRendering();
-                 requestImageAndGridUpdate();
+                 m_igSync-> startContour();
+//                 requestImageAndGridUpdate();
              }
              );
 
@@ -89,11 +90,15 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 //             );
 
     // create the synchronizer
-    m_igSync.reset( new ImageGridServiceSynchronizer(
+//    m_igSync.reset( new ImageGridServiceSynchronizer(
+//                        m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
+    m_igSync.reset( new ServiceSync(
                         m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
 
     // connect its done() slot to our imageAndGridDoneSlot()
-    connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
+//    connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
+//             this, & Me::imageAndGridDoneSlot );
+    connect( m_igSync.get(), & ServiceSync::done,
              this, & Me::imageAndGridDoneSlot );
 
     // initialize pixel pipeline
@@ -146,8 +151,8 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
                                         m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggle );
 
                                         // request repaint
-                                        m_renderService-> render( 0 );
-                                        requestImageAndGridUpdate();
+                                        m_igSync-> startGrid();
+//                                        requestImageAndGridUpdate();
                                     }
                                     );
 
@@ -215,7 +220,9 @@ ImageViewController::requestImageAndGridUpdate()
     m_wcsGridRenderer-> setImageRect( inputRect );
     m_wcsGridRenderer-> setOutputRect( outputRect );
 
-    m_igSync-> start();
+//    m_igSync-> startAll();
+    m_igSync-> startImage();
+    m_igSync-> startGrid();
 } // updateGridAfterPanZoom
 
 QString
@@ -304,7 +311,8 @@ ImageViewController::setCmapInvert( bool flag )
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
 //    m_renderService-> render( 0 );
-    requestImageAndGridUpdate();
+//    requestImageAndGridUpdate();
+    m_igSync-> startImage();
 }
 
 void
@@ -314,7 +322,8 @@ ImageViewController::setCmapReverse( bool flag )
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
 //    m_renderService-> render( 0 );
-    requestImageAndGridUpdate();
+//    requestImageAndGridUpdate();
+    m_igSync-> startImage();
 }
 
 void
@@ -324,7 +333,8 @@ ImageViewController::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::Sha
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
 //    m_renderService-> render( 0 );
-    requestImageAndGridUpdate();
+//    requestImageAndGridUpdate();
+    m_igSync-> startImage();
 }
 
 void
@@ -333,7 +343,8 @@ ImageViewController::setPPCsettings( ImageViewController::PPCsettings settings )
     m_renderService-> setPixelPipelineCacheSettings( settings );
 
 //    m_renderService-> render( 0 );
-    requestImageAndGridUpdate();
+//    requestImageAndGridUpdate();
+    m_igSync-> startImage();
 }
 
 ImageViewController::PPCsettings
@@ -468,6 +479,7 @@ ImageViewController::loadFrame( int frame )
 
     // request repaint
     requestImageAndGridUpdate();
+    m_igSync-> startContour();
 } // loadFrame
 
 void

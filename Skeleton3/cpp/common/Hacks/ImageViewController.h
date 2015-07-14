@@ -154,11 +154,12 @@ public:
     }
 
     JobId
-    start( JobId jobId = - 1 )
+    startAll( JobId jobId = - 1 )
     {
         qDebug() << "imageGridCombiner start() xyz";
         m_irsDone = false;
         m_grsDone = false;
+        m_cecDone = false;
         if ( jobId < 0 ) {
             m_myJobId++;
         }
@@ -168,9 +169,10 @@ public:
         m_irsJobId = m_irs-> render();
         m_grsJobId = m_grs-> startRendering();
         m_cecJobId = m_cec-> startRendering();
-        qDebug() << "  waiting for xyz" << m_irsJobId << m_grsJobId << m_cecJobId << "as" << m_myJobId;
+        qDebug() << "  waiting for xyz" << m_irsJobId << m_grsJobId << m_cecJobId << "as" <<
+        m_myJobId;
         return m_myJobId;
-    }
+    } // start
 
     virtual
     ~ImageGridServiceSynchronizer() { }
@@ -232,7 +234,159 @@ private:
 
     Carta::Core::ImageRenderService::JobId m_irsJobId = - 1;
     GRS::JobId m_grsJobId = - 1;
-    ContourEditorController::JobId m_cecJobId = -1;
+    ContourEditorController::JobId m_cecJobId = - 1;
+
+    JobId m_myJobId = - 1;
+    bool m_irsDone = false;
+    bool m_grsDone = false;
+    bool m_cecDone = false;
+    QImage m_irsImage;
+    Carta::Lib::VectorGraphics::VGList m_grsVGList;
+    Carta::Lib::VectorGraphics::VGList m_cecVGList;
+
+    IRS::Service::SharedPtr m_irs = nullptr;
+    GRS::SharedPtr m_grs = nullptr;
+    ContourEditorController::SharedPtr m_cec = nullptr;
+};
+
+/// this can synchronize done events from:
+/// image render service
+/// grid render service
+/// contour controller
+class ServiceSync : public QObject
+{
+    Q_OBJECT
+    CLASS_BOILERPLATE( ServiceSync );
+
+public:
+
+    typedef int64_t JobId;
+    typedef Carta::Core::ImageRenderService::Service IRS;
+    typedef Carta::Lib::IWcsGridRenderService GRS;
+    typedef ContourEditorController CEC;
+
+    ServiceSync( IRS::Service::SharedPtr imageRendererService,
+                 GRS::SharedPtr gridRendererService,
+                 CEC::SharedPtr contourController,
+                 QObject * parent = nullptr )
+        : QObject( parent )
+    {
+        if ( ! connect( imageRendererService.get(), & IRS::done, this, & Me::irsDoneSlot ) ) {
+            qCritical() << "Could not connect imageRenderService done slot";
+        }
+        if ( ! connect( gridRendererService.get(), & GRS::done, this, & Me::wcsGridSlot ) ) {
+            qCritical() << "Could not connect gridRenderService done slot";
+        }
+        if ( ! connect( contourController.get(), & CEC::done, this, & Me::contourSlot ) ) {
+            qCritical() << "Could not connect contour editor controller done slot";
+        }
+
+        m_irs = imageRendererService;
+        m_grs = gridRendererService;
+        m_cec = contourController;
+    }
+
+    JobId
+    startAll()
+    {
+        startImage();
+        startGrid();
+        startContour();
+        return m_myJobId;
+    }
+
+    JobId
+    startImage()
+    {
+        m_irsDone = false;
+        m_irsJobId = m_irs-> render();
+        m_myJobId++;
+        return m_myJobId;
+    }
+
+    JobId
+    startGrid()
+    {
+        m_grsDone = false;
+        m_grsJobId = m_grs-> startRendering();
+        m_myJobId++;
+        return m_myJobId;
+    }
+
+    JobId
+    startContour()
+    {
+        m_cecDone = false;
+        m_cecJobId = m_cec-> startRendering();
+        m_myJobId++;
+        return m_myJobId;
+    }
+
+    void
+    checkAndEmit()
+    {
+        // emit done only if all three are finished
+        if ( m_grsDone && m_irsDone && m_cecDone ) {
+            emit done( m_irsImage, m_grsVGList, m_cecVGList, m_myJobId );
+        }
+    }
+
+    virtual
+    ~ServiceSync() { }
+
+signals:
+
+    /// this will be emitted when all services report done with their respective job ids
+    void
+    done( QImage img, Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, JobId );
+
+private slots:
+
+    /// slot for receiving updates from the rendering service
+    void
+    irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId )
+    {
+        qDebug() << "irsDone xyz" << jobId;
+
+        // if this is not the expected job, do nothing
+        if ( jobId != m_irsJobId ) { return; }
+        m_irsDone = true;
+        m_irsImage = img;
+        checkAndEmit();
+    }
+
+    /// slot for grid
+    void
+    wcsGridSlot( Carta::Lib::VectorGraphics::VGList vgList,
+                 Carta::Lib::IWcsGridRenderService::JobId jobId )
+    {
+        qDebug() << "grsDone xyz" << jobId;
+
+        // if this is not the expected job, do nothing
+        if ( jobId != m_grsJobId ) { return; }
+        m_grsDone = true;
+        m_grsVGList = vgList;
+        checkAndEmit();
+    }
+
+    void
+    contourSlot( Carta::Lib::VectorGraphics::VGList vgList,
+                 ContourEditorController::JobId jobId )
+    {
+        qDebug() << "contourDone xyz" << jobId;
+
+        // if this is not the expected job, do nothing
+        if ( jobId != m_cecJobId ) { return; }
+        m_cecDone = true;
+        m_cecVGList = vgList;
+        checkAndEmit();
+    }
+
+private:
+
+    Carta::Core::ImageRenderService::JobId m_irsJobId = - 1;
+    GRS::JobId m_grsJobId = - 1;
+    ContourEditorController::JobId m_cecJobId = - 1;
 
     JobId m_myJobId = - 1;
     bool m_irsDone = false;
@@ -332,9 +486,9 @@ private slots:
 
     /// combined image & grid slot
     void
-    imageAndGridDoneSlot(QImage image,
-                         Carta::Lib::VectorGraphics::VGList gridVG,
-                         Carta::Lib::VectorGraphics::VGList contourVG,
+    imageAndGridDoneSlot( QImage image,
+                          Carta::Lib::VectorGraphics::VGList gridVG,
+                          Carta::Lib::VectorGraphics::VGList contourVG,
                           ImageGridServiceSynchronizer::JobId jobId );
 
     /// schedule a grid update after pan/zoom were modified
@@ -425,7 +579,8 @@ private:
     int m_currentFrame = - 1;
 
     /// image-and-grid-service result synchronizer
-    ImageGridServiceSynchronizer::UniquePtr m_igSync = nullptr;
+//    ImageGridServiceSynchronizer::UniquePtr m_igSync = nullptr;
+    ServiceSync::UniquePtr m_igSync = nullptr;
 
     /// contours
     Carta::Lib::Algorithms::ContourConrec::Result m_contours;
