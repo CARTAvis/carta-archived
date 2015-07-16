@@ -62,12 +62,16 @@ private:
     static bool m_registered;
 
     class Factory;
+    const static QString ROOT_NAME;
+    const static QString DIR;
 
     //Look for eligible data files in a specific directory (recursive).
-    void processDirectory(const QDir& rootDir, QJsonObject& rootArray);
+    void _processDirectory(const QDir& rootDir, QJsonObject& rootArray) const;
 
     //Add a file to the list of those available in a given directory.
-    void makeFileNode(QJsonArray& parentArray, const QString& fileName);
+    void _makeFileNode(QJsonArray& parentArray, const QString& fileName) const;
+    //Add a subdirectory to the list of available files.
+    void _makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const;
     DataLoader( const QString& path, const QString& id);
     DataLoader( const DataLoader& other);
     DataLoader& operator=( const DataLoader& other );

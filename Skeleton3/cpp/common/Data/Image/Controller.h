@@ -162,24 +162,21 @@ public:
     void saveState();
 
     /**
-     * Save a screenshot of the current image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param filename the full path where the file is to be saved.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
-     */
-    bool saveImage( const QString& filename );
-
-    /**
      * Save a copy of the full image in the current image view.
      * @param filename the full path where the file is to be saved.
-     * @param width the width of the saved image.
-     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
-     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
-            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
+     * @return an error message if there is an initial problem with saving;
+     *      an empty string if the save operation has been initiated.
      */
-    void saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
+    QString saveImage( const QString& filename,  double scale );
+
+    /**
+     * Save a copy of the full image in the current image view using the current scale.
+     * @param filename the full path where the file is to be saved.
+     * @return an error message if there is an initial problem with saving;
+     *      an empty string if the save operation has been initiated.
+     */
+    QString saveImage( const QString& filename );
 
     /**
      * Reset the images that are loaded and other data associated state.

@@ -1,0 +1,167 @@
+#include "Data/Preferences/PreferencesSave.h"
+#include "Data/Util.h"
+#include "State/UtilState.h"
+#include <QDebug>
+
+namespace Carta {
+
+namespace Data {
+
+
+const QString PreferencesSave::CLASS_NAME = "PreferencesSave";
+const QString PreferencesSave::ASPECT_KEEP = "Keep";
+const QString PreferencesSave::ASPECT_EXPAND = "Expand";
+const QString PreferencesSave::ASPECT_IGNORE = "Ignore";
+const QString PreferencesSave::ASPECT_RATIO_MODE = "aspectMode";
+const QString PreferencesSave::WIDTH = "width";
+const QString PreferencesSave::HEIGHT = "height";
+
+class PreferencesSave::Factory : public Carta::State::CartaObjectFactory {
+    public:
+
+        Factory():
+            CartaObjectFactory(CLASS_NAME){
+        };
+
+        Carta::State::CartaObject * create (const QString & path, const QString & id)
+        {
+            return new PreferencesSave (path, id);
+        }
+    };
+
+
+
+bool PreferencesSave::m_registered =
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new PreferencesSave::Factory());
+
+PreferencesSave::PreferencesSave( const QString& path, const QString& id):
+    CartaObject( CLASS_NAME, path, id ){
+    _initializeDefaultState();
+    _initializeCallbacks();
+}
+
+Qt::AspectRatioMode PreferencesSave::getAspectRatioMode() const {
+    QString aspectStr =  m_state.getValue<QString>(ASPECT_RATIO_MODE);
+    Qt::AspectRatioMode mode = Qt::IgnoreAspectRatio;
+    if ( aspectStr == ASPECT_KEEP ){
+        mode = Qt::KeepAspectRatio;
+    }
+    else if ( aspectStr == ASPECT_EXPAND ){
+        mode = Qt::KeepAspectRatioByExpanding;
+    }
+    return mode;
+}
+
+int PreferencesSave::getHeight() const {
+    return m_state.getValue<int>( HEIGHT );
+}
+
+int PreferencesSave::getWidth() const {
+    return m_state.getValue<int>(WIDTH);
+}
+
+QString PreferencesSave::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    return result;
+}
+
+void PreferencesSave::_initializeDefaultState(){
+    m_state.insertValue<QString>( ASPECT_RATIO_MODE, ASPECT_KEEP );
+    m_state.insertValue<int>( WIDTH, 400 );
+    m_state.insertValue<int>( HEIGHT, 500 );
+    qDebug() << "Preferences save state="<<m_state.toString();
+    m_state.flushState();
+}
+
+void PreferencesSave::_initializeCallbacks(){
+    addCommandCallback( "setAspectRatioMode", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+               std::set<QString> keys = {ASPECT_RATIO_MODE};
+               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+               QString result =  setAspectRatioMode( dataValues[ASPECT_RATIO_MODE] );
+               Util::commandPostProcess( result );
+               return result;
+        });
+
+    addCommandCallback( "setWidth", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                   std::set<QString> keys = {WIDTH};
+                   std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                   bool validInt = false;
+                   int width = dataValues[WIDTH].toInt(&validInt);
+                   QString result;
+                   if ( validInt ){
+                       setWidth( width );
+                   }
+                   else {
+                       result = "Default image save width must be an integer : " + dataValues[WIDTH];
+                   }
+                   Util::commandPostProcess( result );
+                   return result;
+            });
+
+    addCommandCallback( "setHeight", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+                       std::set<QString> keys = {HEIGHT};
+                       std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                       bool validInt = false;
+                       int height = dataValues[HEIGHT].toInt(&validInt);
+                       QString result;
+                       if ( validInt ){
+                           setHeight( height );
+                       }
+                       else {
+                           result = "Default image save height must be an integer : " + dataValues[HEIGHT];
+                       }
+                       Util::commandPostProcess( result );
+                       return result;
+                });
+
+}
+
+QString PreferencesSave::setAspectRatioMode( const QString& mode  ){
+    QString result;
+    if ( mode != ASPECT_KEEP && mode != ASPECT_IGNORE && mode != ASPECT_EXPAND ){
+        result = "Unrecognized save image aspect mode: "+ mode;
+    }
+    if ( m_state.getValue<QString>( ASPECT_RATIO_MODE ) != mode ){
+        m_state.setValue<QString>( ASPECT_RATIO_MODE, mode );
+        m_state.flushState();
+    }
+    return result;
+}
+
+QString PreferencesSave::_setDimension( int dim, const QString& key ){
+    QString result;
+    if ( dim > 0 ){
+        int oldDim = m_state.getValue<int>(key);
+        if ( oldDim != dim ){
+            m_state.setValue<int>(key, dim );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Invalid save image "+key+": "+dim;
+    }
+    return result;
+}
+
+QString PreferencesSave::setWidth( int width ){
+    QString result = _setDimension( width, WIDTH );
+    return result;
+}
+
+QString PreferencesSave::setHeight( int height ){
+    QString result = _setDimension( height, HEIGHT );
+    return result;
+}
+
+
+PreferencesSave::~PreferencesSave(){
+
+}
+}
+}

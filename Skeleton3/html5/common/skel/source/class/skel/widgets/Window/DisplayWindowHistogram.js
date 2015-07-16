@@ -46,6 +46,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                
                 var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
                 this.m_supportedCmds.push( histCmd.getLabel() );
+                var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
+                this.m_supportedCmds.push( saveCmd.getLabel() );
                 var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
                 this.m_supportedCmds.push( popupCmd.getLabel() );
                

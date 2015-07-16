@@ -24,6 +24,10 @@ public:
     /// return the CARTA Root directory
     virtual QString getCARTADirectory() Q_DECL_OVERRIDE;
 
+    /// returns true so that access to the file system will
+    /// be limited, among other things.
+    virtual bool isSecurityRestricted() const Q_DECL_OVERRIDE;
+
 protected:
 
     ServerConnector * m_connector;

@@ -133,7 +133,7 @@ public:
    * Returns the QImage reflection the current state of the histogram.
    * @return QImage the histogram image.
    */
-  QImage * toImage();
+   QImage * toImage() const;
 private:
   void _setVerticalAxisTitle();
   const static double EXTRA_RANGE_PERCENT;

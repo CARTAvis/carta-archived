@@ -33,6 +33,10 @@ public:
     /// return the CARTA Root directory
     virtual QString getCARTADirectory() Q_DECL_OVERRIDE;
 
+    /// Returns false so the user, among other things can have access to
+    /// the entire file system of the computer.
+    virtual bool isSecurityRestricted() const Q_DECL_OVERRIDE;
+
 public slots:
 
     void goFullScreen();

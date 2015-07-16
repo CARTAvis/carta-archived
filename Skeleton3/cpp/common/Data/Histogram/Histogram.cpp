@@ -8,6 +8,7 @@
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Histogram/HistogramGenerator.h"
+#include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
 #include "ImageView.h"
 #include "PluginManager.h"
@@ -17,6 +18,7 @@
 #include "State/UtilState.h"
 #include <set>
 #include <QtCore/qmath.h>
+#include <QDir>
 #include <QDebug>
 
 namespace Carta {
@@ -36,6 +38,7 @@ const QString Histogram::COLOR_MAX = "colorMax";
 const QString Histogram::COLOR_MIN_PERCENT = "colorMinPercent";
 const QString Histogram::COLOR_MAX_PERCENT = "colorMaxPercent";
 const QString Histogram::CUSTOM_CLIP = "customClip";
+const QString Histogram::DATA_PATH = "dataPath";
 const QString Histogram::GRAPH_STYLE = "graphStyle";
 const QString Histogram::GRAPH_STYLE_LINE = "Line";
 const QString Histogram::GRAPH_STYLE_OUTLINE = "Outline";
@@ -220,6 +223,24 @@ void Histogram::_endSelectionColor(const QString& params ){
     _updateColorSelection();
 }
 
+void Histogram::_finishClips (){
+    bool customClip = m_state.getValue<bool>(CUSTOM_CLIP );
+    if ( !customClip ){
+        m_stateData.setValue<double>(COLOR_MIN, m_stateData.getValue<double>(CLIP_MIN));
+        m_stateData.setValue<double>(COLOR_MAX, m_stateData.getValue<double>(CLIP_MAX));
+        m_stateData.setValue<double>(COLOR_MIN_PERCENT, m_stateData.getValue<double>(CLIP_MIN_PERCENT));
+        m_stateData.setValue<double>(COLOR_MAX_PERCENT, m_stateData.getValue<double>(CLIP_MAX_PERCENT));
+    }
+    m_stateData.flushState();
+    _generateHistogram( true );
+}
+
+void Histogram::_finishColor(){
+    double colorMin = m_stateData.getValue<double>(COLOR_MIN);
+    double colorMax = m_stateData.getValue<double>(COLOR_MAX);
+    m_histogram->setRangeIntensityColor( colorMin, colorMax );
+    m_stateData.flushState();
+}
 
 std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(Controller* controller){
     std::vector<std::shared_ptr<Image::ImageInterface>> result;
@@ -277,25 +298,6 @@ QString Histogram::getStateString( const QString& sessionId, SnapshotType type )
 }
 
 
-void Histogram::_finishClips (){
-    bool customClip = m_state.getValue<bool>(CUSTOM_CLIP );
-    if ( !customClip ){
-        m_stateData.setValue<double>(COLOR_MIN, m_stateData.getValue<double>(CLIP_MIN));
-        m_stateData.setValue<double>(COLOR_MAX, m_stateData.getValue<double>(CLIP_MAX));
-        m_stateData.setValue<double>(COLOR_MIN_PERCENT, m_stateData.getValue<double>(CLIP_MIN_PERCENT));
-        m_stateData.setValue<double>(COLOR_MAX_PERCENT, m_stateData.getValue<double>(CLIP_MAX_PERCENT));
-    }
-    m_stateData.flushState();
-    _generateHistogram( true );
-}
-
-void Histogram::_finishColor(){
-    double colorMin = m_stateData.getValue<double>(COLOR_MIN);
-    double colorMax = m_stateData.getValue<double>(COLOR_MAX);
-    m_histogram->setRangeIntensityColor( colorMin, colorMax );
-    m_stateData.flushState();
-}
-
 double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& percentKey ){
     double intensity = m_stateData.getValue<double>(clipKey);
     //Add padding to either side of the intensity if we are not already at our max.
@@ -326,6 +328,10 @@ double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& 
     return intensity;
 }
 
+bool Histogram::getColored(){
+    bool colored = m_state.getValue<bool>(GRAPH_COLORED);
+    return colored;
+}
 
 Controller* Histogram::_getControllerSelected() const {
     //We are only supporting one linked controller.
@@ -352,6 +358,29 @@ std::pair<int,int> Histogram::_getFrameBounds() const {
     }
     std::pair<int,int> bounds( minChannel, maxChannel);
     return bounds;
+}
+
+QList<QString> Histogram::getLinks() const {
+    return m_linkImpl->getLinkIds();
+}
+
+bool Histogram::getLogCount(){
+    bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
+    return logCount;
+}
+
+QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
+    QString result = "";
+    if ( QString::compare( planeModeStr, PLANE_MODE_ALL, Qt::CaseInsensitive) == 0 ){
+        result = PLANE_MODE_ALL;
+    }
+    else if ( QString::compare( planeModeStr, PLANE_MODE_SINGLE, Qt::CaseInsensitive) == 0 ){
+        result = PLANE_MODE_SINGLE;
+    }
+    else if ( QString::compare( planeModeStr, PLANE_MODE_RANGE, Qt::CaseInsensitive) == 0 ){
+        result = PLANE_MODE_RANGE;
+    }
+    return result;
 }
 
 QString Histogram::getPreferencesId() const {
@@ -454,6 +483,21 @@ void Histogram::_initializeCallbacks(){
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
                 QString result = getPreferencesId();
+                return result;
+            });
+
+    addCommandCallback( "saveImage", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {DATA_PATH};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString result = saveHistogram( dataValues[DATA_PATH]);
+                if ( !result.isEmpty() ){
+                    Util::commandPostProcess( result );
+                }
+                else {
+                    ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                    hr->registerInformation( "Histogram was successfully saved.");
+                }
                 return result;
             });
 
@@ -905,7 +949,6 @@ void Histogram::_loadData( Controller* controller ){
         }
     }
     else if ( controller != nullptr && controller->getStackedImageCount() == 0 ){
-        qDebug() << "Clearing data";
         _resetDefaultStateData();
         const Carta::Lib::Hooks::HistogramResult data;
         m_histogram->setData( data );
@@ -1249,10 +1292,7 @@ QString Histogram::setColored( bool colored ){
     return result;
 }
 
-bool Histogram::getColored(){
-    bool colored = m_state.getValue<bool>(GRAPH_COLORED);
-    return colored;
-}
+
 
 QString Histogram::setColorMin( double colorMin, bool finish ){
     QString result;
@@ -1481,10 +1521,7 @@ QString Histogram::setLogCount( bool logCount ){
     return result;
 }
 
-bool Histogram::getLogCount(){
-    bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
-    return logCount;
-}
+
 
 QString Histogram::setPlaneMode( const QString& planeModeStr ){
     QString result;
@@ -1503,30 +1540,33 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
     return result;
 }
 
-QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
-    QString result = "";
-    if ( QString::compare( planeModeStr, PLANE_MODE_ALL, Qt::CaseInsensitive) == 0 ){
-        result = PLANE_MODE_ALL;
-    }
-    else if ( QString::compare( planeModeStr, PLANE_MODE_SINGLE, Qt::CaseInsensitive) == 0 ){
-        result = PLANE_MODE_SINGLE;
-    }
-    else if ( QString::compare( planeModeStr, PLANE_MODE_RANGE, Qt::CaseInsensitive) == 0 ){
-        result = PLANE_MODE_RANGE;
-    }
-    return result;
-}
 
-QString Histogram::saveHistogram( const QString& filename, int width, int height ){
+
+QString Histogram::saveHistogram( const QString& fileName ){
     QString result = "";
-    Carta::Histogram::HistogramGenerator m_histogramSaver = *m_histogram;
-    if ( width > 0 && height > 0 ) {
-        m_histogramSaver.setSize( width, height );
+    //Check and make sure the directory exists.
+    int dirIndex = fileName.lastIndexOf( QDir::separator() );
+    QString dirName = fileName;
+    if ( dirIndex >= 0 ){
+        dirName = fileName.left( dirIndex );
     }
-    QImage * histogramImageSaver = m_histogramSaver.toImage();
-    bool resultBool = histogramImageSaver->save( filename );
-    if ( !resultBool ) {
-        result = "Error saving histogram to " + filename;
+    QDir dir( dirName );
+    if ( ! dir.exists() ){
+        result = "Please make sure the save path is valid: "+fileName;
+    }
+    else {
+        PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
+        int width = prefSave->getWidth();
+        int height = prefSave->getHeight();
+        Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
+        QImage* histogramImage = m_histogram->toImage();
+        QSize outputSize( width, height );
+        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode );
+        bool saveSuccessful = imgScaled.save( fileName );
+        if ( !saveSuccessful ){
+            result = "The image could not be saved; please check the path: "+fileName+" is valid.";
+        }
+        delete histogramImage;
     }
     return result;
 }
@@ -1752,9 +1792,7 @@ void Histogram::_updateSize( const QSize& size ){
     _generateHistogram( false );
 }
 
-QList<QString> Histogram::getLinks() const {
-    return m_linkImpl->getLinkIds();
-}
+
 
 void Histogram::_updateColorSelection(){
     bool valid = false;

@@ -97,6 +97,90 @@ qx.Class.define( "skel.Application",
                 this._layout();
         },
         
+        
+        /**
+         * Return the total height in pixels of display elements like a possible status
+         * bar at the bottom of the main window.
+         * @return {Number} an offset from the bottom of the window where the main
+         *          display begins.
+         */
+        _getLinkBottomOffset : function(){
+            var bottomPos = 0;
+            var statusCmd = skel.Command.Preferences.Show.CommandShowStatus.getInstance();
+            if ( statusCmd.getValue()){
+                var statusBounds = this.m_statusBar.getBounds();
+                var height = statusBounds.height;
+                bottomPos = bottomPos + height;
+            }
+            return bottomPos;
+        },
+        
+        
+        /**
+         * Return the total height in pixels of display elements like a possible menu or toolbar
+         * bar at the top of the main window.
+         * @return {Number} an offset from the top of the window where the main
+         *          display begins.
+         */
+        _getLinkTopOffset : function(){
+            var topPos = 0;
+            var menuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
+            if ( menuCmd.getValue() ){
+                var menuBounds = this.m_menuBar.getBounds();
+                var height = menuBounds.height;
+                topPos = topPos + height;
+            }
+            var toolCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
+            if ( toolCmd.getValue()){
+                var toolBounds = this.m_toolBar.getBounds();
+                var toolHeight = toolBounds.height;
+                topPos = topPos + toolHeight;
+            }
+            return topPos;
+        },
+            
+        
+        /**
+         * Remove the widget from the main display.
+         * @param widget {qx.ui.core.Widget} the widget to remove.
+         */
+        _hideWidget : function( widget ){
+            var root = this.getRoot();
+            if( widget !== null && root.indexOf( widget ) >= 0 ) {
+                root.remove( widget );
+            }
+        },
+        
+        
+        /**
+         * Remove an overlay window.
+         */
+        _hideWindow: function( window ){
+            if( window !== null ) {
+                if( this.getRoot().indexOf( window ) >= 0 ) {
+                    this.getRoot().remove( window );
+                }
+            }
+        },
+
+        /**
+         * Removes all overlay windows.
+         */
+        _hideWindows: function(){
+            this._hideWindow( this.m_windowLink );
+            this._hideWindow( this.m_windowMove );
+            this.m_statusBar.clearMessages();
+        },
+        
+        
+        /**
+         * Iconify a window.
+         */
+        _iconifyWindow: function( ev ){
+            this.m_statusBar.addIconifiedWindow( ev, this );
+        },
+        
+        
         /**
          * Initialize desktop callbacks.
          */
@@ -107,6 +191,108 @@ qx.Class.define( "skel.Application",
                 this.m_menuBar.addWindowMenu( ev );
             }, this );
         },
+        
+        
+        /**
+         * Initialize message callbacks.
+         */
+        _initSubscriptions : function(){
+            qx.event.message.Bus.subscribe( "showLinks", function( message ){
+                this._showLinks( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "linkingFinished", function( ev ){
+                this._hideWindows();
+            }, this );
+            qx.event.message.Bus.subscribe( "showMoves", function( message ){
+                this._showMoves( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "moveFinished", function( ev ){
+                this._hideWindows();
+            }, this );
+            qx.event.message.Bus.subscribe( "showPopupWindow", function(message){
+                this._showPopup( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "showCustomizeDialog", function(message){
+                this._showCustomizeDialog( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "showLayoutPopup", function(message){
+                this._showLayoutPopup( message);
+            }, this );
+            qx.event.message.Bus.subscribe( "showFileBrowser", function(message){
+                this._showFileBrowser(message);
+            }, this );
+            qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
+                this._hideWidget( this.m_fileBrowser );
+            }, this );
+            qx.event.message.Bus.subscribe( "showFileSaver", function(message){
+                this._showFileSaver(message);
+            }, this );
+            qx.event.message.Bus.subscribe( "closeFileSaver", function( message ){
+                this._hideWidget( this.m_fileSaver );
+            }, this );
+            qx.event.message.Bus.subscribe( "showSaveBrowser", function(message){
+                this._showSaveBrowser(message);
+            }, this );
+            qx.event.message.Bus.subscribe( "cancelSaveBrowser", function( message ){
+                this._hideWidget( this.m_saveBrowser );
+            }, this );
+            qx.event.message.Bus.subscribe( "shareSession", function( ev ){
+                this.m_statusBar.updateSessionSharing( ev.getData() );
+            }, this );
+            qx.event.message.Bus.subscribe( "showSessionRestoreDialog", function(message){
+                this._showSessionRestore( message );
+            }, this );
+            qx.event.message.Bus.subscribe( "showSessionSaveDialog", function(message){
+                this._showSessionSave( message);
+            }, this );
+            
+            qx.event.message.Bus.subscribe( "layoutChanged", function( ev ){
+                this._layout();
+            }, this );
+        },
+        
+        
+        /**
+         * Update the layout of the main display area containing possible menu bars,
+         * tool bars, status bars, etc.
+         */
+        _layout : function(){
+            this._hideWindows();
+            this.m_mainContainer.removeAll();
+            var showMenuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
+            if ( showMenuCmd.getValue() ){
+                this.m_mainContainer.add( this.m_menuBar );
+            }
+            var showToolCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
+            if ( showToolCmd.getValue( )){
+                this.m_mainContainer.add( this.m_toolBar );
+            }
+            this.m_mainContainer.add( this.m_desktop, {flex : 1});
+            var showStatusCmd = skel.Command.Preferences.Show.CommandShowStatus.getInstance();
+            if ( showStatusCmd.getValue()){
+                this.m_mainContainer.add( this.m_statusBar);
+            }
+        },
+        
+        /**
+         * A linkage between displays has either been added or removed.
+         * @param addLink {boolean} whether the link is being added or removed.
+         */
+        _linksChanged: function( addLink, ev ){
+            var data = ev.getData();
+            var linkSource = data.getSource();
+            var linkDest = data.getDestination();
+            this.m_desktop.link( linkSource, linkDest, addLink );
+        },
+        
+        /**
+         * Restore the window at the given layout row and column to its original position.
+         * @param locationId {String} an identifier for the location where the window should be restored.
+         */
+        restoreWindow : function( locationId ){
+            this.m_desktop.restoreWindow( locationId );
+        },
+        
         
         _showCustomizeDialog : function( message ){
             if( this.m_customizeDialog === null ) {
@@ -126,9 +312,10 @@ qx.Class.define( "skel.Application",
             this._showWidget( this.m_customizeDialog, layoutObj );
         },
         
+        
         _showLayoutPopup : function( message ){
             if( this.m_layoutPopup === null ) {
-                this.m_layoutPopup = new skel.widgets.CustomLayoutPopup();
+                this.m_layoutPopup = new skel.widgets.Layout.CustomLayoutPopup();
                 this.m_layoutPopup.addListener( "layoutSizeChanged", function( message ){
                             this._hideWindows();
                             var data = message.getData();
@@ -152,9 +339,10 @@ qx.Class.define( "skel.Application",
             }
         },
         
+        
         _showFileBrowser : function( message ){
             if( this.m_fileBrowser === null ) {
-                this.m_fileBrowser = new skel.widgets.FileBrowser();
+                this.m_fileBrowser = new skel.widgets.IO.FileBrowser();
             }
             this.m_fileBrowser.setTarget( message.getData() );
             var layoutObj = {
@@ -165,6 +353,36 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_fileBrowser, layoutObj );
         },
+        
+        
+        _showFileSaver : function( message ){
+            if( this.m_fileSaver === null ) {
+                this.m_fileSaver = new skel.widgets.IO.FileSaver();
+            }
+            this.m_fileSaver.setTarget( message.getData() );
+            var layoutObj = {
+                    left  : "0%",
+                    right : "50%",
+                    top   : "0%",
+                    bottom: "70%"
+            };
+            this._showWidget( this.m_fileSaver, layoutObj );
+        },
+        
+        _showSaveBrowser : function( message ){
+            if( this.m_saveBrowser === null ) {
+                this.m_saveBrowser = new skel.widgets.IO.SaveBrowser();
+            }
+            this.m_saveBrowser.setTarget( message.getData() );
+            var layoutObj = {
+                    left  : "0%",
+                    right : "50%",
+                    top   : "0%",
+                    bottom: "70%"
+            };
+            this._showWidget( this.m_saveBrowser, layoutObj );
+        },
+        
         
         _showSessionRestore : function( message ){
             if ( this.m_sessionRestoreDialog === null ){
@@ -181,6 +399,7 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_sessionRestoreDialog, layoutObj );
         },
+        
         
         _showSessionSave : function( message ){
             if ( this.m_sessionSaveDialog === null ){
@@ -206,135 +425,6 @@ qx.Class.define( "skel.Application",
             }
         },
         
-        /**
-         * Remove the widget from the main display.
-         * @param widget {qx.ui.core.Widget} the widget to remove.
-         */
-        _hideWidget : function( widget ){
-            var root = this.getRoot();
-            if( widget !== null && root.indexOf( widget ) >= 0 ) {
-                root.remove( widget );
-            }
-        },
-        
-        /**
-         * Initialize message callbacks.
-         */
-        _initSubscriptions : function(){
-            qx.event.message.Bus.subscribe( "showLinks", function( message ){
-                this._showLinks( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "linkingFinished", function( ev ){
-                this._hideWindows();
-            }, this );
-            qx.event.message.Bus.subscribe( "showMoves", function( message ){
-                this._showMoves( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "moveFinished", function( ev ){
-                this._hideWindows();
-            }, this );
-            
-            
-            qx.event.message.Bus.subscribe( "showPopupWindow", function(message){
-                this._showPopup( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "showCustomizeDialog", function(message){
-                this._showCustomizeDialog( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "showLayoutPopup", function(message){
-                this._showLayoutPopup( message);
-            }, this );
-            qx.event.message.Bus.subscribe( "showFileBrowser", function(message){
-                this._showFileBrowser(message);
-            }, this );
-            qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
-                this._hideWidget( this.m_fileBrowser );
-            }, this );
-            qx.event.message.Bus.subscribe( "shareSession", function( ev ){
-                this.m_statusBar.updateSessionSharing( ev.getData() );
-            }, this );
-            qx.event.message.Bus.subscribe( "showSessionRestoreDialog", function(message){
-                this._showSessionRestore( message );
-            }, this );
-            qx.event.message.Bus.subscribe( "showSessionSaveDialog", function(message){
-                this._showSessionSave( message);
-            }, this );
-            
-            qx.event.message.Bus.subscribe( "layoutChanged", function( ev ){
-                this._layout();
-            }, this );
-        },
-        
-        /**
-         * Update the layout of the main display area containing possible menu bars,
-         * tool bars, status bars, etc.
-         */
-        _layout : function(){
-            this._hideWindows();
-            this.m_mainContainer.removeAll();
-            var showMenuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
-            if ( showMenuCmd.getValue() ){
-                this.m_mainContainer.add( this.m_menuBar );
-            }
-            var showToolCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
-            if ( showToolCmd.getValue( )){
-                this.m_mainContainer.add( this.m_toolBar );
-            }
-            this.m_mainContainer.add( this.m_desktop, {flex : 1});
-            var showStatusCmd = skel.Command.Preferences.Show.CommandShowStatus.getInstance();
-            if ( showStatusCmd.getValue()){
-                this.m_mainContainer.add( this.m_statusBar);
-            }
-        },
-        
-        
-
-        /**
-         * Remove an overlay window.
-         */
-        _hideWindow: function( window ){
-            if( window !== null ) {
-                if( this.getRoot().indexOf( window ) >= 0 ) {
-                    this.getRoot().remove( window );
-                }
-            }
-        },
-
-        /**
-         * Removes all overlay windows.
-         */
-        _hideWindows: function(){
-            this._hideWindow( this.m_windowLink );
-            this._hideWindow( this.m_windowMove );
-            this.m_statusBar.clearMessages();
-        },
-
-        /**
-         * Iconify a window.
-         */
-        _iconifyWindow: function( ev ){
-            this.m_statusBar.addIconifiedWindow( ev, this );
-        },
-
-        /**
-         * A linkage between displays has either been added or removed.
-         * @param addLink {boolean} whether the link is being added or removed.
-         */
-        _linksChanged: function( addLink, ev ){
-            var data = ev.getData();
-            var linkSource = data.getSource();
-            var linkDest = data.getDestination();
-            this.m_desktop.link( linkSource, linkDest, addLink );
-        },
-
-
-        /**
-         * Restore the window at the given layout row and column to its original position.
-         * @param locationId {String} an identifier for the location where the window should be restored.
-         */
-        restoreWindow : function( locationId ){
-            this.m_desktop.restoreWindow( locationId );
-        },
         
         /**
          * Show an overlay window displaying linkage between windows that allows
@@ -374,6 +464,7 @@ qx.Class.define( "skel.Application",
             this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
        },
        
+       
        /**
         * Show an overlay window displaying linkage between windows that allows
         * the user to edit links.
@@ -400,46 +491,7 @@ qx.Class.define( "skel.Application",
            var bottomPos = this._getLinkBottomOffset();
            this.getRoot().add( this.m_windowMove, {left:0, top:topPos, bottom:bottomPos, right:0});
       },
-            
-        /**
-         * Return the total height in pixels of display elements like a possible menu or toolbar
-         * bar at the top of the main window.
-         * @return {Number} an offset from the top of the window where the main
-         *          display begins.
-         */
-        _getLinkTopOffset : function(){
-            var topPos = 0;
-            var menuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
-            if ( menuCmd.getValue() ){
-                var menuBounds = this.m_menuBar.getBounds();
-                var height = menuBounds.height;
-                topPos = topPos + height;
-            }
-            var toolCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
-            if ( toolCmd.getValue()){
-                var toolBounds = this.m_toolBar.getBounds();
-                var toolHeight = toolBounds.height;
-                topPos = topPos + toolHeight;
-            }
-            return topPos;
-        },
-            
-        /**
-         * Return the total height in pixels of display elements like a possible status
-         * bar at the bottom of the main window.
-         * @return {Number} an offset from the bottom of the window where the main
-         *          display begins.
-         */
-        _getLinkBottomOffset : function(){
-            var bottomPos = 0;
-            var statusCmd = skel.Command.Preferences.Show.CommandShowStatus.getInstance();
-            if ( statusCmd.getValue()){
-                var statusBounds = this.m_statusBar.getBounds();
-                var height = statusBounds.height;
-                bottomPos = bottomPos + height;
-            }
-            return bottomPos;
-        },
+
         
         /**
          * Show a window as a pop-up dialog.
@@ -520,8 +572,10 @@ qx.Class.define( "skel.Application",
         m_windowLink    : null,
         m_windowMove    : null,
         m_fileBrowser   : null,
+        m_fileSaver     : null,
         m_customizeDialog : null,
         m_layoutPopup : null,
+        m_saveBrowser : null,
         m_sharedVarPreferences : null,
         m_sessionRestoreDialog : null,
         m_sessionSaveDialog : null

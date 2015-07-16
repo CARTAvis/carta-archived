@@ -1,14 +1,15 @@
-#include "ScriptedRenderService.h"
+#include "ImageSaveService.h"
+#include "ImageRenderService.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 
 namespace Carta
 {
 namespace Core
 {
-namespace ScriptedClient
+namespace ImageSaveService
 {
 
-ScriptedRenderService::ScriptedRenderService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent ) : QObject( parent )
+ImageSaveService::ImageSaveService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent ) : QObject( parent )
 {
     m_outputFilename = savename;
     m_imageCopy = m_image;
@@ -16,35 +17,35 @@ ScriptedRenderService::ScriptedRenderService( QString savename, std::shared_ptr<
     m_inputFilename = filename;
     m_renderService = new Carta::Core::ImageRenderService::Service();
     connect( m_renderService, & Carta::Core::ImageRenderService::Service::done,
-             this, & ScriptedRenderService::_saveFullImageCB );
+             this, & ImageSaveService::_saveFullImageCB );
 }
 
-ScriptedRenderService::~ScriptedRenderService()
+ImageSaveService::~ImageSaveService()
 { }
 
-void ScriptedRenderService::setZoom( double zoom ){
+void ImageSaveService::setZoom( double zoom ){
     m_renderService->setZoom( zoom );
 }
 
-void ScriptedRenderService::setOutputSize( QSize size ){
+void ImageSaveService::setOutputSize( QSize size ){
     m_outputSize = size;
 }
 
-void ScriptedRenderService::setFrameIndex( int index ){
+void ImageSaveService::setFrameIndex( int index ){
     m_frameIndex = index;
 }
 
-void ScriptedRenderService::setAspectRatioMode( Qt::AspectRatioMode mode ){
+void ImageSaveService::setAspectRatioMode( Qt::AspectRatioMode mode ){
     m_aspectRatioMode = mode;
 }
 
-void ScriptedRenderService::saveFullImage(){
+void ImageSaveService::saveFullImage(){
     _prepareData( m_frameIndex, 0.0, 1.0 );
     m_renderService->render( 0 );
 }
 
 /// \todo not all parameters are being used?
-void ScriptedRenderService::_prepareData( int frameIndex, double /*minClipPercentile*/, double /*maxClipPercentile*/ ){
+void ImageSaveService::_prepareData( int frameIndex, double /*minClipPercentile*/, double /*maxClipPercentile*/ ){
 
     if ( frameIndex < 0 ) {
         frameIndex = 0;
@@ -75,8 +76,14 @@ void ScriptedRenderService::_prepareData( int frameIndex, double /*minClipPercen
     m_renderService->setPan( { m_imageCopy->dims()[0] / 2.0 - 0.5, m_imageCopy->dims()[1] / 2.0 - 0.5 });
 }
 
-void ScriptedRenderService::_saveFullImageCB( QImage img ){
+void ImageSaveService::_saveFullImageCB( QImage img ){
+    QSize imgSize = img.size();
+    qDebug() << "outputSize width="<<m_outputSize.width() << " height="<<m_outputSize.height();
+    qDebug() << "img height="<<imgSize.height()<<" width="<<imgSize.width();
+    qDebug() << "aspect="<<m_aspectRatioMode;
     QImage imgScaled = img.scaled( m_outputSize * m_renderService->zoom(), m_aspectRatioMode );
+    QSize scaledSize = imgScaled.size();
+    qDebug() << "scaled height="<<scaledSize.height()<<" width="<<scaledSize.width();
     bool result = imgScaled.save( m_outputFilename );
     emit saveImageResult( result );
     m_renderService->deleteLater();

@@ -63,3 +63,6 @@ QString ServerPlatform::getCARTADirectory()
    return "/scratch/";
 }
 
+bool ServerPlatform::isSecurityRestricted() const {
+    return true;
+}
