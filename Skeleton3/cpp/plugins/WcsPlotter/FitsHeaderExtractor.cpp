@@ -96,8 +96,13 @@ QStringList
 FitsHeaderExtractor::tryCasaCoreFitsConverter( casa::LatticeBase * lbase )
 {
     // can we get float image interface ?
-    casa::ImageInterface < casa::Float > * fii =
-        dynamic_cast < casa::ImageInterface < casa::Float > * > ( lbase );
+    casa::ImageInterface < casa::Float > * fii = nullptr;
+    #ifndef Q_OS_MAC
+        fii = dynamic_cast < casa::ImageInterface < casa::Float > * > ( lbase );
+    #else
+        fii = static_cast < casa::ImageInterface < casa::Float > * > ( lbase );
+    #endif
+
     if ( ! fii ) {
         m_errors << "Could not convert base to float image";
         return QStringList();

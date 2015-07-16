@@ -2,11 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-#INCLUDEPATH += $$PROJECT_ROOT
-#DEPENDPATH += $$PROJECT_ROOT
-
 QT       += core gui
-
 TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
@@ -25,22 +21,22 @@ HEADERS += \
     CCRawView.h \
     CCCoordinateFormatter.h
 
-CASACOREDIR=../../../../ThirdParty/casacore-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-shared
-CFITSIODIR=../../../../ThirdParty/cfitsio-shared
-CASACOREDIR=$$absolute_path($${CASACOREDIR})
-WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
-CFITSIODIR=$$absolute_path($${CFITSIODIR})
-
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
-casacoreLIBS += -lcasa_casa -llapack -lblas -lgfortran -ldl
-casacoreLIBS += -L$${WCSLIBDIR}/lib -lwcs
-casacoreLIBS += -L$${CFITSIODIR}/lib -lcfitsio
+casacoreLIBS += -lcasa_casa -llapack -lblas -ldl
+casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
+
+LIBS += $${casacoreLIBS}
+LIBS += -L$${WCSLIBDIR}/lib -lwcs
+LIBS += -L$${CFITSIODIR}/lib -lcfitsio
+LIBS += -L$$OUT_PWD/../../common/ -lcommon
+LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
 INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${WCSLIBDIR}/include
 INCLUDEPATH += $${CFITSIODIR}/include
+INCLUDEPATH += $$PWD/../../common
+DEPENDPATH += $$PWD/../../common
 
 
 OTHER_FILES += \
@@ -56,18 +52,10 @@ copy_files.commands = ${COPY_FILE} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy_files.CONFIG += no_link target_predeps
 QMAKE_EXTRA_COMPILERS += copy_files
 
-unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
-unix: LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
-
-INCLUDEPATH += $$PWD/../../common
-DEPENDPATH += $$PWD/../../common
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.dylib
-	casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
-	LIBS +=-L/usr/local/lib
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.so
-        casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
 }
-LIBS += $${casacoreLIBS}
+

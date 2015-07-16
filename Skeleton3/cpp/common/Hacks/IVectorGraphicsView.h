@@ -17,6 +17,7 @@
 #include <memory>
 #include <QtGlobal>
 #include <QPointF>
+#include <vector>
 
 class QSize;
 
