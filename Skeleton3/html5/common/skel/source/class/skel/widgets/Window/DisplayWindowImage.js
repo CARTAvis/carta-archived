@@ -170,7 +170,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var dataCmd = skel.Command.Data.CommandData.getInstance();
             this.m_supportedCmds.push( dataCmd.getLabel() );
             var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
-            this.m_supportedCmds.push( saveCmd.getLabel() );
+            if ( saveCmd.isSaveAvailable() ){
+                this.m_supportedCmds.push( saveCmd.getLabel() );
+            }
             var gridCmd = skel.Command.Settings.SettingsGrid.getInstance();
             this.m_supportedCmds.push( gridCmd.getLabel());
             var popupCmd = skel.Command.Popup.CommandPopup.getInstance();

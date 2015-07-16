@@ -43,33 +43,35 @@ bool DataLoader::m_registered =
 
 DataLoader::DataLoader( const QString& path, const QString& id ):
     CartaObject( CLASS_NAME, path, id ){
-    //Callback for returning a list of data files that can be loaded.
-    addCommandCallback( "getData", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & sessionId) -> QString {
-        std::set<QString> keys = { "path" };
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString dir = dataValues[*keys.begin()];
-        QString xml = getData( dir, sessionId );
-        return xml;
-    });
+    _initCallbacks();
 }
 
 
 QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     QString rootDirName = dirName;
-    if ( rootDirName.length() == 0 ){
+    bool securityRestricted = isSecurityRestricted();
+    //Just get the default if the user is trying for a directory elsewhere and
+    //security is restricted.
+    if ( securityRestricted && !dirName.startsWith( DataLoader::fakeRootDirName) ){
+        rootDirName = "";
+    }
+
+    if ( rootDirName.length() == 0 || dirName == DataLoader::fakeRootDirName){
         rootDirName = getRootDir(sessionId);
+    }
+    else {
+        rootDirName = getFile( dirName, sessionId );
     }
     QDir rootDir(rootDirName);
     QJsonObject rootObj;
 
-    bool securityRestricted = Globals::instance()-> platform()-> isSecurityRestricted();
-    if ( securityRestricted ){
-        if ( dirName.length() == 0 ){
-            rootObj.insert(ROOT_NAME, fakeRootDirName);
-        }
-    }
     _processDirectory(rootDir, rootObj);
+
+    if ( securityRestricted ){
+        QString baseName = getRootDir( sessionId );
+        QString displayName = rootDirName.replace( baseName, DataLoader::fakeRootDirName);
+        rootObj.insert(ROOT_NAME, displayName);
+    }
 
     QJsonDocument document(rootObj);
     QByteArray textArray = document.toJson();
@@ -79,7 +81,7 @@ QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
 
 QString DataLoader::getFile( const QString& bogusPath, const QString& sessionId ) const {
     QString path( bogusPath );
-    QString fakePath( QDir::separator() + DataLoader::fakeRootDirName );
+    QString fakePath( DataLoader::fakeRootDirName );
     if( path.startsWith( fakePath )){
         QString rootDir = getRootDir( sessionId );
         QString baseRemoved = path.remove( 0, fakePath.length() );
@@ -102,6 +104,34 @@ QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
         shortNames.append( shortName );
     }
     return shortNames;
+}
+
+void DataLoader::_initCallbacks(){
+
+    //Callback for returning a list of data files that can be loaded.
+    addCommandCallback( "getData", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & sessionId) -> QString {
+        std::set<QString> keys = { "path" };
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString dir = dataValues[*keys.begin()];
+        QString xml = getData( dir, sessionId );
+        return xml;
+    });
+
+    addCommandCallback( "isSecurityRestricted", [=] (const QString & /*cmd*/,
+                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            bool securityRestricted = isSecurityRestricted();
+            QString result = "false";
+            if ( securityRestricted ){
+                result = true;
+            }
+            return result;
+        });
+}
+
+bool DataLoader::isSecurityRestricted() const {
+    bool securityRestricted = Globals::instance()-> platform()-> isSecurityRestricted();
+    return securityRestricted;
 }
 
 void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) const {

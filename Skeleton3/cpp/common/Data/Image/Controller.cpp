@@ -199,6 +199,7 @@ void Controller::_clearData(){
 QString Controller::closeImage( const QString& name ){
     int targetIndex = -1;
     QString result;
+
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_contains( name )){
@@ -206,6 +207,7 @@ QString Controller::closeImage( const QString& name ){
             break;
         }
     }
+
     if ( targetIndex >= 0 ){
         _removeData( targetIndex );
         emit dataChanged( this );
@@ -333,10 +335,7 @@ QString Controller::getPreferencesId() const {
 }
 
 int Controller::getStackedImageCount() const {
-    int count = 0;
-    if ( m_selectImage != nullptr ){
-        count = m_selectImage->getUpperBound();
-    }
+    int count = m_datas.size();
     return count;
 }
 
@@ -776,25 +775,32 @@ QString Controller::saveImage( const QString& fileName ){
 
 QString Controller::saveImage( const QString& fileName, double scale ){
     QString result;
-    int imageIndex = m_selectImage->getIndex();
-    int frameIndex = m_selectChannel->getIndex();
-    if ( 0<= imageIndex && imageIndex < m_datas.size()){
-        //Check and make sure the directory exists.
-        int dirIndex = fileName.lastIndexOf( QDir::separator() );
-        QString dirName = fileName;
-        if ( dirIndex >= 0 ){
-            dirName = fileName.left( dirIndex );
-        }
-        QDir dir( dirName );
-        if ( ! dir.exists() ){
-            result = "Please make sure the save path is valid: "+fileName;
+    DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+    bool securityRestricted = dLoader->isSecurityRestricted();
+    if ( !securityRestricted ){
+        int imageIndex = m_selectImage->getIndex();
+        int frameIndex = m_selectChannel->getIndex();
+        if ( 0<= imageIndex && imageIndex < m_datas.size()){
+            //Check and make sure the directory exists.
+            int dirIndex = fileName.lastIndexOf( QDir::separator() );
+            QString dirName = fileName;
+            if ( dirIndex >= 0 ){
+                dirName = fileName.left( dirIndex );
+            }
+            QDir dir( dirName );
+            if ( ! dir.exists() ){
+                result = "Please make sure the save path is valid: "+fileName;
+            }
+            else {
+                m_datas[imageIndex]->_saveImage( fileName, scale, frameIndex );
+            }
         }
         else {
-            m_datas[imageIndex]->_saveImage( fileName, scale, frameIndex );
+            result = "Please make sure there is an image to save.";
         }
     }
     else {
-        result = "Please make sure there is an image to save.";
+        result = "Write access to the file system is not available.";
     }
     return result;
 }

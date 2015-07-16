@@ -337,8 +337,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                         }
                     }
                     else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
-                        var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, false, true );
-                        this.m_contextMenu.add( button );
+                        if ( supported ){
+                            var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, false, true );
+                            this.m_contextMenu.add( button );
+                        }
                     }
                     else if ( cmdType === skel.Command.Command.TYPE_BOOL ){
                         if ( supported ){

@@ -926,32 +926,34 @@ void Histogram::_loadData( Controller* controller ){
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
-    if ( controller != nullptr && controller->getStackedImageCount() > 0 ){
-
-        dataSources = _generateData( controller );
-        auto result = Globals::instance()-> pluginManager()
-                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
-                                          minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
-                                          minIntensity, maxIntensity);
-        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-            m_histogram->setData(data);
-            double freqLow = data.getFrequencyMin();
-            double freqHigh = data.getFrequencyMax();
-            setPlaneRange( freqLow, freqHigh);
-        };
-        try {
-            result.forEach( lam );
+    if ( controller != nullptr ){
+        int stackedImageCount = controller->getStackedImageCount();
+        if ( stackedImageCount > 0 ){
+            dataSources = _generateData( controller );
+            auto result = Globals::instance()-> pluginManager()
+                                      -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
+                                              minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
+                                              minIntensity, maxIntensity);
+            auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
+                m_histogram->setData(data);
+                double freqLow = data.getFrequencyMin();
+                double freqHigh = data.getFrequencyMax();
+                setPlaneRange( freqLow, freqHigh);
+            };
+            try {
+                result.forEach( lam );
+            }
+            catch( char*& error ){
+                QString errorStr( error );
+                ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                hr->registerError( errorStr );
+            }
         }
-        catch( char*& error ){
-            QString errorStr( error );
-            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-            hr->registerError( errorStr );
+        else if ( stackedImageCount == 0 ){
+            _resetDefaultStateData();
+            const Carta::Lib::Hooks::HistogramResult data;
+            m_histogram->setData( data );
         }
-    }
-    else if ( controller != nullptr && controller->getStackedImageCount() == 0 ){
-        _resetDefaultStateData();
-        const Carta::Lib::Hooks::HistogramResult data;
-        m_histogram->setData( data );
     }
 }
 
