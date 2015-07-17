@@ -29,10 +29,11 @@ qx.Class.define("skel.Command.Data.CommandData", {
         //based on the window(s) selected.
         _resetEnabled : function( ){
             arguments.callee.base.apply(this, arguments);
-            var enabled = this.isEnabled();
-            this.m_cmds[0].setEnabled( enabled );
             this.m_cmds[1]._resetEnabled();
-            this.m_cmds[1].setEnabled( enabled );
+            var enabled = this.isEnabled();
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                this.m_cmds[i].setEnabled( enabled );
+            }
         }
     }
 });

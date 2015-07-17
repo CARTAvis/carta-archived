@@ -124,11 +124,21 @@ void PreferencesSave::_initializeCallbacks(){
 
 QString PreferencesSave::setAspectRatioMode( const QString& mode  ){
     QString result;
-    if ( mode != ASPECT_KEEP && mode != ASPECT_IGNORE && mode != ASPECT_EXPAND ){
+    QString actualMode;
+    if ( QString::compare( mode, ASPECT_KEEP, Qt::CaseInsensitive ) == 0 ){
+        actualMode = ASPECT_KEEP;
+    }
+    else if (QString::compare( mode, ASPECT_IGNORE, Qt::CaseInsensitive ) == 0 ){
+        actualMode = ASPECT_IGNORE;
+    }
+    else if (QString::compare( mode, ASPECT_EXPAND, Qt::CaseInsensitive ) == 0 ){
+        actualMode = ASPECT_EXPAND;
+    }
+    if ( actualMode.isEmpty()){
         result = "Unrecognized save image aspect mode: "+ mode;
     }
-    if ( m_state.getValue<QString>( ASPECT_RATIO_MODE ) != mode ){
-        m_state.setValue<QString>( ASPECT_RATIO_MODE, mode );
+    else if ( m_state.getValue<QString>( ASPECT_RATIO_MODE ) != actualMode ){
+        m_state.setValue<QString>( ASPECT_RATIO_MODE, actualMode );
         m_state.flushState();
     }
     return result;

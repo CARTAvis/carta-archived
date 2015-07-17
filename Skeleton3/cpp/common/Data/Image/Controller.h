@@ -143,6 +143,16 @@ public:
     int getFrameChannel() const;
 
     /**
+     * Center the image.
+     */
+    void resetPan();
+
+    /**
+     * Reset the zoom to its original value.
+     */
+    void resetZoom();
+
+    /**
      *  Make a data selection.
      *  @param imageIndex - a String representing the index of a specific data selection.
      */

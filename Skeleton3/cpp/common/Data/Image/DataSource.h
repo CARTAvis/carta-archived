@@ -87,6 +87,7 @@ public:
        virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
        static const QString CLASS_NAME;
+       static const double ZOOM_DEFAULT;
 
 
     virtual ~DataSource();
@@ -301,6 +302,15 @@ private:
      */
     void _render();
 
+    /**
+     * Center the image.
+     */
+    void _resetPan();
+
+    /**
+     * Reset the zoom to the original value.
+     */
+    void _resetZoom();
 
     /**
      * Save a copy of the full image in the current image view.

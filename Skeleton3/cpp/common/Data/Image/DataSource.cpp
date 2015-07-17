@@ -28,6 +28,7 @@ namespace Data {
 
 const QString DataSource::DATA_PATH = "file";
 const QString DataSource::CLASS_NAME = "DataSource";
+const double DataSource::ZOOM_DEFAULT = 1.0;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
@@ -344,7 +345,7 @@ QString DataSource::_getStateString() const{
 }
 
 double DataSource::_getZoom() const {
-    double zoom = 1;
+    double zoom = ZOOM_DEFAULT;
     if ( m_renderService != nullptr ){
         zoom = m_renderService-> zoom();
     }
@@ -469,6 +470,17 @@ void DataSource::_render(){
     m_igSync-> start();
 }
 
+void DataSource::_resetZoom(){
+    m_renderService-> setZoom( ZOOM_DEFAULT );
+}
+
+void DataSource::_resetPan(){
+    if ( m_image != nullptr ){
+        m_renderService-> setPan(
+                { m_image-> dims()[0] / 2.0, m_image-> dims()[1] / 2.0 }
+        );
+    }
+}
 
 void DataSource::_saveImage( const QString& saveName, /*int width, int height,*/ double scale,
         int frameIndex/*, const Qt::AspectRatioMode aspectRatioMode*/ ){
@@ -509,9 +521,8 @@ bool DataSource::_setFileName( const QString& fileName ){
                     m_image = res.val();
 
                     // reset zoom/pan
-                    m_renderService-> setZoom( 1.0 );
-                    m_renderService-> setPan( { m_image-> dims()[0] / 2.0, m_image-> dims()[1] / 2.0 }
-                                              );
+                    _resetZoom();
+                    _resetPan();
 
                     // clear quantile cache
                     m_quantileCache.resize(0);
@@ -583,6 +594,8 @@ void DataSource::_setZoom( double zoomAmount){
     // apply new zoom
     m_renderService-> setZoom( zoomAmount );
 }
+
+
 
 void DataSource::setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );

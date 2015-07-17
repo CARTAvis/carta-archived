@@ -572,7 +572,7 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
     //Save the state so the view will update and parse parameters to make
     //sure they are valid before calling save.
     Carta::Data::PreferencesSave* prefSave = Carta::Data::Util::findSingletonObject<Carta::Data::PreferencesSave>();
-    QStringList errorList;
+    QStringList errorList("");
     QString widthError = prefSave->setWidth( width );
     QString heightError = prefSave->setHeight( height );
     QString aspectModeError = prefSave->setAspectRatioMode( aspectModeStr );
@@ -1154,7 +1154,6 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
         resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
-    qDebug() << "resultList =" << resultList;
     return resultList;
 }
 
@@ -1365,16 +1364,26 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
 }
 
 QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ) {
-    QStringList resultList;
+    QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
     Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
-            Carta::Data::PreferencesSave* prefSave = Carta::Data::Util::findSingletonObject<Carta::Data::PreferencesSave>();
-            QString widthError = prefSave->setWidth( width );
-            QString heightError = prefSave->setHeight( height );
+            QString widthError;
+            QString heightError;
+            //Only set the width and height if the user intends to use
+            //the non-default save sizes.
+            if ( width > 0 || height > 0 ){
+                Carta::Data::PreferencesSave* prefSave = Carta::Data::Util::findSingletonObject<Carta::Data::PreferencesSave>();
+                if ( width > 0 ){
+                    widthError = prefSave->setWidth( width );
+                }
+                if ( height > 0 ){
+                    heightError = prefSave->setHeight( height );
+                }
+            }
             if ( widthError.isEmpty() && heightError.isEmpty()){
                 QString result = histogram->saveHistogram( filename );
                 if ( !result.isEmpty() ){

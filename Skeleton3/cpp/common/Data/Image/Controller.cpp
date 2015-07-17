@@ -538,6 +538,21 @@ void Controller::_initializeCallbacks(){
         return shapePath;
     });
 
+    addCommandCallback( "resetPan", [=] (const QString & /*cmd*/,
+                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                QString result;
+                resetPan();
+                return result;
+            });
+
+
+    addCommandCallback( "resetZoom", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            QString result;
+            resetZoom();
+            return result;
+        });
+
     addCommandCallback( "saveImage", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {DATA_PATH};
@@ -728,6 +743,26 @@ void Controller::resetStateData( const QString& state ){
     if ( 0 <= imageIndex && imageIndex < m_datas.size()){
         StateInterface controlState = m_datas[imageIndex]->_getGridState();
         this->m_gridControls->_resetState( controlState );
+    }
+}
+
+void Controller::resetPan(){
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->_resetPan();
+        }
+        _render();
+    }
+}
+
+void Controller::resetZoom(){
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->_resetZoom();
+        }
+        _render();
     }
 }
 
@@ -965,6 +1000,8 @@ void Controller::_updateCursorText(bool notifyClients ){
     }
 }
 
+
+
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
 
     int imageIndex = m_selectImage->getIndex();
@@ -1037,7 +1074,7 @@ void Controller::setZoomLevel( double zoomFactor ){
 }
 
 double Controller::getZoomLevel( ){
-    double zoom = 1.0;
+    double zoom = DataSource::ZOOM_DEFAULT;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         zoom = m_datas[imageIndex]->_getZoom( );
