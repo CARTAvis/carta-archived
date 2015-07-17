@@ -21,13 +21,16 @@ SOURCES += \
     Slice.cpp \
     AxisInfo.cpp \
     ICoordinateFormatter.cpp \
-    ICoordinateGridPlotter.cpp \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
     PWLinear.cpp \
     VectorGraphics/VGList.cpp \
-    VectorGraphics/BetterQPainter.cpp
+    VectorGraphics/BetterQPainter.cpp \
+    Algorithms/ContourConrec.cpp \
+    IWcsGridRenderService.cpp \
+    ContourSet.cpp \
+    Algorithms/LineCombiner.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -45,7 +48,6 @@ HEADERS += \
     Slice.h \
     AxisInfo.h \
     ICoordinateFormatter.h \
-    ICoordinateGridPlotter.h \
     IPlotLabelGenerator.h \
     Hooks/LoadAstroImage.h \
     TPixelPipeline/IScalar2Scalar.h \
@@ -55,7 +57,12 @@ HEADERS += \
     VectorGraphics/VGList.h \
     Hooks/GetWcsGridRenderer.h \
     Hooks/LoadPlugin.h \
-    VectorGraphics/BetterQPainter.h
+    VectorGraphics/BetterQPainter.h \
+    Algorithms/ContourConrec.h \
+    IWcsGridRenderService.h \
+    IContourGeneratorService.h \
+    ContourSet.h \
+    Algorithms/LineCombiner.h
 
 unix {
     target.path = /usr/lib

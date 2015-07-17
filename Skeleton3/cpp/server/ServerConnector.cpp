@@ -309,7 +309,8 @@ void ServerConnector::registerView(IView *view)
     viewImageFormat.Alignment = 4;
 
     std::string vn = view->name().toStdString();
-    // TODO: resource leak (only if we destroy a connector...)
+    /// \bug resource leak
+    /// \todo this should be cleaned up when we (a) destory connector (b) unregister view
     PWIViewConverter * cvt = new PWIViewConverter( view);
 
     m_stateManager->ViewManager().RegisterView( view->name().toStdString(), cvt);

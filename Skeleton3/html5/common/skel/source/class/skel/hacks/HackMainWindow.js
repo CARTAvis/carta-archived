@@ -39,6 +39,7 @@ qx.Class.define("skel.hacks.HackMainWindow", {
         this.add(new skel.boundWidgets.Toggle( "Cursor", "/hacks/cursorVisible"));
         this.add(new skel.boundWidgets.Toggle( "Colormap", "/hacks/cm-windowVisible"));
         this.add(new skel.boundWidgets.Toggle( "Grid...", "/hacks/gridControls/c1/visible"));
+        this.add(new skel.boundWidgets.Toggle( "Contours", "/hacks/contourEditor/ce1/visible"));
     },
 
     members: {
