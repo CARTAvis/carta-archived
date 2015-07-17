@@ -77,7 +77,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
                  qDebug() << "contourEditorController updated";
 
 //                 m_contourEditorController-> startRendering();
-                 m_igSync-> startContour();
+                 m_syncSvc-> startContour();
 //                 requestImageAndGridUpdate();
              }
              );
@@ -92,13 +92,13 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     // create the synchronizer
 //    m_igSync.reset( new ImageGridServiceSynchronizer(
 //                        m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
-    m_igSync.reset( new ServiceSync(
+    m_syncSvc.reset( new ServiceSync(
                         m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
 
     // connect its done() slot to our imageAndGridDoneSlot()
 //    connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
 //             this, & Me::imageAndGridDoneSlot );
-    connect( m_igSync.get(), & ServiceSync::done,
+    connect( m_syncSvc.get(), & ServiceSync::done,
              this, & Me::imageAndGridDoneSlot );
 
     // initialize pixel pipeline
@@ -139,23 +139,6 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 
     m_connector-> addStateCallback( m_statePrefix + "/pointer-move",  ptrMoveCB );
 
-    // hook-up movie play button
-    m_connector-> addStateCallback( m_statePrefix + "/playToggle", [&] ( CSR, CSR val ) {
-                                        playMovie( val == "1" );
-                                    }
-                                    );
-
-    // hook up grid toggle
-    m_connector-> addStateCallback( m_statePrefix + "/gridToggle", [&] ( CSR, CSR val ) {
-                                        m_gridToggle = ( val == "1" );
-                                        m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggle );
-
-                                        // request repaint
-                                        m_igSync-> startGrid();
-//                                        requestImageAndGridUpdate();
-                                    }
-                                    );
-
     // connect movie timer to the frame advance slot
     connect( & m_movieTimer, & QTimer::timeout, this, & ImageViewController::loadNextFrame );
 
@@ -169,26 +152,29 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     connect( m_wcsGridOptionsController.get(), & WcsGridOptionsController::updated,
              this, & Me::requestImageAndGridUpdate );
 
-    // create a shared state var for the frame slider
+
+    // shared state stuff
+    // ------------------
     namespace SS = Carta::Lib::SharedState;
     const SS::FullPath prefix = SS::FullPath::fromQString( m_statePrefix );
-    m_frameVar.reset( new Carta::Lib::SharedState::DoubleVar( prefix.with( "frameSlider" ) ) );
-    connect( m_frameVar.get(), & SS::BoolVar::valueChanged,
-             this, & Me::frameVarCB );
 
-//    // shared state var for contour levels
-//    m_contourLevelsVar.reset( new SS::StringVar( prefix.with( "contourLevels" ) ) );
-//    connect( m_contourLevelsVar.get(), & SS::StringVar::valueChanged,
-//             this, & Me::contourVarCB );
+    // create a shared state var for the frame slider
+    m_frameVar.reset( new SS::DoubleVar( prefix.with( "frameSlider" ) ) );
+    connect( m_frameVar.get(), & SS::DoubleVar::valueChanged, this, & Me::frameVarCB );
 
-    // set the current frame to 0
-//    m_frameVar-> set( 0 );
+    // create a shared state var for the grid toggle
+    m_gridToggleVar.reset( new SS::BoolVar( prefix.with( "gridToggle")));
+    connect( m_gridToggleVar.get(), & SS::BoolVar::valueChanged, this, & Me::gridToggleCB);
+
+    // create a shared state var for the grid toggle
+    m_playToggle.reset( new SS::BoolVar( prefix.with( "playToggle")));
+    connect( m_playToggle.get(), & SS::BoolVar::valueChanged, this, & Me::playMovieToggleCB);
 }
 
 void
-ImageViewController::playMovie( bool flag )
+ImageViewController::playMovieToggleCB()
 {
-    if ( flag ) {
+    if ( m_playToggle-> get() ) {
         m_movieTimer.start( 1000 / 60 );
     }
     else {
@@ -221,8 +207,8 @@ ImageViewController::requestImageAndGridUpdate()
     m_wcsGridRenderer-> setOutputRect( outputRect );
 
 //    m_igSync-> startAll();
-    m_igSync-> startImage();
-    m_igSync-> startGrid();
+    m_syncSvc-> startImage();
+    m_syncSvc-> startGrid();
 } // updateGridAfterPanZoom
 
 QString
@@ -261,11 +247,7 @@ ImageViewController::zoomCB( const QString &, const QString & params, const QStr
     QPointF currCenter = m_renderService-> pan();
     m_renderService-> setPan( currCenter + delta );
 
-    // tell the service to rerender
-    m_renderedAstroImage = QImage();
-
     // request repaint
-//    m_renderService-> render( 0 );
     requestImageAndGridUpdate();
 
     return "";
@@ -312,7 +294,7 @@ ImageViewController::setCmapInvert( bool flag )
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_igSync-> startImage();
+    m_syncSvc-> startImage();
 }
 
 void
@@ -323,7 +305,7 @@ ImageViewController::setCmapReverse( bool flag )
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_igSync-> startImage();
+    m_syncSvc-> startImage();
 }
 
 void
@@ -334,7 +316,7 @@ ImageViewController::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::Sha
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_igSync-> startImage();
+    m_syncSvc-> startImage();
 }
 
 void
@@ -344,7 +326,7 @@ ImageViewController::setPPCsettings( ImageViewController::PPCsettings settings )
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_igSync-> startImage();
+    m_syncSvc-> startImage();
 }
 
 ImageViewController::PPCsettings
@@ -357,11 +339,7 @@ void
 ImageViewController::handleResizeRequest( const QSize & size )
 {
     // redraw the image with the new size
-    m_renderedAstroImage = QImage();
     m_renderService-> setOutputSize( size );
-
-    // request repaint
-//    m_renderService-> render( 0 );
     requestImageAndGridUpdate();
 }
 
@@ -421,13 +399,17 @@ ImageViewController::frameVarCB()
     if ( frame != m_currentFrame ) {
         loadFrame( frame );
     }
-} // frameVarCB
+}
+
+void ImageViewController::gridToggleCB()
+{
+    m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggleVar-> get() );
+    m_syncSvc-> startGrid();
+}
 
 void
 ImageViewController::loadFrame( int frame )
 {
-//    qDebug() << "loadFrame" << frame << "xyz";
-
     // make sure the frame makes sense (i.e. clip it to allowed range)
     if ( frame < 0 ) {
         frame = 0;
@@ -479,7 +461,7 @@ ImageViewController::loadFrame( int frame )
 
     // request repaint
     requestImageAndGridUpdate();
-    m_igSync-> startContour();
+    m_syncSvc-> startContour();
 } // loadFrame
 
 void
@@ -500,7 +482,7 @@ ImageViewController::imageAndGridDoneSlot(
     QImage image,
     Carta::Lib::VectorGraphics::VGList gridVG,
     Carta::Lib::VectorGraphics::VGList contourVG,
-    ImageGridServiceSynchronizer::JobId /*jobId*/ )
+    ServiceSync::JobId /*jobId*/ )
 {
     /// \todo we should make sure the jobId matches the last submitted job, otherwise
     /// we are wasting CPU rendering old job...
