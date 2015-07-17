@@ -1,10 +1,13 @@
 /**
  * Helper class to manage UI related to grid options.
+ *
+ * It monitors the shared state, and automatically tells the grid render service if
+ * any changes are detected.
  **/
 
 #pragma once
 
-#include "CartaLib/ICoordinateGridPlotter.h"
+#include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/CartaLib.h"
 #include "common/IConnector.h"
 #include "common/Hacks/SharedState.h"

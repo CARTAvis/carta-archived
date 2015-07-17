@@ -8,7 +8,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-#include "CartaLib/ICoordinateGridPlotter.h"
+#include "CartaLib/IWcsGridRenderService.h"
 #include <QImage>
 #include <QColor>
 #include <vector>

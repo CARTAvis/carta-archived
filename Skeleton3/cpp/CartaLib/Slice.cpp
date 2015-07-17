@@ -112,7 +112,7 @@ Slice1D::ApplyResult Slice1D::cpythonApply(Slice1D::Index n) const
         if( res.start < 0) {
             res.start += n;
         }
-        // if single index is out of bounds, report error
+        // if single index is out of bounds, indicate error
         if( res.start < 0 || res.start >= n) {
             res.start = -1;
         }
@@ -247,6 +247,25 @@ QString Slice1D::ApplyResult::toStr() const
     return QString("%1+%2x%3").arg(start).arg(step).arg(count);
 }
 
+Slice1D::ApplyResult Slice1D::ApplyResult::combine(const Slice1D::ApplyResult & r1, const Slice1D::ApplyResult & r2)
+{
+    ApplyResult res;
+    res.start = r1.start + r1.step * r2.start;
+    res.count = r2.count;
+    res.step = r1.step * r2.step;
+
+    // handle single index (if either is single, result is single as well)
+    if( r1.isSingle() || r2.isSingle()) {
+        res.count = -1;
+        /// \todo verify this is correct, btw what should happen if count==0 at this point!?!?!
+    }
+    // if either slice was in error, the result will be in error
+    if( r1.isError() || r2.isError()) {
+        res.start = -1;
+    }
+    return res;
+}
+
 
 /// ===========================================================================
 /// SliceND
@@ -264,8 +283,10 @@ SliceND::SliceND()
 
 SliceND::SliceND(std::initializer_list<Slice1D> list)
 {
+    // create 1D slices from list
     m_slices = list;
-    slice( 0);
+    // make sure we have at least one slice
+    (void) slice( 0);
 }
 
 Slice1D & SliceND::slice(size_t pos) {
@@ -297,7 +318,7 @@ SliceND & SliceND::index(SliceND::Index index) {
 
 SliceND & SliceND::next() {
     m_currentSlice++;
-    slice(m_currentSlice);
+    (void) slice(m_currentSlice);
     return *this;
 }
 
@@ -376,4 +397,27 @@ QString SliceND::ApplyResult::toStr() const
         lst2 << QString::number( s.count);
     }
     return res + "{" + lst.join( ',') + "} dims=" + lst2.join("x");
+}
+
+SliceND::ApplyResult
+SliceND::ApplyResult::combine(const SliceND::ApplyResult & r1, const SliceND::ApplyResult & r2)
+{
+    ApplyResult res;
+
+    CARTA_ASSERT( r1.dims().size() == r2.dims().size());
+    res.m_results.reserve( r1.dims().size());
+    res.m_error = false;
+    res.m_single = false;
+    for( size_t i = 0 ; i < r1.dims().size() ; ++ i) {
+        auto comb = Slice1D::ApplyResult::combine( r1.dims()[i], r2.dims()[i]);
+        res.m_results.push_back( comb);
+        // update error
+        res.m_error = res.m_error || comb.isError();
+        // update single status
+        res.m_single = res.m_single && comb.isSingle();
+    }
+
+//    qDebug() << "combine" << r1.toStr() << "+" << r2.toStr() << "=" << res.toStr();
+
+    return res;
 }

@@ -1,15 +1,6 @@
 #include "SimpleFitsParser.h"
 #include "CartaLib/CartaLib.h"
 
-#include <iostream>
-#include <algorithm>
-#include <iomanip>
-#include <sstream>
-#include <cassert>
-#include <climits>
-#include <cmath>
-#include <vector>
-
 #include <QFile>
 #include <QString>
 #include <QTextStream>
@@ -22,12 +13,20 @@
 #include <QTime>
 #include <QVariant>
 #include <QTimer>
+#include <QDebug>
+
+#include <iostream>
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
+#include <cassert>
+#include <climits>
+#include <cmath>
+#include <vector>
 
 namespace WcsPlotterPluginNS {
 
-#define dbg(level) qDebug()
-
-using namespace std;
+//using namespace std;
 
 int SimpleFitsParser::HeaderInfo::dims(int ind) const {
     CARTA_ASSERT_X( ind >= 0, "negative index!?!?!?!");
@@ -69,7 +68,7 @@ static float keywordPriority( const QString & key)
     if( key == "NAXIS3") return 5;
     if( key == "NAXIS4") return 6;
     if( key == "NAXIS5") return 7;
-    if( key == "END") return numeric_limits<float>::max();
+    if( key == "END") return std::numeric_limits<float>::max();
     return 1000000;
 }
 
@@ -105,7 +104,7 @@ static bool blockRead( QFile & f, char * ptr, qint64 s)
     while( remaining > 0 ) {
         qint64 d = f.read( (char *) ptr, remaining);
         if( d <= 0 ) {
-            cerr << "Error: blockRead(): could not read another block.\n";
+            qCritical() << "Error: blockRead(): could not read another block.\n";
             return false;
         }
         // update remaining & ptr
@@ -122,7 +121,7 @@ static bool blockWrite( QFile & f, const char * ptr, qint64 s)
     while( remaining > 0 ) {
         qint64 d = f.write( (const char *) ptr, remaining);
         if( d <= 0 ) {
-            cerr << "Error: blockWrite(): could not write another block\n";
+            qCritical() << "Error: blockWrite(): could not write another block\n";
             return false;
         }
         // update remaining & ptr
@@ -144,7 +143,7 @@ FitsHeader FitsHeader::parse( QFile & f)
         // read in another header block
         char block[80];
         if( ! blockRead( f, block, 80)) {
-            cerr << "Error: FitsHeader::parse() could not read card.\n";
+            qCritical() << "Error: FitsHeader::parse() could not read card.\n";
             return hdr;
         }
 
@@ -161,7 +160,7 @@ FitsHeader FitsHeader::parse( QFile & f)
         // but they are not \0 terminated!!!)
         QString rawLine = QByteArray( (char *) block, sizeof( block) );
         // add this line to the header
-        hdr._lines.push_back( rawLine);
+        hdr._lines.push_back( FitsLine( rawLine));
         // if this is the 'END' line, terminate the parse
         if( rawLine.startsWith( "END     " ))
             break;
@@ -180,10 +179,10 @@ bool FitsHeader::write(QFile & f)
 {
     // sort the lines based on a) keword priority, b) their current order
     //vector< pair< QString, pair< double, int> > > lines;
-    typedef pair<QString, pair<double,int> > SortLine;
-    vector<SortLine> lines;
+    typedef std::pair<QString, std::pair<double,int> > SortLine;
+    std::vector<SortLine> lines;
     for( size_t i = 0 ; i < _lines.size() ; i ++ )
-        lines.push_back( make_pair(_lines[i].raw(), make_pair( keywordPriority( _lines[i].key()), i)));
+        lines.push_back( make_pair(_lines[i].raw(), std::make_pair( keywordPriority( _lines[i].key()), i)));
     // c++ does not support anonymous functions, but it does support local structures/classes with
     // static functions... go figure :)
     struct local { static bool cmp( const SortLine & v1, const SortLine & v2 ) {
@@ -451,7 +450,7 @@ bool
 SimpleFitsParser::loadFile(
     const FitsFileLocation & fLocation)
 {
-    dbg(1) << "SimpleFitsParser::loadFile( " << fLocation << ")\n";
+    qDebug() << "SimpleFitsParser::loadFile( " << fLocation << ")\n";
     // if we had a file open previously, get rid of it
     if( m_file != 0) delete m_file;
     m_file = 0;
@@ -469,7 +468,7 @@ SimpleFitsParser::loadFile(
 
         if( ! m_file-> open( QFile::ReadOnly))
             throw QString( "Could not open input file %1").arg( m_fname);
-        dbg(1) << "File " << m_fname << " open.\n";
+        qDebug() << "File " << m_fname << " open.\n";
 
         // parse the header
         FitsHeader hdr = FitsHeader::parse( * m_file);
@@ -498,7 +497,6 @@ SimpleFitsParser::loadFile(
             int ind = 1;
             while(1) {
                 QString keyword = QString("NAXIS%1").arg(ind);
-                dbg(1) << "keyword = " << keyword;
                 if( hdr.findLine( keyword) < 0) break;
                 int val = hdr.intValue( keyword, -1);
                 if( val < 1) {
@@ -507,7 +505,6 @@ SimpleFitsParser::loadFile(
                             arg(hdr.stringValue(keyword, "n/a"));
                 }
                 headerInfo_.m_dims.push_back(val);
-                dbg(1) << "m_dims.push_back " << val << " " << ind;
                 ind ++;
             }
         }
@@ -518,8 +515,8 @@ SimpleFitsParser::loadFile(
             headerInfo_.hasBlank = true;
             // blank is only supported for BITPIX > 0
             if( headerInfo_.bitpix < 0) {
-                dbg(0) << QString("Invalid use of BLANK = %1 keyword with BITPIX = %2.").arg( headerInfo_.blank).arg( headerInfo_.bitpix)
-                       << "\n";
+                qWarning() << QString("Invalid use of BLANK = %1 keyword with BITPIX = %2.").arg( headerInfo_.blank).arg( headerInfo_.bitpix)
+                           << "\n";
                 headerInfo_.hasBlank = false;
             }
         } else {
@@ -532,7 +529,7 @@ SimpleFitsParser::loadFile(
         for( int i = 3 ; i <= hdr.intValue( "NAXIS") ; i ++ )
             nFrames *= hdr.intValue( QString("NAXIS%1").arg(i));
         headerInfo_.totalFrames = nFrames;
-        cerr << "This fits file has " << nFrames << " frames.\n";
+//        cerr << "This fits file has " << nFrames << " frames.\n";
 
         headerInfo_.bzero = hdr.doubleValue( "BZERO", 0);
         headerInfo_.bscale = hdr.doubleValue( "BSCALE", 1);
@@ -593,7 +590,7 @@ SimpleFitsParser::loadFile(
             headerInfo_.scalingRequired = false;
     }
     catch( const QString & err) {
-        dbg(0) << err;
+        qWarning() << err;
         return false;
     }
     catch( ...) {
@@ -609,7 +606,6 @@ SimpleFitsParser::loadFile(
 std::vector<double> & SimpleFitsParser::cacheFrame(int z)
 {
     if( m_cachedFrameNum == z) return m_cachedFrameData;
-    dbg(1) << "caching frame " << z << "\n";
     m_cachedFrameNum = z;
     m_cachedFrameData.resize( headerInfo_.naxis1 * headerInfo_.naxis2);
     size_t ind = 0;
@@ -622,7 +618,6 @@ std::vector<double> & SimpleFitsParser::cacheFrame(int z)
             ind ++;
         }
     }
-    dbg(1) << "caching done\n";
     return m_cachedFrameData;
 }
 

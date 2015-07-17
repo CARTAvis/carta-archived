@@ -1,6 +1,6 @@
 #include "ImageGridServiceSynchronizer.h"
-#include "../../ImageRenderService.h"
-#include "CartaLib/ICoordinateGridPlotter.h"
+#include "ImageRenderService.h"
+#include "CartaLib/IWcsGridRenderService.h"
 
 #include <QDebug>
 

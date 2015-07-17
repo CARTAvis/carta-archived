@@ -41,6 +41,8 @@ LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
 INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${ASTLIBDIR}/include
+INCLUDEPATH += $${WCSLIBDIR}/include
+INCLUDEPATH += $${CFITSIODIR}/include
 INCLUDEPATH += $$PWD/../../common
 DEPENDPATH += $$PWD/../../common
 

@@ -25,21 +25,15 @@ class CCRawView
 {
 public:
 
+    /// construct a view on an image from provided slice information
     /// \param ccimage pointer to CCImage which we keep on using, but we don't assume ownership.
     /// It has to remain valid for the duration of existance of this instance.
+    /// \param sliceInfo for which part of the ccimage to create view
     CCRawView( CCImage < PType > * ccimage, const SliceND & sliceInfo );
-
-//    ~CCRawView() {
-//        qDebug() << "deallocating ccrawview" << this;
-////        if( m_ccimage) {
-////            delete m_ccimage;
-////        }
-//    }
 
     virtual PixelType
     pixelType() override
     {
-        qDebug() << "m_ccimage=" << m_ccimage << sizeof(PType);
         return m_ccimage->pixelType();
     }
 
@@ -50,13 +44,26 @@ public:
     }
 
     virtual const char *
-    get( const VI & pos ) override; // get
+    get( const VI & pos ) override;
 
     virtual void
     forEach( std::function < void (const char *) > func, Traversal traversal ) override;
 
     virtual const VI &
     currentPos() override;
+
+    virtual RawViewInterface *
+    getView(const SliceND & sliceInfo) override
+    {
+        // apply the slice to dimensions of this view
+        SliceND::ApplyResult ar = sliceInfo.apply( dims());
+
+        // create applied result that combines m_appliedSlice with ar
+        SliceND::ApplyResult newAr = SliceND::ApplyResult::combine( m_appliedSlice, ar);
+
+        // return a new view bases on the new slice
+        return new CCRawView( m_ccimage, newAr);
+    }
 
     virtual int64_t
     read( int64_t buffSize, char * buff,
@@ -107,38 +114,73 @@ public:
     }
 
 protected:
+
+    /// construct a view directly from applied slice
+    CCRawView( CCImage < PType > * ccimage, const SliceND::ApplyResult & applyResult );
+
     CCImage < PType > * m_ccimage = nullptr; // we don't own this!
     VI m_currPosImage, m_currPosView;
     SliceND::ApplyResult m_appliedSlice;
     VI m_viewDims;
+
+    // buffer for reporting results when calling get()
     PType m_buff;
 
+    // minicache to make get() a little bit faster
+    VI m_destPos;
 };
 
-// constructor
+// public constructor
 template < typename PType >
 CCRawView < PType >::CCRawView( CCImage < PType > * ccimage, const SliceND & sliceInfo )
 {
+    // remember the pointer to the carta image
     m_ccimage = ccimage;
-    m_appliedSlice = sliceInfo.apply( m_ccimage-> dims() );
-    qDebug() << sliceInfo.toStr() << "applied to" << m_ccimage->dims() << "="
-             << m_appliedSlice.toStr();
 
+    // figure out what data to extract for each of the dimensions
+    m_appliedSlice = sliceInfo.apply( m_ccimage-> dims() );
+
+    // cache the dimensions of the result
     for ( auto & x : m_appliedSlice.dims() ) {
         m_viewDims.push_back( x.count );
     }
+
+    // prepare destPos mini cache
+    m_destPos.resize( m_viewDims.size());
+}
+
+// protected constructor
+template < typename PType >
+CCRawView < PType >::CCRawView( CCImage < PType > * ccimage, const SliceND::ApplyResult & applyResult )
+{
+    /// \todo refactor common code between the two constructors into some
+    /// sort of 'init' method?
+
+    // remember the pointer to the carta image
+    m_ccimage = ccimage;
+
+    // figure out what data to extract for each of the dimensions
+    m_appliedSlice = applyResult;
+
+    // cache the dimensions of the result
+    for ( auto & x : m_appliedSlice.dims() ) {
+        m_viewDims.push_back( x.count );
+    }
+
+    // prepare destPos mini cache
+    m_destPos.resize( m_viewDims.size());
 }
 
 template < typename PType >
 const char *
 CCRawView < PType >::get( const NdArray::RawViewInterface::VI & pos )
 {
-    if ( pos.size() > dims().size() ) {
+    // preconditions
+    if ( CARTA_RUNTIME_CHECKS && pos.size() > dims().size() ) {
         throw std::runtime_error( "invalid position" );
     }
 
     // we need to translate pos to the destination...
-    VI destPos;
     VI::value_type p;
     for ( size_t i = 0 ; i < dims().size() ; i++ ) {
         if ( i < pos.size() ) {
@@ -147,15 +189,17 @@ CCRawView < PType >::get( const NdArray::RawViewInterface::VI & pos )
         else {
             p = 0;
         }
-        destPos.push_back( m_appliedSlice.dims()[i].start
-                           + p * m_appliedSlice.dims()[i].step );
+//        m_destPos.push_back( m_appliedSlice.dims()[i].start
+//                           + p * m_appliedSlice.dims()[i].step );
+        m_destPos[i] = m_appliedSlice.dims()[i].start
+                       + p * m_appliedSlice.dims()[i].step;
     }
 
     // for some reason casa::ImageInterface::operator() returns the result by value
     // so in order to return reference (to satisfy our API) we need to store this
     // in a buffer first...
     m_buff = m_ccimage-> m_casaII->
-                 operator() ( destPos );
+                 operator() ( m_destPos );
 
     return reinterpret_cast < const char * > ( & m_buff );
 } // get
@@ -173,7 +217,7 @@ CCRawView < PType >::forEach(
     int imgDims     = casaII-> ndim();
     auto imageShape = casaII-> shape();
 
-    qDebug() << "CCRawView::forEach=" << m_appliedSlice.toStr()  ;
+//    qDebug() << "CCRawView::forEach=" << m_appliedSlice.toStr()  ;
 
     /// \todo I guessed wrong as to what the cursor shape meant when using subSection()
     /// \todo the shape refers to the shape within the subsection... so there is no need

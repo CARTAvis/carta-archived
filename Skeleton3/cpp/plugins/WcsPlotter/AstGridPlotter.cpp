@@ -205,9 +205,9 @@ AstGridPlotter::plot()
     }
 
     // call the actual plotting
-    qDebug() << "Calling astGrid()";
+//    qDebug() << "Calling astGrid()";
     astGrid( plot );
-    qDebug() << "Called astGrid()";
+//    qDebug() << "Called astGrid()";
 
     if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );
