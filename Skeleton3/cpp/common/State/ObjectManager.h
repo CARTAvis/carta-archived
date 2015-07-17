@@ -35,10 +35,12 @@ public:
      * @param type an identifier for the type of state to be returned.
      * @return a QString representing this object's state.
      */
-    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const;
+    virtual QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const;
     QString getClassName () const;
     QString getId () const;
     QString getPath () const;
+
+    virtual void refreshState();
 
     /**
      * Reset the state of this object.
@@ -78,7 +80,9 @@ public:
      */
     //Normally the type of an object will be the class name, but for snapshots such as session snapshots
     //this method may be overriden to append an additional identifier such as 'data' after the class name.
-    virtual QString getType(CartaObject::SnapshotType snapType = CartaObject::SnapshotType::SNAPSHOT_INFO ) const;
+    virtual QString getSnapType(CartaObject::SnapshotType snapType= CartaObject::SnapshotType::SNAPSHOT_INFO) const;
+
+    QString getType() const;
 
 protected:
 
@@ -169,10 +173,47 @@ public:
 
     /**
      * Create an object of the given class.
-     * @param className - the class of the object.
-     * @return an identifier for the object that was created.
+     * @param className - the class name of the object.
+     * @return the object that was created.
      */
-    QString createObject (const QString & className);
+    template<typename T>
+    T* createObject (const QString & className){
+        // This shouldn't be called until the PW State has been initialized.
+
+        ClassRegistry::iterator i = m_classes.find ( className );
+        T* result = nullptr; // nullptr on failure
+        if (i != m_classes.end()){
+            // Generate the object's id and path
+            // Create the object
+            CartaObjectFactory* factory = i->second.getFactory();
+            QString id = factory->getGlobalId();
+            if ( id.length() == 0 ){
+                m_nextId ++;
+                id = "c"+QString::number( m_nextId);
+            }
+            QString path (m_sep + m_root + m_sep + id);
+
+            CartaObject* object = factory->create( path, id );
+
+            assert (object != 0);
+
+            // Install the newly created object in the object registry.
+            assert (m_objects.find (id) == m_objects.end());
+            m_objects [id] = ObjectRegistryEntry ( className, id, path, object);
+
+            result = static_cast<T*>( object);
+        }
+        return result;
+    }
+
+    /**
+     * Create an object of the given type.
+     * @return the object that was created.
+     */
+    template <typename T>
+    T* createObject(){
+        return createObject<T>( T::CLASS_NAME );
+    }
 
     /**
      * Destroy the object with the given identifier.
@@ -211,7 +252,11 @@ public:
      * @return a QString containing the entire state of managed objects.
      */
     QString getStateString( const QString& sessionId, const QString& snapName, CartaObject::SnapshotType type ) const;
-    void initialize ();
+
+
+    void initialize();
+
+    void printObjects();
     bool registerClass (const QString & className, CartaObjectFactory * factory);
 
     /**
@@ -246,7 +291,12 @@ public:
         QString operator() (const QString & /*command*/, const QString & parameters,
                 const QString & /*sessionId*/)
         {
-            return m_objectManager -> createObject (parameters);
+            CartaObject * object = m_objectManager -> createObject<CartaObject> (parameters);
+            QString id;
+            if ( object != nullptr ){
+                id= object->getId();
+            }
+            return id;
         }
 
     private:
@@ -278,6 +328,7 @@ public:
     static const QString STATE_VALUE;
 
 private:
+
 
     /// stores a pair< QString, CartaObjectFactory >
     class ClassRegistryEntry {
@@ -318,7 +369,9 @@ private:
           m_path (path)
         {}
 
-        const QString & getClassName () const;
+        const QString & getClassName () const {
+            return m_className;
+        }
         const QString & getId () const;
         CartaObject * getObject () const {
             return m_object;

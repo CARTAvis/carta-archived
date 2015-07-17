@@ -38,7 +38,7 @@ private:
 
 
 	AnimationTypes( const AnimationTypes& other);
-	AnimationTypes operator=( const AnimationTypes& other );
+	AnimationTypes& operator=( const AnimationTypes& other );
 };
 }
 }

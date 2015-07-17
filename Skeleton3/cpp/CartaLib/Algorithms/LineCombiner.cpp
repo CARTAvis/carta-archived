@@ -7,6 +7,9 @@
 
 #include <QLinkedList>
 
+#ifdef qDebug
+#undef qDebug
+#endif
 #define qDebug QT_NO_QDEBUG_MACRO
 
 namespace Carta

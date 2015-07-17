@@ -26,7 +26,6 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
             maximum : this.m_GRID_MAX,
             minimum : this.m_GRID_MIN
         });
-        this.m_rowListenId =this.m_rowCountSpin.addListener(skel.widgets.Path.CHANGE_VALUE, this._fireRowEvent, this);
 
         var colLabel = new qx.ui.basic.Label("Column Count:");
         this.m_colCountSpin = new qx.ui.form.Spinner();
@@ -35,7 +34,6 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
             maximum : this.m_GRID_MAX,
             minimum : this.m_GRID_MIN
         });
-        this.m_colListenId = this.m_colCountSpin.addListener(skel.widgets.Path.CHANGE_VALUE, this._fireColEvent, this);
         
         var gridContainer = new qx.ui.container.Composite();
         gridContainer.setLayout(new qx.ui.layout.Grid());
@@ -61,11 +59,18 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
         var butContainer = new qx.ui.container.Composite();
         butContainer.setLayout( new qx.ui.layout.HBox());
         butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-        var closeButton = new qx.ui.form.Button( "Close");
+        var okButton = new qx.ui.form.Button( "OK");
+        okButton.addListener( "execute", function(){
+            this._fireSizeEvent();
+            this.fireDataEvent( "closeCustomLayout", "");
+        }, this );
+        skel.widgets.TestID.addTestId( okButton, "customLayoutOK");
+        var closeButton = new qx.ui.form.Button( "Cancel");
         skel.widgets.TestID.addTestId( closeButton, "customLayoutClose");
         closeButton.addListener( "execute", function(){
             this.fireDataEvent("closeCustomLayout", "");
         }, this);
+        butContainer.add( okButton );
         butContainer.add( closeButton );
         this._add( butContainer);
         
@@ -74,27 +79,22 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
 
     events : {
         "closeCustomLayout" : "qx.event.type.Data",
-        "layoutRowCount" : "qx.event.type.Data",
-        "layoutColCount" : "qx.event.type.Data"
+        "layoutSizeChanged" : "qx.event.type.Data"
     },
 
     members : {
         
         /**
-         * Notification that the column count has changed.
+         * Notification that the layout size has changed.
          */
-        _fireColEvent : function(){
-            var data = this.m_colCountSpin.getValue();
-            this.fireDataEvent( "layoutColCount", data );
+        _fireSizeEvent : function(){
+            var data = {
+                    rows : this.m_rowCountSpin.getValue(),
+                    cols : this.m_colCountSpin.getValue()
+            };
+            this.fireDataEvent( "layoutSizeChanged", data );
         },
         
-        /**
-         * Notification that the row count has changed.
-         */
-        _fireRowEvent : function(){
-            var data = this.m_rowCountSpin.getValue();
-            this.fireDataEvent( "layoutRowCount", data );
-        },
         
         /**
          * Set the current number of rows and columns in the layout.
@@ -102,20 +102,18 @@ qx.Class.define("skel.widgets.CustomLayoutPopup", {
          * @param cols {Number} the current layout column count.
          */
         setGridSize : function( rows, cols ){
-            this.m_rowCountSpin.removeListenerById( this.m_rowListenId );
-            this.m_colCountSpin.removeListenerById( this.m_colListenId );
-            this.m_rowCountSpin.setValue( rows );
-            this.m_colCountSpin.setValue( cols );
-            this.m_colListenId = this.m_colCountSpin.addListener(skel.widgets.Path.CHANGE_VALUE, this._fireColEvent, this);
-            this.m_rowListenId = this.m_rowCountSpin.addListener(skel.widgets.Path.CHANGE_VALUE, this._fireRowEvent, this);
+            if ( rows !== null ){
+                this.m_rowCountSpin.setValue( rows );
+            }
+            if ( cols !== null ){
+                this.m_colCountSpin.setValue( cols );
+            }
         },
         
         m_GRID_MAX : 100,
         m_GRID_MIN : 1,
         m_rowCountSpin : null,
-        m_colCountSpin : null,
-        m_colListenId : null,
-        m_rowListenId : null
+        m_colCountSpin : null
     },
 
     properties : {

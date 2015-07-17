@@ -14,31 +14,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
 
         /**
          * Constructor.
-         * @param row {Number} the row location.
-         * @param col {Number} the column location.
          * @param index {Number} an index in case of multiple windows displaying color maps.
          * @param detached {boolean} true for a pop-up; false for an in-line display.
          */
-        construct : function(row, col, index, detached ) {
-            this.base(arguments, skel.widgets.Path.getInstance().HISTOGRAM_PLUGIN, row, col, index, detached );
+        construct : function(index, detached ) {
+            this.base(arguments, skel.widgets.Path.getInstance().HISTOGRAM_PLUGIN, index, detached );
             this.m_links = [];
         },
 
         members : {
             
-            
-            /**
-             * Return the number of significant digits to display.
-             * @return {Number} the number of significant digits the user wants to see.
-             */
-            getSignificantDigits : function(){
-                var digits = 6;
-                if ( this.m_histogram !== null ){
-                    digits = this.m_histogram.getSignificantDigits();
-                }
-                return digits;
-            },
-
             
             /**
              * Display specific UI initialization.
@@ -59,21 +44,29 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 var clipCmd = skel.Command.Clip.CommandClip.getInstance();
                 this.m_supportedCmds.push( clipCmd.getLabel() );
                
-                var histCmd = skel.Command.Histogram.Histogram.getInstance();
+                var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
                 this.m_supportedCmds.push( histCmd.getLabel() );
+                var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+                this.m_supportedCmds.push( popupCmd.getLabel() );
                
             },
            
+          
+            
             /**
              * Returns whether or not this window can be linked to a window
              * displaying a named plug-in.
              * 
              * @param pluginId {String} a name identifying a plug-in.
-             * @return {boolean} true if this window can be linked to the plug-in;
-             *          false otherwise.
+             * @return {boolean} true if this window supports linking to the plug-in; false,
+             *          otherwise.
              */
             isLinkable : function(pluginId) {
                 var linkable = false;
+                var path = skel.widgets.Path.getInstance();
+                if (pluginId == path.COLORMAP_PLUGIN ) {
+                    linkable = true;
+                } 
                 return linkable;
             },
             
@@ -84,17 +77,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
             _preferencesCB : function(){
                 if ( this.m_sharedVarPrefs !== null ){
                     var val = this.m_sharedVarPrefs.get();
-                    try {
-                        var setObj = JSON.parse( val );
-                        this._showHideBinCount( setObj.histogramBinCount );
-                        this._showHideClips( setObj.histogramClips );
-                        this._showHideCube( setObj.histogramCube );
-                        this._showHideRange( setObj.histogramRange );
-                        this._showHideDisplay( setObj.histogramDisplay );
-                        this._showHide2D( setObj.histogram2D );
-                    }
-                    catch( err ){
-                        console.log( "Histogram could not parse settings");
+                    if ( val !== null ){
+                        try {
+                            var setObj = JSON.parse( val );
+                            if ( setObj.settings !== null ){
+                                this.m_histogram.showHideSettings( setObj.settings );
+                            }
+                           
+                        }
+                        catch( err ){
+                            console.log( "Histogram could not parse settings: "+val);
+                            console.log( "Error: "+err);
+                        }
                     }
                 }
             },
@@ -109,72 +103,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 }
             },
             
-            /**
-             * Show/hide bin count user settings.
-             * @param visible {boolean} true if the bin count settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideBinCount : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideBinCount( visible );
-                }
-            },
-            
-            /**
-             * Show/hide cube user settings.
-             * @param visible {boolean} true if the cube settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideClips : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideClips( visible );
-                }
-            },
-            
-            /**
-             * Show/hide cube user settings.
-             * @param visible {boolean} true if the cube settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideCube : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideCube( visible );
-                }
-            },
-            
-            /**
-             * Show/hide two-dimensional user settings.
-             * @param visible {boolean} true if the 2D settings should be 
-             *          visible; false otherwise.
-             */
-            _showHide2D : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHide2D( visible );
-                }
-            },
-            
-            /**
-             * Show/hide range user settings.
-             * @param visible {boolean} true if the range settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideRange : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideRange( visible );
-                }
-            },
-            
-            /**
-             * Show/hide display user settings.
-             * @param visible {boolean} true if the display settings should be 
-             *          visible; false otherwise.
-             */
-            _showHideDisplay : function( visible ){
-                if ( this.m_histogram !== null ){
-                    this.m_histogram.showHideDisplay( visible );
-                }
-            },
-            
+
             
             /**
              * Implemented to initialize a context menu.

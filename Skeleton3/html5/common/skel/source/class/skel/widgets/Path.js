@@ -12,8 +12,10 @@ qx.Class.define("skel.widgets.Path", {
         this.CHANNEL_UNITS = this.BASE_PATH + "ChannelUnits";
         this.CLIPS = this.BASE_PATH + "Clips";
         this.COLORMAPS = this.BASE_PATH + "Colormaps";
+        this.COORDINATE_SYSTEMS = this.BASE_PATH + "CoordinateSystems";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
+        this.FONTS = this.BASE_PATH + "Fonts";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
@@ -22,12 +24,16 @@ qx.Class.define("skel.widgets.Path", {
         this.REGION = this.BASE_PATH + "region" + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
+        this.THEMES = this.BASE_PATH + "Themes";
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
     },
     
     statics : {
-        CHANGE_VALUE : "changeValue"
+        CHANGE_VALUE : "changeValue",
+        HORIZONTAL : "horizontal",
+        VERTICAL : "vertical",
+        MAX_RGB : 255
     },
     
     members : {
@@ -44,9 +50,12 @@ qx.Class.define("skel.widgets.Path", {
         CLOSE_IMAGE : "closeImage",
         COLORMAP_PLUGIN : "Colormap",
         COLORMAPS : "",
+        COORDINATE_SYSTEMS : "",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         ERROR_HANDLER : "",
+        FONTS : "",
+        GRID_PLUGIN : "GridControls",
         HIDDEN : "Hidden",
         HISTOGRAM_PLUGIN : "Histogram",
         LAYOUT : "",
@@ -70,6 +79,7 @@ qx.Class.define("skel.widgets.Path", {
         STATE_SESSION : "Session",
         STATE_PREFERENCES : "Preferences",
         STATISTICS : "Statistics",
+        THEMES : "",
         TRANSFORMS_DATA : "",
         TRANSFORMS_IMAGE : "",
         ZOOM : "zoom",
@@ -108,6 +118,14 @@ qx.Class.define("skel.widgets.Path", {
          */
         getCommandDataLoaded : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "dataLoaded";
+        },
+        
+        /**
+         * Returns the command for changing a window location.
+         * @return {String} command for changing a window location.
+         */
+        getCommandMoveWindow : function(){
+            return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "moveWindow";
         },
         
         /**

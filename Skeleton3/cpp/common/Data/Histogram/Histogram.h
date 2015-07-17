@@ -40,7 +40,7 @@ class Clips;
 class Colormap;
 class Controller;
 class LinkableImpl;
-class HistogramPreferences;
+class Settings;
 
 class Histogram : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -51,7 +51,7 @@ public:
     //ILinkable
     QString addLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
-    virtual QList<QString> getLinks() Q_DECL_OVERRIDE;
+    virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
      * Applies clips to image.
@@ -78,9 +78,22 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
-     * Send a new state update to the client.
+     * Returns whether or not the object with the given id is already linked to this object.
+     * @param linkId - a QString identifier for an object.
+     * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
-    void refreshState();
+    virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Reload the server state.
+     */
+    virtual void refreshState() Q_DECL_OVERRIDE;
+
+    /**
+     * Restore the state from a string representation.
+     * @param state- a json representation of state.
+     */
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Reset the data dependent state of the histogram.
@@ -310,13 +323,17 @@ public:
     const static QString GRAPH_STYLE_OUTLINE;
     const static QString GRAPH_STYLE_FILL;
 
+public slots:
+    void updateColorMap( Colormap* );
+
+
 protected:
-    virtual QString getType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
+    virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
     void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
     void _createHistogram( Controller* );
-    void _updateColorMap( Colormap* );
+
     void _updateSize( const QSize& size );
     void _updateChannel( Controller* controller );
     
@@ -381,6 +398,7 @@ private:
 
     void _refreshView();
     void _resetBinCountBasedOnWidth();
+    void _resetDefaultStateData();
 
     void _zoomToSelection();
 
@@ -410,6 +428,7 @@ private:
     const static QString PLANE_MODE;
     const static QString PLANE_MODE_SINGLE;
     const static QString PLANE_MODE_RANGE;
+    const static QString PLANE_MODE_RANGE_VALID;
     const static QString PLANE_MODE_ALL;
     const static QString PLANE_MIN;
     const static QString PLANE_MAX;
@@ -443,7 +462,7 @@ private:
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     //Preferences
-    std::unique_ptr<HistogramPreferences> m_preferences;
+    std::unique_ptr<Settings> m_preferences;
 
     Carta::Histogram::HistogramGenerator* m_histogram;
 

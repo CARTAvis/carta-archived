@@ -45,6 +45,9 @@ AnimatorType::AnimatorType(const QString& path, const QString& id ):
         _initializeCommands();
 }
 
+
+
+
 int AnimatorType::getFrame() const {
     return m_select->getIndex();
 }
@@ -84,6 +87,36 @@ void AnimatorType::_initializeCommands(){
 	    Util::commandPostProcess( result );
 	    return result;
 	});
+
+	addCommandCallback( "setUpperBoundUser", [=] (const QString & /*cmd*/,
+	                     const QString & params, const QString & /*sessionId*/) -> QString {
+	        QString result;
+	        bool validInt = false;
+	        int index = params.toInt( &validInt );
+	        if ( validInt ){
+	            result = setUpperBoundUser( index );
+	        }
+	        else {
+	            result = "Animator upper bound must be a valid integer "+params;
+	        }
+	        Util::commandPostProcess( result );
+	        return result;
+	    });
+
+	addCommandCallback( "setLowerBoundUser", [=] (const QString & /*cmd*/,
+	                         const QString & params, const QString & /*sessionId*/) -> QString {
+	            QString result;
+	            bool validInt = false;
+	            int index = params.toInt( &validInt );
+	            if ( validInt ){
+	                result = setLowerBoundUser( index );
+	            }
+	            else {
+	                result = "Animator lower bound must be a valid integer "+params;
+	            }
+	            Util::commandPostProcess( result );
+	            return result;
+	        });
 
 	addCommandCallback( "getSelection", [=] (const QString & /*cmd*/,
 	                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -157,15 +190,20 @@ QString AnimatorType::_makeSelection(){
     if ( m_select != nullptr ){
         objManager->destroyObject( m_select->getId());
     }
-    QString selId = objManager->createObject( Selection::CLASS_NAME );
-    m_select = dynamic_cast<Selection*>(objManager->getObject( selId ));
-    return m_select->getPath();
+    m_select = objManager->createObject<Selection>();
+    connect( m_select, SIGNAL(indexChanged(bool)), this, SLOT(_selectionChanged(bool)));
+    QString path = m_select->getPath();
+    return path;
 }
 
 void AnimatorType::resetStateData( const QString& state ){
     if ( m_select != nullptr ){
         m_select->resetState( state );
     }
+}
+
+void AnimatorType::_selectionChanged( bool /*forceReload*/ ){
+    emit indexChanged( m_select->getIndex() );
 }
 
 QString AnimatorType::setEndBehavior( const QString& endStr ){
@@ -217,15 +255,21 @@ QString AnimatorType::setFrame( int frameIndex ){
         int oldIndex = m_select->getIndex();
         if ( frameIndex != oldIndex ){
             result = m_select->setIndex( frameIndex );
-             if ( result.isEmpty()){
-                 //Tell the children about the new image.
-                 emit indexChanged( frameIndex );
-             }
         }
     }
     else {
         result="Frame index must be nonnegative: "+QString::number(frameIndex);
     }
+    return result;
+}
+
+QString AnimatorType::setLowerBoundUser( int lowerBound ){
+    QString result = m_select->setLowerBoundUser( lowerBound );
+    return result;
+}
+
+QString AnimatorType::setUpperBoundUser( int upperBound ){
+    QString result = m_select->setUpperBoundUser( upperBound);
     return result;
 }
 
@@ -237,24 +281,6 @@ void AnimatorType::setVisible( bool visible ){
     }
 }
 
-QString AnimatorType::changeIndex( const QString & params )
-{
-    QString result;
-    bool validInt = false;
-    int index = params.toInt( &validInt );
-    if ( validInt ){
-    //Set our state to reflect the new image.
-        result = m_select->setIndex( index );
-        if ( result.isEmpty()){
-            //Tell the children about the new image.
-            emit indexChanged( index );
-        }
-    }
-    else {
-        result = "Animator index must be a valid integer "+params;
-    }
-    return result;
-}
 
 void AnimatorType::setUpperBound( int value ){
     if ( m_select->getUpperBound() != value ){

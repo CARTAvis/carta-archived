@@ -1,7 +1,5 @@
 #include "Util.h"
-#include "State/ObjectManager.h"
-#include "Data/ErrorManager.h"
-#include <QStringList>
+#include "Data/Error/ErrorManager.h"
 #include <QDebug>
 #include <cmath>
 
@@ -11,7 +9,7 @@ namespace Data {
 
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
-const QString Util::STATE_FLUSH = "stateFlush";
+const QString Util::PREFERENCES = "preferences";
 
 Util::Util( ) {
 
@@ -39,34 +37,36 @@ QString Util::toString( bool val ){
     return result;
 }
 
-Carta::State::CartaObject* Util::createObject( const QString& objectName ){
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    QString objectId = objManager->createObject( objectName );
-    Carta::State::CartaObject* cartaObj = objManager->getObject( objectId );
-    return cartaObj;
-}
-
-Carta::State::CartaObject* Util::findSingletonObject( const QString& objectName ){
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    Carta::State::CartaObject* obj = objManager->getObject( objectName );
-    if ( obj == NULL ){
-        obj = createObject( objectName );
-    }
-    return obj;
-}
-
-
 
 void Util::commandPostProcess( const QString& errorMsg){
     if ( errorMsg.trimmed().length() > 0 ){
-        Carta::State::CartaObject* obj = Util::findSingletonObject( ErrorManager::CLASS_NAME );
-        ErrorManager* errorMan = dynamic_cast<ErrorManager*>(obj);
+        ErrorManager* errorMan = Util::findSingletonObject<ErrorManager>();
         errorMan->registerWarning( errorMsg );
     }
 }
 
+bool Util::isListMatch( const QStringList& list1, const QStringList& list2 ){
+    bool listEqual = true;
+    int listSize = list1.size();
+    if ( listSize != list2.size() ){
+        listEqual = false;
+    }
+    else {
+        for ( int i = 0; i < listSize; i++ ){
+            if ( list1[i] != list2[i] ){
+                listEqual = false;
+                break;
+            }
+        }
+    }
+    return listEqual;
+}
+
 double Util::roundToDigits(double value, int digits)
 {
+    if ( value == 0 ) {
+        return 0;
+    }
     double factor = pow(10.0, digits - ceil(log10(fabs(value))));
     return round(value * factor) / factor;
 }

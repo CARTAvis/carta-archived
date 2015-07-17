@@ -3,7 +3,6 @@
 }
 
 QT       += core gui
-
 TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
@@ -24,16 +23,6 @@ HEADERS += \
     AstGridPlotter.h \
     AstWcsGridRenderService.h
 
-CASACOREDIR=../../../../ThirdParty/casacore-2.0.1-shared
-WCSLIBDIR=../../../../ThirdParty/wcslib-4.23-shared
-CFITSIODIR=../../../../ThirdParty/cfitsio-3360-shared
-ASTLIBDIR = ../../../../ThirdParty/ast-8.0.2
-
-CASACOREDIR=$$absolute_path($${CASACOREDIR})
-WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
-CFITSIODIR=$$absolute_path($${CFITSIODIR})
-ASTLIBDIR=$$absolute_path($${ASTLIBDIR})
-
 astlibLIBS += $${ASTLIBDIR}/lib/libast.a
 astlibLIBS += $${ASTLIBDIR}/lib/libast_pal.a
 astlibLIBS += $${ASTLIBDIR}/lib/libast_grf3d.a
@@ -43,17 +32,20 @@ astlibLIBS += $${ASTLIBDIR}/lib/libast_err.a
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
-casacoreLIBS += -lcasa_casa -llapack -lblas -lgfortran -ldl
-casacoreLIBS += -L$${WCSLIBDIR}/lib -lwcs
-casacoreLIBS += -L$${CFITSIODIR}/lib -lcfitsio
-
-INCLUDEPATH += $${CASACOREDIR}/include
-INCLUDEPATH += $${WCSLIBDIR}/include
-INCLUDEPATH += $${CFITSIODIR}/include
-INCLUDEPATH += $${ASTLIBDIR}/include
+casacoreLIBS += -lcasa_casa -llapack -lblas -ldl
 
 LIBS += $${casacoreLIBS}
 LIBS += $${astlibLIBS}
+LIBS += -L$$OUT_PWD/../../common/ -lcommon
+LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
+
+INCLUDEPATH += $${CASACOREDIR}/include
+INCLUDEPATH += $${ASTLIBDIR}/include
+INCLUDEPATH += $${WCSLIBDIR}/include
+INCLUDEPATH += $${CFITSIODIR}/include
+INCLUDEPATH += $$PWD/../../common
+DEPENDPATH += $$PWD/../../common
+
 
 OTHER_FILES += \
     plugin.json
@@ -68,7 +60,9 @@ copy_files.commands = ${COPY_FILE} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy_files.CONFIG += no_link target_predeps
 QMAKE_EXTRA_COMPILERS += copy_files
 
-unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
-INCLUDEPATH += $$PWD/../../common
-DEPENDPATH += $$PWD/../../common
-unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.so
+unix:macx {
+    PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.dylib
+}
+else{
+    PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.so
+}

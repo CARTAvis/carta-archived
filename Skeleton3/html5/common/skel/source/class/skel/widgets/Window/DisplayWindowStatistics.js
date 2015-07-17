@@ -14,22 +14,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics",
 
             /**
              * Constructor.
-             * @param row {Number} the row location of the window.
-             * @param col {Number} the column location of the window.
              * @param pluginId {String} an identifier the plug-in to be displayed.
              * @param index {Number} index of the plug-in for the case where 
              *          multiple plug-ins of the same type are displayed.
              * @param detached {boolean} true for a dialog type window; 
              *          false for an in-line window.
              */
-            construct : function(row, col, index, detached ) {
+            construct : function( index, detached ) {
                 var path = skel.widgets.Path.getInstance();
-                this.base(arguments, path.STATISTICS, row, col, index, detached );
+                this.base(arguments, path.STATISTICS, index, detached );
                 this.m_links = [];
-                qx.event.message.Bus.subscribe("addLink", function(ev){
-                    var data = ev.getData();
-                    this._updateStatSource( data.source, data.destination);
-                }, this );
             },
 
             members : {

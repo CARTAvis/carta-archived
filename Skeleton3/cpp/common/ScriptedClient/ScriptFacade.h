@@ -7,7 +7,7 @@
 #pragma once
 #include <QString>
 #include <QObject>
-
+#include "CartaLib/CartaLib.h"
 
 namespace Carta {
     namespace Data {
@@ -382,6 +382,38 @@ public:
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      */
     QStringList getPixelValue( const QString& controlId, double x, double y );
+
+    /**
+     * Return the units of the pixels.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QStringList getPixelUnits( const QString& controlId );
+
+    /**
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @return the coordinates at pixel (x, y).
+     */
+    QStringList getCoordinates( const QString& controlId, double x, double y, Carta::Lib::KnownSkyCS system );
+
+    /**
+     * Return a list of the images open in the specified image view.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return the names of the images that are currently open in the specified image view.
+     */
+    QStringList getImageNames( const QString& controlId );
+
+    /**
+     * Close the specified image.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList closeImage( const QString& controlId, const QString& imageName );
 
     /**
      * Set the amount of extra space on each side of the clip bounds.

@@ -4,14 +4,17 @@
 
 qx.Class.define("skel.Command.Popup.CommandPopupHistogram", {
     extend : skel.Command.Command,
+    include : skel.Command.Popup.SingletonLinkMixin,
     type : "singleton",
 
     /**
      * Constructor.
      */
     construct : function() {
-        this.base( arguments, "Histogram", null );
+        var path = skel.widgets.Path.getInstance();
+        this.base( arguments, path.HISTOGRAM_PLUGIN, null );
         this.m_toolBarVisible = false;
+        this.m_plugin = path.HISTOGRAM_PLUGIN;
         this.m_global = false;
         this.setToolTipText( "Show a histogram of this data set as a popup window.");
     },

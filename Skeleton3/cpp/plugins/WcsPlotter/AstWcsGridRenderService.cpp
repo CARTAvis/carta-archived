@@ -133,7 +133,7 @@ AstWcsGridRenderService::renderNow()
 {
     // if the VGList is still valid, we are done
     if ( m_vgValid ) {
-        qDebug() << "vgValid saved us a grid redraw xyz";
+        //qDebug() << "vgValid saved us a grid redraw xyz";
         emit done( m_vgc.vgList(), m().lastSubmittedJobId );
         return;
     }
@@ -236,6 +236,22 @@ AstWcsGridRenderService::renderNow()
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
     sgp.setPlotOption( "DrawTitle=0" );
 
+    if ( !m_gridLines ){
+        sgp.setPlotOption( "Grid=0");
+    }
+
+    if ( !m_axes ) {
+        sgp.setPlotOption("Border=0");
+        sgp.setPlotOption("DrawAxes(2)=0");
+        sgp.setPlotOption("DrawAxes(1)=0");
+        _turnOffTicks( &sgp );
+    }
+    else {
+        if ( !m_ticks ){
+            _turnOffTicks(&sgp);
+        }
+    }
+
     if ( m_internalLabels ) {
         sgp.setPlotOption( QString( "Labelling=Interior" ) );
     }
@@ -246,8 +262,18 @@ AstWcsGridRenderService::renderNow()
 
     sgp.setPlotOption( "LabelUp(2)=0" ); // align labels to axes
     sgp.setPlotOption( "Size=9" ); // default font
-    sgp.setPlotOption( "TextLab(1)=1" );
-    sgp.setPlotOption( "TextLab(2)=1" );
+
+    //Turn axis labelling off if we are not drawing the axes.
+    if (m_axes){
+        sgp.setPlotOption( "TextLab(1)=1" );
+        sgp.setPlotOption( "TextLab(2)=1" );
+    }
+    else {
+        sgp.setPlotOption( "TextLab(1)=0");
+        sgp.setPlotOption( "TextLab(2)=0");
+        sgp.setPlotOption( "NumLab(1) = 0");
+        sgp.setPlotOption( "NumLab(2) = 0");
+    }
 
     // fonts
     sgp.setPlotOption( QString( "Font(TextLab1)=%1" ).arg( fi( Element::LabelText1 ).first ) );
@@ -327,11 +353,18 @@ AstWcsGridRenderService::renderNow()
         qWarning() << "Grid rendering error:" << sgp.getError();
     }
 
-    qDebug() << "Grid rendered in " << t.elapsed() / 1000.0 << "s";
+    //qDebug() << "Grid rendered in " << t.elapsed() / 1000.0 << "s";
 
     // Report the result.
     emit done( m_vgc.vgList(), m().lastSubmittedJobId );
 } // startRendering
+
+void AstWcsGridRenderService::setAxesVisible( bool flag ){
+    if ( m_axes != flag ){
+        m_vgValid = false;
+        m_axes = flag;
+    }
+}
 
 void
 AstWcsGridRenderService::setGridDensityModifier( double density )
@@ -348,6 +381,14 @@ AstWcsGridRenderService::setInternalLabels( bool flag )
     if ( m_internalLabels != flag ) {
         m_vgValid = false;
         m_internalLabels = flag;
+    }
+}
+
+void
+AstWcsGridRenderService::setGridLinesVisible( bool flag ){
+    if ( m_gridLines != flag ){
+        m_vgValid = false;
+        m_gridLines = flag;
     }
 }
 
@@ -419,9 +460,26 @@ AstWcsGridRenderService::setEmptyGrid( bool flag )
     }
 }
 
+void
+AstWcsGridRenderService::setTicksVisible( bool flag )
+{
+    if ( m_ticks != flag ){
+        m_vgValid = false;
+        m_ticks = flag;
+    }
+}
+
 inline AstWcsGridRenderService::Pimpl &
 AstWcsGridRenderService::m()
 {
     return * m_pimpl;
+}
+
+void
+AstWcsGridRenderService::_turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp){
+    sgp->setPlotOption("MajTickLen(1)=0");
+    sgp->setPlotOption("MajTickLen(2)=0");
+    sgp->setPlotOption("MinTickLen(1)=0");
+    sgp->setPlotOption("MinTickLen(2)=0");
 }
 }

@@ -23,6 +23,7 @@ public:
     friend class StateInterfaceTestImpl;
 
     static const QString DELIMITER;
+    static const QString FLUSH_STATE;
     static const QString STATE_DATA;
     static const QString OBJECT_TYPE;
     static const QString INDEX;
@@ -40,6 +41,7 @@ public:
 
     void fetchState ();
     void flushState ();
+    void refreshState();
     QString toString() const;
     QString toString (const QString & keyString) const;
 

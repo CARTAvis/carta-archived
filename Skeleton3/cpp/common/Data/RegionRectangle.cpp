@@ -20,9 +20,9 @@ RegionRectangle::RegionRectangle(const QString& path, const QString& id ):
     _initializeState();
 }
 
-QString RegionRectangle::getType() const {
+/*QString RegionRectangle::getType() const {
     return CLASS_NAME;
-}
+}*/
 
 void RegionRectangle::_initializeState(){
     m_state.insertValue<int>( TOP_LEFT_X, 0 );

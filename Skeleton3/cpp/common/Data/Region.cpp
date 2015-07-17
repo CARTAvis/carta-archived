@@ -18,7 +18,8 @@ QString Region::makeRegion( const QString& type ){
     QString regionPath;
     if ( type == RegionRectangle::CLASS_NAME ){
         Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-        regionPath = objManager->createObject( type );
+        Region* region = objManager->createObject<RegionRectangle>( );
+        regionPath = region->getId();
     }
     else {
         qDebug() << "Region::makeRegion unsupported region type:"<<type;

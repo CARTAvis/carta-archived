@@ -20,18 +20,7 @@ class Selection : public QObject, public Carta::State::CartaObject {
 
 public:
 
-    /**
-     * Return the value of the value of the state corresponding to the key.
-     * @param key a lookup key for the state.
-     * @return the value of the state.
-     */
-     int getState(const QString& key ) const;
-
-     /**
-      * Returns a json string representing the state of this selection.
-      * @return a string representing the state of this selection.
-      */
-     QString getStateString() const;
+    //GENERAL NOTE:  LowerBound <= UserLowerBound<=Index<=UserUpperBound<=UpperBound - 1
 
     /**
      * Returns the current index selection;
@@ -40,14 +29,34 @@ public:
 
     /**
      * Returns the lower bound for the selection.
+     * @return the lowest possible selection value.
      */
     int getLowerBound() const;
 
     /**
+     * Return the user settable lower bound for the selection.
+     * @return the user set lowest possible selection value.
+     */
+    int getLowerBoundUser() const;
+
+
+    /**
+     * Returns a json string representing the state of this selection.
+     * @return a string representing the state of this selection.
+     */
+    QString getStateString() const;
+
+    /**
      * Returns the upper bound for the selection.
+     * @return the number of selections that can be made.
      */
     int getUpperBound() const;
 
+    /**
+     * Returns the user settable upper bound for the selection.
+     * @return the user settable upper bound for selections.
+     */
+    int getUpperBoundUser() const;
 
     /**
      * Sets the current index of the selection, provided it is in the selection range.
@@ -57,23 +66,43 @@ public:
     QString setIndex( int val);
 
     /**
+     * Sets the lower bound of the selection.
+     * @param newLowerBound a nonnegative integer representing the new selection lower bound.
+     */
+    void setLowerBound(int newLowerBound);
+
+    /**
+     * Sets the user's lower bound limit on selections.
+     * @param userLowerBound - a nonnegative value representing the user's preferences for
+     *      selection lower bounds.
+     * @return an empty string if the user lower bound was successfully set; an empty string
+     *      otherwise.
+     */
+    QString setLowerBoundUser( int userLowerBound);
+
+    /**
      * Sets the upper bound of the selection.
      * @param newUpperBound a nonnegative integer representing the new selection upper bound.
      */
     void setUpperBound(int newUpperBound);
 
     /**
-     * Sets the lower bound of the selection.
-     * @param newLowerBound a nonnegative integer representing the new selection lower bound.
+     * Sets the user's preferred upper bound for the selection.
+     * @param userUpperBound - a nonnegative integer which is the user's preferred upper bound.
+     * @return an error message if the user upper bound could not be set; an empty string
+     *      otherwise.
      */
-    void setLowerBound(int newLowerBound);
+    QString setUpperBoundUser( int userUpperBound );
+
 
     virtual ~Selection();
 
     //Bounds and index for the state.
     static const QString HIGH_KEY;
+    static const QString HIGH_KEY_USER;
     static const QString INDEX_KEY;
     static const QString LOW_KEY;
+    static const QString LOW_KEY_USER;
     static const QString CLASS_NAME;
     static const QString SELECTIONS;
     //Identifier for an image.
@@ -113,14 +142,8 @@ private:
     //Returns the value of the passed in key as an integer.
     int _getValue(const QString& key) const;
 
-    //Set either the upper or lower bound for the index.
-    void _setFrameBounds(/*StateKey key*/const QString& key, const QString& val);
-
-    //Set the upper, lower, or index value, checking that it is a valid value.
-    bool _setFrameBoundsCheck(/*StateKey key*/const QString& key , int bound);
-
     Selection( const Selection& other);
-    Selection operator=( const Selection& other );
+    Selection& operator=( const Selection& other );
 };
 }
 }

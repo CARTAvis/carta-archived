@@ -4,14 +4,17 @@
 
 qx.Class.define("skel.Command.Popup.CommandPopupColormap", {
     extend : skel.Command.Command,
+    include : skel.Command.Popup.SingletonLinkMixin,
     type : "singleton",
 
     /**
      * Constructor.
      */
     construct : function() {
-        this.base( arguments, "Colormap", null );
+        var path = skel.widgets.Path.getInstance();
+        this.base( arguments, path.COLORMAP_PLUGIN, null );
         this.m_toolBarVisible = false;
+        this.m_plugin = path.COLORMAP_PLUGIN;
         this.m_global = false;
         this.setToolTipText( "Show the colormap associated with this data set as a popup window.");
     },

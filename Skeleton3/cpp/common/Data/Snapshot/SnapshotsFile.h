@@ -44,7 +44,7 @@ private:
     QList<Snapshot> _updateSnapshots( const QString& sessionId );
 
 	SnapshotsFile( const SnapshotsFile& other);
-	SnapshotsFile operator=( const SnapshotsFile& other );
+	SnapshotsFile& operator=( const SnapshotsFile& other );
 };
 }
 }
