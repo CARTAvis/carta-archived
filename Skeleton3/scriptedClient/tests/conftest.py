@@ -58,7 +58,7 @@ def tempImageDir(request):
             print "deleting " + imageDir + '/' + file
             os.remove(imageDir + '/' + file)
         os.rmdir(imageDir)
-    request.addfinalizer(fin)
+    #request.addfinalizer(fin)
     return imageDir
 
 @pytest.fixture(scope="function")
@@ -79,6 +79,9 @@ def cleanSlate(request, cartavisInstance):
     c[0].setColorMix(1,1,1)
     c[0].setDataTransform('none')
     c[0].setGamma(1)
+    # Reset the histogram
+    #h = cartavisInstance.getHistogramViews()
+    #h[0].setPlaneMode('all')
     # Close all open images
     for imageName in i[0].getImageNames():
         i[0].closeImage(imageName)
