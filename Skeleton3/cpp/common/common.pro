@@ -17,6 +17,7 @@ HEADERS += \
     CallbackList.h \
     PluginManager.h \
     Globals.h \
+    Algorithms/Graphs/TopoSort.h \
     Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
@@ -28,27 +29,36 @@ HEADERS += \
     Data/Animator/Animator.h \
     Data/Animator/AnimatorType.h \
     Data/Animator/AnimationTypes.h \
-    Data/ChannelUnits.h \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
-    Data/Colormap/Settings.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
-    Data/Controller.h \
     Data/DataLoader.h \
-    Data/ErrorReport.h \
-    Data/ErrorManager.h \
+    Data/Error/ErrorReport.h \
+    Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
-    Data/Histogram/HistogramPreferences.h \
+    Data/Histogram/ChannelUnits.h \
     Data/IColoredView.h \
     Data/ILinkable.h \
+    Data/Settings.h \
+    Data/Image/Controller.h \
+    Data/Image/CoordinateSystems.h \
+    Data/Image/DataGrid.h \
+    Data/Image/DataSource.h \
+    Data/Image/Fonts.h \
+    Data/Image/GridControls.h \
+    Data/Image/ImageGridServiceSynchronizer.h \
+    Data/Image/Themes.h \
     Data/Selection.h \
-    Data/Layout.h \
+    Data/Layout/Layout.h \
+    Data/Layout/LayoutNode.h \
+    Data/Layout/LayoutNodeComposite.h \
+    Data/Layout/LayoutNodeLeaf.h \
+    Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
     Data/Preferences.h \
     Data/Region.h \
-    Data/DataSource.h \
     Data/Region.h \
     Data/RegionRectangle.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -74,13 +84,15 @@ HEADERS += \
     ScriptedClient/VarLengthMessage.h \
     ScriptedClient/TagMessage.h \
     ScriptedClient/JsonMessage.h \
+    DefaultContourGeneratorService.h \
     Hacks/HackViewer.h \
     Hacks/ImageViewController.h \
     Hacks/MainModel.h \
     Hacks/ILayeredView.h \
     Hacks/IVectorGraphicsView.h \
     Hacks/WcsGridOptionsController.h \
-    Hacks/SharedState.h
+    Hacks/SharedState.h \
+    Hacks/ContourEditorController.h
 
 SOURCES += \
     Viewer.cpp \
@@ -95,26 +107,35 @@ SOURCES += \
     State/StateInterface.cpp \
     State/UtilState.cpp \
     ImageView.cpp \
+    Data/Settings.cpp \
     Data/Animator/Animator.cpp \
     Data/Animator/AnimatorType.cpp \
     Data/Animator/AnimationTypes.cpp \
-    Data/ChannelUnits.cpp \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
-    Data/Colormap/Settings.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
-    Data/Controller.cpp \
+    Data/Image/Controller.cpp \
+    Data/Image/CoordinateSystems.cpp \
+    Data/Image/DataGrid.cpp \
+    Data/Image/DataSource.cpp \
+    Data/Image/Fonts.cpp \
+    Data/Image/GridControls.cpp \
+    Data/Image/ImageGridServiceSynchronizer.cpp \
+    Data/Image/Themes.cpp \
     Data/DataLoader.cpp \
-    Data/ErrorReport.cpp \
-    Data/ErrorManager.cpp \
+    Data/Error/ErrorReport.cpp \
+    Data/Error/ErrorManager.cpp \
     Data/Histogram/Histogram.cpp \
-    Data/Histogram/HistogramPreferences.cpp \
+    Data/Histogram/ChannelUnits.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
-    Data/DataSource.cpp \
-    Data/Layout.cpp \
+    Data/Layout/Layout.cpp \
+    Data/Layout/LayoutNode.cpp \
+    Data/Layout/LayoutNodeComposite.cpp \
+    Data/Layout/LayoutNodeLeaf.cpp \
+    Data/Layout/NodeFactory.cpp \
     Data/Preferences.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
@@ -140,13 +161,15 @@ SOURCES += \
     ScriptedClient/VarLengthMessage.cpp \
     ScriptedClient/TagMessage.cpp \
     ScriptedClient/JsonMessage.cpp \
+    DefaultContourGeneratorService.cpp \
     Hacks/HackViewer.cpp \
     Hacks/ImageViewController.cpp \
     Hacks/MainModel.cpp \
     Hacks/ILayeredView.cpp \
     Hacks/IVectorGraphicsView.cpp \
     Hacks/WcsGridOptionsController.cpp \
-    Hacks/SharedState.cpp
+    Hacks/SharedState.cpp \
+    Hacks/ContourEditorController.cpp
 
 
 #message( "common            PWD=$$PWD")

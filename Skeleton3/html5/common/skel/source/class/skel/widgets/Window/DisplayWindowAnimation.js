@@ -16,8 +16,8 @@ qx.Class
                     /**
                      * Constructor.
                      */
-                    construct : function(row, col, index, detached ) {
-                        this.base(arguments, skel.widgets.Path.getInstance().ANIMATOR, row, col, index, detached );
+                    construct : function(index, detached ) {
+                        this.base(arguments, skel.widgets.Path.getInstance().ANIMATOR, index, detached );
                         this.setLayout(new qx.ui.layout.VBox(5));
                         this.m_links = [];
                         this._initSupportedAnimations();
@@ -43,6 +43,34 @@ qx.Class
                             arguments.callee.base.apply(this, arguments);
                             var animCmd = skel.Command.Animate.CommandAnimations.getInstance();
                             this.m_supportedCmds.push( animCmd.getLabel() );
+                        },
+                        
+                        /**
+                         * Notify all the animators that the movie has stopped playing.
+                         * @param ev {qx.event.type.Data}.
+                         */
+                        _movieStopped : function( ev ){
+                            var data = ev.getData();
+                            for (var i = 0; i < this.m_supportedAnimations.length; i++) {
+                                var animId = this.m_supportedAnimations[i];
+                                if ( this.m_animators[animId] !== undefined ){
+                                    this.m_animators[animId].movieStopped( data.title );
+                                }
+                            }
+                        },
+                        
+                        /**
+                         * Notify all the animators that a movie has started playing.
+                         * @parm ev {qx.event.type.Data}.
+                         */
+                        _movieStarted : function( ev ){
+                            var data = ev.getData();
+                            for ( var i = 0; i < this.m_supportedAnimations.length; i++ ){
+                                var animId = this.m_supportedAnimations[i];
+                                if ( this.m_animators[animId] !== undefined ){
+                                    this.m_animators[animId].movieStarted( data.title );
+                                }
+                            }
                         },
                         
                         /**
@@ -118,6 +146,8 @@ qx.Class
                                 if (animVisible) {
                                     if (this.m_animators[animId] === undefined ) {
                                         this.m_animators[animId] = new skel.boundWidgets.Animator(animId, this.m_identifier);
+                                        this.m_animators[animId].addListener( "movieStart", this._movieStarted, this );
+                                        this.m_animators[animId].addListener( "movieStop", this._movieStopped, this );
                                     }
                                       
                                     if ( !oldVisible) {

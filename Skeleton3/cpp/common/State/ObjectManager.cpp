@@ -19,8 +19,8 @@ namespace Carta {
 namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits",
-        "Clips", "Colormaps","DataLoader","TransformsImage","TransformsData",
-        "ErrorManager","Layout","Preferences","ViewManager"};
+        "Clips", "Colormaps","CoordinateSystems","DataLoader","Fonts","TransformsImage","TransformsData",
+        "ErrorManager","Layout","Preferences","Themes","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -64,11 +64,19 @@ CartaObject::CartaObject (const QString & className,
   m_path (path){
     }
 
+void CartaObject::refreshState(){
+    m_state.refreshState();
+}
+
 int CartaObject::getIndex() const {
     return m_state.getValue<int>(StateInterface::INDEX);
 }
 
-QString CartaObject::getType(CartaObject::SnapshotType /*snapType*/) const {
+QString CartaObject::getSnapType(CartaObject::SnapshotType /*snapType*/) const {
+    return m_className;
+}
+
+QString CartaObject::getType() const {
     return m_className;
 }
 
@@ -175,10 +183,9 @@ bool ObjectManager::restoreSnapshot(const QString stateStr, CartaObject::Snapsho
         int stateCount = state.getArraySize( STATE_ARRAY );
         for(map<QString,ObjectRegistryEntry>::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
             CartaObject* obj = it->second.getObject();
-
-            //Try to assign by (row,col) and matching type.  Note:  May want to remove the assigning by id.
+            //Try to assign by index and matching type.  Note:  May want to remove the assigning by id.
             int targetIndex = obj->getIndex();
-            QString targetType = obj->getType( snapType );
+            QString targetType = obj->getSnapType( snapType );
             bool restored = false;
             for ( int j = 0; j < stateCount; j++ ){
                 QString stateLookup = UtilState::getLookup( STATE_ARRAY, j );
@@ -208,7 +215,7 @@ bool ObjectManager::restoreSnapshot(const QString stateStr, CartaObject::Snapsho
                 }
             }
             if ( !restored ){
-                qDebug() << "Unable to restore "<<targetType<<" snapType="<<snapType;
+                //qDebug() << "Unable to restore "<<targetType<<" snapType="<<snapType;
             }
         }
         stateRestored = true;
@@ -250,43 +257,11 @@ QString ObjectManager::parseId( const QString& path ) const {
     return id;
 }
 
-QString
-ObjectManager::createObject (const QString & className)
-{
-    // This shouldn't be called until the PW State has been initialized.
-
-    ClassRegistry::iterator i = m_classes.find (className);
-
-    QString result; // empty string on failure
-
-    if (i != m_classes.end()){
-
-        // Generate the object's id and path
-        // Create the object
-        CartaObjectFactory* factory = i->second.getFactory();
-        QString id = factory->getGlobalId();
-        if ( id.length() == 0 ){
-            m_nextId ++;
-            id = "c"+QString::number( m_nextId);
-        }
-        QString path (m_sep + m_root + m_sep + id);
-
-
-        CartaObject* object = factory->create( path, id );
-        //CartaObject * object = i->second.getFactory() (path, id);
-
-        assert (object != 0);
-
-        // Install the newly created object in the object registry.
-
-        assert (m_objects.find (id) == m_objects.end());
-        m_objects [id] = ObjectRegistryEntry (className, id, path, object);
-
-        result = id;
-
+void ObjectManager::printObjects(){
+    for(map<QString,ObjectRegistryEntry>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+        QString firstId = it->first;
+        QString classId = it->second.getClassName();
     }
-
-    return result;
 }
 
 CartaObject* ObjectManager::removeObject( const QString& id ){
@@ -327,7 +302,7 @@ CartaObject* ObjectManager::getObject( int index, const QString & typeStr ){
     CartaObject* target = nullptr;
     for( ObjectRegistry::iterator i = m_objects.begin(); i != m_objects.end(); ++i){
         CartaObject* obj = i->second.getObject();
-        if ( obj->getIndex() == index && typeStr == obj->getType()){
+        if ( obj->getIndex() == index && typeStr == obj->getSnapType()){
             target = obj;
             break;
         }
@@ -336,7 +311,7 @@ CartaObject* ObjectManager::getObject( int index, const QString & typeStr ){
 }
 
 void
-ObjectManager::initialize ()
+ObjectManager::initialize()
 {
 
     // Register command handler(s) for create, etc.

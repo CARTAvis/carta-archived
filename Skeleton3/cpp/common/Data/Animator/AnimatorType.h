@@ -79,10 +79,12 @@ public:
     QString setFrameStep( int stepSize );
 
     /**
-     * Set the animator visible/invisible.
-     * @param visible - true if the animator should be visible; false if it should be hidden.
+     * Set the lower bound the user wants to use.
+     * @param lowerBound - a nonnegative selection lower bound.
+     * @param return an error message if the user lower bound could not be set;
+     *      an empty string otherwise.
      */
-    void setVisible( bool visible );
+    QString setLowerBoundUser( int lowerBound );
 
     /**
      * Sets the upper bound for the selection.
@@ -90,15 +92,30 @@ public:
      */
     void setUpperBound( int value );
 
+    /**
+     * Sets the user upper bound (less than the upper bound).
+     * @param upperBound - a nonnegative upper bound chosen by the user.
+     * @return an error message if the user upper bound could not be set;
+     *      an empty string otherwise.
+     */
+    QString setUpperBoundUser( int upperBound );
+
+    /**
+     * Set the animator visible/invisible.
+     * @param visible - true if the animator should be visible; false if it should be hidden.
+     */
+    void setVisible( bool visible );
+
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
-
-    QString changeIndex( const QString & params );
 
     virtual ~AnimatorType();
 
 signals:
     void indexChanged(int);
+
+private slots:
+    void _selectionChanged( bool );
 
 private:
 
@@ -133,7 +150,7 @@ private:
     const static QString STEP;
     const static QString VISIBLE;
     AnimatorType( const AnimatorType& other);
-    AnimatorType operator=( const AnimatorType& other );
+    AnimatorType& operator=( const AnimatorType& other );
 };
 }
 }

@@ -50,7 +50,7 @@ private:
 
 
 	TransformsImage( const TransformsImage& other);
-	TransformsImage operator=( const TransformsImage& other );
+	TransformsImage& operator=( const TransformsImage& other );
 };
 
 }

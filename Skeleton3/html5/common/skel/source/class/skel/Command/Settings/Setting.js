@@ -45,6 +45,7 @@ qx.Class.define("skel.Command.Settings.Setting", {
             }
             catch( err ){
                 console.log( err);
+                console.log( obj );
             }
             
         },

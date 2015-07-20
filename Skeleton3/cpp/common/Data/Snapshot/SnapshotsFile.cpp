@@ -1,4 +1,6 @@
 #include "SnapshotsFile.h"
+#include "Globals.h"
+#include "IPlatform.h"
 #include <QDebug>
 #include <QDateTime>
 #include <QDirIterator>
@@ -43,13 +45,19 @@ QString SnapshotsFile::deleteSnapshot( const QString& sessionId, const QString& 
 }
 
 QString SnapshotsFile::_getRootDir(const QString& /*sessionId*/) const {
-    return "/scratch/snapshots";
+    QString snapshotDir = Globals::instance()->platform()->getCARTADirectory().append( "snapshots");
+    return snapshotDir;
 }
 QList<Snapshot> SnapshotsFile::getSnapshots( const QString& sessionId ) const {
     QString rootDirName = _getRootDir(sessionId);
     QDir rootDir( rootDirName );
     QMap<QString,Snapshot> snapshotList;
-    _processDirectory( sessionId, rootDir, snapshotList );
+    if ( rootDir.exists() ){
+        _processDirectory( sessionId, rootDir, snapshotList );
+    }
+    else {
+        qWarning()<<"Please check installation to make sure snapshot directory exists.";
+    }
     return snapshotList.values();
 }
 
@@ -176,7 +184,12 @@ QList<Snapshot> SnapshotsFile::_updateSnapshots( const QString& sessionId ){
     QString rootDirName = _getRootDir(sessionId);
     QDir rootDir( rootDirName );
     QMap<QString,Snapshot> snapshotList;
-    _processDirectory( sessionId, rootDir, snapshotList );
+    if ( rootDir.exists() ){
+        _processDirectory( sessionId, rootDir, snapshotList );
+    }
+    else {
+        qWarning()<<"Please check that the snapshot directories exist";
+    }
     return snapshotList.values();
 }
 

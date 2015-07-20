@@ -1,9 +1,5 @@
 /**
- * Created with IntelliJ IDEA.
- * User: pfederl
- * Date: 11/11/13
- * Time: 12:25 AM
- * To change this template use File | Settings | File Templates.
+ * TextField bound to a state..
  */
 
 /* global qx, mImport */

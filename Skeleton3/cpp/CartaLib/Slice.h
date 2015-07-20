@@ -98,6 +98,10 @@ public:
         bool isSingle() const;
         /// return a human readable string
         QString toStr() const;
+
+        /// combine two applied results into one
+        static ApplyResult combine( const ApplyResult & r1, const ApplyResult & r2);
+
     };
 
     /// return starting index, count and step for the given input size n
@@ -114,7 +118,7 @@ public:
 
 protected:
 
-    /// positive step case calculation
+    /// positive step case calculation, used in apply()
     void positiveCase( ApplyResult & res, Index n, Index off = 0) const;
 
 
@@ -183,8 +187,12 @@ public:
     SliceND & next();
 
     /// the result of applying an n-dimensional slice to an array
-    class ApplyResult {
+    /// default constructor makes an empty result, indicating error
+    class ApplyResult
+    {
+
     public:
+
         /// was there an error
         bool isError() const;
         /// does this result represent a single (usual scalar) value?
@@ -194,14 +202,17 @@ public:
         const std::vector<Slice1D::ApplyResult> & dims() const;
         /// make a readable string
         QString toStr() const;
+        /// combine two applied results to create a new one
+        static ApplyResult combine( const ApplyResult & r1, const ApplyResult & r2);
+
     protected:
+
         std::vector<Slice1D::ApplyResult> m_results;
         bool m_error = true;
         bool m_single = false;
 
         friend class SliceND;
     };
-
 
     /// figure out which elements to extract for the given dimensions
     /// if the numpber of supplied dimensions is greater than number of slices,
@@ -220,6 +231,5 @@ protected:
 
     /// for chaining notation we keep track of current position
     int m_currentSlice = 0;
-
 };
 

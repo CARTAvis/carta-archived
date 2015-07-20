@@ -44,11 +44,12 @@ public:
 
     /**
      * Save the current state.
-     * @param fileName - an identifier for the state to be saved.
-     * @param layoutSave - true if the layout should be saved; false otherwise.
-     * @param preferencesSave -true if the preferences should be saved; false otherwise.
-     * @param dataSave - true if the data should be saved; false otherwise.
-     * @param saveDescription - notes about the state being saved.
+     * @param sessionId - an identifier for a user session.
+     * @param saveName - an identifier for the state to be saved.
+     * @param saveLayout - true if the layout should be saved; false otherwise.
+     * @param savePreferences -true if the preferences should be saved; false otherwise.
+     * @param saveData - true if the data should be saved; false otherwise.
+     * @param description - notes about the state being saved.
      * @return an error message if there was a problem saving state; an empty string otherwise.
      */
     QString saveSnapshot( const QString& sessionId, const QString& saveName, bool saveLayout,
@@ -102,7 +103,7 @@ private:
 
 
 	Snapshots( const Snapshots& other);
-	Snapshots operator=( const Snapshots& other );
+	Snapshots& operator=( const Snapshots& other );
 };
 }
 }

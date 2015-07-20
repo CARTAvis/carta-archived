@@ -271,6 +271,17 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             }
         },
         
+        /**
+         * Sets whether or not the plane range controls should be enabled.
+         * @param valid {boolean} - true if the image is NOT single plane;
+         *      false otherwise.
+         */
+        setPlaneRangeEnabled : function( valid ){
+            this.m_rangeMinText.setEnabled( valid );
+            this.m_rangeMaxText.setEnabled( valid );
+            this.m_planeRange.setEnabled( valid );
+            this.m_unitCombo.setEnabled( valid );
+        },
         
         /**
          * Set whether or not this histogram is of a single plane, range of planes, or

@@ -1,7 +1,14 @@
 import tSnapshot
+import Util
+import time
+import unittest
+import selectBrowser
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 
 #Test that a layout snapshot can be saved/restored.
 class tSnapshotLayout(tSnapshot.tSnapshot):
@@ -10,7 +17,8 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
     # the analysis layout
     def test_analysis_saveRestore(self):    
         driver = self.driver
-        
+        timeout = selectBrowser._getSleep()
+
         #For later use, determine the number of DisplayWindows.
         windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
         windowCount = len( windowList )
@@ -26,7 +34,6 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         # layout is checked.
         self._setSaveOptions( driver, False, True, False)
         
-        
         # Type in tSnapshotLayout for the save name.
         self._setSaveName( driver, "tSnapshotLayout")
         
@@ -37,10 +44,10 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         self._closeSave( driver )
         
         # Change to an image layout
-        layoutButton = driver.find_element_by_xpath("//div[text()='Layout']/..")
+        layoutButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Layout']/..")))
         self.assertIsNotNone( layoutButton, "Could not find div with text layout")
         ActionChains(driver).click(layoutButton).perform()
-        imageLayoutButton = driver.find_element_by_xpath( "//div[text()='Image Layout']/..")
+        imageLayoutButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Image Layout']/..")))
         self.assertIsNotNone( imageLayoutButton, "Could not find layout image button in submenu")
         ActionChains(driver).click( imageLayoutButton).perform()
         
@@ -56,9 +63,13 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         
         # Close the restore dialog
         self._closeRestore( driver )
-        
+        time.sleep( timeout )
+
         # Verify the window count is the same
         newWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
         newWindowCount = len( newWindowList )
         print "New Window Count=", newWindowCount
         self.assertEqual( windowCount, newWindowCount, "Window count changed with restore")
+
+if __name__ == "__main__":
+    unittest.main()   

@@ -67,7 +67,7 @@ private:
 
 
 	Colormaps( const Colormaps& other);
-	Colormaps operator=( const Colormaps& other );
+	Colormaps& operator=( const Colormaps& other );
 };
 
 }

@@ -14,20 +14,19 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
      * Constructor.
      * 
      * @param pluginId {String} the name of the plugin that will be displayed.
-     * @param row {Number} a row in the screen grid.
-     * @param col {Number} a column in the screen grid.
      * @param index {Number} an identification index for the case where we have more than one window for a given pluginId;
+     * @param detached {boolean} - true if this will not be a layout inline window; false otherwise.
      */
-    construct : function(pluginId, row, col, index, detached ) {
+    construct : function(pluginId, index, detached ) {
         this.base(arguments, detached );
         this.m_pluginId = pluginId;
         this.m_supportedCmds = [];
-        this.m_row = row;
-        this.m_col = col;
+        
         var pathDict = skel.widgets.Path.getInstance();
         this._init();
-        this.getChildControl( "captionbar").setVisibility( "excluded");
-        //this._initWindowBar();
+        if ( !detached ){
+            this.getChildControl( "captionbar").setVisibility( "excluded");
+        }
         
         this._initSupportedCommands();
         this._initContextMenu();
@@ -64,6 +63,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     members : {
         
         /**
+         * Attaches the location of this window to the link information.
+         * @param linkInfo {skel.widgets.Link.LinkInfo} - information about a linking
+         *      starting or ending at this window.
+         */
+        _attachLocation : function( linkInfo ){
+            var midPoint = skel.widgets.Util.getCenter( this );
+            linkInfo.locationX = midPoint[0];
+            linkInfo.locationY = midPoint[1];
+        },
+        
+        /**
          * Returns true if the link from the source window to the destination window was successfully added or removed; false otherwise.
          * @param sourceWinId {String} an identifier for the link source.
          * @param destWinId {String} an identifier for the link destination.
@@ -71,22 +81,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         changeLink : function(sourceWinId, destWinId, addLink) {
             var linkChanged = false;
-            if ( sourceWinId == this.m_identifier ){
-                if ( !addLink ){
-                    this.removeLink( sourceWinId, destWinId);
-                }
-            }
-            else if (destWinId == this.m_identifier) {
-                var linkIndex = this.m_links.indexOf(sourceWinId);
+            if (sourceWinId == this.m_identifier) {
+                var linkIndex = this.m_links.indexOf(destWinId);
                 if (addLink && linkIndex < 0) {
                     linkChanged = true;
-                    this.m_links.push(sourceWinId);
-                    this._sendLinkCommand(sourceWinId, addLink);
+                    this.m_links.push(destWinId);
+                    this._sendLinkCommand(destWinId, addLink);
                 } 
                 else if (!addLink && linkIndex >= 0) {
                     this.m_links.splice(linkIndex, 1);
                     linkChanged = true;
-                    this._sendLinkCommand(sourceWinId, addLink);
+                    this._sendLinkCommand(destWinId, addLink);
                 }
             }
             return linkChanged;
@@ -97,17 +102,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          */
         clean : function(){
             //console.log( "No cleaning on this window");
-        },
-        
-        /**
-         * Remove the link with the given identifier from the list of links.
-         * @param winId {String} a unique identifier for the link to remove.
-         */
-        clearLink : function( winId ){
-            var linkIndex = this.m_links.indexOf(winId);
-            if ( linkIndex >= 0 ){
-                this.m_links.splice(linkIndex);
-            }
         },
         
         /**
@@ -141,12 +135,33 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         },
 
         /**
-         * Return the window title.
+         * Return the unique server-side identifier for this window.
+         * @return {String} the server-side identifier.
          */
         getIdentifier : function() {
             return this.m_identifier;
         },
-
+        
+        /**
+         * Returns the index of the target in the link information list or -1
+         * if the target is not in the list.
+         * @param linkInfos {Array} - a list of information about links and potential links.
+         * @param target {String} - an identifier for a window link target.
+         * @return {Number} - the index of the target in the list or -1 if the
+         *      target is not in the list.
+         */
+        _getInfoIndex : function ( linkInfos, target ){
+            var linkIndex = -1;
+            var linkInfoCount = linkInfos.length;
+            for ( var i = 0; i < linkInfoCount; i++ ){
+                if ( target == linkInfos[i].winId ){
+                    linkIndex = i;
+                    break;
+                }
+            }
+            return linkIndex;
+        },
+        
         /**
          * Returns this window's information concerning establishing a link from
          * the window identified by the sourceWinId to this window.
@@ -159,44 +174,106 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          *                plug-in that wants information about the links that
          *                can emanate from it.
          */
-        getLinkInfo : function(pluginId, sourceWinId) {
+        getLinkInfo : function( pluginId, sourceWinId, linkInfos ) {
+            //Return an array as a starting point giving the ones we are already
+            //linked to.  We let the linked windows fill in location and whether the
+            //link is two-way.
+            var linkInfo;
+            var infoIndex = -1;
+            if ( this.m_identifier == sourceWinId ){
+                var existingLinkCount = this.m_links.length;
+                for ( var i = 0; i < existingLinkCount; i++ ){
+                    
+                    //Check to see if our links are already in the list.
+                    var linkInfoCount = linkInfos.length;
+                    infoIndex = this._getInfoIndex( linkInfos, this.m_links[i] );
+                    
+                    //If the link is not in the list, create it.
+                    if ( infoIndex < 0 ){
+                        linkInfo = new skel.widgets.Link.LinkInfo();
+                        linkInfo.source = false;
+                        linkInfo.linkable = true;
+                        linkInfo.winId = this.m_links[i];
+                        linkInfos.push( linkInfo );
+                        infoIndex = linkInfos.length - 1;
+                    }
+                    
+                    //Update the link info
+                    linkInfos[infoIndex].linked = true;
+                }
+                //Add ourselves as the source link
+                linkInfo = new skel.widgets.Link.LinkInfo();
+                linkInfo.source = true;
+                linkInfo.linked = true;
+                linkInfo.winId = this.m_identifier;
+                linkInfo.linkable = true;
+                this._attachLocation( linkInfo );
+                linkInfo.twoWay = true;
+                linkInfos.push( linkInfo );
+            }
+            else {
+                //If we are linkable to the plugin, we should attach ourselves as
+                //a potential link attachment if we are not already there.
+                if ( this.isLinkable( pluginId ) ){
+                    infoIndex = this._getInfoIndex( linkInfos, this.m_identifier );
+                    if ( infoIndex < 0 ){
+                        linkInfo = new skel.widgets.Link.LinkInfo();
+                        linkInfo.linked = false;
+                        linkInfo.winId = this.m_identifier;
+                        linkInfo.linkable = true;
+                        linkInfo.twoWay = this.isTwoWay( pluginId );
+                        linkInfos.push( linkInfo );
+                        infoIndex = linkInfos.length - 1;
+                    }
+                    this._attachLocation( linkInfos[infoIndex]);
+                }
+            }
+        },
+        
+        /**
+         * Return a list of identifiers for windows that are currently linked to this one.
+         * @return {Array} - identifiers for windows linked to this window.
+         */
+        getLinks : function(){
+            return this.m_links;
+        },
+
+        /**
+         * Returns this window's information concerning using it as a possible
+         * move location.
+         * 
+         * @param sourceWinId  {String} an identifier for the window wanting to move to this
+         *      window's location.
+         */
+        getMoveInfo : function( sourceWinId) {
+            
             var linkInfo = new skel.widgets.Link.LinkInfo();
             if (this.m_identifier == sourceWinId) {
                 linkInfo.source = true;
+                //Because we are potentially going to move this window, we need to store it in
+                //the window factory so the new destination will be able to reuse it and not make
+                //another one.
+                var wins = [];
+                wins[0] = this;
+                skel.widgets.Window.WindowFactory.setExistingWindows( wins );
             }
            
             var midPoint = skel.widgets.Util.getCenter(this);
             linkInfo.locationX = midPoint[0];
             linkInfo.locationY = midPoint[1];
-            var index = this.m_links.indexOf( sourceWinId );
-            if ( index >= 0) {
-               
-                linkInfo.linked = true;
-            }
-
+            linkInfo.linked = false;
             linkInfo.winId = this.m_identifier;
-            linkInfo.linkable = this.isLinkable(pluginId);
-            linkInfo.twoWay = this.isTwoWay(pluginId);
-
+            linkInfo.pluginId = this.getPlugin();
+            linkInfo.locationId = this.getLocation();
+            linkInfo.linkable = true;
+            linkInfo.twoWay = false;
             return linkInfo;
         },
         
-        /**
-         * Return this window's row location in the grid.
-         * @return {Number} the window's row location.
-         */
-        getCol : function(){
-            return this.m_col;
+        getLocation : function(){
+            return this.m_locationId;
         },
         
-        /**
-         * Return this window's column location in the grid.
-         * @return {Number} the window's column location.
-         */
-        getRow : function(){
-            return this.m_row;
-        },
-
         /**
          * Returns the name of the plug-in this window is displaying.
          */
@@ -246,12 +323,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 var vals = cmds.getValue();
                 var emptyFunc = function(){};
                 for ( var i = 0; i < vals.length; i++ ){
+                    var supported = this.isCmdSupported( vals[i] );
                     var cmdType = vals[i].getType();
                     if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
                             cmdType === skel.Command.Command.TYPE_GROUP ){
                         //Only add top-level commands specific to this window.
-                        var supported = this.isCmdSupported( vals[i] );
-                        if ( supported ){
+                        var enabled = vals[i].isEnabled();
+                        if ( supported && enabled ){
                             var menu = skel.widgets.Util.makeMenu( vals[i]);
                             var menuButton = new qx.ui.menu.Button( vals[i].getLabel() );
                             this.m_contextMenu.add( menuButton );
@@ -261,6 +339,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
                         var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, false, true );
                         this.m_contextMenu.add( button );
+                    }
+                    else if ( cmdType === skel.Command.Command.TYPE_BOOL ){
+                        if ( supported ){
+                            var check = skel.widgets.Util.makeCheck( vals[i], emptyFunc, false);
+                            this.m_contextMenu.add( check );
+                        }
                     }
                     else {
                         console.log( "Menu unsupported top level command type="+ cmdType );
@@ -369,19 +453,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         //Written for the case of the histogram, which currently supports linking to
         //only one controller.  If the user draws in a link to a second controller,
         //we remove it and post an error message.
-        _linkUndoCmd : function( anObject, sourceWinId ){
+        _linkUndoCmd : function( anObject, destWinId ){
             return function( msg ){
                 if ( msg !== null && msg.length > 0 ){
-                    var linkIndex = anObject.m_links.indexOf( sourceWinId );
+                    var linkIndex = anObject.m_links.indexOf( destWinId );
                     if ( linkIndex >= 0 ){
                         anObject.m_links.splice(linkIndex);
                         var linkCanvas = skel.widgets.Link.LinkCanvas.getInstance();
-                        linkCanvas.removeLink( sourceWinId, anObject.m_identifier );
+                        linkCanvas.removeLink( anObject.m_identifier, destWinId );
                     }
                 }
             };
         },
-
         
         
         /**
@@ -402,14 +485,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             };
         },
         
-        /**
-         * Window specific action to be taken when a link is removed.
-         * @param sourceWinId {String} server side id of the source window.
-         * @param destWinId {String} server side id of the destination window.
-         */
-        removeLink : function( sourceWinId, destWinId ){
-            //console.log( "Remove link not implemented for "+this.m_pluginId);
-        },
         
         /**
          * Restores the window to its location in the main display.
@@ -426,18 +501,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param sourceWinId {String} an identifier for the window that is the source of the link.
          * @param addLink {boolean} true if the link should be added; false if it should be removed.
          */
-        _sendLinkCommand : function(sourceWinId, addLink) {
-            //Send a command to link the source window this window.
+        _sendLinkCommand : function(destWinId, addLink) {
+            //Send a command to link this window to the destination window.
             var linkCmd;
             var linkUndo = null;
             if ( addLink ){
                 linkCmd = skel.Command.Link.CommandLinkAdd.getInstance();
-                linkUndo = this._linkUndoCmd( this, sourceWinId );
+                linkUndo = this._linkUndoCmd( this, destWinId );
             }
             else {
                 linkCmd = skel.Command.Link.CommandLinkRemove.getInstance();
             }
-            linkCmd.link( sourceWinId, this.m_identifier, linkUndo );
+            linkCmd.link( this.m_identifier, destWinId, linkUndo );
         },
         
         /**
@@ -481,15 +556,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     var winObj = JSON.parse( val );
                     var i = 0;
                     //Update the new links for this window.
-                    var data = {
-                       link: this.m_identifier
-                    };
-                    qx.event.message.Bus.dispatch( new qx.event.message.Message("clearLinks", data));
+                    this.m_links = [];
                     if ( winObj.links && winObj.links.length > 0 ){
                         for ( i = 0; i < winObj.links.length; i++ ){
                             var destId = winObj.links[i];
-                            var link = new skel.widgets.Link.Link( this.m_identifier, destId );
-                            qx.event.message.Bus.dispatch(new qx.event.message.Message("addLink", link));
+                            this.m_links.push( destId );
                         }
                     }
                 }
@@ -509,9 +580,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param row {Number} the grid row index.
          * @param col {Number} the grid column index.
          */
-        setLocation : function (row, col ){
-            this.m_row = row;
-            this.m_col = col;
+        setLocation : function ( locationId ){
+            this.m_locationId = locationId;
         },
 
         /**
@@ -520,30 +590,32 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            this.setActive( selected );
-            if( selected) {
-                this.getChildControl("pane").addState( "winSel" );
-            }
-            else {
-            	this.getChildControl("pane").removeState( "winSel");
-            }
-            
-            //Notify window has been selected.
-            if ( !multiple && selected ) {
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                    "windowSelected", this));
-            }
-            
-            //Reset the context menu based on functionality specific to this window.
-            if ( selected ){
-                if ( !multiple ){
+            if ( selected != this.m_active ){
+                this.m_active= selected;
+                if( selected) {
+                    this.getChildControl("pane").addState( "winSel" );
+                }
+                else {
+                    this.getChildControl("pane").removeState( "winSel");
+                }
+                
+                //Notify window has been selected.
+                if ( !multiple && selected ) {
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                        "windowSelected", this));
+                }
+                
+                //Reset the context menu based on functionality specific to this window.
+                if ( selected ){
+                    if ( !multiple ){
+                        skel.Command.Command.clearActiveWindows();
+                    }
+                    skel.Command.Command.addActiveWindow( this );
+                    this._initContextMenu();
+                }
+                else {
                     skel.Command.Command.clearActiveWindows();
                 }
-                skel.Command.Command.addActiveWindow( this );
-                this._initContextMenu();
-            }
-            else {
-                skel.Command.Command.clearActiveWindows();
             }
         },
         
@@ -561,6 +633,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         windowSharedVarUpdate : function( winObj ){
         },
 
+        m_active : false,
         m_closed : false,
         m_contextMenu : null,
         m_scrollArea : null,
@@ -579,8 +652,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         
         //Server side object id
         m_identifier : "",
-        m_row : 0,
-        m_col : 0
+        m_locationId : ""
     }
 
 });

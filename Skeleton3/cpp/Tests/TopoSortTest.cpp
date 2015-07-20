@@ -94,7 +94,7 @@ struct TSortTester
         return m_output;
     }
 
-    Algorithms::Graphs::TopoSort m_tsort;
+    Carta::Core::Algorithms::Graphs::TopoSort m_tsort;
     int m_n;
     bool m_passed;
     bool m_executed;

@@ -21,6 +21,10 @@ qx.Class.define("skel.widgets.Link.LinkInfo", {
         linked : false,
         // Identifier for this window.
         winId : "",
+        //Type of plugin being displayed
+        pluginId : "",
+        //Location identifier.
+        locationId : "",
         // Whether or not a bidirectional link is supported ( from this window
         // to source )
         twoWay : false

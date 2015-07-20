@@ -86,6 +86,7 @@ void
 Service::setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId )
 {
     m_inputView = view;
+    qDebug() << "xyz setInputView" << m_inputView.get() << this;
     m_inputViewCacheId = cacheId;
     m_frameImage = QImage(); // indicate a need to recompute
 }
@@ -285,6 +286,7 @@ Service::internalRenderSlot()
 
     if ( ! m_inputView ) {
         qCritical() << "input view not set";
+        qDebug() << "xyz internal renderslot" << m_inputView.get() << this;
         return;
     }
 

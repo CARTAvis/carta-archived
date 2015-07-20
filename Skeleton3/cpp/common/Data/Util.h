@@ -3,9 +3,9 @@
  */
 
 #pragma once
-#include <set>
-#include <map>
-#include <QString>
+
+#include <State/ObjectManager.h>
+#include <QStringList>
 #include <vector>
 
 
@@ -37,19 +37,18 @@ public:
      static QString toString( bool val );
 
      /**
-      * Creates an object of the given class.
-      * @param objectName the class name of the object to create.
-      * @return the object that was created.
+      * Returns the singleton object of the given typed class.
+      * @return the singleton object with the given typed class.
       */
-     static Carta::State::CartaObject* createObject( const QString& objectName );
-
-     /**
-      * Returns the singleton object of the given class or null if there is no such object.
-      * @param objectName the class name of the object to return.
-      * @return the singleton object with the corresponding name or null if there is no
-      *     such object.
-      */
-     static Carta::State::CartaObject* findSingletonObject( const QString& objectName );
+     template <typename T>
+     static T* findSingletonObject( ){
+         Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+         T* obj = dynamic_cast<T*>(objManager->getObject( T::CLASS_NAME ));
+         if ( obj == NULL ){
+             obj = objManager->createObject<T>();
+         }
+         return obj;
+     }
 
      /**
       * Posts the error message, if one exists, and returns the last valid value, if one exists
@@ -59,7 +58,13 @@ public:
       */
      static void commandPostProcess( const QString& errorMsg );
 
-
+     /**
+      * Returns true if the lists have the same length and elements; false otherwise.
+      * @param list1 - {QStringList} the first list to compare.
+      * @param list2 - {QStringList} the second list to compare.
+      * @return true if the lists are equal; false otherwise.
+      */
+     static bool isListMatch( const QStringList& list1, const QStringList& list2 );
 
      /**
       * Round the value to the given number of significant digits.
@@ -77,7 +82,8 @@ public:
       */
      static std::vector < double > string2VectorDouble( QString s, QString sep = " " );
 
-     static const QString STATE_FLUSH;
+     static const QString PREFERENCES;
+
 private:
     Util();
     virtual ~Util();

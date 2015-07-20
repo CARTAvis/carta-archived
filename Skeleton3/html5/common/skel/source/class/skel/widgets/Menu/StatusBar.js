@@ -63,7 +63,7 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
             menuButton.setShowArrow(false);
             this.m_iconifiedWindows.add(menuButton);
             menuButton.addListener("execute", function() {
-                this.restoreWindow(data.row, data.col);
+                this.restoreWindow(data.id);
             }, restoreListener);
             menuButton.addListener("execute", function() {
                 this._removeIconifiedWindow(menuButton);

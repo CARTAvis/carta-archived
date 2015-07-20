@@ -21,7 +21,8 @@ qx.Class.define("skel.Command.Window.CommandWindow", {
         this.m_cmds[0] = skel.Command.Window.CommandWindowMaximize.getInstance();
         this.m_cmds[1] = skel.Command.Window.CommandWindowMinimize.getInstance();
         this.m_cmds[2] = skel.Command.Window.CommandWindowRemove.getInstance();
-        this.m_cmds[3] = skel.Command.Window.CommandWindowAdd.getInstance();
+        this.m_cmds[3] = skel.Command.Window.WindowAdd.getInstance();
+        this.m_cmds[4] = skel.Command.Window.WindowMove.getInstance();
         this.setValue( this.m_cmds );
         
         this.m_cmds[0].addListener( "windowMaximized", this._windowMaximized, this );

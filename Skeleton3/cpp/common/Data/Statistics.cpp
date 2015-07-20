@@ -1,8 +1,6 @@
 #include "Data/Statistics.h"
-#include "Data/Controller.h"
-//#include "Data/DataSource.h"
+#include "Data/Image/Controller.h"
 #include "Data/LinkableImpl.h"
-//#include "Data/Util.h"
 
 #include <QtCore/QDebug>
 
@@ -53,10 +51,20 @@ QString Statistics::getStateString( const QString& /*sessionId*/, SnapshotType t
         result = m_state.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getType( type));
+        result = m_linkImpl->getStateString(getIndex(), getSnapType( type));
     }
     return result;
 }
+
+bool Statistics::isLinked( const QString& linkId ) const {
+    bool linked = false;
+    CartaObject* obj = m_linkImpl->searchLinks( linkId );
+    if ( obj != nullptr ){
+        linked = true;
+    }
+    return linked;
+}
+
 
 QString Statistics::removeLink( Carta::State::CartaObject* cartaObject ){
     QString result;
@@ -67,7 +75,7 @@ QString Statistics::removeLink( Carta::State::CartaObject* cartaObject ){
     return result;
 }
 
-QList<QString> Statistics::getLinks() {
+QList<QString> Statistics::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 

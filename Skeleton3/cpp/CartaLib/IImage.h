@@ -53,7 +53,7 @@ namespace NdArray
 /// \brief Interface for reading elements of multidimensional array (n-dimensional array)
 /// for arbitrary types. The intentded use of this class is the lowest interface
 /// needed to be implemented to read an array. A conversion adapter/mixin would be more
-/// convenenient to actually access the arrays.
+/// convenenient to actually access the arrays, see TypedView<> as an example
 class RawViewInterface
 {
     CLASS_BOILERPLATE( RawViewInterface );
@@ -104,6 +104,19 @@ public:
     /// virtual destructor
     virtual
     ~RawViewInterface() { }
+
+    // ===-----------------------------------------------------------------------===
+    // experimental APIs below, not yet finalized and definitely not yet implemented
+    // Probably we'll only implement one of these, not all of them.
+    // ===-----------------------------------------------------------------------===
+    /// \brief create a view into this view
+    /// \param sliceInfo which view to get
+    /// \return a new view
+    /// \warning for efficiency reasons we are not doing shared pointers, etc... since the returned
+    /// view needs to have pointer to the instance of the image interface, the image interface
+    /// needs to remain valid while accessing the view! i.e. don't delete it
+    virtual RawViewInterface *
+    getView( const SliceND & sliceInfo ) = 0;
 
     // ===-----------------------------------------------------------------------===
     // experimental APIs below, not yet finalized and definitely not yet implemented
@@ -332,9 +345,12 @@ public:
     virtual PixelType
     errorType() const = 0;
 
-    /// \brief get slice of data
+    /// \brief get slice of data (a view into the data, to be precise)
     /// \param sliceInfo which slice to get
-    /// \param result where to store result
+    /// \return a new view
+    /// \warning for efficiency reasons we are not doing shared pointers, etc... since the returned
+    /// view needs to have pointer to the instance of the image interface, the image interface
+    /// needs to remain valid while accessing the view! i.e. don't delete it
     virtual NdArray::RawViewInterface *
     getDataSlice( const SliceND & sliceInfo ) = 0;
 
