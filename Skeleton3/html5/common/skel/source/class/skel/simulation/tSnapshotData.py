@@ -51,7 +51,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         Util._changeElementText( self, driver, indexText, lastChannel)
                 
         # Find the session button on the menu bar and click it.
-        self._clickSessionButton( driver )
+        #self._clickSessionButton( driver )
         
         # Find the save session button in the submenu and click it.
         self._clickSessionSaveButton( driver )
@@ -114,9 +114,8 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
         # Show the image animator
         ActionChains( driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_RIGHT).send_keys(
+            Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ARROW_RIGHT).send_keys(
             Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
-
         imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", imageUpperSpin ) 
         

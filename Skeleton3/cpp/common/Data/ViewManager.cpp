@@ -16,7 +16,8 @@
 #include "Data/ILinkable.h"
 #include "Data/Layout/Layout.h"
 #include "Data/Layout/NodeFactory.h"
-#include "Data/Preferences.h"
+#include "Data/Preferences/Preferences.h"
+#include "Data/Preferences/PreferencesSave.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics.h"
 #include "Data/ViewPlugins.h"
@@ -69,6 +70,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<TransformsImage>();
     Util::findSingletonObject<ErrorManager>();
     Util::findSingletonObject<Preferences>();
+    Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();
     Util::findSingletonObject<CoordinateSystems>();
     Util::findSingletonObject<Themes>();
@@ -501,23 +503,6 @@ bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
     }
     return result;
 }
-
-bool ViewManager::loadLocalFile( const QString& controlId, const QString& fileName){
-    bool result = false;
-    int controlCount = getControllerCount();
-    for ( int i = 0; i < controlCount; i++ ){
-        const QString controlPath= m_controllers[i]->getPath();
-        if ( controlId  == controlPath ){
-           //Add the data to it
-            _makeDataLoader();
-           result = m_controllers[i]->addData( fileName );
-           break;
-        }
-    }
-    return result;
-}
-
-
 
 
 void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex ){

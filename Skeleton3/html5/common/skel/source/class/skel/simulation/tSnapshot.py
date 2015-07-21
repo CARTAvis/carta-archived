@@ -39,11 +39,14 @@ class tSnapshot(unittest.TestCase):
         ActionChains(driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
     # Click the Save... option in the Sessions submenu
-    def _clickSessionSaveButton(self,driver):        
+    def _clickSessionSaveButton(self,driver): 
+        sessionButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Session']/..")))
+        self.assertIsNotNone( sessionButton, "Could not find div with text session")
         # Find the save session button in the submenu and click it.
-        saveButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Save...']/..")))
-        self.assertIsNotNone( saveButton, "Could not find save session button in submenu")
-        ActionChains(driver).click( saveButton).perform()
+        #saveButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Save...']/..")))
+        #self.assertIsNotNone( saveButton, "Could not find save session button in submenu")
+        #ActionChains(driver).click( saveButton).perform()
+        ActionChains( driver).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
             
     # Click the "Sessions" menu item
     def _clickSessionButton(self, driver ):

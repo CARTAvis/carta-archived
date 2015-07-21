@@ -1,6 +1,4 @@
 #include "UtilState.h"
-//#include "ObjectManager.h"
-//#include <QStringList>
 #include "StateInterface.h"
 #include <QDebug>
 

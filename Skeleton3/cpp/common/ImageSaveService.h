@@ -1,12 +1,16 @@
 /**
- * The ScriptedRenderService is responsible for rendering images for the scripted client.
+ * The ImageSaveService is responsible for saving images to a file.
  * It uses ImageRenderService internally
  **/
 
-#ifndef SCRIPTEDRENDERSERVICE_H
-#define SCRIPTEDRENDERSERVICE_H
+#ifndef IMAGESAVESERVICE_H
+#define IMAGESAVESERVICE_H
 
-#include "ImageRenderService.h"
+#include <QObject>
+#include <QSize>
+#include <QImage>
+
+#include <memory>
 
 namespace Carta {
     namespace Core {
@@ -14,24 +18,21 @@ namespace Carta {
             class Service;
         }
     }
-}
-
-namespace Carta {
     namespace Lib {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
         }
     }
 }
+namespace Image {
+    class ImageInterface;
+}
 
-namespace Carta
-{
-namespace Core
-{
-namespace ScriptedClient
-{
+namespace Carta{
+namespace Core{
+namespace ImageSaveService{
 
-class ScriptedRenderService : public QObject
+class ImageSaveService : public QObject
 {
     Q_OBJECT
 
@@ -43,7 +44,7 @@ public:
     /// \param m_pixelPipeline pixel pipeline.
     /// \param filename the input FITS file
     explicit
-    ScriptedRenderService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
+    ImageSaveService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
 
     ///
     /// \brief set the desired output size of the image
@@ -68,7 +69,7 @@ public:
     setZoom( double zoom );
 
     /// destructor
-    ~ScriptedRenderService();
+    ~ImageSaveService();
 
     /// Prepares the image to be rendered using ImageRenderService. After the rendering
     /// has finished, the image is then saved to the location stored in m_outputFilename.
@@ -123,8 +124,8 @@ private:
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipelineCopy;
 };
+}
+}
+}
 
-}
-}
-}
-#endif // SCRIPTEDRENDERSERVICE_H
+#endif // IMAGESAVESERVICE_H

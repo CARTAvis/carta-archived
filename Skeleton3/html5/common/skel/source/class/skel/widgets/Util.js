@@ -142,6 +142,7 @@ qx.Class.define("skel.widgets.Util", {
             if ( tool ){
                 button = new qx.ui.toolbar.MenuButton( label );
             }
+            button.setCommand( cmd );
             button.addListener( "execute", function(){
                 this.doAction( value, cb );
             }, cmd );

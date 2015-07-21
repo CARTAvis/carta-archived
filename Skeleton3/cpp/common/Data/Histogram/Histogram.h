@@ -310,12 +310,10 @@ public:
     /**
      * Save a copy of the histogram as an image.
      * @param filename the full path where the file is to be saved.
-     * @param width the width, in pixels, of the saved image.
-     * @param height the height, in pixels, of the saved image.
      * @return an error message if there was a problem saving the histogram;
      *      an empty string otherwise.
      */
-    QString saveHistogram( const QString& filename, int width, int height );
+    QString saveHistogram( const QString& filename );
 
     virtual ~Histogram();
     const static QString CLASS_NAME;
@@ -421,6 +419,7 @@ private:
     const static QString COLOR_MAX;
     const static QString COLOR_MIN_PERCENT;
     const static QString COLOR_MAX_PERCENT;
+    const static QString DATA_PATH;
     const static QString FREQUENCY_UNIT;
     const static QString GRAPH_STYLE;
     const static QString GRAPH_LOG_COUNT;

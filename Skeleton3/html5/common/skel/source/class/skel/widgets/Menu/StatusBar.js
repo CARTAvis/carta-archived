@@ -95,7 +95,23 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
             this.m_statusMessage.setValue( "");
         },
         
-
+        /**
+         * Return the marked up html to display an informational message.
+         * @param msg {String} - the information to display.
+         * @return {String} the marked up html that displays the message.
+         */
+        _getMessageHtml : function( msg ){
+            return this.m_BOLD_INFO + msg + this.m_BOLD_END;
+        },
+        
+        /**
+         * Return the marked up html to display an error message.
+         * @param msg {String} - the error to display.
+         * @return {String} the marked up html that displays the error message.
+         */
+        _getErrorHtml : function(errorMsg){
+            return this.m_BOLD_ERROR + errorMsg + this.m_BOLD_END;
+        },
 
         
         /**
@@ -124,23 +140,55 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         },
         
         /**
+         * Show a list of messages to the user.
+         * @param msgs {String} a list of user messages, each one separated by a '#' symbol.
+         */
+        showMessages : function( msgs ){
+            var msgList = msgs.split( "#");
+            var htmlText = "";
+            for ( var i = 0; i < msgList.length; i++ ){
+                if ( msgList[i].indexOf( "Error") >= 0 || msgList[i].indexOf( "Warn") >= 0 ){
+                    htmlText = htmlText + this._getErrorHtml( msgList[i] );
+                }
+                else {
+                    var infoMsg = msgList[i];
+                    //Remove the info header if it exists.
+                    var header = "Info:";
+                    var infoIndex = msgList[i].indexOf( header );
+                    if ( infoIndex === 0 ){
+                        infoMsg = infoMsg.substr( header.length, infoMsg.length - header.length );
+                    }
+                    htmlText = htmlText + this._getMessageHtml( infoMsg );
+                }
+            }
+            this._showRichText( htmlText );
+        },
+        
+
+        
+        /**
          * Display error messages on the status bar.
          * @param errorMessages {String} error messages.
          */
         showErrors : function(errorMessages) {
-            var richText = "<b style='color:red'>"+errorMessages+"</b>";
-            this.m_statusMessage.setValue(richText);
-            if (!this.isVisible()) {
-                this.show(this, true);
-            }
+            var richText = this._getErrorHtml( errorMessages );
+            this._showRichText( richText );
         },
         
         /**
-         * Display an informational message.
+         * Display informational messages on the status bar..
          * @param info {String} information message.
          */
         showInformation : function ( info ){
-            var richText = "<b style='color:black'>"+info+"</b>";
+            var richText = this._getMessageHtml( info );
+            this._showRichText( richText );
+        },
+        
+        /**
+         * Display marked up html on the status bar.
+         * @param richText {String} the marked up html to display.
+         */
+        _showRichText : function( richText ){
             this.m_statusMessage.setValue(richText);
             if (!this.isVisible()) {
                 this.show(this, true);
@@ -219,7 +267,11 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         m_iconifiedWindows : null,
         m_statusMessage : null,
         m_sharedContainer : null,
-        m_sharedUrl : null
+        m_sharedUrl : null,
+        
+        m_BOLD_END : "</b>",
+        m_BOLD_ERROR :"<b style='color:red'>",
+        m_BOLD_INFO : "<b style='color:black'>"
     },
 
     properties : {

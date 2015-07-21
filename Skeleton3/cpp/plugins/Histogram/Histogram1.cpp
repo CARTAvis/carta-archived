@@ -32,9 +32,7 @@ Carta::Lib::Hooks::HistogramResult Histogram1::_computeHistogram(){
             qDebug() << "Could not generate histogram data";
         }
     }
-    else {
-        qDebug() << "Histogram not initialized";
-    }
+
     Carta::Lib::Hooks::HistogramResult result(name, units, data);
     return result;
 }

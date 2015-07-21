@@ -219,11 +219,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setClipValue( imageView, clipValue );
     }
 
-    else if ( cmd == "saveimage" ) {
+    /*else if ( cmd == "saveimage" ) {
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
         result = m_scriptFacade->saveImage( imageView, filename );
-    }
+    }*/
 
     else if ( cmd == "centeronpixel" ) {
         QString imageView = args["imageView"].toString();
@@ -477,7 +477,7 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
         int height = args["height"].toInt();
         double scale = args["scale"].toDouble();
         QString aspectStr = args["aspectRatioMode"].toString().toLower();
-        Qt::AspectRatioMode aspectRatioMode;
+        /*Qt::AspectRatioMode aspectRatioMode;
         if ( aspectStr == "keep" ){
             aspectRatioMode = Qt::KeepAspectRatio;
         }
@@ -486,8 +486,8 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
         }
         else {
             aspectRatioMode = Qt::IgnoreAspectRatio;
-        }
-        m_scriptFacade->saveFullImage( imageView, filename, width, height, scale, aspectRatioMode );
+        }*/
+        m_scriptFacade->saveFullImage( imageView, filename, width, height, scale,/* aspectRatioMode*/aspectStr );
     }
 
 } // asyncMessageReceivedCB

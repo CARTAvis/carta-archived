@@ -3,6 +3,7 @@
 #include "CoordinateSystems.h"
 #include "ImageGridServiceSynchronizer.h"
 #include "Data/Colormap/Colormaps.h"
+#include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
@@ -14,7 +15,7 @@
 
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../../ImageRenderService.h"
-#include "../../ScriptedRenderService.h"
+#include "../../ImageSaveService.h"
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <QDir>
@@ -27,6 +28,7 @@ namespace Data {
 
 const QString DataSource::DATA_PATH = "file";
 const QString DataSource::CLASS_NAME = "DataSource";
+const double DataSource::ZOOM_DEFAULT = 1.0;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
@@ -343,11 +345,19 @@ QString DataSource::_getStateString() const{
 }
 
 double DataSource::_getZoom() const {
-    return m_renderService-> zoom();
+    double zoom = ZOOM_DEFAULT;
+    if ( m_renderService != nullptr ){
+        zoom = m_renderService-> zoom();
+    }
+    return zoom;
 }
 
 QSize DataSource::_getOutputSize() const {
-    return m_renderService-> outputSize();
+    QSize size;
+    if ( m_renderService != nullptr ){
+        size = m_renderService-> outputSize();
+    }
+    return size;
 }
 
 void DataSource::_gridChanged( const Carta::State::StateInterface& state, bool renderImage ){
@@ -460,26 +470,42 @@ void DataSource::_render(){
     m_igSync-> start();
 }
 
+void DataSource::_resetZoom(){
+    m_renderService-> setZoom( ZOOM_DEFAULT );
+}
 
-void DataSource::_saveFullImage( const QString& savename, int width, int height, double scale,
-        int frameIndex, const Qt::AspectRatioMode aspectRatioMode ){
-    QString fileName = _getFileName();
-    m_scriptedRenderService = new Carta::Core::ScriptedClient::ScriptedRenderService( savename, m_image, m_pixelPipeline, fileName );
-    if ( width > 0 && height > 0 ) {
-        m_scriptedRenderService->setOutputSize( QSize( width, height ) );
-        m_scriptedRenderService->setAspectRatioMode( aspectRatioMode );
-        m_scriptedRenderService->setFrameIndex( frameIndex );
+void DataSource::_resetPan(){
+    if ( m_image != nullptr ){
+        m_renderService-> setPan(
+                { m_image-> dims()[0] / 2.0, m_image-> dims()[1] / 2.0 }
+        );
     }
-    m_scriptedRenderService->setZoom( scale );
+}
 
-    connect( m_scriptedRenderService, & Carta::Core::ScriptedClient::ScriptedRenderService::saveImageResult, this, & DataSource::_saveImageResultCB );
+void DataSource::_saveImage( const QString& saveName, /*int width, int height,*/ double scale,
+        int frameIndex/*, const Qt::AspectRatioMode aspectRatioMode*/ ){
+    QString fileName = _getFileName();
+    m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
+            m_image, m_pixelPipeline, fileName );
+    PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
+    int width = prefSave->getWidth();
+    int height = prefSave->getHeight();
+    Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
+    m_saveService->setOutputSize( QSize( width, height ) );
+    m_saveService->setAspectRatioMode( aspectRatioMode );
+    m_saveService->setFrameIndex( frameIndex );
 
-    m_scriptedRenderService->saveFullImage();
+    m_saveService->setZoom( scale );
+
+    connect( m_saveService, & Carta::Core::ImageSaveService::ImageSaveService::saveImageResult,
+            this, & DataSource::_saveImageResultCB );
+
+    m_saveService->saveFullImage();
 }
 
 void DataSource::_saveImageResultCB( bool result ){
     emit saveImageResult( result );
-    m_scriptedRenderService->deleteLater();
+    m_saveService->deleteLater();
 }
 
 bool DataSource::_setFileName( const QString& fileName ){
@@ -495,9 +521,8 @@ bool DataSource::_setFileName( const QString& fileName ){
                     m_image = res.val();
 
                     // reset zoom/pan
-                    m_renderService-> setZoom( 1.0 );
-                    m_renderService-> setPan( { m_image-> dims()[0] / 2.0, m_image-> dims()[1] / 2.0 }
-                                              );
+                    _resetZoom();
+                    _resetPan();
 
                     // clear quantile cache
                     m_quantileCache.resize(0);
@@ -521,7 +546,7 @@ bool DataSource::_setFileName( const QString& fileName ){
         }
     }
     else {
-        qDebug() << "Cannot load empty file";
+        qDebug() << "Could not load empty file.";
         successfulLoad = false;
     }
     return successfulLoad;
@@ -569,6 +594,8 @@ void DataSource::_setZoom( double zoomAmount){
     // apply new zoom
     m_renderService-> setZoom( zoomAmount );
 }
+
+
 
 void DataSource::setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );

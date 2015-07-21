@@ -57,7 +57,8 @@ HEADERS += \
     Data/Layout/LayoutNodeLeaf.h \
     Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
-    Data/Preferences.h \
+    Data/Preferences/Preferences.h \
+    Data/Preferences/PreferencesSave.h \
     Data/Region.h \
     Data/Region.h \
     Data/RegionRectangle.h \
@@ -72,7 +73,7 @@ HEADERS += \
     Data/ViewPlugins.h \
     GrayColormap.h \
     ImageRenderService.h \
-    ScriptedRenderService.h \
+    ImageSaveService.h \
     Histogram/HistogramGenerator.h \
     Histogram/HistogramSelection.h \
     Histogram/HistogramPlot.h \
@@ -136,7 +137,8 @@ SOURCES += \
     Data/Layout/LayoutNodeComposite.cpp \
     Data/Layout/LayoutNodeLeaf.cpp \
     Data/Layout/NodeFactory.cpp \
-    Data/Preferences.cpp \
+    Data/Preferences/Preferences.cpp \
+    Data/Preferences/PreferencesSave.cpp \
     Data/Region.cpp \
     Data/RegionRectangle.cpp \
     Data/Snapshot/Snapshots.cpp \
@@ -154,7 +156,7 @@ SOURCES += \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     ImageRenderService.cpp \
-    ScriptedRenderService.cpp \
+    ImageSaveService.cpp \
     Algorithms/quantileAlgorithms.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \
