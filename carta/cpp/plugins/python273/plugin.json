@@ -1,0 +1,8 @@
+{
+    "name"       : "python273",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Loader of plugins written in Python.",
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : []
+}

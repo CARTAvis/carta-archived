@@ -1,0 +1,8 @@
+{
+    "name"       : "tester1",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Renders a static string to every view. Very boring.",
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : []
+}

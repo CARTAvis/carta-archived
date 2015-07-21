@@ -1,0 +1,8 @@
+{
+    "name"       : "blurpy",
+    "version"    : "0.0.1",
+    "type"       : "python",
+    "description": "try to blur something using python",
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : [ "python273" ]
+}
