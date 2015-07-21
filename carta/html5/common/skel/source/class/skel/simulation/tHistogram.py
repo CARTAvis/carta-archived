@@ -26,7 +26,7 @@ class tHistogram( unittest.TestCase ):
         ActionChains(driver).context_click( histWindow ).perform()
         ActionChains( driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN
                  ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-                 Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+                 Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
     # Find the histogram window either as an inline display if it is already present or as a popup
     def _getHistogramWindow(self, driver):
@@ -119,7 +119,7 @@ class tHistogram( unittest.TestCase ):
         # Check that the value goes to the server and gets set in the text field.
         newText = binCountText.get_attribute( "value")
         print 'Text=',newText
-        self.assertAlmostEqual( int(float(newText)), 500 ,None,"Failed to scroll halfway",250)
+        self.assertAlmostEqual( int(float(newText)), 5000,None,"Failed to scroll halfway",250)
 
     
     # Test that the Histogram min and max zoom value 
@@ -232,6 +232,7 @@ class tHistogram( unittest.TestCase ):
 
         # Check that the histogram values are restored to default values
         newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        print "Zoom max value=", newMaxZoomValue
         self.assertEqual( float(newMaxZoomValue), 1, "Default values were not restored after image removal")
 
     # Test that the histogram updates its values when the image is changed in the image window. 
@@ -267,7 +268,7 @@ class tHistogram( unittest.TestCase ):
         channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
         ActionChains(driver).click( channelText ).perform()
         ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( 
-            Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(
+            Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
 

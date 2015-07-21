@@ -10,7 +10,7 @@
 
  ************************************************************************ */
 
-qx.Class.define("skel.widgets.CustomLayoutPopup", {
+qx.Class.define("skel.widgets.Layout.CustomLayoutPopup", {
     extend : qx.ui.core.Widget,
 
     /**

@@ -125,6 +125,10 @@ const QStringList & DesktopPlatform::initialFileList()
     return m_initialFileList;
 }
 
+bool DesktopPlatform::isSecurityRestricted() const {
+    return false;
+}
+
 QString DesktopPlatform::getCARTADirectory()
 {
 	return QDir::homePath().append("/CARTA/");

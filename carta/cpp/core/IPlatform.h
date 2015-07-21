@@ -22,6 +22,10 @@ public:
     /// this will probably come somehow via url encoded arguments...
     virtual const QStringList & initialFileList() = 0;
 
+    /// Returns whether the code is running in an environment where security
+    /// needs to be restricted, for example, access to the the file system.
+    virtual bool isSecurityRestricted() const = 0;
+
 
 	/// returns CARTA data directory this is where snapshots and images are stored
     /// On desktop this will be $HOME/CARTA on server /scratch

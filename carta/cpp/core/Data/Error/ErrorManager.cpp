@@ -66,6 +66,11 @@ void ErrorManager::_initializeState(){
     m_state.flushState();
 }
 
+void ErrorManager::registerInformation( const QString& informMsg ){
+    _addReport( informMsg, ErrorSeverity::INFO );
+    qDebug() << informMsg;
+}
+
 void ErrorManager::registerError( const QString& errorMsg ){
     _addReport( errorMsg, ErrorSeverity::ERROR );
     qCritical() << errorMsg;

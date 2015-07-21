@@ -55,9 +55,10 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Get the image upper spin value 
         imageCount = imageUpperBoundText.get_attribute("value")
+        print "Image count=", imageCount
 
         # Check that the Animator is reset to default settings
-        self.assertEqual( int(imageCount), -1, "Image Animator did not reset after the image was removed")
+        self.assertEqual( int(imageCount), 0, "Image Animator did not reset after the image was removed")
         self.assertEqual( int(upperBound), 0, "Channel Animator did not reset after the image was removed")
         
     # Test that the Animator will update after an an image is loaded in the image window
@@ -73,13 +74,15 @@ class tAnimatorLinks(unittest.TestCase):
         self.assertIsNotNone( upperBoundText, "Could not find upper bound spin box" )
         driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
         upperBound = upperBoundText.get_attribute("value")
+        print "Upper bound", upperBound
 
         # In the same window, load a different image
         # The image should have a different number of channels
-        Util.load_image( self, driver, "aH.fits")
+        Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
 
         # Check that the Animator upper bound spin box value is updated
         newUpperBound = upperBoundText.get_attribute("value")
+        print "newUpperBound", newUpperBound
         self.assertNotEqual( int(newUpperBound), int(upperBound), "Animator did not update after an image was added")
 
     # Test that the Animator will update when linked to an image in a separate window

@@ -23,6 +23,13 @@ public:
      * @param errorMsg {QString} user information about the error.
      */
     void registerError( const QString& errorMsg );
+
+    /**
+     * Add an informational message.
+     * @param informMsg - information to provide to the user.
+     */
+    void registerInformation( const QString& informMsg );
+
     /**
      * Add a warning.
      * @param warningMsg {QString} user information about the warning.
