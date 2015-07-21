@@ -148,6 +148,27 @@ qx.Class.define("skel.widgets.Colormap.ColorTransform", {
         },
         
         /**
+         * Update from the server for the color map controls to set.
+         * @param controls {Object} - server-side color map state.
+         */
+        setControls : function( controls ){
+            var dSelectables = this.m_dataCombo.getChildrenContainer().getSelectables(true);
+            for ( var i = 0; i < dSelectables.length; i++ ){
+                if ( dSelectables[i].getLabel() == controls.dataTransform ){
+                    this.m_dataCombo.setValue( dSelectables[i].getLabel() );
+                    break;
+                }
+            }
+            var iSelectables = this.m_imageCombo.getChildrenContainer().getSelectables(true);
+            for ( i = 0; i < iSelectables.length; i++ ){
+                if ( iSelectables[i].getLabel() == controls.imageTransform ){
+                    this.m_imageCombo.setValue( iSelectables[i].getLabel() );
+                    break;
+                }
+            }
+        },
+        
+        /**
          * Set the server side id of the color map.
          * @param id {String} the unique server side id of this color map.
          */

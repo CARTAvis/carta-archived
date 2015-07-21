@@ -108,7 +108,8 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                         
                     }
                     catch( err ){
-                        console.log( "Could not parse: "+val );
+                        console.log( "Colormap could not parse: "+val );
+                        console.log( err );
                     }
                 }
             }
