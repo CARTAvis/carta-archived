@@ -10,9 +10,9 @@
 
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent ),
-    m_histogram( nullptr),
-    m_cartaImage( nullptr )
+    m_histogram( nullptr)
 {
+    m_cartaImage = nullptr;
     }
 
 
@@ -45,7 +45,7 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
     int channelHigh = -1;
     std::string units = unitStr.toStdString();
     if ( m_cartaImage ){
-        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
+        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage);
         if ( ptr1 ){
             if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
                 casa::ImageInterface<casa::Float> * casaImage = nullptr;
@@ -149,7 +149,7 @@ std::pair<double,double> Histogram1::_getFrequencyBounds( int channelMin, int ch
     double freqHigh = -1;
     std::string units = unitStr.toStdString();
     if ( m_cartaImage ){
-        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
+        CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage);
         if ( ptr1 ){
             if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
                 casa::ImageInterface<casa::Float> * casaImage = nullptr;
@@ -238,9 +238,9 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         std::vector<std::shared_ptr<Image::ImageInterface>> images = hook.paramsPtr->dataSource;
         casa::ImageInterface<casa::Float> * casaImage = nullptr;
         if ( images.size() > 0 ){
-            m_cartaImage = images.front();
+            m_cartaImage = images.front().get();
 
-            CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
+            CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage);
             if( ! ptr1) {
                 throw "not an image created by casaimageloader...";
             }

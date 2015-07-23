@@ -2,6 +2,7 @@
  *
  **/
 
+#include <cmath>
 #include "ContourConrec.h"
 #include "IImage.h"
 #include "LineCombiner.h"
