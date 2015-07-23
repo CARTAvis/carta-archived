@@ -10,6 +10,7 @@
 #include "Data/Histogram/Histogram.h"
 #include "Data/Layout/Layout.h"
 #include "Data/Statistics.h"
+#include "Data/Image/GridControls.h"
 
 #include <QDebug>
 
@@ -1359,6 +1360,29 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
     else {
         resultList = QStringList( "error" );
         resultList.append( "The specified histogram could not be found." );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setShowGridLines( showGridLines );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
     }
     return resultList;
 }

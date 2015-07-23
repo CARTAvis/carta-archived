@@ -628,3 +628,23 @@ class Image(CartaView):
         result = self.con.cmdTagList("closeImage", imageView=self.getId(),
                                      imageName=imageName)
         return result
+
+    def setShowGridLines(self, showGridLines=True):
+        """
+        Set whether or not to show grid lines.
+
+        Parameters
+        ----------
+        showGridLines: boolean
+            The default value is True, which caues the grid lines to be
+            shown.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridLines",
+                                     imageView=self.getId(),
+                                     showGridLines=showGridLines)
+        return result

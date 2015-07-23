@@ -1044,6 +1044,10 @@ QString Controller::setClipValue( double clipVal  ) {
     return result;
 }
 
+QString Controller::setShowGridLines( bool showGridLines ) {
+    QString result = m_gridControls->setShowGridLines( showGridLines );
+    return result;
+}
 
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){

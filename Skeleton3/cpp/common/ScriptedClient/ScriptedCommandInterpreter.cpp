@@ -429,6 +429,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
     }
 
+    /// grid commands
+
+    else if ( cmd == "setshowgridlines" ) {
+        QString imageView = args["imageView"].toString();
+        bool showGridLines = args["showGridLines"].toBool();
+        result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

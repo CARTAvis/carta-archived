@@ -540,6 +540,15 @@ public:
      */
     QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
 
+    /**
+     * Set whether or not the grid lines should be shown.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param showGridLines - true if the grid lines should be shown; false otherwise.
+     * @return an error message if there was a problem changing the visibility of the
+     *     grid; an empty string otherwise.
+     */
+    QStringList setShowGridLines( const QString& controlId, bool showGridLines );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

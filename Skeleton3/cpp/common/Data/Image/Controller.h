@@ -293,6 +293,14 @@ public:
      */
     void resetState( const QString& state );
 
+    /**
+     * Set whether or not the grid lines should be shown.
+     * @param showGridLines - true if the grid lines should be shown; false otherwise.
+     * @return an error message if there was a problem changing the visibility of the
+     *     grid; an empty string otherwise.
+     */
+    QString setShowGridLines( bool showGridLines );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
