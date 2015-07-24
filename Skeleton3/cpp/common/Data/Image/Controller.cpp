@@ -1068,6 +1068,11 @@ QString Controller::setGridCoordinateSystem( const QString& coordSystem ) {
     return result;
 }
 
+QString Controller::setGridFontFamily( const QString& fontFamily ) {
+    QString result = m_gridControls->setFontFamily( fontFamily );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

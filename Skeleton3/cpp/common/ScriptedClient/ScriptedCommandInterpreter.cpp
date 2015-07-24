@@ -463,6 +463,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridCoordinateSystem( imageView, coordSystem );
     }
 
+    else if ( cmd == "setgridfontfamily" ) {
+        QString imageView = args["imageView"].toString();
+        QString fontFamily = args["fontFamily"].toString();
+        result = m_scriptFacade->setGridFontFamily( imageView, fontFamily );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

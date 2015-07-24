@@ -334,6 +334,14 @@ public:
     QString setGridCoordinateSystem( const QString& coordSystem );
 
     /**
+     * Set the font family used for grid labels.
+     * @param fontFamily - an identifier for a font family.
+     * @return an error message if there was a problem setting the font family;
+     *  an empty string otherwise.
+     */
+    QString setGridFontFamily( const QString& fontFamily );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the

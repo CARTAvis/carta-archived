@@ -731,6 +731,26 @@ class Image(CartaView):
                                      coordSystem=coordSystem)
         return result
 
+    def setGridFontFamily(self, fontFamily):
+        """
+        Set the font family used for grid labels.
+
+        Parameters
+        ----------
+        fontFamily: string
+            An identifier for a font family.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the font
+            family; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridFontFamily",
+                                     imageView=self.getId(),
+                                     fontFamily=fontFamily)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.
