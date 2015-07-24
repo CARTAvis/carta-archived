@@ -1515,6 +1515,32 @@ QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QSt
     return resultList;
 }
 
+QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSize ) {
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setGridFontSize( fontSize );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();

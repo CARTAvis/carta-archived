@@ -595,6 +595,15 @@ public:
     QStringList setGridFontFamily( const QString& controlId, const QString& fontFamily );
 
     /**
+     * Set the font size used for grid labels.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param fontSize - an identifier for a font point size.
+     * @return an error message if there was a problem setting the font point size;
+     *  an empty string otherwise.
+     */
+    QStringList setGridFontSize( const QString& controlId, int fontSize );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

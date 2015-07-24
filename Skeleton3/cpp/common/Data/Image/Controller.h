@@ -342,6 +342,14 @@ public:
     QString setGridFontFamily( const QString& fontFamily );
 
     /**
+     * Set the font size used for grid labels.
+     * @param fontSize - an identifier for a font point size.
+     * @return an error message if there was a problem setting the font point size;
+     *  an empty string otherwise.
+     */
+    QString setGridFontSize( int fontSize );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the

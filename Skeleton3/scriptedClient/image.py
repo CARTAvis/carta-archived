@@ -751,6 +751,26 @@ class Image(CartaView):
                                      fontFamily=fontFamily)
         return result
 
+    def setGridFontSize(self, fontSize):
+        """
+        Set the font size used for grid labels.
+
+        Parameters
+        ----------
+        fontSize: integer
+            An identifier for a font point size.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the font
+            point size; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridFontSize",
+                                     imageView=self.getId(),
+                                     fontSize=fontSize)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

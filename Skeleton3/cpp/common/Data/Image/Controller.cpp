@@ -1073,6 +1073,11 @@ QString Controller::setGridFontFamily( const QString& fontFamily ) {
     return result;
 }
 
+QString Controller::setGridFontSize( int fontSize ) {
+    QString result = m_gridControls->setFontSize( fontSize );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;
