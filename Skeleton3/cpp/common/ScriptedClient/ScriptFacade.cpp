@@ -1364,6 +1364,31 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
     return resultList;
 }
 
+QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, int green, int blue ) {
+    QStringList resultList;
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->setGridAxesColor( red, green, blue );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();

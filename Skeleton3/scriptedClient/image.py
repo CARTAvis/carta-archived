@@ -629,6 +629,29 @@ class Image(CartaView):
                                      imageName=imageName)
         return result
 
+    def setGridAxesColor(self, red, green, blue):
+        """
+        Set the color of the grid axes.
+        
+        Parameters
+        ----------
+        red: integer
+            An integer in [0, 255] indicating the amount of red.
+        green: integer
+            An integer in [0, 255] indicating the amount of green.
+        blue: integer
+            An integer in [0, 255] indicating the amount of blue.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setGridAxesColor",
+                                     imageView=self.getId(),
+                                     red=red, green=green, blue=blue)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

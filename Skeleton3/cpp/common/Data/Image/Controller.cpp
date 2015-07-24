@@ -1044,6 +1044,11 @@ QString Controller::setClipValue( double clipVal  ) {
     return result;
 }
 
+QStringList Controller::setGridAxesColor( int red, int green, int blue ) {
+    QStringList result = m_gridControls->setAxesColor( red, green, blue );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

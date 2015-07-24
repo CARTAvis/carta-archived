@@ -541,6 +541,15 @@ public:
     QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
 
     /**
+     * Set the grid axes color.
+     * @param red- an integer in [0, 255] indicating the amount of red.
+     * @param green - an integer in [0,255] indicating the amount of green.
+     * @param blue - an integer in [0,255] indicating the amount of blue.
+     * @return a list of errors or an empty list if the color was successfully set.
+     */
+    QStringList setGridAxesColor( const QString& controlId, int red, int green, int blue );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

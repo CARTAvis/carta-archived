@@ -437,6 +437,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
     }
 
+    else if ( cmd == "setgridaxescolor" ) {
+        QString imageView = args["imageView"].toString();
+        int red = args["red"].toInt();
+        int green = args["green"].toInt();
+        int blue = args["blue"].toInt();
+        result = m_scriptFacade->setGridAxesColor( imageView, red, green, blue );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {
