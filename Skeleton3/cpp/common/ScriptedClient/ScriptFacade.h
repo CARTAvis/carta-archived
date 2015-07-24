@@ -569,6 +569,14 @@ public:
     QStringList setGridAxesTransparency( const QString& controldId, int transparency );
 
     /**
+     * Set whether or not grid control settings should apply to all images on the set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param applyAll - true if the settings apply to all images on the stack;
+     *      false otherwise.
+     */
+    QStringList setGridApplyAll( const QString& controlId, bool applyAll );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

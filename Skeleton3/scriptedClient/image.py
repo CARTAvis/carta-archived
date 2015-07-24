@@ -690,6 +690,27 @@ class Image(CartaView):
                                      transparency=transparency)
         return result
 
+    def setGridApplyAll(self, applyAll):
+        """
+        Set whether or not grid control settings should apply to all
+        images on the set.
+
+        Paramters
+        ---------
+        applyAll: boolean
+            True if the settings apply to all images on the stack;
+            False otherwise.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setGridApplyAll",
+                                     imageView=self.getId(),
+                                     applyAll=applyAll)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

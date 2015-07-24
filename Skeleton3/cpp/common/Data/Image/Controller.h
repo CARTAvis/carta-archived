@@ -319,6 +319,13 @@ public:
     QString setGridAxesTransparency( int transparency );
 
     /**
+     * Set whether or not grid control settings should apply to all images on the set.
+     * @param applyAll - true if the settings apply to all images on the stack;
+     *      false otherwise.
+     */
+    void setGridApplyAll( bool applyAll );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the

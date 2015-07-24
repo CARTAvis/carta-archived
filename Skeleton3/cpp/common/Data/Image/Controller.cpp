@@ -1059,6 +1059,10 @@ QString Controller::setGridAxesTransparency( int transparency ) {
     return result;
 }
 
+void Controller::setGridApplyAll( bool applyAll ) {
+    m_gridControls->setApplyAll( applyAll );
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

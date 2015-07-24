@@ -451,6 +451,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridAxesTransparency( imageView, transparency );
     }
 
+    else if ( cmd == "setgridapplyall" ) {
+        QString imageView = args["imageView"].toString();
+        bool applyAll = args["applyAll"].toBool();
+        result = m_scriptFacade->setGridApplyAll( imageView, applyAll );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

@@ -1441,6 +1441,28 @@ QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int
     return resultList;
 }
 
+QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyAll ) {
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->setGridApplyAll( applyAll );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
