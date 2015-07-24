@@ -818,6 +818,26 @@ class Image(CartaView):
                                      spacing=spacing)
         return result
 
+    def setGridThickness(self, thickness):
+        """
+        Set the thickness of the grid lines.
+
+        Parameters
+        ----------
+        thickness: integer
+            A positive integer.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the grid
+            line thickness; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridThickness",
+                                     imageView=self.getId(),
+                                     thickness=thickness)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

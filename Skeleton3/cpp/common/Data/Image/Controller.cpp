@@ -1088,6 +1088,11 @@ QString Controller::setGridSpacing( double spacing ) {
     return result;
 }
 
+QString Controller::setGridThickness( int thickness ) {
+    QString result = m_gridControls->setGridThickness( thickness );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

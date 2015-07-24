@@ -489,6 +489,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridSpacing( imageView, spacing );
     }
 
+    else if ( cmd == "setgridthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int thickness = args["thickness"].toInt();
+        result = m_scriptFacade->setGridThickness( imageView, thickness );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

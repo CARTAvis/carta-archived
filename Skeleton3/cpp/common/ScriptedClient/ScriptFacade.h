@@ -623,6 +623,15 @@ public:
     QStringList setGridSpacing( const QString& controlId, double spacing );
 
     /**
+     * Set the thickness of the grid lines.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param thickness -a positive integer.
+     * @return an error message if there was a problem setting the grid line thickness; an empty
+     *      string otherwise.
+     */
+    QStringList setGridThickness( const QString& controlId, int thickness );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

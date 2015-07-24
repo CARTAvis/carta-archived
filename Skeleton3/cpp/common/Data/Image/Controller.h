@@ -367,6 +367,14 @@ public:
     QString setGridSpacing( double spacing );
 
     /**
+     * Set the thickness of the grid lines.
+     * @param thickness -a positive integer.
+     * @return an error message if there was a problem setting the grid line thickness; an empty
+     *      string otherwise.
+     */
+    QString setGridThickness( int thickness );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the
