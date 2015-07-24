@@ -672,6 +672,24 @@ class Image(CartaView):
                                      thickness=thickness)
         return result
 
+    def setGridAxesTransparency(self, transparency):
+        """
+        Parameters
+        ----------
+        transparency: integer
+            A nonnegative integer between 0 and 255, with 255 opaque.
+
+        Returns
+        -------
+        list
+            An error message if the transparency could not be set or an
+            empty string if it was successfully set.
+        """
+        result = self.con.cmdTagList("setGridAxesTransparency",
+                                     imageView=self.getId(),
+                                     transparency=transparency)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

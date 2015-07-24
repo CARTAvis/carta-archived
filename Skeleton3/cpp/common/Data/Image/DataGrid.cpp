@@ -419,7 +419,7 @@ QString DataGrid::_setAxesThickness( int thickness, bool* thicknessChanged ){
     QString result;
     if ( thickness < 0 || thickness > PEN_FACTOR ){
         result = "Axes thickness must be in [0,"+QString::number(PEN_FACTOR)+
-                "1]: "+QString::number(thickness);
+                "]: "+QString::number(thickness);
     }
     else {
         QString lookup = Carta::State::UtilState::getLookup( AXES, PEN_WIDTH );

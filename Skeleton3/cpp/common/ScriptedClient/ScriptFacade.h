@@ -560,6 +560,15 @@ public:
     QStringList setGridAxesThickness( const QString& controldId, int thickness );
 
     /**
+     * Set the grid axis transparency.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param transparency - a nonnegative integer between 0 and 255, with 255 opaque.
+     * @return an error message if the transparency could not be set or an empty string
+     *      if it was successfully set.
+     */
+    QStringList setGridAxesTransparency( const QString& controldId, int transparency );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

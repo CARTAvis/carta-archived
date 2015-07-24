@@ -303,12 +303,20 @@ public:
     QStringList setGridAxesColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
-     * Set axis thickness.
+     * Set grid axis thickness.
      * @param thickness - a positive integer.
      * @return an error message if the thickness could not be set or an empty string
      *  if the thickness was successfully set.
      */
     QString setGridAxesThickness( int thickness );
+
+    /**
+     * Set the grid axis transparency.
+     * @param transparency - a nonnegative integer between 0 and 255, with 255 opaque.
+     * @return an error message if the transparency could not be set or an empty string
+     *      if it was successfully set.
+     */
+    QString setGridAxesTransparency( int transparency );
 
     /**
      * Set whether or not the grid lines should be shown.
