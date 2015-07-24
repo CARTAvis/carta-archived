@@ -1083,6 +1083,11 @@ QStringList Controller::setGridColor( int redAmount, int greenAmount, int blueAm
     return result;
 }
 
+QString Controller::setGridSpacing( double spacing ) {
+    QString result = m_gridControls->setGridSpacing( spacing );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

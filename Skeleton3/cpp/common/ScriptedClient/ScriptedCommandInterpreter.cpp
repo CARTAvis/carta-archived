@@ -483,6 +483,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridColor( imageView, redAmount, greenAmount, blueAmount );
     }
 
+    else if ( cmd == "setgridspacing" ) {
+        QString imageView = args["imageView"].toString();
+        double spacing = args["spacing"].toDouble();
+        result = m_scriptFacade->setGridSpacing( imageView, spacing );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

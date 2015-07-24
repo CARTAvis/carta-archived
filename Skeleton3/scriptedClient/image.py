@@ -797,6 +797,27 @@ class Image(CartaView):
                                      blueAmount=blueAmount)
         return result
 
+    def setGridSpacing(self, spacing):
+        """
+        Set the spacing between grid lines.
+
+        Parameters
+        ----------
+        spacing: float
+            The grid spacing in [0,1] with 1 having the least amount of
+            spacing.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the grid
+            spacing; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridSpacing",
+                                     imageView=self.getId(),
+                                     spacing=spacing)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

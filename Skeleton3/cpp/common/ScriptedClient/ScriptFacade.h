@@ -614,6 +614,15 @@ public:
     QStringList setGridColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
 
     /**
+     * Set the spacing between grid lines.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param spacing - the grid spacing in [0,1] with 1 having the least amount of spacing.
+     * @return an error message if there was a problem setting the grid spacing; an empty
+     *      string otherwise.
+     */
+    QStringList setGridSpacing( const QString& controlId, double spacing );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
