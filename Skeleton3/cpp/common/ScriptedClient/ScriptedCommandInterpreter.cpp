@@ -501,6 +501,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridTransparency( imageView, transparency );
     }
 
+    else if ( cmd == "setgridlabelcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridLabelColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

@@ -1098,6 +1098,11 @@ QString Controller::setGridTransparency( int transparency ) {
     return result;
 }
 
+QStringList Controller::setGridLabelColor( int redAmount, int greenAmount, int blueAmount ) {
+    QStringList result = m_gridControls->setLabelColor( redAmount, greenAmount, blueAmount );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

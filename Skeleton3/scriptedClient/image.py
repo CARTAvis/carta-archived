@@ -859,6 +859,32 @@ class Image(CartaView):
                                      transparency=transparency)
         return result
 
+    def setGridLabelColor(self, redAmount, greenAmount, blueAmount):
+        """
+        Set the color of grid labels.
+
+        Parameters
+        ----------
+        redAmount: integer
+            An integer in [0, 255] indicating the amount of red.
+        greenAmount: integer
+            An integer in [0,255] indicating the amount of green.
+        blueAmount: integer
+            An integer in [0,255] indicating the amount of blue.
+
+        Returns
+        -------
+        list
+            A list of errors or an empty list if the color was
+            successfully set.
+        """
+        result = self.con.cmdTagList("setGridLabelColor",
+                                     imageView=self.getId(),
+                                     redAmount=redAmount,
+                                     greenAmount=greenAmount,
+                                     blueAmount=blueAmount)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

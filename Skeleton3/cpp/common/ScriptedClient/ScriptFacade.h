@@ -641,6 +641,16 @@ public:
     QStringList setGridTransparency( const QString& controlId, int transparency );
 
     /**
+     * Set the color of grid labels color.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param redAmount - an integer in [0, 255] indicating the amount of red.
+     * @param greenAmount  an integer in [0,255] indicating the amount of green.
+     * @param blueAmount - an integer in [0,255] indicating the amount of blue.
+     * @return a list of errors or an empty list if the color was successfully set.
+     */
+    QStringList setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
