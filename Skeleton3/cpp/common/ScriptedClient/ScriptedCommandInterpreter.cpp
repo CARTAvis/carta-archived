@@ -431,18 +431,24 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     /// grid commands
 
-    else if ( cmd == "setshowgridlines" ) {
-        QString imageView = args["imageView"].toString();
-        bool showGridLines = args["showGridLines"].toBool();
-        result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
-    }
-
     else if ( cmd == "setgridaxescolor" ) {
         QString imageView = args["imageView"].toString();
         int red = args["red"].toInt();
         int green = args["green"].toInt();
         int blue = args["blue"].toInt();
         result = m_scriptFacade->setGridAxesColor( imageView, red, green, blue );
+    }
+
+    else if ( cmd == "setgridaxesthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int thickness = args["thickness"].toInt();
+        result = m_scriptFacade->setGridAxesThickness( imageView, thickness );
+    }
+
+    else if ( cmd == "setshowgridlines" ) {
+        QString imageView = args["imageView"].toString();
+        bool showGridLines = args["showGridLines"].toBool();
+        result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
     }
 
     /// commands for testing

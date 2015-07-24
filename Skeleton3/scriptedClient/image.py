@@ -652,6 +652,26 @@ class Image(CartaView):
                                      red=red, green=green, blue=blue)
         return result
 
+    def setGridAxesThickness(self, thickness):
+        """
+        Set grid axis thickness.
+
+        Parameters
+        ----------
+        thickness: integer
+            A positive integer.
+
+        Returns
+        -------
+        list
+            An error message if the thickness could not be set or an
+            empty string if the thickness was successfully set.
+        """
+        result = self.con.cmdTagList("setGridAxesThickness",
+                                     imageView=self.getId(),
+                                     thickness=thickness)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

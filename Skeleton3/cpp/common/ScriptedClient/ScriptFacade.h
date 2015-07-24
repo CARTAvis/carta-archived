@@ -542,12 +542,22 @@ public:
 
     /**
      * Set the grid axes color.
+     * @param controlId the unique server-side id of an object managing a controller.
      * @param red- an integer in [0, 255] indicating the amount of red.
      * @param green - an integer in [0,255] indicating the amount of green.
      * @param blue - an integer in [0,255] indicating the amount of blue.
      * @return a list of errors or an empty list if the color was successfully set.
      */
     QStringList setGridAxesColor( const QString& controlId, int red, int green, int blue );
+
+    /**
+     * Set grid axis thickness.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param thickness - a positive integer.
+     * @return an error message if the thickness could not be set or an empty string
+     *  if the thickness was successfully set.
+     */
+    QStringList setGridAxesThickness( const QString& controldId, int thickness );
 
     /**
      * Set whether or not the grid lines should be shown.

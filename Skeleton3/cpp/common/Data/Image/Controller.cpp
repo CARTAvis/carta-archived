@@ -1049,6 +1049,11 @@ QStringList Controller::setGridAxesColor( int red, int green, int blue ) {
     return result;
 }
 
+QString Controller::setGridAxesThickness( int thickness ) {
+    QString result = m_gridControls->setAxesThickness( thickness );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

@@ -303,6 +303,14 @@ public:
     QStringList setGridAxesColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
+     * Set axis thickness.
+     * @param thickness - a positive integer.
+     * @return an error message if the thickness could not be set or an empty string
+     *  if the thickness was successfully set.
+     */
+    QString setGridAxesThickness( int thickness );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the
