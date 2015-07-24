@@ -711,6 +711,26 @@ class Image(CartaView):
                                      applyAll=applyAll)
         return result
 
+    def setGridCoordinateSystem(self, coordSystem):
+        """
+        Set the grid coordinate system.
+
+        Parameters
+        ---------
+        coordSystem: string
+            An identifier for a grid coordinate system.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            coordinate system; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridCoordinateSystem",
+                                     imageView=self.getId(),
+                                     coordSystem=coordSystem)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

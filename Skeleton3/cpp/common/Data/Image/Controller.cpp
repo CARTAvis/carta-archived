@@ -1063,6 +1063,11 @@ void Controller::setGridApplyAll( bool applyAll ) {
     m_gridControls->setApplyAll( applyAll );
 }
 
+QString Controller::setGridCoordinateSystem( const QString& coordSystem ) {
+    QString result = m_gridControls->setCoordinateSystem( coordSystem );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

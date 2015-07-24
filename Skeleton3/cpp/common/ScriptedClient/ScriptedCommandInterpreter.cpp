@@ -457,6 +457,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridApplyAll( imageView, applyAll );
     }
 
+    else if ( cmd == "setgridcoordinatesystem" ) {
+        QString imageView = args["imageView"].toString();
+        QString coordSystem = args["coordSystem"].toString();
+        result = m_scriptFacade->setGridCoordinateSystem( imageView, coordSystem );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

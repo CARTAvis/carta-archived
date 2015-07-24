@@ -326,6 +326,14 @@ public:
     void setGridApplyAll( bool applyAll );
 
     /**
+     * Set the grid coordinate system.
+     * @param coordSystem - an identifier for a grid coordinate system.
+     * @return an error message if there was a problem setting the coordinate system;
+     *  an empty string otherwise.
+     */
+    QString setGridCoordinateSystem( const QString& coordSystem );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the

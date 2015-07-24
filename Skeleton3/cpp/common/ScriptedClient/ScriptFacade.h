@@ -577,6 +577,15 @@ public:
     QStringList setGridApplyAll( const QString& controlId, bool applyAll );
 
     /**
+     * Set the grid coordinate system.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param coordSystem - an identifier for a grid coordinate system.
+     * @return an error message if there was a problem setting the coordinate system;
+     *  an empty string otherwise.
+     */
+    QStringList setGridCoordinateSystem( const QString& controlId, const QString& coordSystem );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
