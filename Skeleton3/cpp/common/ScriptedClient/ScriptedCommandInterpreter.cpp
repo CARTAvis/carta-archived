@@ -495,6 +495,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridThickness( imageView, thickness );
     }
 
+    else if ( cmd == "setgridtransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridTransparency( imageView, transparency );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

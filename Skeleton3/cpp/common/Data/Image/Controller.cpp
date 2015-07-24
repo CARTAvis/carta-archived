@@ -1093,6 +1093,11 @@ QString Controller::setGridThickness( int thickness ) {
     return result;
 }
 
+QString Controller::setGridTransparency( int transparency ) {
+    QString result = m_gridControls->setGridTransparency( transparency );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

@@ -632,6 +632,15 @@ public:
     QStringList setGridThickness( const QString& controlId, int thickness );
 
     /**
+     * Set the transparency of the grid.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param transparency - the amount of transparency in [0,255] with 255 completely opaque.
+     * @return an error message if there was a problem setting the transparency; an empty
+     *      string otherwise.
+     */
+    QStringList setGridTransparency( const QString& controlId, int transparency );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
