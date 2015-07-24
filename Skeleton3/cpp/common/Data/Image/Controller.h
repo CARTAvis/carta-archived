@@ -350,6 +350,15 @@ public:
     QString setGridFontSize( int fontSize );
 
     /**
+     * Set the grid color.
+     * @param redAmount - an integer in [0, 255] indicating the amount of red.
+     * @param greenAmount  an integer in [0,255] indicating the amount of green.
+     * @param blueAmount - an integer in [0,255] indicating the amount of blue.
+     * @return a list of errors or an empty list if the color was successfully set.
+     */
+    QStringList setGridColor( int redAmount, int greenAmount, int blueAmount );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the

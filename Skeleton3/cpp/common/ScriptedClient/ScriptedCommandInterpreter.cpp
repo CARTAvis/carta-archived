@@ -475,6 +475,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridFontSize( imageView, fontSize );
     }
 
+    else if ( cmd == "setgridcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
     else if ( cmd == "setshowgridlines" ) {
         QString imageView = args["imageView"].toString();
         bool showGridLines = args["showGridLines"].toBool();

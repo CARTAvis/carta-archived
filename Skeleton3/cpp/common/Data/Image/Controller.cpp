@@ -1078,6 +1078,11 @@ QString Controller::setGridFontSize( int fontSize ) {
     return result;
 }
 
+QStringList Controller::setGridColor( int redAmount, int greenAmount, int blueAmount ) {
+    QStringList result = m_gridControls->setGridColor( redAmount, greenAmount, blueAmount );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;
