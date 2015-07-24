@@ -905,6 +905,27 @@ class Image(CartaView):
                                      showAxis=showAxis)
         return result
 
+    def setShowGridCoordinateSystem(self, showCoordinateSystem):
+        """
+        Set whether or not the grid coordinate system should be visible.
+
+        Parameters
+        ----------
+        showCoordinateSystem: boolean
+            True if the coordinate system should be shown; False
+            otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            coordinate system; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridCoordinateSystem",
+                                     imageView=self.getId(),
+                                     showCoordinateSystem=showCoordinateSystem)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

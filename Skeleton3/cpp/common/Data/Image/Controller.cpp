@@ -1108,6 +1108,11 @@ QString Controller::setShowGridAxis( bool showAxis ) {
     return result;
 }
 
+QString Controller::setShowGridCoordinateSystem( bool showCoordinateSystem ) {
+    QString result = m_gridControls->setShowCoordinateSystem( showCoordinateSystem );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

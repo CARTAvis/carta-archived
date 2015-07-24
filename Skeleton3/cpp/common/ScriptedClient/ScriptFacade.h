@@ -660,6 +660,16 @@ public:
     QStringList setShowGridAxis( const QString& controlId, bool showAxis );
 
     /**
+     * Set whether or not the grid coordinate system should be visible.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param showCoordinateSystem - true if the coordinate system should be shown;
+     *      false otherwise.
+     * @return an error message if there was a problem setting the coordinate system;
+     *      an empty string otherwise.
+     */
+    QStringList setShowGridCoordinateSystem( const QString& controlId, bool showCoordinateSystem );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

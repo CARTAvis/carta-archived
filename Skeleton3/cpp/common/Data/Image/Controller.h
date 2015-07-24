@@ -392,12 +392,21 @@ public:
     QStringList setGridLabelColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
-     * Set whether or not the axes should be shown.
+     * Set whether or not the grid axes should be shown.
      * @param showAxis - true if the axes should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the
      *      axes; an empty string otherwise.
      */
     QString setShowGridAxis( bool showAxis );
+
+    /**
+     * Set whether or not the grid coordinate system should be visible.
+     * @param showCoordinateSystem - true if the coordinate system should be shown;
+     *      false otherwise.
+     * @return an error message if there was a problem setting the coordinate system;
+     *      an empty string otherwise.
+     */
+    QString setShowGridCoordinateSystem( bool showCoordinateSystem );
 
     /**
      * Set whether or not the grid lines should be shown.
