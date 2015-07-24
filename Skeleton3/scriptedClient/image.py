@@ -885,6 +885,26 @@ class Image(CartaView):
                                      blueAmount=blueAmount)
         return result
 
+    def setShowGridAxis(self, showAxis):
+        """
+        Set whether or not the grid axes should be shown.
+
+        Parameters
+        ----------
+        showAxis: boolean
+            True if the axes should be shown; False otherwise.
+
+        Returns
+        -------
+        list
+            an error message if there was a problem changing the
+            visibility of the axes; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridAxis",
+                                     imageView=self.getId(),
+                                     showAxis=showAxis)
+        return result
+
     def setShowGridLines(self, showGridLines=True):
         """
         Set whether or not to show grid lines.

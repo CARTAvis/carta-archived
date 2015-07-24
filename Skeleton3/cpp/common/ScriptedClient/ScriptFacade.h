@@ -651,6 +651,15 @@ public:
     QStringList setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
 
     /**
+     * Set whether or not the grid axes should be shown.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param showAxis - true if the axes should be shown; false otherwise.
+     * @return an error message if there was a problem changing the visibility of the
+     *      axes; an empty string otherwise.
+     */
+    QStringList setShowGridAxis( const QString& controlId, bool showAxis );
+
+    /**
      * Set whether or not the grid lines should be shown.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param showGridLines - true if the grid lines should be shown; false otherwise.

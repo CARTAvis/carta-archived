@@ -1103,6 +1103,11 @@ QStringList Controller::setGridLabelColor( int redAmount, int greenAmount, int b
     return result;
 }
 
+QString Controller::setShowGridAxis( bool showAxis ) {
+    QString result = m_gridControls->setShowAxis( showAxis );
+    return result;
+}
+
 QString Controller::setShowGridLines( bool showGridLines ) {
     QString result = m_gridControls->setShowGridLines( showGridLines );
     return result;

@@ -1670,6 +1670,29 @@ QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAm
     return resultList;
 }
 
+QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAxis ) {
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setShowGridAxis( showAxis );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
