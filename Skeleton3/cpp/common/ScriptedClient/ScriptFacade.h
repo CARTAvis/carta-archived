@@ -678,6 +678,15 @@ public:
      */
     QStringList setShowGridLines( const QString& controlId, bool showGridLines );
 
+    /**
+     * Set whether or not the grid axis should be internal or external.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param showInternalLabels - true if the axes should be internal; false otherwise.
+     * @return an error message if there was a problem setting the axes internal/external;
+     *      false otherwise.
+     */
+    QStringList setShowGridInternalLabels( const QString& controlId, bool showInternalLabels );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

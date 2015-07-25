@@ -1715,6 +1715,7 @@ QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId,
     }
     return resultList;
 }
+
 QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
@@ -1724,6 +1725,29 @@ QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showG
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             QString result = controller->setShowGridLines( showGridLines );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, bool showInternalLabels ) {
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setShowGridInternalLabels( showInternalLabels );
             resultList = QStringList( result );
         }
         else {

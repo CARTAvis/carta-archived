@@ -945,3 +945,23 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      showGridLines=showGridLines)
         return result
+
+    def setShowGridInternalLabels(self, showInternalLabels):
+        """
+        Set whether or not the grid axis should be internal or external.
+
+        Parameters
+        ----------
+        showInternalLabels: boolean
+            True if the axes should be internal; False otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the axes
+            internal/external; false otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridInternalLabels",
+                                     imageView=self.getId(),
+                                     showInternalLabels=showInternalLabels)
+        return result

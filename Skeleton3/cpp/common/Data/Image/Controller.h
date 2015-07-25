@@ -416,6 +416,14 @@ public:
      */
     QString setShowGridLines( bool showGridLines );
 
+    /**
+     * Set whether or not the grid axis should be internal or external.
+     * @param showInternalLabels - true if the axes should be internal; false otherwise.
+     * @return an error message if there was a problem setting the axes internal/external;
+     *      false otherwise.
+     */
+    QString setShowGridInternalLabels( bool showInternalLabels );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;

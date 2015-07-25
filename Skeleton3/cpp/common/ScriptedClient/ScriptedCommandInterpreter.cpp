@@ -527,6 +527,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
     }
 
+    else if ( cmd == "setshowgridinternallabels" ) {
+        QString imageView = args["imageView"].toString();
+        bool showInternalLabels = args["showInternalLabels"].toBool();
+        result = m_scriptFacade->setShowGridInternalLabels( imageView, showInternalLabels );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {
