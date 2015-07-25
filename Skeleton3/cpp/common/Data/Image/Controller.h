@@ -424,6 +424,14 @@ public:
      */
     QString setShowGridInternalLabels( bool showInternalLabels );
 
+    /**
+     * Sets whether or not cursor position image statistics should be shown.
+     * @param showStatistics - true if cursor statistics should be shown; false otherwise.
+     * @return an error message if there was a problem hiding/showing cursor statistics;
+     *      an empty string otherwise.
+     */
+    QString setShowGridStatistics( bool showStatistics );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;

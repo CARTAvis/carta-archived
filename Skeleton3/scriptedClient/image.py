@@ -965,3 +965,24 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      showInternalLabels=showInternalLabels)
         return result
+
+    def setShowGridStatistics(self,  showStatistics):
+        """
+        Sets whether or not cursor position image statistics should be
+        shown.
+
+        Parameters
+        ----------
+        showStatistics: boolean
+            True if cursor statistics should be shown; False otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem hiding/showing
+            cursor statistics; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridStatistics",
+                                     imageView=self.getId(),
+                                     showStatistics=showStatistics)
+        return result

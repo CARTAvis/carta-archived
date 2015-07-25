@@ -1761,3 +1761,26 @@ QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, b
     }
     return resultList;
 }
+
+QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool showStatistics ) {
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( controlId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setShowGridStatistics( showStatistics );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( "error" );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( "error" );
+        resultList.append( "The specified image view could not be found." );
+    }
+    return resultList;
+}

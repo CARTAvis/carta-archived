@@ -687,6 +687,15 @@ public:
      */
     QStringList setShowGridInternalLabels( const QString& controlId, bool showInternalLabels );
 
+    /**
+     * Sets whether or not cursor position image statistics should be shown.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param showStatistics - true if cursor statistics should be shown; false otherwise.
+     * @return an error message if there was a problem hiding/showing cursor statistics;
+     *      an empty string otherwise.
+     */
+    QStringList setShowGridStatistics( const QString& controlId, bool showStatistics );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.
