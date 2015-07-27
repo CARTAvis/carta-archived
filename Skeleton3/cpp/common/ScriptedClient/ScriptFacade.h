@@ -705,6 +705,17 @@ public:
      */
     QStringList setShowGridTicks( const QString& controldId, bool showTicks );
 
+    /**
+     * Set the color of the grid tick marks.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param redAmount - a nonnegative integer in [0,255].
+     * @param greenAmount - a nonnegative integer in [0,255].
+     * @param blueAmount - a nonnegative integer in [0,255].
+     * @return a list of error message(s) if there was a problem setting the tick
+     *      color; an empty list otherwise.
+     */
+    QStringList setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

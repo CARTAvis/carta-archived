@@ -1133,6 +1133,11 @@ QString Controller::setShowGridTicks( bool showTicks ) {
     return result;
 }
 
+QStringList Controller::setGridTickColor( int redAmount, int greenAmount, int blueAmount ) {
+    QStringList result = m_gridControls->setTickColor( redAmount, greenAmount, blueAmount );
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->_viewResize( newSize );

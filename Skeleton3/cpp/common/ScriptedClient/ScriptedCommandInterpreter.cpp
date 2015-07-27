@@ -543,7 +543,14 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString imageView = args["imageView"].toString();
         bool showTicks = args["showTicks"].toBool();
         result = m_scriptFacade->setShowGridTicks( imageView, showTicks );
+    }
 
+    else if ( cmd == "setgridtickcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridTickColor( imageView, redAmount, greenAmount, blueAmount );
     }
 
     /// commands for testing

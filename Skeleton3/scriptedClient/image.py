@@ -1007,3 +1007,29 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      showTicks=showTicks)
         return result
+
+    def setGridTickColor(self, redAmount, greenAmount, blueAmount):
+        """
+        Set the color of the grid tick marks.
+
+        Parameters
+        ----------
+        redAmount: integer
+            A nonnegative integer in [0,255].
+        greenAmount: integer
+            A nonnegative integer in [0,255].
+        blueAmount: integer
+            A nonnegative integer in [0,255].
+
+        Returns
+        -------
+        list
+            A list of error message(s) if there was a problem setting
+            the tick color; an empty list otherwise.
+        """
+        result = self.con.cmdTagList("setGridTickColor",
+                                     imageView=self.getId(),
+                                     redAmount=redAmount,
+                                     greenAmount=greenAmount,
+                                     blueAmount=blueAmount)
+        return result

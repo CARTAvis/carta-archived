@@ -440,6 +440,16 @@ public:
      */
     QString setShowGridTicks( bool showTicks );
 
+    /**
+     * Set the color of the grid tick marks.
+     * @param redAmount - a nonnegative integer in [0,255].
+     * @param greenAmount - a nonnegative integer in [0,255].
+     * @param blueAmount - a nonnegative integer in [0,255].
+     * @return a list of error message(s) if there was a problem setting the tick
+     *      color; an empty list otherwise.
+     */
+    QStringList setGridTickColor( int redAmount, int greenAmount, int blueAmount );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
