@@ -467,6 +467,14 @@ public:
      */
     QString setGridTickTransparency( int transparency );
 
+    /**
+     * Set the grid canvas theme.
+     * @param theme - an identifier for a canvas theme.
+     * @return an error message if the theme was not successfully set; an empty
+     *      string otherwise.
+     */
+    QString setGridTheme( const QString& theme );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;

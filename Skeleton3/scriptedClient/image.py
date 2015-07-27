@@ -1074,3 +1074,23 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      transparency=transparency)
         return result
+
+    def setGridTheme(self, theme):
+        """
+        Set the canvas theme.
+
+        Parameters
+        ----------
+        theme: string
+            An identifier for a canvas theme.
+
+        Returns
+        -------
+        list
+            An error message if the theme was not successfully set; an
+            empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTheme",
+                                     imageView=self.getId(),
+                                     theme=theme)
+        return result

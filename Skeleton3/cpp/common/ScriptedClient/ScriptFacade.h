@@ -735,6 +735,15 @@ public:
      */
     QStringList setGridTickTransparency( const QString& controldId, int transparency );
 
+    /**
+     * Set the grid canvas theme.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param theme - an identifier for a canvas theme.
+     * @return an error message if the theme was not successfully set; an empty
+     *      string otherwise.
+     */
+    QStringList setGridTheme( const QString& controlId, const QString& theme );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.
