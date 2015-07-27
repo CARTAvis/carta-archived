@@ -116,10 +116,10 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
         iter = res.first;
     }
 
-    iter = m_stateCallbackList.find( path);
-    if( iter == m_stateCallbackList.end()) {
-//        qDebug() << "What the hell";
-    }
+//    iter = m_stateCallbackList.find( path);
+//    if( iter == m_stateCallbackList.end()) {
+////        qDebug() << "What the hell";
+//    }
 
     // add the calllback
     return iter-> second-> add( cb);
