@@ -234,7 +234,7 @@ public:
      * @return an error message if there was a problem saving the image;
      *      an empty string otherwise.
      */
-    QStringList saveImage( const QString& controlId, const QString& fileName );
+    //QStringList saveImage( const QString& controlId, const QString& fileName );
 
     /**
      * Save a copy of the full image in the current image view.
@@ -246,7 +246,8 @@ public:
      * @param aspectRatioMode can be either "ignore", "keep", or "expand".
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode );
+    QStringList saveFullImage( const QString& controlId, const QString& filename,
+            int width, int height, double scale, const QString& aspectRatioMode /*Qt::AspectRatioMode aspectRatioMode*/ );
 
     /**
      * Save the current state.
@@ -815,6 +816,7 @@ private:
     QString getStatisticsViewId( int index = -1 ) const;
 
 private:
-    static QString TOGGLE;
+    const static QString TOGGLE;
+    const static QString ERROR;
 };
 

@@ -90,15 +90,6 @@ public:
 
 
     /**
-     * Load a local file into the controller with the given id.
-     * @param fileName a locater for the data to load.
-     * @param objectId the unique server side id of the controller which is
-     * responsible for displaying the file.
-     * @return true if successful, false otherwise.
-     */
-    bool loadLocalFile( const QString& objectId, const QString& fileName);
-
-    /**
      * Replace the destination plug-in identified by its type and index with the source
      * plug-in identified by its type and index.
      * @param sourcePlugin - an identifier for the plug-in to move.

@@ -44,6 +44,7 @@ qx.Class.define("skel.widgets.Colormap.PageTransform", {
          */
         setControls : function( controls ){
             if ( this.m_modelSettings !== null ){
+                this.m_transformSettings.setControls( controls);
                 this.m_modelSettings.setGamma( controls.gamma );
                 this.m_preferences.setControls( controls );
             }

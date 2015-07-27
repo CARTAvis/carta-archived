@@ -21,6 +21,7 @@ qx.Class.define("skel.widgets.Path", {
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
+        this.PREFERENCES_SAVE = this.BASE_PATH + "PreferencesSave";
         this.REGION = this.BASE_PATH + "region" + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
@@ -70,6 +71,7 @@ qx.Class.define("skel.widgets.Path", {
         MOUSE_Y : "",
         PLUGINS : "ViewPlugins",
         PREFERENCES : "",
+        PREFERENCES_SAVE : "",
         REGION : "",
         SEP : "/",
         SEP_COMMAND : ":",

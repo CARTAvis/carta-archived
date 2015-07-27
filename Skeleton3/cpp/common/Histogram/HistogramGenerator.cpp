@@ -195,10 +195,12 @@ void HistogramGenerator::setStyle( QString style ){
     m_histogram->setDrawStyle( style );
 }
 
-QImage * HistogramGenerator::toImage(){
+
+QImage * HistogramGenerator::toImage( ) const {
     QwtPlotRenderer * renderer = new QwtPlotRenderer();
     QImage * histogramImage =new QImage(m_width, m_height, QImage::Format_RGB32);
     renderer->renderTo(m_plot,*histogramImage);
+    delete renderer;
     return histogramImage;
 
 }

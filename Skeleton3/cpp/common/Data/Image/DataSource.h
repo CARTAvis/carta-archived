@@ -33,8 +33,8 @@ namespace Core {
     namespace ImageRenderService {
         class Service;
     }
-    namespace ScriptedClient {
-        class ScriptedRenderService;
+    namespace ImageSaveService {
+        class ImageSaveService;
     }
 }
 
@@ -87,6 +87,7 @@ public:
        virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
        static const QString CLASS_NAME;
+       static const double ZOOM_DEFAULT;
 
 
     virtual ~DataSource();
@@ -304,19 +305,23 @@ private:
      */
     void _render();
 
+    /**
+     * Center the image.
+     */
+    void _resetPan();
+
+    /**
+     * Reset the zoom to the original value.
+     */
+    void _resetZoom();
 
     /**
      * Save a copy of the full image in the current image view.
      * @param filename the full path where the file is to be saved.
-     * @param width the width of the saved image.
-     * @param height the height of the saved image.
      * @param scale the scale (zoom level) of the saved image.
      * @param frameIndex the channel index.
-     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
-            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    void _saveFullImage( const QString& savename, int width, int height, double scale, int frameIndex,
-            const Qt::AspectRatioMode aspectRatioMode );
+    void _saveImage( const QString& savename,  double scale, int frameIndex );
     /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
@@ -395,7 +400,8 @@ private:
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
 
-    Carta::Core::ScriptedClient::ScriptedRenderService *m_scriptedRenderService;
+    /// Saves images
+    Carta::Core::ImageSaveService::ImageSaveService *m_saveService;
     QImage m_qimage;
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);

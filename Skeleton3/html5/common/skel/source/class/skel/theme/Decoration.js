@@ -17,9 +17,9 @@ qx.Theme.define( "skel.theme.Decoration", {
 
         "light-border": {
             style: {
-                width : 5,
+                width : 6,
                 radius: 3,
-                color : "#000000"
+                color : "selection"
             }
         },
 

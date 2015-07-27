@@ -6,6 +6,7 @@
 #include "Data/DataLoader.h"
 #include "DataSource.h"
 #include "DataGrid.h"
+#include "Data/Error/ErrorManager.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
 #include "Data/RegionRectangle.h"
@@ -16,6 +17,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QList>
+#include <QtCore/QDir>
 #include <memory>
 #include <set>
 
@@ -134,6 +136,8 @@ bool Controller::addData(const QString& fileName) {
         emit dataChanged( this );
     }
     else {
+        QString error = "Unable to load image: "+fileName+".  Please check the file is a supported image format.";
+        Util::commandPostProcess( error );
         _removeData( targetIndex );
     }
     return successfulLoad;
@@ -195,6 +199,7 @@ void Controller::_clearData(){
 QString Controller::closeImage( const QString& name ){
     int targetIndex = -1;
     QString result;
+
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_contains( name )){
@@ -202,6 +207,7 @@ QString Controller::closeImage( const QString& name ){
             break;
         }
     }
+
     if ( targetIndex >= 0 ){
         _removeData( targetIndex );
         emit dataChanged( this );
@@ -283,7 +289,7 @@ std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller
 QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
     QStringList result("");
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         result = m_datas[imageIndex]->_getPixelCoordinates( ra, dec );
     }
     return result;
@@ -293,7 +299,7 @@ QString Controller::getPixelValue( double x, double y ) const {
     QString result("");
     int imageIndex = m_selectImage->getIndex();
     int frameIndex = m_selectChannel->getIndex();
-    if ( imageIndex >= 0 && frameIndex >= 0 ){
+    if ( imageIndex >= 0 && frameIndex >= 0 && imageIndex < m_datas.size()){
         result = m_datas[imageIndex]->_getPixelValue( x, y, frameIndex );
     }
     return result;
@@ -302,7 +308,7 @@ QString Controller::getPixelValue( double x, double y ) const {
 QString Controller::getPixelUnits() const {
     QString result("");
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         result = m_datas[imageIndex]->_getPixelUnits();
     }
     return result;
@@ -311,7 +317,7 @@ QString Controller::getPixelUnits() const {
 QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system) const {
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         for ( int i = 0; i <= 1; i++ ){
             result.append( m_datas[imageIndex]->_getCoordinates( x, y, system, i ) );
         }
@@ -329,10 +335,7 @@ QString Controller::getPreferencesId() const {
 }
 
 int Controller::getStackedImageCount() const {
-    int count = 0;
-    if ( m_selectImage != nullptr ){
-        count = m_selectImage->getUpperBound();
-    }
+    int count = m_datas.size();
     return count;
 }
 
@@ -534,6 +537,30 @@ void Controller::_initializeCallbacks(){
         }
         return shapePath;
     });
+
+    addCommandCallback( "resetPan", [=] (const QString & /*cmd*/,
+                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                QString result;
+                resetPan();
+                return result;
+            });
+
+
+    addCommandCallback( "resetZoom", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            QString result;
+            resetZoom();
+            return result;
+        });
+
+    addCommandCallback( "saveImage", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {DATA_PATH};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString result = saveImage( dataValues[DATA_PATH]);
+            Util::commandPostProcess( result );
+            return result;
+        });
 }
 
 
@@ -636,7 +663,7 @@ void Controller::_removeData( int index ){
     //Update the channel upper bound and index if necessary
     int targetImage = m_selectImage->getIndex();
     int frameCount = 0;
-    if ( m_datas.size() > 0 ){
+    if ( targetImage >= 0 && targetImage < m_datas.size() ){
         frameCount = m_datas[targetImage]->_getFrameCount();
     }
     int oldIndex = m_selectChannel->getIndex();
@@ -719,6 +746,26 @@ void Controller::resetStateData( const QString& state ){
     }
 }
 
+void Controller::resetPan(){
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->_resetPan();
+        }
+        _render();
+    }
+}
+
+void Controller::resetZoom(){
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->_resetZoom();
+        }
+        _render();
+    }
+}
+
 void Controller::saveState() {
     bool stateChanged = false;
     int dataCount = m_datas.size();
@@ -755,20 +802,54 @@ void Controller::saveState() {
     }
 }
 
-bool Controller::saveImage( const QString& filename ) {
-    bool result = m_view->getBuffer().save( filename);
+
+QString Controller::saveImage( const QString& fileName ){
+    int zoomLevel = getZoomLevel();
+    return saveImage( fileName, zoomLevel );
+}
+
+QString Controller::saveImage( const QString& fileName, double scale ){
+    QString result;
+    DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+    bool securityRestricted = dLoader->isSecurityRestricted();
+    if ( !securityRestricted ){
+        int imageIndex = m_selectImage->getIndex();
+        int frameIndex = m_selectChannel->getIndex();
+        if ( 0<= imageIndex && imageIndex < m_datas.size()){
+            //Check and make sure the directory exists.
+            int dirIndex = fileName.lastIndexOf( QDir::separator() );
+            QString dirName = fileName;
+            if ( dirIndex >= 0 ){
+                dirName = fileName.left( dirIndex );
+            }
+            QDir dir( dirName );
+            if ( ! dir.exists() ){
+                result = "Please make sure the save path is valid: "+fileName;
+            }
+            else {
+                m_datas[imageIndex]->_saveImage( fileName, scale, frameIndex );
+            }
+        }
+        else {
+            result = "Please make sure there is an image to save.";
+        }
+    }
+    else {
+        result = "Write access to the file system is not available.";
+    }
     return result;
 }
 
-void Controller::saveFullImage( const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
-    int imageIndex = m_selectImage->getIndex();
-    int frameIndex = m_selectChannel->getIndex();
-    if ( 0<= imageIndex && imageIndex < m_datas.size()){
-        m_datas[imageIndex]->_saveFullImage( filename, width, height, scale, frameIndex, aspectRatioMode );
-    }
-}
-
 void Controller::saveImageResultCB( bool result ){
+    if ( !result ){
+        QString msg = "There was a problem saving the image.";
+        Util::commandPostProcess( msg );
+    }
+    else {
+        QString msg = "Image was successfully saved.";
+        ErrorManager* errorMan = Util::findSingletonObject<ErrorManager>();
+        errorMan->registerInformation( msg );
+    }
     emit saveImageResult( result );
 }
 
@@ -919,10 +1000,12 @@ void Controller::_updateCursorText(bool notifyClients ){
     }
 }
 
+
+
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
 
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         //Remember where the user clicked
         QPointF clickPtScreen( centerX, centerY);
         bool validImage = false;
@@ -983,7 +1066,7 @@ void Controller::centerOnPixel( double centerX, double centerY ){
 
 void Controller::setZoomLevel( double zoomFactor ){
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && m_datas.size() > 0 ){
         //Set the zoom
         m_datas[imageIndex]->_setZoom( zoomFactor );
         _render();
@@ -991,9 +1074,9 @@ void Controller::setZoomLevel( double zoomFactor ){
 }
 
 double Controller::getZoomLevel( ){
-    double zoom = 1.0;
+    double zoom = DataSource::ZOOM_DEFAULT;
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         zoom = m_datas[imageIndex]->_getZoom( );
         _render();
     }
@@ -1003,7 +1086,7 @@ double Controller::getZoomLevel( ){
 QStringList Controller::getImageDimensions( ){
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         int dimensions = m_datas[imageIndex]->_getDimensions();
         for ( int i = 0; i < dimensions; i++ ) {
             int d = m_datas[imageIndex]->_getDimension( i );
@@ -1016,7 +1099,7 @@ QStringList Controller::getImageDimensions( ){
 QStringList Controller::getOutputSize( ){
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 ){
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         QSize outputSize = m_datas[imageIndex]->_getOutputSize();
         result.append( QString::number( outputSize.width() ) );
         result.append( QString::number( outputSize.height() ) );

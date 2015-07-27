@@ -52,6 +52,13 @@ public:
      */
     QStringList getShortNames( const QStringList& longNames ) const;
 
+    /**
+     * Returns whether or not the user has full access to the file system.
+     * @return true - if there are security restrictions with regard to acessing
+     *      file information; false otherwise.
+     */
+    bool isSecurityRestricted() const;
+
     static QString fakeRootDirName;
     const static QString CLASS_NAME;
 
@@ -62,12 +69,18 @@ private:
     static bool m_registered;
 
     class Factory;
+    const static QString ROOT_NAME;
+    const static QString DIR;
+
+    void _initCallbacks();
 
     //Look for eligible data files in a specific directory (recursive).
-    void processDirectory(const QDir& rootDir, QJsonObject& rootArray);
+    void _processDirectory(const QDir& rootDir, QJsonObject& rootArray) const;
 
     //Add a file to the list of those available in a given directory.
-    void makeFileNode(QJsonArray& parentArray, const QString& fileName);
+    void _makeFileNode(QJsonArray& parentArray, const QString& fileName) const;
+    //Add a subdirectory to the list of available files.
+    void _makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const;
     DataLoader( const QString& path, const QString& id);
     DataLoader( const DataLoader& other);
     DataLoader& operator=( const DataLoader& other );

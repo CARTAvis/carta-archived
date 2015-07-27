@@ -9,6 +9,7 @@
 #include "Data/Util.h"
 #include "Data/Histogram/Histogram.h"
 #include "Data/Layout/Layout.h"
+#include "Data/Preferences/PreferencesSave.h"
 #include "Data/Statistics.h"
 #include "Data/Image/GridControls.h"
 
@@ -17,7 +18,8 @@
 using Carta::State::ObjectManager;
 //using Carta::State::CartaObject;
 
-QString ScriptFacade::TOGGLE = "toggle";
+const QString ScriptFacade::TOGGLE = "toggle";
+const QString ScriptFacade::ERROR = "error";
 
 ScriptFacade * ScriptFacade::getInstance (){
     static ScriptFacade * sc = new ScriptFacade ();
@@ -161,7 +163,7 @@ QStringList ScriptFacade::setPlugins( const QStringList& names ) {
     QStringList resultList("");
     bool result = m_viewManager->setPlugins( names );
     if ( result == false ) {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         QString errorStr = "There was an error setting the plugins: " + names.join( ',' );
         resultList.append( errorStr );
     }
@@ -172,7 +174,7 @@ QStringList ScriptFacade::loadFile( const QString& objectId, const QString& file
     QStringList resultList("");
     bool result = m_viewManager->loadFile( objectId, fileName );
     if ( result == false ) {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         QString errorStr = "Could not load file " + fileName;
         resultList.append( errorStr );
     }
@@ -181,9 +183,9 @@ QStringList ScriptFacade::loadFile( const QString& objectId, const QString& file
 
 QStringList ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
     QStringList resultList("");
-    bool result = m_viewManager->loadLocalFile( objectId, fileName );
+    bool result = m_viewManager->loadFile( objectId, fileName );
     if ( result == false ) {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         QString errorStr = "Could not load file " + fileName;
         resultList.append( errorStr );
     }
@@ -220,12 +222,12 @@ QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -252,17 +254,17 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "error");
+                resultList = QStringList( ERROR );
                 resultList.append( "An invalid value was passed to reverse color map");
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -280,12 +282,12 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -303,12 +305,12 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -326,12 +328,12 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -358,17 +360,17 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
                resultList = QStringList( result );
            }
            else {
-               resultList = QStringList( "error");
+               resultList = QStringList( ERROR );
                resultList.append( "An unrecognized parameter was passed to invert color map");
            }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -386,12 +388,12 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, do
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -409,12 +411,12 @@ QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -432,12 +434,12 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
@@ -455,12 +457,12 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
             animator->addAnimator( "Image", animId );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified animator could not be found." );
     }
     return resultList;
@@ -483,12 +485,12 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified animator could not be found." );
     }
     return resultList;
@@ -505,12 +507,12 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
             animator->changeImageIndex( index );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified animator could not be found." );
     }
     return resultList;
@@ -529,18 +531,18 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
 
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified colormap view could not be found." );
     }
     return resultList;
 }
 
-QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename ) {
+/*QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( controlId );
@@ -554,27 +556,49 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
-}
+}*/
 
-void ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height, double scale, Qt::AspectRatioMode aspectRatioMode ){
+QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height,
+        double scale, /*Qt::AspectRatioMode aspectRatioMode*/ const QString& aspectModeStr ){
     ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            controller->saveFullImage( filename, width, height, scale, aspectRatioMode );
+    //Save the state so the view will update and parse parameters to make
+    //sure they are valid before calling save.
+    Carta::Data::PreferencesSave* prefSave = Carta::Data::Util::findSingletonObject<Carta::Data::PreferencesSave>();
+    QStringList errorList("");
+    QString widthError = prefSave->setWidth( width );
+    QString heightError = prefSave->setHeight( height );
+    QString aspectModeError = prefSave->setAspectRatioMode( aspectModeStr );
+    if ( widthError.isEmpty() && heightError.isEmpty() && aspectModeError.isEmpty() ){
+        QString id = objMan->parseId( controlId );
+        Carta::State::CartaObject* obj = objMan->getObject( id );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                controller->saveImage( filename, scale );
+            }
         }
     }
+    else {
+        if ( !widthError.isEmpty()){
+            errorList.append( widthError );
+        }
+        if ( !heightError.isEmpty()){
+            errorList.append( heightError );
+        }
+        if ( !aspectModeError.isEmpty() ){
+            errorList.append( aspectModeError );
+        }
+    }
+    return errorList;
 }
 
 void ScriptFacade::saveImageResultCB( bool result ){
@@ -651,7 +675,7 @@ QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "Could not find colormap." );
         }
     }
@@ -676,7 +700,7 @@ QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "Could not find animator." );
         }
     }
@@ -701,7 +725,7 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "Could not find histogram." );
         }
     }
@@ -726,7 +750,7 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "Could not find statistics view." );
         }
     }
@@ -747,12 +771,12 @@ QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, dou
             controller->centerOnPixel( x, y );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -769,12 +793,12 @@ QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLev
             controller->setZoomLevel( zoomLevel );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -792,12 +816,12 @@ QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
             resultList = QStringList( QString::number( zoomLevel ) );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -814,12 +838,12 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
             resultList = controller->getImageDimensions( );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -836,12 +860,12 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
             resultList = controller->getOutputSize( );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -858,12 +882,12 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
             resultList = controller->getPixelCoordinates( ra, dec );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -881,12 +905,12 @@ QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, dou
             resultList = QStringList( resultStr );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -904,12 +928,12 @@ QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
             resultList = QStringList( resultStr );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -926,12 +950,12 @@ QStringList ScriptFacade::getCoordinates( const QString& controlId, double x, do
             resultList = controller->getCoordinates( x, y, system );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -954,12 +978,12 @@ QStringList ScriptFacade::getImageNames( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -977,12 +1001,12 @@ QStringList ScriptFacade::closeImage( const QString& controlId, const QString& i
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1000,12 +1024,12 @@ QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferA
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram view could not be found." );
     }
     return resultList;
@@ -1015,14 +1039,14 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
     QStringList resultList;
     bool validBool = false;
     bool useBuffer = Carta::Data::Util::toBool( useBufferStr, &validBool );
-    if ( validBool || useBufferStr.toLower() == "toggle" ) {
+    if ( validBool || useBufferStr.toLower() == TOGGLE ) {
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( histogramId );
         Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
-                if ( useBufferStr.toLower() == "toggle" ) {
+                if ( useBufferStr.toLower() == TOGGLE ) {
                     bool currentUseBuffer = histogram->getUseClipBuffer();
                     useBuffer = !currentUseBuffer;
                 }
@@ -1030,12 +1054,12 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "error" );
+                resultList = QStringList( ERROR );
                 resultList.append( "An unknown error has occurred." );
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "The specified histogram view could not be found." );
         }
     }
@@ -1057,12 +1081,12 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram view could not be found." );
     }
     return resultList;
@@ -1092,12 +1116,12 @@ QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMin
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram view could not be found." );
     }
     return resultList;
@@ -1118,20 +1142,19 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
                 resultList = QStringList( QString::number( intensity ) );
             }
             else {
-                resultList = QStringList( "error" );
+                resultList = QStringList( ERROR );
                 resultList.append( "Could not get intensity for the specified parameters." );
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
-    qDebug() << "resultList =" << resultList;
     return resultList;
 }
 
@@ -1147,12 +1170,12 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
@@ -1170,12 +1193,12 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
@@ -1193,12 +1216,12 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
@@ -1216,12 +1239,12 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
@@ -1239,12 +1262,12 @@ QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
@@ -1262,12 +1285,12 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
@@ -1277,14 +1300,14 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
     QStringList resultList;
     bool validBool = false;
     bool logCount = Carta::Data::Util::toBool( logCountStr, &validBool );
-    if ( validBool || logCountStr.toLower() == "toggle" ) {
+    if ( validBool || logCountStr.toLower() == TOGGLE ) {
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( histogramId );
         Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
-                if ( logCountStr.toLower() == "toggle" ) {
+                if ( logCountStr.toLower() == TOGGLE ) {
                     bool currentLogCount = histogram->getLogCount();
                     logCount = !currentLogCount;
                 }
@@ -1292,12 +1315,12 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "error" );
+                resultList = QStringList( ERROR );
                 resultList.append( "An unknown error has occurred." );
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "The specified histogram could not be found." );
         }
     }
@@ -1311,14 +1334,14 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
     QStringList resultList;
     bool validBool = false;
     bool colored = Carta::Data::Util::toBool( coloredStr, &validBool );
-    if ( validBool || coloredStr.toLower() == "toggle" ) {
+    if ( validBool || coloredStr.toLower() == TOGGLE ) {
         ObjectManager* objMan = ObjectManager::objectManager();
         QString id = objMan->parseId( histogramId );
         Carta::State::CartaObject* obj = objMan->getObject( id );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
-                if ( coloredStr.toLower() == "toggle" ) {
+                if ( coloredStr.toLower() == TOGGLE ) {
                     bool currentColored = histogram->getColored();
                     colored = !currentColored;
                 }
@@ -1326,12 +1349,12 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( "error" );
+                resultList = QStringList( ERROR );
                 resultList.append( "An unknown error has occurred." );
             }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "The specified histogram could not be found." );
         }
     }
@@ -1342,23 +1365,50 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
 }
 
 QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ) {
-    QStringList resultList;
+    QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( histogramId );
     Carta::State::CartaObject* obj = objMan->getObject( id );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
-            QString result = histogram->saveHistogram( filename, width, height );
-            resultList = QStringList( result );
+            QString widthError;
+            QString heightError;
+            //Only set the width and height if the user intends to use
+            //the non-default save sizes.
+            if ( width > 0 || height > 0 ){
+                Carta::Data::PreferencesSave* prefSave = Carta::Data::Util::findSingletonObject<Carta::Data::PreferencesSave>();
+                if ( width > 0 ){
+                    widthError = prefSave->setWidth( width );
+                }
+                if ( height > 0 ){
+                    heightError = prefSave->setHeight( height );
+                }
+            }
+            if ( widthError.isEmpty() && heightError.isEmpty()){
+                QString result = histogram->saveHistogram( filename );
+                if ( !result.isEmpty() ){
+                    resultList.append( ERROR );
+                    resultList.append( result );
+                }
+            }
+            else {
+                resultList.append( ERROR );
+                if ( !widthError.isEmpty() ){
+                    resultList.append( widthError );
+                }
+                if ( !heightError.isEmpty() ){
+                    resultList.append( heightError );
+                }
+            }
         }
         else {
-            resultList = QStringList( "error" );
+            resultList = QStringList( ERROR );
             resultList.append( "An unknown error has occurred." );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified histogram could not be found." );
     }
     return resultList;
