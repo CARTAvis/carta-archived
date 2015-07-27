@@ -450,6 +450,14 @@ public:
      */
     QStringList setGridTickColor( int redAmount, int greenAmount, int blueAmount );
 
+    /**
+     * Set the length of the grid ticks.
+     * @param tickThickness - a positive integer.
+     * @return an error message if the tick thickness was not successfully set;
+     *      an empty string otherwise.
+     */
+    QString setGridTickThickness( int tickThickness );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;

@@ -1033,3 +1033,23 @@ class Image(CartaView):
                                      greenAmount=greenAmount,
                                      blueAmount=blueAmount)
         return result
+
+    def setGridTickThickness(self, tickThickness):
+        """
+        Set the length of the grid ticks.
+
+        Parameters
+        ----------
+        tickThickness: integer
+            A positive integer.
+
+        Returns
+        -------
+        list
+            Return an error message if the tick thickness was not
+            successfully set; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTickThickness",
+                                     imageView=self.getId(),
+                                     tickThickness=tickThickness)
+        return result

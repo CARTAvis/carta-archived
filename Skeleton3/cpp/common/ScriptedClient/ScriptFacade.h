@@ -716,6 +716,15 @@ public:
      */
     QStringList setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
 
+    /**
+     * Set the length of the grid ticks.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param tickThickness - a positive integer.
+     * @return an error message if the tick thickness was not successfully set;
+     *      an empty string otherwise.
+     */
+    QStringList setGridTickThickness( const QString& controlId, int tickThickness );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

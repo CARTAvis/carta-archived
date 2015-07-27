@@ -1138,6 +1138,11 @@ QStringList Controller::setGridTickColor( int redAmount, int greenAmount, int bl
     return result;
 }
 
+QString Controller::setGridTickThickness( int tickThickness ) {
+    QString result = m_gridControls->setTickThickness( tickThickness );
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->_viewResize( newSize );
