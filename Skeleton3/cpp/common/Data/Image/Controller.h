@@ -432,6 +432,14 @@ public:
      */
     QString setShowGridStatistics( bool showStatistics );
 
+    /**
+     * Set whether or not to show grid axis ticks.
+     * @param showTicks - true if the grid axis ticks should be shown; false otherwise.
+     * @return an error message if there was a problem setting the visibility of grid axis
+     *      ticks; and empty string otherwise.
+     */
+    QString setShowGridTicks( bool showTicks );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;

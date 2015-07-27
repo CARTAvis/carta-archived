@@ -539,6 +539,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setShowGridStatistics( imageView, showStatistics );
     }
 
+    else if ( cmd == "setshowgridticks" ) {
+        QString imageView = args["imageView"].toString();
+        bool showTicks = args["showTicks"].toBool();
+        result = m_scriptFacade->setShowGridTicks( imageView, showTicks );
+
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

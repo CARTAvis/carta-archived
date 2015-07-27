@@ -986,3 +986,24 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      showStatistics=showStatistics)
         return result
+
+    def setShowGridTicks(self, showTicks):
+        """
+        Set whether or not to show grid axis ticks.
+
+        Paramters
+        ----------
+            showTicks: boolean
+                True if the grid axis ticks should be shown; False
+                otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            visibility of grid axis ticks; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridTicks",
+                                     imageView=self.getId(),
+                                     showTicks=showTicks)
+        return result

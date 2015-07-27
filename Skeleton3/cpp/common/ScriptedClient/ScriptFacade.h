@@ -696,6 +696,15 @@ public:
      */
     QStringList setShowGridStatistics( const QString& controlId, bool showStatistics );
 
+    /**
+     * Set whether or not to show grid axis ticks.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param showTicks - true if the grid axis ticks should be shown; false otherwise.
+     * @return an error message if there was a problem setting the visibility of grid axis
+     *      ticks; and empty string otherwise.
+     */
+    QStringList setShowGridTicks( const QString& controldId, bool showTicks );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

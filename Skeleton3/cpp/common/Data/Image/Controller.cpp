@@ -1128,6 +1128,11 @@ QString Controller::setShowGridStatistics( bool showStatistics ) {
     return result;
 }
 
+QString Controller::setShowGridTicks( bool showTicks ) {
+    QString result = m_gridControls->setShowTicks( showTicks );
+    return result;
+}
+
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->_viewResize( newSize );
