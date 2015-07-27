@@ -10,6 +10,7 @@
 #include "Histogram/HistogramGenerator.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
+#include "MainConfig.h"
 #include "ImageView.h"
 #include "PluginManager.h"
 
@@ -32,6 +33,8 @@ const QString Histogram::CLIP_MIN = "clipMin";
 const QString Histogram::CLIP_MAX = "clipMax";
 const QString Histogram::CLIP_APPLY = "applyClipToImage";
 const QString Histogram::BIN_COUNT = "binCount";
+const QString Histogram::BIN_COUNT_MAX = "binCountMax";
+const int Histogram::BIN_COUNT_MAX_VALUE = 10000;
 const QString Histogram::BIN_WIDTH = "binWidth";
 const QString Histogram::COLOR_MIN = "colorMin";
 const QString Histogram::COLOR_MAX = "colorMax";
@@ -191,6 +194,7 @@ void Histogram::_createHistogram( Controller* controller){
         if ( frameCount > 0 ){
             planeModeValid = true;
         }
+
         bool oldPlaneModeValid = m_stateData.getValue<bool>(PLANE_MODE_RANGE_VALID );
         if ( planeModeValid != oldPlaneModeValid ){
             m_stateData.setValue<bool>(PLANE_MODE_RANGE_VALID, planeModeValid);
@@ -251,8 +255,20 @@ std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(Con
 }
 
 void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller ){
+    Controller* activeController = controller;
+    if ( activeController == nullptr ){
+        int linkCount = m_linkImpl->getLinkCount();
+        for ( int i = 0; i < linkCount; i++ ){
+            CartaObject* link = m_linkImpl->getLink( i );
+            Controller* linkedController = dynamic_cast<Controller*>(link);
+            if ( linkedController != nullptr){
+                activeController = linkedController;
+                break;
+            }
+        }
+    }
     if ( newDataNeeded ){
-        _loadData( controller );
+        _loadData( activeController );
     }
 
     //User is not selecting a range
@@ -416,6 +432,13 @@ void Histogram::_initializeDefaultState(){
     //Preferences - not image specific
     const int DEFAULT_BIN_COUNT = 25;
     m_state.insertValue<int>(BIN_COUNT, DEFAULT_BIN_COUNT );
+    //Decide if the user has decided to override the maximum bin count.
+    int histMaxBinCount = Globals::instance()->mainConfig()->getHistogramBinCountMax();
+    if ( histMaxBinCount < 0 ){
+        histMaxBinCount = BIN_COUNT_MAX_VALUE;
+    }
+
+    m_state.insertValue<int>(BIN_COUNT_MAX, histMaxBinCount );
     double binWidth = _toBinWidth(DEFAULT_BIN_COUNT);
     m_state.insertValue<double>(BIN_WIDTH, binWidth );
     m_state.insertValue<bool>(CUSTOM_CLIP, false );
@@ -988,13 +1011,19 @@ QString Histogram::removeLink( CartaObject* cartaObject){
     return result;
 }
 
-void Histogram::_resetBinCountBasedOnWidth(){
+bool Histogram::_resetBinCountBasedOnWidth(){
+    bool validWidth = false;
     double binWidth = m_state.getValue<double>(BIN_WIDTH );
     int oldBinCount = m_state.getValue<int>(BIN_COUNT);
     int binCount = _toBinCount( binWidth );
-    if ( oldBinCount != binCount ){
-        m_state.setValue<int>(BIN_COUNT, binCount );
+    int maxBinCount = m_state.getValue<int>(BIN_COUNT_MAX );
+    if ( binCount <= maxBinCount ){
+        validWidth = true;
+        if ( oldBinCount != binCount ){
+            m_state.setValue<int>(BIN_COUNT, binCount );
+        }
     }
+    return validWidth;
 }
 
 void Histogram::_resetDefaultStateData(){
@@ -1126,27 +1155,35 @@ QString Histogram::setClipMax( double clipMax, bool finish ){
     double oldMaxPercent = m_stateData.getValue<double>(CLIP_MAX_PERCENT);
     if ( clipMin < clipMaxRounded ){
         if ( qAbs(clipMaxRounded - oldMax) > m_errorMargin){
+
             m_stateData.setValue<double>(CLIP_MAX, clipMaxRounded );
-            _resetBinCountBasedOnWidth();
-            Controller* controller = _getControllerSelected();
-            if ( controller != nullptr ){
-                std::pair<int,int> bounds = _getFrameBounds();
-                double clipUpperBound;
-                controller->getIntensity( bounds.first, bounds.second, 1, &clipUpperBound );
-                double clipMaxPercent = controller->getPercentile(bounds.first, bounds.second, clipMaxRounded );
-                if ( clipMaxPercent >= 0 ){
-                    clipMaxPercent = Util::roundToDigits(clipMaxPercent * 100, significantDigits);
-                    if(qAbs(oldMaxPercent - clipMaxPercent) > m_errorMargin){
-                        m_stateData.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent);
+            bool validWidth = _resetBinCountBasedOnWidth();
+            if ( validWidth ){
+                Controller* controller = _getControllerSelected();
+                if ( controller != nullptr ){
+                    std::pair<int,int> bounds = _getFrameBounds();
+                    double clipUpperBound;
+                    controller->getIntensity( bounds.first, bounds.second, 1, &clipUpperBound );
+                    double clipMaxPercent = controller->getPercentile(bounds.first, bounds.second, clipMaxRounded );
+                    if ( clipMaxPercent >= 0 ){
+                        clipMaxPercent = Util::roundToDigits(clipMaxPercent * 100, significantDigits);
+                        if(qAbs(oldMaxPercent - clipMaxPercent) > m_errorMargin){
+                            m_stateData.setValue<double>(CLIP_MAX_PERCENT, clipMaxPercent);
+                        }
+                    }
+                    else {
+                        qWarning() << "Could not update zoom max percent!";
                     }
                 }
-                else {
-                    qWarning() << "Could not update zoom max percent!";
-                }
+
+            }
+            else {
+                m_stateData.setValue<double>(CLIP_MAX, oldMax );
+                result = "Resulting histogram bin count exceeded the maximum.";
             }
             if ( finish ){
-                _finishClips();
-            }
+               _finishClips();
+           }
         }
     }
     else {
@@ -1167,20 +1204,26 @@ QString Histogram::setClipMin( double clipMin, bool finish ){
     if( clipMinRounded < clipMax ){
         if ( qAbs(clipMinRounded - oldMin) > m_errorMargin){
             m_stateData.setValue<double>(CLIP_MIN, clipMinRounded );
-            _resetBinCountBasedOnWidth();
-            Controller* controller = _getControllerSelected();
-            if ( controller != nullptr ){
-                std::pair<int,int> bounds = _getFrameBounds();
-                double clipMinPercent = controller->getPercentile( bounds.first, bounds.second, clipMinRounded);
-                clipMinPercent = Util::roundToDigits(clipMinPercent * 100, significantDigits);
-                if ( clipMinPercent >= 0 ){
-                    if(qAbs(oldMinPercent - clipMinPercent) > m_errorMargin){
-                        m_stateData.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent);
+            bool validWidth = _resetBinCountBasedOnWidth();
+            if ( validWidth ){
+                Controller* controller = _getControllerSelected();
+                if ( controller != nullptr ){
+                    std::pair<int,int> bounds = _getFrameBounds();
+                    double clipMinPercent = controller->getPercentile( bounds.first, bounds.second, clipMinRounded);
+                    clipMinPercent = Util::roundToDigits(clipMinPercent * 100, significantDigits);
+                    if ( clipMinPercent >= 0 ){
+                        if(qAbs(oldMinPercent - clipMinPercent) > m_errorMargin){
+                            m_stateData.setValue<double>(CLIP_MIN_PERCENT, clipMinPercent);
+                        }
+                    }
+                    else {
+                        qWarning() << "Could not update zoom minimum percent";
                     }
                 }
-                else {
-                    qWarning() << "Could not update zoom minimum percent";
-                }
+            }
+            else {
+                m_stateData.setValue<double>(CLIP_MIN, oldMin );
+                result = "Resulting histogram bin count exceeded the maximum.";
             }
             if ( finish ){
                 _finishClips();
@@ -1214,15 +1257,22 @@ QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
                      if(validIntensity){
                          double oldClipMin = m_stateData.getValue<double>(CLIP_MIN);
                          if(qAbs(oldClipMin - clipMin) > m_errorMargin){
+
                              m_stateData.setValue<double>(CLIP_MIN, Util::roundToDigits(clipMin, significantDigits));
-                             _resetBinCountBasedOnWidth();
+                             bool validWidth = _resetBinCountBasedOnWidth();
+                             if ( !validWidth ){
+                                 m_stateData.setValue<double>(CLIP_MIN, oldClipMin );
+                                 m_stateData.setValue<double>(CLIP_MIN_PERCENT, oldMinPercent );
+                                 result = "Resulting histogram bin count exceeded the maximum.";
+                             }
                          }
                      }
                      else {
-                         qWarning() << "Invalid intensity for percent: "<<clipMinPercent;
+                         m_stateData.setValue<double>(CLIP_MIN_PERCENT, oldMinPercent);
+                         result = "Invalid intensity for percent: " + QString::number(clipMinPercent);
                      }
                  }
-                 if ( complete ){
+                 if ( complete){
                      _finishClips();
                  }
              }
@@ -1259,11 +1309,16 @@ QString Histogram::setClipMaxPercent( double clipMaxPercent, bool complete ){
                          double oldClipMax = m_stateData.getValue<double>(CLIP_MAX);
                          if(qAbs(oldClipMax - clipMax) > m_errorMargin){
                              m_stateData.setValue<double>(CLIP_MAX, Util::roundToDigits(clipMax, significantDigits));
-                             _resetBinCountBasedOnWidth();
+                             bool validWidth = _resetBinCountBasedOnWidth();
+                             if ( !validWidth ){
+                                 m_stateData.setValue<double>(CLIP_MAX, oldClipMax );
+                                 m_stateData.setValue<double>(CLIP_MAX_PERCENT, oldMaxPercent );
+                                 result = "Resulting histogram bin count exceeded the maximum.";
+                             }
                          }
                      }
                      else {
-                         qWarning() <<" Could not map "<<lookupPercent<<" to intensity";
+                         result = " Could not map "+ QString::number(lookupPercent)+" to intensity";
                      }
                  }
                  if ( complete ){
@@ -1462,7 +1517,11 @@ QString Histogram::setBinWidth( double binWidth ){
     if ( binWidthRounded > 0 ){
         if ( qAbs( oldBinWidth - binWidthRounded) > m_errorMargin ){
             m_state.setValue<double>( BIN_WIDTH, binWidthRounded );
-            _resetBinCountBasedOnWidth();
+            bool validWidth = _resetBinCountBasedOnWidth();
+            if ( !validWidth ){
+                result = "Resulting histogram bin count exceeded the maximum.";
+                m_state.setValue<double>( BIN_WIDTH, oldBinWidth );
+            }
             m_state.flushState();
             _generateHistogram( true );
         }
@@ -1479,14 +1538,20 @@ QString Histogram::setBinCount( int binCount ){
     QString result;
     int oldBinCount = m_state.getValue<int>(BIN_COUNT );
     if ( binCount > 0  ){
-        if ( binCount != oldBinCount ){
-            m_state.setValue<int>(BIN_COUNT, binCount );
-            double binWidth = _toBinWidth( binCount );
+        int binCountMax = m_state.getValue<int>(BIN_COUNT_MAX);
+        if ( binCount <= binCountMax ){
+            if ( binCount != oldBinCount ){
+                m_state.setValue<int>(BIN_COUNT, binCount );
+                double binWidth = _toBinWidth( binCount );
 
-            int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
-            m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
-            m_state.flushState();
-            _generateHistogram( true );
+                int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+                m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
+                m_state.flushState();
+                _generateHistogram( true );
+            }
+        }
+        else {
+            result = "The bin count value, "+QString::number(binCount)+" is larger than the bin count limit: "+binCountMax;
         }
     }
     else {

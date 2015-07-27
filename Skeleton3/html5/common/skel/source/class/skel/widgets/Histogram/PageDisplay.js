@@ -44,6 +44,7 @@ qx.Class.define("skel.widgets.Histogram.PageDisplay", {
          */
         histUpdate : function( hist ){
             if ( this.m_binSettings !== null ){
+                this.m_binSettings.setBinCountMax( hist.binCountMax );
                 this.m_binSettings.setBinCount(hist.binCount );
                 this.m_binSettings.setBinWidth(hist.binWidth );
             }

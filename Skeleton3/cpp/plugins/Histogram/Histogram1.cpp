@@ -131,6 +131,7 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
     else {
         qWarning() << "No image available for channel bounds.";
     }
+
     if ( channelLow >= 0 && channelHigh >= 0 ){
         if ( channelLow > channelHigh ){
             double tmp = channelLow;
@@ -238,25 +239,26 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         std::vector<std::shared_ptr<Image::ImageInterface>> images = hook.paramsPtr->dataSource;
         casa::ImageInterface<casa::Float> * casaImage = nullptr;
         if ( images.size() > 0 ){
-            m_cartaImage = images.front();
-
-            CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
+            CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( images.front().get() );
             if( ! ptr1) {
                 throw "not an image created by casaimageloader...";
             }
-
-            if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
-
-                casa::ImageInterface<casa::Float> * casaImage = nullptr;
+            if (ptr1->pixelType() == Image::PixelType::Real32 ){
                 #ifndef Q_OS_MAC
                     casaImage = dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
                 #else
                     casaImage = static_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
                 #endif
+            }
+            //Reset the histogram if the image has changed.
+            if ( m_cartaImage.get() != ptr1 ){
+                m_cartaImage = images.front();
+
                 ImageHistogram<casa::Float>* hist = new ImageHistogram<casa::Float>();
                 m_histogram.reset( hist );
-                if( casaImage != nullptr)
+                if( casaImage ){
                     hist->setImage( casaImage );
+                }
             }
         }
 
@@ -321,7 +323,6 @@ std::vector < HookId > Histogram1::getInitialHookList(){
 
 
 Histogram1::~Histogram1(){
-
 }
 
 

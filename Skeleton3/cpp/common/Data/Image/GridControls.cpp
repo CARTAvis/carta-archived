@@ -106,9 +106,9 @@ void GridControls::_initializeCallbacks(){
     addCommandCallback( "setAxesTransparency", [=] (const QString & /*cmd*/,
                                     const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {DataGrid::ALPHA};
+        std::set<QString> keys = {Util::ALPHA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString transparencyStr = dataValues[DataGrid::ALPHA];
+        QString transparencyStr = dataValues[Util::ALPHA];
         bool validInt = false;
         int transparency = transparencyStr.toInt( &validInt );
         if ( validInt ){
@@ -215,9 +215,9 @@ void GridControls::_initializeCallbacks(){
     addCommandCallback( "setGridTransparency", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
-            std::set<QString> keys = {DataGrid::ALPHA};
+            std::set<QString> keys = {Util::ALPHA};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString transparencyStr = dataValues[DataGrid::ALPHA];
+            QString transparencyStr = dataValues[Util::ALPHA];
             bool validInt = false;
             int transparency = transparencyStr.toInt( &validInt );
             if ( validInt ){
@@ -393,9 +393,9 @@ void GridControls::_initializeCallbacks(){
     addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
                                         const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
-            std::set<QString> keys = {DataGrid::ALPHA};
+            std::set<QString> keys = {Util::ALPHA};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString transparencyStr = dataValues[DataGrid::ALPHA];
+            QString transparencyStr = dataValues[Util::ALPHA];
             bool validInt = false;
             int transparency = transparencyStr.toInt( &validInt );
             if ( validInt ){
@@ -422,21 +422,21 @@ void GridControls::_initializeCallbacks(){
 QStringList GridControls::_parseColorParams( const QString& params, const QString& label,
         int* red, int* green, int* blue ) const {
     QStringList result;
-    std::set<QString> keys = {DataGrid::RED,DataGrid::GREEN,DataGrid::BLUE};
+    std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString redStr = dataValues[DataGrid::RED];
+    QString redStr = dataValues[Util::RED];
     bool validInt = false;
     *red = redStr.toInt(&validInt);
     if ( !validInt ){
         result.append(label + " red amount must be a nonnegative integer: "+params);
     }
-    QString greenStr = dataValues[DataGrid::GREEN];
+    QString greenStr = dataValues[Util::GREEN];
     *green = greenStr.toInt( &validInt );
     if ( !validInt ){
         result.append( label + " green amount must be a nonnegative integer: "+params);
     }
 
-    QString blueStr = dataValues[DataGrid::BLUE];
+    QString blueStr = dataValues[Util::BLUE];
     *blue = blueStr.toInt( &validInt );
     if ( !validInt ){
         result.append(label + " blue amount must be a nonnegative integer:"+params);

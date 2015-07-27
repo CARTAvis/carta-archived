@@ -91,7 +91,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramClip", {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
             
-            var overallContainer = new qx.ui.groupbox.GroupBox( "Linked Image Clip (shift + mouse left drag)", "");
+            var overallContainer = new qx.ui.groupbox.GroupBox( "Linked Image Clip (shift + graph mouse left drag)", "");
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
             overallContainer.setContentPadding(1,1,1,1);
             this._add( overallContainer );

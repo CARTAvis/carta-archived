@@ -205,7 +205,14 @@ QImage * HistogramGenerator::toImage( ) const {
 
 }
 
-
+HistogramGenerator::~HistogramGenerator(){
+    m_histogram->detach( );
+    m_range->detach();
+    m_rangeColor->detach();
+    delete m_histogram;
+    delete m_range;
+    delete m_rangeColor;
+}
 }
 }
 

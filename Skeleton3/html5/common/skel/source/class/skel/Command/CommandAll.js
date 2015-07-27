@@ -32,11 +32,8 @@ qx.Class.define("skel.Command.CommandAll", {
         this.m_cmds[6] = skel.Command.Clip.CommandClip.getInstance();
         this.m_cmds[7] = skel.Command.Data.CommandData.getInstance();
         var index = 8;
-        var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
-        if ( saveCmd.isSaveAvailable() ){
-            this.m_cmds[index] = saveCmd;
-            index++;
-        }
+        this.m_cmds[index] = skel.Command.Save.CommandSaveImage.getInstance();
+        index++;
         this.m_cmds[index] = skel.Command.Data.CommandPanReset.getInstance();
         index++;
         this.m_cmds[index] = skel.Command.Data.CommandZoomReset.getInstance();

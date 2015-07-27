@@ -97,6 +97,14 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
         },
         
         /**
+         * Set the maximum allowed value of the bin count.
+         * @param binCountMax {Number} the maximum bin count allowed.
+         */
+        setBinCountMax : function( binCountMax ){
+            this.m_binCountTextSlider.setMax( binCountMax );
+        },
+        
+        /**
          * Sets a new histogram bin width.
          * @param binWidth {Number} the new bin width.
          */

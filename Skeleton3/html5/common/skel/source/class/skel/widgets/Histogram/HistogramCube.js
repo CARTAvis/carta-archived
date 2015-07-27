@@ -108,7 +108,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             
             //Current plane
             this.m_planeSingle = new qx.ui.form.RadioButton( "Current");
-            this.m_planeSingle.setToolTipText( "Compute based on the current channel (Animator must be linked).");
+            this.m_planeSingle.setToolTipText( "Compute based on the current channel.");
             this.m_planeSingle.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     function(){
                         if ( this.m_planeSingle.getValue() ){

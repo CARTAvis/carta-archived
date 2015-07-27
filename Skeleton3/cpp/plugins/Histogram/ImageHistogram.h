@@ -73,7 +73,7 @@ private:
 	vector<T> m_yValues;
 	casa::LatticeHistograms<T>* m_histogramMaker;
 	casa::ImageRegion* m_region;
-	std::shared_ptr<casa::SubImage<T> > subImage;
+	std::shared_ptr<casa::SubImage<T> > m_subImage;
 	const int ALL_CHANNELS;
 	const int ALL_INTENSITIES;
     const casa::ImageInterface<T>*  m_image; //Use
@@ -83,7 +83,6 @@ private:
 	double m_intensityMin;
 	double m_intensityMax;
 	int m_binCount;
-
 };
 
 #endif /* IMAGE_HISTOGRAM_H_ */

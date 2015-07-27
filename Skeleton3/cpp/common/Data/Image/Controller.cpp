@@ -4,6 +4,7 @@
 #include "GridControls.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
+#include "ControllerData.h"
 #include "DataSource.h"
 #include "DataGrid.h"
 #include "Data/Error/ErrorManager.h"
@@ -111,10 +112,10 @@ bool Controller::addData(const QString& fileName) {
     //Add the data if it is not already there.
     if (targetIndex == -1) {
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        DataSource* targetSource = objMan->createObject<DataSource>();
+        ControllerData* targetSource = objMan->createObject<ControllerData>();
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
-        connect( targetSource, & DataSource::saveImageResult, this, & Controller::saveImageResultCB );
+        connect( targetSource, & ControllerData::saveImageResult, this, & Controller::saveImageResultCB );
         m_datas.append(targetSource);
         targetSource->_viewResize( m_viewSize );
 
@@ -188,10 +189,9 @@ void Controller::clear(){
 }
 
 void Controller::_clearData(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    for ( DataSource* source : m_datas ){
-        QString sourceId = source->getId();
-        objMan->destroyObject(sourceId);
+
+    for ( ControllerData* source : m_datas ){
+        delete source;
     }
     m_datas.clear();
 }
@@ -271,7 +271,7 @@ int Controller::getSelectImageIndex() const {
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
-        DataSource* data = Controller::m_datas[index];
+        ControllerData* data = Controller::m_datas[index];
         name = data->_getFileName();
     }
     return name;
@@ -317,9 +317,11 @@ QString Controller::getPixelUnits() const {
 QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system) const {
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        QStringList coordList = m_datas[imageIndex]->_getCoordinates( x, y, frameIndex, system );
         for ( int i = 0; i <= 1; i++ ){
-            result.append( m_datas[imageIndex]->_getCoordinates( x, y, system, i ) );
+            result.append( coordList[i] );
         }
     }
     return result;
@@ -389,10 +391,12 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     if (m_selectImage != nullptr) {
         imageIndex = m_selectImage->getIndex();
     }
+    int frameIndex = m_selectChannel->getIndex();
     if ( !applyAll ){
+
         if (imageIndex >= 0 && imageIndex < m_datas.size()) {
             if (m_datas[imageIndex] != nullptr) {
-                m_datas[imageIndex]->_gridChanged( state, true );
+                m_datas[imageIndex]->_gridChanged( state, true, frameIndex );
             }
         }
     }
@@ -404,7 +408,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
                 renderedImage = true;
             }
             if ( m_datas[i] != nullptr ){
-                m_datas[i]->_gridChanged( state, renderedImage );
+                m_datas[i]->_gridChanged( state, renderedImage, frameIndex );
             }
         }
     }
@@ -687,8 +691,9 @@ void Controller::_removeData( int index ){
 
 void Controller::_render(){
     int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        m_datas[imageIndex]->_render();
+        m_datas[imageIndex]->_render( frameIndex );
     }
 }
 
@@ -718,6 +723,13 @@ void Controller::resetStateData( const QString& state ){
     _clearData();
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
+
+    //Now we need to restore the selected channel and image.
+    QString channelState = dataState.getValue<QString>( Selection::CHANNEL );
+    m_selectChannel->resetState( channelState );
+    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
+    m_selectImage ->resetState( dataStateStr );
+
     int dataCount = dataState.getArraySize(DATA);
     for ( int i = 0; i < dataCount; i++ ){
         QString dataLookup = Carta::State::UtilState::getLookup( DATA, i );
@@ -728,13 +740,10 @@ void Controller::resetStateData( const QString& state ){
         QString gridStr = dataState.toString( gridLookup );
         StateInterface gridState( "" );
         gridState.setState( gridStr );
-        m_datas[i]->_gridChanged( gridState, false );
+        int frameIndex = m_selectChannel->getIndex();
+        m_datas[i]->_gridChanged( gridState, false, frameIndex );
     }
-    //Now we need to restore the selected channel and image.
-    QString channelState = dataState.getValue<QString>( Selection::CHANNEL );
-    m_selectChannel->resetState( channelState );
-    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
-    m_selectImage ->resetState( dataStateStr );
+
     //Notify others there has been a change to the data.
     emit dataChanged( this );
 
@@ -891,28 +900,28 @@ void Controller::_scheduleFrameReload(){
 }
 
 void Controller::setColorInverted( bool inverted ){
-    for ( DataSource* data : m_datas ){
+    for ( ControllerData* data : m_datas ){
         data->setColorInverted( inverted );
     }
     _render();
 }
 
 void Controller::setColorMap( const QString& name ){
-    for ( DataSource* data : m_datas ){
+    for ( ControllerData* data : m_datas ){
         data->setColorMap( name );
     }
     _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
-    for ( DataSource* data : m_datas ){
+    for ( ControllerData* data : m_datas ){
         data->setColorReversed( reversed );
     }
     _render();
 }
 
 void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
-    for ( DataSource* data : m_datas ){
+    for ( ControllerData* data : m_datas ){
         data->setColorAmounts( newRed, newGreen, newBlue );
     }
     _render();
@@ -954,7 +963,7 @@ void Controller::setFrameImage( int val) {
 }
 
 void Controller::setGamma( double gamma ){
-    for ( DataSource* data : m_datas ){
+    for ( ControllerData* data : m_datas ){
         data->setGamma( gamma );
     }
     _render();
@@ -963,7 +972,7 @@ void Controller::setGamma( double gamma ){
 
 
 void Controller::setTransformData( const QString& name ){
-    for ( DataSource* data : m_datas ){
+    for ( ControllerData* data : m_datas ){
         data->_setTransformData( name );
     }
     _render();
@@ -1020,7 +1029,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             else {
                 newZoom = oldZoom * 0.9;
             }
-            for (DataSource* data : m_datas ){
+            for (ControllerData* data : m_datas ){
                 data->_setZoom( newZoom );
             }
 
@@ -1033,7 +1042,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             // add the delta to the current center
             QPointF currCenter = m_datas[imageIndex]->_getCenter();
             QPointF newCenter = currCenter + delta;
-            for ( DataSource* data : m_datas ){
+            for ( ControllerData* data : m_datas ){
                 data->_setPan( newCenter.x(), newCenter.y() );
             }
             _render();
@@ -1047,7 +1056,7 @@ void Controller::updatePan( double centerX , double centerY){
         bool validImage = false;
         QPointF oldImageCenter = m_datas[imageIndex]-> _getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
-            for ( DataSource* data : m_datas ){
+            for ( ControllerData* data : m_datas ){
                 data->_setPan( oldImageCenter.x(), oldImageCenter.y() );
             }
             _render();

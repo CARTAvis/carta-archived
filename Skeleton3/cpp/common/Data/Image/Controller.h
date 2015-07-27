@@ -32,7 +32,7 @@ namespace Carta {
 
 namespace Carta {
 namespace Data {
-class DataSource;
+class ControllerData;
 class GridControls;
 class Settings;
 class Region;
@@ -411,7 +411,7 @@ private:
 
 
     //Data available to and managed by this controller.
-    QList<DataSource* > m_datas;
+    QList<ControllerData* > m_datas;
 
 
     QList<Region* > m_regions;

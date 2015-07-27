@@ -66,7 +66,7 @@ qx.Class.define("skel.widgets.Window.WindowFactory",{
          */
         makeWindow : function(pluginId, index, detached ) {
             var window = null;
-            if ( !detached && pluginId != "Empty"){
+            if ( !detached ){
                 window = this._findWindow( pluginId, index );
             }
             if ( window === null ){

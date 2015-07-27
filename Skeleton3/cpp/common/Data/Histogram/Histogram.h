@@ -395,7 +395,7 @@ private:
     void _initializeStatics();
 
     void _refreshView();
-    void _resetBinCountBasedOnWidth();
+    bool _resetBinCountBasedOnWidth();
     void _resetDefaultStateData();
 
     void _zoomToSelection();
@@ -414,6 +414,8 @@ private:
     const static QString CLIP_APPLY;
     const static QString CUSTOM_CLIP;
     const static QString BIN_COUNT;
+    const static QString BIN_COUNT_MAX;
+    const static int BIN_COUNT_MAX_VALUE;
     const static QString BIN_WIDTH;
     const static QString COLOR_MIN;
     const static QString COLOR_MAX;

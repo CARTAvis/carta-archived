@@ -28,16 +28,10 @@ class Themes;
 
 class DataGrid : public Carta::State::CartaObject {
 
-friend class DataSource;
+friend class ControllerData;
 friend class GridControls;
 
 public:
-
-    /**
-     * Returns the currently selected coordinate system.
-     * @return the coordinate system that is selected.
-     */
-    Carta::Lib::KnownSkyCS getSkyCS() const;
 
     virtual ~DataGrid();
 
@@ -45,6 +39,12 @@ public:
     const static QString GRID;
 private:
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> _getRenderer();
+    /**
+     * Returns the currently selected coordinate system.
+     * @return the coordinate system that is selected.
+     */
+    Carta::Lib::KnownSkyCS _getSkyCS() const;
+    bool _isGridVisible() const;
     bool _resetState( const Carta::State::StateInterface& otherState );
     QStringList _setAxesColor( int redAmount, int greenAmount, int blueAmount, bool* axesColorChanged );
     QString _setAxesThickness( int thickness, bool* thicknessChanged );
@@ -80,16 +80,12 @@ private:
     void _resetGridRenderer();
     QStringList _setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
             bool* colorChanged );
-    const static QString ALPHA;
+
     const static QString AXES;
-    const static QString BLUE;
     const static QString COORD_SYSTEM;
     const static QString DIRECTION;
     const static QString FONT;
-    const static QString GREEN;
     const static QString LABEL_COLOR;
-    const static QString PEN_WIDTH;
-    const static QString RED;
     const static QString SHOW_AXIS;
     const static QString SHOW_COORDS;
     const static QString SHOW_INTERNAL_LABELS;
@@ -100,7 +96,6 @@ private:
     const static QString THEME;
     const static QString TICK;
     const static int PEN_FACTOR;
-    const static int MAX_COLOR;
 
     static bool m_registered;
 

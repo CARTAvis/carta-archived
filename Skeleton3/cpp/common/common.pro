@@ -43,12 +43,15 @@ HEADERS += \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
+    Data/Image/ControllerData.h \
+    Data/Image/Contour.h \
     Data/Image/CoordinateSystems.h \
+    Data/Image/DataContours.h \
     Data/Image/DataGrid.h \
     Data/Image/DataSource.h \
     Data/Image/Fonts.h \
     Data/Image/GridControls.h \
-    Data/Image/ImageGridServiceSynchronizer.h \
+    Data/Image/DrawSynchronizer.h \
     Data/Image/Themes.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
@@ -118,12 +121,15 @@ SOURCES += \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
+    Data/Image/ControllerData.cpp \
+    Data/Image/Contour.cpp \
     Data/Image/CoordinateSystems.cpp \
+    Data/Image/DataContours.cpp \
     Data/Image/DataGrid.cpp \
     Data/Image/DataSource.cpp \
     Data/Image/Fonts.cpp \
     Data/Image/GridControls.cpp \
-    Data/Image/ImageGridServiceSynchronizer.cpp \
+    Data/Image/DrawSynchronizer.cpp \
     Data/Image/Themes.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \

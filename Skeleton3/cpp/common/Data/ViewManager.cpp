@@ -547,7 +547,7 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
                 m_statistics.insert( newIndex, statistics );
             }
         }*/
-        else {
+        else if ( plugin != NodeFactory::EMPTY ){
             qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
         }
     }
@@ -834,7 +834,8 @@ void ViewManager::_removeView( const QString& plugin, int index ){
         objMan->destroyObject( m_statistics[index]->getId());
         m_statistics.removeAt( index );
     }
-    else {
+
+    else if ( plugin != NodeFactory::EMPTY ){
         qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
     }
 }
@@ -1011,6 +1012,8 @@ ViewManager::~ViewManager(){
         objMan->destroyObject(  m_snapshots->getId() );
         m_snapshots = nullptr;
     }
+
+
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
     _clearHistograms( 0, m_histograms.size() );

@@ -164,7 +164,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initialize the list of window specific commands this window supports.
          */
         _initSupportedCommands : function(){
-            arguments.callee.base.apply(this, arguments);
+            
             var clipCmd = skel.Command.Clip.CommandClip.getInstance();
             this.m_supportedCmds.push( clipCmd.getLabel() );
             var dataCmd = skel.Command.Data.CommandData.getInstance();
@@ -181,6 +181,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( zoomResetCmd.getLabel() );
             var panResetCmd = skel.Command.Data.CommandPanReset.getInstance();
             this.m_supportedCmds.push( panResetCmd.getLabel() );
+            arguments.callee.base.apply(this, arguments);
         },
         
         /**

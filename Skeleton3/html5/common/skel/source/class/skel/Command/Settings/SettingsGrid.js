@@ -18,7 +18,7 @@ qx.Class.define("skel.Command.Settings.SettingsGrid", {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setSettingsVisible";
         this.base( arguments, "Grid Settings", cmd);
-        this.setToolTipText( "Show/hide imagee grid settings.");
+        this.setToolTipText( "Show/hide image grid settings.");
         this.m_global = false;
         this.setEnabled( false );
         this.setValue( false );

@@ -159,6 +159,15 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
             }
         },
         
+        /**
+         * Set an upper bound for the text box and the slider.
+         * @param value {Number} - the maximum value for this widget.
+         */
+        setMax : function( value ){
+            this.m_slider.setMaximum( value );
+            this.m_text.setUpperBound( value );
+        },
+        
         
         /**
          * Set a new value.
