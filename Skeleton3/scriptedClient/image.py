@@ -1053,3 +1053,24 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      tickThickness=tickThickness)
         return result
+
+    def setGridTickTransparency(self, transparency):
+        """
+        Set the transparency of the grid tick marks.
+
+        Parameters
+        ----------
+        transparency: integer
+            A nonnegative integer between 0 and 255 with 255 being
+            opaque.
+
+        Returns
+        -------
+        list
+            An error message if the transparency was not successfully
+            set; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTickTransparency",
+                                     imageView=self.getId(),
+                                     transparency=transparency)
+        return result

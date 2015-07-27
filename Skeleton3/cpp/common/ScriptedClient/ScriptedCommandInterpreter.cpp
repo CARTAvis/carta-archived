@@ -559,6 +559,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridTickThickness( imageView, tickThickness );
     }
 
+    else if ( cmd == "setgridticktransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridTickTransparency( imageView, transparency );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

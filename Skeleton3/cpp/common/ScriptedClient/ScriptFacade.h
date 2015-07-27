@@ -725,6 +725,16 @@ public:
      */
     QStringList setGridTickThickness( const QString& controlId, int tickThickness );
 
+    /**
+     * Set the transparency of the grid tick marks.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param transparency - a nonnegative integer between 0 and 255 with 255 being
+     *      opaque.
+     * @return an error message if the transparency was not successfully set; an
+     *      empty string otherwise.
+     */
+    QStringList setGridTickTransparency( const QString& controldId, int transparency );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

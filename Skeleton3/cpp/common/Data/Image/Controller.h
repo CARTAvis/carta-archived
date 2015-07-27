@@ -458,6 +458,15 @@ public:
      */
     QString setGridTickThickness( int tickThickness );
 
+    /**
+     * Set the transparency of the grid tick marks.
+     * @param transparency - a nonnegative integer between 0 and 255 with 255 being
+     *      opaque.
+     * @return an error message if the transparency was not successfully set; an
+     *      empty string otherwise.
+     */
+    QString setGridTickTransparency( int transparency );
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
