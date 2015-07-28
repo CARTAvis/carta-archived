@@ -1422,7 +1422,7 @@ QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, i
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->setGridAxesColor( red, green, blue );
+            resultList = controller->getGridControls()->setAxesColor( red, green, blue );
         }
         else {
             resultList = QStringList( "error" );
@@ -1447,7 +1447,7 @@ QStringList ScriptFacade::setGridAxesThickness( const QString& controlId, int th
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridAxesThickness( thickness );
+            QString result = controller->getGridControls()->setAxesThickness( thickness );
             resultList = QStringList( result );
         }
         else {
@@ -1473,7 +1473,7 @@ QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridAxesTransparency( transparency );
+            QString result = controller->getGridControls()->setAxesTransparency( transparency );
             resultList = QStringList( result );
         }
         else {
@@ -1499,7 +1499,7 @@ QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyA
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            controller->setGridApplyAll( applyAll );
+            controller->getGridControls()->setApplyAll( applyAll );
         }
         else {
             resultList = QStringList( "error" );
@@ -1521,7 +1521,7 @@ QStringList ScriptFacade::setGridCoordinateSystem( const QString& controlId, con
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridCoordinateSystem( coordSystem );
+            QString result = controller->getGridControls()->setCoordinateSystem( coordSystem );
             resultList = QStringList( result );
         }
         else {
@@ -1547,7 +1547,7 @@ QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QSt
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridFontFamily( fontFamily );
+            QString result = controller->getGridControls()->setFontFamily( fontFamily );
             resultList = QStringList( result );
         }
         else {
@@ -1573,7 +1573,7 @@ QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSiz
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridFontSize( fontSize );
+            QString result = controller->getGridControls()->setFontSize( fontSize );
             resultList = QStringList( result );
         }
         else {
@@ -1599,7 +1599,7 @@ QStringList ScriptFacade::setGridColor( const QString& controlId, int redAmount,
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->setGridColor( redAmount, greenAmount, blueAmount );
+            resultList = controller->getGridControls()->setGridColor( redAmount, greenAmount, blueAmount );
         }
         else {
             resultList = QStringList( "error" );
@@ -1624,7 +1624,7 @@ QStringList ScriptFacade::setGridSpacing( const QString& controlId, double spaci
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridSpacing( spacing );
+            QString result = controller->getGridControls()->setGridSpacing( spacing );
             resultList = QStringList( result );
         }
         else {
@@ -1650,7 +1650,7 @@ QStringList ScriptFacade::setGridThickness( const QString& controlId, int thickn
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridThickness( thickness );
+            QString result = controller->getGridControls()->setGridThickness( thickness );
             resultList = QStringList( result );
         }
         else {
@@ -1677,7 +1677,7 @@ QStringList ScriptFacade::setGridTransparency( const QString& controlId, int tra
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridTransparency( transparency );
+            QString result = controller->getGridControls()->setGridTransparency( transparency );
             resultList = QStringList( result );
         }
         else {
@@ -1703,7 +1703,7 @@ QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAm
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->setGridLabelColor( redAmount, greenAmount, blueAmount );
+            resultList = controller->getGridControls()->setLabelColor( redAmount, greenAmount, blueAmount );
         }
         else {
             resultList = QStringList( "error" );
@@ -1728,7 +1728,7 @@ QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAx
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setShowGridAxis( showAxis );
+            QString result = controller->getGridControls()->setShowAxis( showAxis );
             resultList = QStringList( result );
         }
         else {
@@ -1751,7 +1751,7 @@ QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId,
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setShowGridCoordinateSystem( showCoordinateSystem );
+            QString result = controller->getGridControls()->setShowCoordinateSystem( showCoordinateSystem );
             resultList = QStringList( result );
         }
         else {
@@ -1774,7 +1774,7 @@ QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showG
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setShowGridLines( showGridLines );
+            QString result = controller->getGridControls()->setShowGridLines( showGridLines );
             resultList = QStringList( result );
         }
         else {
@@ -1797,7 +1797,7 @@ QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, b
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setShowGridInternalLabels( showInternalLabels );
+            QString result = controller->getGridControls()->setShowInternalLabels( showInternalLabels );
             resultList = QStringList( result );
         }
         else {
@@ -1820,7 +1820,7 @@ QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool 
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setShowGridStatistics( showStatistics );
+            QString result = controller->getGridControls()->setShowStatistics( showStatistics );
             resultList = QStringList( result );
         }
         else {
@@ -1843,7 +1843,7 @@ QStringList ScriptFacade::setShowGridTicks( const QString& controlId, bool showT
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setShowGridTicks( showTicks );
+            QString result = controller->getGridControls()->setShowTicks( showTicks );
             resultList = QStringList( result );
         }
         else {
@@ -1866,7 +1866,7 @@ QStringList ScriptFacade::setGridTickColor( const QString& controlId, int redAmo
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->setGridTickColor( redAmount, greenAmount, blueAmount );
+            resultList = controller->getGridControls()->setTickColor( redAmount, greenAmount, blueAmount );
         }
         else {
             resultList = QStringList( "error" );
@@ -1891,7 +1891,7 @@ QStringList ScriptFacade::setGridTickThickness( const QString& controlId, int ti
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridTickThickness( tickThickness );
+            QString result = controller->getGridControls()->setTickThickness( tickThickness );
             resultList = QStringList( result );
         }
         else {
@@ -1917,7 +1917,7 @@ QStringList ScriptFacade::setGridTickTransparency( const QString& controlId, int
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridTickTransparency( transparency );
+            QString result = controller->getGridControls()->setTickTransparency( transparency );
             resultList = QStringList( result );
         }
         else {
@@ -1943,7 +1943,7 @@ QStringList ScriptFacade::setGridTheme( const QString& controlId, const QString&
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QString result = controller->setGridTheme( theme );
+            QString result = controller->getGridControls()->setTheme( theme );
             resultList = QStringList( result );
         }
         else {

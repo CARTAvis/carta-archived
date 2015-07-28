@@ -43,8 +43,8 @@ class CartaView:
         Returns
         -------
         list
-            An error message if there was a problem adding the link; empty
-            otherwise.
+            An error message if there was a problem adding the link;
+            empty otherwise.
         """
         result = self.con.cmdTagList("addLink", sourceView=self.getId(),
                                      destView=imageView.getId())
@@ -64,8 +64,8 @@ class CartaView:
         Returns
         -------
         list
-            An error message if there was a problem removing the link; empty
-            otherwise.
+            An error message if there was a problem removing the link;
+            empty otherwise.
         """
         result = self.con.cmdTagList("removeLink", sourceView=self.getId(),
                                      destView=imageView.getId())
