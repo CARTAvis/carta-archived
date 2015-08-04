@@ -1,0 +1,8 @@
+{
+    "name"       : "jpeg-png",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Adds ability to load png and jpeg files",
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : []
+}

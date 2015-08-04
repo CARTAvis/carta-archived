@@ -1,0 +1,8 @@
+{
+    "name"       : "clock1",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Renders current time in every view",
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : [ "jpeg-png"]
+}
