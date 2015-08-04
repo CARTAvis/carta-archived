@@ -1,8 +1,0 @@
-{
-    "name"       : "python273",
-    "version"    : "1",
-    "type"       : "C++",
-    "description": "Loader of plugins written in Python.",
-    "about"      : "Part of skeleton3. Written by Pavol",
-    "depends"    : []
-}
