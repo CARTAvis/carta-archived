@@ -93,7 +93,9 @@ HEADERS += \
     Hacks/IVectorGraphicsView.h \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
-    Hacks/ContourEditorController.h
+    Hacks/ContourEditorController.h \
+    VGView.h \
+    DummyGridRenderer.h
 
 SOURCES += \
     Viewer.cpp \
@@ -171,7 +173,9 @@ SOURCES += \
     Hacks/IVectorGraphicsView.cpp \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
-    Hacks/ContourEditorController.cpp
+    Hacks/ContourEditorController.cpp \
+    VGView.cpp \
+    DummyGridRenderer.cpp
 
 
 #message( "common            PWD=$$PWD")

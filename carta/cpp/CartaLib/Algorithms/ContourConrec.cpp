@@ -6,6 +6,7 @@
 #include "IImage.h"
 #include "LineCombiner.h"
 
+#include <cmath>
 #include <QString>
 #include <QDebug>
 

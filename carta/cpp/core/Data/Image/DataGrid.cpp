@@ -7,6 +7,7 @@
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "State/UtilState.h"
+#include "DummyGridRenderer.h"
 
 #include <set>
 
@@ -108,12 +109,13 @@ void DataGrid::_initializeGridRenderer(){
                    -> prepare < Carta::Lib::Hooks::GetWcsGridRendererHook > ().first();
     if ( res.isNull() || ! res.val() ) {
         qWarning( "wcsgrid: Could not find any WCS grid renderers" );
+        m_wcsGridRenderer.reset( new Carta::Core::DummyGridRenderer() );
     }
     else {
         m_wcsGridRenderer = res.val();
-        _resetGridRenderer();
-        m_wcsGridRenderer-> setEmptyGrid( false );
     }
+    _resetGridRenderer();
+    m_wcsGridRenderer-> setEmptyGrid( false );
 }
 
 void DataGrid::_initializeDefaultPen( const QString& key, int red, int green, int blue,

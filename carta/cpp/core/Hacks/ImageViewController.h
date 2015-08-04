@@ -17,116 +17,13 @@
 #include "../ImageRenderService.h"
 #include "../IView.h"
 #include "SharedState.h"
+#include "core/DummyGridRenderer.h"
 #include <QTimer>
 #include <QObject>
 
 namespace Hacks
 {
-/// grid render service that does nothing except reports empty grid back
-///
-/// this can be useful if real grid render service is not available, as it can simplify
-/// the logic...
-class DummyGridRenderer
-    : public Carta::Lib::IWcsGridRenderService
-{
-    Q_OBJECT
-    CLASS_BOILERPLATE( DummyGridRenderer );
 
-public:
-
-    // IWcsGridRenderService interface
-
-public:
-
-    DummyGridRenderer()
-        : Carta::Lib::IWcsGridRenderService()
-    {
-        m_timer.setSingleShot( true );
-        connect( & m_timer, & QTimer::timeout,
-                 this, & Me::reportResult );
-    }
-
-    virtual void
-    setInputImage( Image::ImageInterface::SharedPtr ) override
-    { }
-
-    virtual void
-    setImageRect( const QRectF & ) override
-    { }
-
-    virtual void
-    setOutputSize( const QSize & ) override
-    { }
-
-    virtual void
-    setOutputRect( const QRectF & ) override
-    { }
-
-    virtual void
-    setPen( Element, const QPen & ) override
-    { }
-
-    virtual void
-    setFont( Element, int, double ) override
-    { }
-
-    virtual void
-    setGridDensityModifier( double ) override
-    { }
-
-    virtual void
-    setGridLinesVisible( bool ) override
-    {}
-
-    virtual void
-    setAxesVisible( bool ) override
-    {}
-
-    virtual void
-    setInternalLabels( bool ) override
-    { }
-
-    virtual void
-    setSkyCS( Carta::Lib::KnownSkyCS ) override
-    { }
-
-    virtual void
-    setTicksVisible( bool ) override
-    {}
-
-
-    virtual JobId
-    startRendering( JobId jobId = - 1 ) override
-    {
-        if ( jobId < 0 ) {
-            m_jobId++;
-        }
-        else {
-            m_jobId = jobId;
-        }
-        if ( ! m_timer.isActive() ) {
-            m_timer.start( 1 );
-        }
-        return m_jobId;
-    }
-
-    virtual void
-    setEmptyGrid( bool ) override
-    { }
-
-private slots:
-
-    void
-    reportResult()
-    {
-        emit done( Carta::Lib::VectorGraphics::VGList(), m_jobId );
-    }
-
-private:
-
-    QTimer m_timer;
-    JobId m_jobId = - 1;
-};
 
 /// this class is responsible for synchronizing results from:
 /// image render service
