@@ -429,6 +429,148 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
     }
 
+    /// grid commands
+
+    else if ( cmd == "setgridaxescolor" ) {
+        QString imageView = args["imageView"].toString();
+        int red = args["red"].toInt();
+        int green = args["green"].toInt();
+        int blue = args["blue"].toInt();
+        result = m_scriptFacade->setGridAxesColor( imageView, red, green, blue );
+    }
+
+    else if ( cmd == "setgridaxesthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int thickness = args["thickness"].toInt();
+        result = m_scriptFacade->setGridAxesThickness( imageView, thickness );
+    }
+
+    else if ( cmd == "setgridaxestransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridAxesTransparency( imageView, transparency );
+    }
+
+    else if ( cmd == "setgridapplyall" ) {
+        QString imageView = args["imageView"].toString();
+        bool applyAll = args["applyAll"].toBool();
+        result = m_scriptFacade->setGridApplyAll( imageView, applyAll );
+    }
+
+    else if ( cmd == "setgridcoordinatesystem" ) {
+        QString imageView = args["imageView"].toString();
+        QString coordSystem = args["coordSystem"].toString();
+        result = m_scriptFacade->setGridCoordinateSystem( imageView, coordSystem );
+    }
+
+    else if ( cmd == "setgridfontfamily" ) {
+        QString imageView = args["imageView"].toString();
+        QString fontFamily = args["fontFamily"].toString();
+        result = m_scriptFacade->setGridFontFamily( imageView, fontFamily );
+    }
+
+    else if ( cmd == "setgridfontsize" ) {
+        QString imageView = args["imageView"].toString();
+        int fontSize = args["fontSize"].toInt();
+        result = m_scriptFacade->setGridFontSize( imageView, fontSize );
+    }
+
+    else if ( cmd == "setgridcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
+    else if ( cmd == "setgridspacing" ) {
+        QString imageView = args["imageView"].toString();
+        double spacing = args["spacing"].toDouble();
+        result = m_scriptFacade->setGridSpacing( imageView, spacing );
+    }
+
+    else if ( cmd == "setgridthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int thickness = args["thickness"].toInt();
+        result = m_scriptFacade->setGridThickness( imageView, thickness );
+    }
+
+    else if ( cmd == "setgridtransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridTransparency( imageView, transparency );
+    }
+
+    else if ( cmd == "setgridlabelcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridLabelColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
+    else if ( cmd == "setshowgridaxis" ) {
+        QString imageView = args["imageView"].toString();
+        bool showAxis = args["showAxis"].toBool();
+        result = m_scriptFacade->setShowGridAxis( imageView, showAxis );
+    }
+
+    else if ( cmd == "setshowgridcoordinatesystem" ) {
+        QString imageView = args["imageView"].toString();
+        bool showCoordinateSystem = args["showCoordinateSystem"].toBool();
+        result = m_scriptFacade->setShowGridCoordinateSystem( imageView, showCoordinateSystem );
+    }
+
+    else if ( cmd == "setshowgridlines" ) {
+        QString imageView = args["imageView"].toString();
+        bool showGridLines = args["showGridLines"].toBool();
+        result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
+    }
+
+    else if ( cmd == "setshowgridinternallabels" ) {
+        QString imageView = args["imageView"].toString();
+        bool showInternalLabels = args["showInternalLabels"].toBool();
+        result = m_scriptFacade->setShowGridInternalLabels( imageView, showInternalLabels );
+    }
+
+    else if ( cmd == "setshowgridstatistics" ) {
+        QString imageView = args["imageView"].toString();
+        bool showStatistics = args["showStatistics"].toBool();
+        result = m_scriptFacade->setShowGridStatistics( imageView, showStatistics );
+    }
+
+    else if ( cmd == "setshowgridticks" ) {
+        QString imageView = args["imageView"].toString();
+        bool showTicks = args["showTicks"].toBool();
+        result = m_scriptFacade->setShowGridTicks( imageView, showTicks );
+    }
+
+    else if ( cmd == "setgridtickcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridTickColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
+    else if ( cmd == "setgridtickthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int tickThickness = args["tickThickness"].toInt();
+        result = m_scriptFacade->setGridTickThickness( imageView, tickThickness );
+    }
+
+    else if ( cmd == "setgridticktransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridTickTransparency( imageView, transparency );
+    }
+
+    else if ( cmd == "setgridtheme" ) {
+        QString imageView = args["imageView"].toString();
+        QString theme = args["theme"].toString();
+        result = m_scriptFacade->setGridTheme( imageView, theme );
+    }
+
     /// commands for testing
 
     else if ( cmd == "fakecommand" ) {

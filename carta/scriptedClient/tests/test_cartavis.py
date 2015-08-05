@@ -263,3 +263,32 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_saveHistogram(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that an image of the histogram can be saved.
+    """
+    imageName = 'histogram.png'
+    i = cartavisInstance.getImageViews()
+    h = cartavisInstance.getHistogramViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    h[0].setPlaneMode('all')
+    h[0].saveHistogram(tempImageDir + '/' + imageName, 200, 200)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_setBinCount(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that an image of the histogram can be saved.
+    """
+    imageName = 'histogram_100bin.png'
+    i = cartavisInstance.getImageViews()
+    h = cartavisInstance.getHistogramViews()
+    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    h[0].setPlaneMode('all')
+    h[0].setBinCount(100)
+    h[0].saveHistogram(tempImageDir + '/' + imageName, 200, 200)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
