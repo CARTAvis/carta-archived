@@ -22,7 +22,8 @@ class Animator(CartaView):
         list
             Error information if the channel could not be set.
         """
-        result = self.con.cmdTagList("setChannel", animatorView=self.getId(), channel=index)
+        result = self.con.cmdTagList("setChannel", animatorView=self.getId(),
+                                     channel=index)
         return result
 
     def setImage(self, index):
@@ -39,7 +40,8 @@ class Animator(CartaView):
         list
             Error information if the image could not be set.
         """
-        result = self.con.cmdTagList("setImage", animatorView=self.getId(), image=index)
+        result = self.con.cmdTagList("setImage", animatorView=self.getId(),
+                                     image=index)
         return result
 
     def showImageAnimator(self):
@@ -51,5 +53,25 @@ class Animator(CartaView):
         list
             Error information if the image animator could not be shown.
         """
-        result = self.con.cmdTagList("showImageAnimator", animatorView=self.getId())
+        result = self.con.cmdTagList("showImageAnimator",
+                                     animatorView=self.getId())
         return result
+
+    def getMaxImageCount(self):
+        """
+        Get the number of images being managed by the animator.
+
+        Returns
+        -------
+        integer
+            The number of images being managed by the animator.
+            Error information if the number of images could not be
+            obtained.
+        """
+        result = self.con.cmdTagList("getMaxImageCount",
+                                     animatorView=self.getId())
+        if (result[0] != "error"):
+            returnResult = int(result[0])
+        else:
+            returnResult = result
+        return returnResult

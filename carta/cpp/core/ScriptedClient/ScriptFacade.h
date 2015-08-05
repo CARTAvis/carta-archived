@@ -122,6 +122,14 @@ public:
     QStringList showImageAnimator( const QString& animatorId );
 
     /**
+     * Get the number of images being managed by the animator.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @return an error message if there was a problem showing the image animator;
+     *      an integer indicating the number of images otherwise.
+     */
+    QStringList getMaxImageCount( const QString& animatorId );
+
+    /**
      * Set the color map that is being displayed.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param colormapName the name of the color map.

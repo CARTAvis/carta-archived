@@ -15,7 +15,8 @@ class Histogram(CartaView):
         Parameters
         ----------
         bufferAmount: integer
-            A percentage in [0,100) representing the amount of extra space.
+            A percentage in [0,100) representing the amount of extra
+            space.
 
         Returns
         -------
@@ -52,7 +53,8 @@ class Histogram(CartaView):
 
     def setClipRange(self, minRange, maxRange):
         """
-        Set the lower and upper bounds for the histogram horizontal axis.
+        Set the lower and upper bounds for the histogram horizontal
+        axis.
 
         Parameters
         ----------
@@ -99,8 +101,8 @@ class Histogram(CartaView):
     def applyClipsByPercent(self, clipMin, clipMax):
         """
         Apply clips to the image by percent.
-        This is a convenience function that calls applyClips() with the mode
-        parameter set to 'percent'.
+        This is a convenience function that calls applyClips() with the
+        mode parameter set to 'percent'.
 
         Parameters
         ----------
@@ -120,8 +122,8 @@ class Histogram(CartaView):
     def applyClipsByIntensity(self, clipMin, clipMax):
         """
         Apply clips to the image by intensity.
-        This is a convenience function that calls applyClips() with the mode
-        parameter set to 'intensity'.
+        This is a convenience function that calls applyClips() with the
+        mode parameter set to 'intensity'.
 
         Parameters
         ----------
@@ -178,8 +180,8 @@ class Histogram(CartaView):
 
     def setPlaneMode(self, mode):
         """
-        Set whether the histogram should be based on a single plane, a range
-        of planes, or the entire cube.
+        Set whether the histogram should be based on a single plane, a
+        range of planes, or the entire cube.
 
         Parameters
         ----------
@@ -222,7 +224,8 @@ class Histogram(CartaView):
 
     def setChannelUnit(self, unit):
         """
-        Set the unit used to specify a channel range, for example, "GHz".
+        Set the unit used to specify a channel range, for example,
+        "GHz".
 
         Parameters
         ----------
@@ -270,8 +273,8 @@ class Histogram(CartaView):
         logCount: string
             Can take a value of 'true', 'false', or 'toggle'.
             Can also take a boolean object (i.e. True or False).
-            The default value is 'toggle', which causes the logarithmic scale
-            setting to be toggled.
+            The default value is 'toggle', which causes the logarithmic
+            scale setting to be toggled.
 
         Returns
         -------
@@ -285,15 +288,16 @@ class Histogram(CartaView):
 
     def setColored(self, colored='toggle'):
         """
-        Set whether or not the histogram should be colored by intensity.
+        Set whether or not the histogram should be colored by
+        intensity.
 
         Parameters
         ----------
         colored: string
             Can take a value of 'true', 'false', or 'toggle'.
             Can also take a boolean object (i.e. True or False).
-            The default value is 'toggle', which causes the colored setting to
-            be toggled.
+            The default value is 'toggle', which causes the colored
+            setting to be toggled.
 
         Returns
         -------
@@ -315,14 +319,14 @@ class Histogram(CartaView):
             The full path where the file is to be saved.
         width: integer
             The width, in pixels, of the saved image.
-            The default value is -1, which causes the dimension parameters
-            to be ignored; in this case, the resulting image will be an exact
-            copy of the histogram in the GUI.
+            The default value is -1, which causes the dimension
+            parameters to be ignored; in this case, the resulting image
+            will be an exact copy of the histogram in the GUI.
         height: integer
             The height, in pixels, of the saved image.
-            The default value is -1, which causes the dimension parameters
-            to be ignored; in this case, the resulting image will be an exact
-            copy of the histogram in the GUI.
+            The default value is -1, which causes the dimension
+            parameters to be ignored; in this case, the resulting image
+            will be an exact copy of the histogram in the GUI.
 
         Returns
         -------
