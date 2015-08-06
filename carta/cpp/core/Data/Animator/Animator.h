@@ -88,6 +88,12 @@ public:
 
     void changeChannelIndex( int index );
 
+    /**
+     * Return the current channel selection.
+     * @return the current channel selection.
+     */
+    int getFrameChannel() const;
+
     void changeImageIndex( int selectedImage );
 
     /**
@@ -120,7 +126,6 @@ public:
      * @param state - the animator's data state.
      */
     virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
-
 
     static const QString CLASS_NAME;
 

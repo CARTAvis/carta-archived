@@ -22,7 +22,8 @@ class Animator(CartaView):
         list
             Error information if the channel could not be set.
         """
-        result = self.con.cmdTagList("setChannel", animatorView=self.getId(), channel=index)
+        result = self.con.cmdTagList("setChannel", animatorView=self.getId(),
+                                     channel=index)
         return result
 
     def setImage(self, index):
@@ -39,7 +40,8 @@ class Animator(CartaView):
         list
             Error information if the image could not be set.
         """
-        result = self.con.cmdTagList("setImage", animatorView=self.getId(), image=index)
+        result = self.con.cmdTagList("setImage", animatorView=self.getId(),
+                                     image=index)
         return result
 
     def showImageAnimator(self):
@@ -51,5 +53,23 @@ class Animator(CartaView):
         list
             Error information if the image animator could not be shown.
         """
-        result = self.con.cmdTagList("showImageAnimator", animatorView=self.getId())
+        result = self.con.cmdTagList("showImageAnimator",
+                                     animatorView=self.getId())
+        return result
+
+    def getChannelIndex(self):
+        """
+        Return the current channel selection.
+
+        Returns
+        -------
+        integer
+            The current channel selection number.
+            Error information if the current channel selection number
+            could not be obtained.
+        """
+        result = self.con.cmdTagList("getChannelIndex",
+                                     animatorView=self.getId())
+        if (result[0] != "error"):
+            result = int(result[0])
         return result

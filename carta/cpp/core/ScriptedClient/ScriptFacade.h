@@ -122,6 +122,14 @@ public:
     QStringList showImageAnimator( const QString& animatorId );
 
     /**
+     * Return the current channel selection of the animator.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @return the current channel selection; error information if it could not
+     * be obtained.
+     */
+    QStringList getChannelIndex( const QString& animatorId );
+
+    /**
      * Set the color map that is being displayed.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param colormapName the name of the color map.

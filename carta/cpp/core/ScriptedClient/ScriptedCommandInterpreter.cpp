@@ -343,6 +343,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->showImageAnimator( animatorView );
     }
 
+    else if (cmd == "getchannelindex" ) {
+        QString animatorView = args["animatorView"].toString();
+        result = m_scriptFacade->getChannelIndex( animatorView );
+    }
+
     /// histogram commands
 
     else if ( cmd == "setclipbuffer" ) {
