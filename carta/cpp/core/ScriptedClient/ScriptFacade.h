@@ -358,6 +358,13 @@ public:
     QStringList getZoomLevel( const QString& controlId );
 
     /**
+     * Reset the zoom to its original value.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return error information if the zoom could not be reset.
+     */
+    QStringList resetZoom( const QString& controlId );
+
+    /**
      * Get the image dimensions.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of the image dimensions, or error information if the

@@ -315,6 +315,18 @@ class Image(CartaView):
             result = result[1]
         return result
 
+    def resetZoom(self):
+        """
+        Reset the zoom to its original value.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("resetZoom", imageView=self.getId())
+        return result
+
     def addLink(self, dest):
         """
         Establish a link between this image viewer and a destination

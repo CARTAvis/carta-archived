@@ -243,6 +243,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getZoomLevel( imageView );
     }
 
+    else if ( cmd == "resetzoom" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->resetZoom( imageView );
+    }
+
     else if ( cmd == "getimagedimensions" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getImageDimensions( imageView );
