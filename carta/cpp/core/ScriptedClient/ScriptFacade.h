@@ -15,6 +15,12 @@ namespace Carta {
     }
 }
 
+namespace Carta {
+    namespace State {
+        class CartaObject;
+    }
+}
+
 class ScriptFacade: public QObject {
 
     Q_OBJECT
@@ -836,6 +842,8 @@ private:
      * @return the unique server side id of the object managing the statistics view.
      */
     QString getStatisticsViewId( int index = -1 ) const;
+
+    Carta::State::CartaObject* _getObject( const QString& id );
 
 private:
     const static QString TOGGLE;
