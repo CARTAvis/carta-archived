@@ -327,6 +327,18 @@ class Image(CartaView):
         result = self.con.cmdTagList("resetZoom", imageView=self.getId())
         return result
 
+    def centerImage(self):
+        """
+        Center the image.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("centerImage", imageView=self.getId())
+        return result
+
     def addLink(self, dest):
         """
         Establish a link between this image viewer and a destination

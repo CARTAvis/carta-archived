@@ -365,6 +365,13 @@ public:
     QStringList resetZoom( const QString& controlId );
 
     /**
+     * Center the image.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return error information if the image could not be centered.
+     */
+    QStringList centerImage( const QString& controlId );
+
+    /**
      * Get the image dimensions.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of the image dimensions, or error information if the
