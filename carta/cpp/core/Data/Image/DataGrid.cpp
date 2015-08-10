@@ -502,16 +502,29 @@ QString DataGrid::_getActualCoordinateSystem( const QString& coordStr ) {
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){
     QString result;
     *familyChanged = false;
-    bool validFont = m_fonts->isFontFamily( fontFamily );
+    QString actualFontFamily = _getActualFontFamily( fontFamily );
+    bool validFont = m_fonts->isFontFamily( actualFontFamily );
     if ( validFont ){
         QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
-        if ( m_state.getValue<QString>( familyLookup ) != fontFamily ){
-            m_state.setValue<QString>( familyLookup, fontFamily );
+        if ( m_state.getValue<QString>( familyLookup ) != actualFontFamily ){
+            m_state.setValue<QString>( familyLookup, actualFontFamily );
             *familyChanged = true;
         }
     }
     else {
         result= "The font family "+fontFamily+" is not supported.";
+    }
+    return result;
+}
+
+QString DataGrid::_getActualFontFamily( const QString& fontFamily ) {
+    QString result = "";
+    QStringList fontFamilies = m_fonts->getFontFamilies();
+    for ( int i = 0; i < fontFamilies.size(); i++ ) {
+        if ( QString::compare( fontFamily, fontFamilies[i], Qt::CaseInsensitive ) == 0 ) {
+            result = fontFamilies[i];
+            break;
+        }
     }
     return result;
 }
