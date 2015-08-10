@@ -473,10 +473,11 @@ QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmo
 QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordChanged ){
     QString result;
     *coordChanged = false;
-    bool validCoord = m_coordSystems->isCoordinateSystem( coordSystem );
+    QString actualSystem = _getActualCoordinateSystem( coordSystem );
+    bool validCoord = m_coordSystems->isCoordinateSystem( actualSystem );
     if ( validCoord ){
-        if ( m_state.getValue<QString>( COORD_SYSTEM) != coordSystem ){
-            m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
+        if ( m_state.getValue<QString>( COORD_SYSTEM) != actualSystem ){
+            m_state.setValue<QString>( COORD_SYSTEM, actualSystem );
             *coordChanged = true;
         }
     }
@@ -486,6 +487,17 @@ QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordC
     return result;
 }
 
+QString DataGrid::_getActualCoordinateSystem( const QString& coordStr ) {
+    QString result = "";
+    QStringList coordSystems = m_coordSystems->getCoordinateSystems();
+    for ( int i = 0; i < coordSystems.size(); i++ ) {
+        if ( QString::compare( coordStr, coordSystems[i], Qt::CaseInsensitive ) == 0 ) {
+            result = coordSystems[i];
+            break;
+        }
+    }
+    return result;
+}
 
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){
     QString result;

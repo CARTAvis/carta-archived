@@ -50,6 +50,7 @@ private:
     QString _setAxesThickness( int thickness, bool* thicknessChanged );
     QString _setAxesTransparency( int transparency, bool* transparencyChanged );
     QString _setCoordinateSystem( const QString& coordSystem, bool* coordChanged );
+    QString _getActualCoordinateSystem( const QString& coordStr );
     QString _setFontFamily( const QString& fontFamily, bool* familyChanged );
     QString _setFontSize( int fontSize, bool* sizeChanged );
     QStringList _setGridColor( int redAmount, int greenAmount, int blueAmount, bool* gridColorChanged );
