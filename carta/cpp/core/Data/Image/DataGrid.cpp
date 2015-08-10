@@ -721,10 +721,11 @@ QString DataGrid::_setTickTransparency( int transparency, bool* transparencyChan
 QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
     *themeChanged = false;
     QString result;
-    if ( m_themes->isTheme( theme )){
+    QString actualTheme = _getActualTheme( theme );
+    if ( m_themes->isTheme( actualTheme )){
         QString oldTheme = m_state.getValue<QString>( THEME );
-        if ( oldTheme != theme ){
-            m_state.setValue<QString>( THEME, theme );
+        if ( oldTheme != actualTheme ){
+            m_state.setValue<QString>( THEME, actualTheme );
             *themeChanged = true;
         }
     }
@@ -734,6 +735,17 @@ QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
     return result;
 }
 
+QString DataGrid::_getActualTheme( const QString& themeStr ) {
+    QString result = "";
+    QStringList themes = m_themes->getThemes();
+    for ( int i = 0; i < themes.size(); i++ ) {
+        if ( QString::compare( themeStr, themes[i], Qt::CaseInsensitive ) == 0 ) {
+            result = themes[i];
+            break;
+        }
+    }
+    return result;
+}
 
 DataGrid::~DataGrid(){
 

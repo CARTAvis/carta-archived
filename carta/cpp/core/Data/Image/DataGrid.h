@@ -69,7 +69,7 @@ private:
     QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
     QString _setTickTransparency( int transparency, bool* transparencyChanged );
     QString _setTheme( const QString& theme, bool* themeChanged );
-
+    QString _getActualTheme( const QString& themeStr );
 
     Carta::State::StateInterface _getState();
     QPen _getPen( const QString& key, const Carta::State::StateInterface& state );
