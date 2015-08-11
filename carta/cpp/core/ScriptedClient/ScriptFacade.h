@@ -204,6 +204,12 @@ public:
     QStringList setPlugins( const QStringList& names );
 
     /**
+     * Returns a list of the current plugins in the view.
+     * @return a list of view plugins.
+     */
+    QStringList getPluginList() const;
+
+    /**
      * Set the image channel to the specified value.
      * @param animatorId the unique server-side id of an object managing an animator.
      * @param index the channel number.
