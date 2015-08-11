@@ -9,7 +9,7 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "common/IConnector.h"
+#include "core/IConnector.h"
 #include <cstdint>
 #include <QString>
 #include <functional>

@@ -9,8 +9,8 @@
 
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/CartaLib.h"
-#include "common/IConnector.h"
-#include "common/Hacks/SharedState.h"
+#include "core/IConnector.h"
+#include "core/Hacks/SharedState.h"
 #include <QObject>
 
 namespace Hacks

@@ -12,7 +12,7 @@
 MyQApp::MyQApp(int & argc, char ** argv) :
     QApplication( argc, argv)
 {
-    setApplicationName( "Skeleton3 something");
+    setApplicationName( "carta");
     setApplicationVersion( "0.0.1");
 }
 

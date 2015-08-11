@@ -9,8 +9,8 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "common/Hacks/MainModel.h"
-#include "common/GrayColormap.h"
+#include "core/Hacks/MainModel.h"
+#include "core/GrayColormap.h"
 #include "CartaLib/LinearMap.h"
 #include <QPainter>
 #include <set>

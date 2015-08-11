@@ -19,7 +19,6 @@ namespace CmdLine {
 ParsedInfo parse(const QStringList & argv)
 {
     QCommandLineParser parser;
-//    parser.setApplicationDescription("Skeleton3 program");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument( "input-files", "list of files to open", "[input files]");

@@ -1,5 +1,5 @@
 #include "SharedState.h"
-#include "common/Globals.h"
+#include "core/Globals.h"
 #include <QObject>
 #include <map>
 #include <tuple>

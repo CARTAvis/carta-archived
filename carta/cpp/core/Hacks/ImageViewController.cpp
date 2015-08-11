@@ -64,7 +64,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
         }
         if ( ! m_wcsGridRenderer ) {
             qWarning( "wcsgrid: Creating dummy grid renderer" );
-            m_wcsGridRenderer.reset( new DummyGridRenderer() );
+            m_wcsGridRenderer.reset( new Carta::Core::DummyGridRenderer() );
         }
     }
 

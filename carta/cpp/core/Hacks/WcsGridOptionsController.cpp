@@ -3,7 +3,7 @@
  **/
 
 #include "WcsGridOptionsController.h"
-#include "common/Globals.h"
+#include "core/Globals.h"
 #include <functional>
 
 namespace Hacks

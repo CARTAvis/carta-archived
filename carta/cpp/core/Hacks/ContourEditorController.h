@@ -14,9 +14,9 @@
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/IContourGeneratorService.h"
 #include "CartaLib/CartaLib.h"
-#include "common/IConnector.h"
-#include "common/Hacks/SharedState.h"
-#include "common/DefaultContourGeneratorService.h"
+#include "core/IConnector.h"
+#include "core/Hacks/SharedState.h"
+#include "core/DefaultContourGeneratorService.h"
 #include <QObject>
 
 namespace Hacks

@@ -318,6 +318,10 @@ public:
      */
     void resetState( const QString& state );
 
+    std::shared_ptr<GridControls> getGridControls() {
+        return m_gridControls;
+    }
+
     virtual ~Controller();
 
     static const QString CLASS_NAME;
@@ -422,7 +426,7 @@ private:
     //Data View
     std::shared_ptr<ImageView> m_view;
 
-    std::unique_ptr<GridControls> m_gridControls;
+    std::shared_ptr<GridControls> m_gridControls;
     std::unique_ptr<ContourControls> m_contourControls;
 
 
