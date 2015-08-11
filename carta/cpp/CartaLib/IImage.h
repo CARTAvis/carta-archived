@@ -105,16 +105,14 @@ public:
     virtual
     ~RawViewInterface() { }
 
-    // ===-----------------------------------------------------------------------===
-    // experimental APIs below, not yet finalized and definitely not yet implemented
-    // Probably we'll only implement one of these, not all of them.
-    // ===-----------------------------------------------------------------------===
     /// \brief create a view into this view
     /// \param sliceInfo which view to get
     /// \return a new view
     /// \warning for efficiency reasons we are not doing shared pointers, etc... since the returned
     /// view needs to have pointer to the instance of the image interface, the image interface
     /// needs to remain valid while accessing the view! i.e. don't delete it
+    /// \todo the above warning I think we should treat as a bug! I think we can do this safely
+    /// with shared pointers while maintaining speed (look at qimage plugin)
     virtual RawViewInterface *
     getView( const SliceND & sliceInfo ) = 0;
 
@@ -276,6 +274,7 @@ public:
 //    coordinateGridPlotter() = 0;
 
     /// get a labeler algorithm
+    /// \note this is not being used anywhere, and maybe it won't be used ever
     virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() = 0;
 

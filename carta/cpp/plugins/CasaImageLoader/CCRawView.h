@@ -61,7 +61,7 @@ public:
         // create applied result that combines m_appliedSlice with ar
         SliceND::ApplyResult newAr = SliceND::ApplyResult::combine( m_appliedSlice, ar);
 
-        // return a new view bases on the new slice
+        // return a new view based on the new slice
         return new CCRawView( m_ccimage, newAr);
     }
 
@@ -195,7 +195,7 @@ CCRawView < PType >::get( const NdArray::RawViewInterface::VI & pos )
                        + p * m_appliedSlice.dims()[i].step;
     }
 
-    // for some reason casa::ImageInterface::operator() returns the result by value
+    // casa::ImageInterface::operator() returns the result by value
     // so in order to return reference (to satisfy our API) we need to store this
     // in a buffer first...
     m_buff = m_ccimage-> m_casaII->
@@ -210,7 +210,7 @@ CCRawView < PType >::forEach(
     std::function < void (const char *) > func,
     NdArray::RawViewInterface::Traversal traversal )
 {
-    if ( traversal == NdArray::RawViewInterface::Traversal::Optimal ) {
+    if ( traversal != NdArray::RawViewInterface::Traversal::Sequential ) {
         qFatal( "sorry, not implemented yet" );
     }
     auto casaII     = m_ccimage-> m_casaII;
@@ -257,5 +257,6 @@ template < typename PType >
 const NdArray::RawViewInterface::VI &
 CCRawView < PType >::currentPos()
 {
+    qFatal( "Not implemented yet");
     return m_currPosView;
 }

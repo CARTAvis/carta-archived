@@ -160,27 +160,27 @@ public:
 };
 
 /// load image and convert it to QImage
-class LoadImage : public BaseHook
-{
-    CARTA_HOOK_BOILER1(LoadImage)
+//class LoadImage : public BaseHook
+//{
+//    CARTA_HOOK_BOILER1(LoadImage)
 
-public:
-    typedef QImage ResultType;
-    struct Params {
-        Params( QString p_fileName, int p_channel )
-        {
-            fileName = p_fileName;
-            frame    = p_channel;
-        }
+//public:
+//    typedef QImage ResultType;
+//    struct Params {
+//        Params( QString p_fileName, int p_channel )
+//        {
+//            fileName = p_fileName;
+//            frame    = p_channel;
+//        }
 
-        QString fileName;
-        int     frame;
-    };
-    LoadImage( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }
+//        QString fileName;
+//        int     frame;
+//    };
+//    LoadImage( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }
 
-    ResultType result;
-    Params * paramsPtr;
-};
+//    ResultType result;
+//    Params * paramsPtr;
+//};
 
 // this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
 // must be outside of any namespace

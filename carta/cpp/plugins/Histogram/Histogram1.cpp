@@ -240,7 +240,8 @@ bool Histogram1::handleHook( BaseHook & hookData ){
 
             CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
             if( ! ptr1) {
-                throw "not an image created by casaimageloader...";
+                qWarning() << "Histogram plugin: not an image created by casaimageloader...";
+                return false;
             }
 
             if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){

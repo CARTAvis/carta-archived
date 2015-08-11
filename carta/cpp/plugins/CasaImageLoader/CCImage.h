@@ -147,7 +147,6 @@ public:
     }
 
     /// this should be protected... but I don't have time to fix the compiler errors
-    /// basically we
 //    template < class X >
 //    friend class CCImage<PType>;
 //    friend class CCImage<double>;

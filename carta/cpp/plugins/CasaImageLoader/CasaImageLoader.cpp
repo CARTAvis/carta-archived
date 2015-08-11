@@ -76,7 +76,7 @@ static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 ///
 Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
 {
-  qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
+    qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
     //
     // first we open the image as a lattice

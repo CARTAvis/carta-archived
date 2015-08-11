@@ -16,10 +16,10 @@ TEMPLATE = lib
 CONFIG += plugin
 
 SOURCES += \
-    CasaTest1.cpp
+    QImagePlugin.cpp
 
 HEADERS += \
-    CasaTest1.h
+    QImagePlugin.h
 
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
