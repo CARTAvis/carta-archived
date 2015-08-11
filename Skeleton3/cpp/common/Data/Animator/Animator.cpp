@@ -47,7 +47,8 @@ QString Animator::addLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
-            connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_adjustStateController(Controller*)) );
+            connect( controller, SIGNAL(dataChanged(Controller*)),
+                    this, SLOT(_adjustStateController(Controller*)) );
         }
     }
     else {

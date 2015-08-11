@@ -38,7 +38,7 @@ qx.Class.define("skel.Command.CommandAll", {
         index++;
         this.m_cmds[index] = skel.Command.Data.CommandZoomReset.getInstance();
         index++;
-        this.m_cmds[index] = skel.Command.Settings.SettingsGrid.getInstance();
+        this.m_cmds[index] = skel.Command.Settings.SettingsImage.getInstance();
         index++;
         this.m_cmds[index] = skel.Command.Animate.CommandAnimations.getInstance();
         index++;

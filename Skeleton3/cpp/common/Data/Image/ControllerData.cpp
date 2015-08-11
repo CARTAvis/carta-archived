@@ -1,6 +1,6 @@
 #include "ControllerData.h"
-#include "DataGrid.h"
-#include "DataContours.h"
+#include "Grid/DataGrid.h"
+#include "Contour/DataContours.h"
 #include "DataSource.h"
 #include "DrawSynchronizer.h"
 #include "Data/Preferences/PreferencesSave.h"

@@ -6,7 +6,10 @@
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
-#include "Data/Image/Themes.h"
+#include "Data/Image/Grid/Themes.h"
+#include "Data/Image/Contour/ContourGenerateModes.h"
+#include "Data/Image/Contour/ContourSpacingModes.h"
+#include "Data/Image/Contour/ContourStyles.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
@@ -74,6 +77,9 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ChannelUnits>();
     Util::findSingletonObject<CoordinateSystems>();
     Util::findSingletonObject<Themes>();
+    Util::findSingletonObject<ContourGenerateModes>();
+    Util::findSingletonObject<ContourSpacingModes>();
+    Util::findSingletonObject<ContourStyles>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();

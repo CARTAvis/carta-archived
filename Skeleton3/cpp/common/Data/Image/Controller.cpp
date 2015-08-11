@@ -1,12 +1,14 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Controller.h"
-#include "GridControls.h"
+#include "Data/Image/Grid/DataGrid.h"
+#include "Data/Image/Grid/GridControls.h"
+#include "Data/Image/Contour/ContourControls.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
 #include "ControllerData.h"
 #include "DataSource.h"
-#include "DataGrid.h"
+
 #include "Data/Error/ErrorManager.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
@@ -87,6 +89,10 @@ Controller::Controller( const QString& path, const QString& id ) :
      m_gridControls.reset( gridObj );
      connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
              this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
+
+     ContourControls* contourObj = objMan->createObject<ContourControls>();
+     m_contourControls.reset( contourObj );
+     m_contourControls->setPercentIntensityMap( this );
 
      Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
@@ -199,7 +205,6 @@ void Controller::_clearData(){
 QString Controller::closeImage( const QString& name ){
     int targetIndex = -1;
     QString result;
-
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_contains( name )){
@@ -226,6 +231,12 @@ int Controller::getFrameChannel() const {
     return m_selectChannel->getIndex();
 }
 
+bool Controller::getIntensity( double percentile, double* intensity ) const{
+    int currentFrame = getFrameChannel();
+    bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity );
+    return validIntensity;
+}
+
 bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
     bool validIntensity = false;
     int imageIndex = m_selectImage->getIndex();
@@ -233,6 +244,11 @@ bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, d
         validIntensity = m_datas[imageIndex]->_getIntensity( frameLow, frameHigh, percentile, intensity );
     }
     return validIntensity;
+}
+
+double Controller::getPercentile( double intensity ) const {
+    int currentFrame = getFrameChannel();
+    return getPercentile( currentFrame, currentFrame, intensity );
 }
 
 double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
@@ -498,6 +514,15 @@ void Controller::_initializeCallbacks(){
         }
         return "";
     });
+
+    addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
+                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            QString result;
+            if ( m_contourControls.get() != nullptr ){
+                result = m_contourControls->getPath();
+            }
+            return result;
+        });
 
     addCommandCallback( "registerGridControls", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
