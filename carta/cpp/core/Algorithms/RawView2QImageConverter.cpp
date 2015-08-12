@@ -16,7 +16,7 @@ template < typename Scalar >
 static
 typename std::tuple < Scalar, Scalar >
 computeClips(
-    NdArray::TypedView < Scalar > & view,
+    Carta::Lib::NdArray::TypedView < Scalar > & view,
     double perc
     )
 {
@@ -37,7 +37,7 @@ computeClips(
 /// \param m_qImage
 template < class Pipeline >
 static void
-rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
+rawView2QImage( Carta::Lib::NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
     qDebug() << "rv2qi" << rawView-> dims();
     typedef double Scalar;
@@ -58,7 +58,7 @@ rawView2QImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & q
         qImage.bits() + size.width() * ( size.height() - 1 ) * 4 );
 
     // make a double view
-    NdArray::TypedView < Scalar > typedView( rawView, false );
+    Carta::Lib::NdArray::TypedView < Scalar > typedView( rawView, false );
 
     /// @todo for more efficiency we should switch to the higher performance view apis
     /// and apply some basic openmp/cilk
@@ -157,10 +157,10 @@ RawView2QImageConverter3::setColormap( Lib::PixelPipeline::IColormapNamed::Share
 }
 
 RawView2QImageConverter3 &
-RawView2QImageConverter3::setView( NdArray::RawViewInterface * rawView, QString id )
+RawView2QImageConverter3::setView( Carta::Lib::NdArray::RawViewInterface * rawView, QString id )
 {
     Q_UNUSED( id );
-    m_typedView.reset( new NdArray::TypedView < double > ( rawView, false ) );
+    m_typedView.reset( new Carta::Lib::NdArray::TypedView < double > ( rawView, false ) );
     return * this;
 }
 

@@ -21,7 +21,7 @@ class CCImage;
 /// \todo Implement indexed slices (i.e. axis removal)
 template < typename PType >
 class CCRawView
-    : public NdArray::RawViewInterface
+    : public Carta::Lib::NdArray::RawViewInterface
 {
 public:
 
@@ -173,7 +173,7 @@ CCRawView < PType >::CCRawView( CCImage < PType > * ccimage, const SliceND::Appl
 
 template < typename PType >
 const char *
-CCRawView < PType >::get( const NdArray::RawViewInterface::VI & pos )
+CCRawView < PType >::get( const Carta::Lib::NdArray::RawViewInterface::VI & pos )
 {
     // preconditions
     if ( CARTA_RUNTIME_CHECKS && pos.size() > dims().size() ) {
@@ -208,9 +208,9 @@ template < typename PType >
 void
 CCRawView < PType >::forEach(
     std::function < void (const char *) > func,
-    NdArray::RawViewInterface::Traversal traversal )
+    Carta::Lib::NdArray::RawViewInterface::Traversal traversal )
 {
-    if ( traversal != NdArray::RawViewInterface::Traversal::Sequential ) {
+    if ( traversal != Carta::Lib::NdArray::RawViewInterface::Traversal::Sequential ) {
         qFatal( "sorry, not implemented yet" );
     }
     auto casaII     = m_ccimage-> m_casaII;
@@ -254,7 +254,7 @@ CCRawView < PType >::forEach(
 } // forEach
 
 template < typename PType >
-const NdArray::RawViewInterface::VI &
+const Carta::Lib::NdArray::RawViewInterface::VI &
 CCRawView < PType >::currentPos()
 {
     qFatal( "Not implemented yet");

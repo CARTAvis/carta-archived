@@ -172,9 +172,9 @@ QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
 QString DataSource::_getPixelValue( double x, double y, int frameIndex ) const {
     QString pixelValue = "";
     if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
-        NdArray::RawViewInterface* rawData = _getRawData( frameIndex, frameIndex );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameIndex, frameIndex );
         if ( rawData != nullptr ){
-            NdArray::TypedView<double> view( rawData, false );
+            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
             pixelValue = QString::number( view.get( {(int)(round(x)), (int)(round(y)) } ) );
         }
     }
@@ -228,7 +228,7 @@ QString DataSource::_getFileName() const {
     return m_state.getValue<QString>(DATA_PATH);
 }
 
-std::shared_ptr<Image::ImageInterface> DataSource::_getImage(){
+std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getImage(){
     return m_image;
 }
 
@@ -241,9 +241,9 @@ std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> DataSource
 
 bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
     bool intensityFound = false;
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
     if ( rawData != nullptr ){
-        NdArray::TypedView<double> view( rawData, false );
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
         std::vector < double > allValues;
@@ -272,11 +272,11 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
 
 double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
         u_int64_t countBelow = 0;
-        NdArray::TypedView<double> view( rawData, false );
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         view.forEach([&](const double& val) {
             if( Q_UNLIKELY( std::isnan(val))){
                 return;
@@ -313,8 +313,8 @@ QString DataSource::_getPixelUnits() const {
     return units;
 }
 
-NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int channelEnd ) const {
-    NdArray::RawViewInterface* rawData = nullptr;
+Carta::Lib::NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int channelEnd ) const {
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         auto frameSlice = SliceND().next();
         for( size_t i=2; i < m_image->dims().size(); i++ ){
@@ -425,7 +425,7 @@ void DataSource::_load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double
     }
 
     // get a view of the data using the slice description and make a shared pointer out of it
-    NdArray::RawViewInterface::SharedPtr view( m_image-> getDataSlice( frameSlice ) );
+    Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_image-> getDataSlice( frameSlice ) );
 
     //Update the clip values
     _updateClips( view, frameIndex, minClipPercentile, maxClipPercentile );
@@ -603,10 +603,10 @@ void DataSource::setGamma( double gamma ){
 }
 
 
-void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
+void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view, int frameIndex,
         double minClipPercentile, double maxClipPercentile ){
     std::vector<double> clips = m_quantileCache[ frameIndex];
-    NdArray::Double doubleView( view.get(), false );
+    Carta::Lib::NdArray::Double doubleView( view.get(), false );
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, {minClipPercentile, maxClipPercentile });
     bool clipsChanged = false;

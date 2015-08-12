@@ -74,7 +74,7 @@ static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 /// \param result where to store the result
 /// \return true if successful, false otherwise
 ///
-Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
+Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
 {
     qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
@@ -140,7 +140,7 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
 	}
 
     if( res) {
-        qDebug() << "Created image interface with type=" << Carta::toStr( res->pixelType());
+        qDebug() << "Created image interface with type=" << Carta::Lib::toStr( res->pixelType());
         return res;
     }
 

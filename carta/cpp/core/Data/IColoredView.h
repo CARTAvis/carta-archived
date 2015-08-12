@@ -6,8 +6,12 @@
 #ifndef ICOLOREDVIEW_H_
 #define ICOLOREDVIEW_H_
 
+namespace Carta {
+namespace Lib {
 namespace Image {
 class ImageInterface;
+}
+}
 }
 
 namespace Carta {

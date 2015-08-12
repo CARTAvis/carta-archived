@@ -15,7 +15,7 @@ class QImageII;
 
 /// our implementation of RawView
 class QImageRawView
-    : public NdArray::RawViewInterface
+    : public Carta::Lib::NdArray::RawViewInterface
 {
 public:
 
@@ -89,7 +89,7 @@ public:
     virtual void
     forEach( std::function < void (const char *) > func, Traversal traversal ) override
     {
-        if ( traversal != NdArray::RawViewInterface::Traversal::Sequential ) {
+        if ( traversal != Carta::Lib::NdArray::RawViewInterface::Traversal::Sequential ) {
             qFatal( "sorry, not implemented yet" );
         }
 
@@ -116,7 +116,7 @@ public:
         return m_currPosView;
     }
 
-    virtual NdArray::RawViewInterface *
+    virtual Carta::Lib::NdArray::RawViewInterface *
     getView( const SliceND & sliceInfo ) override
     {
         // apply the slice to dimensions of this view
@@ -342,7 +342,7 @@ private:
 };
 
 /// we need to implement our own MetaDataInterface
-class QImageMDI : public Image::MetaDataInterface
+class QImageMDI : public Carta::Lib::Image::MetaDataInterface
 {
 public:
 
@@ -352,7 +352,7 @@ public:
         m_coordinateFormatter = std::make_shared < QImageCF > ();
     }
 
-    virtual Image::MetaDataInterface *
+    virtual Carta::Lib::Image::MetaDataInterface *
     clone() override
     {
         qFatal( "not implemented" );
@@ -400,7 +400,7 @@ private:
 
 /// we need to implement our own ImageInterface
 class QImageII
-    : public Image::ImageInterface
+    : public Carta::Lib::Image::ImageInterface
       , public std::enable_shared_from_this < QImageII >
 {
 public:
@@ -412,17 +412,17 @@ public:
         //        std::shared_ptr < QImageII > ptr = std::make_shared < QImageII > ();
         // so instead we need to do this /facepalm
         struct CPPSUCKS : public QImageII { };
-        std::shared_ptr < QImageII > ptr = std::make_shared < CPPSUCKS > ();
+        std::shared_ptr < QImageII > image = std::make_shared < CPPSUCKS > ();
 
-        if ( ptr-> init( fname ) ) {
-            return ptr;
+        if ( image-> init( fname ) ) {
+            return image;
         }
         else {
             return nullptr;
         }
     } // load
 
-    virtual const Unit &
+    virtual const Carta::Lib::Unit &
     getPixelUnit() const override
     {
         return m_unit;
@@ -446,40 +446,40 @@ public:
         return false;
     }
 
-    virtual Image::PixelType
+    virtual Carta::Lib::Image::PixelType
     pixelType() const override
     {
-        return Image::PixelType::Real32;
+        return Carta::Lib::Image::PixelType::Real32;
     }
 
-    virtual Image::PixelType
+    virtual Carta::Lib::Image::PixelType
     errorType() const override
     {
-        return Image::PixelType::Real32;
+        return Carta::Lib::Image::PixelType::Real32;
     }
 
-    virtual NdArray::RawViewInterface *
+    virtual Carta::Lib::NdArray::RawViewInterface *
     getDataSlice( const SliceND & sliceInfo ) override
     {
 //        return new QImageRawView( shared_from_this(), sliceInfo );
         return new QImageRawView( m_data, m_dims, sliceInfo );
     }
 
-    virtual NdArray::Byte *
+    virtual Carta::Lib::NdArray::Byte *
     getMaskSlice( const SliceND & sliceInfo ) override
     {
         Q_UNUSED( sliceInfo );
         return nullptr;
     }
 
-    virtual NdArray::RawViewInterface *
+    virtual Carta::Lib::NdArray::RawViewInterface *
     getErrorSlice( const SliceND & sliceInfo ) override
     {
         Q_UNUSED( sliceInfo );
         return nullptr;
     }
 
-    virtual Image::MetaDataInterface::SharedPtr
+    virtual Carta::Lib::Image::MetaDataInterface::SharedPtr
     metaData() override
     {
         return m_mdi;
@@ -496,7 +496,7 @@ private:
         m_dims.resize( 2, 0 );
 
         // prepare unit
-        m_unit = Unit( "n/a" );
+        m_unit = Carta::Lib::Unit( "n/a" );
     }
 
     // do not call this directly
@@ -536,9 +536,9 @@ private:
 
 private: // data
 
-    Unit m_unit;
+    Carta::Lib::Unit m_unit;
     VI m_dims;
-    Image::MetaDataInterface::SharedPtr m_mdi = nullptr;
+    Carta::Lib::Image::MetaDataInterface::SharedPtr m_mdi = nullptr;
     bool m_valid = false;
 
     // here we'll store the actual gray scale data

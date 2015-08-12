@@ -12,14 +12,6 @@
 #include <QImage>
 #include <memory>
 
-namespace NdArray {
-    class RawViewInterface;
-}
-
-namespace Image {
-    class ImageInterface;
-}
-
 class CoordinateFormatterInterface;
 
 namespace Carta {
@@ -27,6 +19,13 @@ namespace Lib {
     class IWcsGridRenderService;
     namespace PixelPipeline {
         class CustomizablePixelPipeline;
+    }
+    namespace NdArray {
+        class RawViewInterface;
+    }
+
+    namespace Image {
+        class ImageInterface;
     }
 }
 namespace Core {
@@ -173,7 +172,7 @@ private:
     /**
      * Returns the underlying image.
      */
-    std::shared_ptr<Image::ImageInterface> _getImage();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
 
     /**
      * Returns the image's file name.
@@ -272,7 +271,7 @@ private:
      * @param frameHigh the upper bound for the channel range or -1 for the whole image.
      * @return the raw data or nullptr if there is none.
      */
-    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
+    Carta::Lib::NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
 
     void _gridChanged( const Carta::State::StateInterface& state, bool renderImage );
 
@@ -357,7 +356,7 @@ private:
 
 
 
-    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
+    void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view, int frameIndex,
             double minClipPercentile, double maxClipPercentile );
 
     /**
@@ -378,7 +377,7 @@ private:
     static CoordinateSystems* m_coords;
 
     //Pointer to image interface.
-    std::shared_ptr<Image::ImageInterface> m_image;
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;

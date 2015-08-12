@@ -45,7 +45,7 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
     if ( m_cartaImage ){
         CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
         if ( ptr1 ){
-            if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
+            if (m_cartaImage->pixelType() == Carta::Lib::Image::PixelType::Real32 ){
                 casa::ImageInterface<casa::Float> * casaImage = nullptr;
                 #ifndef Q_OS_MAC
                     casaImage = dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
@@ -149,7 +149,7 @@ std::pair<double,double> Histogram1::_getFrequencyBounds( int channelMin, int ch
     if ( m_cartaImage ){
         CCImageBase * ptr1 = dynamic_cast<CCImageBase*>( m_cartaImage.get());
         if ( ptr1 ){
-            if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
+            if (m_cartaImage->pixelType() == Carta::Lib::Image::PixelType::Real32 ){
                 casa::ImageInterface<casa::Float> * casaImage = nullptr;
                 #ifndef Q_OS_MAC
                     casaImage = dynamic_cast<casa::ImageInterface<casa::Float> * > (ptr1-> getCasaImage());
@@ -233,7 +233,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
         Carta::Lib::Hooks::HistogramHook & hook
         = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
 
-        std::vector<std::shared_ptr<Image::ImageInterface>> images = hook.paramsPtr->dataSource;
+        std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images = hook.paramsPtr->dataSource;
         casa::ImageInterface<casa::Float> * casaImage = nullptr;
         if ( images.size() > 0 ){
             m_cartaImage = images.front();
@@ -244,7 +244,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
                 return false;
             }
 
-            if (m_cartaImage->pixelType() == Image::PixelType::Real32 ){
+            if (m_cartaImage->pixelType() == Carta::Lib::Image::PixelType::Real32 ){
 
                 casa::ImageInterface<casa::Float> * casaImage = nullptr;
                 #ifndef Q_OS_MAC

@@ -23,5 +23,5 @@ public:
 
 private:
 
-    Image::ImageInterface::SharedPtr loadImage(const QString & fname);
+    Carta::Lib::Image::ImageInterface::SharedPtr loadImage(const QString & fname);
 };

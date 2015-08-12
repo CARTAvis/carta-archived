@@ -72,7 +72,7 @@ public:
     /// Make sure it's valid
     /// during a call to go()!
     Me &
-    setView( NdArray::RawViewInterface * rawView, QString id = "" );
+    setView( Carta::Lib::NdArray::RawViewInterface * rawView, QString id = "" );
 
     /// compute clips using the current view (set by setView())
     /// @param clip for example 0.95 means 95%
@@ -103,7 +103,7 @@ public:
 private:
     /// pointer to the view
 //    NdArray::RawViewInterface * m_rawView = nullptr;
-    NdArray::TypedView<double>::UniquePtr m_typedView;
+    Carta::Lib::NdArray::TypedView<double>::UniquePtr m_typedView;
     /// cache for images
     QCache < QString, QImage > m_imageCache;
     /// unoptimized pipeline

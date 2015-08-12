@@ -20,7 +20,7 @@ public:
     /// \brief Set the input image
     /// \param image pointer to the image from which to extract the header
     void
-    setInput( Image::ImageInterface::SharedPtr image );
+    setInput( Carta::Lib::Image::ImageInterface::SharedPtr image );
 
     /// \brief get the header
     /// \return the fits header, with 'END' included as last entry
@@ -38,6 +38,6 @@ private:
     QStringList tryRawFits( QString fname);
     QStringList tryCasaCoreFitsConverter( casa::LatticeBase * lbase);
 
-    Image::ImageInterface::SharedPtr m_cartaImage = nullptr;
+    Carta::Lib::Image::ImageInterface::SharedPtr m_cartaImage = nullptr;
     QStringList m_errors;
 };

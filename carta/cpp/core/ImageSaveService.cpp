@@ -9,7 +9,7 @@ namespace Core
 namespace ImageSaveService
 {
 
-ImageSaveService::ImageSaveService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent ) : QObject( parent )
+ImageSaveService::ImageSaveService( QString savename, std::shared_ptr<Lib::Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent ) : QObject( parent )
 {
     m_outputFilename = savename;
     m_imageCopy = m_image;
@@ -64,7 +64,7 @@ void ImageSaveService::_prepareData( int frameIndex, double /*minClipPercentile*
     }
 
     // get a view of the data using the slice description and make a shared pointer out of it
-    NdArray::RawViewInterface::SharedPtr view( m_imageCopy-> getDataSlice( frameSlice ) );
+    Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_imageCopy-> getDataSlice( frameSlice ) );
 
     m_renderService-> setPixelPipeline( m_pixelPipelineCopy, m_pixelPipelineCopy-> cacheId());
 

@@ -151,7 +151,7 @@ public:
     /// caching will not be used)
     ///
     void
-    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString() );
+    setInputView( Carta::Lib::NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString() );
 
     ///
     /// \brief set the desired output size of the image
@@ -256,7 +256,7 @@ protected slots:
 private:
 
     // the following are rendering parameters
-    NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
+    Carta::Lib::NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
     QString m_inputViewCacheId;
     QString m_pixelPipelineCacheId;
     QSize m_outputSize = QSize( 10, 10 );

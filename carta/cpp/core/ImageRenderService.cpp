@@ -7,6 +7,8 @@
 #include <QColor>
 #include <QPainter>
 
+namespace NdArray = Carta::Lib::NdArray;
+
 // most optimal Qt format seems to be Format_ARGB32_Premultiplied
 static constexpr QImage::Format OptimalQImageFormat = QImage::Format_ARGB32_Premultiplied;
 

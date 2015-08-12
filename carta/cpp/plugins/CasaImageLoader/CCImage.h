@@ -15,7 +15,7 @@
 /// helper base class so that we can easily determine if this is a an image
 /// interface created by this plugin if we ever want to down-cast it...
 class CCImageBase
-    : public Image::ImageInterface
+    : public Carta::Lib::Image::ImageInterface
 {
     CLASS_BOILERPLATE( CCImageBase );
 
@@ -51,7 +51,7 @@ class CCImage
     CLASS_BOILERPLATE( CCImage );
 
 public:
-    virtual const Unit &
+    virtual const Carta::Lib::Unit &
     getPixelUnit() const override
     {
         return m_unit;
@@ -77,26 +77,26 @@ public:
 
     /// it is safe to static_cast the instance of CCImageBase to CCImage<T>
     /// based on this type
-    virtual Image::PixelType
+    virtual Carta::Lib::Image::PixelType
     pixelType() const override
     {
         return m_pixelType;
     }
 
-    virtual Image::PixelType
+    virtual Carta::Lib::Image::PixelType
     errorType() const override
     {
         qFatal( "not implemented" );
     }
 
-    virtual NdArray::RawViewInterface *
+    virtual Carta::Lib::NdArray::RawViewInterface *
     getDataSlice( const SliceND & sliceInfo ) override
     {
         return new CCRawView < PType > ( this, sliceInfo );
     }
 
     /// \todo implement this
-    virtual NdArray::Byte *
+    virtual Carta::Lib::NdArray::Byte *
     getMaskSlice( const SliceND & sliceInfo) override
     {
         Q_UNUSED( sliceInfo );
@@ -104,14 +104,14 @@ public:
     }
 
     /// \todo implement this
-    virtual NdArray::RawViewInterface *
+    virtual Carta::Lib::NdArray::RawViewInterface *
     getErrorSlice( const SliceND & sliceInfo) override
     {
         Q_UNUSED( sliceInfo );
         qFatal( "not implemented" );
     }
 
-    virtual Image::MetaDataInterface::SharedPtr
+    virtual Carta::Lib::Image::MetaDataInterface::SharedPtr
     metaData() override
     {
         return m_meta;
@@ -123,10 +123,10 @@ public:
         // create an image interface instance and populate it with various
         // values from casa::ImageInterface
         CCImage::SharedPtr img = std::make_shared < CCImage < PType > > ();
-        img-> m_pixelType = Image::CType2PixelType < PType >::type;
+        img-> m_pixelType = Carta::Lib::Image::CType2PixelType < PType >::type;
         img-> m_dims      = casaImage-> shape().asStdVector();
         img-> m_casaII    = casaImage;
-        img-> m_unit      = Unit( casaImage-> units().getName().c_str() );
+        img-> m_unit      = Carta::Lib::Unit( casaImage-> units().getName().c_str() );
 
         // get title and escape html characters in case there are any
         QString htmlTitle = casaImage->imageInfo().objectName().c_str();
@@ -163,7 +163,7 @@ public:
 
 protected:
     /// type of the image data
-    Image::PixelType m_pixelType;
+    Carta::Lib::Image::PixelType m_pixelType;
 
     /// cached dimensions of the image
     std::vector < int > m_dims;
@@ -172,7 +172,7 @@ protected:
     casa::ImageInterface < PType > * m_casaII;
 
     /// cached unit
-    Unit m_unit;
+    Carta::Lib::Unit m_unit;
 
     /// meta data pointer
     CCMetaDataInterface::SharedPtr m_meta;

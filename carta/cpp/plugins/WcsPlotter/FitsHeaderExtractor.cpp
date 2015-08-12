@@ -27,7 +27,7 @@ FitsHeaderExtractor::~FitsHeaderExtractor()
 { }
 
 void
-FitsHeaderExtractor::setInput( Image::ImageInterface::SharedPtr image )
+FitsHeaderExtractor::setInput( Carta::Lib::Image::ImageInterface::SharedPtr image )
 {
     m_cartaImage = image;
 }

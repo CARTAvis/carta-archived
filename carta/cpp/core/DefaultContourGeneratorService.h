@@ -27,7 +27,7 @@ public:
     setLevels( const std::vector < double > & levels ) override;
 
     virtual void
-    setInput( NdArray::RawViewInterface::SharedPtr rawView ) override;
+    setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView ) override;
 
     virtual JobId
     start( JobId jobId ) override;
@@ -42,7 +42,7 @@ private:
 
     std::vector < double > m_levels;
     JobId m_lastJobId = - 1;
-    NdArray::RawViewInterface::SharedPtr m_rawView = nullptr;
+    Carta::Lib::NdArray::RawViewInterface::SharedPtr m_rawView = nullptr;
     QTimer m_timer;
 
 };

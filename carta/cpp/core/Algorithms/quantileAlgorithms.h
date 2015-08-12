@@ -37,7 +37,7 @@ template < typename Scalar >
 static
 typename std::vector < Scalar >
 quantiles2pixels(
-    NdArray::TypedView < Scalar > & view,
+    Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector < double > quant
     )
 {
@@ -98,7 +98,7 @@ quantiles2pixels(
 /// algorithm for finding quantile from pixel value
 template < typename Scalar >
 static
-double pixel2quantile ( NdArray::TypedView < Scalar > & view, Scalar pixel)
+double pixel2quantile ( Carta::Lib::NdArray::TypedView < Scalar > & view, Scalar pixel)
 {
     u_int64_t totalCount = 0;
     u_int64_t countBelow = 0;

@@ -13,7 +13,7 @@ CCMetaDataInterface::CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa
 }
 
 
-Image::MetaDataInterface *CCMetaDataInterface::clone()
+Carta::Lib::Image::MetaDataInterface *CCMetaDataInterface::clone()
 {
     qFatal( "not implemented");
 }

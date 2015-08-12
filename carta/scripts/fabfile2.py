@@ -17,7 +17,7 @@ env.user = "calsci"
 env.hosts = ['almatest.cyberska.org']
 pureWebRoot = "PureWeb/4.1.1"
 remoteDeployDir = "PavolDeploy2"
-localSourceDir = "/home/pfederl/Work/ALMAvis"
+localSourceDir = "/home/pfederl/Work/CARTAvis"
 
 if localSourceDir.endswith("/"):
     abort("Please don't terminate localSourceDir with a slash")

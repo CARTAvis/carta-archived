@@ -25,7 +25,7 @@ DefaultContourGeneratorService::setLevels( const std::vector < double > & levels
 }
 
 void
-DefaultContourGeneratorService::setInput( NdArray::RawViewInterface::SharedPtr rawView )
+DefaultContourGeneratorService::setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView )
 {
     m_rawView = rawView;
 }

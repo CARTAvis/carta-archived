@@ -22,10 +22,10 @@ namespace Carta {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
         }
+        namespace Image {
+            class ImageInterface;
+        }
     }
-}
-namespace Image {
-    class ImageInterface;
 }
 
 namespace Carta{
@@ -44,7 +44,7 @@ public:
     /// \param m_pixelPipeline pixel pipeline.
     /// \param filename the input FITS file
     explicit
-    ImageSaveService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
+    ImageSaveService( QString savename, std::shared_ptr<Carta::Lib::Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
 
     ///
     /// \brief set the desired output size of the image
@@ -119,7 +119,7 @@ private:
     Qt::AspectRatioMode m_aspectRatioMode;
 
     //Pointer to image interface.
-    std::shared_ptr<Image::ImageInterface> m_imageCopy;
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> m_imageCopy;
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipelineCopy;

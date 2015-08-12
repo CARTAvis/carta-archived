@@ -29,7 +29,7 @@ public:
     ~AstWcsGridRenderService();
 
     virtual void
-    setInputImage( Image::ImageInterface::SharedPtr image ) override;
+    setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr image ) override;
 
     virtual void
     setOutputSize( const QSize & size ) override;
@@ -92,7 +92,7 @@ private:
     Carta::Lib::VectorGraphics::VGComposer m_vgc;
 //    VGList m_vgList;
 
-    Image::ImageInterface::SharedPtr m_iimage = nullptr;
+    Carta::Lib::Image::ImageInterface::SharedPtr m_iimage = nullptr;
     QRectF m_imgRect, m_outRect;
     QSize m_outSize = QSize( 10, 10 );
     QColor m_lineColor = QColor( "yellow" );

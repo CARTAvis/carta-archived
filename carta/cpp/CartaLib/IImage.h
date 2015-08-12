@@ -17,20 +17,22 @@
 
 /// @todo move everything here Carta::Lib namespace
 
-
 #pragma once
 
 #include "PixelType.h"
 #include "Nullable.h"
 #include "Slice.h"
 #include "ICoordinateFormatter.h"
-//#include "ICoordinateGridPlotter.h"
 #include "IPlotLabelGenerator.h"
 #include <QObject>
 #include <functional>
 #include <initializer_list>
 #include <cstdint>
 #include <memory>
+
+namespace Carta {
+namespace Lib {
+
 
 /// description of a unit
 /// this will hopefully evolve a lot...
@@ -61,7 +63,7 @@ class RawViewInterface
 public:
 
     typedef std::vector < int > VI;
-    typedef Image::PixelType PixelType;
+    typedef Carta::Lib::Image::PixelType PixelType;
 
     /// traversal order
     enum class Traversal
@@ -371,6 +373,10 @@ public:
 };
 } // namespace Image
 
+
+}
+}
+
 /// API testing
 /// this is never executed, only compiled for API testing
 __attribute__ ( ( unused ) )
@@ -378,7 +384,7 @@ static void
 test_apis()
 {
     // get an image.... (pretend)
-    Image::ImageInterface * ii = nullptr;
+    Carta::Lib::Image::ImageInterface * ii = nullptr;
 
     Slice1D r;
     r.start( 10 ).start( 20 ).step( 8 );
@@ -402,7 +408,7 @@ test_apis()
     SliceND si;
 
     // get the raw view of the data
-    NdArray::RawViewInterface * rawView = ii-> getDataSlice( si );
+    Carta::Lib::NdArray::RawViewInterface * rawView = ii-> getDataSlice( si );
 
     // access a single pixel in the data, returned in raw binary form
     const char * ptr = rawView-> get( { 1, 2, 3 }
@@ -416,10 +422,10 @@ test_apis()
                       );
 
     // make a double view (from the raw view)
-    NdArray::TypedView < double > doubleReader( rawView );
+    Carta::Lib::NdArray::TypedView < double > doubleReader( rawView );
 
     // or using the typedef
-    NdArray::Double doubleReader2( rawView );
+    Carta::Lib::NdArray::Double doubleReader2( rawView );
 
     // extract a single pixel
     double x = doubleReader2.get( { 1, 2, 3 }

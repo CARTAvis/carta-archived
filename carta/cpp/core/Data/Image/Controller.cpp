@@ -245,9 +245,9 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
 }
 
 
-std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
+std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Controller::getDataSources(){
     //For right now, we are only going to do a histogram of a single image.
-    std::vector<std::shared_ptr<Image::ImageInterface>> images;
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
     int dataCount = m_datas.size();
     if ( dataCount > 0 ){
         int imageIndex = m_selectImage->getIndex();

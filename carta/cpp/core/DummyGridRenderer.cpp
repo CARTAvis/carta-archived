@@ -17,7 +17,7 @@ DummyGridRenderer::DummyGridRenderer()
 }
 
 void
-DummyGridRenderer::setInputImage( Image::ImageInterface::SharedPtr )
+DummyGridRenderer::setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr )
 { }
 
 void

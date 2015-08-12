@@ -108,7 +108,7 @@ public:
 
 
 
-    std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> getDataSources();
 
 
     /**

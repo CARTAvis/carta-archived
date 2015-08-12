@@ -242,8 +242,8 @@ void Histogram::_finishColor(){
     m_stateData.flushState();
 }
 
-std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(Controller* controller){
-    std::vector<std::shared_ptr<Image::ImageInterface>> result;
+std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Histogram::_generateData(Controller* controller){
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> result;
     if ( controller != nullptr ){
         result = controller->getDataSources();
     }
@@ -925,7 +925,7 @@ void Histogram::_loadData( Controller* controller ){
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
-    std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> dataSources;
     if ( controller != nullptr ){
         int stackedImageCount = controller->getStackedImageCount();
         if ( stackedImageCount > 0 ){

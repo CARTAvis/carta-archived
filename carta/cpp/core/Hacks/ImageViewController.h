@@ -303,7 +303,7 @@ private:
     QString m_rawViewName;
 
     /// the loaded astro image
-    Image::ImageInterface::SharedPtr m_astroImage = nullptr;
+    Carta::Lib::Image::ImageInterface::SharedPtr m_astroImage = nullptr;
 
     /// clip cache, hard-coded to single quantile
     std::vector < std::vector < double > > m_quantileCache;

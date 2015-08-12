@@ -55,7 +55,7 @@ public:
 
     /// set the input data
     void
-    setInput( NdArray::RawViewInterface::SharedPtr rawView );
+    setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView );
 
 signals:
 

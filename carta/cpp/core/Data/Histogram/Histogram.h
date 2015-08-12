@@ -17,13 +17,12 @@ namespace Lib {
 namespace PixelPipeline {
 class IColormapNamed;
 }
-}
-}
-
 namespace Image {
 class ImageInterface;
-
 }
+}
+}
+
 
 class ImageView;
 
@@ -376,7 +375,7 @@ private:
     */
     QString _getActualGraphStyle( const QString& styleStr );
 
-    std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> _generateData(Controller* controller);
     
     //Bin count <-> Bin width conversion.
     double _toBinWidth( int count ) const;
