@@ -14,6 +14,9 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
      */
     construct : function( ) {
         this.base(arguments, "Contour Set", "");
+        if ( typeof mImport !== "undefined"){
+            this.m_connector = mImport("connector");
+        }
         this._init( );
     },
     
@@ -41,7 +44,19 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
             }, this );
             
             this.m_contourWidget = new skel.widgets.Image.Contour.ContourWidget();
-            this.m_contourWidget.setContourSetName( this.getLabel() );
+            this.m_contourWidget.addListener( "contourSettingsChanged", function(evt){
+                if ( this.m_connector != null && this.m_id != null ){
+                    var levelList = this.m_levelsList.getSelectedLevels();
+                    if ( levelList.length > 0 ){
+                        var levelStr = levelList.join(";");
+                        var data = evt.getData();
+                        var path = skel.widgets.Path.getInstance();
+                        var cmd = this.m_id + path.SEP_COMMAND + data.cmd;
+                        var params = "levels:"+levelList+",set:"+data.set+","+data.param;
+                        this.m_connector.sendCommand( cmd, params, function(){});
+                    }
+                }
+            }, this );
             
             this._add( this.m_levelsList );
             this._add( this.m_contourWidget );
@@ -85,6 +100,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
         setControls : function( controls ){
             this.m_contours = controls.contours;
             this.setLabel( controls.name );
+            this.m_contourWidget.setContourSetName( this.getLabel() );
             this._updateLevels();
             if ( this.m_contours.length > 0 ){
                 this.m_contourWidget.setContour( this.m_contours[0], 0);
@@ -98,7 +114,6 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
          */
         setId : function( contourId ){
             this.m_id = contourId;
-            this.m_contourWidget.setId( contourId );
         },
         
         /**

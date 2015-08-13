@@ -64,11 +64,23 @@ void Contour::_initializeState(){
 
 bool Contour::operator<( const Contour& other ) const {
     bool lessThan = false;
-    if ( getLevel() < other.getLevel() ){
+    double thisLevel = getLevel();
+    double otherLevel = other.getLevel();
+    if ( thisLevel < otherLevel && qAbs( thisLevel - otherLevel) > ERROR_MARGIN ){
         lessThan = true;
     }
     return lessThan;
 }
+
+/*bool Contour::operator==( const Contour& other ) const {
+    bool equalContours = false;
+    double thisLevel = getLevel();
+    double otherLevel = other.getLevel();
+    if ( qAbs( thisLevel - otherLevel ) < ERROR_MARGIN ){
+        equalContours = true;
+    }
+    return equalContours;
+}*/
 
 QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount, int alphaAmount ){
     QStringList result;
@@ -134,6 +146,16 @@ QString Contour::setStyle( const QString& style ){
         result = "Unrecognized contour line style: "+style;
     }
     return result;
+}
+
+bool Contour::setVisible( bool visible ){
+    bool oldVisible = m_state.getValue<bool>(VISIBLE );
+    bool stateChanged = false;
+    if ( oldVisible != visible ){
+        stateChanged = true;
+        m_state.setValue<bool>( VISIBLE, visible );
+    }
+    return stateChanged;
 }
 
 QString Contour::setWidth( double width ){

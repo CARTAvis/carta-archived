@@ -17,6 +17,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
         }
+       
         this._init( );
         
         //Shared variable for method used to generate contour levels.
@@ -27,10 +28,11 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         this._lineStylesChangedCB();
     },
     
-
+    events : {
+        "contourSettingsChanged" : "qx.event.type.Data"
+    },
+    
     members : {
-        
-
         
         /**
          * Initializes the UI.
@@ -49,18 +51,18 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
                     "Slide to set the transparency of the contours.",
                     "contourAlphaField", "contourAlphaSlider", false);
             
-            var lineStyleLabel = new qx.ui.basic.Label( "Style:");
-            this.m_lineStyleCombo = new skel.boundWidgets.ComboBox();
-            this.m_lineStyleCombo.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendStyle, this );
-            
             this.m_visibleCheck = new qx.ui.form.CheckBox();
+            this.m_visibleListener = this.m_visibleCheck.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendVisibleCmd, this );
             var visibleLabel = new qx.ui.basic.Label( "Show ");
-            
             var visibleContainer = new qx.ui.container.Composite();
             visibleContainer.setLayout( new qx.ui.layout.HBox(2));
+            visibleContainer.add( new qx.ui.core.Spacer(), {flex:1} );
             visibleContainer.add( visibleLabel);
             visibleContainer.add( this.m_visibleCheck);
+            visibleContainer.add( new qx.ui.core.Spacer(), {flex:1} );
             
+            var lineStyleLabel = new qx.ui.basic.Label( "Style:");
+            this.m_lineStyleCombo = new skel.boundWidgets.ComboBox("setStyle", "");
             var lineContainer = new qx.ui.container.Composite();
             lineContainer.setLayout( new qx.ui.layout.HBox(2));
             lineContainer.add( lineStyleLabel );
@@ -72,7 +74,6 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             settingsContainer.add( lineContainer, {row:0,column:1});
             settingsContainer.add( this.m_thicknessWidget, {row:1,column:0} );
             settingsContainer.add( this.m_alphaWidget, {row:1,column:1} );
-            
             
             //Color
             this.m_colorSelector = new skel.widgets.CustomUI.ColorSelector();
@@ -104,36 +105,37 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             }
         },
         
+        /**
+         * Initiate the process of telling the sever the visibility of a contour level
+         * has changed.
+         */
+        _sendVisibleCmd : function(){
+            var cmd = "setVisibility";
+            var visible = this.m_visibleCheck.getValue();
+            var param = "visible:" + visible;
+            var data = {
+                "cmd" : cmd,
+                "param": param,
+                "set" : this.m_contourSetName
+            };
+            this.fireDataEvent( "contourSettingsChanged", data );
+        },
         
         /**
          * Update the UI with new contour information.
          * @param contour {Object} - detailed information about the contour.
          */
         setContour : function( contour ){
-            this.m_level = contour.level;
             this._setVisible( contour.visible );
             this._setWidth( contour.width );
-            this._setStyle( contour.style );
             
             this._setColor( contour.red, contour.blue, contour.green);
             this._setTransparency( contour.alpha );
-            this.m_level = contour.level;
+            
+            this._setStyle( contour.style );
         },
         
-        /**
-         * Send a command to the server with an update on the line style to use for
-         * this contour.
-         */
-        _sendStyle : function(){
-            if ( this.m_connector !== null ){
-                var style = this.m_styleCombo.getTextSelection();
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND +"setStyle";
-                var params = "style:"+style+",id:"+this.m_id+",level:"+this.m_level+",set:"+this.m_contourSetName;
-                console.log( "Sending params="+params);
-                this.m_connector.sendCommand( cmd, params, null);
-            }
-        },
+       
         
         /**
          * Set the color of the contour based on information from the server.
@@ -181,7 +183,9 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
          */
         _setVisible : function( visible ){
             if ( this.m_visibleCheck.getValue() != visible ){
+                this.m_visibleCheck.removeListenerById( this.m_visibleListener );
                 this.m_visibleCheck.setValue( visible );
+                this.m_visibleListener = this.m_visibleCheck.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendVisibleCmd, this );
             }
         },
         
@@ -194,14 +198,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
                 this.m_thicknessWidget.setValue( width );
             }
         },
-        
-        /**
-         * Set the server side id of the contour control object.
-         * @param id {String} - the server-side id of the contour control object.
-         */
-        setId : function( id ){
-            this.m_id = id;
-        },
+       
         
         /**
          * Set the name of the contour set that this Contour is a member of.
@@ -212,9 +209,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         },
         
         //Identification
-        m_id : null,
         m_contourSetName : null,
-        m_level : null,
         
         m_connector : null,
         m_sharedVarLineStyles : null,
@@ -225,9 +220,12 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         m_colorSelector : null,
         m_visibleCheck : null,
         
+        
         m_colorAppeared : false,
         m_red : null,
         m_green : null,
-        m_blue : null
+        m_blue : null,
+        
+        m_visibleListener : null
     }
 });

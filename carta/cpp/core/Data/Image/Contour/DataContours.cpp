@@ -22,8 +22,6 @@ const QString DataContours::CONTOUR_DRAW = "contourDraw";
 const QString DataContours::SET_NAME = "name";
 
 
-
-
 class DataContours::Factory : public Carta::State::CartaObjectFactory {
 
     public:
@@ -42,6 +40,18 @@ DataContours::DataContours( const QString& path, const QString& id):
     // create the contour calculation service and hook it up
     m_contourService.reset( new Carta::Core::DefaultContourGeneratorService( this ) );
     _initializeDefaultState();
+}
+
+Contour* DataContours::_getContour(double level) {
+    Contour* target = nullptr;
+    for ( std::set<Contour>::iterator it = m_contours.begin();
+                        it != m_contours.end(); it++ ){
+        if ( qAbs( (*it).getLevel() - level ) < Contour::ERROR_MARGIN ){
+            target = const_cast<Contour*> (&( *it ));
+            break;
+        }
+    }
+    return target;
 }
 
 QString DataContours::getName() const {
@@ -113,7 +123,16 @@ void DataContours::_initializeDefaultState(){
     m_state.flushState();
 }
 
-
+void DataContours::_updateContourState( ){
+    int i = 0;
+    for ( std::set<Contour>::iterator it = m_contours.begin();
+                        it != m_contours.end(); it++ ){
+        QString indexLookup = Carta::State::UtilState::getLookup( CONTOURS, i );
+        m_state.setObject( indexLookup, (*it).getStateString());
+        i++;
+    }
+    m_state.flushState();
+}
 
 bool DataContours::isContourDraw() const {
     return m_state.getValue<bool>( CONTOUR_DRAW );
@@ -145,6 +164,35 @@ void DataContours::setContours( std::set<Contour>& contours ){
     m_contourService->setLevels( levels );
 }
 
+QString DataContours::setLineStyle( std::vector<double>& levels, const QString& lineStyle ){
+    QString result;
+    int levelCount = levels.size();
+    bool lineStyleSet = false;
+    QString unrecognizedLevels;
+    for ( int i = 0; i < levelCount; i++ ){
+        Contour* contourLevel = _getContour( levels[i] );
+        if ( contourLevel != nullptr ){
+            result = contourLevel->setStyle( lineStyle );
+            if ( result.isEmpty() ){
+                lineStyleSet = true;
+            }
+        }
+        else {
+            if ( unrecognizedLevels.size() > 0 ){
+                unrecognizedLevels = unrecognizedLevels + ";";
+            }
+            unrecognizedLevels = unrecognizedLevels +QString::number(levels[i]);
+        }
+    }
+    if ( lineStyleSet ){
+        _updateContourState();
+    }
+    if ( !unrecognizedLevels.isEmpty() ){
+        result = "Unrecognized contour levels: "+unrecognizedLevels;
+    }
+    return result;
+}
+
 QString DataContours::setName( const QString& name ){
     QString result;
     if ( !name.isEmpty() && name.length() > 0 ){
@@ -155,6 +203,35 @@ QString DataContours::setName( const QString& name ){
     }
     else {
         result = "Please choose a nontrivial name for the contour set.";
+    }
+    return result;
+}
+
+QString DataContours::setVisibility( std::vector<double>& levels, bool visible ){
+    QString result;
+    int levelCount = levels.size();
+    bool visibilitySet = false;
+    QString unrecognizedLevels;
+    for ( int i = 0; i < levelCount; i++ ){
+        Contour* contourLevel = _getContour( levels[i] );
+        if ( contourLevel != nullptr ){
+            bool visibilityChanged = contourLevel->setVisible( visible );
+            if ( visibilityChanged ){
+                visibilitySet = true;
+            }
+        }
+        else {
+            if ( unrecognizedLevels.size() > 0 ){
+                unrecognizedLevels = unrecognizedLevels + ";";
+            }
+            unrecognizedLevels = unrecognizedLevels +QString::number(levels[i]);
+        }
+    }
+    if ( visibilitySet ){
+       _updateContourState();
+    }
+    if ( !unrecognizedLevels.isEmpty() ){
+       result = "Unrecognized contour levels: "+unrecognizedLevels;
     }
     return result;
 }

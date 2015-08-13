@@ -30,6 +30,10 @@ Q_OBJECT
 
 public:
 
+    /**
+     * Return the name of the contour set.
+     * @return - the name of the contour set.
+     */
     QString getName() const;
 
     /**
@@ -59,6 +63,22 @@ public:
     void setContours( std::set<Contour>& contours );
 
     /**
+     * Set the drawing style for the given list of contour levels.
+     * @param levels - a list of contour levels.
+     * @param lineStyle - the draw style to use for the contour levels.
+     * @return an error message if the draw style could not be set; an empty string
+     *      otherwise.
+     */
+    QString setLineStyle( std::vector<double>& levels, const QString& lineStyle );
+
+    /**
+     * Set whether or not the given contour levels should be visible.
+     * @param levels - a list of contour levels whose visibility should be changed.
+     * @param visible - true if the contour levels should be visible; false otherwise.
+     */
+    QString setVisibility( std::vector<double>& levels, bool visible );
+
+    /**
      * Specify a unique name for the contour set.
      * @param name - a unique name for the contour set.
      * @return an error message if the name could not be set; otherwise,
@@ -75,10 +95,12 @@ public:
 
 
 private:
+    Contour* _getContour(double level);
     Carta::State::StateInterface _getState() const;
     void _initializeDefaultState();
-
     void _initializeCallbacks();
+
+    void _updateContourState( );
 
     std::set<Contour> m_contours;
 

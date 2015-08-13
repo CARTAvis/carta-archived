@@ -23,7 +23,9 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         this.m_comboListener = this.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendCmd, this );
     },
     
-
+    events: {
+        "comboChanged" : "qx.event.type.Data"
+    },
 
     members : {
         
@@ -37,6 +39,9 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
                 var coordSystem = this.getValue();
                 var params = this.m_paramId + ":"+coordSystem;
                 this.m_connector.sendCommand( cmd, params, function(){});
+            }
+            else {
+                this.fireDataEvent( "comboChanged", null );
             }
         },
         
@@ -90,7 +95,7 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         
         /**
          * Set the server side id of this control UI.
-         * @param gridId {String} the server side id of the object that contains data for this control UI.
+         * @param id {String} the server side id of the object.
          */
         setId : function( id ){
             this.m_id = id;

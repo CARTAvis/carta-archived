@@ -17,10 +17,13 @@ namespace Data {
 
 const QString ContourControls::CLASS_NAME = "ContourControls";
 const QString ContourControls::CONTOUR_SETS = "contourSets";
+const QString ContourControls::CONTOUR_SET_NAME = "set";
 const QString ContourControls::DASHED_NEGATIVE = "dashedNegative";
 const QString ContourControls::GENERATE_MODE = "generateMode";
 const QString ContourControls::LEVEL_COUNT = "levelCount";
 const QString ContourControls::LEVEL_COUNT_MAX = "levelCountMax";
+const QString ContourControls::LEVEL_LIST = "levels";
+const QString ContourControls::LEVEL_SEPARATOR = ";";
 const QString ContourControls::RANGE_MIN = "rangeMin";
 const QString ContourControls::RANGE_MAX = "rangeMax";
 const QString ContourControls::SPACING_MODE = "spacingMode";
@@ -216,7 +219,7 @@ void ContourControls::_initializeDefaultState(){
     int contourSetCount = m_dataContours.size();
     m_state.insertArray( CONTOUR_SETS, contourSetCount );
     _updateContourSetState();
-    m_state.flushState();
+
 }
 
 
@@ -275,6 +278,25 @@ void ContourControls::_initializeCallbacks(){
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString method = dataValues[*keys.begin()];
         QString result = setSpacing( method );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setStyle", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = { Contour::STYLE, CONTOUR_SET_NAME, LEVEL_LIST };
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString style = dataValues[Contour::STYLE];
+        QString setName = dataValues[CONTOUR_SET_NAME];
+        QString levelStr = dataValues[LEVEL_LIST];
+        std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
+        QString result;
+        if ( levels.size() > 0 ){
+            result = setLineStyle( setName, levels, style );
+        }
+        else {
+            result = "Contour level(s) must be numbers:"+levelStr;
+        }
         Util::commandPostProcess( result );
         return result;
     });
@@ -341,6 +363,33 @@ void ContourControls::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setVisibility", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = { Contour::VISIBLE, CONTOUR_SET_NAME, LEVEL_LIST };
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString visibleStr = dataValues[Contour::VISIBLE];
+            bool validBool = false;
+            bool visible = Util::toBool( visibleStr, &validBool );
+            QString result;
+            if ( validBool ){
+                QString setName = dataValues[CONTOUR_SET_NAME];
+                QString levelListStr = dataValues[LEVEL_LIST];
+                std::vector<double> levels = Util::string2VectorDouble( levelListStr, LEVEL_SEPARATOR );
+                if ( levels.size() > 0 ){
+                    result = setVisibility( setName, levels, visible );
+                }
+                else {
+                    result = "Contour level(s) must be numbers: "+levelListStr;
+                }
+            }
+            else {
+                result = "Contour visibility must be true/false: "+visibleStr;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+
 }
 void ContourControls::_initializeSingletons( ){
     //Load the available contour generate modes.
@@ -362,6 +411,18 @@ bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
         }
     }
     return duplicateSet;
+}
+
+DataContours* ContourControls::_getContour( const QString& setName ) {
+    DataContours* target = nullptr;
+    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+                   it != m_dataContours.end(); it++ ){
+       if ( (*it)->getName() == setName ){
+           target = ( *it ).get();
+           break;
+       }
+   }
+   return target;
 }
 
 void ContourControls::setDashedNegative( bool useDash ){
@@ -456,6 +517,21 @@ QString ContourControls::setLevelMin( double value ){
     return result;
 }
 
+QString ContourControls::setLineStyle( const QString& contourName, std::vector<double>& levels, const QString& lineStyle ){
+    QString result;
+    DataContours* target = _getContour( contourName );
+    if ( target != nullptr ){
+        result = target->setLineStyle( levels, lineStyle );
+        if ( result.isEmpty() ){
+            _updateContourSetState();
+        }
+    }
+    else {
+        result = "Unrecognized contour set: "+ contourName;
+    }
+    return result;
+}
+
 QString ContourControls::setSpacingInterval( double interval ){
     QString result;
     if ( interval > 0 ){
@@ -467,6 +543,22 @@ QString ContourControls::setSpacingInterval( double interval ){
     }
     else {
         result = "The contour spacing interval must be positive.";
+    }
+    return result;
+}
+
+QString ContourControls::setVisibility( const QString& contourName,
+        std::vector<double>& levels, bool visible ){
+    QString result;
+    DataContours* target = _getContour( contourName );
+    if ( target != nullptr ){
+        result = target->setVisibility( levels, visible );
+        if ( result.isEmpty() ){
+            _updateContourSetState();
+        }
+    }
+    else {
+        result = "Unrecognized contour set: "+ contourName;
     }
     return result;
 }
@@ -483,6 +575,7 @@ void ContourControls::_updateContourSetState(){
         m_state.setObject( lookup, contourState);
         i++;
     }
+    m_state.flushState();
 }
 
 ContourControls::~ContourControls(){

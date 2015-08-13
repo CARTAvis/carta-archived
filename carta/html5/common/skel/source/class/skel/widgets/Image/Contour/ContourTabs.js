@@ -19,15 +19,23 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
     },
 
     members : {
-        
+       
         /**
-         * Remove the pages which display sets of contours.
+         * Return the page with the given name, if it exists; otherwise return null.
+         * @param pageName {String} - an identifier for a page displaying a contour set.
+         * @return {skel.widgets.Image.Contour.ContourSetPage} - the page with the given name or
+         *      null if none exists.
          */
-        _clearPages : function(){
-            for ( var i = 0; i < this.m_setPages.length; i++ ){
-                this.m_tabView.remove( this.m_setPages[i]);
+        _findPage : function( pageName ){
+            var target = null;
+            var pages = this.m_tabView.getChildren();
+            for ( var i = 0; i < pages.length; i++ ){
+                if ( pages[i].getLabel() == pageName ){
+                    target = pages[i];
+                    break;
+                }
             }
-            this.m_setPages = [];
+            return target;
         },
         
         /**
@@ -50,6 +58,8 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
             console.log( "Implement page changed");
         },
         
+       
+        
         /**
          * Update from the server when the contour controls have changed.
          * @param controls {Object} - information about the contour controls from the server.
@@ -57,20 +67,14 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
         setControls : function( controls ){
             this.m_generatorPage.setControls( controls );
             
-            this._clearPages();
             for ( var i = 0; i < controls.contourSets.length; i++ ){
-                this.m_setPages[i] = new skel.widgets.Image.Contour.ContourSetPage();
-                this.m_setPages[i].setControls( controls.contourSets[i] );
-                this.m_setPages[i].setId( this.m_id );
-                /*this.m_setPages[i].addListener( "contourSetChanged", function(evt){
-                    var data = evt.getData();
-                    var index = data.contourSetIndex();
-                    
-                    //Ask the contour set for all of its levels.  Send a call to the server
-                    // indicating the new contour set 
-                    
-                }, this );*/
-                this.m_tabView.add( this.m_setPages[i] );
+                var page = this._findPage( controls.contourSets[i].name );
+                if ( page === null ){
+                    page = new skel.widgets.Image.Contour.ContourSetPage();
+                    page.setId( this.m_id );
+                    this.m_tabView.add( page );
+                }
+                page.setControls( controls.contourSets[i] );
             }
         },
         
@@ -82,16 +86,15 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
          */
         setId : function( contourId ){
             this.m_id = contourId;
-            this.m_generatorPage.setId ( contourId );
-            for ( var i = 0; i < this.m_setPages.length; i++ ){
-                this.m_setPages[i].setId ( contourId );
+            var pages = this.m_tabView.getChildren();
+            for ( var i = 0; i < pages.length; i++ ){
+                pages[i].setId ( contourId );
             }
         },
         
         m_id : null,
         
         m_tabView : null,
-        m_setPages : [],
         m_generatorPage : null
     }
 });

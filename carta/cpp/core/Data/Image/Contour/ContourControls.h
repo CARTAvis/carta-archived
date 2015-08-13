@@ -80,6 +80,14 @@ public:
     QString setLevelMin( double value );
 
     /**
+     * Set the draw style for the contour levels in the given set.
+     * @param contourName - the name of a contour set.
+     * @param levels - a list of contour levels whose line style should change.
+     * @param lineStyle - an identifier for the draw style to use.
+     */
+    QString setLineStyle( const QString& contourName, std::vector<double>& levels, const QString& lineStyle );
+
+    /**
      * Set the object capable of mapping intensities to percentiles and vice/versa.
      * @param mapper - the object capable of mapping between percentiles and intensities.
      */
@@ -92,6 +100,14 @@ public:
      *      contour levels; an empty string otherwise.
      */
     QString setSpacingInterval( double interval );
+
+    /**
+     * Set the visibility of the contour levels in the set.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - a list of contour levels whose visibility will be affected.
+     * @param visible - true if the levels should be visible; false otherwise.
+     */
+    QString setVisibility( const QString& contourName, std::vector<double>& levels, bool visible );
     virtual ~ContourControls();
     const static QString CLASS_NAME;
 
@@ -101,10 +117,13 @@ signals:
 
 private:
     const static QString CONTOUR_SETS;
+    const static QString CONTOUR_SET_NAME;
     const static QString DASHED_NEGATIVE;
     const static QString GENERATE_MODE;
     const static QString LEVEL_COUNT;
     const static QString LEVEL_COUNT_MAX;
+    const static QString LEVEL_LIST;
+    const static QString LEVEL_SEPARATOR;
     const static QString RANGE_MIN;
     const static QString RANGE_MAX;
     const static QString SPACING_MODE;
@@ -118,12 +137,13 @@ private:
     QString _generateMinimum( const QString& contourSetName );
     QString _generatePercentile( const QString& contourSetName );
 
+    DataContours* _getContour( const QString& setName );
+    std::vector<double> _getLevels( double minLevel, double maxLevel ) const;
+    std::vector<double> _getLevelsMinMax(double max, QString& error ) const;
+
     void _initializeDefaultState();
     void _initializeSingletons( );
     void _initializeCallbacks();
-
-    std::vector<double> _getLevels( double minLevel, double maxLevel ) const;
-    std::vector<double> _getLevelsMinMax(double max, QString& error ) const;
 
     bool _isDuplicate( const QString& contourSetName ) const;
 

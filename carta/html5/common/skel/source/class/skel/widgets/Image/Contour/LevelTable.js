@@ -25,6 +25,25 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
     members : {
         
         /**
+         * Returns a list of user selected contour levels.
+         * @return {Array} a list of contour levels the user has selected.
+         */
+        getSelectedLevels : function(){
+            var levels = [];
+            var selectModel = this.m_table.getSelectionModel();
+            var map = selectModel.getSelectedRanges();
+            for ( var i = 0; i < map.length; i++ ){
+                var minValue = map[i].minIndex;
+                var maxValue = map[i].maxIndex;
+                for ( var j = minValue; j <= maxValue; j++ ){
+                    var levelValue = this.m_tableModel.getValue( 0, j );
+                    levels.push( levelValue );
+                }
+            }
+            return levels;
+        },
+        
+        /**
          * Initializes the UI.
          */
         _init : function( ) {
@@ -53,7 +72,9 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
             }, this );
             selectModel.setSelectionMode( qx.ui.table.selection.Model.SINGLE_SELECTION );
             
+            
             this.m_table.setTableModel( this.m_tableModel );
+            
             
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(2));
@@ -105,6 +126,8 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
                 rowArray.push( row );
             }
             this.m_tableModel.setData( rowArray );
+            var selectModel = this.m_table.getSelectionModel();
+            selectModel.setSelectionInterval( 0, 0 );
         },
 
         m_levels : null,

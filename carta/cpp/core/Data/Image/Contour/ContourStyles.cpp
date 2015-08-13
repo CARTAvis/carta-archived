@@ -46,8 +46,9 @@ QString ContourStyles::getLineStyle( const QString& lineStyle ){
     QString actualLineStyle;
     int styleCount = m_lineStyles.size();
     for ( int i = 0; i < styleCount; i++ ){
-        if ( QString::compare(lineStyle, m_lineStyles[i], Qt::CaseInsensitive) == 0 ){
-            actualLineStyle== m_lineStyles[i];
+        int compareResult = QString::compare(lineStyle, m_lineStyles[i], Qt::CaseInsensitive);
+        if ( compareResult == 0 ){
+            actualLineStyle = m_lineStyles[i];
             break;
         }
     }

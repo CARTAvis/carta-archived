@@ -65,24 +65,31 @@ public:
     QString setStyle( const QString& style );
 
     /**
+     * Set the visibility of the contour level.
+     * @param visible - true if the contour level should be visible; false otherwise.
+     * @return true if the visibility changed; false otherwise.
+     */
+    bool setVisible( bool visible );
+
+    /**
      * Set the width of the contour.
      * @param width - set the thickness of the pen used to draw the contour.
      */
     QString setWidth( double width );
 
-
     static const QString CLASS_NAME;
+    static const QString LEVEL;
+    static const QString STYLE;
+    static const QString VISIBLE;
+    static const double ERROR_MARGIN;
 
     virtual ~Contour();
 
 private:
-    static const QString LEVEL;
-    static const QString STYLE;
-    static const QString VISIBLE;
 
     static ContourStyles* m_contourStyles;
     Carta::State::StateInterface m_state;
-    static const double ERROR_MARGIN;
+
     void _initializeSingletons();
     void _initializeState();
 
