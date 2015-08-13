@@ -40,6 +40,10 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 textTestId, sliderTestId);
     },
     
+    events: {
+        "textSliderChanged" : "qx.event.type.Data"
+    },
+    
     statics : {
         MAX_SLIDER : 1000
     },
@@ -144,9 +148,10 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
          * Send a value change to the server.
          */
         _sendCmd : function(){
-            if ( this.m_connector !== null ){
+            var value = this.m_slider.getValue();
+            if ( this.m_connector !== null && this.m_id !== null ){
                 //Notify the server of the new value.
-                var value = this.m_slider.getValue();
+                
                 var percentValue = value;
                 if ( this.m_normalize ){
                     percentValue = ( value - this.m_slider.getMinimum() ) / 
@@ -156,6 +161,12 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
                 var params = this.m_paramId + ":"+percentValue;
                 this.m_connector.sendCommand( cmd, params, this._errorCB(this));
+            }
+            else {
+                var data = {
+                    "value" : value
+                }
+                this.fireDataEvent( "textSliderChanged", data );
             }
         },
         

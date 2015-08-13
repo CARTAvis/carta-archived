@@ -35,6 +35,13 @@ public:
      */
     QPen getPen() const;
 
+
+    /**
+     * Returns whether or not the contour should be drawn.
+     * @return true if the contour is visible; false otherwise.
+     */
+    bool isVisible() const;
+
     /**
      * Comparator for contours based on level.
      * @param other - the comparison Contour.
@@ -42,15 +49,21 @@ public:
     bool operator<( const Contour& other ) const;
 
     /**
+     * Set the transparency level of the contour.
+     * @param alphaAmount - a number between 0 and 255 representing the transparency.
+     * @return an error message if the transparency could not be set; and empty string otherwise.
+     */
+    QString setAlpha( int alphaAmount );
+
+    /**
      * Set the color and transparency of the contour.
      * @param redAmount - a number between 0 and 255 representing the amount of red.
      * @param greenAmount - a number between 0 and 255 representing the amount of green.
      * @param blueAmount - a number between 0 and 255 representing the amount of blue.
-     * @param alphaAmount - a number between 0 and 255 representing the transparency.
      * @return a list of errors if there was a problem setting the color; otherwise a zero
      *  length list.
      */
-    QStringList setColor( int redAmount, int greenAmount, int blueAmount, int alphaAmount );
+    QStringList setColor( int redAmount, int greenAmount, int blueAmount);
 
     /**
      * Set the contour level.

@@ -25,6 +25,20 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
     members : {
         
         /**
+         * Returns a list of all contour levels.
+         * @return {Array} a list of all contour levels.
+         */
+        getLevels : function(){
+            var levels = [];
+            var rowCount = this.m_tableModel.getRowCount();
+            for ( var i = 0; i < rowCount; i++ ){
+                var levelValue = this.m_tableModel.getValue( 0, i );
+                levels.push( levelValue );
+            }
+            return levels;
+        },
+        
+        /**
          * Returns a list of user selected contour levels.
          * @return {Array} a list of contour levels the user has selected.
          */

@@ -19,10 +19,6 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
         }
         this._init( );
     },
-    
-    events : {
-        "contourSetChanged" : "qx.event.type.Data"
-    },
 
     members : {
         
@@ -45,17 +41,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
             
             this.m_contourWidget = new skel.widgets.Image.Contour.ContourWidget();
             this.m_contourWidget.addListener( "contourSettingsChanged", function(evt){
-                if ( this.m_connector != null && this.m_id != null ){
-                    var levelList = this.m_levelsList.getSelectedLevels();
-                    if ( levelList.length > 0 ){
-                        var levelStr = levelList.join(";");
-                        var data = evt.getData();
-                        var path = skel.widgets.Path.getInstance();
-                        var cmd = this.m_id + path.SEP_COMMAND + data.cmd;
-                        var params = "levels:"+levelList+",set:"+data.set+","+data.param;
-                        this.m_connector.sendCommand( cmd, params, function(){});
-                    }
-                }
+                this._sendSettings( evt );
             }, this );
             
             this._add( this.m_levelsList );
@@ -67,12 +53,16 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
          * Include our id - the contour set index
          */
         _levelsChanged : function(  ){
-            
-            
-            var contourData = {
-                contourSetIndex : this.m_id
-            };
-            this.fireDateEvent( "contourSetChanged", contourData );
+            if ( this.m_connector != null && this.m_id != null ){
+                var levelList = this.m_levelsList.getLevels();
+                if ( levelList.length > 0 ){
+                    var levelStr = levelList.join(";");
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + "setLevels";
+                    var params = "levels:"+levelStr+",set:"+this.getLabel();
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+            }
         },
         
         /**
@@ -90,6 +80,24 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
             }
             if ( selectIndex >= 0 ){
                 this.m_contourWidget.setContour( this.m_contours[selectIndex] );
+            }
+        },
+        
+        /**
+         * Send a contour settings change to the server.
+         * @param evt {qx.event.type.Data}
+         */
+        _sendSettings : function( evt ){
+            if ( this.m_connector != null && this.m_id != null ){
+                var levelList = this.m_levelsList.getSelectedLevels();
+                if ( levelList.length > 0 ){
+                    var levelStr = levelList.join(";");
+                    var data = evt.getData();
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + data.cmd;
+                    var params = "levels:"+levelList+",set:"+data.set+","+data.param;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
             }
         },
         

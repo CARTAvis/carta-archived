@@ -43,13 +43,21 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             this._setLayout(new qx.ui.layout.VBox(2));
             
             this.m_thicknessWidget = new skel.widgets.CustomUI.TextSlider("setThickness", "thickness",
-                    0,10, 2, "Thickness", true, "Set the thickness of the contours.", 
+                    0,10, 2, "Width", true, "Set the thickness of the contours.", 
                     "Slide to set the thickness of the contours.",
                     "contourThicknessField", "contourThicknessSlider", false);
+            this.m_thicknessWidget.addListener( "textSliderChanged", 
+                    function(evt){
+                        this._sendThicknessCmd( evt );
+                    }, this );
             this.m_alphaWidget = new skel.widgets.CustomUI.TextSlider("setAlpha", "alpha",
                     0,255, 128, "Alpha", true, "Set the transparency of the contours.", 
                     "Slide to set the transparency of the contours.",
                     "contourAlphaField", "contourAlphaSlider", false);
+            this.m_alphaWidget.addListener( "textSliderChanged", 
+                function(evt){
+                    this._sendAlphaCmd( evt );
+                }, this );
             
             this.m_visibleCheck = new qx.ui.form.CheckBox();
             this.m_visibleListener = this.m_visibleCheck.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendVisibleCmd, this );
@@ -62,7 +70,8 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             visibleContainer.add( new qx.ui.core.Spacer(), {flex:1} );
             
             var lineStyleLabel = new qx.ui.basic.Label( "Style:");
-            this.m_lineStyleCombo = new skel.boundWidgets.ComboBox("setStyle", "");
+            this.m_lineStyleCombo = new skel.boundWidgets.ComboBox();
+            this.m_lineStyleCombo.addListener( "comboChanged", this._sendLineStyleCmd, this );
             var lineContainer = new qx.ui.container.Composite();
             lineContainer.setLayout( new qx.ui.layout.HBox(2));
             lineContainer.add( lineStyleLabel );
@@ -81,7 +90,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
                 this.m_colorAppeared = true;
                 this._setColor( this.m_red, this.m_green, this.m_blue);
             }, this );
-            
+            this.m_colorId = this.m_colorSelector.addListener( "changeValue", this._sendColorCmd, this );
             this._add( settingsContainer );
             this._add( this.m_colorSelector );
         },
@@ -106,13 +115,12 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         },
         
         /**
-         * Initiate the process of telling the sever the visibility of a contour level
-         * has changed.
+         * Notify the parent of the command and parameters that need to be set to the
+         * server when a setting changes.
+         * @param cmd {String} - the command to send to the server.
+         * @param param {String} - setting specific parameters to send to the server.
          */
-        _sendVisibleCmd : function(){
-            var cmd = "setVisibility";
-            var visible = this.m_visibleCheck.getValue();
-            var param = "visible:" + visible;
+        _sendCmd : function( cmd, param ){
             var data = {
                 "cmd" : cmd,
                 "param": param,
@@ -122,17 +130,76 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         },
         
         /**
+         * Notify the parent that the transparency setting has changed.
+         * @param evt {qx.event.type.Data}
+         */
+        _sendAlphaCmd : function( evt ){
+            var cmd = "setAlpha";
+            var data = evt.getData();
+            var alpha = data.value;
+            var param = "alpha:" + alpha;
+            this._sendCmd( cmd, param );
+        },
+        
+        /**
+         * Notify the parent that the color setting has changed.
+         */
+        _sendColorCmd : function(){
+            var cmd = "setColor";
+            var red = this.m_colorSelector.getRed();
+            var green = this.m_colorSelector.getGreen();
+            var blue = this.m_colorSelector.getBlue();
+            var param = "red:"+red+",green:"+green+",blue:"+blue;
+            this._sendCmd( cmd, param );
+        },
+        
+        /**
+         * Notify the parent that the draw style has changed.
+         */
+        _sendLineStyleCmd : function(){
+            var cmd = "setStyle";
+            var style = this.m_lineStyleCombo.getValue();
+            var param = "style:"+style;
+            this._sendCmd( cmd, param );
+        },
+        
+        /**
+         * Notify the parent that the line draw width has changed.
+         */
+        _sendThicknessCmd : function( evt ){
+            var cmd = "setThickness";
+            var data = evt.getData();
+            var thickness = data.value;
+            var param = "width:" + thickness;
+            this._sendCmd( cmd, param );
+        },
+        
+        /**
+         * Initiate the process of telling the sever the visibility of a contour level
+         * has changed.
+         */
+        _sendVisibleCmd : function(){
+            var cmd = "setVisibility";
+            var visible = this.m_visibleCheck.getValue();
+            var param = "visible:" + visible;
+            this._sendCmd( cmd, param );
+        },
+        
+        
+        
+        /**
          * Update the UI with new contour information.
          * @param contour {Object} - detailed information about the contour.
          */
         setContour : function( contour ){
             this._setVisible( contour.visible );
             this._setWidth( contour.width );
-            
+           
             this._setColor( contour.red, contour.blue, contour.green);
             this._setTransparency( contour.alpha );
             
             this._setStyle( contour.style );
+            this.m_alphaWidget.setValue( contour.alpha );
         },
         
        
@@ -145,9 +212,11 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
          */
         _setColor : function( red, green, blue ){
             if ( this.m_colorAppeared ){
+                this.m_colorSelector.removeListenerById( this.m_colorId );
                 this.m_colorSelector.setRed( red );
                 this.m_colorSelector.setGreen( green );
                 this.m_colorSelector.setBlue( blue );
+                this.m_colorId = this.m_colorSelector.addListener( "changeValue", this._sendColorCmd, this );
             }
             else {
                 this.m_red = red;
@@ -220,12 +289,12 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         m_colorSelector : null,
         m_visibleCheck : null,
         
-        
         m_colorAppeared : false,
         m_red : null,
         m_green : null,
         m_blue : null,
         
+        m_colorId : null,
         m_visibleListener : null
     }
 });

@@ -226,6 +226,62 @@ void ContourControls::_initializeDefaultState(){
 
 void ContourControls::_initializeCallbacks(){
 
+    addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {DataContours::SET_NAME };
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString contourSetName = dataValues[DataContours::SET_NAME];
+            QString result = generateContourSet( contourSetName );
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setAlpha", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = { Util::ALPHA, CONTOUR_SET_NAME, LEVEL_LIST };
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            bool validInt = false;
+            QString result;
+            int alpha = dataValues[Util::ALPHA].toInt(&validInt);
+            if ( validInt ){
+                QString setName = dataValues[CONTOUR_SET_NAME ];
+                QString levelStr = dataValues[LEVEL_LIST];
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
+                result = setAlpha( setName, levels, alpha );
+            }
+            else {
+                result = "Contour transparency level must be an integer: "+dataValues[Util::ALPHA];
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setColor", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = { Util::RED, Util::GREEN, Util::BLUE, CONTOUR_SET_NAME, LEVEL_LIST };
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString result;
+            bool validRed = false;
+            int red = dataValues[Util::RED].toInt(&validRed);
+            bool validGreen = false;
+            int green = dataValues[Util::GREEN].toInt(&validGreen);
+            bool validBlue = false;
+            int blue = dataValues[Util::BLUE].toInt(&validBlue);
+            if ( validRed && validGreen && validBlue ){
+                QString setName = dataValues[CONTOUR_SET_NAME ];
+                QString levelStr = dataValues[LEVEL_LIST];
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
+                QStringList errorList = setColor( setName, levels, red, green, blue );
+                result = errorList.join(",");
+            }
+            else {
+                result = "Contour colors must be integer(s): "+dataValues[Util::RED]+","+dataValues[Util::GREEN]+
+                        ","+dataValues[Util::BLUE];
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setDashedNegative", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {"dashed"};
@@ -301,6 +357,18 @@ void ContourControls::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setLevels", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = { CONTOUR_SET_NAME, LEVEL_LIST };
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString setName = dataValues[CONTOUR_SET_NAME];
+            QString levelStr = dataValues[LEVEL_LIST];
+            std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
+            QString result = setLevels( setName, levels);
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setLevelCount", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"count"};
@@ -352,16 +420,25 @@ void ContourControls::_initializeCallbacks(){
                 return result;
             });
 
-    //Set the method for generating contour levels.
-    addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {DataContours::SET_NAME };
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString contourSetName = dataValues[DataContours::SET_NAME];
-        QString result = generateContourSet( contourSetName );
-        Util::commandPostProcess( result );
-        return result;
-    });
+    addCommandCallback( "setThickness", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = { Util::PEN_WIDTH, CONTOUR_SET_NAME, LEVEL_LIST };
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            bool validDouble = false;
+            QString result;
+            double thickness = dataValues[Util::PEN_WIDTH].toDouble(&validDouble);
+            if ( validDouble ){
+                QString setName = dataValues[CONTOUR_SET_NAME ];
+                QString levelStr = dataValues[LEVEL_LIST];
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
+                result = setThickness( setName, levels, thickness );
+            }
+            else {
+                result = "Contour thickness must be an integer: "+dataValues[Util::PEN_WIDTH];
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setVisibility", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
@@ -423,6 +500,38 @@ DataContours* ContourControls::_getContour( const QString& setName ) {
        }
    }
    return target;
+}
+
+QString ContourControls::setAlpha( const QString& contourName,
+        std::vector<double>& levels, int transparency ){
+    QString result;
+    DataContours* target = _getContour( contourName );
+    if ( target != nullptr ){
+        result = target->setAlpha( levels, transparency );
+        if ( result.isEmpty() ){
+            _updateContourSetState();
+        }
+    }
+    else {
+        result = "Unrecognized contour set: "+ contourName;
+    }
+    return result;
+}
+
+QStringList ContourControls::setColor( const QString& contourName,
+        std::vector<double>& levels, int red, int green, int blue ){
+    QStringList result;
+    DataContours* target = _getContour( contourName );
+    if ( target != nullptr ){
+        result = target->setColor( levels, red, green, blue );
+        if ( result.isEmpty() ){
+            _updateContourSetState();
+        }
+    }
+    else {
+        result.append( "Unrecognized contour set: "+ contourName);
+    }
+    return result;
 }
 
 void ContourControls::setDashedNegative( bool useDash ){
@@ -517,6 +626,21 @@ QString ContourControls::setLevelMin( double value ){
     return result;
 }
 
+QString ContourControls::setLevels( const QString& contourName, std::vector<double>& levels ){
+    QString result;
+    DataContours* target = _getContour( contourName );
+    if ( target != nullptr ){
+        bool levelsChanged = target->setLevels( levels );
+        if ( levelsChanged ){
+            _updateContourSetState();
+        }
+    }
+    else {
+        result = "Unrecognized contour set: "+ contourName;
+    }
+    return result;
+}
+
 QString ContourControls::setLineStyle( const QString& contourName, std::vector<double>& levels, const QString& lineStyle ){
     QString result;
     DataContours* target = _getContour( contourName );
@@ -543,6 +667,22 @@ QString ContourControls::setSpacingInterval( double interval ){
     }
     else {
         result = "The contour spacing interval must be positive.";
+    }
+    return result;
+}
+
+QString ContourControls::setThickness( const QString& contourName,
+        std::vector<double>& levels, double thickness ){
+    QString result;
+    DataContours* target = _getContour( contourName );
+    if ( target != nullptr ){
+        result = target->setThickness( levels, thickness );
+        if ( result.isEmpty() ){
+            _updateContourSetState();
+        }
+    }
+    else {
+        result = "Unrecognized contour set: "+ contourName;
     }
     return result;
 }

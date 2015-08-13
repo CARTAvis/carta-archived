@@ -34,6 +34,27 @@ public:
     QString generateContourSet( const QString& contourSetName );
 
     /**
+     * Set the transparency level of the contours within the specified set.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the contours levels within the set whose transparency should be changed.
+     * @param transparency - the transparency between 0 and 255.
+     * @return an error message if the transparency could not be set; otherwise, an empty string.
+     */
+    QString setAlpha( const QString& contourName, std::vector<double>& levels, int transparency );
+
+    /**
+     * Set the color of the contours within the specified set.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the contours levels within the set affected by the change.
+     * @param red - the amount of red between 0 and 255.
+     * @param green - the amount of green between 0 and 255.
+     * @param blue - the amount of blue between 0 and 255.
+     * @return a list of errors if the color could not be set; otherwise, an empty list.
+     */
+    QStringList setColor( const QString& contourName, std::vector<double>& levels,
+            int red, int green, int blue );
+
+    /**
      * Set whether or not negative contours should be dashed.
      * @param useDash - true if negative contours should be dashed; false if they
      *      should be solid lines.
@@ -80,12 +101,24 @@ public:
     QString setLevelMin( double value );
 
     /**
+     * Update the contour levels within the given contour set.
+     * @param contourName - the name of a contour set.
+     * @param levels - an updated list of contour levels.
+     * @return an error message if the contour levels could not be updated; otherwise,
+     *      an empty string.
+     */
+    QString setLevels( const QString& contourName, std::vector<double>& levels );
+
+    /**
      * Set the draw style for the contour levels in the given set.
      * @param contourName - the name of a contour set.
      * @param levels - a list of contour levels whose line style should change.
      * @param lineStyle - an identifier for the draw style to use.
+     * @return an error message if the line style could not be set; otherwise, an
+     *      empty string.
      */
-    QString setLineStyle( const QString& contourName, std::vector<double>& levels, const QString& lineStyle );
+    QString setLineStyle( const QString& contourName, std::vector<double>& levels,
+            const QString& lineStyle );
 
     /**
      * Set the object capable of mapping intensities to percentiles and vice/versa.
@@ -100,6 +133,17 @@ public:
      *      contour levels; an empty string otherwise.
      */
     QString setSpacingInterval( double interval );
+
+    /**
+     * Set the width of the lines used to draw the contours in the identified set.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the levels within the contour set that are affected.
+     * @param thickness - the width of the contour lines to be drawn.
+     * @return an error message if there was a problem setting the width of the contour
+     *      lines; otherwise, an empty string.
+     */
+    QString setThickness( const QString& contourName, std::vector<double>& levels,
+            double thickness );
 
     /**
      * Set the visibility of the contour levels in the set.

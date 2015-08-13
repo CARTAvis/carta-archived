@@ -62,6 +62,10 @@ void Contour::_initializeState(){
     //Don't need to flush the state since there isn't a view listening.
 }
 
+bool Contour::isVisible() const {
+    return m_state.getValue<bool>( VISIBLE );
+}
+
 bool Contour::operator<( const Contour& other ) const {
     bool lessThan = false;
     double thisLevel = getLevel();
@@ -82,7 +86,20 @@ bool Contour::operator<( const Contour& other ) const {
     return equalContours;
 }*/
 
-QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount, int alphaAmount ){
+QString Contour::setAlpha( int alphaAmount ){
+    QString result;
+    if ( 0 <= alphaAmount && alphaAmount <= Util::MAX_COLOR ){
+        if ( m_state.getValue<int>( Util::ALPHA) != alphaAmount ){
+            m_state.setValue<int>( Util::ALPHA, alphaAmount);
+        }
+    }
+    else {
+        result.append( "Alpha amount must be in [0,"+QString::number(Util::MAX_COLOR)+"]");
+    }
+    return result;
+}
+
+QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount/*, int alphaAmount*/ ){
     QStringList result;
 
     //Red amount
@@ -113,16 +130,6 @@ QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount, i
     }
     else {
         result.append( "Blue amount must be in [0,"+QString::number(Util::MAX_COLOR)+"]");
-    }
-
-    //Alpha
-    if ( 0 <= alphaAmount && alphaAmount <= Util::MAX_COLOR ){
-        if ( m_state.getValue<int>( Util::ALPHA) != alphaAmount ){
-            m_state.setValue<int>( Util::ALPHA, alphaAmount);
-        }
-    }
-    else {
-        result.append( "Alpha amount must be in [0,"+QString::number(Util::MAX_COLOR)+"]");
     }
     return result;
 }

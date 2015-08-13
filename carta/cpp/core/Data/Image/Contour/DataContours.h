@@ -57,10 +57,35 @@ public:
     bool operator<( const DataContours& other ) const;
 
     /**
+     * Set the transparency level of the contour lines.
+     * @param levels - the contour lines whose transparency will be changed.
+     * @param transparency - an integer between 0 and 255.
+     * @return an error message if the transparency could not be set; otherwise, and empty string.
+     */
+    QString setAlpha( std::vector<double>& levels, int transparency );
+
+    /**
+     * Set the color of the contour lines.
+     * @param levels - the contour lines whose transparency will be changed.
+     * @param red - an integer between 0 and 255 indicating the amount of red.
+     * @param green - an integer between 0 and 255 indicating the amount of green.
+     * @param blue - an integer between 0 and 255 indicating the amount of blue.
+     * @return a list of errors if the color could not be set; otherwise, an empty list.
+     */
+    QStringList setColor( std::vector<double>& levels, int red, int green, int blue );
+
+    /**
      * Set the contours to be drawn.
      * @param contours - a set of contours to draw.
      */
     void setContours( std::set<Contour>& contours );
+
+    /**
+     * Update the list of contour levels.
+     * @param levels - an updated list of contour levels.
+     * @return true if any of the contour levels where changed; false otherwise.
+     */
+    bool setLevels( std::vector<double>& levels );
 
     /**
      * Set the drawing style for the given list of contour levels.
@@ -70,6 +95,14 @@ public:
      *      otherwise.
      */
     QString setLineStyle( std::vector<double>& levels, const QString& lineStyle );
+
+    /**
+     * Set the width of the lines used to draw contours.
+     * @param levels - a list of contour levels affected by the change.
+     * @param thickness - the width of the lines.
+     * @return an error message if the draw width could not be set; an empty string otherwise.
+     */
+    QString setThickness( std::vector<double>& levels, double thickness );
 
     /**
      * Set whether or not the given contour levels should be visible.
