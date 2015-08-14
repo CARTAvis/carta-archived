@@ -81,7 +81,7 @@ qx.Class.define("skel.widgets.ErrorHandler", {
          */
         updateErrors : function( errors ){
             if ( this.m_statusBar !== null ){
-                this.m_statusBar.showMessages( errors );
+                this.m_statusBar.showErrors( errors );
             }
         },
         m_statusBar : null,

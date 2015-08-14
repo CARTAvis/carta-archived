@@ -3,10 +3,7 @@
 #include "Contour.h"
 
 #include "Data/Util.h"
-#include "State/StateInterface.h"
 #include "State/UtilState.h"
-#include "CartaLib/IContourGeneratorService.h"
-#include "DefaultContourGeneratorService.h"
 
 #include <set>
 
@@ -37,9 +34,11 @@ bool DataContours::m_registered =
 
 DataContours::DataContours( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
-    // create the contour calculation service and hook it up
-    m_contourService.reset( new Carta::Core::DefaultContourGeneratorService( this ) );
     _initializeDefaultState();
+}
+
+std::set<Contour> DataContours::_getContours(){
+    return m_contours;
 }
 
 Contour* DataContours::_getContour(double level) {
@@ -52,6 +51,18 @@ Contour* DataContours::_getContour(double level) {
         }
     }
     return target;
+}
+
+std::vector<double> DataContours::getLevels() const {
+    int levelCount = m_contours.size();
+    std::vector<double> levels( levelCount );
+    int i = 0;
+    for ( std::set<Contour>::iterator it = m_contours.begin();
+                    it != m_contours.end(); it++ ){
+        levels[i] = (*it).getLevel();
+        i++;
+    }
+    return levels;
 }
 
 QString DataContours::getName() const {
@@ -70,9 +81,6 @@ std::vector<QPen> DataContours::getPens() const {
     return pens;
 }
 
-std::shared_ptr<Carta::Lib::IContourGeneratorService> DataContours::_getRenderer(){
-    return m_contourService;
-}
 
 Carta::State::StateInterface DataContours::_getState() const {
     return m_state;
@@ -84,29 +92,6 @@ void DataContours::_initializeCallbacks(){
 }
 
 void DataContours::_initializeDefaultState(){
-    /*Contour contour1;
-    contour1.setColor( 255, 0, 0 );
-    contour1.setAlpha( 128 );
-    contour1.setLevel( 0.25 );
-    contour1.setStyle( "Solid");
-    contour1.setWidth( 1 );
-    m_contours.insert( contour1 );
-
-    Contour contour2;
-    contour2.setColor( 0, 255, 0 );
-    contour2.setAlpha( 128 );
-    contour2.setLevel( 0.5 );
-    contour1.setStyle( "Dashed");
-    contour2.setWidth( 2 );
-    m_contours.insert( contour2 );
-
-    Contour contour3;
-    contour3.setColor( 0, 0, 255 );
-    contour3.setAlpha( 128 );
-    contour3.setLevel( 0.75 );
-    contour3.setStyle( "Solid");
-    contour3.setWidth( 3 );
-    m_contours.insert( contour3 );*/
 
     int contourCount = m_contours.size();
     m_state.insertArray( CONTOURS, contourCount );
@@ -118,18 +103,12 @@ void DataContours::_initializeDefaultState(){
 
 void DataContours::_updateContourState( ){
     int i = 0;
-    int contourCount = m_contours.size();
-    std::vector<double> levels( contourCount );
     for ( std::set<Contour>::iterator it = m_contours.begin();
                         it != m_contours.end(); it++ ){
         QString indexLookup = Carta::State::UtilState::getLookup( CONTOURS, i );
         m_state.setObject( indexLookup, (*it).getStateString());
-        if ( (*it).isVisible() ){
-            levels[i] = (*it).getLevel();
-        }
         i++;
     }
-    m_contourService->setLevels( levels );
     m_state.flushState();
 }
 
@@ -206,7 +185,6 @@ QStringList DataContours::setColor( std::vector<double>& levels, int red, int gr
 
 void DataContours::setContours( std::set<Contour>& contours ){
     int levelCount = contours.size();
-    std::vector<double> levels( levelCount );
     m_state.resizeArray( CONTOURS, levelCount );
     m_contours.clear();
     int i = 0;
@@ -214,11 +192,9 @@ void DataContours::setContours( std::set<Contour>& contours ){
                     it != contours.end(); it++ ){
         QString indexLookup = Carta::State::UtilState::getLookup( CONTOURS, i );
         m_state.setObject( indexLookup, (*it).getStateString());
-        levels[i] = (*it).getLevel();
         m_contours.insert( (*it) );
         i++;
     }
-    m_contourService->setLevels( levels );
 }
 
 bool DataContours::setLevels( std::vector<double>& levels ){

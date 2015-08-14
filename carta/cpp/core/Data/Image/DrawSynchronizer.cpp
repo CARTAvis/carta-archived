@@ -2,7 +2,8 @@
 #include "ImageRenderService.h"
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/IContourGeneratorService.h"
-
+#include "DefaultContourGeneratorService.h"
+#include "Data/Image/Contour/DataContours.h"
 #include <QDebug>
 
 namespace Carta {
@@ -11,7 +12,6 @@ namespace Data {
 
 DrawSynchronizer::DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderService::Service> imageRendererService,
             std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridRendererService,
-            std::shared_ptr<Carta::Lib::IContourGeneratorService> contourController,
             QObject* parent)
         : QObject( parent ),
           m_irsJobId(-1),
@@ -21,7 +21,7 @@ DrawSynchronizer::DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderServ
 
           m_irs( nullptr ),
           m_grs( nullptr ),
-          m_cec( nullptr ){
+          m_cec( new Carta::Core::DefaultContourGeneratorService( this ) ){
 
     if ( ! connect( imageRendererService.get(), & Carta::Core::ImageRenderService::Service::done,
             this, & DrawSynchronizer::_irsDone ) ) {
@@ -31,16 +31,13 @@ DrawSynchronizer::DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderServ
             this, & DrawSynchronizer::_wcsGridDone ) ) {
         qCritical() << "Could not connect gridRenderService done slot";
     }
-    if ( ! connect( contourController.get(), & Carta::Lib::IContourGeneratorService::done,
+    if ( ! connect( m_cec.get(), & Carta::Lib::IContourGeneratorService::done,
             this, & DrawSynchronizer::_contourDone ) ) {
         qCritical() << "Could not connect contour editor done slot";
     }
 
     m_irs = imageRendererService;
     m_grs = gridRendererService;
-
-    m_cec = contourController;
-
 }
 
 void DrawSynchronizer::_checkAndEmit(){
@@ -91,8 +88,9 @@ void DrawSynchronizer::setInput( std::shared_ptr<NdArray::RawViewInterface> rawV
 }
 
 
-void DrawSynchronizer::setPens( std::vector<QPen> pens ){
-    m_pens = pens;
+void DrawSynchronizer::setContours( const std::shared_ptr<DataContours> & contours ){
+    m_pens = contours->getPens();
+    m_cec->setLevels( contours->getLevels() );
 }
 
 int64_t DrawSynchronizer::start( bool contourDraw, bool gridDraw, int64_t jobId ){

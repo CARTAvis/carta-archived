@@ -14,7 +14,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
      * @param title {String} - the aspect of the grid being customized.
      */
     construct : function() {
-        this.base(arguments, "Generate", "");
+        this.base(arguments, "Contour Sets", "");
         this._init( );
         
         //Shared variable for method used to generate contour levels.
@@ -64,8 +64,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});
             var nameLabel = new qx.ui.basic.Label( "Name:");
             nameContainer.add( nameLabel );
-            this.m_nameText = new skel.widgets.CustomUI.ErrorTextField();
-            nameContainer.add( this.m_nameText );
+            this.m_nameCombo = new skel.boundWidgets.ComboBox();
+            nameContainer.add( this.m_nameCombo );
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});
             
             //Limit count
@@ -155,9 +155,12 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(2));
             butContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            this.m_generateButton = new qx.ui.form.Button( "Generate Contour Set");
+            this.m_generateButton = new qx.ui.form.Button( "Add Contour Set");
             this.m_generateButton.addListener( "execute", this._sendGenerateCmd, this );
+            this.m_deleteButton = new qx.ui.form.Button( "Delete Contour Set");
+            this.m_deleteButton.addListener( "execute", this._sendDeleteCmd, this );
             butContainer.add( this.m_generateButton );
+            butContainer.add( this.m_deleteButton );
             butContainer.add( new qx.ui.core.Spacer(), {flex:1});
             
             var settingsContainer = new qx.ui.container.Composite();
@@ -190,18 +193,42 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 }
             }
         },
+        
+        /**
+         * Send a command to the server to delete a contour set.
+         */
+        _sendDeleteCmd : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "deleteLevels";
+                var name = this.m_nameCombo.getValue();
+                if ( name !== null ){
+                    var params = "name:"+name;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+                else {
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.updateErrors( "Please specify the name of a contour set to delete.");
+                }
+            }
+        },
       
         /**
-         * Send a command to the server specifying the method used to generate contour
-         * levels.
+         * Send a command to the server add a contour set.
          */
         _sendGenerateCmd : function(){
             if ( this.m_id !== null && this.m_connector !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "generateLevels";
-                var name = this.m_nameText.getValue();
-                var params = "name:"+name;
-                this.m_connector.sendCommand( cmd, params, function(){});
+                var name = this.m_nameCombo.getValue();
+                if ( name !== null ){
+                    var params = "name:"+name;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+                else {
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.updateErrors( "Please specify the name of a contour set to generate.");
+                }
             }
         },
         
@@ -276,7 +303,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * @param controls {Object} - information about the contour controls from the server.
          */
         setControls : function( controls ){
-            this._setContourSetName( controls.contourSets.length );
+            this._setContourSetName( controls );
             this._setDashedNegative( controls.dashedNegative );
             this._setGenerateMethod( controls.generateMode );
             this._setLevelCountMax( controls.levelCountMax );
@@ -302,12 +329,12 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * sets available.
          * @param setCount {Number} - the index of the contour set.
          */
-        _setContourSetName : function( setCount ){
-            var textValue = this.m_nameText.getValue();
-            var suggestName = "Contour Set "+ setCount;
-            if ( textValue === null || suggestName != textValue ){
-                this.m_nameText.setValue( suggestName );
+        _setContourSetName : function( controls ){
+            var names = [];
+            for ( var i = 0; i < controls.length; i++ ){
+                names.push( controls[i].name );
             }
+            this.m_nameCombo.setComboItems( names );
         },
         
         /**
@@ -415,12 +442,13 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         m_connector : null,
         
         m_controls : null,
+        m_deleteButton : null,
         m_intervalWidget : null,
         m_levelCountSpin : null,
         m_limitCombo : null,
         m_limitMinText : null,
         m_limitMaxText : null,
-        m_nameText : null,
+        m_nameCombo : null,
         m_negativeCheck : null,
         m_sharedVarGenerateModes : null,
         m_sharedVarSpacingModes : null,

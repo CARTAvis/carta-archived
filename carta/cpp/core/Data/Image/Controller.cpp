@@ -4,6 +4,7 @@
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
+#include "Data/Image/Contour/DataContours.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
 #include "ControllerData.h"
@@ -93,6 +94,7 @@ Controller::Controller( const QString& path, const QString& id ) :
      ContourControls* contourObj = objMan->createObject<ContourControls>();
      m_contourControls.reset( contourObj );
      m_contourControls->setPercentIntensityMap( this );
+     connect( m_contourControls.get(), SIGNAL(drawContoursChanged()), this, SLOT( _contoursChanged()));
 
      Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
@@ -117,8 +119,15 @@ bool Controller::addData(const QString& fileName) {
 
     //Add the data if it is not already there.
     if (targetIndex == -1) {
+
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         ControllerData* targetSource = objMan->createObject<ControllerData>();
+        DataContours* contourObj = objMan->createObject<DataContours>();
+        std::shared_ptr<DataContours> contourPtr( contourObj );
+        //Controller Data is in charge of drawing the contours.
+        targetSource->_setContours( contourPtr );
+        //Contour controls is in charge of setting the UI for the contours.
+        m_contourControls->_setDrawContours( contourPtr );
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         connect( targetSource, & ControllerData::saveImageResult, this, & Controller::saveImageResultCB );
@@ -400,6 +409,14 @@ QString Controller::getSnapType(CartaObject::SnapshotType snapType) const {
         objType = objType + Carta::State::StateInterface::STATE_DATA;
     }
     return objType;
+}
+
+void Controller::_contoursChanged(){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
+        int frameIndex = m_selectChannel->getIndex();
+        m_datas[imageIndex]->_render( frameIndex );
+    }
 }
 
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){

@@ -4,7 +4,6 @@
 #include "DataContours.h"
 #include "Data/Util.h"
 #include "Data/Image/IPercentIntensityMap.h"
-#include "State/StateInterface.h"
 #include "State/UtilState.h"
 
 #include <set>
@@ -72,33 +71,58 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
         dataContours->setName( contourSetName );
         m_dataContours.insert( dataContours );
         _updateContourSetState();
-        m_state.flushState();
     }
 }
 
+QString ContourControls::deleteContourSet( const QString& contourSetName ){
+    QString result;
+    bool foundSet = false;
+    std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+    while ( it != m_dataContours.end() ){
+           if ( (*it)->getName() == contourSetName ){
+               foundSet = true;
+               Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+               QString id = (*it)->getId();
+               m_dataContours.erase(it);
+               objMan->removeObject( id );
+               _updateContourSetState();
+               break;
+           }
+           it++;
+    }
+    if ( !foundSet ){
+        result = "Unrecognized contour set to delete: "+contourSetName;
+    }
+    return result;
+}
 
 QString ContourControls::generateContourSet( const QString& contourSetName ){
     QString result;
-    bool existingContour = _isDuplicate( contourSetName );
-    if ( !existingContour ){
-        QString generateMethod = m_state.getValue<QString>(GENERATE_MODE);
-        std::set<Contour> contours;
-        if ( generateMethod == ContourGenerateModes::MODE_RANGE ){
-             result = _generateRange( contourSetName );
-        }
-        else if ( generateMethod == ContourGenerateModes::MODE_MINIMUM ){
-            result = _generateMinimum( contourSetName );
-        }
-        else if ( generateMethod == ContourGenerateModes::MODE_PERCENTILE ){
-            result = _generatePercentile( contourSetName );
+    QString setName = contourSetName.trimmed();
+    if ( setName.length() > 0 ){
+        bool existingContour = _isDuplicate( contourSetName );
+        if ( !existingContour ){
+            QString generateMethod = m_state.getValue<QString>(GENERATE_MODE);
+            std::set<Contour> contours;
+            if ( generateMethod == ContourGenerateModes::MODE_RANGE ){
+                 result = _generateRange( setName );
+            }
+            else if ( generateMethod == ContourGenerateModes::MODE_MINIMUM ){
+                result = _generateMinimum( setName );
+            }
+            else if ( generateMethod == ContourGenerateModes::MODE_PERCENTILE ){
+                result = _generatePercentile( setName );
+            }
+            else {
+                result = "Unsupported contour generation mode: "+generateMethod;
+            }
         }
         else {
-            result = "Unsupported contour generation mode: "+generateMethod;
+            result = "The contour set: "+contourSetName+" already exists.  Please choose a new name";
         }
-        //emit contourAdded( contours );
     }
     else {
-        result = "The contour set: "+contourSetName+" already exists.  Please choose a new name";
+        result = "Please specify the name of the contour set to generate.";
     }
     return result;
 }
@@ -225,6 +249,16 @@ void ContourControls::_initializeDefaultState(){
 
 
 void ContourControls::_initializeCallbacks(){
+
+    addCommandCallback( "deleteLevels", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {DataContours::SET_NAME };
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString contourSetName = dataValues[DataContours::SET_NAME];
+                QString result = deleteContourSet( contourSetName );
+                Util::commandPostProcess( result );
+                return result;
+            });
 
     addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -542,6 +576,20 @@ void ContourControls::setDashedNegative( bool useDash ){
     }
 }
 
+void ContourControls::_setDrawContours( std::shared_ptr<DataContours> contours ){
+    m_drawContours = contours;
+    std::set<Contour> drawContours;
+    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+            it != m_dataContours.end(); it++ ){
+        std::set<Contour> setContours = (*it)->_getContours();
+        drawContours.insert( setContours.begin(), setContours.end());
+    }
+    if ( m_drawContours ){
+        m_drawContours->setContours( drawContours );
+    }
+}
+
+
 
 QString ContourControls::setGenerateMethod( const QString& method ){
     QString recognizedMethod = m_generateModes->getGenerateMethod( method );
@@ -706,6 +754,7 @@ QString ContourControls::setVisibility( const QString& contourName,
 void ContourControls::_updateContourSetState(){
     int contourSetCount = m_dataContours.size();
     m_state.resizeArray( CONTOUR_SETS, contourSetCount );
+    std::set<Contour> drawContours;
     int i = 0;
     for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
             it != m_dataContours.end(); it++ ){
@@ -713,10 +762,22 @@ void ContourControls::_updateContourSetState(){
         Carta::State::StateInterface dataState = (*it)->_getState();
         QString contourState = dataState.toString( /*DataContours::CONTOURS*/);
         m_state.setObject( lookup, contourState);
+        std::set<Contour> setContours = (*it)->_getContours();
+        for ( std::set<Contour>::iterator contourIt = setContours.begin();
+                contourIt != setContours.end(); contourIt++ ){
+            if ( (*contourIt).isVisible() ){
+                drawContours.insert( (*contourIt) );
+            }
+        }
         i++;
     }
     m_state.flushState();
+    if ( m_drawContours ){
+        m_drawContours->setContours( drawContours );
+        emit drawContoursChanged();
+    }
 }
+
 
 ContourControls::~ContourControls(){
 

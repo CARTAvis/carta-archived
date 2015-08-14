@@ -352,6 +352,8 @@ protected:
 
 private slots:
 
+    void _contoursChanged();
+
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
     //Refresh the view based on the latest data selection information.

@@ -21,9 +21,19 @@ class IPercentIntensityMap;
 
 class ContourControls : public QObject, public Carta::State::CartaObject{
 
+    friend class Controller;
+
     Q_OBJECT
 
 public:
+
+    /**
+     * Delete the contour set with the indicated name.
+     * @param contourSetName - a unique identifier for a contour set.
+     * @return an error message if the contour set could not be deleted; an
+     *      empty string otherwise.
+     */
+    QString deleteContourSet( const QString& contourSetName );
 
     /**
      * Generate a set of contours with the given name.
@@ -53,6 +63,9 @@ public:
      */
     QStringList setColor( const QString& contourName, std::vector<double>& levels,
             int red, int green, int blue );
+
+
+
 
     /**
      * Set whether or not negative contours should be dashed.
@@ -156,8 +169,7 @@ public:
     const static QString CLASS_NAME;
 
 signals:
-
-    //void contourSetAdded( DataContours, bool applyAll );
+    void drawContoursChanged();
 
 private:
     const static QString CONTOUR_SETS;
@@ -191,6 +203,8 @@ private:
 
     bool _isDuplicate( const QString& contourSetName ) const;
 
+    void _setDrawContours( std::shared_ptr<DataContours> contours );
+
     void _updateContourSetState();
 
     static bool m_registered;
@@ -204,6 +218,8 @@ private:
     class Factory;
 
     std::set<shared_ptr<DataContours> > m_dataContours;
+
+    shared_ptr<DataContours> m_drawContours;
 
 	ContourControls( const ContourControls& other);
 	ContourControls& operator=( const ContourControls& other );

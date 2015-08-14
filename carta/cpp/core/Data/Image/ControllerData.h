@@ -319,6 +319,14 @@ private:
      * @param frameIndex the channel index.
      */
     void _saveImage( const QString& savename,  double scale, int frameIndex );
+
+    /**
+     * Set contour set to be rendered.
+     * @param contours - the rendered contour set.
+     */
+    //Note:  The rendered contour set is an accumulation of all the contour sets.
+    void _setContours( std::shared_ptr<DataContours> contours );
+
     /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
@@ -368,7 +376,7 @@ private:
 
     std::unique_ptr<DataGrid> m_dataGrid;
 
-    std::unique_ptr<DataContours> m_dataContours;
+    std::shared_ptr<DataContours> m_dataContours;
 
     //Pointer to image interface.
     std::unique_ptr<DataSource> m_dataSource;

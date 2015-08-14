@@ -31,16 +31,18 @@ Q_OBJECT
 public:
 
     /**
+     * Return a list of levels in this contour set.
+     * @return - the list of contour levels.
+     */
+    std::vector<double> getLevels() const;
+
+    /**
      * Return the name of the contour set.
      * @return - the name of the contour set.
      */
     QString getName() const;
 
-    /**
-     * Returns the service capable of rendering contours.
-     * @return the contour rendering service.
-     */
-    std::shared_ptr<Carta::Lib::IContourGeneratorService> _getRenderer();
+
 
     /**
      * Returns the set of pens used to draw contours.
@@ -128,6 +130,7 @@ public:
 
 
 private:
+    std::set<Contour> _getContours();
     Contour* _getContour(double level);
     Carta::State::StateInterface _getState() const;
     void _initializeDefaultState();
@@ -144,7 +147,7 @@ private:
 
     class Factory;
 
-    std::shared_ptr<Carta::Lib::IContourGeneratorService> m_contourService;
+
 
 	DataContours( const DataContours& other);
 	DataContours& operator=( const DataContours& other );

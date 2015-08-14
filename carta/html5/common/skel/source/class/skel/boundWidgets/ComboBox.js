@@ -33,6 +33,8 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
          * Sends a value change to the server.
          */
         _sendCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;

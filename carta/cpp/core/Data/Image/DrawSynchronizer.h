@@ -27,6 +27,8 @@ namespace Core {
 
 namespace Data {
 
+class DataContours;
+
 class DrawSynchronizer : public QObject {
 
     Q_OBJECT
@@ -34,7 +36,6 @@ class DrawSynchronizer : public QObject {
 public:
     DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderService::Service> imageRendererService,
             std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridRendererService,
-            std::shared_ptr<Carta::Lib::IContourGeneratorService> contourController,
             QObject* parent = nullptr);
 
     /**
@@ -44,10 +45,10 @@ public:
     void setInput( std::shared_ptr<NdArray::RawViewInterface> rawView );
 
     /**
-     * Sets the pens to be used for drawing contours.
-     * @param pens - the contour pens.
+     * Sets the contour set to be drawn.
+     * @param contours - the contour set to draw.
      */
-    void setPens( std::vector<QPen> pens );
+    void setContours( const std::shared_ptr<DataContours> & contours );
 
     /**
      * Start a synchronized rendering.
@@ -96,6 +97,7 @@ private:
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_grs;
     std::shared_ptr<Carta::Lib::IContourGeneratorService> m_cec;
     std::vector<QPen> m_pens;
+
 };
 
 

@@ -71,6 +71,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             
             var lineStyleLabel = new qx.ui.basic.Label( "Style:");
             this.m_lineStyleCombo = new skel.boundWidgets.ComboBox();
+            this.m_lineStyleCombo.setEnabled( false );
             this.m_lineStyleCombo.addListener( "comboChanged", this._sendLineStyleCmd, this );
             var lineContainer = new qx.ui.container.Composite();
             lineContainer.setLayout( new qx.ui.layout.HBox(2));
@@ -195,7 +196,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             this._setVisible( contour.visible );
             this._setWidth( contour.width );
            
-            this._setColor( contour.red, contour.blue, contour.green);
+            this._setColor( contour.red, contour.green, contour.blue);
             this._setTransparency( contour.alpha );
             
             this._setStyle( contour.style );

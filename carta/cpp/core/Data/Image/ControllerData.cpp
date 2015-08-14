@@ -36,6 +36,7 @@ bool ControllerData::m_registered =
 ControllerData::ControllerData(const QString& path, const QString& id) :
     CartaObject( CLASS_NAME, path, id),
     m_dataSource( new DataSource() ),
+
     m_drawSync( nullptr ){
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -45,19 +46,9 @@ ControllerData::ControllerData(const QString& path, const QString& id) :
         _initializeState();
 
 
-        DataContours* contourObj = objMan->createObject<DataContours>();
-        m_dataContours.reset( contourObj );
 
-        std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
-        std::shared_ptr<Carta::Lib::IContourGeneratorService> contourService = m_dataContours->_getRenderer();
 
-        // create the synchronizer
-        m_drawSync.reset( new DrawSynchronizer( imageService, gridService, contourService, this ) );
 
-        // connect its done() slot to our renderingSlot()
-        connect( m_drawSync.get(), & DrawSynchronizer::done,
-                 this, & ControllerData::_renderingDone );
 
 }
 
@@ -239,6 +230,7 @@ QSize ControllerData::_getOutputSize() const {
     return size;
 }
 
+
 void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bool renderImage, int frameIndex ){
     bool stateChanged = m_dataGrid->_resetState( state );
     if ( stateChanged ){
@@ -336,7 +328,6 @@ void ControllerData::_render( int frameIndex ){
     // erase current grid
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
     std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
-    //std::shared_ptr<Carta::Lib::IContourGeneratorService> contourService = m_dataContours->_getRenderer();
     QSize renderSize = imageService-> outputSize();
     gridService-> setOutputSize( renderSize );
 
@@ -358,7 +349,7 @@ void ControllerData::_render( int frameIndex ){
 
     std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frameIndex, frameIndex) );
     m_drawSync->setInput( rawData );
-    m_drawSync->setPens( m_dataContours->getPens() );
+    m_drawSync->setContours( m_dataContours );
 
     bool contourDraw = m_dataContours->isContourDraw();
     bool gridDraw = m_dataGrid->_isGridVisible();
@@ -406,6 +397,20 @@ void ControllerData::_saveImage( const QString& saveName, double scale,
 void ControllerData::_saveImageResultCB( bool result ){
     emit saveImageResult( result );
     m_saveService->deleteLater();
+}
+
+void ControllerData::_setContours( std::shared_ptr<DataContours> contours ){
+    m_dataContours = contours;
+
+    std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
+    std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+
+    // create the synchronizer
+    m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
+
+    // connect its done() slot to our renderingSlot()
+    connect( m_drawSync.get(), & DrawSynchronizer::done,
+                     this, & ControllerData::_renderingDone );
 }
 
 bool ControllerData::_setFileName( const QString& fileName ){

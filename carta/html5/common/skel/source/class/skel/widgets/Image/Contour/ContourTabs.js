@@ -66,8 +66,9 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
          */
         setControls : function( controls ){
             this.m_generatorPage.setControls( controls );
-            
-            for ( var i = 0; i < controls.contourSets.length; i++ ){
+            //Go through the server side contour sets and add pages that are new.
+            var i = 0;
+            for ( i = 0; i < controls.contourSets.length; i++ ){
                 var page = this._findPage( controls.contourSets[i].name );
                 if ( page === null ){
                     page = new skel.widgets.Image.Contour.ContourSetPage();
@@ -76,6 +77,22 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
                 }
                 page.setControls( controls.contourSets[i] );
             }
+            //Go through the existing pages and remove pages that are no longer there.
+            var pages = this.m_tabView.getChildren();
+            for ( i = 0; i < pages.length; i++ ){
+                var pageLabel = pages[i].getLabel();
+                var pageFound = false;
+                for ( var j = 0; j < controls.contourSets.length; j++ ){
+                    if ( pageLabel == controls.contourSets[j].name ){
+                        pageFound = true;
+                        break;
+                    }
+                }
+                if ( !pageFound && pages[i] != this.m_generatorPage ){
+                    this.m_tabView.remove( pages[i] );
+                }
+            }
+            
         },
         
         

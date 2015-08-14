@@ -53,7 +53,7 @@ void Contour::_initializeState(){
     m_state.insertValue<int>( Util::RED, 0 );
     m_state.insertValue<int>( Util::BLUE, 0 );
     m_state.insertValue<int>( Util::GREEN, 0 );
-    m_state.insertValue<int>( Util::ALPHA, 0 );
+    m_state.insertValue<int>( Util::ALPHA, 255 );
     m_state.insertValue<double>(Util::PEN_WIDTH, 1 );
     m_state.insertValue<double>( LEVEL, 0 );
     QString lineStyle = m_contourStyles->getLineStyleDefault();
@@ -101,7 +101,6 @@ QString Contour::setAlpha( int alphaAmount ){
 
 QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount/*, int alphaAmount*/ ){
     QStringList result;
-
     //Red amount
     if ( 0 <= redAmount && redAmount <= Util::MAX_COLOR ){
         if ( m_state.getValue<int>( Util::RED) != redAmount ){
