@@ -249,12 +249,21 @@ class Cartavis:
     def addLink(self, source, dest):
         """
         Establish a link between a source and destination.
+        The parameters are CartaView objects that are obtained by
+        commands such as getImageViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then create a link between the
+        first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            v.addLink(i[0], h[0])
 
         Parameters
         ----------
-        source: Carta object
+        source: CartaView object
             The source object for the link.
-        dest: Carta object
+        dest: CartaView object
             The destination object for the link.
 
         Returns
@@ -270,12 +279,21 @@ class Cartavis:
     def removeLink(self, source, dest):
         """
         Remove a link from a source to a destination.
+        The parameters are CartaView objects that are obtained by
+        commands such as getImageViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then remove the link between
+        the first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            v.removeLink(i[0], h[0])
 
         Parameters
         ----------
-        source: Carta object
+        source: CartaView object
             The source object for the link.
-        dest: Carta object
+        dest: CartaView object
             The destination object for the link.
 
         Returns

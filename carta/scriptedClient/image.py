@@ -343,10 +343,19 @@ class Image(CartaView):
         """
         Establish a link between this image viewer and a destination
         object.
+        The parameters are CartaView objects that are obtained by
+        commands such as getHistogramViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then add a link between the
+        first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            i[0].addLink(h[0])
 
         Parameters
         ----------
-        dest: Carta object
+        dest: CartaView object
             The object to link to this image viewer.
 
         Returns
@@ -368,8 +377,17 @@ class Image(CartaView):
 
         Parameters
         ----------
-        dest: Carta object
+        dest: CartaView object
             The object to remove the link from.
+        The parameters are CartaView objects that are obtained by
+        commands such as getHistogramViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then remove the link between
+        the first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            i[0].removeLink(h[0])
 
         Returns
         -------
