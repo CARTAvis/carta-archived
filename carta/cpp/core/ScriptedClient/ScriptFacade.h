@@ -470,6 +470,15 @@ public:
     QStringList setClipRange( const QString& histogramId, double minRange, double maxRange );
 
     /**
+     * Set the lower and upper bounds for the histogram as percentages of the entire range.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param minPercent a number in [0,100) representing the amount to leave off on the left.
+     * @param maxPercent a number in [0,100) representing the amount to leave off on the right.
+     * @return an error message if there was a problem setting the range; an empty string otherwise.
+     */
+    QStringList setClipRangePercent( const QString& histogramId, double minPercent, double maxPercent );
+
+    /**
      * Get the values of the lower and upper bounds for the histogram horizontal axis.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @return The lower and upper bounds for the histogram horizontal axis;

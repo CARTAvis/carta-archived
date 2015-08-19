@@ -1034,6 +1034,27 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
     return resultList;
 }
 
+QStringList ScriptFacade::setClipRangePercent( const QString& histogramId, double minPercent, double maxPercent ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( histogramId );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            QString result = histogram->setClipRangePercent( minPercent, maxPercent );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = QStringList( ERROR );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( ERROR );
+        resultList.append( "The specified histogram view could not be found." );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::getClipRange( const QString& histogramId ) {
     QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( histogramId );

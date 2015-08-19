@@ -73,6 +73,31 @@ class Histogram(CartaView):
                                      minRange=minRange, maxRange=maxRange)
         return result
 
+    def setClipRangePercent(self, minPercent, maxPercent):
+        """
+        Set the lower and upper bounds for the histogram as percentages
+        of the entire range.
+
+        Parameters
+        ----------
+        minPercent: float
+            A number in [0,100) representing the amount to leave off on
+            the left.
+        maxPercent: float
+            A number in [0,100) representing the amount to leave off on
+            the right.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setClipRangePercent",
+                                     histogramView=self.getId(),
+                                     minPercent=minPercent,
+                                     maxPercent=maxPercent)
+        return result
+
     def getClipRange(self):
         """
         Get the lower and upper bounds for the histogram horizontal

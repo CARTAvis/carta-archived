@@ -379,6 +379,13 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setClipRange( histogramView, minRange, maxRange );
     }
 
+    else if ( cmd == "setcliprangepercent" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minPercent = args["minPercent"].toDouble();
+        double maxPercent = args["maxPercent"].toDouble();
+        result = m_scriptFacade->setClipRangePercent( histogramView, minPercent, maxPercent );
+    }
+
     else if ( cmd == "getcliprange" ) {
         QString histogramView = args["histogramView"].toString();
         result = m_scriptFacade->getClipRange( histogramView );
