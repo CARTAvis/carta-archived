@@ -91,6 +91,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setPlugins(pluginsList);
     }
 
+    else if ( cmd == "getpluginlist" ) {
+        result = m_scriptFacade->getPluginList();
+    }
+
     else if ( cmd == "addlink" ) {
         QString source = args["sourceView"].toString();
         QString dest = args["destView"].toString();

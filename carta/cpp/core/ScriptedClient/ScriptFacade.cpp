@@ -168,6 +168,13 @@ QStringList ScriptFacade::setPlugins( const QStringList& names ) {
     return resultList;
 }
 
+QStringList ScriptFacade::getPluginList() const {
+    QStringList resultList;
+    Carta::Data::Layout* layout = Carta::Data::Util::findSingletonObject<Carta::Data::Layout>();
+    resultList = layout->getPluginList();
+    return resultList;
+}
+
 QStringList ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
     QStringList resultList("");
     bool result = m_viewManager->loadFile( objectId, fileName );

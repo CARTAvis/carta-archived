@@ -246,6 +246,18 @@ class Cartavis:
         result = self.con.cmdTagList("setPlugins", plugins=pluginString)
         return result
 
+    def getPluginList(self):
+        """
+        Returns a list of the current plugins in the view.
+
+        Returns
+        -------
+        list
+            A list of view plugins.
+        """
+        result = self.con.cmdTagList("getPluginList")
+        return result
+
     def addLink(self, source, dest):
         """
         Establish a link between a source and destination.
