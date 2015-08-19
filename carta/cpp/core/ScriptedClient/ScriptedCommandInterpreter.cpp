@@ -393,10 +393,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 
     else if ( cmd == "applyclips" ) {
         QString histogramView = args["histogramView"].toString();
-        double clipMinValue = args["clipMinValue"].toDouble();
-        double clipMaxValue = args["clipMaxValue"].toDouble();
-        QString modeStr = args["modeStr"].toString();
-        result = m_scriptFacade->applyClips( histogramView, clipMinValue, clipMaxValue, modeStr );
+        result = m_scriptFacade->applyClips( histogramView );
     }
 
     else if ( cmd == "setbincount" ) {

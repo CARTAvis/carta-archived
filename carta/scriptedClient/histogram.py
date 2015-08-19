@@ -115,71 +115,16 @@ class Histogram(CartaView):
             result = [float(i) for i in result]
         return result
 
-    def applyClips(self, clipMin, clipMax, mode):
+    def applyClips(self):
         """
         Apply clips to the image.
 
-        Parameters
-        ----------
-        clipMin: float
-            The minimum of data to be shown.
-        clipMax: float
-            The maximum of data to be shown.
-        mode: string
-            Can be either 'percent' or 'intensity'.
-            [NOTE: would it be a good idea to set a default here?]
-
         Returns
         -------
         list
             Error message if an error occurred; empty otherwise.
         """
-        result = self.con.cmdTagList("applyClips",
-                                     histogramView=self.getId(),
-                                     clipMinValue=clipMin,
-                                     clipMaxValue=clipMax, modeStr=mode)
-        return result
-
-    def applyClipsByPercent(self, clipMin, clipMax):
-        """
-        Apply clips to the image by percent.
-        This is a convenience function that calls applyClips() with the
-        mode parameter set to 'percent'.
-
-        Parameters
-        ----------
-        clipMin: float
-            The minimum of data to be shown.
-        clipMax: float
-            The maximum of data to be shown.
-
-        Returns
-        -------
-        list
-            Error message if an error occurred; empty otherwise.
-        """
-        result = self.applyClips(clipMin, clipMax, "percent")
-        return result
-
-    def applyClipsByIntensity(self, clipMin, clipMax):
-        """
-        Apply clips to the image by intensity.
-        This is a convenience function that calls applyClips() with the
-        mode parameter set to 'intensity'.
-
-        Parameters
-        ----------
-        clipMin: float
-            The minimum of data to be shown.
-        clipMax: float
-            The maximum of data to be shown.
-
-        Returns
-        -------
-        list
-            Error message if an error occurred; empty otherwise.
-        """
-        result = self.applyClips(clipMin, clipMax, "intensity")
+        result = self.con.cmdTagList("applyClips", histogramView=self.getId())
         return result
 
     def setBinCount(self, count):

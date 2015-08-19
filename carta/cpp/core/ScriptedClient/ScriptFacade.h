@@ -489,12 +489,9 @@ public:
     /**
      * Applies clips to image.
      * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param clipMinValue the minimum of data to be shown.
-     * @param clipMaxValue the maximum of data to be shown.
-     * @param mode can be either "percent" or "intensity"
      * @return an error message if there was a problem applying the clips; an empty string otherwise.
      */
-    QStringList applyClips( const QString& histogramId, double clipMinPercent, double clipMaxPercent, QString mode );
+    QStringList applyClips( const QString& histogramId );
 
     /**
      * Returns the intensity corresponding to a given percentile.

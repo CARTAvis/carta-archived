@@ -1075,26 +1075,13 @@ QStringList ScriptFacade::getClipRange( const QString& histogramId ) {
     return resultList;
 }
 
-QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ) {
-    QStringList resultList;
-    QString result = "";
+QStringList ScriptFacade::applyClips( const QString& histogramId ) {
+    QStringList resultList("");
     Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
-            if ( mode == "percent" ) {
-                result += histogram->setClipMinPercent( clipMinValue );
-                result += histogram->setClipMaxPercent( clipMaxValue );
-            }
-            else if ( mode == "intensity" ) {
-                result += histogram->setClipMin( clipMinValue );
-                result += histogram->setClipMax( clipMaxValue );
-            }
-            else {
-                result = "invalid mode: " + mode;
-            }
             histogram->applyClips();
-            resultList = QStringList( result );
         }
         else {
             resultList = QStringList( ERROR );
