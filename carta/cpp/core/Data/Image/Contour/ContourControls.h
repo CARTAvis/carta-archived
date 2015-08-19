@@ -44,6 +44,19 @@ public:
     QString generateContourSet( const QString& contourSetName );
 
     /**
+     * Return the contour state of a specific type.
+     * @param sessionId - an identifier for a user session.
+     * @param type - an identifier for the type of state to save.
+     */
+    QString getStateString( const QString& sessionId, SnapshotType type ) const;
+
+    /**
+     * Reset the contour sets.
+     * @param state - a string representation of the contour sets.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
      * Set the transparency level of the contours within the specified set.
      * @param contourName - an identifier for a contour set.
      * @param levels - the contours levels within the set whose transparency should be changed.
@@ -63,9 +76,6 @@ public:
      */
     QStringList setColor( const QString& contourName, std::vector<double>& levels,
             int red, int green, int blue );
-
-
-
 
     /**
      * Set whether or not negative contours should be dashed.
@@ -176,9 +186,12 @@ private:
     const static QString CONTOUR_SET_NAME;
     const static QString DASHED_NEGATIVE;
     const static QString GENERATE_MODE;
+    const static QString INTERVAL;
     const static QString LEVEL_COUNT;
     const static QString LEVEL_COUNT_MAX;
     const static QString LEVEL_LIST;
+    const static QString LEVEL_MIN;
+    const static QString LEVEL_MAX;
     const static QString LEVEL_SEPARATOR;
     const static QString RANGE_MIN;
     const static QString RANGE_MAX;
@@ -188,6 +201,7 @@ private:
     const static double ERROR_MARGIN;
 
     void _addContourSet( const std::vector<double>& levels, const QString& contourSetName );
+    void _clearContours();
 
     QString _generateRange( const QString& contourSetName);
     QString _generateMinimum( const QString& contourSetName );
@@ -220,6 +234,8 @@ private:
     std::set<shared_ptr<DataContours> > m_dataContours;
 
     shared_ptr<DataContours> m_drawContours;
+
+    Carta::State::StateInterface m_stateData;
 
 	ContourControls( const ContourControls& other);
 	ContourControls& operator=( const ContourControls& other );

@@ -12,7 +12,9 @@ namespace Data {
 const QString ContourStyles::CLASS_NAME = "ContourStyles";
 const QString ContourStyles::LINE_STYLES = "lineStyles";
 const QString ContourStyles::LINE_SOLID = "Solid";
-const QString ContourStyles::LINE_DASHED = "Dashed";
+const QString ContourStyles::LINE_DASHED = "Dash";
+const QString ContourStyles::LINE_DOTTED = "Dot";
+const QString ContourStyles::LINE_DASHED_DOTTED = "Dash-Dot";
 
 class ContourStyles::Factory : public Carta::State::CartaObjectFactory {
 
@@ -35,9 +37,11 @@ bool ContourStyles::m_registered =
 ContourStyles::ContourStyles( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
 
-    m_lineStyles.resize( 2 );
+    m_lineStyles.resize( 4 );
     m_lineStyles[0] = LINE_SOLID;
     m_lineStyles[1] = LINE_DASHED;
+    m_lineStyles[2] = LINE_DOTTED;
+    m_lineStyles[3] = LINE_DASHED_DOTTED;
 
     _initializeDefaultState();
 }

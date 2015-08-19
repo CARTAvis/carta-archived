@@ -76,20 +76,11 @@ bool Contour::operator<( const Contour& other ) const {
     return lessThan;
 }
 
-/*bool Contour::operator==( const Contour& other ) const {
-    bool equalContours = false;
-    double thisLevel = getLevel();
-    double otherLevel = other.getLevel();
-    if ( qAbs( thisLevel - otherLevel ) < ERROR_MARGIN ){
-        equalContours = true;
-    }
-    return equalContours;
-}*/
-
-QString Contour::setAlpha( int alphaAmount ){
+QString Contour::setAlpha( int alphaAmount, bool* changedState  ){
     QString result;
     if ( 0 <= alphaAmount && alphaAmount <= Util::MAX_COLOR ){
         if ( m_state.getValue<int>( Util::ALPHA) != alphaAmount ){
+            *changedState = true;
             m_state.setValue<int>( Util::ALPHA, alphaAmount);
         }
     }
@@ -99,11 +90,12 @@ QString Contour::setAlpha( int alphaAmount ){
     return result;
 }
 
-QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount/*, int alphaAmount*/ ){
+QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount, bool* changedState ){
     QStringList result;
     //Red amount
     if ( 0 <= redAmount && redAmount <= Util::MAX_COLOR ){
         if ( m_state.getValue<int>( Util::RED) != redAmount ){
+            *changedState = true;
             m_state.setValue<int>( Util::RED, redAmount);
         }
     }
@@ -114,6 +106,7 @@ QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount/*,
     //Green amount
     if ( 0 <= greenAmount && greenAmount <= Util::MAX_COLOR ){
         if ( m_state.getValue<int>( Util::GREEN) != greenAmount ){
+            *changedState = true;
             m_state.setValue<int>( Util::GREEN, greenAmount);
         }
     }
@@ -124,6 +117,7 @@ QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount/*,
     //Blue amount
     if ( 0 <= blueAmount && blueAmount <= Util::MAX_COLOR ){
         if ( m_state.getValue<int>( Util::BLUE) != blueAmount ){
+            *changedState = true;
             m_state.setValue<int>( Util::BLUE, blueAmount);
         }
     }
@@ -133,18 +127,24 @@ QStringList Contour::setColor( int redAmount, int greenAmount, int blueAmount/*,
     return result;
 }
 
-void Contour::setLevel( double level ){
+void Contour::setLevel( double level, bool* changedState ){
     if ( qAbs( level - m_state.getValue<double>( LEVEL) ) > ERROR_MARGIN ){
         m_state.setValue( LEVEL, level );
+        *changedState = true;
     }
 }
 
-QString Contour::setStyle( const QString& style ){
+void Contour::setStateString( const QString& stateStr ){
+    m_state.setState( stateStr );
+}
+
+QString Contour::setStyle( const QString& style, bool* changedState ){
     QString result;
     QString actualStyle = m_contourStyles->getLineStyle( style );
     if ( !actualStyle.isEmpty() ){
         QString oldStyle = m_state.getValue<QString>( STYLE );
         if ( oldStyle != actualStyle ){
+            *changedState = true;
             m_state.setValue<QString>( STYLE, actualStyle );
         }
     }
@@ -164,12 +164,14 @@ bool Contour::setVisible( bool visible ){
     return stateChanged;
 }
 
-QString Contour::setWidth( double width ){
+QString Contour::setWidth( double width, bool* changedState ){
     QString result;
+    *changedState = false;
     if ( width > 0 ){
         double oldWidth = m_state.getValue<double>( Util::PEN_WIDTH );
         if ( qAbs( width  - oldWidth ) > ERROR_MARGIN ){
             m_state.setValue( Util::PEN_WIDTH, width );
+            *changedState = true;
         }
     }
     else {

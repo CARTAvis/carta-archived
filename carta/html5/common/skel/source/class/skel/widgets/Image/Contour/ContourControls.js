@@ -35,13 +35,31 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
                     if ( this.m_contourTabs !== null ){
                         this.m_contourTabs.setControls(controls);
                     }
-                   
-                    //this.fireDataEvent( "gridControlsChanged", data );
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
                 }
                 catch( err ){
                     console.log( "Contour controls could not parse: "+val+" error: "+err );
+                }
+            }
+        },
+        
+        /**
+         * Callback for a change in contour preference settings.
+         */
+        _controlsDataChangedCB : function(){
+            var val = this.m_sharedVarData.get();
+            if ( val ){
+                try {
+                    var controls = JSON.parse( val );
+                    if ( this.m_contourTabs !== null ){
+                        this.m_contourTabs.setControlsData(controls);
+                    }
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.clearErrors();
+                }
+                catch( err ){
+                    console.log( "Contour controls data could not parse: "+val+" error: "+err );
                 }
             }
         },
@@ -64,6 +82,11 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._controlsChangedCB.bind(this));
             this._controlsChangedCB();
+            var path = skel.widgets.Path.getInstance();
+            var dataId = this.m_id+path.SEP + "data";
+            this.m_sharedVarData = this.m_connector.getSharedVar( dataId );
+            this.m_sharedVarData.addCB( this._controlsDataChangedCB.bind(this ));
+            this._controlsDataChangedCB();
         },
         
         /**
@@ -102,6 +125,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
         m_id : null,
         m_connector : null,
         m_sharedVar : null,
+        m_sharedVarData : null,
         
         m_contourTabs : null
     }

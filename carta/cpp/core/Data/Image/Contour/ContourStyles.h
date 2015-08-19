@@ -45,6 +45,8 @@ private:
 
     const static QString LINE_SOLID;
     const static QString LINE_DASHED;
+    const static QString LINE_DOTTED;
+    const static QString LINE_DASHED_DOTTED;
     const static QString LINE_STYLES;
     static bool m_registered;
 

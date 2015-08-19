@@ -83,6 +83,21 @@ ParsedInfo parse(const QString & filePath)
         qWarning() << "Maximum histogram bin count must be a number.";
     }
 
+    // maximum contour level count
+    QString contourLevelCountMaxStr = json[ "contourLevelCountMax"].toString();
+    int maxContourLevelCount = contourLevelCountMaxStr.toInt( &validInt );
+    if ( validInt ){
+        if ( maxContourLevelCount > 0 ){
+            info.m_contourLevelCountMax = maxContourLevelCount;
+        }
+        else {
+            qWarning()<<"Maximum contour level count must be a positive integer.";
+        }
+    }
+    else {
+        qWarning() << "Maximum contour level count must be a number.";
+    }
+
     return info;
 }
 
@@ -98,6 +113,10 @@ bool ParsedInfo::hacksEnabled() const
 
 bool ParsedInfo::isDeveloperLayout() const {
     return m_developerLayout;
+}
+
+int ParsedInfo::getContourLevelCountMax() const {
+    return m_contourLevelCountMax;
 }
 
 int ParsedInfo::getHistogramBinCountMax() const {

@@ -436,7 +436,7 @@ private:
 
 
     //Data available to and managed by this controller.
-    QList<ControllerData* > m_datas;
+    QList<shared_ptr<ControllerData> > m_datas;
 
 
     QList<Region* > m_regions;

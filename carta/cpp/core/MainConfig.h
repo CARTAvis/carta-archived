@@ -30,6 +30,15 @@ public:
      */
     int getHistogramBinCountMax() const;
 
+
+    /**
+     * Returns any valid user set contour level count maximum or -1 if no
+     * valid user supplied value has been provided.
+     * @return the maximum allowed value for the contour level count or -1 is
+     *   no valid value has been specified.
+     */
+    int getContourLevelCountMax() const;
+
     /// whether hacks are enabled or not
     bool hacksEnabled() const;
 
@@ -45,6 +54,7 @@ protected:
     bool m_hacksEnabled = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;
+    int m_contourLevelCountMax = -1;
 
     friend ParsedInfo parse( const QString & filePath);
 };

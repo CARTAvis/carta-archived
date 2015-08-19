@@ -31,6 +31,12 @@ Q_OBJECT
 public:
 
     /**
+     * Return the number of levels in this contour set.
+     * @return a count of the levels in the contour set.
+     */
+    int getLevelCount() const;
+
+    /**
      * Return a list of levels in this contour set.
      * @return - the list of contour levels.
      */
@@ -57,6 +63,13 @@ public:
     bool isContourDraw() const;
 
     bool operator<( const DataContours& other ) const;
+
+    /**
+     * Reset the contour set state.
+     * @param state - a string representation of the new state of this
+     *      contour set.
+     */
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Set the transparency level of the contour lines.

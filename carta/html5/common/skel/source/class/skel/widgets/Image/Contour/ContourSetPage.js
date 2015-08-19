@@ -95,7 +95,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
                     var data = evt.getData();
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id + path.SEP_COMMAND + data.cmd;
-                    var params = "levels:"+levelList+",set:"+data.set+","+data.param;
+                    var params = "levels:"+levelStr+",set:"+data.set+","+data.param;
                     this.m_connector.sendCommand( cmd, params, function(){});
                 }
             }
@@ -111,7 +111,8 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
             this.m_contourWidget.setContourSetName( this.getLabel() );
             this._updateLevels();
             if ( this.m_contours.length > 0 ){
-                this.m_contourWidget.setContour( this.m_contours[0], 0);
+                var selectIndex = this.m_levelsList.getSelectedIndex();
+                this.m_contourWidget.setContour( this.m_contours[selectIndex], selectIndex);
             }
         },
         

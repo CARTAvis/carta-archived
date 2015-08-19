@@ -60,8 +60,10 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
                this.add( tempItem );
            }
            //Try to reset the old selection
-           if ( oldValue !== null ){
-               this.setValue( oldValue );
+           if ( oldValue !== null ){ 
+               if ( items.length > 0 ){
+                   this.setValue( oldValue );
+               }
            }
            //Select the first item
            else if ( items.length > 0 ){

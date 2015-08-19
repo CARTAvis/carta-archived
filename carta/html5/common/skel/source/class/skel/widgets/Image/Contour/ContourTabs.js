@@ -46,7 +46,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
             this.setMargin( 1, 1, 1, 1 );
             this._setLayout(new qx.ui.layout.VBox(2));
             this.m_tabView = new qx.ui.tabview.TabView("left");
-            this.m_tabView.addListener( "changeSelection", this._pageChanged, this );
+            //this.m_tabView.addListener( "changeSelection", this._pageChanged, this );
             this.m_tabView.setContentPadding( 2, 2, 2, 2 );
             this.m_generatorPage = new skel.widgets.Image.Contour.GeneratorPage();
             this._add( this.m_tabView );
@@ -55,7 +55,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
         
 
         _pageChanged : function(){
-            console.log( "Implement page changed");
+            //console.log( "Implement page changed");
         },
         
        
@@ -66,7 +66,15 @@ qx.Class.define("skel.widgets.Image.Contour.ContourTabs", {
          */
         setControls : function( controls ){
             this.m_generatorPage.setControls( controls );
+        },
+        
+        /**
+         * Update from the server when the contour sets have changed.
+         * @param controls {Object} - information about the contour sets from the server.
+         */
+        setControlsData : function( controls ){
             //Go through the server side contour sets and add pages that are new.
+            this.m_generatorPage.setControlsData( controls );
             var i = 0;
             for ( i = 0; i < controls.contourSets.length; i++ ){
                 var page = this._findPage( controls.contourSets[i].name );

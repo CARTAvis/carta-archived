@@ -4,6 +4,8 @@
 #include "DataContours.h"
 #include "Data/Util.h"
 #include "Data/Image/IPercentIntensityMap.h"
+#include "Globals.h"
+#include "MainConfig.h"
 #include "State/UtilState.h"
 
 #include <set>
@@ -19,9 +21,12 @@ const QString ContourControls::CONTOUR_SETS = "contourSets";
 const QString ContourControls::CONTOUR_SET_NAME = "set";
 const QString ContourControls::DASHED_NEGATIVE = "dashedNegative";
 const QString ContourControls::GENERATE_MODE = "generateMode";
+const QString ContourControls::INTERVAL = "interval";
 const QString ContourControls::LEVEL_COUNT = "levelCount";
 const QString ContourControls::LEVEL_COUNT_MAX = "levelCountMax";
 const QString ContourControls::LEVEL_LIST = "levels";
+const QString ContourControls::LEVEL_MIN = "min";
+const QString ContourControls::LEVEL_MAX = "max";
 const QString ContourControls::LEVEL_SEPARATOR = ";";
 const QString ContourControls::RANGE_MIN = "rangeMin";
 const QString ContourControls::RANGE_MAX = "rangeMax";
@@ -44,12 +49,19 @@ class ContourControls::Factory : public Carta::State::CartaObjectFactory {
         }
     };
 
+using Carta::State::UtilState;
+using Carta::State::StateInterface;
+using Carta::State::ObjectManager;
+
 bool ContourControls::m_registered =
-        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new ContourControls::Factory());
+        ObjectManager::objectManager()->registerClass ( CLASS_NAME, new ContourControls::Factory());
+
+
 
 ContourControls::ContourControls( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
-    m_percentIntensityMap( nullptr ){
+    m_percentIntensityMap( nullptr ),
+    m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
      _initializeSingletons();
     _initializeDefaultState();
     _initializeCallbacks();
@@ -58,19 +70,29 @@ ContourControls::ContourControls( const QString& path, const QString& id):
 void ContourControls::_addContourSet( const std::vector<double>& levels,
         const QString& contourSetName ){
     int count = levels.size();
+    bool levelChanged = false;
     if ( count > 0 ){
         std::set<Contour> contours;
         for ( int i = 0; i < count; i++ ){
             Contour contour;
-            contour.setLevel( levels[i] );
+            contour.setLevel( levels[i], &levelChanged );
             contours.insert( contour );
         }
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        ObjectManager* objMan = ObjectManager::objectManager();
         std::shared_ptr<DataContours> dataContours(objMan->createObject<DataContours>());
         dataContours->setContours( contours );
         dataContours->setName( contourSetName );
         m_dataContours.insert( dataContours );
         _updateContourSetState();
+    }
+}
+
+void ContourControls::_clearContours(){
+    ObjectManager* objMan = ObjectManager::objectManager();
+    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+                it != m_dataContours.end(); it++ ){
+        QString contourId = (*it)->getId();
+        objMan->removeObject( contourId );
     }
 }
 
@@ -81,7 +103,7 @@ QString ContourControls::deleteContourSet( const QString& contourSetName ){
     while ( it != m_dataContours.end() ){
            if ( (*it)->getName() == contourSetName ){
                foundSet = true;
-               Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+               ObjectManager* objMan = ObjectManager::objectManager();
                QString id = (*it)->getId();
                m_dataContours.erase(it);
                objMan->removeObject( id );
@@ -127,60 +149,15 @@ QString ContourControls::generateContourSet( const QString& contourSetName ){
     return result;
 }
 
-
-
-std::vector<double> ContourControls::_getLevels( double minLevel, double maxLevel ) const {
-    int count = m_state.getValue<int>( LEVEL_COUNT );
-    double step = maxLevel - minLevel;
-    if ( count > 2 ){
-        step = step / (count - 1 );
-    }
-
-    std::vector<double> levels;
-    for ( int i = 0; i < count; i++ ){
-        double increment = i * step;
-        double level = minLevel + increment;
-        levels.push_back( level );
-    }
-    return levels;
-}
-
-std::vector<double> ContourControls::_getLevelsMinMax( double max, QString& error ) const {
-    double minLevel = m_state.getValue<double>(RANGE_MIN );
-    double maxLevel = max;
-    QString spacingMode = m_state.getValue<QString>( SPACING_MODE );
-    std::vector<double> levels;
-    bool validRange = true;
-    if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
-        if ( minLevel > 0 && maxLevel > 0 ){
-            double interval = m_state.getValue<double>( SPACING_INTERVAL );
-            if ( interval > 0 && interval != 1 ){
-                minLevel = qLn( minLevel ) / qLn( interval );
-                maxLevel = qLn( maxLevel ) / qLn( interval );
-            }
-            else {
-                validRange = false;
-                error = "Cannot calculate a logarithm with base="+QString::number( interval );
-            }
-        }
-        else {
-            validRange = false;
-            error = "Logarithm is not defined on the interval ["+QString::number( minLevel)+
-                    ","+QString::number( maxLevel )+"].";
-        }
-    }
-    if ( validRange ){
-        levels = _getLevels( minLevel, maxLevel );
-    }
-    return levels;
-}
-
 QString ContourControls::_generateRange( const QString& contourSetName ){
     QString result;
     double maxLevel = m_state.getValue<double>( RANGE_MAX );
     std::vector<double> levels = _getLevelsMinMax(maxLevel, result );
-    if ( result.isEmpty() ){
+    if ( result.isEmpty() && levels.size() > 0 ){
         _addContourSet( levels, contourSetName );
+    }
+    else if ( levels.size() == 0 ){
+        result = "A countour set could not be generated with the given input parameters.";
     }
     return result;
 }
@@ -192,6 +169,10 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
     double step = m_state.getValue<double>(SPACING_INTERVAL );
     int count = m_state.getValue<int>(LEVEL_COUNT );
     double maxLevel = minLevel + step * (count - 1);
+    QString spacingMode = m_state.getValue<QString>(SPACING_MODE );
+    if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
+        maxLevel = minLevel + qPow( step, (count-1) );
+    }
     std::vector<double> levels = _getLevelsMinMax( maxLevel, result );
     if ( result.isEmpty() ){
         _addContourSet( levels, contourSetName );
@@ -205,7 +186,6 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
         double maxLevel = m_state.getValue<double>( RANGE_MAX );
         //First get the levels as percentiles.
         std::vector<double> percentileLevels = _getLevelsMinMax( maxLevel, result );
-
         //Map the percentiles to intensities
         if ( result.isEmpty() ){
             int percentCount = percentileLevels.size();
@@ -231,17 +211,93 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
     return result;
 }
 
+
+std::vector<double> ContourControls::_getLevels( double minLevel, double maxLevel ) const {
+    int count = m_state.getValue<int>( LEVEL_COUNT );
+    double step = maxLevel - minLevel;
+    if ( count > 2 ){
+        step = step / (count - 1 );
+    }
+    QString spacingMode = m_state.getValue<QString>(SPACING_MODE);
+    std::vector<double> levels;
+    if ( ( step > 0 && step != 1 ) || count == 1 ){
+        for ( int i = 0; i < count; i++ ){
+            double increment = i * step;
+            double level = minLevel + increment;
+            if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
+                level = qLn(level) / qLn( step );
+            }
+            levels.push_back( level );
+        }
+    }
+    return levels;
+}
+
+std::vector<double> ContourControls::_getLevelsMinMax( double max, QString& error ) const {
+    double minLevel = m_state.getValue<double>(RANGE_MIN );
+    double maxLevel = max;
+    QString spacingMode = m_state.getValue<QString>( SPACING_MODE );
+    std::vector<double> levels;
+    bool validRange = true;
+    if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
+        if ( minLevel <= 0 ){
+            validRange = false;
+            error = "Logarithm is not defined on the interval ["+QString::number( minLevel)+
+                    ","+QString::number( maxLevel )+"].";
+        }
+    }
+    if ( validRange ){
+        levels = _getLevels( minLevel, maxLevel );
+    }
+    return levels;
+}
+
+
+DataContours* ContourControls::_getContour( const QString& setName ) {
+    DataContours* target = nullptr;
+    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+                   it != m_dataContours.end(); it++ ){
+       if ( (*it)->getName() == setName ){
+           target = ( *it ).get();
+           break;
+       }
+   }
+   return target;
+}
+
+QString ContourControls::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        result = m_state.toString();
+    }
+    else if ( type == SNAPSHOT_DATA ){
+        StateInterface dataCopy( m_stateData );
+        dataCopy.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME+StateInterface::STATE_DATA);
+        dataCopy.setValue<int>( StateInterface::INDEX, getIndex());
+        result = dataCopy.toString();
+    }
+    return result;
+}
+
+
 void ContourControls::_initializeDefaultState(){
     m_state.insertValue<QString>(GENERATE_MODE, m_generateModes->getModeDefault());
     m_state.insertValue<double>(RANGE_MIN, 0 );
     m_state.insertValue<double>(RANGE_MAX, 1 );
     m_state.insertValue<bool>(DASHED_NEGATIVE, false );
     m_state.insertValue<int>(LEVEL_COUNT, 3 );
-    m_state.insertValue<int>(LEVEL_COUNT_MAX, LEVEL_COUNT_MAX_VALUE );
+    int contourLevelCountMax = Globals::instance()->mainConfig()->getContourLevelCountMax();
+    if ( contourLevelCountMax > 0 ){
+       m_state.insertValue<int>(LEVEL_COUNT_MAX, contourLevelCountMax );
+    }
+    else {
+       m_state.insertValue<int>(LEVEL_COUNT_MAX, LEVEL_COUNT_MAX_VALUE );
+    }
     m_state.insertValue<QString>(SPACING_MODE, m_spacingModes->getModeDefault());
     m_state.insertValue<double>(SPACING_INTERVAL, 0.25);
+    m_state.flushState();
     int contourSetCount = m_dataContours.size();
-    m_state.insertArray( CONTOUR_SETS, contourSetCount );
+    m_stateData.insertArray( CONTOUR_SETS, contourSetCount );
     _updateContourSetState();
 
 }
@@ -262,10 +318,37 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {DataContours::SET_NAME };
+            std::set<QString> keys = {DataContours::SET_NAME, INTERVAL, LEVEL_MIN, LEVEL_MAX};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString contourSetName = dataValues[DataContours::SET_NAME];
-            QString result = generateContourSet( contourSetName );
+
+            //Make sure any new interval, level min and level max value is valid
+            //before adding the contour.
+            QString result;
+            bool validDouble = false;
+            double spaceInterval = dataValues[INTERVAL].toDouble(&validDouble);
+            if ( validDouble ){
+                result = setSpacingInterval( spaceInterval );
+                if ( result.isEmpty() ){
+                    double levelMin = dataValues[LEVEL_MIN].toDouble(&validDouble);
+                    if ( validDouble ){
+                        result = setLevelMin( levelMin );
+                        if ( result.isEmpty() ){
+                            double levelMax = dataValues[LEVEL_MAX].toDouble(&validDouble);
+                            if ( validDouble ){
+                                result = setLevelMax( levelMax );
+                                if ( result.isEmpty() ){
+                                    //If the are all valid, generate the contour set.
+                                    result = generateContourSet( contourSetName );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                result = "Please make sure the contour spacing interval is a valid number: "+dataValues[INTERVAL];
+            }
             Util::commandPostProcess( result );
             return result;
         });
@@ -347,11 +430,11 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "setInterval", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {"interval"};
+                std::set<QString> keys = {INTERVAL};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                 bool validDouble = false;
                 QString result;
-                double spaceInterval = dataValues[*keys.begin()].toDouble(&validDouble);
+                double spaceInterval = dataValues[INTERVAL].toDouble(&validDouble);
                 if ( validDouble ){
                     result = setSpacingInterval( spaceInterval );
                 }
@@ -422,11 +505,11 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "setLevelMin", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {"min"};
+            std::set<QString> keys = {LEVEL_MIN};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             bool validDouble = false;
             QString result;
-            int levelMin = dataValues[*keys.begin()].toDouble(&validDouble);
+            double levelMin = dataValues[*keys.begin()].toDouble(&validDouble);
             if ( validDouble ){
                 result = setLevelMin( levelMin );
             }
@@ -443,7 +526,7 @@ void ContourControls::_initializeCallbacks(){
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                 bool validDouble = false;
                 QString result;
-                int levelMax = dataValues[*keys.begin()].toDouble(&validDouble);
+                double levelMax = dataValues[*keys.begin()].toDouble(&validDouble);
                 if ( validDouble ){
                     result = setLevelMax( levelMax );
                 }
@@ -524,16 +607,21 @@ bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
     return duplicateSet;
 }
 
-DataContours* ContourControls::_getContour( const QString& setName ) {
-    DataContours* target = nullptr;
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-                   it != m_dataContours.end(); it++ ){
-       if ( (*it)->getName() == setName ){
-           target = ( *it ).get();
-           break;
-       }
-   }
-   return target;
+
+
+void ContourControls::resetStateData( const QString& state ){
+    StateInterface dataState( "");
+    dataState.setState( state );
+    int contourCount = dataState.getArraySize( CONTOUR_SETS );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    for ( int i = 0; i < contourCount; i++ ){
+        QString lookup = UtilState::getLookup( CONTOUR_SETS, i );
+        QString contourSetState = dataState.toString( lookup );
+        std::shared_ptr<DataContours> dataContours(objMan->createObject<DataContours>());
+        dataContours->resetState( contourSetState );
+        m_dataContours.insert( dataContours );
+    }
+    _updateContourSetState();
 }
 
 QString ContourControls::setAlpha( const QString& contourName,
@@ -660,6 +748,8 @@ QString ContourControls::setLevelMax( double value ){
 
 QString ContourControls::setLevelMin( double value ){
     QString result;
+    //If the method used to generate levels  is percentiles, the
+    //value must be in [0,1].
     double maxValue = m_state.getValue<double>( RANGE_MAX );
     if ( value <= maxValue ){
         double oldMin = m_state.getValue<double>( RANGE_MIN );
@@ -678,9 +768,17 @@ QString ContourControls::setLevels( const QString& contourName, std::vector<doub
     QString result;
     DataContours* target = _getContour( contourName );
     if ( target != nullptr ){
+        bool levelCount = target->getLevelCount();
         bool levelsChanged = target->setLevels( levels );
         if ( levelsChanged ){
             _updateContourSetState();
+            if ( levelCount != levels.size() ){
+                //Note:  A state refresh here is needed because the user could add a duplicate contour level in
+                    //the UI.  The code will refuse to accept it so the state will not officially change and get flushed
+                    //to the UI.  However, the UI needs the old state so it can remove the duplicate the user added.
+                    CartaObject::refreshState();
+                    m_state.flushState();
+            }
         }
     }
     else {
@@ -753,15 +851,15 @@ QString ContourControls::setVisibility( const QString& contourName,
 
 void ContourControls::_updateContourSetState(){
     int contourSetCount = m_dataContours.size();
-    m_state.resizeArray( CONTOUR_SETS, contourSetCount );
+    m_stateData.resizeArray( CONTOUR_SETS, contourSetCount );
     std::set<Contour> drawContours;
     int i = 0;
     for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
             it != m_dataContours.end(); it++ ){
         QString lookup = Carta::State::UtilState::getLookup( CONTOUR_SETS, i );
         Carta::State::StateInterface dataState = (*it)->_getState();
-        QString contourState = dataState.toString( /*DataContours::CONTOURS*/);
-        m_state.setObject( lookup, contourState);
+        QString contourState = dataState.toString();
+        m_stateData.setObject( lookup, contourState);
         std::set<Contour> setContours = (*it)->_getContours();
         for ( std::set<Contour>::iterator contourIt = setContours.begin();
                 contourIt != setContours.end(); contourIt++ ){
@@ -771,7 +869,8 @@ void ContourControls::_updateContourSetState(){
         }
         i++;
     }
-    m_state.flushState();
+
+    m_stateData.flushState();
     if ( m_drawContours ){
         m_drawContours->setContours( drawContours );
         emit drawContoursChanged();
@@ -780,7 +879,10 @@ void ContourControls::_updateContourSetState(){
 
 
 ContourControls::~ContourControls(){
-
+    ObjectManager* objMan = ObjectManager::objectManager();
+    _clearContours();
+    QString drawContourId = m_drawContours->getId();
+    objMan->removeObject( drawContourId );
 }
 }
 }

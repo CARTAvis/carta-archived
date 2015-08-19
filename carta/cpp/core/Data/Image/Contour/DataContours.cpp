@@ -45,12 +45,17 @@ Contour* DataContours::_getContour(double level) {
     Contour* target = nullptr;
     for ( std::set<Contour>::iterator it = m_contours.begin();
                         it != m_contours.end(); it++ ){
-        if ( qAbs( (*it).getLevel() - level ) < Contour::ERROR_MARGIN ){
+        double existingLevel = (*it).getLevel();
+        if ( qAbs( existingLevel - level ) < Contour::ERROR_MARGIN ){
             target = const_cast<Contour*> (&( *it ));
             break;
         }
     }
     return target;
+}
+
+int DataContours::getLevelCount() const {
+    return m_contours.size();
 }
 
 std::vector<double> DataContours::getLevels() const {
@@ -101,16 +106,7 @@ void DataContours::_initializeDefaultState(){
     m_state.flushState();
 }
 
-void DataContours::_updateContourState( ){
-    int i = 0;
-    for ( std::set<Contour>::iterator it = m_contours.begin();
-                        it != m_contours.end(); it++ ){
-        QString indexLookup = Carta::State::UtilState::getLookup( CONTOURS, i );
-        m_state.setObject( indexLookup, (*it).getStateString());
-        i++;
-    }
-    m_state.flushState();
-}
+
 
 bool DataContours::isContourDraw() const {
     return m_state.getValue<bool>( CONTOUR_DRAW );
@@ -125,6 +121,22 @@ bool DataContours::operator<( const DataContours& other ) const {
     return lessThan;
 }
 
+void DataContours::resetState( const QString& state ){
+    //Update the state, then set the contours to match.
+    CartaObject::resetState( state );
+    int levelCount = m_state.getArraySize( CONTOURS);
+    m_contours.clear();
+    for ( int i = 0; i < levelCount; i++){
+        QString indexLookup = Carta::State::UtilState::getLookup( CONTOURS, i );
+        QString contourState = m_state.toString( indexLookup );
+        Contour contour;
+        contour.setStateString( contourState );
+        m_contours.insert( contour );
+    }
+    m_state.resizeArray( CONTOURS, m_contours.size() );
+    _updateContourState();
+}
+
 QString DataContours::setAlpha( std::vector<double>& levels, int transparency ){
     QString result;
     int levelCount = levels.size();
@@ -133,10 +145,7 @@ QString DataContours::setAlpha( std::vector<double>& levels, int transparency ){
     for ( int i = 0; i < levelCount; i++ ){
         Contour* contourLevel = _getContour( levels[i] );
         if ( contourLevel != nullptr ){
-            result = contourLevel->setAlpha( transparency );
-            if ( result.isEmpty() ){
-                alphaSet = true;
-            }
+            result = contourLevel->setAlpha( transparency, &alphaSet );
         }
         else {
             if ( unrecognizedLevels.size() > 0 ){
@@ -162,10 +171,7 @@ QStringList DataContours::setColor( std::vector<double>& levels, int red, int gr
     for ( int i = 0; i < levelCount; i++ ){
         Contour* contourLevel = _getContour( levels[i] );
         if ( contourLevel != nullptr ){
-            result = contourLevel->setColor( red, green, blue );
-            if ( result.isEmpty() ){
-                colorSet = true;
-            }
+            result = contourLevel->setColor( red, green, blue, &colorSet );
         }
         else {
             if ( unrecognizedLevels.size() > 0 ){
@@ -206,9 +212,8 @@ bool DataContours::setLevels( std::vector<double>& levels ){
         Contour* contourLevel = _getContour( levels[i] );
         if ( contourLevel == nullptr ){
             Contour contour;
-            contour.setLevel( levels[i] );
+            contour.setLevel( levels[i], &levelsChanged );
             m_contours.insert( contour );
-            levelsChanged = true;
         }
     }
 
@@ -232,6 +237,10 @@ bool DataContours::setLevels( std::vector<double>& levels ){
             it++;
         }
     }
+    if ( levels.size() != m_contours.size() ){
+        levelsChanged = true;
+    }
+
     if ( levelsChanged ){
         m_state.resizeArray( CONTOURS, m_contours.size() );
         _updateContourState();
@@ -248,10 +257,7 @@ QString DataContours::setLineStyle( std::vector<double>& levels, const QString& 
     for ( int i = 0; i < levelCount; i++ ){
         Contour* contourLevel = _getContour( levels[i] );
         if ( contourLevel != nullptr ){
-            result = contourLevel->setStyle( lineStyle );
-            if ( result.isEmpty() ){
-                lineStyleSet = true;
-            }
+            result = contourLevel->setStyle( lineStyle, &lineStyleSet );
         }
         else {
             if ( unrecognizedLevels.size() > 0 ){
@@ -291,10 +297,7 @@ QString DataContours::setThickness( std::vector<double>& levels, double thicknes
     for ( int i = 0; i < levelCount; i++ ){
         Contour* contourLevel = _getContour( levels[i] );
         if ( contourLevel != nullptr ){
-            result = contourLevel->setWidth( thickness );
-            if ( result.isEmpty() ){
-                thicknessSet = true;
-            }
+            result = contourLevel->setWidth( thickness, &thicknessSet );
         }
         else {
             if ( unrecognizedLevels.size() > 0 ){
@@ -339,6 +342,17 @@ QString DataContours::setVisibility( std::vector<double>& levels, bool visible )
        result = "Unrecognized contour levels: "+unrecognizedLevels;
     }
     return result;
+}
+
+void DataContours::_updateContourState( ){
+    int i = 0;
+    for ( std::set<Contour>::iterator it = m_contours.begin();
+                        it != m_contours.end(); it++ ){
+        QString indexLookup = Carta::State::UtilState::getLookup( CONTOURS, i );
+        m_state.setObject( indexLookup, (*it).getStateString());
+        i++;
+    }
+    m_state.flushState();
 }
 
 DataContours::~DataContours(){

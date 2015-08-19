@@ -43,7 +43,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             this._setLayout(new qx.ui.layout.VBox(2));
             
             this.m_thicknessWidget = new skel.widgets.CustomUI.TextSlider("setThickness", "thickness",
-                    0,10, 2, "Width", true, "Set the thickness of the contours.", 
+                    1,10, 2, "Width", true, "Set the thickness of the selected contour level(s).", 
                     "Slide to set the thickness of the contours.",
                     "contourThicknessField", "contourThicknessSlider", false);
             this.m_thicknessWidget.addListener( "textSliderChanged", 
@@ -51,7 +51,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
                         this._sendThicknessCmd( evt );
                     }, this );
             this.m_alphaWidget = new skel.widgets.CustomUI.TextSlider("setAlpha", "alpha",
-                    0,255, 128, "Alpha", true, "Set the transparency of the contours.", 
+                    0,255, 128, "Alpha", true, "Set the transparency of the selected contour level(s).", 
                     "Slide to set the transparency of the contours.",
                     "contourAlphaField", "contourAlphaSlider", false);
             this.m_alphaWidget.addListener( "textSliderChanged", 
@@ -60,6 +60,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
                 }, this );
             
             this.m_visibleCheck = new qx.ui.form.CheckBox();
+            this.m_visibleCheck.setToolTipText( "Set the visibility of the selected contour level(s).");
             this.m_visibleListener = this.m_visibleCheck.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendVisibleCmd, this );
             var visibleLabel = new qx.ui.basic.Label( "Show ");
             var visibleContainer = new qx.ui.container.Composite();
@@ -72,6 +73,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
             var lineStyleLabel = new qx.ui.basic.Label( "Style:");
             this.m_lineStyleCombo = new skel.boundWidgets.ComboBox();
             this.m_lineStyleCombo.setEnabled( false );
+            this.m_lineStyleCombo.setToolTipText( "Set the draw style of the selected contour level(s).");
             this.m_lineStyleCombo.addListener( "comboChanged", this._sendLineStyleCmd, this );
             var lineContainer = new qx.ui.container.Composite();
             lineContainer.setLayout( new qx.ui.layout.HBox(2));

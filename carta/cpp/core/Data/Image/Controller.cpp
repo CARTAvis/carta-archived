@@ -131,7 +131,7 @@ bool Controller::addData(const QString& fileName) {
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         connect( targetSource, & ControllerData::saveImageResult, this, & Controller::saveImageResultCB );
-        m_datas.append(targetSource);
+        m_datas.append(std::shared_ptr<ControllerData>(targetSource));
         targetSource->_viewResize( m_viewSize );
 
         //Update the data selectors upper bound based on the data.
@@ -204,11 +204,11 @@ void Controller::clear(){
 }
 
 void Controller::_clearData(){
-
-    for ( ControllerData* source : m_datas ){
-        delete source;
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    for ( std::shared_ptr<ControllerData> source : m_datas ){
+        QString id = source->getId();
+        objMan->removeObject( id );
     }
-    m_datas.clear();
 }
 
 QString Controller::closeImage( const QString& name ){
@@ -296,8 +296,7 @@ int Controller::getSelectImageIndex() const {
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
-        ControllerData* data = Controller::m_datas[index];
-        name = data->_getFileName();
+        name = m_datas[index]->_getFileName();
     }
     return name;
 }
@@ -395,6 +394,7 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
 
         dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
         dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+        dataState.insertValue<QString>( ContourControls::CLASS_NAME, m_contourControls->getStateString( sessionId, type));
         result = dataState.toString();
 
     }
@@ -695,8 +695,11 @@ QString Controller::_makeRegion( const QString& regionType ){
 }
 
 void Controller::_removeData( int index ){
-    disconnect( m_datas[index]);
+    disconnect( m_datas[index].get());
     int selectedImage = m_selectImage->getIndex();
+    QString id = m_datas[index]->getId();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    objMan->removeObject( id );
     m_datas.removeAt( index );
     m_selectImage->setUpperBound( m_datas.size());
     if ( selectedImage == index ){
@@ -795,6 +798,10 @@ void Controller::resetStateData( const QString& state ){
         StateInterface controlState = m_datas[imageIndex]->_getGridState();
         this->m_gridControls->_resetState( controlState );
     }
+
+    //Restore contours
+    QString contourData = dataState.getValue<QString>( ContourControls::CLASS_NAME);
+    m_contourControls->resetStateData( contourData );
 }
 
 void Controller::resetPan(){
@@ -942,28 +949,28 @@ void Controller::_scheduleFrameReload(){
 }
 
 void Controller::setColorInverted( bool inverted ){
-    for ( ControllerData* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorInverted( inverted );
     }
     _render();
 }
 
 void Controller::setColorMap( const QString& name ){
-    for ( ControllerData* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorMap( name );
     }
     _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
-    for ( ControllerData* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorReversed( reversed );
     }
     _render();
 }
 
 void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
-    for ( ControllerData* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorAmounts( newRed, newGreen, newBlue );
     }
     _render();
@@ -1005,7 +1012,7 @@ void Controller::setFrameImage( int val) {
 }
 
 void Controller::setGamma( double gamma ){
-    for ( ControllerData* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setGamma( gamma );
     }
     _render();
@@ -1014,7 +1021,7 @@ void Controller::setGamma( double gamma ){
 
 
 void Controller::setTransformData( const QString& name ){
-    for ( ControllerData* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->_setTransformData( name );
     }
     _render();
@@ -1071,7 +1078,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             else {
                 newZoom = oldZoom * 0.9;
             }
-            for (ControllerData* data : m_datas ){
+            for (std::shared_ptr<ControllerData> data : m_datas ){
                 data->_setZoom( newZoom );
             }
 
@@ -1084,7 +1091,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             // add the delta to the current center
             QPointF currCenter = m_datas[imageIndex]->_getCenter();
             QPointF newCenter = currCenter + delta;
-            for ( ControllerData* data : m_datas ){
+            for ( std::shared_ptr<ControllerData> data : m_datas ){
                 data->_setPan( newCenter.x(), newCenter.y() );
             }
             _render();
@@ -1098,7 +1105,7 @@ void Controller::updatePan( double centerX , double centerY){
         bool validImage = false;
         QPointF oldImageCenter = m_datas[imageIndex]-> _getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
-            for ( ControllerData* data : m_datas ){
+            for ( std::shared_ptr<ControllerData> data : m_datas ){
                 data->_setPan( oldImageCenter.x(), oldImageCenter.y() );
             }
             _render();
