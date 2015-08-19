@@ -379,6 +379,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setClipRange( histogramView, minRange, maxRange );
     }
 
+    else if ( cmd == "getcliprange" ) {
+        QString histogramView = args["histogramView"].toString();
+        result = m_scriptFacade->getClipRange( histogramView );
+    }
+
     else if ( cmd == "applyclips" ) {
         QString histogramView = args["histogramView"].toString();
         double clipMinValue = args["clipMinValue"].toDouble();

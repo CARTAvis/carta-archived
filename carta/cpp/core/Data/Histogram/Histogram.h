@@ -166,6 +166,12 @@ public:
     QString setClipRange( double minRange, double maxRange );
 
     /**
+     * Get the values of the lower and upper bounds for the histogram horizontal axis.
+     * @return The lower and upper bounds for the histogram horizontal axis.
+     */
+    QStringList getClipRange();
+
+    /**
      * Set the lower and upper bounds for the histogram as percentages of the entire range.
      * @param minPercent a number in [0,100) representing the amount to leave off on the left.
      * @param maxPercent a number in [0,100) representing the amount to leave off on the right.

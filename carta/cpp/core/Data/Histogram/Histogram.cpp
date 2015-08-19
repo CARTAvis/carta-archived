@@ -1063,6 +1063,15 @@ QString Histogram::setClipRange( double clipMin, double clipMax ){
     return result;
 }
 
+QStringList Histogram::getClipRange() {
+    QStringList clipRangeValues;
+    double clipMin = m_stateData.getValue<double>(CLIP_MIN);
+    double clipMax = m_stateData.getValue<double>(CLIP_MAX);
+    clipRangeValues.append( QString::number( clipMin) );
+    clipRangeValues.append( QString::number( clipMax) );
+    return clipRangeValues;
+}
+
 QString Histogram::setCustomClip( bool customClip ){
     QString result;
     bool oldCustomClip = m_state.getValue<bool>(CUSTOM_CLIP);

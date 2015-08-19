@@ -73,6 +73,23 @@ class Histogram(CartaView):
                                      minRange=minRange, maxRange=maxRange)
         return result
 
+    def getClipRange(self):
+        """
+        Get the lower and upper bounds for the histogram horizontal
+        axis.
+
+        Returns
+        -------
+        list
+            The lower and upper bounds for the histogram horizontal
+            axis.
+            Error message if an error occurred.
+        """
+        result = self.con.cmdTagList("getClipRange", histogramView=self.getId())
+        if (result[0] != "error"):
+            result = [float(i) for i in result]
+        return result
+
     def applyClips(self, clipMin, clipMax, mode):
         """
         Apply clips to the image.

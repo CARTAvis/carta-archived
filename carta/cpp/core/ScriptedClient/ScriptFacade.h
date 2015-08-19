@@ -470,6 +470,14 @@ public:
     QStringList setClipRange( const QString& histogramId, double minRange, double maxRange );
 
     /**
+     * Get the values of the lower and upper bounds for the histogram horizontal axis.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @return The lower and upper bounds for the histogram horizontal axis;
+     *         Error message if an error occurred.
+     */
+    QStringList getClipRange( const QString& histogramId );
+
+    /**
      * Applies clips to image.
      * @param histogramId the unique server-side id of an object managing a histogram.
      * @param clipMinValue the minimum of data to be shown.
