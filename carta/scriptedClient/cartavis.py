@@ -258,6 +258,21 @@ class Cartavis:
         result = self.con.cmdTagList("getPluginList")
         return result
 
+    def getEmptyWindowCount(self):
+        """
+        Returns the number of empty windows in the application.
+        This is a convenience function that simply counts the number of
+        occurrences of 'Empty' in the output of getPluginList().
+
+        Returns
+        -------
+        integer
+            The number of empty windows in the application.
+        """
+        plugins = self.getPluginList()
+        result = plugins.count('Empty')
+        return result
+
     def addLink(self, source, dest):
         """
         Establish a link between a source and destination.
