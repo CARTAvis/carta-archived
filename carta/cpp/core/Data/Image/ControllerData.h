@@ -113,7 +113,7 @@ private slots:
     void _saveImageResultCB( bool result );
 
 private:
-
+    void _clearData();
     /**
      * Returns true if this data source manages the data corresponding
      * to the fileName; false, otherwise.

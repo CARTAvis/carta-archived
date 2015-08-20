@@ -18,18 +18,20 @@ class Fonts : public Carta::State::CartaObject {
 public:
 
     /**
-     * Returns true if the name represents a supported font family; false, otherwise.
-     * @param name - a QString identifying a font family.
-     * @return true if the name represents a supported font family; false, otherwise.
-     */
-    bool isFontFamily( const QString& name ) const;
-
-    /**
      * Returns true if the value is a supported font size; false, otherwise.
      * @param fontSize - a font point size.
      * @return true if the font size is supported; false, otherwise.
      */
     bool isFontSize( int fontSize ) const;
+
+    /**
+     * Translates a non case sensitive font family into one
+     * that is case sensitive.
+     * @param fontFamily - a font family that may not have the proper capitalization.
+     * @return - a recognized font family or an empty string if the font is not
+     *      recognized.
+     */
+    QString getFontFamily( const QString& fontFamily ) const;
 
     /**
      * Returns a list of available font families.

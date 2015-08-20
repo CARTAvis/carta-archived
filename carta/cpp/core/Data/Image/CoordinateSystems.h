@@ -27,11 +27,13 @@ class CoordinateSystems : public Carta::State::CartaObject {
 public:
 
     /**
-     * Returns true if the name represents a valid coordinate system; false, otherwise.
-     * @param name a QString identifying a coordinate system.
-     * @return true if the name represents a valid coordinate system; false, otherwise.
+     * Translates a non case sensitive coordinate system into one
+     * that is case sensitive.
+     * @param system - a coordinate system that may not have the proper capitalization.
+     * @return - a recognized coordinate system or an empty string if the coordinate
+     *      system is not recognized.
      */
-    bool isCoordinateSystem( const QString& name ) const;
+    QString getCoordinateSystem( const QString& system ) const;
 
     /**
      * Returns a list of available coordinate systems.

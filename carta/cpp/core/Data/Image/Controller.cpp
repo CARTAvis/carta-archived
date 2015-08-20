@@ -766,6 +766,7 @@ void Controller::resetState( const QString& state ){
 void Controller::resetStateData( const QString& state ){
     //First we reset the data this controller is displaying
     _clearData();
+    m_datas.clear();
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
 
@@ -1206,6 +1207,9 @@ Controller::~Controller(){
     }
     if ( m_gridControls != nullptr ){
         objMan->removeObject( m_gridControls->getId());
+    }
+    if ( m_contourControls != nullptr ){
+        objMan->removeObject( m_contourControls->getId());
     }
     if ( m_settings != nullptr ){
         objMan->removeObject( m_settings->getId());

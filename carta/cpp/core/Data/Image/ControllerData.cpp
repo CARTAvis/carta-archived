@@ -494,13 +494,18 @@ QStringList ControllerData::_getCoordinates( double x, double y, int frameIndex,
     return coordStr;
 }
 
-
-
-ControllerData::~ControllerData() {
+void ControllerData::_clearData(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     if ( m_dataGrid != nullptr){
         objMan->removeObject(m_dataGrid->getId());
     }
+    if ( m_dataContours != nullptr){
+        objMan->removeObject(m_dataContours->getId());
+    }
+}
+
+ControllerData::~ControllerData() {
+    _clearData();
 }
 }
 }

@@ -18,12 +18,13 @@ class Themes : public Carta::State::CartaObject {
 public:
 
     /**
-     * Returns true if the name represents a supported theme; false, otherwise.
-     * @param name - a QString identifying a theme.
-     * @return true if the name represents a supported theme; false, otherwise.
+     * Translates a non case sensitive theme into one
+     * that is case sensitive.
+     * @param theme - a theme that may not have the proper capitalization.
+     * @return - a recognized theme or an empty string if the theme is not
+     *      recognized.
      */
-    bool isTheme( const QString& name ) const;
-
+    QString getTheme( const QString& theme ) const;
 
     /**
      * Returns a list of available themes.

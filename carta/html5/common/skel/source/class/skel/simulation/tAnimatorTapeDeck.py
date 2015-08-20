@@ -22,7 +22,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
     def test_animatorForwardAnimation(self):
         driver = self.driver 
 
-        # Open a test image so we have something to animate
+        # Open a test images
+        # Note:  The test will fail unless the last image loaded has more than one channel
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
@@ -259,7 +260,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         lastChannelValue = self._getChannelValue( driver )
 
         # Find and click the lower spin box
-        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div[2]/div[@class='qx-input'][1]/input")))
+        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((
+            By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[2]/div[@class='qx-input'][1]/input")))
         self.assertIsNotNone( lowerBoundText, "Could not find lower bound spin box")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lowerBoundText)
         lowerBoundText.click()
@@ -302,7 +304,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         lastImageValue = self._getImageValue( driver )
 
         # Find and click the lower spin box
-        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div[2]/div[@class='qx-input'][1]/input")))
+        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[2]/div[@class='qx-input'][1]/input")))
         self.assertIsNotNone( lowerBoundText, "Could not find lower bound spin box")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lowerBoundText)
         lowerBoundText.click()
@@ -351,7 +353,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         lastChannelValue = self._getChannelValue( driver )
 
         # Find and click the lower spin box
-        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div[2]/div[@class='qx-input'][1]/input")))
+        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[2]/div[@class='qx-input'][1]/input")))
         self.assertIsNotNone( lowerBoundText, "Could not find lower bound spin box")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lowerBoundText)
         lowerBoundText.click()
@@ -390,7 +392,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         lastImageValue = self._getImageValue( driver )
 
         # Find and click the lower spin box
-        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div[2]/div[@class='qx-input'][1]/input")))
+        lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[2]/div[@class='qx-input'][1]/input")))
         self.assertIsNotNone( lowerBoundText, "Could not find lower bound spin box")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lowerBoundText)
         lowerBoundText.click()
