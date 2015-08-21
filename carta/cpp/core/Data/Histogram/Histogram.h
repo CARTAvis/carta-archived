@@ -398,7 +398,7 @@ private:
     bool _resetBinCountBasedOnWidth();
     void _resetDefaultStateData();
 
-    void _zoomToSelection();
+    QString _zoomToSelection();
 
     static bool m_registered;
 

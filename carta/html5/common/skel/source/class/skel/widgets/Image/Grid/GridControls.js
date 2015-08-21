@@ -49,7 +49,7 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
                         this.m_ticks.setControls( controls );
                     }
                     var data = {
-                            grid : controls.grid
+                            grid : controls
                     };
                     this.fireDataEvent( "gridControlsChanged", data );
                     var errorMan = skel.widgets.ErrorHandler.getInstance();

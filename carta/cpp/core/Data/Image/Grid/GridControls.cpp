@@ -656,8 +656,10 @@ QString GridControls::setTheme( const QString& theme ){
 
 void GridControls::_updateGrid(){
     bool applyAll = m_state.getValue<bool>( ALL );
-    emit gridChanged( m_dataGrid->_getState(), applyAll );
-    m_state.setObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
+    Carta::State::StateInterface gridState = m_dataGrid->_getState();
+    emit gridChanged( gridState, applyAll );
+    QString gridStateStr = gridState.toString();
+    m_state.setObject( DataGrid::GRID, gridStateStr );
     m_state.flushState();
 }
 

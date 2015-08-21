@@ -72,7 +72,6 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
                         specCoord.toWorld(maxMV, maxChannel);
                         casa::Quantity maxQuantity = maxMV.get( units.c_str());
                         double highBound = maxQuantity.getValue();
-
                         if ( highBound < lowBound ){
                             double tmp = lowBound;
                             lowBound = highBound;
@@ -111,7 +110,7 @@ std::pair<int,int> Histogram1::_getChannelBounds( double freqMin, double freqMax
                         }
                     }
                     else {
-                        qWarning() << "Image did not have a spectral coordinate";
+                        //qWarning() << "Image did not have a spectral coordinate";
                     }
                 }
                 else {
@@ -195,7 +194,7 @@ std::pair<double,double> Histogram1::_getFrequencyBounds( int channelMin, int ch
                         }
                     }
                     else {
-                        qWarning() << "Image did not have a spectral coordinate";
+                        //qWarning() << "Image did not have a spectral coordinate";
                     }
                 }
                 else {

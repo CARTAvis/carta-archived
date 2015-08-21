@@ -102,8 +102,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         _gridChanged : function( ev ){
             var data = ev.getData();
-            var controls = data.grid;
-            this._showHideStatistics( controls.showStatistics );
+            var showStat = data.grid.grid.showStatistics;
+            this._showHideStatistics( showStat );
         },
 
         /**

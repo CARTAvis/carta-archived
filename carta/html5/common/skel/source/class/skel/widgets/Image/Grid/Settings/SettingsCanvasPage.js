@@ -128,8 +128,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
         _sendShowStatisticsCmd : function(){
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_id + path.SEP_COMMAND + "setShowStatistics";
-            var showAxis = this.m_showStatistics.getValue();
-            var params = "showStatistics:"+showAxis;
+            var showStatistics = this.m_showStatistics.getValue();
+            var params = "showStatistics:"+showStatistics;
             this.m_connector.sendCommand( cmd, params, function(){});
         },
 

@@ -188,6 +188,8 @@ void Histogram::_createHistogram( Controller* controller){
         m_stateData.setValue<double>(CLIP_MAX, maxIntensity);
         m_stateData.setValue<double>(COLOR_MIN, minIntensity );
         m_stateData.setValue<double>(COLOR_MAX, maxIntensity );
+        double binWidth = qAbs( maxIntensity - minIntensity ) / m_state.getValue<int>(BIN_COUNT);
+        setBinWidth( binWidth );
 
         int frameCount = controller->getChannelUpperBound() - 1;
         bool planeModeValid = false;
@@ -214,7 +216,8 @@ void Histogram::_endSelection(const QString& params ){
     m_selectionEnd = xstr.toDouble();
     m_histogram->setSelectionMode( false );
     m_selectionEnabled = false;
-    _zoomToSelection();
+    QString result = _zoomToSelection();
+    Util::commandPostProcess( result );
 }
 
 void Histogram::_endSelectionColor(const QString& params ){
@@ -581,6 +584,7 @@ void Histogram::_initializeCallbacks(){
     addCommandCallback( "setClipMaxPercent", [=] (const QString & /*cmd*/,
                      const QString & params, const QString & /*sessionId*/) -> QString {
        QString result;
+
        std::set<QString> keys = {CLIP_MAX_PERCENT};
        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
        QString clipMaxPercentStr = dataValues[CLIP_MAX_PERCENT];
@@ -897,8 +901,9 @@ void Histogram::_initializeCallbacks(){
 
     addCommandCallback( "zoomRange", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        _zoomToSelection();
-        return "";
+        QString result = _zoomToSelection();
+        Util::commandPostProcess( result );
+        return result;
     });
 
     QString pointerPath= UtilState::getLookup(getPath(), UtilState::getLookup(ImageView::VIEW, POINTER_MOVE));
@@ -1878,7 +1883,8 @@ void Histogram::_updateColorSelection(){
     }
 }
 
-void Histogram::_zoomToSelection(){
+QString Histogram::_zoomToSelection(){
+    QString result;
     bool valid = false;
     std::pair<double,double> range = m_histogram->getRange( &valid );
     if ( valid ){
@@ -1888,11 +1894,14 @@ void Histogram::_zoomToSelection(){
             minRange = range.second;
             maxRange = range.first;
         }
-        setClipRange( minRange, maxRange );
+        if ( minRange < maxRange ){
+            result = setClipRange( minRange, maxRange );
+        }
     }
     else {
         _generateHistogram( valid );
     }
+    return result;
 }
 
 
