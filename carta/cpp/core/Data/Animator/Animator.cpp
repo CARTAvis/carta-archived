@@ -162,18 +162,6 @@ void Animator::changeChannelIndex( int index ){
     }
 }
 
-int Animator::getFrameChannel() const {
-    int result = 0;
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            result = controller->getFrameChannel();
-        }
-    }
-    return result;
-}
-
 void Animator::changeImageIndex( int selectedImage ){
 
     int linkCount = m_linkImpl->getLinkCount();

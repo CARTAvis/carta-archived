@@ -88,12 +88,6 @@ public:
 
     void changeChannelIndex( int index );
 
-    /**
-     * Return the current channel selection.
-     * @return the current channel selection.
-     */
-    int getFrameChannel() const;
-
     void changeImageIndex( int selectedImage );
 
     /**

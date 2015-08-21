@@ -476,7 +476,15 @@ QStringList ScriptFacade::getChannelIndex( const QString& animatorId ){
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
-            resultList = QStringList( QString::number( animator->getFrameChannel() ) );
+            Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
+            if ( animType != nullptr ){
+                int frame = animType->getFrame();
+                resultList = QStringList( QString::number( frame ) );
+            }
+            else {
+                resultList = QStringList( ERROR );
+                resultList.append( "Could not get channel animator." );
+            }
         }
         else {
             resultList = QStringList( ERROR );
