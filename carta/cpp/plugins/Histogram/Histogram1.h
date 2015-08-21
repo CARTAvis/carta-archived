@@ -58,6 +58,7 @@ private:
 
     //Current histogram image.  Member variable so image pointer
     //is not destroyed.
-    std::shared_ptr<Image::ImageInterface> m_cartaImage;
+    Image::ImageInterface *m_cartaImage;
+    //std::shared_ptr<Image::ImageInterface> m_cartaImage;
 
 };
