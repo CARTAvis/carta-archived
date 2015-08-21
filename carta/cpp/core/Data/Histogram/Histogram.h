@@ -169,7 +169,7 @@ public:
      * Get the values of the lower and upper bounds for the histogram horizontal axis.
      * @return The lower and upper bounds for the histogram horizontal axis.
      */
-    QStringList getClipRange();
+    std::pair<double, double> getClipRange() const;
 
     /**
      * Set the lower and upper bounds for the histogram as percentages of the entire range.

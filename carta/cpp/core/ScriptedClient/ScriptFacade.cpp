@@ -1068,7 +1068,8 @@ QStringList ScriptFacade::getClipRange( const QString& histogramId ) {
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
-            resultList = histogram->getClipRange();
+            std::pair<double, double> clipRange = histogram->getClipRange();
+            resultList << QString::number( clipRange.first) << QString::number( clipRange.second );
         }
         else {
             resultList = QStringList( ERROR );
