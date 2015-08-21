@@ -273,6 +273,46 @@ class Cartavis:
         result = plugins.count('Empty')
         return result
 
+    def setEmptyWindowPlugin(self, n, plugin):
+        """
+        Set the nth empty window to a desired plugin.
+        A convenience function.
+        Note that since this function changes the number of empty
+        windows, it is possible to repeatedly call it with n set to 0
+        to set a different empty window to a plugin each time. e.g. if
+        there are 4 empty windows, calling:
+
+            v.setEmptyWindowPlugin(0, 'CasaImageLoader')
+            v.setEmptyWindowPlugin(0, 'CasaImageLoader')
+            v.setEmptyWindowPlugin(0, 'Histogram')
+            v.setEmptyWindowPlugin(0, 'Animator')
+
+        will set each of the empty windows to the desired plugins.
+
+        Parameters
+        ----------
+        n: integer
+            A number in [0, getEmptyWindowCount()) indicating which
+            empty window should be changed.
+        plugin: string
+            A valid plugin name.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = []
+        emptyCount = self.getEmptyWindowCount()
+        if (n >= emptyCount):
+            result = ["error", "Invalid empty window number: " + str(n)]
+        else:
+            plugins = self.getPluginList()
+            emptyIndexes = [i for i, x in enumerate(plugins) if x == 'Empty']
+            plugins[emptyIndexes[n]] = plugin
+            result = self.setPlugins(plugins)
+        return result
+
     def addLink(self, source, dest):
         """
         Establish a link between a source and destination.
