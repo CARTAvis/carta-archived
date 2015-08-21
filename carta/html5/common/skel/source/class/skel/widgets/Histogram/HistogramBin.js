@@ -59,6 +59,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramBin", {
             this.m_binCountTextSlider = new skel.widgets.CustomUI.TextSlider("setBinCount", "binCount",
                     1,10000, 25, "Count", true, "Set the number of histogram bins.", "Slide to set the number of histogram bins.",
                     "histogramBinCountTextField", "histogramBinCountSlider", false);
+            this.m_binCountTextSlider.setLogarithmic( true );
             binContainer.add( this.m_binCountTextSlider );
             
             //Bin Width

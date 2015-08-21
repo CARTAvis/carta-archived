@@ -497,7 +497,16 @@ void Histogram::_initializeCallbacks(){
         bool validInt = false;
         int binCount = binCountStr.toInt( &validInt );
         if ( validInt ){
-            result = setBinCount( binCount );
+            //Request was made to put slider on a logarithmic scale.  So for
+            //example, bin count should be 1 when the slider is at 0%, at 10
+            //when it is at 25%, 100 at 50%, 1000 at 75% and 10000 at 100%.
+            //Issue #67
+            int maxBinCount = m_state.getValue<int>(BIN_COUNT_MAX);
+            double logMaxCount = qLn( maxBinCount ) / qLn(10);
+            double percentage  = (binCount*1.0) / maxBinCount;
+            double percentLogMax = percentage * logMaxCount;
+            int scaledBinCount = static_cast<int>( qPow(10, percentLogMax) );
+            result = setBinCount( scaledBinCount );
         }
         else {
             result = "Invalid bin count: "+params+" must be a valid integer";

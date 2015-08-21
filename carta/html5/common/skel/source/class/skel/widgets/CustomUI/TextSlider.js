@@ -109,7 +109,27 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                     function(ev) {
                         var value = this.m_text.getValue();
                         if ( !isNaN( value ) ){
-                            this.m_slider.setValue( value );
+                            var sliderValue = this.m_slider.getValue();
+                            if ( ! this.m_logScale ){
+                                if ( sliderValue != value ){
+                                    this.m_slider.setValue( value );
+                                }
+                            }
+                            else {
+                                if ( value >= 1 ){
+                                    var maxValue = this.m_slider.getMaximum();
+                                    var logMax = Math.log( maxValue );
+                                    var logValue = Math.log( value );
+                                    var percent = logValue / logMax;
+                                    var newVal = Math.round( percent * maxValue );
+                                    if ( newVal < this.m_slider.getMinimum() ){
+                                        newVal = this.m_slider.getMinimum();
+                                    }
+                                    if ( newVal != sliderValue ){
+                                        this.m_slider.setValue( newVal );
+                                    }
+                                }
+                            }
                         }
                 }, this);
             this.m_text.setTextId( textTestId );
@@ -171,6 +191,15 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         },
         
         /**
+         * Set the scale used on the histogram slider to be a base 10 logarithm.
+         * @param useLogScale {boolean} - true if the scale should use a logarithmic
+         *      slider; false, otherwise.
+         */
+        setLogarithmic : function( useLogScale ){
+            this.m_logScale = useLogScale;
+        },
+        
+        /**
          * Set an upper bound for the text box and the slider.
          * @param value {Number} - the maximum value for this widget.
          */
@@ -214,6 +243,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
 
         m_cmd : null,
         m_paramId : null,
+        m_logScale : false,
         m_normalize : false,
         m_text : null,
         m_slider : null,
