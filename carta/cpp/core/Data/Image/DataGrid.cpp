@@ -473,11 +473,10 @@ QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmo
 QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordChanged ){
     QString result;
     *coordChanged = false;
-    QString actualSystem = _getActualCoordinateSystem( coordSystem );
-    bool validCoord = m_coordSystems->isCoordinateSystem( actualSystem );
-    if ( validCoord ){
-        if ( m_state.getValue<QString>( COORD_SYSTEM) != actualSystem ){
-            m_state.setValue<QString>( COORD_SYSTEM, actualSystem );
+    QString recognizedSystem = m_coordSystems->getCoordinateSystem( coordSystem );
+    if ( !recognizedSystem.isEmpty() ){
+        if ( m_state.getValue<QString>( COORD_SYSTEM) != recognizedSystem ){
+            m_state.setValue<QString>( COORD_SYSTEM, recognizedSystem );
             *coordChanged = true;
         }
     }
@@ -487,44 +486,19 @@ QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordC
     return result;
 }
 
-QString DataGrid::_getActualCoordinateSystem( const QString& coordStr ) {
-    QString result = "";
-    QStringList coordSystems = m_coordSystems->getCoordinateSystems();
-    for ( int i = 0; i < coordSystems.size(); i++ ) {
-        if ( QString::compare( coordStr, coordSystems[i], Qt::CaseInsensitive ) == 0 ) {
-            result = coordSystems[i];
-            break;
-        }
-    }
-    return result;
-}
-
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){
     QString result;
     *familyChanged = false;
-    QString actualFontFamily = _getActualFontFamily( fontFamily );
-    bool validFont = m_fonts->isFontFamily( actualFontFamily );
-    if ( validFont ){
+    QString recognizedFont = m_fonts->getFontFamily( fontFamily );
+    if ( !recognizedFont.isEmpty() ){
         QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
-        if ( m_state.getValue<QString>( familyLookup ) != actualFontFamily ){
-            m_state.setValue<QString>( familyLookup, actualFontFamily );
+        if ( m_state.getValue<QString>( familyLookup ) != recognizedFont ){
+            m_state.setValue<QString>( familyLookup, recognizedFont );
             *familyChanged = true;
         }
     }
     else {
         result= "The font family "+fontFamily+" is not supported.";
-    }
-    return result;
-}
-
-QString DataGrid::_getActualFontFamily( const QString& fontFamily ) {
-    QString result = "";
-    QStringList fontFamilies = m_fonts->getFontFamilies();
-    for ( int i = 0; i < fontFamilies.size(); i++ ) {
-        if ( QString::compare( fontFamily, fontFamilies[i], Qt::CaseInsensitive ) == 0 ) {
-            result = fontFamilies[i];
-            break;
-        }
     }
     return result;
 }
@@ -721,28 +695,16 @@ QString DataGrid::_setTickTransparency( int transparency, bool* transparencyChan
 QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
     *themeChanged = false;
     QString result;
-    QString actualTheme = _getActualTheme( theme );
-    if ( m_themes->isTheme( actualTheme )){
+    QString recognizedTheme = m_themes->getTheme( theme );
+    if ( !recognizedTheme.isEmpty() ){
         QString oldTheme = m_state.getValue<QString>( THEME );
-        if ( oldTheme != actualTheme ){
-            m_state.setValue<QString>( THEME, actualTheme );
+        if ( oldTheme != recognizedTheme ){
+            m_state.setValue<QString>( THEME, recognizedTheme );
             *themeChanged = true;
         }
     }
     else {
         result = "The theme "+theme+" was not recognized";
-    }
-    return result;
-}
-
-QString DataGrid::_getActualTheme( const QString& themeStr ) {
-    QString result = "";
-    QStringList themes = m_themes->getThemes();
-    for ( int i = 0; i < themes.size(); i++ ) {
-        if ( QString::compare( themeStr, themes[i], Qt::CaseInsensitive ) == 0 ) {
-            result = themes[i];
-            break;
-        }
     }
     return result;
 }

@@ -50,9 +50,7 @@ private:
     QString _setAxesThickness( int thickness, bool* thicknessChanged );
     QString _setAxesTransparency( int transparency, bool* transparencyChanged );
     QString _setCoordinateSystem( const QString& coordSystem, bool* coordChanged );
-    QString _getActualCoordinateSystem( const QString& coordStr );
     QString _setFontFamily( const QString& fontFamily, bool* familyChanged );
-    QString _getActualFontFamily( const QString& fontFamily );
     QString _setFontSize( int fontSize, bool* sizeChanged );
     QStringList _setGridColor( int redAmount, int greenAmount, int blueAmount, bool* gridColorChanged );
     QString _setGridSpacing( double spacing, bool* spacingChanged );
@@ -69,7 +67,6 @@ private:
     QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
     QString _setTickTransparency( int transparency, bool* transparencyChanged );
     QString _setTheme( const QString& theme, bool* themeChanged );
-    QString _getActualTheme( const QString& themeStr );
 
     Carta::State::StateInterface _getState();
     QPen _getPen( const QString& key, const Carta::State::StateInterface& state );
