@@ -71,6 +71,9 @@ public:
     setEmptyGrid( bool flag) override;
 
     virtual void
+    setTickLength( double tickLength ) override;
+
+    virtual void
     setTicksVisible( bool flag ) override;
 
 private slots:
@@ -122,6 +125,8 @@ private:
     bool m_axes = true;
     // flag to indicate whether or not to draw tick marks.
     bool m_ticks = true;
+    // how long to make the tick marks.
+    double m_tickLength = .01;
 
     bool m_axisLabels = false;
 

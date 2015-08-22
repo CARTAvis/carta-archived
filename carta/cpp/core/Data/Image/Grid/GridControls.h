@@ -167,7 +167,6 @@ public:
      */
     QString setShowTicks( bool showTicks );
 
-
     /**
      * Set the color of the tick marks.
      * @param redAmount - a nonnegative integer in [0,255].
@@ -177,6 +176,14 @@ public:
      *      color; an empty list otherwise.
      */
     QStringList setTickColor( int redAmount, int greenAmount, int blueAmount );
+
+    /**
+     * Set the length of the tick marks.
+     * @param tickLength - the length of the ticks.
+     * @return an error message if the length could not be set; otherwise, an
+     *      empty string.
+     */
+    QString setTickLength( int tickLength );
 
     /**
      * Set the length of the ticks.

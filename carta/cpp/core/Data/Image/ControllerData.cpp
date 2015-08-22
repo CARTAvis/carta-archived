@@ -201,14 +201,6 @@ QString ControllerData::_getPixelUnits() const {
     return units;
 }
 
-/*NdArray::RawViewInterface * ControllerData::_getRawData( int channelStart, int channelEnd ) const {
-    NdArray::RawViewInterface* rawData = nullptr;
-    if ( m_dataSource ){
-        m_dataSource->_getRawData( channelStart, channelEnd );
-    }
-    return rawData;
-}*/
-
 QString ControllerData::_getStateString() const{
     QString stateStr = m_state.toString();
     return stateStr;

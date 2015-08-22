@@ -879,12 +879,7 @@ void ContourControls::_updateContourSetState(){
 
 
 ContourControls::~ContourControls(){
-    ObjectManager* objMan = ObjectManager::objectManager();
     _clearContours();
-    if ( m_drawContours ){
-        QString drawContourId = m_drawContours->getId();
-        objMan->removeObject( drawContourId );
-    }
 }
 }
 }

@@ -250,6 +250,10 @@ AstWcsGridRenderService::renderNow()
         if ( !m_ticks ){
             _turnOffTicks(&sgp);
         }
+        else {
+            sgp.setPlotOption(QString("MinTickLen(1)=%1").arg( m_tickLength ));
+            sgp.setPlotOption(QString("MinTickLen(2)=%2").arg( m_tickLength ));
+        }
     }
 
     if ( m_internalLabels ) {
@@ -457,6 +461,16 @@ AstWcsGridRenderService::setEmptyGrid( bool flag )
     if ( m_emptyGridFlag != flag ) {
         m_vgValid = false;
         m_emptyGridFlag = flag;
+    }
+}
+
+void
+AstWcsGridRenderService::setTickLength( double length )
+{
+    CARTA_ASSERT( length >= 0 );
+    if ( m_tickLength != length ){
+        m_vgValid = false;
+        m_tickLength = length;
     }
 }
 

@@ -44,12 +44,15 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
             this.m_thickness = new skel.widgets.CustomUI.TextSlider("setTickThickness", "tick",
                     1, 10, 1, "Thickness", false, "Set tick thickness.", "Slide to set tick thickness.",
                     "tickThicknessTextField", "tickThicknessSlider", false);
+            this.m_length = new skel.widgets.CustomUI.TextSlider("setTickLength", "tickLength",
+                    0, 50, 5, "Length", false, "Set tick length.", "Slide to set tick length.",
+                    "tickLengthTextField", "tickLengthSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setTickTransparency", "alpha",
                     0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the tick transparency.", "Slide to set the tick transparency.",
                     "tickTransparencyTextField", "tickTransparencySlider", false);
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            sliderContainer.add( this.m_length );
             sliderContainer.add( this.m_thickness );
-            sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             sliderContainer.add( this.m_transparency );
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             
@@ -93,7 +96,18 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
         setControls : function( controls ){
             this._setShowTicks( controls.grid.showTicks );
             this._setThickness( controls.grid.tick.width );
+            this._setLength( controls.grid.tickLength );
             this._setTransparency( controls.grid.tick.alpha );
+        },
+        
+        /**
+         * Set the length of the ticks based on server-side information.
+         * @param length {Number} the tick length.
+         */
+        _setLength : function( length ){
+            if ( this.m_length.getValue() != length ){
+                this.m_length.setValue( length );
+            }
         },
         
         /**
@@ -111,7 +125,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
         
 
         /**
-         * Set the length of the ticks based on server-side information.
+         * Set the thickness of the ticks based on server-side information.
          * @param thickness {Number} the tick thickness.
          */
         _setThickness : function( thickness ){
@@ -139,6 +153,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
             this.m_id = gridId;
             this.m_transparency.setId( gridId );
             this.m_thickness.setId( gridId );
+            this.m_length.setId( gridId );
         },
 
         
@@ -148,6 +163,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
         
         m_showTicks : null,
         m_showListenerId : null,
+        m_length : null,
         m_thickness : null,
         m_transparency : null
     }

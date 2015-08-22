@@ -33,6 +33,8 @@ const QString DataGrid::SPACING = "spacing";
 const QString DataGrid::GRID = "grid";
 const QString DataGrid::THEME = "theme";
 const QString DataGrid::TICK = "tick";
+const QString DataGrid::TICK_LENGTH = "tickLength";
+const int DataGrid::TICK_LENGTH_MAX = 50;
 const int DataGrid::PEN_FACTOR = 10;
 
 
@@ -149,6 +151,7 @@ void DataGrid::_initializeDefaultState(){
     _initializeDefaultPen( AXES, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
     _initializeDefaultPen( TICK, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
     m_state.insertValue<double>( SPACING, .33 );
+    m_state.insertValue<int>(TICK_LENGTH, 5 );
 
     //Label Color
     _initializeDefaultPen( LABEL_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
@@ -225,6 +228,9 @@ void DataGrid::_resetGridRenderer(){
                                     tickPen );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines2,
                                     tickPen);
+        int tickLength = m_state.getValue<int>(TICK_LENGTH);
+        double gridTickLength = tickLength / 1000.0;
+        m_wcsGridRenderer->setTickLength( gridTickLength );
 
         //AXES
         bool showAxes = m_state.getValue<bool>( SHOW_AXIS );
@@ -366,6 +372,9 @@ bool DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     _setTickColor( tickColor.red(), tickColor.green(), tickColor.blue(), &tickColorChanged);
     bool tickTransparencyChanged = false;
     _setTickTransparency( tickColor.alpha(), & tickTransparencyChanged );
+    bool tickLengthChanged = false;
+    double otherThickness = otherState.getValue<int>(TICK_LENGTH);
+    _setTickLength( otherThickness, &tickLengthChanged );
 
 
 
@@ -377,7 +386,7 @@ bool DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
             spacingChanged ||
             axesChanged ||
             axesThicknessChanged || axesColorChanged || axesTransparencyChanged ||
-            tickThicknessChanged || tickColorChanged || tickTransparencyChanged ||
+            tickThicknessChanged || tickLengthChanged || tickColorChanged || tickTransparencyChanged ||
             fontFamilyChanged || fontSizeChanged ||
             labelColorChanged ||
             themeChanged;
@@ -654,6 +663,23 @@ QString DataGrid::_setShowTicks( bool showTicks, bool* ticksChanged ){
 
 QStringList DataGrid::_setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged ){
     QStringList result = _setColor( TICK, redAmount, greenAmount, blueAmount, colorChanged );
+    return result;
+}
+
+QString DataGrid::_setTickLength( int tickLength, bool* lengthChanged ){
+    *lengthChanged = false;
+    QString result;
+    if ( tickLength < 0 || tickLength > TICK_LENGTH_MAX ){
+        result = "Tick length must be in [0,"+QString::number(TICK_LENGTH_MAX)+
+                "]: "+QString::number(tickLength);
+    }
+    else {
+        int oldLength = m_state.getValue<int>(TICK_LENGTH);
+        if ( oldLength != tickLength ){
+            m_state.setValue<int>( TICK_LENGTH, tickLength);
+            *lengthChanged = true;
+        }
+    }
     return result;
 }
 

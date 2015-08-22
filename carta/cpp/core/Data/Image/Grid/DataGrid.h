@@ -63,6 +63,7 @@ private:
     QString _setShowInternalLabels( bool showInternalLabels, bool * gridChanged );
     QString _setShowStatistics( bool showStatistics, bool * statisticsChanged );
     QString _setShowTicks( bool showTicks, bool* ticksChanged );
+    QString _setTickLength( int tickLength, bool* lengthChanged );
     QString _setTickThickness( int tickThickness, bool* thicknessChanged );
     QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
     QString _setTickTransparency( int transparency, bool* transparencyChanged );
@@ -95,6 +96,8 @@ private:
     const static QString SPACING;
     const static QString THEME;
     const static QString TICK;
+    const static QString TICK_LENGTH;
+    const static int TICK_LENGTH_MAX;
     const static int PEN_FACTOR;
 
     static bool m_registered;

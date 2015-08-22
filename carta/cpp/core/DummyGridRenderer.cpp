@@ -61,6 +61,10 @@ DummyGridRenderer::setSkyCS( Lib::KnownSkyCS )
 { }
 
 void
+DummyGridRenderer::setTickLength( double )
+{ }
+
+void
 DummyGridRenderer::setTicksVisible( bool )
 { }
 

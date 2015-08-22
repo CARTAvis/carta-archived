@@ -61,6 +61,9 @@ public:
     setSkyCS( Carta::Lib::KnownSkyCS ) override;
 
     virtual void
+    setTickLength( double ) override;
+
+    virtual void
     setTicksVisible( bool ) override;
 
     virtual JobId

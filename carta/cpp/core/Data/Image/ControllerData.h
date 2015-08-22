@@ -261,17 +261,6 @@ private:
      */
     QStringList _getCoordinates( double x, double y, int frameIndex, Carta::Lib::KnownSkyCS system ) const;
 
-    
-
-
-    /**
-     * Returns the raw data as an array.
-     * @param frameLow the lower bound for the channel range or -1 for the whole image.
-     * @param frameHigh the upper bound for the channel range or -1 for the whole image.
-     * @return the raw data or nullptr if there is none.
-     */
-    //NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
-
     void _gridChanged( const Carta::State::StateInterface& state, bool renderImage, int frameIndex );
 
     void _initializeState();

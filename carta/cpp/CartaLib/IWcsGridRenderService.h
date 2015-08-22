@@ -100,6 +100,10 @@ public:
     virtual void
     setSkyCS( KnownSkyCS cs ) = 0;
 
+    //Set the length of the ticks
+    virtual void
+    setTickLength( double tickLength ) = 0;
+
     /// set whether or not tick marks should be drawn.
     virtual void
     setTicksVisible( bool on ) = 0;

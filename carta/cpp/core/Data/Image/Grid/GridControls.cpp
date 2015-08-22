@@ -373,6 +373,24 @@ void GridControls::_initializeCallbacks(){
                return errors;
            });
 
+    addCommandCallback( "setTickLength", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {DataGrid::TICK_LENGTH};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString lengthStr = dataValues[DataGrid::TICK_LENGTH];
+            bool validInt = false;
+            int length = lengthStr.toInt( &validInt );
+            if ( validInt ){
+                result = setTickLength( length  );
+            }
+            else {
+                result = "Tick length must be a number:"+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
                         QString result;
@@ -390,6 +408,7 @@ void GridControls::_initializeCallbacks(){
                         Util::commandPostProcess( result );
                         return result;
                     });
+
     addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
                                         const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
@@ -626,6 +645,14 @@ QStringList GridControls::setTickColor( int redAmount, int greenAmount, int blue
     return result;
 }
 
+QString GridControls::setTickLength( int tickLength ){
+    bool lengthChanged = false;
+    QString result = m_dataGrid->_setTickLength( tickLength, &lengthChanged );
+    if ( lengthChanged ){
+       _updateGrid();
+    }
+    return result;
+}
 
 QString GridControls::setTickThickness( int tickThickness ){
     bool thicknessChanged = false;
