@@ -554,11 +554,23 @@ class Image(CartaView):
 
     def centerOnCoordinate(self, skyCoord):
         """
-        Centers the image on an astropy Sky Coordinate object.
+        Centers the image on an Astropy SkyCoord object.
+        
+        Astropy needs to be installed for this command to work. See
+        http://www.astropy.org for more information about Astropy and
+        how to install it.
+
+        For example, the following sequence of commands will focus the
+        image viewer on the coordinates of M33 (regardless of whether
+        or not M33 is contained within the current image).
+
+            from astropy.coordinates import SkyCoord
+            i = v.getImageViews()
+            i[0].centerOnCoordinate(SkyCoord.from_name("M33"))
 
         Parameters
         ----------
-        skyCoord: astropy Sky Coordinate object
+        skyCoord: Astropy SkyCoord object
             The object to center the image on.
 
         Returns
