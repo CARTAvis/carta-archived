@@ -85,6 +85,16 @@ class Cartavis:
     def getImageViews(self):
         """
         Return a list of the image views defined by the layout.
+        If there is more than one image view in the current application
+        layout, each one can be accessed via its own element in the
+        list. For example, if there are 3 image views in the GUI, the
+        following sequence of commands can be used to load a different
+        image in each viewer:
+
+            i = v.getImageViews()
+            i[0].loadLocalFile('/tmp/m31.fits')
+            i[1].loadLocalFile('/tmp/m42.fits')
+            i[2].loadLocalFile('/tmp/m33.fits')
 
         Returns
         -------
@@ -103,6 +113,16 @@ class Cartavis:
     def getColormapViews(self):
         """
         Return a list of the colormap views defined by the layout.
+        If there is more than one colormap view in the current
+        application layout, each one can be accessed via its own element
+        in the list. For example, if there are 3 colormap views in the
+        GUI, the following sequence of commands can be used to load a
+        different colormap in each one: 
+
+            c = v.getColormapViews()
+            c[0].setColormap('coolwarm')
+            c[1].setColormap('spring')
+            c[2].setColormap('cubehelix')
 
         Returns
         -------
@@ -121,6 +141,16 @@ class Cartavis:
     def getAnimatorViews(self):
         """
         Return a list of the animator views defined by the layout.
+        If there is more than one animator view in the current
+        application layout, each one can be accessed via its own element
+        in the list. For example, if there are 3 animator views in the
+        GUI, the following sequence of commands can be used to display a
+        different channel in each one: 
+
+            a = v.getAnimatorViews()
+            a[0].setChannel(1)
+            a[1].setChannel(110)
+            a[2].setChannel(5)
 
         Returns
         -------
@@ -139,6 +169,16 @@ class Cartavis:
     def getHistogramViews(self):
         """
         Return a list of the histogram views defined by the layout.
+        If there is more than one histogram view in the current
+        application layout, each one can be accessed via its own element
+        in the list. For example, if there are 3 histogram views in the
+        GUI, the following sequence of commands can be used to set a
+        different clip range percent in each one:
+
+            h = v.getHistogramViews()
+            h[0].setClipRangePercent(1, 99)
+            h[1].setClipRangePercent(5, 95)
+            h[2].setClipRangePercent(0.1, 99.9)
 
         Returns
         -------
