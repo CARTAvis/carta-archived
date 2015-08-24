@@ -374,11 +374,6 @@ class Image(CartaView):
         """
         Remove a link between this image viewer and a destination
         object.
-
-        Parameters
-        ----------
-        dest: CartaView object
-            The object to remove the link from.
         The parameters are CartaView objects that are obtained by
         commands such as getHistogramViews() and getColormapViews(). For
         example, the following sequence of commands will obtain the
@@ -388,6 +383,11 @@ class Image(CartaView):
             i = v.getImageViews()
             h = v.getHistogramViews()
             i[0].removeLink(h[0])
+
+        Parameters
+        ----------
+        dest: CartaView object
+            The object to remove the link from.
 
         Returns
         -------
