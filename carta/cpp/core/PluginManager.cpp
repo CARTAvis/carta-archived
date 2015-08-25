@@ -7,6 +7,8 @@
 #include "Algorithms/Graphs/TopoSort.h"
 #include "CartaLib/HtmlString.h"
 #include "CartaLib/Hooks/LoadPlugin.h"
+#include "Globals.h"
+#include "MainConfig.h"
 #include <QDirIterator>
 #include <QImage>
 #include <QPluginLoader>
@@ -47,7 +49,7 @@ void PluginManager::loadPlugins()
         qDebug() << "  " << ind << m_discoveredPlugins[ind].json.name;
     }
 
-    // build a dependency to index lookup
+    // assign a unique integer for each plugin found
     std::map< QString, int > dep2ind;
     for( size_t i = 0 ; i < m_discoveredPlugins.size() ; i ++ ) {
         PluginInfo & pInfo = m_discoveredPlugins[i];
@@ -66,11 +68,6 @@ void PluginManager::loadPlugins()
         if( ! pInfo.errors.empty()) {
             continue;
         }
-        // skip non-native plugins
-        // TODO: we probably don't want to skip them...
-//        if( pInfo.json.typeString != "c++" && pInfo.json.typeString != "lib") {
-//            continue;
-//        }
         // for every dependency add appropriate arrow to toposort
         for( QString & dep : pInfo.json.depends) {
             // convert dependency to index...
@@ -147,6 +144,8 @@ void PluginManager::loadPlugins()
             qDebug() << "Calling plugin's initialize";
             IPlugin::InitInfo initInfo;
             initInfo.pluginPath = pInfo.dirPath;
+            auto json = Globals::instance()-> mainConfig()-> json();
+            initInfo.json = json["plugins"].toObject()[pInfo.json.name].toObject();
             pInfo.rawPlugin->initialize( initInfo);
 
             // find out what hooks this plugin wants to listen to

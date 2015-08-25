@@ -90,10 +90,6 @@ public:
     /// add a state callback
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) Q_DECL_OVERRIDE;
 
-    /// returns a map of url encoded parameters that were used to invoke the main program
-    /// this only works after initialize() was called
-    const std::map< QString, QString> & urlParams();
-
     /// register view implementation
     virtual void registerView(IView * view) Q_DECL_OVERRIDE;
 
@@ -105,6 +101,14 @@ public:
 
     /// remove state callback implementation
     virtual void removeStateCallback( const CallbackID & id) Q_DECL_OVERRIDE;
+
+    /// get the initial file list (used by server platform)
+    virtual const QStringList & initialFileList();
+
+    /// returns a map of url encoded parameters that were used to invoke the main program
+    /// this only works after initialize() was called
+//    const std::map< QString, QString> & urlParams();
+
 
 protected:
 
@@ -138,6 +142,9 @@ protected:
 
     // list of url encoded parameters
     std::map< QString, QString> m_urlParams;
+
+    // initial file list
+    QStringList m_initialFileList;
 
     // whether initialize was called
     bool m_initialized;

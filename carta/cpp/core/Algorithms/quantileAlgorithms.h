@@ -47,6 +47,7 @@ quantiles2pixels(
     if ( CARTA_RUNTIME_CHECKS ) {
         for ( auto q : quant ) {
             CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
+            Q_UNUSED(q);
         }
     }
 

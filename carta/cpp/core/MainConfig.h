@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <QJsonObject>
 #include <QStringList>
 class QString;
 
@@ -31,11 +32,15 @@ public:
      */
     bool isDeveloperLayout() const;
 
+    /// the whole config file as json
+    const QJsonObject & json() const;
+
 protected:
 
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
     bool m_developerLayout = false;
+    QJsonObject m_json;
 
     friend ParsedInfo parse( const QString & filePath);
 };

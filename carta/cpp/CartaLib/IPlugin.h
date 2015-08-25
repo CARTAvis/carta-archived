@@ -7,6 +7,7 @@
 #include <QImage>
 #include <QObject>
 #include <QDebug>
+#include <QJsonObject>
 #include <cstdint>
 
 /// Every hook as a unique ID and we are using 64bit integers for hook IDs
@@ -98,6 +99,7 @@ public:
         QString pluginPath;
 
         /// parsed json
+        QJsonObject json;
     };
 
     /// called immediately after the plugin was loaded

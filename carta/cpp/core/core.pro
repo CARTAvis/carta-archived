@@ -18,7 +18,6 @@ HEADERS += \
     PluginManager.h \
     Globals.h \
     Algorithms/Graphs/TopoSort.h \
-    Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
     MainConfig.h \
@@ -95,7 +94,8 @@ HEADERS += \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
     VGView.h \
-    DummyGridRenderer.h
+    DummyGridRenderer.h \
+    coreMain.h
 
 SOURCES += \
     Viewer.cpp \
@@ -151,7 +151,6 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    Algorithms/RawView2QImageConverter.cpp \
     Histogram/HistogramGenerator.cpp \
     Histogram/HistogramSelection.cpp \
     Histogram/HistogramPlot.cpp \
@@ -175,7 +174,8 @@ SOURCES += \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
     VGView.cpp \
-    DummyGridRenderer.cpp
+    DummyGridRenderer.cpp \
+    coreMain.cpp
 
 
 #message( "common            PWD=$$PWD")

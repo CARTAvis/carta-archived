@@ -1,0 +1,9 @@
+{
+    "api"        : "1",
+    "name"       : "CyberSKA",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "CyberSKA integration",
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : [ ]
+}

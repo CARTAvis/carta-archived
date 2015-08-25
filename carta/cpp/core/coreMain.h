@@ -1,20 +1,9 @@
-#include "DesktopPlatform.h"
-#include "core/coreMain.h"
-
-int
-main( int argc, char * * argv )
-{
-    return Carta::Core::coreMain<DesktopPlatform>( "desktop", argc, argv);
-}
-
-
-#ifdef DONT_COMPILE
+#pragma once
 
 /*
- * This is the desktop main
+ * This is the 'main' that is shared between both server and desktop versions.
  */
 
-#include "DesktopPlatform.h"
 #include "core/Viewer.h"
 #include "core/Hacks/HackViewer.h"
 #include "core/MyQApp.h"
@@ -23,29 +12,36 @@ main( int argc, char * * argv )
 #include "core/Globals.h"
 #include <QDebug>
 
+namespace Carta
+{
+namespace Core
+{
 ///
-/// \brief main entry point for desktop viewer
+/// \brief internal main entry point for the viewer
 /// \param argc standard argc
 /// \param argv standard argv
 /// \return standard main return (0=success)
 ///
-/// @todo refactor some of the common code in desktopMain and serverMain into a commonMain
-///
-/// @warning keep this in sync with serverMain until refactored to commonMain
-///
+template < class Platform >
 static int
-mainCPP( int argc, char * * argv )
+coreMainCPP( QString platformString, int argc, char * * argv )
 {
     //
     // initialize Qt
     //
+    // don't require a window manager even though we're a QGuiApplication
+//    qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
+
     MyQApp qapp( argc, argv );
 
-#ifdef QT_DEBUG
-    MyQApp::setApplicationName( "carta-desktop-debug" );
-#else
-    MyQApp::setApplicationName( "carta-desktop-release" );
+    QString appName = "carta-" + platformString;
+#ifndef QT_NO_DEBUG_OUTPUT
+    appName += "-verbose";
 #endif
+    if( CARTA_RUNTIME_CHECKS) {
+        appName += "-runtimeChecks";
+    }
+    MyQApp::setApplicationName( appName );
 
     qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
 
@@ -60,41 +56,42 @@ mainCPP( int argc, char * * argv )
     // load the config file
     // ====================
     QString configFilePath = cmdLineInfo.configFilePath();
-    auto mainConfig = MainConfig::parse( configFilePath );
+    MainConfig::ParsedInfo mainConfig = MainConfig::parse( configFilePath );
     globals.setMainConfig( & mainConfig );
     qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - " );
-
-    // initialize platform
-    // ===================
-    // platform gets command line & main config file via globals
-    auto platform = new DesktopPlatform();
-    globals.setPlatform( platform );
-
-    // prepare connector
-    // =================
-    // connector is created via platform, but we put it into globals explicitely here
-    IConnector * connector = platform-> connector();
-    if ( ! connector ) {
-        qFatal( "Could not initialize connector!" );
-    }
-    globals.setConnector( connector );
 
     // initialize plugin manager
     // =========================
     globals.setPluginManager( std::make_shared < PluginManager > () );
     auto pm = globals.pluginManager();
-
     // tell plugin manager where to find plugins
     pm-> setPluginSearchPaths( globals.mainConfig()->pluginDirectories() );
-
     // find and load plugins
     pm-> loadPlugins();
     qDebug() << "Loading plugins...";
     auto infoList = pm-> getInfoList();
-    qDebug() << "List of plugins: [" << infoList.size() << "]";
+    qDebug() << "List of loaded plugins: [" << infoList.size() << "]";
     for ( const auto & entry : infoList ) {
         qDebug() << "  path:" << entry.json.name;
     }
+
+    // initialize platform
+    // ===================
+    // platform get access to
+    // - command line
+    // - main config file
+    // - plugin manager
+    // via Globals::instance()
+    globals.setPlatform( new Platform() );
+
+    // prepare connector
+    // =================
+    // connector is created via platform, but we put it into globals explicitely here
+    IConnector * connector = globals.platform()-> connector();
+    if ( ! connector ) {
+        qFatal( "Could not initialize connector!" );
+    }
+    globals.setConnector( connector );
 
     // create the viewer
     // =================
@@ -121,15 +118,21 @@ mainCPP( int argc, char * * argv )
     // initialize connector
     connector-> initialize( initCB );
 
-    // qt now has control
-    return qapp.exec();
+    // give QT control
+    int res = qapp.exec();
+
+    // if we get here, it means we are quitting...
+    qDebug() << "Exiting";
+    return res;
 } // mainCPP
 
+/// main entry point, wrapped in try/catch to report exceptions during startup
+template < class Platform >
 int
-main( int argc, char * * argv )
+coreMain( QString platformString, int argc, char * * argv )
 {
     try {
-        return mainCPP( argc, argv );
+        return coreMainCPP<Platform>( platformString, argc, argv );
     }
     catch ( const char * err ) {
         qCritical() << "Exception(char*):" << err;
@@ -143,7 +146,8 @@ main( int argc, char * * argv )
     catch ( ... ) {
         qCritical() << "Exception(unknown type)!";
     }
+    qFatal( "%s", "...caught in main()" );
     return - 1;
 } // main
-
-#endif
+}
+}

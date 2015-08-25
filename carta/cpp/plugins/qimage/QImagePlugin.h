@@ -1,4 +1,4 @@
-/// This plugin can read image formats that casacore supports.
+/// This plugin can read image formats that Qt supports.
 
 #pragma once
 
@@ -17,9 +17,5 @@ public:
     QImagePlugin(QObject *parent = 0);
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
-
-private:
-
-//    Image::ImageInterface::SharedPtr loadImage(const QString & fname);
 
 };

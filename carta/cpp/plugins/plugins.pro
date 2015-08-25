@@ -18,4 +18,6 @@ SUBDIRS += noisepy
 SUBDIRS += blurpy
 
 
+SUBDIRS += CyberSKA
+
 

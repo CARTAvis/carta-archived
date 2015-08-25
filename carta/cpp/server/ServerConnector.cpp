@@ -1,27 +1,13 @@
 #include "ServerConnector.h"
 #include "core/MyQApp.h"
+#include "core/Globals.h"
+#include "CartaLib/Hooks/GetInitialFileList.h"
 
 #include <QTimer>
 #include <QImage>
 #include <QXmlInputSource>
 #include <QDebug>
-
 #include <functional>
-
-// define convenience conversion between CSI::String and QString
-// accomplished by going to std::string as an intermediate step
-//namespace CSI {
-//template<>
-//struct cast_helper<QString, CSI::String >
-//{
-//    static bool try_cast(String const& value, QString & result)
-//    {
-//        std::string stdstr = value.As<std::string>();
-//        result = stdstr.c_str();
-//        return true;
-//    }
-//};
-//}
 
 ServerConnector::ServerConnector()
     : QObject( nullptr)
@@ -30,6 +16,7 @@ ServerConnector::ServerConnector()
     m_initialized = false;
 }
 
+static
 void OnPWStateInitialized(CSI::PureWeb::Server::StateManager &, CSI::EmptyEventArgs &)
 {
     qDebug() << "State manager is now initialized";
@@ -58,17 +45,23 @@ void ServerConnector::initialize(const InitializeCallback & cb)
         m_server->Start(m_stateManager.get());
         m_server->ShutdownRequested() += OnPureWebShutdown;
 
+        // register generic command listener
+        CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
+                "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
+
         // extract URL encoded arguments
         for( auto kv : m_server-> StartupParameters()) {
             QString key = kv.first.ToAscii().begin();
             QString val = kv.second.ToAscii().begin();
             m_urlParams[ key ] = val;
-            //qDebug() << key << "=" << val;
         }
 
-        // register generic command listener
-        CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
-                "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
+        // make a list of initial files from this
+        auto & pm = * Globals::instance()->pluginManager();
+        auto list = pm.prepare < Carta::Lib::Hooks::GetInitialFileList > ( m_urlParams).first();
+        if( list.isSet()) {
+            m_initialFileList = list.val();
+        }
 
         m_initialized = true;
     }
@@ -95,17 +88,6 @@ QString ServerConnector::getStateLocation( const QString & saveName ) const {
 	//TODO: generalize this.
 	return "/tmp/"+saveName + ".json";
 }
-
-// Commenting this out because (a) it was not used, (b) it was probably not converting
-// CSI::String to std::string correctly. (Pavol)
-/*
-QString ServerConnector::toQString( const CSI::String source) const {
-    std::string treeValueStr = source.As<std::string>();
-    QString treeValueQ = treeValueStr.c_str();
-    return treeValueQ;
-}
-*/
-
 
 QString ServerConnector::getState(const QString& path)
 {
@@ -175,12 +157,12 @@ IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, c
     return m_callbackNextId++;
 }
 
-const std::map<QString, QString> & ServerConnector::urlParams()
-{
-    Q_ASSERT( m_initialized);
+//const std::map<QString, QString> & ServerConnector::urlParams()
+//{
+//    Q_ASSERT( m_initialized);
 
-    return m_urlParams;
-}
+//    return m_urlParams;
+//}
 
 void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &val)
 {
@@ -327,5 +309,21 @@ void ServerConnector::refreshView(IView *view)
 void ServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
     qFatal( "Not implemented");
+}
+
+const QStringList & ServerConnector::initialFileList()
+{
+    return m_initialFileList;
+
+//    m_initialFileList.clear();
+//    auto it = m_urlParams.find( "file");
+//    if( it != m_urlParams.end()) {
+//        m_initialFileList << ( * it).second;
+//    }
+
+
+
+//    m_initialFileList = { "/scratch/Images/sky.jpg" };
+//    return m_initialFileList;
 }
 

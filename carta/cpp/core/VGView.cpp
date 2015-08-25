@@ -43,6 +43,7 @@ void
 VGView::registration( IConnector * connector )
 {
     CARTA_ASSERT( connector = m_connector );
+    Q_UNUSED(connector);
 }
 
 const QString &

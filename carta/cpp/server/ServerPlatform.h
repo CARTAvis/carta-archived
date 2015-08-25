@@ -29,7 +29,6 @@ public:
 
 protected:
 
-    ServerConnector * m_connector;
-    QStringList m_initialFileList;
+    ServerConnector * m_connector = nullptr;
 };
 

@@ -12,10 +12,9 @@ TEMPLATE = lib
 CONFIG += plugin
 
 SOURCES += \
-    QImagePlugin.cpp
-
+    CyberSKAplugin.cpp
 HEADERS += \
-    QImagePlugin.h
+    CyberSKAplugin.h
 
 OTHER_FILES += \
     plugin.json

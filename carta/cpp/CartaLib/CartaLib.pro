@@ -62,7 +62,8 @@ HEADERS += \
     IWcsGridRenderService.h \
     IContourGeneratorService.h \
     ContourSet.h \
-    Algorithms/LineCombiner.h
+    Algorithms/LineCombiner.h \
+    Hooks/GetInitialFileList.h
 
 unix {
     target.path = /usr/lib

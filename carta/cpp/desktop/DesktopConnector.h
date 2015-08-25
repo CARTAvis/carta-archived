@@ -10,10 +10,6 @@
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
 
-#ifndef CARTA_RUNTIME_CHECKS
-#define CARTA_RUNTIME_CHECKS 0
-#endif
-
 class MainWindow;
 class IView;
 

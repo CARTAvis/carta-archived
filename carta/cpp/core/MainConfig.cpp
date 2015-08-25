@@ -41,6 +41,7 @@ ParsedInfo parse(const QString & filePath)
         return info;
     }
     QJsonObject json = jsonDoc.object();
+    info.m_json = json;
 
     // extract plugin directories
     auto pluginDirs = json[ "pluginDirs"].toArray().toVariantList();
@@ -82,6 +83,11 @@ bool ParsedInfo::hacksEnabled() const
 
 bool ParsedInfo::isDeveloperLayout() const {
     return m_developerLayout;
+}
+
+const QJsonObject &ParsedInfo::json() const
+{
+    return m_json;
 }
 
 } // namespace MainConfig

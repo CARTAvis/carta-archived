@@ -46,6 +46,7 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     }
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
+    Q_UNUSED( bytesPerLine);
 
     // start with a pointer to the beginning of last row (we are constructing image
     // bottom-up)
