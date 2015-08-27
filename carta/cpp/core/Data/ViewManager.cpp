@@ -7,6 +7,7 @@
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
 #include "Data/Image/Grid/Themes.h"
+#include "Data/Image/Grid/LabelFormats.h"
 #include "Data/Image/Contour/ContourGenerateModes.h"
 #include "Data/Image/Contour/ContourSpacingModes.h"
 #include "Data/Image/Contour/ContourStyles.h"
@@ -72,6 +73,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<TransformsData>();
     Util::findSingletonObject<TransformsImage>();
     Util::findSingletonObject<ErrorManager>();
+    Util::findSingletonObject<LabelFormats>();
     Util::findSingletonObject<Preferences>();
     Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();

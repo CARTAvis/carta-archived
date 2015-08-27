@@ -119,6 +119,15 @@ public:
     QStringList setLabelColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
+     * Set the axis label format.
+     * @param labelSide - an identifier for a side of the grid where the format applies.
+     * @param labelFormat - the format to use for the axis label.
+     * @return an error message if the axis label format could not be set; an empty
+     *      string otherwise.
+     */
+    QString setLabelFormat( const QString& labelSide, const QString& labelFormat );
+
+    /**
      * Set whether or not the axes should be shown.
      * @param showAxis - true if the axes should be shown; false otherwise.
      * @return an error message if there was a problem changing the visibility of the
@@ -212,6 +221,7 @@ public:
 
     virtual ~GridControls();
     const static QString CLASS_NAME;
+
 
 signals:
 

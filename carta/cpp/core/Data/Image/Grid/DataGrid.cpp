@@ -3,7 +3,9 @@
 #include "Fonts.h"
 #include "Themes.h"
 #include "Globals.h"
+#include "CartaLib/AxisInfo.h"
 #include "Data/Image/CoordinateSystems.h"
+#include "LabelFormats.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "State/UtilState.h"
@@ -22,7 +24,11 @@ const QString DataGrid::COORD_SYSTEM = "skyCS";
 const QString DataGrid::DIRECTION = "direction";
 const QString DataGrid::FONT = "font";
 const QString DataGrid::LABEL_COLOR = "labels";
+const QString DataGrid::LABEL_FORMAT = "labelFormats";
+const QString DataGrid::LABEL_AXIS = "axis";
 
+const QString DataGrid::FORMAT = "format";
+const QString DataGrid::LABEL_SIDE = "side";
 const QString DataGrid::SHOW_AXIS = "showAxis";
 const QString DataGrid::SHOW_COORDS = "showCoordinateSystem";
 const QString DataGrid::SHOW_INTERNAL_LABELS = "showInternalLabels";
@@ -34,6 +40,8 @@ const QString DataGrid::GRID = "grid";
 const QString DataGrid::THEME = "theme";
 const QString DataGrid::TICK = "tick";
 const QString DataGrid::TICK_LENGTH = "tickLength";
+const int DataGrid::MARGIN_DEFAULT = 10;
+const int DataGrid::MARGIN_LABEL = 50;
 const int DataGrid::TICK_LENGTH_MAX = 50;
 const int DataGrid::PEN_FACTOR = 10;
 
@@ -41,6 +49,7 @@ const int DataGrid::PEN_FACTOR = 10;
 CoordinateSystems* DataGrid::m_coordSystems = nullptr;
 Fonts* DataGrid::m_fonts = nullptr;
 Themes* DataGrid::m_themes = nullptr;
+LabelFormats* DataGrid::m_formats = nullptr;
 
 class DataGrid::Factory : public Carta::State::CartaObjectFactory {
 
@@ -62,6 +71,53 @@ DataGrid::DataGrid( const QString& path, const QString& id):
 
     _initializeSingletons();
     _initializeDefaultState();
+}
+
+QString DataGrid::_getFormat( const Carta::State::StateInterface& state, const QString& direction ) const {
+    QString directionLookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, direction);
+    QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, FORMAT );
+    QString format = state.getValue<QString>( directionFormatLookup );
+    return format;
+}
+
+QString DataGrid::_getLabelLocation( const Carta::State::StateInterface& state, int axisIndex ) const {
+    QString location;
+    //Horizontal axis
+    if ( axisIndex == 0 ){
+        QString northFormat = _getFormat( state, LabelFormats::NORTH );
+        if ( m_formats -> isVisible( northFormat ) ){
+            location = LabelFormats::NORTH;
+        }
+        else {
+            QString southFormat = _getFormat( state, LabelFormats::SOUTH );
+            if ( m_formats ->isVisible( southFormat ) ){
+                location = LabelFormats::SOUTH;
+            }
+        }
+    }
+    //Vertical axis
+    else if ( axisIndex == 1 ){
+        QString eastFormat = _getFormat( state, LabelFormats::EAST );
+        if ( m_formats -> isVisible( eastFormat ) ){
+            location = LabelFormats::EAST;
+        }
+        else {
+            QString westFormat = _getFormat( state, LabelFormats::WEST );
+            if ( m_formats -> isVisible( westFormat ) ){
+                location = LabelFormats::WEST;
+            }
+        }
+    }
+    return location;
+}
+
+int DataGrid::_getMargin( const QString& direction ) const {
+    QString marginFormat = _getFormat( m_state, direction );
+    int margin = MARGIN_DEFAULT;
+    if ( m_formats->isVisible( marginFormat ) ){
+        margin = MARGIN_LABEL;
+    }
+    return margin;
 }
 
 Carta::Lib::KnownSkyCS DataGrid::_getSkyCS() const {
@@ -127,7 +183,16 @@ void DataGrid::_initializeDefaultPen( const QString& key, int red, int green, in
     }
 }
 
-
+void DataGrid::_initializeLabelFormat( const QString& side, const QString& format,
+        Carta::Lib::AxisInfo::KnownType axis ){
+    QString lookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, side );
+    m_state.insertObject( lookup );
+    QString formatLookup = Carta::State::UtilState::getLookup( lookup, FORMAT );
+    m_state.insertValue<QString>( formatLookup, format );
+    QString axisLookup = Carta::State::UtilState::getLookup( lookup, LABEL_AXIS );
+    int axisVal = static_cast<int>(axis);
+    m_state.insertValue<int>(axisLookup, axisVal );
+}
 
 void DataGrid::_initializeDefaultState(){
 
@@ -166,6 +231,15 @@ void DataGrid::_initializeDefaultState(){
 
     m_state.insertValue<QString>(THEME,m_themes->getDefaultTheme());
 
+    m_state.insertObject( LABEL_FORMAT );
+    QString formatEast = m_formats->getDefaultFormat( LabelFormats::EAST );
+    _initializeLabelFormat( LabelFormats::EAST, formatEast, Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT );
+    QString formatWest = m_formats->getDefaultFormat( LabelFormats::WEST );
+    _initializeLabelFormat( LabelFormats::WEST, formatWest, Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT );
+    QString formatNorth = m_formats->getDefaultFormat( LabelFormats::NORTH );
+    _initializeLabelFormat( LabelFormats::NORTH, formatNorth, Carta::Lib::AxisInfo::KnownType::DIRECTION_LON );
+    QString formatSouth = m_formats->getDefaultFormat( LabelFormats::SOUTH );
+    _initializeLabelFormat( LabelFormats::SOUTH, formatSouth, Carta::Lib::AxisInfo::KnownType::DIRECTION_LON );
     m_state.flushState();
 }
 
@@ -185,6 +259,11 @@ void DataGrid::_initializeSingletons( ){
     //Available themes
     if ( m_themes == nullptr ){
         m_themes = Util::findSingletonObject<Themes>();
+    }
+
+    //Label formats
+    if ( m_formats == nullptr ){
+        m_formats = Util::findSingletonObject<LabelFormats>();
     }
 }
 
@@ -286,114 +365,19 @@ void DataGrid::_resetGridRenderer(){
         QString coordSystem = m_state.getValue<QString>( COORD_SYSTEM );
         Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
         m_wcsGridRenderer-> setSkyCS( index );
+
+        QString labelLocation1 = _getLabelLocation( m_state, 0 );
+        QString labelLocation2 = _getLabelLocation( m_state, 1 );
+        m_wcsGridRenderer->setAxisLabelLocation( 0, labelLocation1 );
+        m_wcsGridRenderer->setAxisLabelLocation( 1, labelLocation2 );
     }
 }
 
 
 
-bool DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
-    bool stateChanged = false;
-
-    bool internalChanged = false;
-    bool newInternalLabels = otherState.getValue<bool>( SHOW_INTERNAL_LABELS );
-    _setShowInternalLabels( newInternalLabels, &internalChanged );
-
-    bool axesChanged = false;
-    bool newShowAxes = otherState.getValue<bool>( SHOW_AXIS );
-    _setShowAxis( newShowAxes, &axesChanged );
-
-    bool gridLinesChanged = false;
-    bool newGridLines = otherState.getValue<bool>( SHOW_GRID_LINES );
-    _setShowGridLines( newGridLines, &gridLinesChanged );
-
-    bool coordVisibilityChanged = false;
-    bool showCoords = otherState.getValue<bool>(SHOW_COORDS);
-    _setShowCoordinateSystem( showCoords, &coordVisibilityChanged );
-
-    //Coordinate system
-    bool coordChanged = false;
-    QString newCoords = otherState.getValue<QString>(COORD_SYSTEM);
-    _setCoordinateSystem( newCoords, &coordChanged);
-
-    QPen otherGridPen = _getPen( GRID, otherState );
-    bool gridThicknessChanged = false;
-    double otherWidth = otherGridPen.width();
-    _setGridThickness( otherWidth, &gridThicknessChanged );
-    bool gridColorChanged = false;
-    QColor gridColor = otherGridPen.color();
-    _setGridColor( gridColor.red(), gridColor.green(), gridColor.blue(), &gridColorChanged);
-    bool gridTransparencyChanged = false;
-    _setGridTransparency( gridColor.alpha(), & gridTransparencyChanged );
-
-    bool spacingChanged = false;
-    double newSpacing = otherState.getValue<double>( SPACING );
-    _setGridSpacing( newSpacing, &spacingChanged );
-
-
-    bool fontFamilyChanged = false;
-    QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
-    QString newFamily = otherState.getValue<QString>( familyLookup );
-    _setFontFamily( newFamily, &fontFamilyChanged );
-
-    bool fontSizeChanged = false;
-    QString sizeLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_SIZE );
-    int fontSize = otherState.getValue<int>( sizeLookup );
-    _setFontSize( fontSize, &fontSizeChanged );
-
-    bool themeChanged = false;
-    QString newTheme = otherState.getValue<QString>( THEME );
-    _setTheme( newTheme, & themeChanged );
-
-    bool labelColorChanged = false;
-    QPen labelPen = _getPen( LABEL_COLOR, otherState );
-    QColor labelColor = labelPen.color();
-    _setLabelColor( labelColor.red(), labelColor.green(), labelColor.blue(), &labelColorChanged );
-
-    QPen otherAxesPen = _getPen( AXES, otherState );
-    bool axesThicknessChanged = false;
-    double otherAxesWidth = otherAxesPen.width();
-    _setAxesThickness( otherAxesWidth, &axesThicknessChanged );
-    bool axesColorChanged = false;
-    QColor axesColor = otherAxesPen.color();
-    _setAxesColor( axesColor.red(), axesColor.green(), axesColor.blue(), &axesColorChanged);
-    bool axesTransparencyChanged = false;
-    _setAxesTransparency( axesColor.alpha(), & axesTransparencyChanged );
-
-    bool showTicksChanged = false;
-    bool showTicks = otherState.getValue<bool>( SHOW_TICKS );
-    _setShowTicks( showTicks, &showTicksChanged );
-
-    QPen otherTickPen = _getPen( TICK, otherState );
-    bool tickThicknessChanged = false;
-    double otherTickWidth = otherTickPen.width();
-    _setTickThickness( otherTickWidth, &tickThicknessChanged );
-    bool tickColorChanged = false;
-    QColor tickColor = otherTickPen.color();
-    _setTickColor( tickColor.red(), tickColor.green(), tickColor.blue(), &tickColorChanged);
-    bool tickTransparencyChanged = false;
-    _setTickTransparency( tickColor.alpha(), & tickTransparencyChanged );
-    bool tickLengthChanged = false;
-    double otherThickness = otherState.getValue<int>(TICK_LENGTH);
-    _setTickLength( otherThickness, &tickLengthChanged );
-
-
-
-    stateChanged = internalChanged || coordChanged ||
-            showTicksChanged ||
-            coordVisibilityChanged ||
-            gridLinesChanged ||
-            gridThicknessChanged || gridColorChanged || gridTransparencyChanged ||
-            spacingChanged ||
-            axesChanged ||
-            axesThicknessChanged || axesColorChanged || axesTransparencyChanged ||
-            tickThicknessChanged || tickLengthChanged || tickColorChanged || tickTransparencyChanged ||
-            fontFamilyChanged || fontSizeChanged ||
-            labelColorChanged ||
-            themeChanged;
-    if ( stateChanged ){
-        _resetGridRenderer();
-    }
-    return stateChanged;
+void DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
+    m_state = otherState;
+    _resetGridRenderer();
 }
 
 QStringList DataGrid::_setAxesColor( int redAmount, int greenAmount, int blueAmount,
@@ -573,6 +557,44 @@ QString DataGrid::_setGridThickness( int thickness, bool* coordChanged ){
 QStringList DataGrid::_setLabelColor( int redAmount, int greenAmount, int blueAmount,
         bool* labelColorChanged ){
     QStringList result = _setColor( LABEL_COLOR, redAmount, greenAmount, blueAmount, labelColorChanged );
+    return result;
+}
+
+
+QString DataGrid::_setLabelFormat( const QString& side, const QString& format, bool* labelFormatChanged ){
+    QString result;
+
+    //TODO:  Need to put in a check that the format makes sense the type of axis
+    //displayed on the indicated side.
+    *labelFormatChanged = false;
+    QString actualSide = m_formats->getDirection( side );
+    if ( actualSide.isEmpty() ){
+        result = "Unrecognized label side: "+side;
+    }
+    else {
+        QString actualFormat = m_formats->getFormat( format );
+        if ( actualFormat.isEmpty() ){
+            result = "Unrecognized label format: "+format;
+        }
+        else {
+            QString oldFormat = _getFormat( m_state, actualSide);
+            if ( oldFormat != actualFormat ){
+                bool visible = m_formats->isVisible( actualFormat );
+                QString directionLookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, side);
+                QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, FORMAT );
+                m_state.setValue<QString>( directionFormatLookup, actualFormat );
+                if ( visible ){
+                    //Make sure the format on the opposite side makes the labels
+                    //invisible.
+                    QString oppositeSide = m_formats->getOppositeSide( side );
+                    QString dLookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, oppositeSide );
+                    QString dFormatLookup = Carta::State::UtilState::getLookup( dLookup, FORMAT );
+                    m_state.setValue<QString>( dFormatLookup, LabelFormats::FORMAT_NONE );
+                }
+                *labelFormatChanged = true;
+            }
+        }
+    }
     return result;
 }
 

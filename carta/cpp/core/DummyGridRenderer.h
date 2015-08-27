@@ -52,6 +52,9 @@ public:
     setGridLinesVisible( bool ) override;
 
     virtual void
+    setAxisLabelLocation( int, const QString& ) override;
+
+    virtual void
     setAxesVisible( bool ) override;
 
     virtual void

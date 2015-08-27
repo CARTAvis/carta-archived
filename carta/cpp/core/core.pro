@@ -57,6 +57,7 @@ HEADERS += \
     Data/Image/Grid/Fonts.h \
     Data/Image/Grid/GridControls.h \
     Data/Image/Grid/Themes.h \
+    Data/Image/Grid/LabelFormats.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
@@ -140,6 +141,7 @@ SOURCES += \
     Data/Image/Grid/DataGrid.cpp \
     Data/Image/Grid/Fonts.cpp \
     Data/Image/Grid/GridControls.cpp \
+    Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
     Data/Image/DrawSynchronizer.cpp \
     Data/DataLoader.cpp \

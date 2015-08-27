@@ -51,10 +51,14 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
             this.setPadding( 0, 0, 0, 0 );
             this._setLayout(new qx.ui.layout.VBox(2));
             this.m_content = new qx.ui.container.Composite();
-            this._add( this.m_content, {flex:1} );
+            this._add( new qx.ui.core.Spacer(), {flex:1});
+            this._add( this.m_content);
+            this._add( new qx.ui.core.Spacer(), {flex:1});
             this.m_content.setLayout(new qx.ui.layout.VBox());
             this.m_content.add( new qx.ui.core.Spacer(5), {flex:1});
             this._initControls();
+            this.m_gridLabels = new skel.widgets.Image.Grid.Settings.GridLabels();
+            this.m_content.add( this.m_gridLabels );
             this.m_content.add( new qx.ui.core.Spacer(5), {flex:1});
         },
         
@@ -63,29 +67,24 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
          */
         _initControls : function(){
             var familyContainer = new qx.ui.container.Composite();
-            var gridLayout = new qx.ui.layout.Grid( 2, 2 );
-            familyContainer.setLayout( gridLayout );
-            gridLayout.setColumnAlign( 0, "right", "middle");
+            familyContainer.setLayout( new qx.ui.layout.HBox(2) );
+            familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
             
             this.m_familyCombo = new skel.boundWidgets.ComboBox( "setFontFamily", "family");
             this.m_familyCombo.setToolTipText( "Select a label font.");
             var familyLabel = new qx.ui.basic.Label( "Family:");
-            familyContainer.add( familyLabel, {row:0, column:0} );
-            familyContainer.add( this.m_familyCombo, {row:0, column:1} );
+            familyContainer.add( familyLabel );
+            familyContainer.add( this.m_familyCombo );
             
+            familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
             this.m_sizeCombo = new skel.boundWidgets.ComboBox( "setFontSize", "size");
             this.m_sizeCombo.setToolTipText( "Select a font size.");
             var sizeLabel = new qx.ui.basic.Label( "Size:");
-            familyContainer.add( sizeLabel, {row:1, column:0} );
-            familyContainer.add( this.m_sizeCombo, {row:1, column:1} );
+            familyContainer.add( sizeLabel );
+            familyContainer.add( this.m_sizeCombo );
             
-            var horContainer = new qx.ui.container.Composite();
-            horContainer.setLayout( new qx.ui.layout.HBox());
-            
-            horContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            horContainer.add( familyContainer );
-            horContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            this.m_content.add( horContainer );
+            familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            this.m_content.add( familyContainer );
         },
         
         /**
@@ -95,6 +94,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
         setControls : function( controls ){
             this.m_sizeCombo.setComboValue( controls.grid.font.size );
             this.m_familyCombo.setComboValue( controls.grid.font.family );
+            this.m_gridLabels.setControls( controls.grid.labelFormats );
         },
         
         /**
@@ -105,6 +105,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
             this.m_id = gridId;
             this.m_sizeCombo.setId( gridId );
             this.m_familyCombo.setId ( gridId );
+            this.m_gridLabels.setId( gridId );
         },
         
         m_content : null,
@@ -112,6 +113,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
         m_connector : null,
         
         m_sizeCombo : null,
-        m_familyCombo : null
+        m_familyCombo : null,
+        m_gridLabels : null
     }
 });

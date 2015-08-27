@@ -49,6 +49,10 @@ DummyGridRenderer::setGridLinesVisible( bool )
 { }
 
 void
+DummyGridRenderer::setAxisLabelLocation( int, const QString& ){
+}
+
+void
 DummyGridRenderer::setAxesVisible( bool )
 { }
 

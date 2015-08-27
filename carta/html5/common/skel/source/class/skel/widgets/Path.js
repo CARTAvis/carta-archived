@@ -19,6 +19,7 @@ qx.Class.define("skel.widgets.Path", {
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.FONTS = this.BASE_PATH + "Fonts";
+        this.LABEL_FORMATS = this.BASE_PATH + "LabelFormats";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
@@ -65,6 +66,7 @@ qx.Class.define("skel.widgets.Path", {
         GRID_PLUGIN : "GridControls",
         HIDDEN : "Hidden",
         HISTOGRAM_PLUGIN : "Histogram",
+        LABEL_FORMATS : "",
         LAYOUT : "",
         LAYOUT_MANAGER : "Layout",
         LAYOUT_PLUGIN : "",

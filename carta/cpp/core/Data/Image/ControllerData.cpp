@@ -6,6 +6,7 @@
 #include "Data/Preferences/PreferencesSave.h"
 #include "CartaLib/IImage.h"
 #include "Data/Util.h"
+#include "Data/Image/Grid/LabelFormats.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../../ImageRenderService.h"
 #include "../../ImageSaveService.h"
@@ -44,12 +45,6 @@ ControllerData::ControllerData(const QString& path, const QString& id) :
         m_dataGrid.reset( gridObj );
         m_dataGrid->_initializeGridRenderer();
         _initializeState();
-
-
-
-
-
-
 }
 
 
@@ -224,12 +219,10 @@ QSize ControllerData::_getOutputSize() const {
 
 
 void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bool renderImage, int frameIndex ){
-    bool stateChanged = m_dataGrid->_resetState( state );
-    if ( stateChanged ){
-        m_state.setObject(DataGrid::GRID, m_dataGrid->_getState().toString());
-        if ( renderImage ){
-            _render( frameIndex );
-        }
+    m_dataGrid->_resetState( state );
+    m_state.setObject(DataGrid::GRID, m_dataGrid->_getState().toString());
+    if ( renderImage ){
+        _render( frameIndex );
     }
 }
 
@@ -323,10 +316,10 @@ void ControllerData::_render( int frameIndex ){
     QSize renderSize = imageService-> outputSize();
     gridService-> setOutputSize( renderSize );
 
-    int leftMargin = 50;
-    int rightMargin = 10;
-    int bottomMargin = 50;
-    int topMargin = 10;
+    int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
+    int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
+    int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
+    int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
 
     QRectF outputRect( leftMargin, topMargin,
                        renderSize.width() - leftMargin - rightMargin,

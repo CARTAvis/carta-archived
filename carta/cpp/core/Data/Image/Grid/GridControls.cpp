@@ -16,6 +16,7 @@ namespace Data {
 const QString GridControls::CLASS_NAME = "GridControls";
 const QString GridControls::ALL = "applyAll";
 
+
 class GridControls::Factory : public Carta::State::CartaObjectFactory {
 
     public:
@@ -131,6 +132,21 @@ void GridControls::_initializeCallbacks(){
                 Util::commandPostProcess( result );
                 return result;
             });
+
+    addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString format = dataValues[DataGrid::FORMAT];
+                    //Because the map expects colons and the label format has colons,
+                    //the format colons are replaced with a - before sending from the
+                    //client and the server must restore the colons.
+                    format = format.replace( "-", ":");
+                    QString labelSide = dataValues[DataGrid::LABEL_SIDE];
+                    QString result = setLabelFormat( labelSide, format );
+                    Util::commandPostProcess( result );
+                    return result;
+                });
 
     addCommandCallback( "setGridColor", [=] (const QString & /*cmd*/,
                                         const QString & params, const QString & /*sessionId*/) -> QString {
@@ -574,6 +590,15 @@ QStringList GridControls::setLabelColor( int redAmount, int greenAmount, int blu
     bool labelColorChanged = false;
     QStringList result = m_dataGrid->_setLabelColor( redAmount, greenAmount, blueAmount, &labelColorChanged );
     if ( labelColorChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setLabelFormat( const QString& labelSide, const QString& labelFormat ){
+    bool labelFormatChanged = false;
+    QString result = m_dataGrid->_setLabelFormat( labelSide, labelFormat, &labelFormatChanged );
+    if ( labelFormatChanged ){
         _updateGrid();
     }
     return result;

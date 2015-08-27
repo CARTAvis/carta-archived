@@ -24,6 +24,7 @@ namespace Data {
 
 class CoordinateSystems;
 class Fonts;
+class LabelFormats;
 class Themes;
 
 class DataGrid : public Carta::State::CartaObject {
@@ -38,6 +39,9 @@ public:
     const static QString CLASS_NAME;
     const static QString GRID;
 private:
+    int _getMargin( const QString& direction ) const;
+    QString _getFormat( const Carta::State::StateInterface& state, const QString& direction ) const;
+    QString _getLabelLocation(const Carta::State::StateInterface& state, int axisIndex ) const;
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> _getRenderer();
     /**
      * Returns the currently selected coordinate system.
@@ -45,7 +49,7 @@ private:
      */
     Carta::Lib::KnownSkyCS _getSkyCS() const;
     bool _isGridVisible() const;
-    bool _resetState( const Carta::State::StateInterface& otherState );
+    void _resetState( const Carta::State::StateInterface& otherState );
     QStringList _setAxesColor( int redAmount, int greenAmount, int blueAmount, bool* axesColorChanged );
     QString _setAxesThickness( int thickness, bool* thicknessChanged );
     QString _setAxesTransparency( int transparency, bool* transparencyChanged );
@@ -57,6 +61,7 @@ private:
     QString _setGridTransparency( int transparency, bool* transparencyChanged );
     QString _setGridThickness( int thickness, bool* coordChanged );
     QStringList _setLabelColor( int redAmount, int greenAmount, int blueAmount, bool* labelColorChanged );
+    QString _setLabelFormat( const QString& side, const QString& format, bool* labelFormatChanged );
     QString _setShowAxis( bool showAxis, bool* gridChanged );
     QString _setShowCoordinateSystem( bool showCoordinateSystem, bool* coordChanged );
     QString _setShowGridLines( bool showLines, bool* gridChanged );
@@ -77,6 +82,8 @@ private:
     void _initializeDefaultState();
     void _initCoordSystems();
     void _initializeGridRenderer();
+    void _initializeLabelFormat( const QString& side, const QString& format,
+            Carta::Lib::AxisInfo::KnownType axis);
     void _initializeSingletons();
     void _resetGridRenderer();
     QStringList _setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
@@ -86,7 +93,11 @@ private:
     const static QString COORD_SYSTEM;
     const static QString DIRECTION;
     const static QString FONT;
+    const static QString LABEL_AXIS;
     const static QString LABEL_COLOR;
+    const static QString LABEL_FORMAT;
+    const static QString LABEL_SIDE;
+    const static QString FORMAT;
     const static QString SHOW_AXIS;
     const static QString SHOW_COORDS;
     const static QString SHOW_INTERNAL_LABELS;
@@ -97,6 +108,8 @@ private:
     const static QString THEME;
     const static QString TICK;
     const static QString TICK_LENGTH;
+    const static int MARGIN_DEFAULT;
+    const static int MARGIN_LABEL;
     const static int TICK_LENGTH_MAX;
     const static int PEN_FACTOR;
 
@@ -112,6 +125,7 @@ private:
     static CoordinateSystems* m_coordSystems;
     static Fonts* m_fonts;
     static Themes* m_themes;
+    static LabelFormats* m_formats;
     double m_errorMargin;
 
 	DataGrid( const DataGrid& other);

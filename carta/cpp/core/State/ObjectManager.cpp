@@ -20,7 +20,7 @@ namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
-        "CoordinateSystems","DataLoader","Fonts","TransformsImage","TransformsData",
+        "CoordinateSystems","DataLoader","Fonts","LabelFormats","TransformsImage","TransformsData",
         "ErrorManager","Layout","Preferences", "PreferencesSave", "Themes","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
