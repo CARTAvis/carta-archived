@@ -180,20 +180,10 @@ QStringList ScriptFacade::loadFile( const QString& objectId, const QString& file
     QStringList resultList("");
     bool result = m_viewManager->loadFile( objectId, fileName );
     if ( result == false ) {
-        resultList = QStringList( ERROR );
-        QString errorStr = "Could not load file " + fileName;
-        resultList.append( errorStr );
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
-    QStringList resultList("");
-    bool result = m_viewManager->loadFile( objectId, fileName );
-    if ( result == false ) {
-        resultList = QStringList( ERROR );
-        QString errorStr = "Could not load file " + fileName;
-        resultList.append( errorStr );
+        resultList = _logErrorMessage( ERROR, "Could not load file " + fileName );
+//        resultList = QStringList( ERROR );
+//        QString errorStr = "Could not load file " + fileName;
+//        resultList.append( errorStr );
     }
     return resultList;
 }
@@ -1879,4 +1869,10 @@ Carta::State::CartaObject* ScriptFacade::_getObject( const QString& id ) {
     QString objId = objMan->parseId( id );
     Carta::State::CartaObject* obj = objMan->getObject( objId );
     return obj;
+}
+
+QStringList ScriptFacade::_logErrorMessage( const QString& key, const QString& value ) {
+    QStringList result( key );
+    result.append( value );
+    return result;
 }

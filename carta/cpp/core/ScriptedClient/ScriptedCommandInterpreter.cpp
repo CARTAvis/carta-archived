@@ -209,12 +209,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->loadFile( imageView, fileName );
     }
 
-    else if ( cmd == "loadlocalfile" ) {
-        QString imageView = args["imageView"].toString();
-        QString fileName = args["fname"].toString();
-        result = m_scriptFacade->loadLocalFile( imageView, fileName );
-    }
-
     else if ( cmd == "getlinkedcolormaps" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getLinkedColorMaps( imageView );

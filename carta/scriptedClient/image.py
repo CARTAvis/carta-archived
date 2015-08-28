@@ -14,27 +14,7 @@ class Image(CartaView):
     Represents an image view.
     """
 
-    def loadFile(self, filename):
-        """
-        Load a file from /scratch/Images into the image view.
-
-        Parameters
-        ----------
-        filename: string
-            A path, relative to /scratch/Images, identifying the file to
-            be loaded.
-
-        Returns
-        -------
-        list
-            An error message if there was a problem loading the file,
-            and nothing otherwise.
-        """
-        result = self.con.cmdTagList("loadFile", imageView=self.getId(),
-                                     fname="/RootDirectory/"+filename)
-        return result
-
-    def loadLocalFile(self, fileName):
+    def loadFile(self, fileName):
         """
         Load a file into the image view.
 
@@ -49,7 +29,7 @@ class Image(CartaView):
             An error message if there was a problem loading the file,
             and nothing otherwise.
         """
-        result = self.con.cmdTagList("loadLocalFile", imageView=self.getId(),
+        result = self.con.cmdTagList("loadFile", imageView=self.getId(),
                                      fname=fileName)
         return result
 

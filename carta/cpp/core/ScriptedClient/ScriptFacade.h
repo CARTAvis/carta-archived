@@ -100,24 +100,13 @@ public:
     QStringList setImageLayout();
 
     /**
-     * Load a file from /scratch/Images into an image view.
-     * @param objectId the unique server-side id of an object that displays an
-     * image view.
-     * @param fileName a path, relative to /scratch/Images, identifying the
-     * file containing an image.
-     * @return an error message if there was a problem loading the file;
-     *      an empty string otherwise.
-     */
-    QStringList loadFile( const QString& objectId, const QString& fileName);
-
-    /**
      * Load a file into an image view.
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      * @return an error message if there was a problem loading the file;
      *      an empty string otherwise.
      */
-    QStringList loadLocalFile( const QString& objectId, const QString& fileName);
+    QStringList loadFile( const QString& objectId, const QString& fileName);
 
     /**
      * Show the image animator.
@@ -864,8 +853,8 @@ private:
     QString getStatisticsViewId( int index = -1 ) const;
 
     Carta::State::CartaObject* _getObject( const QString& id );
+    QStringList _logErrorMessage( const QString& key, const QString& value );
 
-private:
     const static QString TOGGLE;
     const static QString ERROR;
     const static QString UNKNOWN_ERROR;
