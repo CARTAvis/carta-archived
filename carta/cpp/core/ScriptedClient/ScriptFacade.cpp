@@ -162,9 +162,7 @@ QStringList ScriptFacade::setPlugins( const QStringList& names ) {
     QStringList resultList("");
     bool result = m_viewManager->setPlugins( names );
     if ( result == false ) {
-        resultList = QStringList( ERROR );
-        QString errorStr = "There was an error setting the plugins: " + names.join( ',' );
-        resultList.append( errorStr );
+        resultList = _logErrorMessage( ERROR, "There was an error setting the plugins: " + names.join( ',' ) );
     }
     return resultList;
 }
@@ -181,9 +179,6 @@ QStringList ScriptFacade::loadFile( const QString& objectId, const QString& file
     bool result = m_viewManager->loadFile( objectId, fileName );
     if ( result == false ) {
         resultList = _logErrorMessage( ERROR, "Could not load file " + fileName );
-//        resultList = QStringList( ERROR );
-//        QString errorStr = "Could not load file " + fileName;
-//        resultList.append( errorStr );
     }
     return resultList;
 }
@@ -199,10 +194,6 @@ QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
     Carta::Data::Layout* layout = Carta::Data::Util::findSingletonObject<Carta::Data::Layout>();
     QString resultStr = layout->setLayoutSize( rows, cols );
     resultList = QStringList( resultStr );
-
-    //QString resultStr = m_viewManager->setCustomView( rows, cols );
-    //QStringList result( resultStr );
-    //return result;
     return resultList;
 }
 
@@ -216,13 +207,11 @@ QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
@@ -246,18 +235,15 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "An invalid value was passed to reverse color map");
+                resultList = _logErrorMessage( ERROR, "An invalid value was passed to reverse color map: " + reverseStr );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
@@ -268,31 +254,28 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
-           bool invert = false;
-           bool validBool = true;
-           if ( invertStr == TOGGLE ){
-               invert = ! colormap->isInverted();
-           }
-           else {
-               invert = Carta::Data::Util::toBool( invertStr, &validBool );
-           }
-           if ( validBool ){
-               QString result = colormap->invertColorMap( invert );
-               resultList = QStringList( result );
-           }
-           else {
-               resultList = QStringList( ERROR );
-               resultList.append( "An unrecognized parameter was passed to invert color map");
-           }
+            bool invert = false;
+            bool validBool = true;
+            if ( invertStr == TOGGLE ){
+                invert = ! colormap->isInverted();
+            }
+            else {
+                invert = Carta::Data::Util::toBool( invertStr, &validBool );
+            }
+            if ( validBool ){
+                QString result = colormap->invertColorMap( invert );
+                resultList = QStringList( result );
+            }
+             else {
+                resultList = _logErrorMessage( ERROR, "An unrecognized parameter was passed to invert color map: " + invertStr );
+            }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
@@ -307,13 +290,11 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, do
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
@@ -328,13 +309,11 @@ QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
@@ -349,13 +328,11 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
@@ -370,13 +347,11 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
             animator->addAnimator( "Image", animId );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified animator could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
     }
     return resultList;
 }
@@ -391,13 +366,11 @@ QStringList ScriptFacade::getMaxImageCount( const QString& animatorId ) {
             resultList = QStringList( QString::number( result ) );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified animator could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
     }
     return resultList;
 }
@@ -417,13 +390,11 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified animator could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
     }
     return resultList;
 }
@@ -437,13 +408,11 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
             animator->changeImageIndex( index );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified animator could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
     }
     return resultList;
 }
@@ -459,13 +428,11 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
 
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified controller could not be found: " + controlId );
     }
     return resultList;
 }
@@ -603,8 +570,7 @@ QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find colormap." );
+            resultList = _logErrorMessage( ERROR, "Could not find colormap." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -628,8 +594,7 @@ QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find animator." );
+            resultList = _logErrorMessage( ERROR, "Could not find animator." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -653,8 +618,7 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find histogram." );
+            resultList = _logErrorMessage( ERROR, "Could not find histogram." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -678,8 +642,7 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find statistics view." );
+            resultList = _logErrorMessage( ERROR, "Could not find statistics view." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -697,13 +660,11 @@ QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, dou
             controller->centerOnPixel( x, y );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -717,13 +678,11 @@ QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLev
             controller->setZoomLevel( zoomLevel );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -738,13 +697,11 @@ QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
             resultList = QStringList( QString::number( zoomLevel ) );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -758,13 +715,11 @@ QStringList ScriptFacade::resetZoom( const QString& controlId ) {
             controller->resetZoom();
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -778,13 +733,11 @@ QStringList ScriptFacade::centerImage( const QString& controlId ) {
             controller->resetPan();
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -798,13 +751,11 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
             resultList = controller->getImageDimensions( );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -818,13 +769,11 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
             resultList = controller->getOutputSize( );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -838,13 +787,11 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
             resultList = controller->getPixelCoordinates( ra, dec );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -859,13 +806,11 @@ QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, dou
             resultList = QStringList( resultStr );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -880,13 +825,11 @@ QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
             resultList = QStringList( resultStr );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -900,13 +843,11 @@ QStringList ScriptFacade::getCoordinates( const QString& controlId, double x, do
             resultList = controller->getCoordinates( x, y, system );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -926,13 +867,11 @@ QStringList ScriptFacade::getImageNames( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -947,13 +886,11 @@ QStringList ScriptFacade::closeImage( const QString& controlId, const QString& i
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -968,13 +905,11 @@ QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferA
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -996,17 +931,15 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( UNKNOWN_ERROR );
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "The specified histogram view could not be found." );
+            resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
         }
     }
     else {
-        resultList = QStringList( "Set clip buffer parameter must be true/false or 'toggle': " + useBufferStr );
+        resultList = _logErrorMessage( ERROR, "Set clip buffer parameter must be true/false or 'toggle': " + useBufferStr );
     }
     return resultList;
 }
@@ -1021,13 +954,11 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1042,13 +973,11 @@ QStringList ScriptFacade::setClipRangePercent( const QString& histogramId, doubl
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1063,13 +992,11 @@ QStringList ScriptFacade::getClipRange( const QString& histogramId ) {
             resultList << QString::number( clipRange.first) << QString::number( clipRange.second );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1083,13 +1010,11 @@ QStringList ScriptFacade::applyClips( const QString& histogramId ) {
             histogram->applyClips();
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1107,18 +1032,15 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
                 resultList = QStringList( QString::number( intensity ) );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "Could not get intensity for the specified parameters." );
+                resultList = _logErrorMessage( ERROR, "Could not get intensity for the specified parameters." );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -1133,13 +1055,11 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1154,13 +1074,11 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1175,13 +1093,11 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1196,13 +1112,11 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1217,13 +1131,11 @@ QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1238,13 +1150,11 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1266,17 +1176,15 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( UNKNOWN_ERROR );
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "The specified histogram could not be found." );
+            resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
         }
     }
     else {
-        resultList = QStringList( "Set log count parameter must be true/false or 'toggle': " + logCountStr );
+        resultList = _logErrorMessage( ERROR, "Set log count parameter must be true/false or 'toggle': " + logCountStr );
     }
     return resultList;
 }
@@ -1298,17 +1206,15 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( UNKNOWN_ERROR );
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "The specified histogram could not be found." );
+            resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
         }
     }
     else {
-        resultList = QStringList( "Set colored parameter must be true/false or 'toggle': " + coloredStr );
+        resultList = _logErrorMessage( ERROR, "Set colored parameter must be true/false or 'toggle': " + coloredStr );
     }
     return resultList;
 }
@@ -1335,28 +1241,24 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
             if ( widthError.isEmpty() && heightError.isEmpty()){
                 QString result = histogram->saveHistogram( filename );
                 if ( !result.isEmpty() ){
-                    resultList.append( ERROR );
-                    resultList.append( result );
+                    resultList = _logErrorMessage( ERROR, result );
                 }
             }
             else {
-                resultList.append( ERROR );
                 if ( !widthError.isEmpty() ){
-                    resultList.append( widthError );
+                    resultList = _logErrorMessage( ERROR, widthError );
                 }
                 if ( !heightError.isEmpty() ){
-                    resultList.append( heightError );
+                    resultList = _logErrorMessage( ERROR, heightError );
                 }
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1370,13 +1272,11 @@ QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, i
             resultList = controller->getGridControls()->setAxesColor( red, green, blue );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1394,13 +1294,11 @@ QStringList ScriptFacade::setGridAxesThickness( const QString& controlId, int th
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1418,13 +1316,11 @@ QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1441,13 +1337,11 @@ QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyA
             controller->getGridControls()->setApplyAll( applyAll );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
@@ -1462,13 +1356,11 @@ QStringList ScriptFacade::setGridCoordinateSystem( const QString& controlId, con
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1486,13 +1378,11 @@ QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1510,13 +1400,11 @@ QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSiz
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1533,13 +1421,11 @@ QStringList ScriptFacade::setGridColor( const QString& controlId, int redAmount,
             resultList = controller->getGridControls()->setGridColor( redAmount, greenAmount, blueAmount );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1557,13 +1443,11 @@ QStringList ScriptFacade::setGridSpacing( const QString& controlId, double spaci
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1581,13 +1465,11 @@ QStringList ScriptFacade::setGridThickness( const QString& controlId, int thickn
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1606,13 +1488,11 @@ QStringList ScriptFacade::setGridTransparency( const QString& controlId, int tra
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1629,13 +1509,11 @@ QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAm
             resultList = controller->getGridControls()->setLabelColor( redAmount, greenAmount, blueAmount );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1653,13 +1531,11 @@ QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAx
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     return resultList;
 }
@@ -1674,13 +1550,11 @@ QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId,
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     return resultList;
 }
@@ -1695,13 +1569,11 @@ QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showG
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     return resultList;
 }
@@ -1716,13 +1588,11 @@ QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, b
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     return resultList;
 }
@@ -1737,13 +1607,11 @@ QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool 
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     return resultList;
 }
@@ -1758,13 +1626,11 @@ QStringList ScriptFacade::setShowGridTicks( const QString& controlId, bool showT
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     return resultList;
 }
@@ -1778,13 +1644,11 @@ QStringList ScriptFacade::setGridTickColor( const QString& controlId, int redAmo
             resultList = controller->getGridControls()->setTickColor( redAmount, greenAmount, blueAmount );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1802,13 +1666,11 @@ QStringList ScriptFacade::setGridTickThickness( const QString& controlId, int ti
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1826,13 +1688,11 @@ QStringList ScriptFacade::setGridTickTransparency( const QString& controlId, int
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
@@ -1850,13 +1710,11 @@ QStringList ScriptFacade::setGridTheme( const QString& controlId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
     }
     if ( resultList.length() == 0 ) {
         resultList = QStringList("");
