@@ -868,5 +868,6 @@ private:
 private:
     const static QString TOGGLE;
     const static QString ERROR;
+    const static QString UNKNOWN_ERROR;
 };
 

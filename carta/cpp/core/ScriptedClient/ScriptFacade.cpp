@@ -20,6 +20,7 @@ using Carta::State::ObjectManager;
 
 const QString ScriptFacade::TOGGLE = "toggle";
 const QString ScriptFacade::ERROR = "error";
+const QString ScriptFacade::UNKNOWN_ERROR = "An unknown error has occurred";
 
 ScriptFacade * ScriptFacade::getInstance (){
     static ScriptFacade * sc = new ScriptFacade ();
@@ -226,7 +227,7 @@ QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString&
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -261,7 +262,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -296,7 +297,7 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -317,7 +318,7 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, do
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -338,7 +339,7 @@ QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -359,7 +360,7 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -380,7 +381,7 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -401,7 +402,7 @@ QStringList ScriptFacade::getMaxImageCount( const QString& animatorId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -427,7 +428,7 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -447,7 +448,7 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -469,7 +470,7 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -494,7 +495,7 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -707,7 +708,7 @@ QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, dou
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -727,7 +728,7 @@ QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLev
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -748,7 +749,7 @@ QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -768,7 +769,7 @@ QStringList ScriptFacade::resetZoom( const QString& controlId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -788,7 +789,7 @@ QStringList ScriptFacade::centerImage( const QString& controlId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -808,7 +809,7 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -828,7 +829,7 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -848,7 +849,7 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -869,7 +870,7 @@ QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, dou
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -890,7 +891,7 @@ QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -910,7 +911,7 @@ QStringList ScriptFacade::getCoordinates( const QString& controlId, double x, do
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -936,7 +937,7 @@ QStringList ScriptFacade::getImageNames( const QString& controlId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -957,7 +958,7 @@ QStringList ScriptFacade::closeImage( const QString& controlId, const QString& i
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -978,7 +979,7 @@ QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferA
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1006,7 +1007,7 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
             }
             else {
                 resultList = QStringList( ERROR );
-                resultList.append( "An unknown error has occurred." );
+                resultList.append( UNKNOWN_ERROR );
             }
         }
         else {
@@ -1031,7 +1032,7 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1052,7 +1053,7 @@ QStringList ScriptFacade::setClipRangePercent( const QString& histogramId, doubl
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1073,7 +1074,7 @@ QStringList ScriptFacade::getClipRange( const QString& histogramId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1093,7 +1094,7 @@ QStringList ScriptFacade::applyClips( const QString& histogramId ) {
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1122,7 +1123,7 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1143,7 +1144,7 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1164,7 +1165,7 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1185,7 +1186,7 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1206,7 +1207,7 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1227,7 +1228,7 @@ QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QStr
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1248,7 +1249,7 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1276,7 +1277,7 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
             }
             else {
                 resultList = QStringList( ERROR );
-                resultList.append( "An unknown error has occurred." );
+                resultList.append( UNKNOWN_ERROR );
             }
         }
         else {
@@ -1308,7 +1309,7 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
             }
             else {
                 resultList = QStringList( ERROR );
-                resultList.append( "An unknown error has occurred." );
+                resultList.append( UNKNOWN_ERROR );
             }
         }
         else {
@@ -1360,7 +1361,7 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -1379,12 +1380,12 @@ QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, i
             resultList = controller->getGridControls()->setAxesColor( red, green, blue );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1403,12 +1404,12 @@ QStringList ScriptFacade::setGridAxesThickness( const QString& controlId, int th
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1427,12 +1428,12 @@ QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1450,12 +1451,12 @@ QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyA
             controller->getGridControls()->setApplyAll( applyAll );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1471,12 +1472,12 @@ QStringList ScriptFacade::setGridCoordinateSystem( const QString& controlId, con
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1495,12 +1496,12 @@ QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1519,12 +1520,12 @@ QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSiz
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1542,12 +1543,12 @@ QStringList ScriptFacade::setGridColor( const QString& controlId, int redAmount,
             resultList = controller->getGridControls()->setGridColor( redAmount, greenAmount, blueAmount );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1566,12 +1567,12 @@ QStringList ScriptFacade::setGridSpacing( const QString& controlId, double spaci
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1590,12 +1591,12 @@ QStringList ScriptFacade::setGridThickness( const QString& controlId, int thickn
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1615,12 +1616,12 @@ QStringList ScriptFacade::setGridTransparency( const QString& controlId, int tra
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1638,12 +1639,12 @@ QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAm
             resultList = controller->getGridControls()->setLabelColor( redAmount, greenAmount, blueAmount );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1662,12 +1663,12 @@ QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAx
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1683,12 +1684,12 @@ QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId,
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1704,12 +1705,12 @@ QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showG
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1725,12 +1726,12 @@ QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, b
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1746,12 +1747,12 @@ QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool 
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1767,12 +1768,12 @@ QStringList ScriptFacade::setShowGridTicks( const QString& controlId, bool showT
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     return resultList;
@@ -1787,12 +1788,12 @@ QStringList ScriptFacade::setGridTickColor( const QString& controlId, int redAmo
             resultList = controller->getGridControls()->setTickColor( redAmount, greenAmount, blueAmount );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1811,12 +1812,12 @@ QStringList ScriptFacade::setGridTickThickness( const QString& controlId, int ti
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1835,12 +1836,12 @@ QStringList ScriptFacade::setGridTickTransparency( const QString& controlId, int
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
@@ -1859,12 +1860,12 @@ QStringList ScriptFacade::setGridTheme( const QString& controlId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( "error" );
-            resultList.append( "An unknown error has occurred." );
+            resultList = QStringList( ERROR );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( "error" );
+        resultList = QStringList( ERROR );
         resultList.append( "The specified image view could not be found." );
     }
     if ( resultList.length() == 0 ) {
