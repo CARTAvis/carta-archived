@@ -21,30 +21,30 @@ def test_load_image(cartavisInstance, cleanSlate):
     i[0].closeImage('N15693D.fits')
 
 def test_animator_to_casaimageloader(cartavisInstance, cleanSlate):
-	"""
-	Test that we can change an animator to a CasaImageLoader
-	"""
-	# Get the animation window count and make sure it is non-zero
-	animWindowList = len(cartavisInstance.getAnimatorViews())
-	assert animWindowList > 0 
+    """
+    Test that we can change an animator to a CasaImageLoader
+    """
+    # Get the animation window count and make sure it is non-zero
+    animWindowList = len(cartavisInstance.getAnimatorViews())
+    assert animWindowList > 0 
 
-	# Get the image window count 
-	imageWindowList = len(cartavisInstance.getImageViews())
+    # Get the image window count 
+    imageWindowList = len(cartavisInstance.getImageViews())
 
-	# Locate an animator window and bring up the right-context menu,
-	# changing to a CasaImageLoader.
-	animatorWindow = ImageUtil.locateCenterOnScreen('test_images/animWindow.png')
-	pyautogui.doubleClick( x=animatorWindow[0], y=animatorWindow[1])
-	time.sleep(2)
-	pyautogui.rightClick( x=animatorWindow[0], y=animatorWindow[1])
-	pyautogui.press('right')
-	pyautogui.press('right')
-	pyautogui.press('return')
-	time.sleep(2)
+    # Locate an animator window and bring up the right-context menu,
+    # changing to a CasaImageLoader.
+    animatorWindow = ImageUtil.locateCenterOnScreen('test_images/animWindow.png')
+    pyautogui.doubleClick( x=animatorWindow[0], y=animatorWindow[1])
+    time.sleep(2)
+    pyautogui.rightClick( x=animatorWindow[0], y=animatorWindow[1])
+    pyautogui.press('right')
+    pyautogui.press('right')
+    pyautogui.press('return')
+    time.sleep(2)
 
-	# Verify that the animation count has gone down by one and the image count 
-	# has increased by one
-	newAnimWindowCount = len(cartavisInstance.getAnimatorViews())
-	newImageWindowCount = len(cartavisInstance.getImageViews())
-	assert newAnimWindowCount == animWindowList - 1
-	assert newImageWindowCount == imageWindowList + 1
+    # Verify that the animation count has gone down by one and the image count 
+    # has increased by one
+    newAnimWindowCount = len(cartavisInstance.getAnimatorViews())
+    newImageWindowCount = len(cartavisInstance.getImageViews())
+    assert newAnimWindowCount == animWindowList - 1
+    assert newImageWindowCount == imageWindowList + 1

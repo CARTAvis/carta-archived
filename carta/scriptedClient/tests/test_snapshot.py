@@ -5,14 +5,14 @@ import pyautogui
 import ImageUtil
 
 def test_animator_channel(cartavisInstance, cleanSlate):
-	"""
-	Set the channel animator to the last channel. Save a data snapshot.
-	Set the channel animator back to 0, the first channel. Restore a data snapshot.
-	"""
-	# Lad an image so there are a non-trivial number of channels.
-	# At some point, this test will need to be rewritten to use a 
-	# test image available where the tests are running.
-	i = cartavisInstance.getImageViews()
+    """
+    Set the channel animator to the last channel. Save a data snapshot.
+    Set the channel animator back to 0, the first channel. Restore a data snapshot.
+    """
+    # Lad an image so there are a non-trivial number of channels.
+    # At some point, this test will need to be rewritten to use a 
+    # test image available where the tests are running.
+    i = cartavisInstance.getImageViews()
     i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
  
     # Find the last channel value 
@@ -40,20 +40,20 @@ def test_animator_channel(cartavisInstance, cleanSlate):
     s[0].delete()
 
 def test_image_load(cartavisInstance, cleanSlate):
-	"""
-	Load a particular image. Save a data snapshot.
-	Load a new image. Restore a data snapshot.
-	Test that the original image is loaded, but the second one is not.
-	"""
-	# Show the image animator 
-	a = cartavisInstance.getAnimatorViews()
-	a[0].showImageAnimator()
+    """
+    Load a particular image. Save a data snapshot.
+    Load a new image. Restore a data snapshot.
+    Test that the original image is loaded, but the second one is not.
+    """
+    # Show the image animator 
+    a = cartavisInstance.getAnimatorViews()
+    a[0].showImageAnimator()
 
-	# Get the upper spin value of the image
-	i = cartavisInstance.getImageViews()
-	upperSpin = len(i[0].getImageNames()) - 1
+    # Get the upper spin value of the image
+    i = cartavisInstance.getImageViews()
+    upperSpin = len(i[0].getImageNames()) - 1
 
-	# Load an image 
+    # Load an image 
     i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
 
     # Save a snapshot of the application. Make sure data is checked and 
