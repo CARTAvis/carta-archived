@@ -2,7 +2,6 @@ import unittest
 import tHistogram
 import tLayout
 import tLoadImage
-import tStatistics
 import tMenuToolVisibility
 import tAnimatorTapeDeck
 import tAnimatorSettings
