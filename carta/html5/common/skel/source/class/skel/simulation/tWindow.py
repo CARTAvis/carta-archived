@@ -83,7 +83,8 @@ class tWindow(unittest.TestCase):
         
         # Remove the colormap window 
         windowButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Window']/..")))
-        ActionChains(driver).click( windowButton).send_keys(ARROW_DOWN).send_keys(ARROW_DOWN).send_keys(ARROW_DOWN).perform()
+        ActionChains(driver).click( windowButton).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
 
         # Verify that there is one less window than was there originally and the colormap window is not in the list.

@@ -36,15 +36,19 @@ class tAnimator(unittest.TestCase):
     
     # Go to the first valid value
     def _getFirstValue(self, driver, animator):
+        timeout = selectBrowser._getSleep()
         firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckFirstValue"))) 
         driver.execute_script( "arguments[0].scrollIntoView(true);", firstValueButton)
         ActionChains(driver).click( firstValueButton ).perform()
+        time.sleep( timeout )
 
     # Go to the last valid value 
-    def _getLastValue(self, driver, animator):    
+    def _getLastValue(self, driver, animator):  
+        timeout = selectBrowser._getSleep()  
         lastValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckLastValue"))) 
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastValueButton)
         ActionChains(driver).click( lastValueButton ).perform()
+        time.sleep( timeout )
 
     # Get the current value 
     def _getCurrentValue(self, driver, animator):
@@ -55,9 +59,11 @@ class tAnimator(unittest.TestCase):
 
     # Go to the next valid value
     def _getNextValue(self, driver, animator):
+        timeout = selectBrowser._getSleep()
         incrementButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckIncrement")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", incrementButton)
         ActionChains(driver).click( incrementButton ).perform()
+        time.sleep( timeout )
 
     # Click the forward animation button on the tape deck
     def _animateForward(self, driver, animator):

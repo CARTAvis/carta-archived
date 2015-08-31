@@ -97,7 +97,7 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Remove Animator link to the image window
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
         Util.remove_main_link( self, driver, imageWindow)
 
         # Load an image in a different window
@@ -148,7 +148,7 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Remove link from main image window to Animator 
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
         Util.remove_main_link( self, driver, imageWindow)
 
         # Load an image
@@ -193,7 +193,7 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Navigate to view links from the Animator settings        
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
 
         # Add link from the Animator to the image
         Util.link_second_image( self, driver, imageWindow2)

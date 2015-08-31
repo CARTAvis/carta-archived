@@ -69,7 +69,8 @@ class tHistogram( unittest.TestCase ):
 
         # Find and select the histogram window 
         histWindow = self._getHistogramWindow( driver )
-        ActionChains(driver).click( histWindow )
+        ActionChains(driver).double_click( histWindow )
+        time.sleep( timeout )
 
         # Click the settings button to expose the settings
         self._openHistogramSettings( driver )
@@ -217,7 +218,8 @@ class tHistogram( unittest.TestCase ):
 
         # Find and select the Histogram window
         histWindow = self._getHistogramWindow( driver )
-        ActionChains(driver).click( histWindow )
+        ActionChains(driver).double_click( histWindow )
+        time.sleep( timeout )
 
         # Click the settings button to expose the settings
         self._openHistogramSettings( driver )
@@ -308,7 +310,7 @@ class tHistogram( unittest.TestCase ):
 
         # Open link settings for the histogram
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
         time.sleep( timeout )
 
         # Try to add a link from the Histogram to the second image
@@ -331,6 +333,7 @@ class tHistogram( unittest.TestCase ):
 
         # Find the Histogram window 
         histWindow = self._getHistogramWindow( driver )
+        ActionChains(driver).click(histWindow).perform()
         
         # Open Link settings for the Histogram window
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
@@ -370,7 +373,7 @@ class tHistogram( unittest.TestCase ):
 
          # Open Link settings for the Histogram window
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
 
         # Remove the link from the Histogram to the main image window
         Util.remove_main_link( self, driver, imageWindow )

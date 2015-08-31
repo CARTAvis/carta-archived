@@ -62,7 +62,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Check that the image value is greater than the first image value
         currImageValue = self._getCurrentValue( driver, "Image" )
         print "Current image", currImageValue
-        self.assertGreater( int(currImageValue), int(firstImageValue), "Image value did not increase for forward animation")
+        self.assertGreater( int(currImageValue), 0, "Image value did not increase for forward animation")
 
     # Test that the Animator can animate in the reverse direction
     # Under default settings, it takes roughly 2 seconds for the channel to change by 1
@@ -246,8 +246,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         Util.load_image( self, driver, "Default")
 
         # Find and record the last valid value of the animation
-        self._getLastValue( driver )
-        lastChannelValue = self._getChannelValue( driver )
+        self._getLastValue( driver, "Channel" )
+        lastChannelValue = self._getCurrentValue( driver, "Channel" )
 
         # Find and click the lower spin box
         lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelLowerBoundSpin']/input")))
@@ -336,7 +336,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         upperBoundValue = Util._changeElementText( self, driver, upperBoundText, int(lastChannelValue)-1)
 
         # Allow test image to animate for 2 seconds
-        self._animateForward( driver )
+        self._animateForward( driver, "Channel" )
         time.sleep(2)
 
         # Check that the lower and upper bound values did not change during animation
@@ -380,7 +380,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         imageUpperBoundValue = Util._changeElementText( self, driver, imageUpperBoundText, int(lastImageValue)-1 )
 
         # Allow animation for 2 seconds
-        self._animateForward( driver )
+        self._animateForward( driver, "Image" )
         time.sleep(2)
 
         # Check that the lower and upper bound values did not change during animation
