@@ -52,3 +52,21 @@ addopts = --directory='/home/jeff/scratch/build/cpp/desktop/'
 
 Once the `pytest.ini` file has been set up, then the tests can be executed by
 simply running `py.test` or `py.test -v`.
+
+# Using Image Recognition
+
+For image recognition, the following pre-requisites must be installed on your local machine:
+(1) pyautogui - a Python wrapper to automate mouse clicking
+(2) OpenCV 2.4.11.0 - library for image-related functions, including image recognition
+
+Note: When running the tests, ensure that the desktop is not disturbed in any way. In particular, avoid 
+covering the desktop application as it may interfere with Image recognition. Image recognition
+can be error prone because it relies on taking a screenshot image of the desktop prior to performing image 
+matching to find the image on the desktop. Similarly, avoid using the mouse during the test running 
+duration to avoid conflict between pyautogui clicks and real mouse clicks.
+
+# Troubleshooting clicks, image recognition: 
+
+(1) Use coords.py python script to verify location on the screen that you wish to click: script will continuously return the coordinates of mouse so you can record the location of the certain element you are targeting - this should only be used for double checking. The get_match_coordinates function in the ImageUtils module has print statements that will display the coordinates of the match - by uncommenting these statements, you can cross-check these coordinates with the coords.py script location of the element
+
+(2) Another quick method of checking whether image recognition provided correct results is by uncommenting the image saving in the get_match_coordinates function in the ImageUtils module. This way, each time image matching is performed in the python script, the resulting image (with the match region outlined using a red rectangle) will be saved as 'result.png'. Note that the 'result.png' will be overwritten each time a new image match is performed using the function, so it is best to view the result.png file over the course of the testing script with targeting issues. 
