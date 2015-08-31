@@ -4,6 +4,33 @@ import time
 import pyautogui
 import ImageUtil
 
+# Create a new window, and change its plugin to a CasaImageLoader
+# Return the coordinates of the new image window 
+def new_image_window(self):
+    # Click on an existing image window 
+    imageWindow = ImageUtil.locateCenterOnScreen('test_images/imageWindow.png') 
+    assert imageWindow != None, 'Could not find an image window on the current display'
+    pyautogui.click( x=imageWindow[0], y=imageWindow[1])
+    time.sleep(3)
+
+    # Click on the window button
+    windowButton = ImageUtil.locateCenterOnScreen('test_images/windowButton.png')
+    assert windowButton != None, 'Could not find the window button on the menu bar'
+    pyautogui.doubleClick( x=windowButton[0], y=windowButton[1])
+    time.sleep(2)
+
+    # Locate the add button and click on it 
+    pyautogui.press('down')
+    pyautogui.press('down')
+    pyautogui.press('down')
+    pyautogui.press('down')
+    pyautogui.press('right')
+    pyautogui.press('return')
+    time.sleep(2)
+
+    # Change the plugin of the empty window to a casa image loader
+    cartavisInstance.setEmptyWindowPlugin(0, 'CasaImageLoader')
+
 # Verify that the number of animators that are visible is equal to expected count 
 def _verifyAnimationCount(self, expectedCount):
 	animatorCount = len(cartavisInstance.getAnimatorViews())
@@ -43,7 +70,7 @@ def _stopAnimation(self):
 	assert stopButton != None, 'Could not find the stop button on the current display'
 	pyautogui.click( x=stopButton[0], y=stopButton[1])
 
-# Clicks on the animator settings checkbox
+# Click on the animator settings checkbox
 def _openAnimatorSettings(self):
 	settingsButton = ImageUtil.locateCenterOnScreen( "test_images/settingsCheckBox.png")
 	assert settingsButton != None, 'Could not find the animator settings checkbox on the current display'
@@ -61,7 +88,7 @@ def test_animatorRemoveImage(cartavisInstance, cleanSlate):
 	i[0].closeImage('N15693D.fits')
 
 	# Get the channel upper spin value 
-	self._goLastValue()
+	self._getLastValue()
     upperBoundValue = a[0].getChannelIndex()
 	assert upperBoundValue == 0
 	assert a[0].getMaxImageCount() == 0
@@ -76,14 +103,14 @@ def test_animatorAddImage(cartavisInstance, cleanSlate):
     i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
 
     # Record the upper bound spin box value of the first image 
-    self._goLastValue()
+    self._getLastValue()
     upperBound = a[0].getChannelIndex()
 
     # In the same window, load a different image 
     # The image should have a different number of channels
     i[0].loadLocalFile(os.getcwd + '/data/aH.fits')
 
-    self._goLastValue()
+    self._getLastValue()
     newUpperBound = a[0].getChannelIndex()
     assert upperBound != newUpperBound, 'Animator did not update an an image was added in image window'
     assert a[0].getMaxImageCount() == 2
@@ -99,7 +126,7 @@ def test_animatorChangeLink(cartavisInstance, cleanSlate):
 	i[0].removeLink(a[0])
 
 	# Load an image in a different window 
-	Util.new_image_window(self)
+	self.new_image_window()
 	i[1].loadLocalFile(os.getcwd + '/data/N15693D.fits')
 
 	# Add a link to the new image window 
@@ -107,7 +134,7 @@ def test_animatorChangeLink(cartavisInstance, cleanSlate):
 
 	# Check that the animator updates to the second image 
 	lastChannel = i[1].getChannelCount() - 1
-	self._goLastValue()
+	self._getLastValue()
 	assert a[0].getChannelIndex() == lastChannel, 'The animator was not linked to the second image window'
 
 def test_animatorRemoveLink(cartavisInstance, cleanSlate):
@@ -123,7 +150,7 @@ def test_animatorRemoveLink(cartavisInstance, cleanSlate):
     i[0].loadLocalFile(o0s.getcwd + '/data/N15693D.fits')
  
     # Check that the animator does not update 
-    self._goLastValue()
+    self._getLastValue()
     assert a[0].getChannelIndex() == 0, 'The animator is still linked to the image viewer after the link was removed.'
 
    def test_channelAnimatorChangeImage(cartavisInstance, cleanSlate):
@@ -174,10 +201,13 @@ def test_animatorJump(cartavisInstance, cleanSlate):
     pyautogui.click( x=jumpButton[0], y=jumpButton[1])
 
     # Click the increment button and get the current channel
-    self._goNextValue()
+    self._getNextValue()
     assert a[0].getChannelIndex() == lastChannel
-    self._goNextValue()
+    self._getNextValue()
     assert a[0].getChannelIndex() == 0
+
+    # Close animator settings 
+    self._openAnimatorSettings()
 
 def test_animatorWrap(cartavisInstance, cleanSlate):
 	"""
@@ -205,10 +235,13 @@ def test_animatorWrap(cartavisInstance, cleanSlate):
     a[0].setChannel( lastChannel )
 
     # Click the increment button and get the current channel
-    self._goNextValue()
+    self._getNextValue()
     assert a[0].getChannelIndex() == 0
-    self._goNextValue()
+    self._getNextValue()
     assert a[0].getChannelIndex() == 1
+
+    # Close animator settings 
+    self._openAnimatorSettings()
 
 def test_animatorReverse(cartavisInstance, , cleanSlate):
 	"""
@@ -239,6 +272,9 @@ def test_animatorReverse(cartavisInstance, , cleanSlate):
     time.sleep(2)
     assert a[0].getChannelIndex() < lastChannel
     self._stopAnimation()
+
+    # Close animator settings 
+    self._openAnimatorSettings()
  
 def test_animatorStepIncrement(cartavisInstance, cleanSlate):
     """
@@ -262,8 +298,11 @@ def test_animatorStepIncrement(cartavisInstance, cleanSlate):
 
     # Go to the next channel value 
     a[0].setChannel(0)
-    self._goNextValue()
+    self._getNextValue()
     assert a[0].getChannelIndex() == 2
+
+    # Close animator settings 
+    self._openAnimatorSettings()
 
 def test_animatorForwardAnimation(cartavisInstance, cleanSlate):
 	"""
@@ -276,7 +315,7 @@ def test_animatorForwardAnimation(cartavisInstance, cleanSlate):
     i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
 
     # Click on the foward animate button 
-    self._forwardAnimate()
+    self._animateFoward()
 	time.sleep(2)
 	assert a[0].getChannelIndex() > 0 
 	self._stopAnimation()
@@ -315,7 +354,7 @@ def test_animatorStopAnimation(cartavisInstance, cleanSlate):
     i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
 
     # Click on the animate button
-    self._forwardAnimate()
+    self._animateFoward()
 	time.sleep(2)
 	self._stopAnimation()
 

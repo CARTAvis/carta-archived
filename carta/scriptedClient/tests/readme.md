@@ -65,8 +65,19 @@ can be error prone because it relies on taking a screenshot image of the desktop
 matching to find the image on the desktop. Similarly, avoid using the mouse during the test running 
 duration to avoid conflict between pyautogui clicks and real mouse clicks.
 
+Currently, we mainly use image recognition to target Animator tape deck buttons - play, stop, return to
+the first value, etc. We also use image recognition to click on the image window, open Animator settings, 
+restore a CasaImageLoader and click on the Animator window. Image matching will return None if the image 
+cannot be found on the desktop, within a given threshold (the current threshold value is 0.03).
+
 # Troubleshooting clicks, image recognition: 
 
 (1) Use coords.py python script to verify location on the screen that you wish to click: script will continuously return the coordinates of mouse so you can record the location of the certain element you are targeting - this should only be used for double checking. The get_match_coordinates function in the ImageUtils module has print statements that will display the coordinates of the match - by uncommenting these statements, you can cross-check these coordinates with the coords.py script location of the element
 
 (2) Another quick method of checking whether image recognition provided correct results is by uncommenting the image saving in the get_match_coordinates function in the ImageUtils module. This way, each time image matching is performed in the python script, the resulting image (with the match region outlined using a red rectangle) will be saved as 'result.png'. Note that the 'result.png' will be overwritten each time a new image match is performed using the function, so it is best to view the result.png file over the course of the testing script with targeting issues. 
+
+# Image recognition Limitations
+
+(1) Image recognition is prone to error. Adjusting the threshold of the get_matching_coordinates function in ImageUtil will result in more matches (and should theoretically provide the closest match); however, this can lead to an increase in incorrect targeting of the specific element.
+
+(2) Changes in the GUI may be difficult to account for, and may require obtaining new sets of images so that the tests run accurately. 
