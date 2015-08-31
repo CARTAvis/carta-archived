@@ -202,6 +202,7 @@ class tHistogram( unittest.TestCase ):
     # Test that the removal of an image will restore the Histogram to default values
     def test_histogramRemoveImage(self):
         driver = self.driver
+        timeout = selectBrowser._getSleep()
 
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
@@ -337,7 +338,7 @@ class tHistogram( unittest.TestCase ):
         
         # Open Link settings for the Histogram window
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
 
         # Remove link from the Histogram to the main image window
         Util.remove_main_link( self, driver, imageWindow )
@@ -384,7 +385,7 @@ class tHistogram( unittest.TestCase ):
         # Open link settings for the Histogram 
         ActionChains(driver).click( histWindow ).perform()
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
 
         # Link the Histogram to the second image
         Util.link_second_image( self, driver, imageWindow2)

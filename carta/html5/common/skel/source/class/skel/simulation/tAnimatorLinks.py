@@ -106,7 +106,7 @@ class tAnimatorLinks(unittest.TestCase):
         # Change link to second image
         ActionChains(driver).click( channelText ).perform()
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
-        ActionChains.click( linkMenuButton ).perform()
+        ActionChains(driver).click( linkMenuButton ).perform()
         Util.link_second_image( self, driver, imageWindow2)
 
         # Find and click the upper spin box
