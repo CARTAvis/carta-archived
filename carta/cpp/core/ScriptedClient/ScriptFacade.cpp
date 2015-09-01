@@ -468,6 +468,36 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
     return resultList;
 }
 
+QStringList ScriptFacade::getChannelIndex( const QString& animatorId ){
+    QStringList resultList("");
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString id = objMan->parseId( animatorId );
+    Carta::State::CartaObject* obj = objMan->getObject( id );
+    if ( obj != nullptr ){
+        Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+        if ( animator != nullptr){
+            Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
+            if ( animType != nullptr ){
+                int frame = animType->getFrame();
+                resultList = QStringList( QString::number( frame ) );
+            }
+            else {
+                resultList = QStringList( ERROR );
+                resultList.append( "Could not get channel animator." );
+            }
+        }
+        else {
+            resultList = QStringList( ERROR );
+            resultList.append( "An unknown error has occurred." );
+        }
+    }
+    else {
+        resultList = QStringList( ERROR );
+        resultList.append( "The specified animator could not be found." );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
