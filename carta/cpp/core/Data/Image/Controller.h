@@ -7,6 +7,7 @@
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <Data/IColoredView.h>
+#include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
 
 #include <QString>
@@ -32,14 +33,16 @@ namespace Carta {
 
 namespace Carta {
 namespace Data {
-class DataSource;
+class ControllerData;
 class GridControls;
+class ContourControls;
 class Settings;
 class Region;
 class RegionRectangle;
 class Selection;
 
-class Controller: public QObject, public Carta::State::CartaObject, public IColoredView {
+class Controller: public QObject, public Carta::State::CartaObject,
+    public IColoredView, public IPercentIntensityMap {
 
     Q_OBJECT
 
@@ -74,6 +77,13 @@ public:
     QString closeImage( const QString& name );
 
     /**
+     * Return the percentile corresponding to the given intensity in the current frame.
+     * @param intensity a value for which a percentile is needed.
+     * @return the percentile corresponding to the intensity.
+     */
+    double getPercentile( double intensity ) const;
+
+    /**
      * Return the percentile corresponding to the given intensity.
      * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
      * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
@@ -88,6 +98,14 @@ public:
      *      image.
      */
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile in the current frame.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool getIntensity( double percentile, double* intensity ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -316,7 +334,7 @@ signals:
      *  changed.
      *  @param controller this Controller.
      */
-    void dataChanged( Controller* controller );
+    void dataChanged(Controller* controller );
 
     /**
      * Notification that the channel/selection managed by this controller has
@@ -333,6 +351,8 @@ protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
+
+    void _contoursChanged();
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
@@ -409,13 +429,14 @@ private:
     std::shared_ptr<ImageView> m_view;
 
     std::shared_ptr<GridControls> m_gridControls;
+    std::unique_ptr<ContourControls> m_contourControls;
 
 
     std::unique_ptr<Settings> m_settings;
 
 
     //Data available to and managed by this controller.
-    QList<DataSource* > m_datas;
+    QList<shared_ptr<ControllerData> > m_datas;
 
 
     QList<Region* > m_regions;

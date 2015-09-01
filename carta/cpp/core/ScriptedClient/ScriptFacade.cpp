@@ -11,7 +11,7 @@
 #include "Data/Layout/Layout.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Statistics.h"
-#include "Data/Image/GridControls.h"
+#include "Data/Image/Grid/GridControls.h"
 
 #include <QDebug>
 

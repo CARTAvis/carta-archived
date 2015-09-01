@@ -92,9 +92,11 @@ class tWindow(unittest.TestCase):
         # Verify that there is single colormap window.
         colorWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")))
         self.assertIsNotNone( colorWindow, "Could not find color map window")
+        ActionChains(driver).click( colorWindow).perform()
         
         # Now right click the context menu to remove the colormap window
-        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
+            ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
 
         # Verify that there is one less window than was there originally and the colormap window is not in the list.
@@ -195,7 +197,7 @@ class tWindow(unittest.TestCase):
         
         # Change the plugin of the empty window to statistics by clicking the view menu and the statistics
         # plugin in the submenu.
-        ActionChains(driver).context_click(emptyWindow).send_keys(Keys.ARROW_DOWN).send_keys(
+        ActionChains(driver).context_click(emptyWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
             ).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )

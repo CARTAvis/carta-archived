@@ -259,6 +259,7 @@ qx.Class.define( "skel.Application",
         _layout : function(){
             this._hideWindows();
             this.m_mainContainer.removeAll();
+            
             var showMenuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
             if ( showMenuCmd.getValue() ){
                 this.m_mainContainer.add( this.m_menuBar );
@@ -438,6 +439,12 @@ qx.Class.define( "skel.Application",
             //that could be established.
             if ( this.m_windowLink === null ){
                 this.m_windowLink = skel.widgets.Link.LinkCanvas.getInstance();
+            }
+            else {
+                this.m_windowLink.removeListenerById( this.m_linkResizeListenId );
+                this.m_windowLink.removeListenerById( this.m_linkChangeListenId );
+                this.m_windowLink.removeListenerById( this.m_linkRemoveListenId );
+            }
                 var resizeLinkWindow = function( anObject, linkWindow ){
                     var left = 0;
                     var top = anObject._getLinkTopOffset();
@@ -446,17 +453,17 @@ qx.Class.define( "skel.Application",
                     anObject._updateLinkInfo( pluginId, winId );
                 };
                 resizeLinkWindow( this, this.m_windowLink );
-                this.m_desktop.addListener( "resize", function(){
+                this.m_linkResizeListenId = this.m_desktop.addListener( "resize", function(){
                     resizeLinkWindow( this, this.m_windowLink );
                 }, this );
-                this.m_windowLink.addListener( "link", function( ev ){
+                this.m_linkChangeListenId = this.m_windowLink.addListener( "link", function( ev ){
                     this._linksChanged( true, ev );
                 }, this );
-                this.m_windowLink.addListener( "linkRemove", function( ev ){
+                this.m_linkRemoveListenId = this.m_windowLink.addListener( "linkRemove", function( ev ){
                     this._linksChanged( false, ev );
                 }, this );
                
-            }
+            
             this._updateLinkInfo( pluginId, winId );
             this.m_statusBar.showInformation( this.m_windowLink.getHelp());
             var topPos = this._getLinkTopOffset();
@@ -578,7 +585,10 @@ qx.Class.define( "skel.Application",
         m_saveBrowser : null,
         m_sharedVarPreferences : null,
         m_sessionRestoreDialog : null,
-        m_sessionSaveDialog : null
+        m_sessionSaveDialog : null,
+        m_linkResizeListenId : null,
+        m_linkChangeListenId : null,
+        m_linkRemoveListenId : null
     }
 } );
 

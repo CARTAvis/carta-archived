@@ -1,11 +1,15 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Controller.h"
-#include "GridControls.h"
+#include "Data/Image/Grid/DataGrid.h"
+#include "Data/Image/Grid/GridControls.h"
+#include "Data/Image/Contour/ContourControls.h"
+#include "Data/Image/Contour/DataContours.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
+#include "ControllerData.h"
 #include "DataSource.h"
-#include "DataGrid.h"
+
 #include "Data/Error/ErrorManager.h"
 #include "Data/Selection.h"
 #include "Data/Region.h"
@@ -87,6 +91,11 @@ Controller::Controller( const QString& path, const QString& id ) :
      connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
              this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
 
+     ContourControls* contourObj = objMan->createObject<ContourControls>();
+     m_contourControls.reset( contourObj );
+     m_contourControls->setPercentIntensityMap( this );
+     connect( m_contourControls.get(), SIGNAL(drawContoursChanged()), this, SLOT( _contoursChanged()));
+
      Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
 
@@ -110,12 +119,19 @@ bool Controller::addData(const QString& fileName) {
 
     //Add the data if it is not already there.
     if (targetIndex == -1) {
+
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        DataSource* targetSource = objMan->createObject<DataSource>();
+        ControllerData* targetSource = objMan->createObject<ControllerData>();
+        DataContours* contourObj = objMan->createObject<DataContours>();
+        std::shared_ptr<DataContours> contourPtr( contourObj );
+        //Controller Data is in charge of drawing the contours.
+        targetSource->_setContours( contourPtr );
+        //Contour controls is in charge of setting the UI for the contours.
+        m_contourControls->_setDrawContours( contourPtr );
         targetIndex = m_datas.size();
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
-        connect( targetSource, & DataSource::saveImageResult, this, & Controller::saveImageResultCB );
-        m_datas.append(targetSource);
+        connect( targetSource, & ControllerData::saveImageResult, this, & Controller::saveImageResultCB );
+        m_datas.append(std::shared_ptr<ControllerData>(targetSource));
         targetSource->_viewResize( m_viewSize );
 
         //Update the data selectors upper bound based on the data.
@@ -189,17 +205,15 @@ void Controller::clear(){
 
 void Controller::_clearData(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    for ( DataSource* source : m_datas ){
-        QString sourceId = source->getId();
-        objMan->destroyObject(sourceId);
+    for ( std::shared_ptr<ControllerData> source : m_datas ){
+        QString id = source->getId();
+        objMan->removeObject( id );
     }
-    m_datas.clear();
 }
 
 QString Controller::closeImage( const QString& name ){
     int targetIndex = -1;
     QString result;
-
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_contains( name )){
@@ -226,6 +240,12 @@ int Controller::getFrameChannel() const {
     return m_selectChannel->getIndex();
 }
 
+bool Controller::getIntensity( double percentile, double* intensity ) const{
+    int currentFrame = getFrameChannel();
+    bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity );
+    return validIntensity;
+}
+
 bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
     bool validIntensity = false;
     int imageIndex = m_selectImage->getIndex();
@@ -233,6 +253,11 @@ bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, d
         validIntensity = m_datas[imageIndex]->_getIntensity( frameLow, frameHigh, percentile, intensity );
     }
     return validIntensity;
+}
+
+double Controller::getPercentile( double intensity ) const {
+    int currentFrame = getFrameChannel();
+    return getPercentile( currentFrame, currentFrame, intensity );
 }
 
 double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
@@ -271,8 +296,7 @@ int Controller::getSelectImageIndex() const {
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
-        DataSource* data = Controller::m_datas[index];
-        name = data->_getFileName();
+        name = m_datas[index]->_getFileName();
     }
     return name;
 }
@@ -317,9 +341,11 @@ QString Controller::getPixelUnits() const {
 QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system) const {
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
+        QStringList coordList = m_datas[imageIndex]->_getCoordinates( x, y, frameIndex, system );
         for ( int i = 0; i <= 1; i++ ){
-            result.append( m_datas[imageIndex]->_getCoordinates( x, y, system, i ) );
+            result.append( coordList[i] );
         }
     }
     return result;
@@ -368,6 +394,7 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
 
         dataState.insertValue<QString>( Selection::CHANNEL, m_selectChannel->getStateString());
         dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+        dataState.insertValue<QString>( ContourControls::CLASS_NAME, m_contourControls->getStateString( sessionId, type));
         result = dataState.toString();
 
     }
@@ -384,15 +411,25 @@ QString Controller::getSnapType(CartaObject::SnapshotType snapType) const {
     return objType;
 }
 
+void Controller::_contoursChanged(){
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
+        int frameIndex = m_selectChannel->getIndex();
+        m_datas[imageIndex]->_render( frameIndex );
+    }
+}
+
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     int imageIndex = 0;
     if (m_selectImage != nullptr) {
         imageIndex = m_selectImage->getIndex();
     }
+    int frameIndex = m_selectChannel->getIndex();
     if ( !applyAll ){
+
         if (imageIndex >= 0 && imageIndex < m_datas.size()) {
             if (m_datas[imageIndex] != nullptr) {
-                m_datas[imageIndex]->_gridChanged( state, true );
+                m_datas[imageIndex]->_gridChanged( state, true, frameIndex );
             }
         }
     }
@@ -404,7 +441,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
                 renderedImage = true;
             }
             if ( m_datas[i] != nullptr ){
-                m_datas[i]->_gridChanged( state, renderedImage );
+                m_datas[i]->_gridChanged( state, renderedImage, frameIndex );
             }
         }
     }
@@ -494,6 +531,15 @@ void Controller::_initializeCallbacks(){
         }
         return "";
     });
+
+    addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
+                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            QString result;
+            if ( m_contourControls.get() != nullptr ){
+                result = m_contourControls->getPath();
+            }
+            return result;
+        });
 
     addCommandCallback( "registerGridControls", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -649,8 +695,11 @@ QString Controller::_makeRegion( const QString& regionType ){
 }
 
 void Controller::_removeData( int index ){
-    disconnect( m_datas[index]);
+    disconnect( m_datas[index].get());
     int selectedImage = m_selectImage->getIndex();
+    QString id = m_datas[index]->getId();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    objMan->removeObject( id );
     m_datas.removeAt( index );
     m_selectImage->setUpperBound( m_datas.size());
     if ( selectedImage == index ){
@@ -687,8 +736,9 @@ void Controller::_removeData( int index ){
 
 void Controller::_render(){
     int imageIndex = m_selectImage->getIndex();
+    int frameIndex = m_selectChannel->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        m_datas[imageIndex]->_render();
+        m_datas[imageIndex]->_render( frameIndex );
     }
 }
 
@@ -716,8 +766,16 @@ void Controller::resetState( const QString& state ){
 void Controller::resetStateData( const QString& state ){
     //First we reset the data this controller is displaying
     _clearData();
+    m_datas.clear();
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
+
+    //Now we need to restore the selected channel and image.
+    QString channelState = dataState.getValue<QString>( Selection::CHANNEL );
+    m_selectChannel->resetState( channelState );
+    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
+    m_selectImage ->resetState( dataStateStr );
+
     int dataCount = dataState.getArraySize(DATA);
     for ( int i = 0; i < dataCount; i++ ){
         QString dataLookup = Carta::State::UtilState::getLookup( DATA, i );
@@ -728,13 +786,10 @@ void Controller::resetStateData( const QString& state ){
         QString gridStr = dataState.toString( gridLookup );
         StateInterface gridState( "" );
         gridState.setState( gridStr );
-        m_datas[i]->_gridChanged( gridState, false );
+        int frameIndex = m_selectChannel->getIndex();
+        m_datas[i]->_gridChanged( gridState, false, frameIndex );
     }
-    //Now we need to restore the selected channel and image.
-    QString channelState = dataState.getValue<QString>( Selection::CHANNEL );
-    m_selectChannel->resetState( channelState );
-    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
-    m_selectImage ->resetState( dataStateStr );
+
     //Notify others there has been a change to the data.
     emit dataChanged( this );
 
@@ -744,6 +799,10 @@ void Controller::resetStateData( const QString& state ){
         StateInterface controlState = m_datas[imageIndex]->_getGridState();
         this->m_gridControls->_resetState( controlState );
     }
+
+    //Restore contours
+    QString contourData = dataState.getValue<QString>( ContourControls::CLASS_NAME);
+    m_contourControls->resetStateData( contourData );
 }
 
 void Controller::resetPan(){
@@ -891,28 +950,28 @@ void Controller::_scheduleFrameReload(){
 }
 
 void Controller::setColorInverted( bool inverted ){
-    for ( DataSource* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorInverted( inverted );
     }
     _render();
 }
 
 void Controller::setColorMap( const QString& name ){
-    for ( DataSource* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorMap( name );
     }
     _render();
 }
 
 void Controller::setColorReversed( bool reversed ){
-    for ( DataSource* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorReversed( reversed );
     }
     _render();
 }
 
 void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
-    for ( DataSource* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setColorAmounts( newRed, newGreen, newBlue );
     }
     _render();
@@ -954,7 +1013,7 @@ void Controller::setFrameImage( int val) {
 }
 
 void Controller::setGamma( double gamma ){
-    for ( DataSource* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->setGamma( gamma );
     }
     _render();
@@ -963,7 +1022,7 @@ void Controller::setGamma( double gamma ){
 
 
 void Controller::setTransformData( const QString& name ){
-    for ( DataSource* data : m_datas ){
+    for ( std::shared_ptr<ControllerData> data : m_datas ){
         data->_setTransformData( name );
     }
     _render();
@@ -1020,7 +1079,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             else {
                 newZoom = oldZoom * 0.9;
             }
-            for (DataSource* data : m_datas ){
+            for (std::shared_ptr<ControllerData> data : m_datas ){
                 data->_setZoom( newZoom );
             }
 
@@ -1033,7 +1092,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
             // add the delta to the current center
             QPointF currCenter = m_datas[imageIndex]->_getCenter();
             QPointF newCenter = currCenter + delta;
-            for ( DataSource* data : m_datas ){
+            for ( std::shared_ptr<ControllerData> data : m_datas ){
                 data->_setPan( newCenter.x(), newCenter.y() );
             }
             _render();
@@ -1047,7 +1106,7 @@ void Controller::updatePan( double centerX , double centerY){
         bool validImage = false;
         QPointF oldImageCenter = m_datas[imageIndex]-> _getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
-            for ( DataSource* data : m_datas ){
+            for ( std::shared_ptr<ControllerData> data : m_datas ){
                 data->_setPan( oldImageCenter.x(), oldImageCenter.y() );
             }
             _render();
@@ -1148,6 +1207,9 @@ Controller::~Controller(){
     }
     if ( m_gridControls != nullptr ){
         objMan->removeObject( m_gridControls->getId());
+    }
+    if ( m_contourControls != nullptr ){
+        objMan->removeObject( m_contourControls->getId());
     }
     if ( m_settings != nullptr ){
         objMan->removeObject( m_settings->getId());

@@ -67,6 +67,11 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) = 0;
 
+    // set on which edge (top,bottom,left,right) the given axis should
+    // be drawn; setting the edge to "" will remove labelling for the axis.
+    virtual void
+    setAxisLabelLocation( int axisIndex, const QString& edge ) = 0;
+
     //Set whether or not to draw axes/border.
     virtual void
     setAxesVisible( bool flag ) = 0;
@@ -78,6 +83,7 @@ public:
 //    /// get a pen attribute for the given element
 //    virtual const QPen &
 //    pen( Element e ) = 0;
+
 
     /// set the font attribute for the given text element
     /// does nothing for non-text elements, i.e. lines
@@ -99,6 +105,10 @@ public:
     /// which celestial system to draw
     virtual void
     setSkyCS( KnownSkyCS cs ) = 0;
+
+    //Set the length of the ticks
+    virtual void
+    setTickLength( double tickLength ) = 0;
 
     /// set whether or not tick marks should be drawn.
     virtual void

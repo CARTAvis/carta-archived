@@ -52,6 +52,9 @@ public:
     setGridLinesVisible( bool ) override;
 
     virtual void
+    setAxisLabelLocation( int, const QString& ) override;
+
+    virtual void
     setAxesVisible( bool ) override;
 
     virtual void
@@ -59,6 +62,9 @@ public:
 
     virtual void
     setSkyCS( Carta::Lib::KnownSkyCS ) override;
+
+    virtual void
+    setTickLength( double ) override;
 
     virtual void
     setTicksVisible( bool ) override;

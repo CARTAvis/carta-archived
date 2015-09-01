@@ -40,13 +40,17 @@ qx.Class.define("skel.Command.Customize.CustomizeDialog", {
             this.m_menuView = new skel.Command.Customize.CustomizeTab( skel.Command.Command.MENU);
             this.m_toolView = new skel.Command.Customize.CustomizeTab( skel.Command.Command.TOOLBAR);
             this.m_menuView.addListener( "cmdVisibilityChanged", function(ev){
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                if ( ! this.m_initializing ){
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "commandVisibilityMenuChanged", ""));
+                }
             }, this);
             
             this.m_toolView.addListener( "cmdVisibilityChanged", function(ev){
-                qx.event.message.Bus.dispatch(new qx.event.message.Message(
+                if ( ! this.m_initializing ){
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "commandVisibilityToolChanged", ""));
+                }
             }, this);
             this.m_tabView.add( this.m_menuView );
             this.m_tabView.add( this.m_toolView );
@@ -85,13 +89,15 @@ qx.Class.define("skel.Command.Customize.CustomizeDialog", {
          * Updates the view of the commands.
          */
         _updateViews : function (){
+            this.m_initializing = true;
             var cmdFactory = skel.Command.CommandFactory.getInstance();
             var cmdList = cmdFactory.getCommandTree();
             this.m_menuView.updateTree( cmdList );
             this.m_toolView.updateTree( cmdList );
+            this.m_initializing = false;
         },
         
-        
+        m_initializing : false,
         m_connector : null,
         m_menuView : null,
         m_toolView : null,

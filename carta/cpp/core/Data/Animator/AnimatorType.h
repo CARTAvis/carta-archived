@@ -101,6 +101,12 @@ public:
     QString setUpperBoundUser( int upperBound );
 
     /**
+     * Show/hide the animator settings.
+     * @param visible - true if the animator settings should be visible; false otherwise.
+     */
+    void setSettingsVisible( bool visible );
+
+    /**
      * Set the animator visible/invisible.
      * @param visible - true if the animator should be visible; false if it should be hidden.
      */
@@ -108,6 +114,7 @@ public:
 
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
+    static const QString SETTINGS_VISIBLE;
 
     virtual ~AnimatorType();
 

@@ -57,6 +57,20 @@ QString CoordinateSystems::getDefault() const {
     return m_coordSystems[ Carta::Lib::KnownSkyCS::J2000 ];
 }
 
+QString CoordinateSystems::getCoordinateSystem( const QString& system ) const {
+    QString actualSystem;
+    int coordCount = m_coordSystems.size();
+    QList<Carta::Lib::KnownSkyCS> keys = m_coordSystems.keys();
+    for ( int i = 0; i < coordCount; i++ ){
+        int compareResult = QString::compare( system, m_coordSystems[keys[i]], Qt::CaseInsensitive);
+        if ( compareResult == 0 ){
+            actualSystem = m_coordSystems[keys[i]];
+            break;
+        }
+    }
+    return actualSystem;
+}
+
 QStringList CoordinateSystems::getCoordinateSystems() const {
     QStringList buff;
     int coordCount = m_coordSystems.size();
@@ -105,14 +119,6 @@ void CoordinateSystems::_initializeDefaultState(){
     m_state.flushState();
 }
 
-bool CoordinateSystems::isCoordinateSystem( const QString& name ) const {
-    bool validCoord = false;
-    QStringList systemList = getCoordinateSystems();
-    if ( systemList.contains(name)){
-        validCoord = true;
-    }
-    return validCoord;
-}
 
 void CoordinateSystems::_initializeCallbacks(){
     addCommandCallback( "getCoordSystems", [=] (const QString & /*cmd*/,

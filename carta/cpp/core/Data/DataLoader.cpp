@@ -123,7 +123,7 @@ void DataLoader::_initCallbacks(){
             bool securityRestricted = isSecurityRestricted();
             QString result = "false";
             if ( securityRestricted ){
-                result = true;
+                result = "true";
             }
             return result;
         });

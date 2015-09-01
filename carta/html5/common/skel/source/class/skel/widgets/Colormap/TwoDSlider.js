@@ -122,7 +122,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                 } else {
                     ctx.fillStyle = "rgba( 0, 0, 0, 0.0)";
                 }
-                ctx.fillText( "Right click or ESC to reset.", this.MARGIN+2, height - this.MARGIN-2);
+                ctx.fillText( "ESC to reset.", this.MARGIN+2, height - this.MARGIN-2);
             },
 
             /**
