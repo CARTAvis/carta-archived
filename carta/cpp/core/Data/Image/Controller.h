@@ -7,13 +7,16 @@
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include <Data/IColoredView.h>
+#include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/AxisInfo.h"
 
 #include <QString>
 #include <QList>
 #include <QObject>
 #include <QImage>
-#include <memory>
+//#include <memory>
+#include <set>
 
 class ImageView;
 class CoordinateFormatterInterface;
@@ -32,14 +35,19 @@ namespace Carta {
 
 namespace Carta {
 namespace Data {
-class DataSource;
+class ControllerData;
+class DisplayControls;
 class GridControls;
+class ContourControls;
 class Settings;
 class Region;
 class RegionRectangle;
 class Selection;
 
-class Controller: public QObject, public Carta::State::CartaObject, public IColoredView {
+class Controller: public QObject, public Carta::State::CartaObject,
+    public IColoredView, public IPercentIntensityMap {
+
+    friend class Animator;
 
     Q_OBJECT
 
@@ -74,6 +82,13 @@ public:
     QString closeImage( const QString& name );
 
     /**
+     * Return the percentile corresponding to the given intensity in the current frame.
+     * @param intensity a value for which a percentile is needed.
+     * @return the percentile corresponding to the intensity.
+     */
+    double getPercentile( double intensity ) const;
+
+    /**
      * Return the percentile corresponding to the given intensity.
      * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
      * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
@@ -88,6 +103,14 @@ public:
      *      image.
      */
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile in the current frame.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool getIntensity( double percentile, double* intensity ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -118,10 +141,11 @@ public:
     int getSelectImageIndex() const ;
 
     /**
-     * Return the channel upper bound.
-     * @return the largest channel in the image.
+     * Return the frame upper bound.
+     * @param type - the axis for which a frame upper bound is needed.
+     * @return the largest frame for a particular axis in the image.
      */
-    int getChannelUpperBound() const;
+    int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
 
     /**
      * Returns an identifier for the data source at the given index.
@@ -129,18 +153,6 @@ public:
      * @return an identifier for the image.
      */
     QString getImageName(int index) const;
-
-    /**
-     * Make a channel selection.
-     * @param val  a channel selection.
-     */
-    void setFrameChannel(int val);
-
-    /**
-     * Return the current channel selection.
-     * @return the current channel selection.
-     */
-    int getFrameChannel() const;
 
     /**
      * Center the image.
@@ -238,6 +250,13 @@ public:
     void setZoomLevel( double zoomLevel );
 
     /**
+     * Return the current axis frame.
+     * @param axisType - the axis for which the frame index is needed.
+     * @return the current frame for the axis.
+     */
+    int getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
+
+    /**
      * Get the current zoom level
      */
     double getZoomLevel( );
@@ -300,9 +319,7 @@ public:
      */
     void resetState( const QString& state );
 
-    std::shared_ptr<GridControls> getGridControls() {
-        return m_gridControls;
-    }
+    std::shared_ptr<GridControls> getGridControls();
 
     virtual ~Controller();
 
@@ -311,12 +328,14 @@ public:
     static const QString PLUGIN_NAME;
 
 signals:
+
+    void axesChanged();
     /**
      *  Notification that the image/selection managed by this controller has
      *  changed.
      *  @param controller this Controller.
      */
-    void dataChanged( Controller* controller );
+    void dataChanged(Controller* controller );
 
     /**
      * Notification that the channel/selection managed by this controller has
@@ -324,6 +343,8 @@ signals:
      * @param controller this Controller.
      */
     void channelChanged( Controller* controller );
+
+
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
@@ -333,6 +354,10 @@ protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
+
+    void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
+
+    void _contoursChanged();
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
@@ -371,13 +396,21 @@ private:
 
     class Factory;
 
+    std::set<Carta::Lib::AxisInfo::KnownType> getAxesZ() const;
+
+    /**
+     * Make a frame selection.
+     * @param axisType - the axis for which a frame is being set.
+     * @param val  a frame index for the axis..
+     */
+    void setFrame(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+
 
 
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
     void _initializeSelections();
-    void _initializeSelection( Selection* & selection );
 
     void _clearData();
     QString _makeRegion( const QString& regionType );
@@ -402,20 +435,22 @@ private:
     static const QString ZOOM;
 
     //Data Selections
-    Selection* m_selectChannel;
     Selection* m_selectImage;
+    std::vector<Selection*> m_selects;
 
     //Data View
     std::shared_ptr<ImageView> m_view;
 
     std::shared_ptr<GridControls> m_gridControls;
+    std::shared_ptr<ContourControls> m_contourControls;
+    std::shared_ptr<DisplayControls> m_displayControls;
 
 
     std::unique_ptr<Settings> m_settings;
 
 
     //Data available to and managed by this controller.
-    QList<DataSource* > m_datas;
+    QList<shared_ptr<ControllerData> > m_datas;
 
 
     QList<Region* > m_regions;

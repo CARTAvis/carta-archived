@@ -6,6 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/AxisInfo.h"
 #include "CCRawView.h"
 #include "CCMetaDataInterface.h"
 #include "casacore/images/Images/ImageInterface.h"
@@ -63,6 +64,19 @@ public:
         return m_dims;
     }
 
+    virtual int getAxisIndex( Carta::Lib::AxisInfo::KnownType type ) const{
+        int axisIndex = -1;
+        //int imageSize = m_dims.size();
+        const casa::CoordinateSystem & coords = m_casaII->coordinates();
+        if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
+            axisIndex = coords.spectralCoordinateNumber();
+        }
+        else {
+            qDebug() << "Todo: need to implement other cases of getAxisIndex";
+        }
+        return axisIndex;
+    }
+
     virtual bool
     hasMask() const override
     {
@@ -116,6 +130,8 @@ public:
     {
         return m_meta;
     }
+
+
 
     static CCImage::SharedPtr
     create( casa::ImageInterface < PType > * casaImage )

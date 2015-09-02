@@ -48,6 +48,19 @@ public:
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
+     * Change the frame of the animator for the indicated axis.
+     * @param axisName - an identifier for the axis.
+     * @param index - the index of the new axis frame.
+     */
+    void changeFrame( int index, const QString& axisName );
+
+    /**
+     * Change the image displayed.
+     * @param selectedImage - the index of an image to animate to.
+     */
+    void changeImageIndex( int selectedImage );
+
+    /**
      * Clear current state..
      */
     void clear();
@@ -86,9 +99,6 @@ public:
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
 
-    void changeChannelIndex( int index );
-
-    void changeImageIndex( int selectedImage );
 
     /**
      * Force a state refresh.
@@ -122,6 +132,7 @@ public:
     virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
 
     static const QString CLASS_NAME;
+    static const QString TYPE;
 
     virtual ~Animator();
 protected:
@@ -130,8 +141,9 @@ protected:
 private slots:
     //Adjusts internal state based on the state in the child controllers.
     void _adjustStateController( Controller* controller);
+    void _axesChanged();
     void _imageIndexChanged( int index );
-    void _channelIndexChanged( int index );
+    void _frameChanged( int index, const QString& axisName );
 
 private:
     /**
@@ -143,7 +155,9 @@ private:
     class Factory;
 
     void _adjustStateAnimatorTypes();
+    void _addRemoveImageAnimator();
     int _getMaxImageCount() const;
+    int _getAnimatorTypeVisibleCount() const;
     void _initializeState();
     void _initializeAnimators();
     void _initializeCallbacks();
@@ -153,6 +167,8 @@ private:
 
     //Reset the state of an individual animator.
     void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
+
+    void _updateSupportedZAxes( Controller* controller );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;

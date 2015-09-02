@@ -174,7 +174,10 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         # Find an image loader and change it to an animator.
         imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
         self.assertIsNotNone( imageWindow, "Could not find image window")
-        ActionChains(driver).context_click(imageWindow).send_keys( Keys.ARROW_RIGHT ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
+        ActionChains(driver).context_click(imageWindow).perform()
+        ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN
+            ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN
+            ).send_keys( Keys.ENTER ).perform()
         time.sleep( timeout )
 
         # Find the settings button on the animator and click it so jump will be visible
@@ -230,7 +233,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         
         # Save the preferences
         self._savePreferences( driver )
-        
+
         # Show the toolbar
         # Find the preferences button on the menu bar and click it.
         preferencesButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Preferences']/..")))

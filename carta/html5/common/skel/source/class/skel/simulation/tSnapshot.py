@@ -42,11 +42,12 @@ class tSnapshot(unittest.TestCase):
     def _clickSessionSaveButton(self,driver): 
         sessionButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Session']/..")))
         self.assertIsNotNone( sessionButton, "Could not find div with text session")
+        ActionChains( driver ).click( sessionButton );
         # Find the save session button in the submenu and click it.
-        #saveButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Save...']/..")))
-        #self.assertIsNotNone( saveButton, "Could not find save session button in submenu")
-        #ActionChains(driver).click( saveButton).perform()
-        ActionChains( driver).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
+        saveButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Save...']/..")))
+        self.assertIsNotNone( saveButton, "Could not find save session button in submenu")
+        ActionChains(driver).click( saveButton).perform()
+        #ActionChains( driver).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
             
     # Click the "Sessions" menu item
     def _clickSessionButton(self, driver ):
@@ -77,7 +78,7 @@ class tSnapshot(unittest.TestCase):
     # Set the type of state that should be saved
     def _setSaveOptions(self, driver, savePreferences, saveLayout, saveData ):
         # Find preferences div 
-        prefDiv = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Preferences']/..")))
+        #prefDiv = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Preferences']/..")))
         prefCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Preferences']/../div[@class='qx-checkbox']")))
         self.assertIsNotNone( prefCheck, "Could not find preferences check")
         self._setChecked( driver, prefCheck, savePreferences )
@@ -117,4 +118,4 @@ class tSnapshot(unittest.TestCase):
         #Allow browser to fully close before continuing
         time.sleep(2)
         #Close the session and delete temporary files
-        self.driver.quit()        
+        self.driver.quit()

@@ -148,6 +148,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
                 }
                 catch( err ){
                     console.log( "Could not parse layout node: "+val );
+                    console.log( "Err: "+err);
                 }
             }
         },

@@ -5,15 +5,13 @@
 
 #pragma once
 
-#include "State/ObjectManager.h"
-#include "State/StateInterface.h"
-#include <vector>
+#include <QStringList>
 
 namespace Carta {
 
 namespace Data {
 
-class AnimationTypes : public Carta::State::CartaObject {
+class AnimationTypes {
 
 public:
 
@@ -21,22 +19,16 @@ public:
      * Returns a list of supported animations
      * @return a list of supported animations.
      */
-    QStringList getAnimations() const;
+    static QStringList getAnimations();
 
-    const static QString CLASS_NAME;
-    const static QString ANIMATION_LIST;
     virtual ~AnimationTypes();
 
 private:
 
+    static void _init();
+    AnimationTypes();
 
-    void _initializeState();
-
-    static bool m_registered;
-    AnimationTypes( const QString& path, const QString& id );
-    class Factory;
-
-
+    static QList<QString> m_animations;
 	AnimationTypes( const AnimationTypes& other);
 	AnimationTypes& operator=( const AnimationTypes& other );
 };

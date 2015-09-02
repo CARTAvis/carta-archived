@@ -21,9 +21,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_viewContent.setLayout(new qx.ui.layout.Canvas());
         
         this.m_content.add( this.m_viewContent, {flex:1} );
-        this.m_gridControls = new skel.widgets.Grid.GridControls();
-        this.m_gridControls.addListener( "gridControlsChanged", this._gridChanged, this );
-        this.m_content.add( this.m_gridControls );
+        this.m_imageControls = new skel.widgets.Image.ImageControls();
+        this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
+        this.m_content.add( this.m_imageControls );
     },
 
     members : {
@@ -34,7 +34,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param content {boolean} - true if the content should be visible; false otherwise.
          */
         _adjustControlVisibility : function(content){
-            this.m_gridControlsVisible = content;
+            this.m_controlsVisible = content;
             this._layoutControls();
         },
         
@@ -102,8 +102,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         _gridChanged : function( ev ){
             var data = ev.getData();
-            var controls = data.grid;
-            this._showHideStatistics( controls.showStatistics );
+            var showStat = data.grid.grid.showStatistics;
+            this._showHideStatistics( showStat );
         },
 
         /**
@@ -164,7 +164,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initialize the list of window specific commands this window supports.
          */
         _initSupportedCommands : function(){
-            arguments.callee.base.apply(this, arguments);
+            
             var clipCmd = skel.Command.Clip.CommandClip.getInstance();
             this.m_supportedCmds.push( clipCmd.getLabel() );
             var dataCmd = skel.Command.Data.CommandData.getInstance();
@@ -173,14 +173,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if ( saveCmd.isSaveAvailable() ){
                 this.m_supportedCmds.push( saveCmd.getLabel() );
             }
-            var gridCmd = skel.Command.Settings.SettingsGrid.getInstance();
-            this.m_supportedCmds.push( gridCmd.getLabel());
+            var settingsCmd = skel.Command.Settings.SettingsImage.getInstance();
+            this.m_supportedCmds.push( settingsCmd.getLabel());
             var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
             this.m_supportedCmds.push( popupCmd.getLabel() );
             var zoomResetCmd = skel.Command.Data.CommandZoomReset.getInstance();
             this.m_supportedCmds.push( zoomResetCmd.getLabel() );
             var panResetCmd = skel.Command.Data.CommandPanReset.getInstance();
             this.m_supportedCmds.push( panResetCmd.getLabel() );
+            arguments.callee.base.apply(this, arguments);
         },
         
         /**
@@ -223,8 +224,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if ( this.m_statisticsVisible ){
                 this.m_content.add( this.m_statLabel );
             }
-            if ( this.m_gridControlsVisible ){
-                this.m_content.add( this.m_gridControls );
+            if ( this.m_controlsVisible ){
+                this.m_content.add( this.m_imageControls );
             }
         },
 
@@ -312,7 +313,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             
             //Get the shared variable for preferences
             this.initializePrefs();
-            this.m_gridControls.setId( this.getIdentifier());
+            this.m_imageControls.setId( this.getIdentifier());
         },
         
 
@@ -324,8 +325,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
        
         m_view : null,
         m_viewContent : null,
-        m_gridControls : null,
-        m_gridControlsVisible : false,
+        m_imageControls : null,
+        m_controlsVisible : false,
         m_statLabel : null,
         m_statisticsVisible : false,
         m_shapes : [ "Rectangle", "Ellipse", "Point", "Polygon" ]

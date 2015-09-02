@@ -18,6 +18,8 @@ class Selection;
 
 class AnimatorType : public QObject, public Carta::State::CartaObject {
 
+    friend class Animator;
+
     Q_OBJECT
 
 public:
@@ -40,11 +42,14 @@ public:
      */
     QString getStateData() const;
 
+    QString getType() const;
+
     /**
      * Returns true if the animator is no longer visually available; false otherwise.
      * @return true if the animator is hidden; false otherwise.
      */
     bool isRemoved() const;
+    bool isVisible() const;
 
     /**
      * Reset the animator's selections.
@@ -86,6 +91,8 @@ public:
      */
     QString setLowerBoundUser( int lowerBound );
 
+
+
     /**
      * Sets the upper bound for the selection.
      * @param a nonnegative upper bound for the selection.
@@ -101,24 +108,32 @@ public:
     QString setUpperBoundUser( int upperBound );
 
     /**
+     * Show/hide the animator settings.
+     * @param visible - true if the animator settings should be visible; false otherwise.
+     */
+    void setSettingsVisible( bool visible );
+
+    /**
      * Set the animator visible/invisible.
      * @param visible - true if the animator should be visible; false if it should be hidden.
      */
     void setVisible( bool visible );
+    void setRemoved( bool removed );
 
     static const QString CLASS_NAME;
     static const QString ANIMATIONS;
+    static const QString SETTINGS_VISIBLE;
 
     virtual ~AnimatorType();
 
 signals:
-    void indexChanged(int);
+    void indexChanged(int,const QString&);
 
 private slots:
     void _selectionChanged( bool );
 
 private:
-
+    void _setType( const QString& type );
     /**
      * Constructor.
      * @param winId an identifier for the animator.
@@ -141,6 +156,7 @@ private:
 
     //Animator's selection.
     Selection* m_select;
+    QString m_type;
     const static QString COMMAND_SET_FRAME;
     const static QString END_BEHAVIOR;
     const static QString END_BEHAVIOR_WRAP;
@@ -148,7 +164,9 @@ private:
     const static QString END_BEHAVIOR_REVERSE;
     const static QString RATE;
     const static QString STEP;
-    const static QString VISIBLE;
+
+    bool m_visible;
+    bool m_removed;
     AnimatorType( const AnimatorType& other);
     AnimatorType& operator=( const AnimatorType& other );
 };

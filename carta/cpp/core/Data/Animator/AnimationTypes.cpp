@@ -1,59 +1,39 @@
 #include "AnimationTypes.h"
+#include "Data/Image/DataDisplay/AxisMapper.h"
 #include "Data/Selection.h"
-#include "State/UtilState.h"
-#include "CartaLib/CartaLib.h"
+#include "CartaLib/AxisInfo.h"
 #include <QDebug>
 
 namespace Carta {
 
 namespace Data {
 
-const QString AnimationTypes::ANIMATION_LIST = "animators";
-const QString AnimationTypes::CLASS_NAME = "AnimationTypes";
-
-using Carta::State::UtilState;
-
-class AnimationTypes::Factory : public Carta::State::CartaObjectFactory {
-    public:
-
-        Factory():
-            Carta::State::CartaObjectFactory(CLASS_NAME){
-        };
-
-        Carta::State::CartaObject * create (const QString & path, const QString & id)
-        {
-            return new AnimationTypes (path, id);
-        }
-    };
+QList<QString> AnimationTypes::m_animations;
 
 
-
-bool AnimationTypes::m_registered =
-        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new AnimationTypes::Factory());
-
-AnimationTypes::AnimationTypes( const QString& path, const QString& id):
-    CartaObject( CLASS_NAME, path, id ){
-    _initializeState();
+AnimationTypes::AnimationTypes(){
 }
 
-QStringList AnimationTypes::getAnimations() const {
-    int animCount = m_state.getArraySize( ANIMATION_LIST );
+QStringList AnimationTypes::getAnimations(){
+    if ( m_animations.size() == 0 ){
+        _init();
+    }
+    int animCount = m_animations.size();
     QStringList animList;
     for ( int i = 0; i < animCount; i++ ){
-        QString indexStr = UtilState::getLookup(ANIMATION_LIST,QString::number(i));
-        animList.append( m_state.getValue<QString>( indexStr ));
+        animList.append( m_animations[i] );
     }
     return animList;
 }
 
-void AnimationTypes::_initializeState(){
-    const int ANIM_COUNT = 2;
-    m_state.insertArray( ANIMATION_LIST, ANIM_COUNT );
-    QString channelIndexStr = UtilState::getLookup(ANIMATION_LIST, QString::number(0));
-    m_state.setValue<QString>(channelIndexStr, Selection::CHANNEL );
-    QString imageIndexStr = UtilState::getLookup(ANIMATION_LIST, QString::number(1));
-    m_state.setValue<QString>( imageIndexStr, Selection::IMAGE );
-    m_state.flushState();
+void AnimationTypes::_init(){
+    //Should be an animator for each axis, plus one to animate images
+    int axisCount = static_cast<int>(Carta::Lib::AxisInfo::KnownType::OTHER);
+    for ( int i = 0; i < axisCount; i++ ){
+        QString purpose = AxisMapper::getPurpose( static_cast<Carta::Lib::AxisInfo::KnownType>(i) );
+        m_animations.append( purpose );
+    }
+    m_animations.append( Selection::IMAGE );
 }
 
 

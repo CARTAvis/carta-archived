@@ -5,10 +5,10 @@
 #pragma once
 
 #include "CartaLib/Nullable.h"
-#include "State/ObjectManager.h"
-#include "State/StateInterface.h"
 #include "Data/IColoredView.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/CartaLib.h"
+#include "CartaLib/AxisInfo.h"
+
 #include <QImage>
 #include <memory>
 
@@ -24,7 +24,6 @@ class CoordinateFormatterInterface;
 
 namespace Carta {
 namespace Lib {
-    class IWcsGridRenderService;
     namespace PixelPipeline {
         class CustomizablePixelPipeline;
     }
@@ -33,20 +32,15 @@ namespace Core {
     namespace ImageRenderService {
         class Service;
     }
-    namespace ImageSaveService {
-        class ImageSaveService;
-    }
 }
 
 namespace Data {
 
-class ImageGridServiceSynchronizer;
-class DataGrid;
 class CoordinateSystems;
 
-class DataSource : public QObject, public Carta::State::CartaObject, public IColoredView {
+class DataSource : public QObject, public IColoredView {
 
-friend class Controller;
+friend class ControllerData;
 
 Q_OBJECT
 
@@ -88,31 +82,10 @@ public:
 
        static const QString CLASS_NAME;
        static const double ZOOM_DEFAULT;
-
+       static const QString DATA_PATH;
 
     virtual ~DataSource();
 
-signals:
-
-    //Notification that a new image has been produced.
-    void renderingDone( QImage img);
-
-    /// Return the result of SaveFullImage() after the image has been rendered
-    /// and a save attempt made.
-    void saveImageResult( bool result );
-
-private slots:
-
-    //Notification from the rendering service that a new image has been produced.
-    //void _renderingDone( QImage img, int64_t jobId );
-
-    void _imageAndGridDoneSlot( QImage image,
-                          Carta::Lib::VectorGraphics::VGList vgList,
-                          int64_t jobId );
-
-
-    // Asynchronous result from saveFullImage().
-    void _saveImageResultCB( bool result );
 
 private:
 
@@ -124,10 +97,29 @@ private:
     bool _contains(const QString& fileName) const;
 
     /**
-     * Return the number of channels in the image.
-     * @return the number of channels in the image.
+     * Set the x-, y-, and z- axes that are to be displayed.
+     * @param displayAxisTypes - the list of display axes.
      */
-    int _getFrameCount() const;
+    void _setDisplayAxes(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes );
+
+    /**
+     * Return a list of axes in the image.
+     * @return - a list of axes that are present in the image.
+     */
+    std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
+
+    /**
+     * Return the z display axis.
+     * @return the z display axis.
+     */
+    Carta::Lib::AxisInfo::KnownType _getAxisZ() const;
+
+    /**
+     * Return the number of frames for a particular axis in the image.
+     * @param type - the axis for which a frame count is needed.
+     * @return the number of frames for the given axis in the image.
+     */
+    int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const;
 
     /**
      * Return the number of dimensions in the image.
@@ -166,10 +158,6 @@ private:
      */
     int _getDimension( int coordIndex ) const;
 
-    //Return data source state.
-    Carta::State::StateInterface _getGridState() const;
-    QString _getStateString() const;
-
     /**
      * Returns the underlying image.
      */
@@ -185,15 +173,15 @@ private:
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
-     * @param frameIndex the current channel index.
+     * @param frameIndex the index of the frame in the current z-axis.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, int frameIndex);
+    QString _getCursorText( int mouseX, int mouseY, int frameIndex, Carta::Lib::KnownSkyCS cs);
 
     /**
      * Return the percentile corresponding to the given intensity.
-     * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
+     * @param frameLow a lower bound for the frames or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the frames or -1 if there is no upper bound.
      * @param intensity a value for which a percentile is needed.
      * @return the percentile corresponding to the intensity.
      */
@@ -214,6 +202,8 @@ private:
      * @retun the pipeline responsible for rendering the image.
      */
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
+
+    std::shared_ptr<Carta::Core::ImageRenderService::Service> _getRenderer() const;
 
     /**
      * Return the zoom factor for this image.
@@ -258,52 +248,33 @@ private:
      * Return the coordinates at pixel (x, y) in the given coordinate system.
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
+     * @param frameIndex - the frame index.
      * @param system the desired coordinate system.
-     * @return the coordinates at pixel (x, y).
+     * @return a list formatted coordinates.
      */
-    QString _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ) const;
-
-    
+    QStringList _getCoordinates( double x, double y, int frameIndex, Carta::Lib::KnownSkyCS system ) const;
 
 
     /**
      * Returns the raw data as an array.
-     * @param frameLow the lower bound for the channel range or -1 for the whole image.
-     * @param frameHigh the upper bound for the channel range or -1 for the whole image.
+     * @param axisIndex - an index of an image axis.
+     * @param frameLow the lower bound for the frames or -1 for the whole image.
+     * @param frameHigh the upper bound for the frames or -1 for the whole image.
+     * @param axisIndex - the axis for the frames or -1 for all axes.
      * @return the raw data or nullptr if there is none.
      */
-    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
+    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex = -1 ) const;
 
-    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage );
-
-
-    void _initializeState();
-
+    //Initialize static objects.
     void _initializeSingletons( );
-
-    /**
-     * Loads the data source as a QImage.
-     * @param frameIndex the channel to load.
-     * @param true to force a recompute of the image clip.
-     */
-    Nullable<QImage> _load(int frameIndex, bool forceReload);
-
-
 
     /**
      * Return a QImage representation of this data.
      * @param frameIndex the index of the spectral coordinate to load.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    void _load(int frameIndex, bool autoClip, double clipMinPercentile, double clipMaxPercentile );
-
-
-    /**
-     * Generate a new QImage.
-     */
-    void _render();
+    void _load(int frameIndex, double clipMinPercentile, double clipMaxPercentile );
 
     /**
      * Center the image.
@@ -315,13 +286,6 @@ private:
      */
     void _resetZoom();
 
-    /**
-     * Save a copy of the full image in the current image view.
-     * @param filename the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @param frameIndex the channel index.
-     */
-    void _saveImage( const QString& savename,  double scale, int frameIndex );
     /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
@@ -349,12 +313,12 @@ private:
      * @param name QString a unique identifier for a data transform.
      */
     void _setTransformData( const QString& name );
+
+
     /**
      * Resize the view of the image.
      */
     void _viewResize( const QSize& newSize );
-
-
 
 
     void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
@@ -363,16 +327,12 @@ private:
     /**
      *  Constructor.
      */
-    DataSource( const QString& path, const QString& id );
+    DataSource();
 
-    class Factory;
-    static bool m_registered;
-
+    QString m_fileName;
     bool m_cmapUseCaching;
     bool m_cmapUseInterpolatedCaching;
     int m_cmapCacheSize;
-
-    static const QString DATA_PATH;
 
     //Used pointer to coordinate systems.
     static CoordinateSystems* m_coords;
@@ -388,21 +348,15 @@ private:
 
     /// the rendering service
     std::shared_ptr<Carta::Core::ImageRenderService::Service> m_renderService;
-    
-    /// wcs grid render service
-    std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_wcsGridRenderer;
-
-     /// image-and-grid-service result synchronizer
-    std::unique_ptr<ImageGridServiceSynchronizer> m_igSync;
-    
-    std::unique_ptr<DataGrid> m_dataGrid;
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
 
-    /// Saves images
-    Carta::Core::ImageSaveService::ImageSaveService *m_saveService;
-    QImage m_qimage;
+    //Indices of the display axes.
+    int m_axisIndexX;
+    int m_axisIndexY;
+    int m_axisIndexZ;
+
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);
 };

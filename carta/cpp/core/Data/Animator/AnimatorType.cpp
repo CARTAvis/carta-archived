@@ -21,13 +21,14 @@ public:
     }
 };
 
-const QString AnimatorType::VISIBLE = "visible";
+
 const QString AnimatorType::COMMAND_SET_FRAME = "setFrame";
 const QString AnimatorType::END_BEHAVIOR = "endBehavior";
 const QString AnimatorType::END_BEHAVIOR_WRAP = "Wrap";
 const QString AnimatorType::END_BEHAVIOR_JUMP = "Jump";
 const QString AnimatorType::END_BEHAVIOR_REVERSE = "Reverse";
 const QString AnimatorType::RATE = "frameRate";
+const QString AnimatorType::SETTINGS_VISIBLE = "showSettings";
 const QString AnimatorType::STEP = "frameStep";
 
 const QString AnimatorType::CLASS_NAME = "AnimatorType";
@@ -40,8 +41,11 @@ bool AnimatorType::m_registered =
 AnimatorType::AnimatorType(const QString& path, const QString& id ):
 	CartaObject( CLASS_NAME, path, id ){
         m_select = nullptr;
-        _makeSelection();
+        m_removed = false;
+        m_visible = true;
         _initializeState();
+        _makeSelection();
+
         _initializeCommands();
 }
 
@@ -62,11 +66,16 @@ QString AnimatorType::getStatePreferences() const{
     return result;
 }
 
+QString AnimatorType::getType() const {
+    return m_type;
+}
+
 void AnimatorType::_initializeState( ){
     m_state.insertValue<int>( STEP, 1 );
     m_state.insertValue<int>( RATE, 20 );
+    m_state.insertValue<bool>(SETTINGS_VISIBLE, false );
     m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
-    m_state.insertValue<bool>( VISIBLE, true);
+    //m_state.insertValue<bool>( VISIBLE, true);
     m_state.flushState();
 }
 
@@ -177,11 +186,32 @@ void AnimatorType::_initializeCommands(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setSettingsVisible", [=] (const QString & /*cmd*/,
+                                                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {SETTINGS_VISIBLE};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString visibleStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool settingsVisible = Util::toBool( visibleStr, &validBool );
+            if ( validBool  ){
+                setSettingsVisible( settingsVisible );
+            }
+            else {
+                result = "Animator setting visibility must be true/false: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 }
 
 bool AnimatorType::isRemoved() const {
-    bool visible = m_state.getValue<bool>( VISIBLE );
-    return !visible;
+    return m_removed;
+}
+
+bool AnimatorType::isVisible() const {
+    return m_visible;
 }
 
 
@@ -203,7 +233,11 @@ void AnimatorType::resetStateData( const QString& state ){
 }
 
 void AnimatorType::_selectionChanged( bool /*forceReload*/ ){
-    emit indexChanged( m_select->getIndex() );
+    emit indexChanged( m_select->getIndex(), m_type );
+}
+
+void AnimatorType::_setType( const QString& type ){
+    m_type = type;
 }
 
 QString AnimatorType::setEndBehavior( const QString& endStr ){
@@ -268,17 +302,31 @@ QString AnimatorType::setLowerBoundUser( int lowerBound ){
     return result;
 }
 
+void AnimatorType::setSettingsVisible( bool visible ){
+    bool oldVisible = m_state.getValue<bool>(SETTINGS_VISIBLE);
+    if ( oldVisible != visible ){
+        m_state.setValue<bool>(SETTINGS_VISIBLE, visible );
+        m_state.flushState();
+    }
+}
+
+
 QString AnimatorType::setUpperBoundUser( int upperBound ){
     QString result = m_select->setUpperBoundUser( upperBound);
     return result;
 }
 
+void AnimatorType::setRemoved( bool removed ){
+    m_removed = removed;
+}
+
 void AnimatorType::setVisible( bool visible ){
-    bool oldVisible = m_state.getValue<bool>(VISIBLE);
+    /*bool oldVisible = m_state.getValue<bool>(VISIBLE);
     if ( oldVisible != visible ){
         m_state.setValue<bool>(VISIBLE, visible );
         m_state.flushState();
-    }
+    }*/
+    m_visible = visible;
 }
 
 

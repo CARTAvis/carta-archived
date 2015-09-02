@@ -28,9 +28,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.getChildControl( "captionbar").setVisibility( "excluded");
         }
         
-        this._initSupportedCommands();
-        this._initContextMenu();
-        
         //Get the shared variable that indicates the plugins that have been loaded so
         //we can display the view options in the context menu.
         this.m_connector = mImport("connector");
@@ -48,10 +45,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
     },
 
     events : {
-        "iconify" : "qx.event.type.Data",
-        "maximizeWindow" : "qx.event.type.Data",
         "closeWindow" : "qx.event.type.Data",
-        "restoreWindow" : "qx.event.type,Data",
         "registered" : "qx.event.type.Data"
     },
 
@@ -305,6 +299,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                 flex : 1
             });
             this.m_contextMenu = new qx.ui.menu.Menu();
+           
             this.m_contextMenu.addListener( "appear", this._contextMenuEvent, this);
             this.setContextMenu(this.m_contextMenu);
             this.addListener("mousedown", function(ev) {
@@ -392,8 +387,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             this.m_supportedCmds.push( windowCmd.getLabel() );
             var viewsCmd = skel.Command.View.CommandViews.getInstance();
             this.m_supportedCmds.push( viewsCmd.getLabel() );
-            var linksCmd = skel.Command.Link.CommandLink.getInstance();
-            this.m_supportedCmds.push( linksCmd.getLabel() );
+            var prefCmd = skel.Command.Preferences.CommandPreferences.getInstance();
+            this.m_supportedCmds.push( prefCmd.getLabel());
         },
         
         
@@ -480,6 +475,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     if ( id != anObject.m_identifier ){
                         anObject.m_identifier = id;
                         anObject._initSharedVar();
+                        anObject._initSupportedCommands();
+                        anObject._initContextMenu();
                         anObject.windowIdInitialized();
                         anObject.fireDataEvent( "registered", "" );
                     }
@@ -579,8 +576,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
         
         /**
          * Update the location of this window.
-         * @param row {Number} the grid row index.
-         * @param col {Number} the grid column index.
+
          */
         setLocation : function ( locationId ){
             this.m_locationId = locationId;
