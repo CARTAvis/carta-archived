@@ -63,7 +63,8 @@ HEADERS += \
     IContourGeneratorService.h \
     ContourSet.h \
     Algorithms/LineCombiner.h \
-    Hooks/GetInitialFileList.h
+    Hooks/GetInitialFileList.h \
+    Hooks/Initialize.h
 
 unix {
     target.path = /usr/lib

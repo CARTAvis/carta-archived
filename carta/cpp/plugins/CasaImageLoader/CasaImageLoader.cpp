@@ -1,5 +1,6 @@
 #include "CasaImageLoader.h"
 #include "CCImage.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
 #include <QPainter>
@@ -17,8 +18,6 @@
 #include <algorithm>
 #include <cstdint>
 
-typedef Carta::Lib::Hooks::LoadAstroImage LoadAstroImage;
-
 CasaImageLoader::CasaImageLoader(QObject *parent) :
     QObject(parent)
 {
@@ -27,15 +26,16 @@ CasaImageLoader::CasaImageLoader(QObject *parent) :
 bool CasaImageLoader::handleHook(BaseHook & hookData)
 {
     qDebug() << "CasaImageLoader plugin is handling hook #" << hookData.hookId();
-    if( hookData.is<Initialize>()) {
+    if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
         // Register FITS and Miriad image types
         casa::FITSImage::registerOpenFunction();
         casa::MIRIADImage::registerOpenFunction();
         return true;
     }
 
-    else if( hookData.is<LoadAstroImage>()) {
-        LoadAstroImage & hook = static_cast<LoadAstroImage &>( hookData);
+    else if( hookData.is<Carta::Lib::Hooks::LoadAstroImage>()) {
+        Carta::Lib::Hooks::LoadAstroImage & hook
+                = static_cast<Carta::Lib::Hooks::LoadAstroImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
         hook.result = loadImage( fname);
         // return true if result is not null
@@ -50,8 +50,8 @@ std::vector<HookId> CasaImageLoader::getInitialHookList()
 {
 //    forgot_to_define_this();
     return {
-        Initialize::staticId,
-        LoadAstroImage::staticId
+        Carta::Lib::Hooks::Initialize::staticId,
+        Carta::Lib::Hooks::LoadAstroImage::staticId
     };
 }
 

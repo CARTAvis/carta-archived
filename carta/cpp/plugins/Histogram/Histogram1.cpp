@@ -2,6 +2,7 @@
 #include "CartaLib/Hooks/Histogram.h"
 #include "ImageHistogram.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include <casacore/coordinates/Coordinates/SpectralCoordinate.h>
 #include <QDebug>
 
@@ -225,7 +226,7 @@ std::pair<double,double> Histogram1::_getFrequencyBounds( int channelMin, int ch
 }
 
 bool Histogram1::handleHook( BaseHook & hookData ){
-    if ( hookData.is < Initialize > () ) {
+    if ( hookData.is < Carta::Lib::Hooks::Initialize > () ) {
         return true;
     }
     else if ( hookData.is < Carta::Lib::Hooks::HistogramHook > () ) {
@@ -313,7 +314,7 @@ bool Histogram1::handleHook( BaseHook & hookData ){
 
 std::vector < HookId > Histogram1::getInitialHookList(){
     return {
-        Initialize::staticId,
+        Carta::Lib::Hooks::Initialize::staticId,
         Carta::Lib::Hooks::HistogramHook::staticId
     };
 }

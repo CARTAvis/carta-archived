@@ -18,7 +18,7 @@ namespace Hooks
 {
 class ColormapsScalarHook : public BaseHook
 {
-    CARTA_HOOK_BOILER1( ColormapsScalarHook )
+    CARTA_HOOK_BOILER1( ColormapsScalarHook );
 
 public:
 

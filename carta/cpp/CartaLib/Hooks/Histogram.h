@@ -21,7 +21,7 @@ namespace Hooks
 {
 class HistogramHook : public BaseHook
 {
-    CARTA_HOOK_BOILER1( HistogramHook )
+    CARTA_HOOK_BOILER1( HistogramHook );
 
 public:
 

@@ -19,5 +19,4 @@ SUBDIRS += blurpy
 
 
 SUBDIRS += CyberSKA
-
-
+SUBDIRS += DevIntegration

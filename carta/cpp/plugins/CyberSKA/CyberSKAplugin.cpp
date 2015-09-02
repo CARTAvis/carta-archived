@@ -1,5 +1,6 @@
 #include "CyberSKAplugin.h"
 #include "CartaLib/Hooks/GetInitialFileList.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include <QEventLoop>
 #include <QJsonDocument>
 #include <QUrl>
@@ -16,26 +17,18 @@ bool
 CyberSKAplugin::handleHook( BaseHook & hookData )
 {
     qDebug() << "CyberSKAplugin is handling hook #" << hookData.hookId();
-    if ( hookData.is < Initialize > () ) {
+    if ( hookData.is < Carta::Lib::Hooks::Initialize > () ) {
         // we may need to initialize some qt formats here in the future...
         return true;
     }
     else if ( hookData.is < Carta::Lib::Hooks::GetInitialFileList > () ) {
         Carta::Lib::Hooks::GetInitialFileList & hook =
             static_cast < Carta::Lib::Hooks::GetInitialFileList & > ( hookData );
-
-//        auto fname = hook.paramsPtr->fileName;
-
-//        hook.result = QImageII::load( fname );
-
-//        // return true if result is not null
-//        return hook.result != nullptr;
-
-        hook.result = getParamsFromVizMan( "kkk");
-//        hook.result = {
-//            "/scratch/Images/sky.jpg"
-//        };
-        return true;
+        QString key = hook.paramsPtr->urlParams["key"];
+        qDebug() << "key" << key;
+        hook.result = getParamsFromVizMan( key);
+        // return success if we made a list of at least one filename
+        return ! hook.result.isEmpty();
     }
 
     qWarning() << "CyberSKAplugin: Sorrry, dont' know how to handle this hook";
@@ -46,7 +39,7 @@ std::vector < HookId >
 CyberSKAplugin::getInitialHookList()
 {
     return {
-               Initialize::staticId,
+               Carta::Lib::Hooks::Initialize::staticId,
                Carta::Lib::Hooks::GetInitialFileList::staticId
     };
 }
@@ -55,13 +48,18 @@ void
 CyberSKAplugin::initialize( const IPlugin::InitInfo & info )
 {
     qDebug() << "CyberSKA plugin initialized";
-    QJsonDocument doc( info.json );
-    QString docs = doc.toJson();
-    qDebug() << docs;
+//    QJsonDocument doc( info.json );
+//    QString docs = doc.toJson();
+//    qDebug() << docs;
 
-    m_urlPattern = doc.object()["vizmanUrl"].toString();
-    m_timeout = doc.object().value( "timeout" ).toDouble( 5.0 );
-    qDebug() << "url" << m_urlPattern;
+//    m_urlPattern = doc.object()["vizmanUrl"].toString();
+//    m_timeout = doc.object().value( "timeout" ).toDouble( 5.0 );
+
+    m_urlPattern = info.json.value( "vizmanUrl").toString();
+    m_timeout = info.json.value( "timeout").toDouble( 5.0);
+
+
+    qDebug() << "vizmanUrl" << m_urlPattern;
     qDebug() << "timeout" << m_timeout;
 }
 

@@ -1,5 +1,6 @@
 #include "QImagePlugin.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include <QDebug>
 #include <memory>
 #include <algorithm>
@@ -10,6 +11,7 @@ typedef Carta::Lib::AxisInfo AxisInfo;
 
 /// shortcut for LoadAstroImage
 typedef Carta::Lib::Hooks::LoadAstroImage LoadAstroImage;
+typedef Carta::Lib::Hooks::Initialize Initialize;
 
 class QImageII;
 
