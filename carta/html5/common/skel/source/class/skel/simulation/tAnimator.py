@@ -74,14 +74,6 @@ class tAnimator(unittest.TestCase):
         self.assertIsNotNone( forwardAnimateButton, "Could not find forward animation button")
         driver.execute_script( "arguments[0].scrollIntoView(true);", forwardAnimateButton)
         ActionChains(driver).click( forwardAnimateButton ).perform()
-        
-    # Forward animation button on the image animator
-    def _animateForwardImage(self, driver):
-        forwardAnimateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ImageTapeDeckIncrement"))) 
-        self.assertIsNotNone( forwardAnimateButton, "Could not find forward animation button")
-        driver.execute_script( "arguments[0].scrollIntoView(true);", forwardAnimateButton)
-        ActionChains(driver).click( forwardAnimateButton ).perform()
-
 
     # Change the Channel Animator to an Image Animator
     def channel_to_image_animator(self, driver):
@@ -96,10 +88,9 @@ class tAnimator(unittest.TestCase):
         channelText = driver.find_element_by_id( "ChannelIndexText")
         driver.execute_script( "arguments[0].scrollIntoView(true);", channelText)
         ActionChains(driver).click( channelText ).perform()
-        ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ENTER).perform()
+        ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( 
+            Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(
+            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep(timeout)
 
     # Open Settings

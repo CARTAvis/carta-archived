@@ -12,9 +12,9 @@ def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
         self.driver = webdriver.Firefox()
-        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        #self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
         #self.driver.get("http://199.116.235.162:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
-        #self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
+        self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
 
     # Running on Mac (Chrome)
@@ -53,8 +53,7 @@ def animation_to_image_window(unittest, driver):
     # Chrome browser is unable to enable the animation window by clicking on the window
     channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
     ActionChains(driver).click( channelText).perform()
-    ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
-        ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+    ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
 
 def get_window_count(unittest, driver):
      windowList = driver.find_elements_by_xpath("//div[@qxclass='qx.ui.window.Desktop']")
@@ -102,7 +101,6 @@ def load_image(unittest, driver, imageName):
     # Test image will ideally have more than 3 channels for a successful test run
     if imageName == "Default":
         imageName = "N15693D.fits"
-        #imageName="TWHydra_CO2_1line.image.fits"
 
     # Wait 20 seconds for the imageWindow to appear on the page
     imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
@@ -178,8 +176,7 @@ def load_image_different_window(unittest, driver, imageName):
     emptyWindow = add_window( unittest, driver)
     
     # Change the plugin of the empty window to an image loader 
-    ActionChains(driver).context_click( emptyWindow ).send_keys(Keys.ARROW_DOWN
-        ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+    ActionChains(driver).context_click( emptyWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
 
     # Ensure that there is a new image window 
     imageWindow2 = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "CasaImageLoader2")))

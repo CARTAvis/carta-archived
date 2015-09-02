@@ -5,9 +5,10 @@
 #pragma once
 
 #include "CartaLib/Nullable.h"
+#include "State/ObjectManager.h"
+#include "State/StateInterface.h"
 #include "Data/IColoredView.h"
-#include "CartaLib/CartaLib.h"
-
+#include "CartaLib/VectorGraphics/VGList.h"
 #include <QImage>
 #include <memory>
 
@@ -23,6 +24,7 @@ class CoordinateFormatterInterface;
 
 namespace Carta {
 namespace Lib {
+    class IWcsGridRenderService;
     namespace PixelPipeline {
         class CustomizablePixelPipeline;
     }
@@ -31,15 +33,20 @@ namespace Core {
     namespace ImageRenderService {
         class Service;
     }
+    namespace ImageSaveService {
+        class ImageSaveService;
+    }
 }
 
 namespace Data {
 
+class ImageGridServiceSynchronizer;
+class DataGrid;
 class CoordinateSystems;
 
-class DataSource : public QObject, public IColoredView {
+class DataSource : public QObject, public Carta::State::CartaObject, public IColoredView {
 
-friend class ControllerData;
+friend class Controller;
 
 Q_OBJECT
 
@@ -81,10 +88,31 @@ public:
 
        static const QString CLASS_NAME;
        static const double ZOOM_DEFAULT;
-       static const QString DATA_PATH;
+
 
     virtual ~DataSource();
 
+signals:
+
+    //Notification that a new image has been produced.
+    void renderingDone( QImage img);
+
+    /// Return the result of SaveFullImage() after the image has been rendered
+    /// and a save attempt made.
+    void saveImageResult( bool result );
+
+private slots:
+
+    //Notification from the rendering service that a new image has been produced.
+    //void _renderingDone( QImage img, int64_t jobId );
+
+    void _imageAndGridDoneSlot( QImage image,
+                          Carta::Lib::VectorGraphics::VGList vgList,
+                          int64_t jobId );
+
+
+    // Asynchronous result from saveFullImage().
+    void _saveImageResultCB( bool result );
 
 private:
 
@@ -138,6 +166,10 @@ private:
      */
     int _getDimension( int coordIndex ) const;
 
+    //Return data source state.
+    Carta::State::StateInterface _getGridState() const;
+    QString _getStateString() const;
+
     /**
      * Returns the underlying image.
      */
@@ -156,7 +188,7 @@ private:
      * @param frameIndex the current channel index.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, int frameIndex, Carta::Lib::KnownSkyCS cs);
+    QString _getCursorText( int mouseX, int mouseY, int frameIndex);
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -182,8 +214,6 @@ private:
      * @retun the pipeline responsible for rendering the image.
      */
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
-
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> _getRenderer() const;
 
     /**
      * Return the zoom factor for this image.
@@ -228,11 +258,12 @@ private:
      * Return the coordinates at pixel (x, y) in the given coordinate system.
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
-     * @param frameIndex - the channel index.
      * @param system the desired coordinate system.
-     * @return a list formatted coordinates.
+     * @return the coordinates at pixel (x, y).
      */
-    QStringList _getCoordinates( double x, double y, int frameIndex, Carta::Lib::KnownSkyCS system ) const;
+    QString _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ) const;
+
+    
 
 
     /**
@@ -243,7 +274,11 @@ private:
      */
     NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh ) const;
 
-    //Initialize static objects.
+    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage );
+
+
+    void _initializeState();
+
     void _initializeSingletons( );
 
     /**
@@ -264,6 +299,12 @@ private:
      */
     void _load(int frameIndex, bool autoClip, double clipMinPercentile, double clipMaxPercentile );
 
+
+    /**
+     * Generate a new QImage.
+     */
+    void _render();
+
     /**
      * Center the image.
      */
@@ -274,6 +315,13 @@ private:
      */
     void _resetZoom();
 
+    /**
+     * Save a copy of the full image in the current image view.
+     * @param filename the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @param frameIndex the channel index.
+     */
+    void _saveImage( const QString& savename,  double scale, int frameIndex );
     /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
@@ -301,12 +349,12 @@ private:
      * @param name QString a unique identifier for a data transform.
      */
     void _setTransformData( const QString& name );
-
-
     /**
      * Resize the view of the image.
      */
     void _viewResize( const QSize& newSize );
+
+
 
 
     void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
@@ -315,13 +363,16 @@ private:
     /**
      *  Constructor.
      */
-    //DataSource( const QString& path, const QString& id );
-    DataSource();
+    DataSource( const QString& path, const QString& id );
 
-    QString m_fileName;
+    class Factory;
+    static bool m_registered;
+
     bool m_cmapUseCaching;
     bool m_cmapUseInterpolatedCaching;
     int m_cmapCacheSize;
+
+    static const QString DATA_PATH;
 
     //Used pointer to coordinate systems.
     static CoordinateSystems* m_coords;
@@ -337,10 +388,21 @@ private:
 
     /// the rendering service
     std::shared_ptr<Carta::Core::ImageRenderService::Service> m_renderService;
+    
+    /// wcs grid render service
+    std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_wcsGridRenderer;
+
+     /// image-and-grid-service result synchronizer
+    std::unique_ptr<ImageGridServiceSynchronizer> m_igSync;
+    
+    std::unique_ptr<DataGrid> m_dataGrid;
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
 
+    /// Saves images
+    Carta::Core::ImageSaveService::ImageSaveService *m_saveService;
+    QImage m_qimage;
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);
 };

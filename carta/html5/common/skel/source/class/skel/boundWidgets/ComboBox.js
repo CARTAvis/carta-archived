@@ -23,9 +23,7 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         this.m_comboListener = this.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendCmd, this );
     },
     
-    events: {
-        "comboChanged" : "qx.event.type.Data"
-    },
+
 
     members : {
         
@@ -33,17 +31,12 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
          * Sends a value change to the server.
          */
         _sendCmd : function(){
-            var errorMan = skel.widgets.ErrorHandler.getInstance();
-            errorMan.clearErrors();
             if ( this.m_id !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
                 var coordSystem = this.getValue();
                 var params = this.m_paramId + ":"+coordSystem;
                 this.m_connector.sendCommand( cmd, params, function(){});
-            }
-            else {
-                this.fireDataEvent( "comboChanged", null );
             }
         },
         
@@ -60,10 +53,8 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
                this.add( tempItem );
            }
            //Try to reset the old selection
-           if ( oldValue !== null ){ 
-               if ( items.length > 0 ){
-                   this.setValue( oldValue );
-               }
+           if ( oldValue !== null ){
+               this.setValue( oldValue );
            }
            //Select the first item
            else if ( items.length > 0 ){
@@ -99,7 +90,7 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         
         /**
          * Set the server side id of this control UI.
-         * @param id {String} the server side id of the object.
+         * @param gridId {String} the server side id of the object that contains data for this control UI.
          */
         setId : function( id ){
             this.m_id = id;

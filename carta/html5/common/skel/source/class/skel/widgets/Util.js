@@ -142,12 +142,11 @@ qx.Class.define("skel.widgets.Util", {
             if ( tool ){
                 button = new qx.ui.toolbar.MenuButton( label );
             }
+            button.setCommand( cmd );
             button.addListener( "execute", function(){
                 this.doAction( value, cb );
             }, cmd );
-            if ( tool ){
-                skel.widgets.Util.addContext( button, cmd, tool );
-            }
+            skel.widgets.Util.addContext( button, cmd, tool );
             return button;
         },
         
@@ -170,10 +169,7 @@ qx.Class.define("skel.widgets.Util", {
                 };
             };
             checkBox.addListener( "changeValue", labelFunction( cmd,checkBox), checkBox);
-            if ( tool ){
-                
-                skel.widgets.Util.addContext( checkBox, cmd, tool );
-            }
+            skel.widgets.Util.addContext( checkBox, cmd, tool );
             return checkBox;
         },
         
@@ -256,9 +252,7 @@ qx.Class.define("skel.widgets.Util", {
                     button.addListener("changeValue", labelFunction(values[i], button), button);
                     radioGroup.add(button);
                     button.setFocusable(false);
-                    if ( tool ){
-                        skel.widgets.Util.addContext( button, values[i], tool );
-                    }
+                    skel.widgets.Util.addContext( button, values[i], tool );
                 }
             }
             return radios;

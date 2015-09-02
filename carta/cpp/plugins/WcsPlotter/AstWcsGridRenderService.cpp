@@ -250,10 +250,6 @@ AstWcsGridRenderService::renderNow()
         if ( !m_ticks ){
             _turnOffTicks(&sgp);
         }
-        else {
-            sgp.setPlotOption(QString("MinTickLen(1)=%1").arg( m_tickLength ));
-            sgp.setPlotOption(QString("MinTickLen(2)=%2").arg( m_tickLength ));
-        }
     }
 
     if ( m_internalLabels ) {
@@ -273,24 +269,10 @@ AstWcsGridRenderService::renderNow()
         sgp.setPlotOption( "TextLab(2)=1" );
     }
     else {
-        _turnOffLabels( &sgp, 1 );
-        _turnOffLabels( &sgp, 2 );
-    }
-
-    //Set the location of the axis labels
-    if ( m_labelLocations[0].length() > 0 ){
-        QString edgeOption1 = QString("Edge(1)=%1").arg( m_labelLocations[0] );
-        sgp.setPlotOption( edgeOption1 );
-    }
-    else {
-        _turnOffLabels( &sgp, 1 );
-    }
-    if ( m_labelLocations[1].length() > 0 ){
-        QString edgeOption2 = QString( "Edge(2)=%1").arg( m_labelLocations[1] );
-        sgp.setPlotOption( edgeOption2 );
-    }
-    else {
-        _turnOffLabels( &sgp, 2 );
+        sgp.setPlotOption( "TextLab(1)=0");
+        sgp.setPlotOption( "TextLab(2)=0");
+        sgp.setPlotOption( "NumLab(1) = 0");
+        sgp.setPlotOption( "NumLab(2) = 0");
     }
 
     // fonts
@@ -444,16 +426,6 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
     }
 } // setPen
 
-void
-AstWcsGridRenderService::setAxisLabelLocation( int axisIndex, const QString& edge ){
-    CARTA_ASSERT( axisIndex == 0 || axisIndex ==1 );
-    CARTA_ASSERT( edge == "top" || edge == "bottom" || edge =="left" || edge=="right" || edge=="");
-    if ( m_labelLocations[axisIndex] != edge ){
-        m_vgValid = false;
-        m_labelLocations[axisIndex] = edge;
-    }
-}
-
 //const QPen &
 //AstWcsGridRenderService::pen( Carta::Lib::IWcsGridRenderService::Element e )
 //{
@@ -489,16 +461,6 @@ AstWcsGridRenderService::setEmptyGrid( bool flag )
 }
 
 void
-AstWcsGridRenderService::setTickLength( double length )
-{
-    CARTA_ASSERT( length >= 0 );
-    if ( m_tickLength != length ){
-        m_vgValid = false;
-        m_tickLength = length;
-    }
-}
-
-void
 AstWcsGridRenderService::setTicksVisible( bool flag )
 {
     if ( m_ticks != flag ){
@@ -519,10 +481,5 @@ AstWcsGridRenderService::_turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp){
     sgp->setPlotOption("MajTickLen(2)=0");
     sgp->setPlotOption("MinTickLen(1)=0");
     sgp->setPlotOption("MinTickLen(2)=0");
-}
-
-void AstWcsGridRenderService::_turnOffLabels( WcsPlotterPluginNS::AstGridPlotter* sgp, int index ){
-    sgp->setPlotOption( QString("TextLab(%1)=0").arg(index));
-    sgp->setPlotOption( QString("NumLab(%1)=0").arg(index));
 }
 }

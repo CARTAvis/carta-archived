@@ -40,9 +40,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              * Initialize the list of commands this window supports.
              */
             _initSupportedCommands : function(){
-                var linksCmd = skel.Command.Link.CommandLink.getInstance();
-                this.m_supportedCmds.push( linksCmd.getLabel() );
-                
+                arguments.callee.base.apply(this, arguments);
                 var clipCmd = skel.Command.Clip.CommandClip.getInstance();
                 this.m_supportedCmds.push( clipCmd.getLabel() );
                
@@ -54,8 +52,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                 }
                 var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
                 this.m_supportedCmds.push( popupCmd.getLabel() );
-                
-                arguments.callee.base.apply(this, arguments);
                
             },
            

@@ -40,10 +40,6 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 textTestId, sliderTestId);
     },
     
-    events: {
-        "textSliderChanged" : "qx.event.type.Data"
-    },
-    
     statics : {
         MAX_SLIDER : 1000
     },
@@ -109,27 +105,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                     function(ev) {
                         var value = this.m_text.getValue();
                         if ( !isNaN( value ) ){
-                            var sliderValue = this.m_slider.getValue();
-                            if ( ! this.m_logScale ){
-                                if ( sliderValue != value ){
-                                    this.m_slider.setValue( value );
-                                }
-                            }
-                            else {
-                                if ( value >= 1 ){
-                                    var maxValue = this.m_slider.getMaximum();
-                                    var logMax = Math.log( maxValue );
-                                    var logValue = Math.log( value );
-                                    var percent = logValue / logMax;
-                                    var newVal = Math.round( percent * maxValue );
-                                    if ( newVal < this.m_slider.getMinimum() ){
-                                        newVal = this.m_slider.getMinimum();
-                                    }
-                                    if ( newVal != sliderValue ){
-                                        this.m_slider.setValue( newVal );
-                                    }
-                                }
-                            }
+                            this.m_slider.setValue( value );
                         }
                 }, this);
             this.m_text.setTextId( textTestId );
@@ -168,10 +144,9 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
          * Send a value change to the server.
          */
         _sendCmd : function(){
-            var value = this.m_slider.getValue();
-            if ( this.m_connector !== null && this.m_id !== null ){
+            if ( this.m_connector !== null ){
                 //Notify the server of the new value.
-                
+                var value = this.m_slider.getValue();
                 var percentValue = value;
                 if ( this.m_normalize ){
                     percentValue = ( value - this.m_slider.getMinimum() ) / 
@@ -182,30 +157,6 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 var params = this.m_paramId + ":"+percentValue;
                 this.m_connector.sendCommand( cmd, params, this._errorCB(this));
             }
-            else {
-                var data = {
-                    "value" : value
-                }
-                this.fireDataEvent( "textSliderChanged", data );
-            }
-        },
-        
-        /**
-         * Set the scale used on the histogram slider to be a base 10 logarithm.
-         * @param useLogScale {boolean} - true if the scale should use a logarithmic
-         *      slider; false, otherwise.
-         */
-        setLogarithmic : function( useLogScale ){
-            this.m_logScale = useLogScale;
-        },
-        
-        /**
-         * Set an upper bound for the text box and the slider.
-         * @param value {Number} - the maximum value for this widget.
-         */
-        setMax : function( value ){
-            this.m_slider.setMaximum( value );
-            this.m_text.setUpperBound( value );
         },
         
         
@@ -243,7 +194,6 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
 
         m_cmd : null,
         m_paramId : null,
-        m_logScale : false,
         m_normalize : false,
         m_text : null,
         m_slider : null,

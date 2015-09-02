@@ -44,9 +44,6 @@ public:
     startRendering( JobId jobId = 0) override;
 
     virtual void
-    setAxisLabelLocation( int axisIndex, const QString& edge ) override;
-
-    virtual void
     setAxesVisible( bool flag ) override;
 
     virtual void
@@ -74,9 +71,6 @@ public:
     setEmptyGrid( bool flag) override;
 
     virtual void
-    setTickLength( double tickLength ) override;
-
-    virtual void
     setTicksVisible( bool flag ) override;
 
 private slots:
@@ -94,8 +88,6 @@ private slots:
 private:
     //Don't draw tick marks.
     void _turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp);
-    //Don't label a particular axis
-    void _turnOffLabels( WcsPlotterPluginNS::AstGridPlotter* sgp, int index );
 
     Carta::Lib::VectorGraphics::VGComposer m_vgc;
 //    VGList m_vgList;
@@ -107,7 +99,6 @@ private:
     double m_gridDensity = 0.5;
     bool m_internalLabels = false;
     bool m_emptyGridFlag = true;
-    QList<QString> m_labelLocations = {"left","bottom"};
 
     struct Pimpl;
     std::unique_ptr < Pimpl > m_pimpl; // = nullptr;
@@ -131,8 +122,6 @@ private:
     bool m_axes = true;
     // flag to indicate whether or not to draw tick marks.
     bool m_ticks = true;
-    // how long to make the tick marks.
-    double m_tickLength = .01;
 
     bool m_axisLabels = false;
 

@@ -134,9 +134,6 @@ public:
    * @return QImage the histogram image.
    */
    QImage * toImage() const;
-
-   virtual ~HistogramGenerator();
-
 private:
   void _setVerticalAxisTitle();
   const static double EXTRA_RANGE_PERCENT;

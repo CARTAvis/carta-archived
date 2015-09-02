@@ -40,12 +40,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowColormap", {
              * Initialize the list of commands this window supports.
              */
             _initSupportedCommands : function(){
-                
-                var linksCmd = skel.Command.Link.CommandLink.getInstance();
-                this.m_supportedCmds.push( linksCmd.getLabel() );
+                arguments.callee.base.apply(this, arguments);
                 var settingsCmd = skel.Command.Settings.SettingsColor.getInstance();
                 this.m_supportedCmds.push( settingsCmd.getLabel());
-                arguments.callee.base.apply(this, arguments);
             },
 
             

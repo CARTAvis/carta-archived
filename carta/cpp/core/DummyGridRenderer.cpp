@@ -49,10 +49,6 @@ DummyGridRenderer::setGridLinesVisible( bool )
 { }
 
 void
-DummyGridRenderer::setAxisLabelLocation( int, const QString& ){
-}
-
-void
 DummyGridRenderer::setAxesVisible( bool )
 { }
 
@@ -62,10 +58,6 @@ DummyGridRenderer::setInternalLabels( bool )
 
 void
 DummyGridRenderer::setSkyCS( Lib::KnownSkyCS )
-{ }
-
-void
-DummyGridRenderer::setTickLength( double )
 { }
 
 void
