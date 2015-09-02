@@ -6,11 +6,7 @@
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
-#include "Data/Image/Grid/Themes.h"
-#include "Data/Image/Grid/LabelFormats.h"
-#include "Data/Image/Contour/ContourGenerateModes.h"
-#include "Data/Image/Contour/ContourSpacingModes.h"
-#include "Data/Image/Contour/ContourStyles.h"
+#include "Data/Image/Themes.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
@@ -73,15 +69,11 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<TransformsData>();
     Util::findSingletonObject<TransformsImage>();
     Util::findSingletonObject<ErrorManager>();
-    Util::findSingletonObject<LabelFormats>();
     Util::findSingletonObject<Preferences>();
     Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();
     Util::findSingletonObject<CoordinateSystems>();
     Util::findSingletonObject<Themes>();
-    Util::findSingletonObject<ContourGenerateModes>();
-    Util::findSingletonObject<ContourSpacingModes>();
-    Util::findSingletonObject<ContourStyles>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -555,7 +547,7 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
                 m_statistics.insert( newIndex, statistics );
             }
         }*/
-        else if ( plugin != NodeFactory::EMPTY ){
+        else {
             qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
         }
     }
@@ -842,8 +834,7 @@ void ViewManager::_removeView( const QString& plugin, int index ){
         objMan->destroyObject( m_statistics[index]->getId());
         m_statistics.removeAt( index );
     }
-
-    else if ( plugin != NodeFactory::EMPTY ){
+    else {
         qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
     }
 }
@@ -1020,8 +1011,6 @@ ViewManager::~ViewManager(){
         objMan->destroyObject(  m_snapshots->getId() );
         m_snapshots = nullptr;
     }
-
-
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
     _clearHistograms( 0, m_histograms.size() );

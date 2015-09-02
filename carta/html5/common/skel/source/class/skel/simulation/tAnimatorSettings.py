@@ -75,13 +75,13 @@ class tAnimatorSettings(tAnimator.tAnimator):
         
         # Check the image animate button and verify that the image animator shows up
         self._click( driver, animateCheck )
-        imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Image']")))
+        imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Image']")))
         self.assertIsNotNone( imageAnimator, "Image animator did not appear")
         self._verifyAnimationCount( animWindow, 1)
         
         # Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
-        channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Channel']")))
+        channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Channel']")))
         self.assertIsNotNone( channelAnimator, "Channel animator did not appear")
         self._verifyAnimationCount( animWindow, 2 )
 
@@ -98,19 +98,19 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Show the Image Animator
         channelText = driver.find_element_by_id("ChannelIndexText")
         ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
 
         # Go to the first image 
-        firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator'][2]/div/div[3]/div/div[1]")))
+        firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator'][2]/div[3]/div/div[1]")))
         self.assertIsNotNone( firstValueButton, "Could not find button to go to the first valid value")
         driver.execute_script( "arguments[0].scrollIntoView(true);", firstValueButton)
         ActionChains(driver).click( firstValueButton ).perform()
         time.sleep( timeout )
 
         # Go to the last channel of the image
-        lastChannelButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator'][1]/div/div[3]/div/div[7]")))
+        lastChannelButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator'][1]/div[3]/div/div[7]")))
         self.assertIsNotNone( lastChannelButton, "Could not find button to go to the first valid value")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastChannelButton)
         ActionChains(driver).click( lastChannelButton ).perform()
@@ -127,7 +127,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         time.sleep( timeout )
 
         # Go to the last channel of the image
-        lastChannelButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator'][1]/div/div[3]/div/div[7]")))
+        lastChannelButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator'][1]/div[3]/div/div[7]")))
         self.assertIsNotNone( lastChannelButton, "Could not find button to go to the first valid value")
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastChannelButton)
         ActionChains(driver).click( lastChannelButton ).perform()
@@ -414,7 +414,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Click the forward animate button
         # Allow the animation for 2 seconds
-        self._animateForwardImage( driver )
+        self._animateForward( driver )
         time.sleep(2)
 
         # Check that the image value is higher than the first image value
@@ -456,7 +456,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         ActionChains(driver).click( stopButton ).perform()
 
         # Change the rate to 50
-        rateText = driver.find_element_by_xpath("//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[7]/input") 
+        rateText = driver.find_element_by_xpath("//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[7]/input") 
         self.assertIsNotNone( rateText, "Could not find rate text to set the speed of the animation")
         driver.execute_script( "arguments[0].scrollIntoView(true);", rateText)
         rateValue = Util._changeElementText(self, driver, rateText, 50)
@@ -498,7 +498,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         ActionChains(driver).click( stopButton ).perform()
 
         # Change the rate to 50
-        rateText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[7]/input")
+        rateText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[7]/input")
         self.assertIsNotNone( rateText, "Could not find rate text to set the speed of the animation")
         driver.execute_script( "arguments[0].scrollIntoView(true);", rateText)
         rateValue = Util._changeElementText(self, driver, rateText, 45)
@@ -506,12 +506,12 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Go back to first image value and animate for 2 seconds
         self._getFirstValue(driver)
         self._animateForward(driver)
-        time.sleep(3)
+        time.sleep(2)
 
         # The image should be at a higher image value than the default image value
-        newImageValue = self._getImageValue( driver )
-        print "newImageValue:", newImageValue
-        self.assertGreater( int(newImageValue), int(defaultRateValue), "Image value did not increase with image animation")
+        newRateValue = self._getImageValue( driver )
+        print "newRateValue:", newRateValue
+        self.assertGreater( int(newRateValue), int(defaultRateValue), "Rate value did not increase speed of image animation")
 
     # Test that the Channel Animator Rate does not exceed boundary values 
     def test_animatorRateBoundary(self):
@@ -524,7 +524,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._openSettings( driver )
 
         # Find and click on the rate text. Scroll into view if not visible
-        rateText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[7]/input") 
+        rateText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[7]/input") 
         self.assertIsNotNone( rateText, "Could not find rate text to set the speed of the animation")
         driver.execute_script( "arguments[0].scrollIntoView(true);", rateText)
 
@@ -544,7 +544,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._openSettings( driver )
 
         # Find and click on the rate text. Scroll into view if not visible
-        rateText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[7]/input")
+        rateText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[7]/input")
         self.assertIsNotNone( rateText, "Could not find rate text to set the speed of the animation")
         driver.execute_script( "arguments[0].scrollIntoView(true);", rateText)
 
@@ -568,7 +568,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._openSettings( driver )
 
         # Find and click the step increment textbox
-        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[2]/input")
+        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[2]/input")
         self.assertIsNotNone( stepIncrementText, "Could not find step increment textbox")
         driver.execute_script( "arguments[0].scrollIntoView(true);", stepIncrementText)
 
@@ -588,7 +588,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._openSettings( driver )
 
         # Find and click the step increment textbox
-        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[2]/input")
+        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[2]/input")
         self.assertIsNotNone( stepIncrementText, "Could not find step increment textbox")
         driver.execute_script( "arguments[0].scrollIntoView(true);", stepIncrementText)
 
@@ -606,15 +606,15 @@ class tAnimatorSettings(tAnimator.tAnimator):
         driver = self.driver 
 
         # Open a test image so we have something to animate
-        Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
+        Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "Default") 
 
         # Open settings
         self._openSettings( driver )
 
         # Find and click the step increment textbox
-        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[2]/input")
+        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[2]/input")
         self.assertIsNotNone( stepIncrementText, "Could not find step increment textbox")
         driver.execute_script( "arguments[0].scrollIntoView(true);", stepIncrementText)
 
@@ -645,7 +645,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._openSettings( driver )
 
         # Find and click the step increment textbox
-        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div/div[4]/div[2]/input")
+        stepIncrementText = driver.find_element_by_xpath( "//div[@qxclass='skel.boundWidgets.Animator']/div[4]/div[2]/input")
         self.assertIsNotNone( stepIncrementText, "Could not find step increment textbox")
         driver.execute_script( "arguments[0].scrollIntoView(true);", stepIncrementText)
 

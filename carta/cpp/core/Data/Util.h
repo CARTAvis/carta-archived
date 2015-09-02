@@ -83,12 +83,6 @@ public:
      static std::vector < double > string2VectorDouble( QString s, QString sep = " " );
 
      static const QString PREFERENCES;
-     static const QString ALPHA;
-     static const QString RED;
-     static const QString GREEN;
-     static const QString BLUE;
-     static const QString PEN_WIDTH;
-     static const int MAX_COLOR;
 
 private:
     Util();

@@ -23,7 +23,23 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
 
     members : {
         
-
+        /**
+         * Adds menu buttons to the application menu based on
+         * the window that is selected.
+         */
+        addWindowMenu : function(ev) {
+            var i = 0;
+            if (this.m_windowButtons ) {
+                for ( i = 0; i < this.m_windowButtons.length; i++) {
+                    this.m_menuPart
+                            .remove(this.m_windowButtons[i]);
+                }
+            }
+            this.m_windowButtons = ev.getData();
+            for ( i = 0; i < this.m_windowButtons.length; i++) {
+                this.m_menuPart.add(this.m_windowButtons[i]);
+            }
+        },
 
         /**
          * Dynamically build the toolbar based on the list of commands.
@@ -66,7 +82,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
          * Initialize a context menu.
          */
         _initContextMenu : function() {
-            var contextMenu = new qx.ui.menu.Menu();
+            this.m_contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
             var showDialog = skel.Command.Customize.CommandShowCustomizeDialog.getInstance();
             customizeButton.addListener("execute", function() {
@@ -77,9 +93,9 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
                 var toolVisibleCmd = skel.Command.Preferences.Show.CommandShowToolBar.getInstance();
                 toolVisibleCmd.doAction( false, null);
             }, this );
-            contextMenu.add(customizeButton);
-            contextMenu.add( removeButton );
-            this.setContextMenu(contextMenu);
+            this.m_contextMenu.add(customizeButton);
+            this.m_contextMenu.add( removeButton );
+            this.setContextMenu(this.m_contextMenu);
         },
         
         /**
@@ -88,7 +104,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
         _initSubscriptions : function(){
             //Available commands have changed (such as new clip values);
             qx.event.message.Bus.subscribe( "commandsChanged", function( message ){
-                this._init();
+               this._init();
             }, this );
             qx.event.message.Bus.subscribe( "commandVisibilityToolChanged", function( message){
                 this._init();
@@ -151,7 +167,5 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             this.addSpacer();
         }
     }
-    
-    
 
 });

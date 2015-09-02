@@ -19,8 +19,7 @@ namespace Carta {
 namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"AnimationTypes","ChannelUnits",
-        "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
-        "CoordinateSystems","DataLoader","Fonts","LabelFormats","TransformsImage","TransformsData",
+        "Clips", "Colormaps","CoordinateSystems","DataLoader","Fonts","TransformsImage","TransformsData",
         "ErrorManager","Layout","Preferences", "PreferencesSave", "Themes","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
@@ -87,16 +86,11 @@ void CartaObject::setIndex( int index ){
 }
 
 void CartaObject::resetState( const QString& state, SnapshotType type ){
-    //Make sure the index does not get overwritten, if we are doing
-    //a global restore.
-
     if ( type == SNAPSHOT_DATA){
         resetStateData( state );
     }
     else if ( type == SNAPSHOT_PREFERENCES ){
-        int index = getIndex();
         resetState( state );
-        setIndex( index );
     }
     else {
         qDebug() << "Unsupport resetState type="<<type;

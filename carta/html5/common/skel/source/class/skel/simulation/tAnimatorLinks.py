@@ -195,9 +195,8 @@ class tAnimatorLinks(unittest.TestCase):
     def test_animatorAddLink(self):
         driver = self.driver 
 
-        # Load image in a separate window, but make sure it has at least
-        # one channel.
-        imageWindow2 = Util.load_image_different_window( self, driver, "TWHydra_CO2_1line.image.fits")
+        # Load image in a separate window
+        imageWindow2 = Util.load_image_different_window( self, driver, "N15693D.fits")
 
         # Click on the Animator to enable it
         animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']")))
@@ -208,16 +207,13 @@ class tAnimatorLinks(unittest.TestCase):
         ActionChains(driver).click( channelText ).perform()
 
         # Navigate to view links from the Animator settings        
-        ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
         # Add link from the Animator to the image
         ActionChains(driver).move_to_element( animWindow ).click( animWindow ).drag_and_drop( animWindow, imageWindow2).perform()
 
         # Exit Links
-        #ActionChains(driver).move_to_element( animWindow ).context_click( animWindow ).send_keys(Keys.ARROW_DOWN
-        #        ).send_keys(Keys.ENTER).perform()
-        ActionChains(driver).send_keys( Keys.ESCAPE).perform()
+        ActionChains(driver).move_to_element( animWindow ).context_click( animWindow ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
         # Find and click the upper spin box
         upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
@@ -226,14 +222,12 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Check that the animator updates 
         upperBound = upperBoundText.get_attribute("value")
-        print "Upper bound ", upperBound
         self.assertNotEqual( int(upperBound), 0, "Channel animator did not update to linked image")
 
         # Show the Image Animator
         ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ENTER).perform()
+            Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
         # Find and click the upper spin box 
         imageUpperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
