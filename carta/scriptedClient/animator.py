@@ -57,6 +57,23 @@ class Animator(CartaView):
                                      animatorView=self.getId())
         return result
 
+    def getChannelIndex(self):
+        """
+        Return the current channel selection.
+
+        Returns
+        -------
+        integer
+            The current channel selection number.
+            Error information if the current channel selection number
+            could not be obtained.
+        """
+        result = self.con.cmdTagList("getChannelIndex",
+                                     animatorView=self.getId())
+        if (result[0] != "error"):
+            result = int(result[0])
+        return result
+
     def getMaxImageCount(self):
         """
         Get the number of images being managed by the animator.
