@@ -121,7 +121,6 @@ public:
      */
     virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
 
-
     static const QString CLASS_NAME;
 
     virtual ~Animator();
