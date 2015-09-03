@@ -23,7 +23,7 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
         windowCount = len( windowList )
         print "Window Count=", windowCount
-        
+
         # Find the session button on the menu bar and click it.
         self._clickSessionButton( driver )
         
@@ -45,10 +45,8 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
         
         # Change to an image layout
         layoutButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Layout']/..")))
-        self.assertIsNotNone( layoutButton, "Could not find div with text layout")
         ActionChains(driver).click(layoutButton).perform()
         imageLayoutButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Image Layout']/..")))
-        self.assertIsNotNone( imageLayoutButton, "Could not find layout image button in submenu")
         ActionChains(driver).click( imageLayoutButton).perform()
         
         # Click the restore sessions button
