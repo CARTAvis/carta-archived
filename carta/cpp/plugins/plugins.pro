@@ -9,14 +9,17 @@ SUBDIRS += WcsPlotter
 
 SUBDIRS += qimage
 
+SUBDIRS += python273
+
+SUBDIRS += ColormapsPy
+
+SUBDIRS += CyberSKA
+SUBDIRS += DevIntegration
+
 # experimental plugins:
 
 SUBDIRS += tester1
 SUBDIRS += clock1
-SUBDIRS += python273
-SUBDIRS += noisepy
 SUBDIRS += blurpy
 
 
-SUBDIRS += CyberSKA
-SUBDIRS += DevIntegration

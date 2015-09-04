@@ -2,15 +2,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import os.path
 
-print("hello from noisepy.py")
+basename = os.path.basename(__file__)
+oldprint = print
+
+def print(*args, **kwargs):
+    global basename, oldprint
+    return oldprint( basename, ':', *args, **kwargs)
+
+print("hello")
 
 import scipy
 import numpy as np
 from random import randrange
 
 def no_preRenderHook(w, h, data):
-    print("preRenderHook from noisepy.py", w, h, len(data))
+    print("preRenderHook", w, h, len(data))
 #    myShape = data.reshape(h,w,3)
     myShape = data
     for y in range(0,h):
@@ -32,7 +40,7 @@ class CMap(object):
         return self.m_name
 
 def colormapScalarHook():
-    print("colormapScalarHook from noisepy.py");
+    print("colormapScalarHook");
     maps=[m for m in cm.datad if not m.endswith("_r")]
     result = []
     for i, m in enumerate(maps):

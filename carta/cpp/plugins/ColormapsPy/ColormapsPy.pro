@@ -6,7 +6,7 @@ TEMPLATE = aux
 
 OTHER_FILES += \
     plugin.json \
-    noisepy.py
+    ColormapsPy.py
 
 # list files to copy to compile output in MYFILES
 
