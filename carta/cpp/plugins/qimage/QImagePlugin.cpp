@@ -13,9 +13,10 @@ typedef Carta::Lib::AxisInfo AxisInfo;
 typedef Carta::Lib::Hooks::LoadAstroImage LoadAstroImage;
 typedef Carta::Lib::Hooks::Initialize Initialize;
 
+// forward declartion so we can use references/pointers to QImageII
 class QImageII;
 
-/// our implementation of RawView
+/// our implementation of Carta::Lib::NdArray::RawViewInterface
 class QImageRawView
     : public Carta::Lib::NdArray::RawViewInterface
 {
@@ -523,7 +524,7 @@ private:
         m_mdi = std::make_shared < QImageMDI > ( shared_from_this() );
 
         // extract the actual pixels and store it in our own data buffer (only one byte
-        // per pixel)
+        // per pixel, gray equivalent to be precise)
         m_data = std::make_shared < std::vector < unsigned char > > ( m_dims[0] * m_dims[1] );
         unsigned int * src = (unsigned int *) qimg.bits();
         int count = qimg.width() * qimg.height();
@@ -536,7 +537,9 @@ private:
         return true;
     } // init
 
-private: // data
+private:
+
+    // data
 
     Carta::Lib::Unit m_unit;
     VI m_dims;
@@ -563,7 +566,6 @@ QImagePlugin::handleHook( BaseHook & hookData )
         LoadAstroImage & hook = static_cast < LoadAstroImage & > ( hookData );
         auto fname = hook.paramsPtr->fileName;
 
-//        hook.result = loadImage( fname );
         hook.result = QImageII::load( fname );
 
         // return true if result is not null
@@ -582,19 +584,3 @@ QImagePlugin::getInitialHookList()
                LoadAstroImage::staticId
     };
 }
-
-//Image::ImageInterface::SharedPtr
-//QImagePlugin::loadImage( const QString & fname )
-//{
-//    qDebug() << "qimageplugin loadImage" << fname;
-
-////    auto qi = std::make_shared < QImageII > ( fname );
-//    auto qi = QImageII::load( fname );
-//    qDebug() << "qimageplugin loadImage done";
-//    if ( qi-> valid() ) {
-//        return qi;
-//    }
-//    else {
-//        return nullptr;
-//    }
-//}
