@@ -1,5 +1,5 @@
 #include "AnimationTypes.h"
-#include "Data/Image/DataDisplay/AxisMapper.h"
+#include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Selection.h"
 #include "CartaLib/AxisInfo.h"
 #include <QDebug>

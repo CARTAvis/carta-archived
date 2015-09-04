@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "CartaLib/AxisInfo.h"
 
 namespace Carta {
 
@@ -20,6 +21,16 @@ class GridControls : public QObject, public Carta::State::CartaObject{
     Q_OBJECT
 
 public:
+
+    /**
+     * Set a display axis.
+     * @param axisId - an identifier for a display axis.
+     * @param purpose - the image axis that should be mapped to the display axis.
+     * @return an error message if the display axis could not be set; an empty
+     *      string otherwise.
+     */
+    QString setAxis( const QString& axisId, const QString& purpose );
+
     /**
      * Set the grid axes color.
      * @param redAmount - an integer in [0, 255] indicating the amount of red.
@@ -227,14 +238,24 @@ signals:
 
     void gridChanged( const Carta::State::StateInterface& gridState, bool applyAll );
 
+    /**
+         * Notification that the display axes have changed.
+         * @param types - the list of new display axes.
+         * @param applyAll - true if the display axes apply to all images on the stack; false if
+         *      the display axes apply only to the current image.
+         */
+        void displayAxesChanged( std::vector<Carta::Lib::AxisInfo::KnownType> types, bool applyAll );
+
 private:
 
     void _initializeDefaultState();
     void _initializeDefaultState( const QString& key );
     void _initializeCallbacks();
+    void _notifyAxesChanged();
     QStringList _parseColorParams( const QString& params, const QString& label,
             int* red, int* green, int* blue ) const;
     void _resetState( const Carta::State::StateInterface& otherState );
+    void _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
     void _updateGrid();
 
     const static QString ALL;

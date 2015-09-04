@@ -1,7 +1,7 @@
 #include "Animator.h"
 #include "Data/Selection.h"
 #include "Data/Image/Controller.h"
-#include "Data/Image/DataDisplay/AxisMapper.h"
+#include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "CartaLib/CartaLib.h"
@@ -73,18 +73,6 @@ void Animator::_adjustStateController( Controller* controller){
     _resetAnimationParameters(selectImageIndex);
 }
 
-int Animator::_getAnimatorTypeVisibleCount() const {
-    int count = 0;
-    QList<QString> keys = m_animators.keys();
-    int animationCount = keys.size();
-    for ( int i = 0; i < animationCount; i++ ){
-        if ( !m_animators[keys[i]]->isRemoved() ){
-            count++;
-        }
-    }
-    return count;
-}
-
 void Animator::_adjustStateAnimatorTypes(){
     int animationCount = m_animators.size();
     int animVisibleCount = _getAnimatorTypeVisibleCount();
@@ -104,15 +92,22 @@ void Animator::_adjustStateAnimatorTypes(){
     m_state.flushState();
 }
 
+bool Animator::_addAnimatorType( const QString& type, QString& animatorTypeId ){
+    bool animatorAdded = false;
+    animatorTypeId = _initAnimator( type, &animatorAdded );
+    if ( animatorAdded ){
+        connect( m_animators[type], SIGNAL(indexChanged( int, const QString&)),
+                this, SLOT(_frameChanged(int, const QString&)));
+    }
+    return animatorAdded;
+}
 
 QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
     QString result;
     if ( !m_animators.contains( type )){
-        if ( type == Selection::IMAGE ){
-            bool animatorAdded = false;
-            animatorTypeId = _initAnimator( type, &animatorAdded );
-            if ( animatorAdded ){
-                connect( m_animators[Selection::IMAGE], SIGNAL(indexChanged( int)), this, SLOT(_imageIndexChanged(int)));
+        bool animatorAdded = _addAnimatorType( type, animatorTypeId );
+        if ( animatorAdded ){
+            if ( type == Selection::IMAGE ){
                 //Find a controller to use for setting up initial animation
                 //parameters.
                 int linkCount = m_linkImpl->getLinkCount();
@@ -126,12 +121,8 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
                     }
                 }
             }
-        }
-        else {
-            bool animatorAdded = false;
-            animatorTypeId = _initAnimator( type, &animatorAdded );
-            if ( animatorAdded ){
-                connect( m_animators[type], SIGNAL(indexChanged(int,const QString&)), this, SLOT(_frameChanged( int, const QString&)));
+            else {
+                _updateAnimatorBound( type );
             }
         }
     }
@@ -168,7 +159,6 @@ void Animator::_axesChanged(){
                 QString purpose = AxisMapper::getPurpose( *it );
                 QString animId;
                 addAnimator( purpose, animId );
-                qDebug() << "Adding animator "<<purpose;
                 existingAnimators.insert( purpose );
             }
         }
@@ -179,7 +169,6 @@ void Animator::_axesChanged(){
     for ( int i = 0; i < animCount; i++ ){
         QString animType = m_animators[keys[i]]->getType();
         if ( !existingAnimators.contains( animType ) && animType != Selection::IMAGE ){
-            qDebug() << "Removing animator: "<<animType;
             removeAnimator( animType );
         }
     }
@@ -196,17 +185,6 @@ void Animator::changeFrame( int index, const QString& axisName ){
             }
         }
     }
-}
-
-void Animator::changeImageIndex( int selectedImage ){
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            controller->setFrameImage( selectedImage );
-        }
-    }
-    _resetAnimationParameters(selectedImage);
 }
 
 void Animator::clear(){
@@ -226,6 +204,18 @@ AnimatorType* Animator::getAnimator( const QString& type ){
         qWarning() << "Unrecognized or non-constructed animation type: "+type;
     }
     return animator;
+}
+
+int Animator::_getAnimatorTypeVisibleCount() const {
+    int count = 0;
+    QList<QString> keys = m_animators.keys();
+    int animationCount = keys.size();
+    for ( int i = 0; i < animationCount; i++ ){
+        if ( !m_animators[keys[i]]->isRemoved() ){
+            count++;
+        }
+    }
+    return count;
 }
 
 int Animator::getLinkCount() const {
@@ -307,11 +297,6 @@ QString Animator::getSnapType(CartaObject::SnapshotType snapType) const {
 }
 
 
-
-void Animator::_imageIndexChanged( int selectedImage){
-    changeImageIndex( selectedImage );
-}
-
 QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
     QString animId;
     if ( !m_animators.contains( type ) ){
@@ -383,7 +368,6 @@ QString Animator::removeAnimator( const QString& type ){
         result= "Error removing animator; unrecognized type="+type;
         Util::commandPostProcess( result);
     }
-    qDebug() << "Animator state:="<<m_state.toString();
     return result;
 }
 
@@ -425,27 +409,9 @@ void Animator::_resetAnimationParameters( int selectedImage ){
             }
         }
     }
-
-    QList<QString> animKeys =m_animators.keys();
-    int linkCount = m_linkImpl->getLinkCount();
-    for ( QString key : animKeys  ){
-        if ( key != Selection::IMAGE ){
-           int maxFrame = 0;
-           AxisInfo::KnownType axisType = AxisMapper::getType( key );
-           for ( int i = 0; i < linkCount; i++ ){
-               Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-               if ( controller != nullptr ){
-
-                   int highKey = controller->getFrameUpperBound( axisType );
-                   if ( highKey > maxFrame ){
-                      maxFrame = highKey;
-                   }
-               }
-           }
-           m_animators[key]->setUpperBound( maxFrame );
-        }
-    }
+    _updateAnimatorBounds();
 }
+
 
 void Animator::_resetStateAnimator( const Carta::State::StateInterface& state, const QString& key ){
     try {
@@ -493,6 +459,33 @@ void Animator::resetStateData( const QString& state ){
         }
     }
 }
+
+void Animator::_updateAnimatorBound( const QString& key ){
+    int maxFrame = 0;
+    AxisInfo::KnownType axisType = AxisMapper::getType( key );
+    int linkCount = m_linkImpl->getLinkCount();
+    for ( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            int highKey = controller->getFrameUpperBound( axisType );
+            if ( highKey > maxFrame ){
+                maxFrame = highKey;
+            }
+        }
+    }
+    m_animators[key]->setUpperBound( maxFrame );
+}
+
+void Animator::_updateAnimatorBounds(){
+    QList<QString> animKeys =m_animators.keys();
+
+    for ( QString key : animKeys  ){
+        if ( key != Selection::IMAGE ){
+           _updateAnimatorBound( key );
+        }
+    }
+}
+
 
 void Animator::_updateSupportedZAxes( Controller* controller ){
     std::set<AxisInfo::KnownType> animAxes = controller->getAxesZ();

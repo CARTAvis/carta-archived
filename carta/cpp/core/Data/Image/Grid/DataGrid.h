@@ -39,7 +39,10 @@ public:
     const static QString CLASS_NAME;
     const static QString GRID;
 private:
+    void _addUsedPurpose( const QString& key, const QString& targetPurpose,
+        QList<QString>& usedPurposes, QString& usedPurposeKey );
     int _getMargin( const QString& direction ) const;
+    std::vector<Carta::Lib::AxisInfo::KnownType> _getDisplayAxes() const;
     QString _getFormat( const Carta::State::StateInterface& state, const QString& direction ) const;
     QString _getLabelLocation(const Carta::State::StateInterface& state, int axisIndex ) const;
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> _getRenderer();
@@ -50,6 +53,8 @@ private:
     Carta::Lib::KnownSkyCS _getSkyCS() const;
     bool _isGridVisible() const;
     void _resetState( const Carta::State::StateInterface& otherState );
+    QString _setAxis( const QString& axisId, const QString& purpose, bool* axisChanged );
+    bool _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
     QStringList _setAxesColor( int redAmount, int greenAmount, int blueAmount, bool* axesColorChanged );
     QString _setAxesThickness( int thickness, bool* thicknessChanged );
     QString _setAxesTransparency( int transparency, bool* transparencyChanged );
@@ -85,6 +90,7 @@ private:
     void _initializeLabelFormat( const QString& side, const QString& format,
             Carta::Lib::AxisInfo::KnownType axis);
     void _initializeSingletons();
+    void _notifyAxesChanged();
     void _resetGridRenderer();
     QStringList _setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
             bool* colorChanged );
@@ -105,6 +111,7 @@ private:
     const static QString SHOW_STATISTICS;
     const static QString SHOW_TICKS;
     const static QString SPACING;
+    const static QString SUPPORTED_AXES;
     const static QString THEME;
     const static QString TICK;
     const static QString TICK_LENGTH;

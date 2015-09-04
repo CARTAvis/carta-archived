@@ -55,12 +55,6 @@ public:
     void changeFrame( int index, const QString& axisName );
 
     /**
-     * Change the image displayed.
-     * @param selectedImage - the index of an image to animate to.
-     */
-    void changeImageIndex( int selectedImage );
-
-    /**
      * Clear current state..
      */
     void clear();
@@ -142,7 +136,6 @@ private slots:
     //Adjusts internal state based on the state in the child controllers.
     void _adjustStateController( Controller* controller);
     void _axesChanged();
-    void _imageIndexChanged( int index );
     void _frameChanged( int index, const QString& axisName );
 
 private:
@@ -154,6 +147,7 @@ private:
 
     class Factory;
 
+    bool _addAnimatorType( const QString& type, QString& animatorTypeId );
     void _adjustStateAnimatorTypes();
     void _addRemoveImageAnimator();
     int _getMaxImageCount() const;
@@ -168,6 +162,8 @@ private:
     //Reset the state of an individual animator.
     void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
 
+    void _updateAnimatorBound( const QString& key );
+    void _updateAnimatorBounds();
     void _updateSupportedZAxes( Controller* controller );
 
     //Link management

@@ -4,6 +4,7 @@
 #include "Data/Animator/Animator.h"
 #include "Data/Animator/AnimatorType.h"
 #include "Data/Image/Controller.h"
+#include "Data/Selection.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Util.h"
@@ -534,7 +535,7 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
-            animator->changeImageIndex( index );
+            animator->changeFrame( index, Carta::Data::Selection::IMAGE );
         }
         else {
             resultList = QStringList( ERROR );

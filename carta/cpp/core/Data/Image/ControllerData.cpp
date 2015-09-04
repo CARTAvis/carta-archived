@@ -66,15 +66,10 @@ bool ControllerData::_contains(const QString& fileName) const {
     return representsData;
 }
 
-void ControllerData::_displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes,
-            bool renderImage){
+void ControllerData::_displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes){
     if ( m_dataSource ){
-        qDebug() << "ControllerData setDisplayAxes";
         m_dataSource->_setDisplayAxes( displayAxisTypes );
     }
-    /*if ( renderImage ){
-        _render( 0 );
-    }*/
 }
 
 Carta::Lib::AxisInfo::KnownType ControllerData::_getAxisZ() const {
@@ -379,7 +374,6 @@ void ControllerData::_render( int frameIndex ){
     gridService-> setOutputRect( outputRect );
 
     std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frameIndex, frameIndex) );
-    qDebug()<<" Rendering";
     m_drawSync->setInput( rawData );
     m_drawSync->setContours( m_dataContours );
 

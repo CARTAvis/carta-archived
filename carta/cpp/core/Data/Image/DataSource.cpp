@@ -320,7 +320,6 @@ NdArray::RawViewInterface * DataSource::_getRawData( int frameStart, int frameEn
     if ( axisIndex == -1 ){
         targetAxis = m_axisIndexZ;
     }
-    qDebug() << "Data source::_getRawData axisIndex="<<targetAxis;
     int imageDim =m_image->dims().size();
     if ( m_image && targetAxis >= 0 && targetAxis < imageDim ){
         auto frameSlice = SliceND().next();

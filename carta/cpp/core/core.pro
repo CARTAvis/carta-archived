@@ -51,10 +51,9 @@ HEADERS += \
     Data/Image/Contour/ContourStyles.h \
     Data/Image/Contour/DataContours.h \
     Data/Image/CoordinateSystems.h \
-    Data/Image/DataDisplay/DisplayControls.h \
-    Data/Image/DataDisplay/AxisMapper.h \
     Data/Image/DataSource.h \
     Data/Image/DrawSynchronizer.h \
+    Data/Image/Grid/AxisMapper.h \
     Data/Image/Grid/DataGrid.h \
     Data/Image/Grid/Fonts.h \
     Data/Image/Grid/GridControls.h \
@@ -139,9 +138,8 @@ SOURCES += \
     Data/Image/Contour/ContourStyles.cpp \
     Data/Image/Contour/DataContours.cpp \
     Data/Image/CoordinateSystems.cpp \
-    Data/Image/DataDisplay/DisplayControls.cpp \
-    Data/Image/DataDisplay/AxisMapper.cpp \
     Data/Image/DataSource.cpp \
+    Data/Image/Grid/AxisMapper.cpp \
     Data/Image/Grid/DataGrid.cpp \
     Data/Image/Grid/Fonts.cpp \
     Data/Image/Grid/GridControls.cpp \

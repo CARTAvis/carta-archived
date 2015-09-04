@@ -196,6 +196,15 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             },
             
             /**
+             * Set the numeric text field enabled/disabled.
+             * @param enabled {boolean} - true to enable the text field; 
+             *          false to disable it.
+             */
+            setTextEnabled : function( enabled ){
+                this.m_text.setEnabled( enabled );
+            },
+            
+            /**
              * Set or clear the error status of the textfield.
              * @param inError {boolean} true if the there are no errors; false otherwise.
              */

@@ -44,12 +44,8 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
             
             this.m_contourControls = new skel.widgets.Image.Contour.ContourControls();
             this.m_tabView.add( this.m_contourControls );
-            
-            this.m_displayControls = new skel.widgets.Image.DataDisplay.DisplayControls();
-            this.m_tabView.add( this.m_displayControls );
         },
         
-       
         
         /**
          * Send a command to the server to get the grid control id.
@@ -58,17 +54,13 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
         setId : function( imageId ){
            this.m_gridControls.setId( imageId );
            this.m_contourControls.setId( imageId );
-           this.m_displayControls.setId( imageId );
         },
-        
-
         
         m_id : null,
         
         m_tabView : null,
         
         m_gridControls : null,
-        m_contourControls : null,
-        m_displayControls : null
+        m_contourControls : null
     }
 });

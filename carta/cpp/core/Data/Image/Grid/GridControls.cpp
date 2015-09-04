@@ -1,4 +1,5 @@
 #include "GridControls.h"
+#include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/Fonts.h"
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Util.h"
@@ -12,6 +13,8 @@
 namespace Carta {
 
 namespace Data {
+
+using Carta::Lib::AxisInfo;
 
 const QString GridControls::CLASS_NAME = "GridControls";
 const QString GridControls::ALL = "applyAll";
@@ -119,6 +122,33 @@ void GridControls::_initializeCallbacks(){
             result = "Axes transparency must be an integer:"+params;
         }
         Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) ->QString {
+        std::set<QString> keys = {AxisMapper::AXIS_X};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString axisName = dataValues[AxisMapper::AXIS_X];
+        QString result = setAxis( AxisMapper::AXIS_X, axisName );
+        return result;
+    });
+
+    addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) ->QString {
+        std::set<QString> keys = {AxisMapper::AXIS_Y};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString axisName = dataValues[AxisMapper::AXIS_Y];
+        QString result = setAxis( AxisMapper::AXIS_Y, axisName );
+        return result;
+    });
+
+    addCommandCallback( "setAxisZ", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) ->QString {
+        std::set<QString> keys = {AxisMapper::AXIS_Z};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString axisName = dataValues[AxisMapper::AXIS_Z];
+        QString result = setAxis( AxisMapper::AXIS_Z, axisName );
         return result;
     });
 
@@ -454,6 +484,12 @@ void GridControls::_initializeCallbacks(){
                     });
 }
 
+void GridControls::_notifyAxesChanged(){
+    std::vector<AxisInfo::KnownType> displayTypes = m_dataGrid->_getDisplayAxes();
+    bool applyAll = m_state.getValue<bool>( ALL );
+    emit displayAxesChanged( displayTypes, applyAll );
+}
+
 QStringList GridControls::_parseColorParams( const QString& params, const QString& label,
         int* red, int* green, int* blue ) const {
     QStringList result;
@@ -495,11 +531,27 @@ void GridControls::setApplyAll( bool applyAll ){
     }
 }
 
+void GridControls::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
+    bool axisTypesChanged = m_dataGrid->_setAxisTypes( supportedAxes );
+    if ( axisTypesChanged ){
+        _updateGrid();
+    }
+}
 
 QStringList GridControls::setAxesColor( int redAmount, int greenAmount, int blueAmount ){
     bool axesColorChanged = false;
     QStringList result = m_dataGrid->_setAxesColor( redAmount, greenAmount, blueAmount, &axesColorChanged );
     if ( axesColorChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setAxis( const QString& axisId, const QString& purpose ){
+    bool axisChanged = false;
+    QString result = m_dataGrid->_setAxis( axisId, purpose, &axisChanged );
+    if ( axisChanged ){
+        _notifyAxesChanged();
         _updateGrid();
     }
     return result;

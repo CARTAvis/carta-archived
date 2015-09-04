@@ -269,10 +269,8 @@ private:
     /**
      * Respond to a change in display axes.
      * @param displayAxisTypes - the x-, y-, and z- axes to display.
-     * @param renderImage - true if the image should be redrawn false otherwise.
      */
-    void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes,
-            bool renderImage );
+    void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes );
     void _initializeState();
     void _initializeSingletons( );
 

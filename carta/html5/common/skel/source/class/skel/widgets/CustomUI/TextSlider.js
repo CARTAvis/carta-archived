@@ -231,8 +231,6 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
             }
         },
         
-
-        
         /**
          * Set the server side id.
          * @param id {String} the server side id.
@@ -240,7 +238,16 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         setId : function( id ){
             this.m_id = id;
         },
-
+        
+        /**
+         * Set this widget enabled/disabled.
+         * @param enabled {boolean} - true to enable the widget; false otherwise.
+         */
+        setWidgetEnabled : function( enabled ){
+            this.m_slider.setEnabled( enabled );
+            this.m_text.setTextEnabled( enabled );
+        },
+        
         m_cmd : null,
         m_paramId : null,
         m_logScale : false,

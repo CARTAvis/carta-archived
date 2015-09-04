@@ -78,6 +78,8 @@ public:
     virtual const VI &
     dims() = 0;
 
+
+
     /// get the raw data for the given pixel (at coordinates 'pos')
     /// note: this is meant for random access, but is slow
     virtual const char *
@@ -318,6 +320,9 @@ public:
     /// return dimensions of the image
     virtual const VI &
     dims() const = 0;
+
+    /// return the index of the specified axis in the image.
+    virtual int getAxisIndex( Carta::Lib::AxisInfo::KnownType axis ) const = 0;
 
     /// Used to determine the type of the image (raster, contour, vector).
     /// May need to evolve.

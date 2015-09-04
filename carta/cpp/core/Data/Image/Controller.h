@@ -443,7 +443,6 @@ private:
 
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;
-    std::shared_ptr<DisplayControls> m_displayControls;
 
 
     std::unique_ptr<Settings> m_settings;

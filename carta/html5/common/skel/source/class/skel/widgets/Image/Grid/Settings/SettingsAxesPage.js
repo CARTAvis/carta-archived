@@ -30,15 +30,37 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
             this._add( this.m_content, {flex:1} );
             this.m_content.setLayout(new qx.ui.layout.VBox(2));
             this.m_content.add( new qx.ui.core.Spacer(5), {flex:1});
-            this._initVisible();
-            this._initSliders();
+            var widgetsContainer = new qx.ui.container.Composite();
+            widgetsContainer.setLayout( new qx.ui.layout.HBox(2));
+            var settingsContainer = new qx.ui.container.Composite();
+            settingsContainer.setLayout( new qx.ui.layout.VBox(2) );
+            widgetsContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            widgetsContainer.add( settingsContainer );
+            widgetsContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            this._initVisible( settingsContainer );
+            this._initSliders( settingsContainer );
+            this._initDisplayAxes( widgetsContainer );
+            widgetsContainer.add( new qx.ui.core.Spacer(), {flex:1} );
+            this.m_content.add( widgetsContainer );
             this.m_content.add( new qx.ui.core.Spacer(5), {flex:1});
         },
         
         /**
-         * Initializes the sliders.
+         * Initialize the display axis controls.
+         * @param container {ax.ui.container.Composite} - the container
+         *      that should hold the display axes.
          */
-        _initSliders : function(){
+        _initDisplayAxes : function( container ){
+            this.m_axesDisplay = new skel.widgets.Image.Grid.Settings.DisplayAxes();
+            container.add( this.m_axesDisplay );
+        },
+        
+        /**
+         * Initializes the sliders.
+         * @param container {qx.ui.container.Composite} - the container
+         *      that should hold the slider controls.
+         */
+        _initSliders : function( container ){
             var sliderContainer = new qx.ui.container.Composite();
             sliderContainer.setLayout( new qx.ui.layout.HBox(2));
             this.m_thickness = new skel.widgets.CustomUI.TextSlider("setAxesThickness", "axes",
@@ -54,14 +76,16 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
             sliderContainer.add( this.m_transparency );
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
            
-            this.m_content.add( sliderContainer );
+            container.add( sliderContainer );
         },
         
         
         /**
          * Initialize the visibility controls.
+         * @param container {qx.ui.container.Composite} - the container
+         *      that should hold the visibility controls.
          */
-        _initVisible : function(){
+        _initVisible : function( container ){
             var visibleContainer = new qx.ui.container.Composite();
             visibleContainer.setLayout( new qx.ui.layout.HBox());
             this.m_showAxes = new qx.ui.form.CheckBox( "Axes/Border");
@@ -81,7 +105,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
             visibleContainer.add( this.m_showAxes);
             visibleContainer.add( this.m_showInternalLabels );
             visibleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            this.m_content.add( visibleContainer );
+            container.add( visibleContainer );
         },
 
         /**
@@ -117,6 +141,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
             this._setShowInternalLabels( controls.grid.showInternalLabels);
             this._setThickness( controls.grid.axes.width );
             this._setTransparency( controls.grid.axes.alpha );
+            this.m_axesDisplay.setControls( controls.grid );
         },
         
         /**
@@ -150,9 +175,17 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
         /**
          * User has toggled show/hide axes.
          */
-        _showAxesChanged : function(){
+        _showAxesChanged : function(){ 
             var showAxes = this.m_showAxes.getValue();
-            this.m_showInternalLabels.setEnabled( showAxes );
+            if ( this.m_showInternalLabels !== null ){
+                this.m_showInternalLabels.setEnabled( showAxes );
+            }
+            if ( this.m_thickness !== null ){
+                this.m_thickness.setWidgetEnabled( showAxes );
+            }
+            if ( this.m_transparency !== null ){
+                this.m_transparency.setWidgetEnabled( showAxes );
+            }
             this._sendShowAxisCmd();
         },
 
@@ -185,8 +218,10 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
             this.m_id = gridId;
             this.m_thickness.setId( gridId );
             this.m_transparency.setId( gridId );
+            this.m_axesDisplay.setId( gridId );
         },
         
+        m_axesDisplay : null,
         m_content : null,
         m_id : null,
         m_connector : null,

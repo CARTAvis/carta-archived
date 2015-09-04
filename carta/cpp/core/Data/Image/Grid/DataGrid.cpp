@@ -1,5 +1,6 @@
 #include <math.h>
 #include "DataGrid.h"
+#include "AxisMapper.h"
 #include "Fonts.h"
 #include "Themes.h"
 #include "Globals.h"
@@ -40,11 +41,13 @@ const QString DataGrid::GRID = "grid";
 const QString DataGrid::THEME = "theme";
 const QString DataGrid::TICK = "tick";
 const QString DataGrid::TICK_LENGTH = "tickLength";
+const QString DataGrid::SUPPORTED_AXES = "supportedAxes";
 const int DataGrid::MARGIN_DEFAULT = 10;
 const int DataGrid::MARGIN_LABEL = 50;
 const int DataGrid::TICK_LENGTH_MAX = 50;
 const int DataGrid::PEN_FACTOR = 10;
 
+using Carta::Lib::AxisInfo;
 
 CoordinateSystems* DataGrid::m_coordSystems = nullptr;
 Fonts* DataGrid::m_fonts = nullptr;
@@ -71,6 +74,26 @@ DataGrid::DataGrid( const QString& path, const QString& id):
 
     _initializeSingletons();
     _initializeDefaultState();
+}
+
+void DataGrid::_addUsedPurpose( const QString& key, const QString& targetPurpose,
+    QList<QString>& usedPurposes, QString& usedPurposeKey ){
+    QString otherPurpose = m_state.getValue<QString>( key );
+    usedPurposes.append( otherPurpose );
+    if ( otherPurpose == targetPurpose ){
+        usedPurposeKey = key;
+    }
+}
+
+std::vector<AxisInfo::KnownType> DataGrid::_getDisplayAxes() const {
+    std::vector<AxisInfo::KnownType> displayTypes( 3 );
+    QString xPurposeName = m_state.getValue<QString>( AxisMapper::AXIS_X );
+    displayTypes[0] = AxisMapper::getType( xPurposeName );
+    QString yPurposeName = m_state.getValue<QString>( AxisMapper::AXIS_Y );
+    displayTypes[1] = AxisMapper::getType( yPurposeName );
+    QString zPurposeName = m_state.getValue<QString>( AxisMapper::AXIS_Z );
+    displayTypes[2] = AxisMapper::getType( zPurposeName );
+    return displayTypes;
 }
 
 QString DataGrid::_getFormat( const Carta::State::StateInterface& state, const QString& direction ) const {
@@ -184,7 +207,7 @@ void DataGrid::_initializeDefaultPen( const QString& key, int red, int green, in
 }
 
 void DataGrid::_initializeLabelFormat( const QString& side, const QString& format,
-        Carta::Lib::AxisInfo::KnownType axis ){
+        AxisInfo::KnownType axis ){
     QString lookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, side );
     m_state.insertObject( lookup );
     QString formatLookup = Carta::State::UtilState::getLookup( lookup, FORMAT );
@@ -203,9 +226,9 @@ void DataGrid::_initializeDefaultState(){
     //Transparency seems to go from 0 to 1
     //Spacing goes from 0.250 to 3
 
-    m_state.insertValue<bool>( SHOW_AXIS, /*true*/false );
-    m_state.insertValue<bool>( SHOW_GRID_LINES, /*true*/false );
-    m_state.insertValue<bool>( SHOW_TICKS, /*true*/false );
+    m_state.insertValue<bool>( SHOW_AXIS, true );
+    m_state.insertValue<bool>( SHOW_GRID_LINES, true );
+    m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
     m_state.insertValue<bool>( SHOW_COORDS, true );
 
@@ -233,13 +256,24 @@ void DataGrid::_initializeDefaultState(){
 
     m_state.insertObject( LABEL_FORMAT );
     QString formatEast = m_formats->getDefaultFormat( LabelFormats::EAST );
-    _initializeLabelFormat( LabelFormats::EAST, formatEast, Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT );
+    _initializeLabelFormat( LabelFormats::EAST, formatEast, AxisInfo::KnownType::DIRECTION_LAT );
     QString formatWest = m_formats->getDefaultFormat( LabelFormats::WEST );
-    _initializeLabelFormat( LabelFormats::WEST, formatWest, Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT );
+    _initializeLabelFormat( LabelFormats::WEST, formatWest, AxisInfo::KnownType::DIRECTION_LAT );
     QString formatNorth = m_formats->getDefaultFormat( LabelFormats::NORTH );
-    _initializeLabelFormat( LabelFormats::NORTH, formatNorth, Carta::Lib::AxisInfo::KnownType::DIRECTION_LON );
+    _initializeLabelFormat( LabelFormats::NORTH, formatNorth, AxisInfo::KnownType::DIRECTION_LON );
     QString formatSouth = m_formats->getDefaultFormat( LabelFormats::SOUTH );
-    _initializeLabelFormat( LabelFormats::SOUTH, formatSouth, Carta::Lib::AxisInfo::KnownType::DIRECTION_LON );
+    _initializeLabelFormat( LabelFormats::SOUTH, formatSouth, AxisInfo::KnownType::DIRECTION_LON );
+
+    m_state.insertArray( SUPPORTED_AXES, 0);
+    QString xName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_X );
+    m_state.insertValue<QString>( AxisMapper::AXIS_X, xName );
+    QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y );
+    m_state.insertValue<QString>( AxisMapper::AXIS_Y, yName );
+    QString zName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Z );
+    m_state.insertValue<QString>( AxisMapper::AXIS_Z, zName );
+
+
+
     m_state.flushState();
 }
 
@@ -270,6 +304,8 @@ void DataGrid::_initializeSingletons( ){
 bool DataGrid::_isGridVisible() const {
     return m_state.getValue<bool>(SHOW_GRID_LINES );
 }
+
+
 
 
 void DataGrid::_resetGridRenderer(){
@@ -380,6 +416,58 @@ void DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     _resetGridRenderer();
 }
 
+QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool* axisChanged ){
+    QString result;
+    *axisChanged = false;
+    QString actualAxis = AxisMapper::getDisplayName( axisId );
+    if ( !actualAxis.isEmpty() ){
+        QString actualPurpose = AxisMapper::getPurpose( purpose );
+        if ( !actualPurpose.isEmpty() ){
+            QString oldPurpose = m_state.getValue<QString>( axisId );
+            if ( oldPurpose != actualPurpose ){
+
+                //Get a running total of display axes that are being used; at the same time store
+                //the key of the axis containing the duplicate name, if there is one.
+                QList<QString> usedPurposes;
+                QString duplicateAxisPurposeKey;
+                QStringList axisNames = AxisMapper::getDisplayNames();
+                int displayAxisCount = axisNames.size();
+                for ( int i = 0; i < displayAxisCount; i++ ){
+                    if ( actualAxis != axisNames[i] ){
+                        _addUsedPurpose( axisNames[i], purpose, usedPurposes, duplicateAxisPurposeKey );
+                    }
+                }
+
+                //There is an axis that is already displaying the one that we want to display.  Thus,
+                //we need to find a new purpose for the duplicate.
+                if ( !duplicateAxisPurposeKey.isEmpty() ){
+                    int purposeCount = m_state.getArraySize( SUPPORTED_AXES );
+                    for ( int i = 0; i < purposeCount; i++ ){
+                        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
+                        QString axisPurpose = m_state.getValue<QString>( lookup );
+                        if ( !usedPurposes.contains( axisPurpose ) ){
+                            m_state.setValue<QString>(duplicateAxisPurposeKey, axisPurpose );
+                            break;
+                        }
+                    }
+                }
+                *axisChanged = true;
+                m_state.setValue<QString>( actualAxis, purpose );
+
+                m_state.flushState();
+            }
+        }
+        else {
+            result = "Unrecognized axis type: "+purpose;
+        }
+    }
+    else {
+        result = "Unrecognized axis: "+axisId;
+    }
+    return result;
+}
+
+
 QStringList DataGrid::_setAxesColor( int redAmount, int greenAmount, int blueAmount,
         bool* axesColorChanged ){
     QStringList result = _setColor( AXES, redAmount, greenAmount, blueAmount, axesColorChanged );
@@ -420,6 +508,29 @@ QString DataGrid::_setAxesThickness( int thickness, bool* thicknessChanged ){
         }
     }
     return result;
+}
+
+bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
+    int axisCount = supportedAxes.size();
+    bool axisTypesChanged = false;
+    int oldCount = m_state.getArraySize( SUPPORTED_AXES );
+    m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+    for ( int i = 0; i < axisCount; i++ ){
+        QString name = AxisMapper::getPurpose( supportedAxes[i] );
+        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
+        QString oldName;
+        if ( i < oldCount ){
+            oldName = m_state.getValue<QString>( lookup );
+        }
+        if ( name != oldName ){
+            axisTypesChanged = true;
+            m_state.setValue<QString>( lookup, name );
+        }
+    }
+    if ( axisTypesChanged ){
+        m_state.flushState();
+    }
+    return axisTypesChanged;
 }
 
 QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,

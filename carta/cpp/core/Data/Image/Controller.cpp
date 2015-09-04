@@ -1,12 +1,11 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Controller.h"
+#include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
 #include "Data/Image/Contour/DataContours.h"
-#include "Data/Image/DataDisplay/DisplayControls.h"
-#include "Data/Image/DataDisplay/AxisMapper.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
 #include "ControllerData.h"
@@ -89,16 +88,14 @@ Controller::Controller( const QString& path, const QString& id ) :
      m_gridControls.reset( gridObj );
      connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
              this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
+     connect( m_gridControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
+                  this, SLOT( _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )));
 
      ContourControls* contourObj = objMan->createObject<ContourControls>();
      m_contourControls.reset( contourObj );
      m_contourControls->setPercentIntensityMap( this );
      connect( m_contourControls.get(), SIGNAL(drawContoursChanged()), this, SLOT( _contoursChanged()));
 
-     DisplayControls* displayObj = objMan->createObject<DisplayControls>();
-     m_displayControls.reset( displayObj );
-     connect( m_displayControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
-             this, SLOT( _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )));
      Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
 
@@ -151,7 +148,7 @@ bool Controller::addData(const QString& fileName) {
         }
         m_selectImage->setIndex(targetIndex);
         std::vector<AxisInfo::KnownType> supportedAxes = m_datas[targetIndex]->_getAxisTypes();
-        m_displayControls->setAxisTypes( supportedAxes );
+        m_gridControls->_setAxisTypes( supportedAxes );
         saveState();
 
         //Refresh the view of the data.
@@ -262,37 +259,26 @@ void Controller::_contoursChanged(){
 
 void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
         bool applyAll ){
-    qDebug() << "CONTROLLER Display axes changed notifyALLL="<<applyAll;
     int imageIndex = 0;
     if (m_selectImage != nullptr) {
         imageIndex = m_selectImage->getIndex();
     }
     if ( !applyAll ){
-        qDebug() << "Not apply all imageIndex="<<imageIndex;
         if (imageIndex >= 0 && imageIndex < m_datas.size()) {
             if (m_datas[imageIndex] != nullptr) {
-                qDebug() << "Controller telling m_data axesChanged";
-                m_datas[imageIndex]->_displayAxesChanged( displayAxisTypes, true  );
+                m_datas[imageIndex]->_displayAxesChanged( displayAxisTypes );
             }
         }
     }
     else {
         int dataCount = m_datas.size();
-        qDebug() << "Telling all datas axesChanged count="<<dataCount;
         for ( int i = 0; i < dataCount; i++ ){
-            bool renderedImage = false;
-            if ( i == imageIndex ){
-                renderedImage = true;
-            }
             if ( m_datas[i] != nullptr ){
-                qDebug() << "i="<<i<<" renderedImage="<<renderedImage;
-                m_datas[i]->_displayAxesChanged( displayAxisTypes, renderedImage);
+                m_datas[i]->_displayAxesChanged( displayAxisTypes );
             }
         }
     }
-    qDebug() << "Controller axes changed";
     emit axesChanged();
-    qDebug() << "Controller loading view";
     this->_loadView();
     _updateCursorText( true );
 }
@@ -650,15 +636,6 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
-    addCommandCallback( "registerDisplayControls", [=] (const QString & /*cmd*/,
-                                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                QString result;
-                if ( m_displayControls.get() != nullptr ){
-                    result = m_displayControls->getPath();
-                }
-                return result;
-            });
-
     addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
                             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
             QString result;
@@ -792,7 +769,7 @@ void Controller::_loadView( ) {
             AxisInfo::KnownType type = m_datas[imageIndex]->_getAxisZ();
             int selectIndex = static_cast<int>( type );
             int frameIndex = m_selects[selectIndex]->getIndex();
-            qDebug() << "Controller loadView axisIndex="<<selectIndex<<" frameIndex="<<frameIndex;
+
             //Load the image.
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
             double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);

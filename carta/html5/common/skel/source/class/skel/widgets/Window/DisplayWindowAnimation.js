@@ -24,6 +24,24 @@ qx.Class.define(
     members : {
         
         /**
+         * Update the list of available animators from the server.
+         * @param animators {Array} - a list of available animators.
+         */
+        _addSupportedAnimations : function( animators ){
+            //Initialize the supported animations
+            this.m_supportedAnimations = [];
+            for (var i = 0; i < animators.length; i++ ){
+                var animId = animators[i].type;
+                this.m_supportedAnimations[i] = animId;
+                if (this.m_animators[animId] === undefined ) {
+                    this.m_animators[animId] = new skel.boundWidgets.Animator(animId, this.m_identifier);
+                    this.m_animators[animId].addListener( "movieStart", this._movieStarted, this );
+                    this.m_animators[animId].addListener( "movieStop", this._movieStopped, this );
+                }
+            }
+        },
+        
+        /**
          * Initialize the window specific commands that are supported.
          */
         _initSupportedCommands : function(){
@@ -36,6 +54,22 @@ qx.Class.define(
             }
             this.m_supportedCmds.push( animCmd.getLabel() );
             arguments.callee.base.apply(this, arguments);
+        },
+        
+        /**
+         * Returns true if the animator widget with the given identifier is visible;
+         *      false otherwise.
+         * @param animId {String} an identifier for an animator.
+         * @return {boolean} true if the animator is visible; false otherwise.
+         */
+        isVisible : function( animId ){
+            var visible = false;
+            if ( this.m_animators !== null ){
+                if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
+                    visible = true;
+                }
+            }
+            return visible;
         },
         
         /**
@@ -67,19 +101,31 @@ qx.Class.define(
         },
         
         /**
-         * Returns true if the animator widget with the given identifier is visible;
-         *      false otherwise.
-         * @param animId {String} an identifier for an animator.
-         * @return {boolean} true if the animator is visible; false otherwise.
+         * Remove animators that are for axes that do not exist for currently loaded
+         * images.
+         * @param animators {Array} - a list of currently supported animators.
          */
-        isVisible : function( animId ){
-            var visible = false;
-            if ( this.m_animators !== null ){
-                if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
-                    visible = true;
+        _removeUnsupportedAnimations : function( animators ){
+            if ( this.m_supportedAnimations !== null ){
+                for ( var i = this.m_supportedAnimations.length-1; i >= 0; i-- ){
+                    var animatorFound = false;
+                    for ( var j = 0; j < animators.length; j++ ){
+                        if ( animators[j] == this.m_supportedAnimations[i] ){
+                            animatorFound = true;
+                            break;
+                        }
+                    }
+                    if ( !animatorFound ){
+                        var animId = this.m_supportedAnimations[i];
+                        if ( this.m_animators[animId] !== undefined ){
+                            if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
+                                this.m_content.remove( this.m_animators[animId] );
+                            }
+                        }
+                        this.m_supportedAnimations.splice( i, 1 );
+                    }
                 }
             }
-            return visible;
         },
         
         /**
@@ -92,24 +138,12 @@ qx.Class.define(
             this.updateCmds();
         },
         
-        /**
-         * Update the list of available animators from the server.
-         * @param animators {Array} - a list of available animators.
-         */
-        _addSupportedAnimations : function( animators ){
-            //Initialize the supported animations
-            console.log( "_updateSupportedAnimations count="+animators.length);
-            this.m_supportedAnimations = [];
-            for (var i = 0; i < /*animObj.*/animators.length; i++ ){
-                this.m_supportedAnimations[i] = animators[i];
-            }
-        },
         
         /**
-         * Adds or removes a specific animator from the display
-         * based on what the user has selected from the menu.
+         * Adds or removes a specific animator from the display.
+         * @param animators {Array} - list of currently supported animators.
          */
-        _showHideAnimation : function( /*animObj*/ ) {
+        _showHideAnimation : function( animators ) {
             if ( this.m_animators === null ){
                 this.m_animators = {};
             }
@@ -120,42 +154,23 @@ qx.Class.define(
                 return;
             }
             
-            //Remove the animators that are no longer supported.
-            
-            
-            //Go through the supported animations and make sure we have an animator
-            //for each one.
-            for (var i = 0; i < this.m_supportedAnimations.length; i++) {
-                var animId = this.m_supportedAnimations[i];
-                /*var animVisible = false;
-                var index = animObj.animators.indexOf( animId );
-                if ( index >= 0 ){
-                    animVisible = true;
+            //Go through the passed in animators from the server and decide if they
+            //should be visible.
+            for ( var i = 0; i < animators.length; i++ ){
+                var animId = animators[i].type;
+                var visible = animators[i].visible;
+                var contentIndex = this.m_content.indexOf( this.m_animators[animId] );
+                if ( visible ){
+                    if ( contentIndex < 0 ){
+                        this.m_content.add( this.m_animators[animId] );
+                    }
                 }
-                var oldVisible = this.isVisible( animId );
-                console.log( "animId="+animId+" animVisible="+animVisible+" oldVisible="+oldVisible);
-                if (animVisible) {*/
-                    if (this.m_animators[animId] === undefined ) {
-                        this.m_animators[animId] = new skel.boundWidgets.Animator(animId, this.m_identifier);
-                        this.m_animators[animId].addListener( "movieStart", this._movieStarted, this );
-                        this.m_animators[animId].addListener( "movieStop", this._movieStopped, this );
-                    }
-                      
-                    /*if ( !oldVisible) {
-                        console.log( "Adding "+animId);
-                        this.m_content.add(this.m_animators[animId]);
-                    }
-                } 
                 else {
-                    console.log( "Thinking about removing animId="+animId);
-                    if ( oldVisible ) {
-                        console.log( "Removing "+animId);
-                        this.m_content.remove(this.m_animators[animId]);
-                    }*/
-                //}
+                    if ( contentIndex >= 0 ){
+                        this.m_content.remove( this.m_animators[animId] );
+                    }
+                }
             }
-            
-            
         },
         
         
@@ -174,33 +189,6 @@ qx.Class.define(
                 }
             }
         },
-       
-        _removeUnsupportedAnimations : function( animators ){
-            if ( this.m_supportedAnimations !== null ){
-                console.log( "Supported length="+(this.m_supportedAnimations.length - 1) );
-                for ( var i = this.m_supportedAnimations.length-1; i >= 0; i-- ){
-                    var animatorFound = false;
-                    for ( var j = 0; j < animators.length; j++ ){
-                        if ( animators[j] == this.m_supportedAnimations[i] ){
-                            animatorFound = true;
-                            break;
-                        }
-                    }
-                    console.log( "i="+i+" animatorFound="+animatorFound);
-                    if ( !animatorFound ){
-                        var animId = this.m_supportedAnimations[i];
-                        console.log( "AnimId to remove="+animId);
-                        if ( this.m_animators[animId] !== undefined ){
-                            if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
-                                console.log( "Removing animator "+animId );
-                                this.m_content.remove( this.m_animators[animId] );
-                            }
-                        }
-                        this.m_supportedAnimations.splice( i, 1 );
-                    }
-                }
-            }
-        },
         
         /**
          * Show/hide animators based on server information.
@@ -208,12 +196,9 @@ qx.Class.define(
          *      are visible.
          */
         windowSharedVarUpdate : function( animObj ){
-            console.log( "windowSharedVarUpdate0");
             this._removeUnsupportedAnimations( animObj.animators );
-            console.log( "windowSharedVarUpdate");
             this._addSupportedAnimations( animObj.animators );
-            console.log( "Set animators");
-            this._showHideAnimation( animObj );
+            this._showHideAnimation( animObj.animators );
         },
         
         //List of all animators that are available
