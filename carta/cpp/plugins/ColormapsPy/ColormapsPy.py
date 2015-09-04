@@ -13,17 +13,18 @@ def print(*args, **kwargs):
 
 print("hello")
 
-import scipy
-import numpy as np
-from random import randrange
-
-def no_preRenderHook(w, h, data):
-    print("preRenderHook", w, h, len(data))
-#    myShape = data.reshape(h,w,3)
-    myShape = data
-    for y in range(0,h):
-        if y % 20 < 2:
-            myShape[y,...] = 0
+# old code:
+#
+#import scipy
+#import numpy as np
+#from random import randrange
+#
+#def no_preRenderHook(w, h, data):
+#    print("preRenderHook", w, h, len(data))
+#    myShape = data
+#    for y in range(0,h):
+#        if y % 20 < 2:
+#            myShape[y,...] = 0
 
 
 ## colormap test
