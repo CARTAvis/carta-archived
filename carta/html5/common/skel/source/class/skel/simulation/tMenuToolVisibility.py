@@ -31,19 +31,16 @@ class tMenuToolVisibility(unittest.TestCase):
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
     
-        toolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.ToolBar']")))
-        self.assertIsNotNone( toolBar, "Could not find the tool bar")
+        toolBar = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Menu.ToolBar']")
         actionChains = ActionChains(driver)
         actionChains.context_click(toolBar).perform()
         
         # Click the customize item on the menu
         customizeButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Customize...']/..")))
-        self.assertIsNotNone( customizeButton, "Could not find the customize button in context")
         ActionChains(driver).click( customizeButton).perform()
         
         # First make sure no clips are checked
         clippingButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Clipping']/preceding-sibling::div/div")))
-        self.assertIsNotNone( clippingButton, "Could not clipping button in customize dialog")
         styleAtt = clippingButton.get_attribute( "style");
         print "Style", styleAtt
         if "checked.png" in styleAtt:
@@ -57,21 +54,17 @@ class tMenuToolVisibility(unittest.TestCase):
         # Open the Clipping folder by performing 2 clicks so that the 98% clip button is visible
         # clippingTreeItem = clippingButton.find_element_by_xpath( '../..')
         clippingOpenButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Clipping']/../div[@qxclass='qx.ui.tree.core.FolderOpenButton']")))
-        self.assertIsNotNone( clippingOpenButton, "Could not find open folder button for clipping")
         ActionChains( driver ).click( clippingOpenButton ).perform()
         clipOpenButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Clips']/../div[@qxclass='qx.ui.tree.core.FolderOpenButton']")))
-        self.assertIsNotNone( clipOpenButton, "Could not find open folder button for clip")
         driver.execute_script( "arguments[0].scrollIntoView(true);", clipOpenButton)
         ActionChains( driver ).click( clipOpenButton ).perform()
         
         # Now click the 98% clip button on the customize dialog
         clipButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='98%']/preceding-sibling::div/div/..")))
-        self.assertIsNotNone( clipButton, "Could not find clip button in customize dialog")
         ActionChains(driver).click( clipButton).perform()
         
         # Verify that the 98% clip appears on the tool bar
         clipRadio = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='98%']")))
-        self.assertIsNotNone( clipRadio, "Clip radio did not appear on tool bar")
         
         # Remove the 98% clip by unclicking the button on the customize dialog
         ActionChains(driver).click( clipButton).perform()
@@ -82,31 +75,27 @@ class tMenuToolVisibility(unittest.TestCase):
     # Test that we can remove clipping from appearing on the menu bar.
     def test_menu_hideClipping(self):    
         driver = self.driver
+        browser = selectBrowser._getBrowser()
 
         # Click on an CasaImageLoader Window so that clipping is available on the menu.
-        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
         ActionChains(driver).click(imageWindow).perform()
 
         # Verify that clipping commands can be found on the menu bar.
         menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
-        self.assertIsNotNone( menuBar, "Could not find the menu bar")
         clipping = menuBar.find_elements_by_xpath( "./div[contains(text(), 'Clipping')]" )
-        self.assertIsNotNone( clipping, "Clipping not present on menu bar");
 
         # Now right click the toolbar
-        toolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.ToolBar']")))
-        self.assertIsNotNone( toolBar, "Could not find the tool bar")
+        toolBar = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Menu.ToolBar']")
         actionChains = ActionChains(driver)
         actionChains.context_click(toolBar).perform()
 
         # Find and click the customize button
         customizeButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Customize...']/..")))
-        self.assertIsNotNone( customizeButton, "Could not find the customize button in context")
         ActionChains(driver).click( customizeButton).perform()
         
         # Uncheck clipping
         clippingButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Clipping']/preceding-sibling::div/div")))
-        self.assertIsNotNone( clippingButton, "Could not clipping button in customize dialog")
         styleAtt = clippingButton.get_attribute( "style");
         print "Style", styleAtt
         if "checked.png" in styleAtt:
@@ -119,7 +108,7 @@ class tMenuToolVisibility(unittest.TestCase):
             clipButton = menuBar.find_element_by_xpath( "./div[contains(text(), 'Clipping')]" )
             self.assertTrue( False, "Should not be able to locate clipping button")
         except Exception:
-            print "Test succeeded because we should not be able to find clipping"   
+            print "Test succeeded because we should not be able to find clipping" 
 
     def tearDown(self):
         # Close the browser

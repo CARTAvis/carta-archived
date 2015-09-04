@@ -361,6 +361,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initSettings : function() {
             this.m_endWrapRadio = new qx.ui.form.RadioButton("Wrap");
+            skel.widgets.TestID.addTestId( this.m_endWrapRadio, this.m_title+"WrapRadioButton");
             this.m_endWrapRadio.setToolTipText( "Wrap around when reaching an end value.");
             this.m_endWrapRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endWrapRadio.getValue()) {
@@ -369,6 +370,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
             
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
+            skel.widgets.TestID.addTestId( this.m_endReverseRadio, this.m_title+"ReverseRadioButton");
             this.m_endReverseRadio.setToolTipText( "Change direction when reaching an end value.");
             this.m_endReverseRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endReverseRadio.getValue()) {
@@ -377,6 +379,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
             
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
+            skel.widgets.TestID.addTestId( this.m_endJumpRadio, this.m_title+"JumpRadioButton");
             this.m_endJumpRadio.setToolTipText( "Move from one end to the other end.");
             this.m_endJumpRadio.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
                 if (this.m_endJumpRadio.getValue()) {
@@ -389,6 +392,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             var speedLabel = new qx.ui.basic.Label("Rate:");
             this.m_speedSpinBox = new qx.ui.form.Spinner(1, 10, 100);
+            skel.widgets.TestID.addTestId( this.m_speedSpinBox, this.m_title+"Rate");
             this.m_speedSpinBox.setToolTipText( "Set the speed of the animation.");
 
             this.m_speedSpinBox.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
@@ -397,6 +401,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
             var stepLabel = new qx.ui.basic.Label("Step:");
             this.m_stepSpin = new qx.ui.form.Spinner(1, 1, 100);
+            skel.widgets.TestID.addTestId( this.m_stepSpin, this.m_title+"StepIncrement");
             this.m_stepSpin.setToolTipText( "Set the step increment.");
             this.m_stepSpin.bind("value", this, "frameStep");
             this.m_stepSpin.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
@@ -473,6 +478,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     this._sendUserLowerBound();
                 }
             }, this );
+            skel.widgets.TestID.addTestId( this.m_lowBoundsSpinner, this.m_title+"LowerBoundSpin");
             this.m_lowBoundsSpinner.setToolTipText( "Set a lower bound for valid values.");
             this.m_slider = new qx.ui.form.Slider();
             this.m_slider.addListener(skel.widgets.Path.CHANGE_VALUE, function( ev ) {
@@ -518,11 +524,13 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             this.m_startButton = new qx.ui.toolbar.Button("",
                     "skel/icons/dblarrowleft.png");
+            skel.widgets.TestID.addTestId( this.m_startButton, this.m_title+"TapeDeckFirstValue");
             this.m_startButton.addListener("execute", this._goToStart, this);
             this.m_startButton.setToolTipText( "Go to the first valid value");
 
             this.m_revPlayButton = new qx.ui.form.ToggleButton("",
                     "skel/icons/movie-play-reverse16.png");
+            skel.widgets.TestID.addTestId( this.m_revPlayButton, this.m_title+"TapeDeckReversePlay");
             this.m_revPlayButton.setToolTipText( "Animate in a reverse direction.");
             this.m_revPlayButton.addListener("execute", function() {
                 this.m_playButton.setValue(false);
@@ -531,11 +539,13 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             this.m_revStepButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-previous-frame16.png");
+            skel.widgets.TestID.addTestId( this.m_revStepButton, this.m_title+"TapeDeckDecrement");
             this.m_revStepButton.setToolTipText( "Decrease by one step value.");
             this.m_revStepButton.addListener("execute", this._decrementValue, this);
             
             this.m_stopButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-stop16.png");
+            skel.widgets.TestID.addTestId( this.m_stopButton, this.m_title+"TapeDeckStopAnimation");
             this.m_stopButton.addListener("execute", this._stop, this);
             this.m_stopButton.setToolTipText( "Stop the animation.");
 
@@ -547,6 +557,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             this.m_playButton = new qx.ui.form.ToggleButton("",
                     "skel/icons/movie-play16.png");
+            skel.widgets.TestID.addTestId( this.m_playButton, this.m_title+"TapeDeckPlayButton");
             this.m_playButton.setToolTipText( "Animate in a forward direction.");
             this.m_playButton.addListener("execute", function() {
                 this.m_revPlayButton.setValue(false);
@@ -555,6 +566,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             this.m_endButton = new qx.ui.toolbar.Button("",
                     "skel/icons/dblarrowright.png");
+            skel.widgets.TestID.addTestId( this.m_endButton, this.m_title+"TapeDeckLastValue");
             this.m_endButton.addListener("execute", this._goToEnd, this);
             this.m_endButton.setToolTipText( "Go to the last valid value.");
             toolbar.add(this.m_startButton);

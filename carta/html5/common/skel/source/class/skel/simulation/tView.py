@@ -21,7 +21,7 @@ class tView(unittest.TestCase):
         timeout = selectBrowser._getSleep()
 
         # Wait for the image window to be present (ensures browser is fully loaded)
-        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Get the animation window count and make sure it is non-zero
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
@@ -45,7 +45,7 @@ class tView(unittest.TestCase):
         imageWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
         newImageWindowCount = len( imageWindowList )
         self.assertEqual( newImageWindowCount - 1, imageWindowCount, "Image window count did not increase")
-        
+
     def tearDown(self):
         #Close the browser
         self.driver.close()

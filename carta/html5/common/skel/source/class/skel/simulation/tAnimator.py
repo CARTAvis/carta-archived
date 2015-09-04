@@ -1,6 +1,6 @@
 import unittest
-import Util
 import selectBrowser
+import Util
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -34,44 +34,40 @@ class tAnimator(unittest.TestCase):
         channelParent = checkButton.find_element_by_xpath( '..')
         ActionChains(driver).click( channelParent ).perform()
     
-    # Go to the first channel value of the test image
-    def _getFirstValue(self, driver):
+    # Go to the first valid value
+    def _getFirstValue(self, driver, animator):
         timeout = selectBrowser._getSleep()
-        firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][1]"))) 
-        self.assertIsNotNone( firstValueButton, "Could not find button to go to the first valid value")
+        firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckFirstValue"))) 
         driver.execute_script( "arguments[0].scrollIntoView(true);", firstValueButton)
         ActionChains(driver).click( firstValueButton ).perform()
         time.sleep( timeout )
 
-    # Go to the last channel value of the test image 
-    def _getLastValue(self, driver):    
-        timeout = selectBrowser._getSleep()
-        lastValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='qx-toolbar']/div[@qxclass='qx.ui.toolbar.Button'][5]"))) 
-        self.assertIsNotNone( lastValueButton, "Could not find button to go to the last valid value")
+    # Go to the last valid value 
+    def _getLastValue(self, driver, animator):  
+        timeout = selectBrowser._getSleep()  
+        lastValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckLastValue"))) 
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastValueButton)
         ActionChains(driver).click( lastValueButton ).perform()
         time.sleep( timeout )
 
-    # Get the current channel value of the test image 
-    def _getChannelValue(self, driver):
-        channelText = driver.find_element_by_id( "ChannelIndexText")
-        self.assertIsNotNone( channelText, "Could not find animator channel text")
+    # Get the current value 
+    def _getCurrentValue(self, driver, animator):
+        channelText = driver.find_element_by_id( animator+"IndexText")
         driver.execute_script( "arguments[0].scrollIntoView(true);", channelText)
-        ChannelValue = channelText.get_attribute("value")
-        return ChannelValue
+        CurrentValue = channelText.get_attribute("value")
+        return CurrentValue
 
-    # Return the current image of the Image Animator
-    def _getImageValue(self, driver):
-        imageText = driver.find_element_by_id( "ImageIndexText")
-        self.assertIsNotNone( imageText, "Could not find animator image text")
-        driver.execute_script( "arguments[0].scrollIntoView(true);", imageText)
-        ImageValue = imageText.get_attribute("value")
-        return ImageValue 
+    # Go to the next valid value
+    def _getNextValue(self, driver, animator):
+        timeout = selectBrowser._getSleep()
+        incrementButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckIncrement")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", incrementButton)
+        ActionChains(driver).click( incrementButton ).perform()
+        time.sleep( timeout )
 
-    # Click the forward animation button 
-    def _animateForward(self, driver):
-        forwardAnimateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='qx-toolbar']/div[@class='qx-button'][2]"))) 
-        self.assertIsNotNone( forwardAnimateButton, "Could not find forward animation button")
+    # Click the forward animation button on the tape deck
+    def _animateForward(self, driver, animator):
+        forwardAnimateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckPlayButton"))) 
         driver.execute_script( "arguments[0].scrollIntoView(true);", forwardAnimateButton)
         ActionChains(driver).click( forwardAnimateButton ).perform()
         
@@ -81,24 +77,26 @@ class tAnimator(unittest.TestCase):
         self.assertIsNotNone( forwardAnimateButton, "Could not find forward animation button")
         driver.execute_script( "arguments[0].scrollIntoView(true);", forwardAnimateButton)
         ActionChains(driver).click( forwardAnimateButton ).perform()
+    # Click the stop button on the tapedeck
+    def _stopAnimation(self, driver, animator):
+        stopButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckStopAnimation")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", stopButton)
+        ActionChains(driver).click( stopButton ).perform()
+
 
 
     # Change the Channel Animator to an Image Animator
     def channel_to_image_animator(self, driver):
         timeout = selectBrowser._getSleep()
-        # Find and click on the animation window
-        animWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']"))) 
-        self.assertIsNotNone( animWindow, "Could not find animation window")
-        ActionChains(driver).click( animWindow ).perform()   
-
+        
         # Make sure the animation window is enabled by clicking an element within the window
         # From the context menu, uncheck the Channel Animator and check the Image Animator
         channelText = driver.find_element_by_id( "ChannelIndexText")
         driver.execute_script( "arguments[0].scrollIntoView(true);", channelText)
         ActionChains(driver).click( channelText ).perform()
-        ActionChains(driver).context_click( channelText ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN ).send_keys(Keys.ARROW_DOWN
-            ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.SPACE).send_keys(Keys.ARROW_DOWN
+        # Click on the animate button on the menu tool bar
+        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
+        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.SPACE).send_keys(
             ).send_keys(Keys.ENTER).perform()
         time.sleep(timeout)
 
@@ -106,5 +104,4 @@ class tAnimator(unittest.TestCase):
     def _openSettings(self, driver):
         # Click Settings to reveal animation settings
         settingsCheckBox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Settings...']")))  
-        self.assertIsNotNone( settingsCheckBox, "Could not find settings check box")
         ActionChains(driver).click( settingsCheckBox ).perform()

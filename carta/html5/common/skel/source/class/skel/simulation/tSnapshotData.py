@@ -21,7 +21,6 @@ class tSnapshotData(tSnapshot.tSnapshot):
     def _verifyImage(self, driver, count ):
         #Get the upper bound of images from the image animator
         imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
-        self.assertIsNotNone( imageUpperSpin, "Could not find upper bound for image animator")
         imageCount = imageUpperSpin.get_attribute( "value")
         self.assertEqual( int(imageCount), count, "Incorrect image count")
     
@@ -32,7 +31,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         timeout = selectBrowser._getSleep()
 
         # Wait for the image window to be present (ensures browser is fully loaded)
-        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Load an image so that there are a non-trivial number of channels.
         #At some point this test will need to be rewritten to use a
@@ -41,13 +40,11 @@ class tSnapshotData(tSnapshot.tSnapshot):
         
         # Find the last channel by finding the value of the upper bound spin box
         upperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
-        self.assertIsNotNone( upperSpin, "Could not find channel animator upper bound spin box")
         lastChannel = upperSpin.get_attribute( "value")
         print 'Last channel', lastChannel
         
         # Set the channel animator to the last channel by typing into the text box.
         indexText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@id='ChannelIndexText']")))
-        self.assertIsNotNone( indexText, "Could not find channel input text")
         Util._changeElementText( self, driver, indexText, lastChannel)
                 
         # Find the session button on the menu bar and click it.
@@ -101,21 +98,20 @@ class tSnapshotData(tSnapshot.tSnapshot):
         timeout = selectBrowser._getSleep()
 
         # Wait for the image window to be present (ensures browser is fully loaded)
-        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         #Click on the animation window so that its actions will be enabled 
         animationWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
-        self.assertIsNotNone( animationWindow, "Could not find animation window")
         
         #Make sure the animation window is clicked by clicking an element within the window
         channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
         ActionChains(driver).click( channelText).perform()
-        ActionChains(driver).context_click( channelText ).perform()
 
         # Show the image animator
-        ActionChains( driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ARROW_RIGHT).send_keys(
-            Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
+        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
+        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ENTER).perform()
+        time.sleep( timeout )
         imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", imageUpperSpin ) 
         
@@ -124,7 +120,6 @@ class tSnapshotData(tSnapshot.tSnapshot):
         
         # Find the session button on the menu bar and click it.
         menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
-        self.assertIsNotNone( menuBar, "Could not find the menu bar")
         self._clickSessionButton( driver )
         
         # Find the save session button in the submenu and click it.
