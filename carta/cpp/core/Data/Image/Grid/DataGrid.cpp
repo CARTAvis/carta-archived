@@ -25,6 +25,8 @@ const QString DataGrid::COORD_SYSTEM = "skyCS";
 const QString DataGrid::DIRECTION = "direction";
 const QString DataGrid::FONT = "font";
 const QString DataGrid::LABEL_COLOR = "labels";
+const QString DataGrid::LABEL_DECIMAL_PLACES = "decimals";
+const QString DataGrid::LABEL_DECIMAL_PLACES_MAX = "decimalsMax";
 const QString DataGrid::LABEL_FORMAT = "labelFormats";
 const QString DataGrid::LABEL_AXIS = "axis";
 
@@ -46,6 +48,7 @@ const int DataGrid::MARGIN_DEFAULT = 10;
 const int DataGrid::MARGIN_LABEL = 50;
 const int DataGrid::TICK_LENGTH_MAX = 50;
 const int DataGrid::PEN_FACTOR = 10;
+const int DataGrid::LABEL_DECIMAL_MAX = 10;
 
 using Carta::Lib::AxisInfo;
 
@@ -101,6 +104,14 @@ QString DataGrid::_getFormat( const Carta::State::StateInterface& state, const Q
     QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, FORMAT );
     QString format = state.getValue<QString>( directionFormatLookup );
     return format;
+}
+
+QString DataGrid::_getFormatDisplay( const Carta::State::StateInterface& state,
+        const QString& direction ) const {
+    QString format = _getFormat( state, direction );
+    int decimals = state.getValue<int>( LABEL_DECIMAL_PLACES );
+    QString displayFormat = m_formats->_getDisplayFormat( format, decimals );
+    return displayFormat;
 }
 
 QString DataGrid::_getLabelLocation( const Carta::State::StateInterface& state, int axisIndex ) const {
@@ -254,6 +265,8 @@ void DataGrid::_initializeDefaultState(){
 
     m_state.insertValue<QString>(THEME,m_themes->getDefaultTheme());
 
+    m_state.insertValue<int>(LABEL_DECIMAL_PLACES, 3 );
+    m_state.insertValue<int>(LABEL_DECIMAL_PLACES_MAX, LABEL_DECIMAL_MAX );
     m_state.insertObject( LABEL_FORMAT );
     QString formatEast = m_formats->getDefaultFormat( LabelFormats::EAST );
     _initializeLabelFormat( LabelFormats::EAST, formatEast, AxisInfo::KnownType::DIRECTION_LAT );
@@ -402,10 +415,15 @@ void DataGrid::_resetGridRenderer(){
         Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
         m_wcsGridRenderer-> setSkyCS( index );
 
-        QString labelLocation1 = _getLabelLocation( m_state, 0 );
-        QString labelLocation2 = _getLabelLocation( m_state, 1 );
-        m_wcsGridRenderer->setAxisLabelLocation( 0, labelLocation1 );
-        m_wcsGridRenderer->setAxisLabelLocation( 1, labelLocation2 );
+        int axisCount = 2;
+        for ( int i = 0; i < axisCount; i++ ){
+            QString labelLocation = _getLabelLocation( m_state, i );
+            m_wcsGridRenderer->setAxisLabelLocation( i, labelLocation );
+            if ( labelLocation.length() > 0 ){
+                QString format = _getFormatDisplay( m_state, labelLocation );
+                m_wcsGridRenderer->setAxisLabelFormat( i, format );
+            }
+        }
     }
 }
 
@@ -671,6 +689,23 @@ QStringList DataGrid::_setLabelColor( int redAmount, int greenAmount, int blueAm
     return result;
 }
 
+QString DataGrid::_setLabelDecimalPlaces( int decimalPlaces, bool* decimalsChanged ){
+    QString result;
+    if ( decimalPlaces < 0 ){
+        result = "Axis label decimal places must be nonnegative.";
+    }
+    else if ( decimalPlaces > LABEL_DECIMAL_MAX ){
+        result = "Axis label decimal places can not exceed "+QString::number( LABEL_DECIMAL_MAX )+".";
+    }
+    else {
+        int decimalPlacesOld = m_state.getValue<int>( LABEL_DECIMAL_PLACES );
+        if ( decimalPlacesOld != decimalPlaces ){
+            *decimalsChanged = true;
+            m_state.setValue<int>( LABEL_DECIMAL_PLACES, decimalPlaces );
+        }
+    }
+    return result;
+}
 
 QString DataGrid::_setLabelFormat( const QString& side, const QString& format, bool* labelFormatChanged ){
     QString result;

@@ -16,6 +16,8 @@ namespace Data {
 
 class LabelFormats : public Carta::State::CartaObject {
 
+    friend class DataGrid;
+
 public:
 
     /**
@@ -85,6 +87,15 @@ public:
     const static QString SOUTH;
 
 private:
+    QString _addDecimalSeconds( const QString& baseFormat, int decimals ) const;
+
+    /**
+     * Return the display format in grid renderer language.
+     * @param format - an identifier for a label format.
+     * @param decimals - the number of decimal places the label should display.
+     * @return the display format in renderer language.
+     */
+    QString _getDisplayFormat( const QString& format, int decimals ) const;
     std::vector<int> _getFormatIndices( Carta::Lib::AxisInfo::KnownType axisIndex ) const;
     int _getIndex( const QString& format ) const;
     void _initializeDefaultState();

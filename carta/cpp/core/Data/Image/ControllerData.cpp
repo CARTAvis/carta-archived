@@ -6,6 +6,7 @@
 #include "Data/Preferences/PreferencesSave.h"
 #include "CartaLib/IImage.h"
 #include "Data/Util.h"
+#include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../../ImageRenderService.h"
@@ -14,6 +15,8 @@
 
 #include <QDebug>
 #include <QTime>
+
+using Carta::Lib::AxisInfo;
 
 namespace Carta {
 
@@ -66,22 +69,22 @@ bool ControllerData::_contains(const QString& fileName) const {
     return representsData;
 }
 
-void ControllerData::_displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes){
+void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes){
     if ( m_dataSource ){
         m_dataSource->_setDisplayAxes( displayAxisTypes );
     }
 }
 
-Carta::Lib::AxisInfo::KnownType ControllerData::_getAxisZ() const {
-    Carta::Lib::AxisInfo::KnownType axisType = Carta::Lib::AxisInfo::KnownType::OTHER;
+AxisInfo::KnownType ControllerData::_getAxisZType() const {
+    AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
     if ( m_dataSource ){
-        axisType = m_dataSource->_getAxisZ();
+        axisType = m_dataSource->_getAxisZType();
     }
     return axisType;
 }
 
-std::vector<Carta::Lib::AxisInfo::KnownType> ControllerData::_getAxisTypes() const {
-    std::vector<Carta::Lib::AxisInfo::KnownType> axisTypes;
+std::vector<AxisInfo::KnownType> ControllerData::_getAxisTypes() const {
+    std::vector<AxisInfo::KnownType> axisTypes;
     if ( m_dataSource ){
         axisTypes = m_dataSource->_getAxisTypes();
     }
@@ -152,7 +155,7 @@ QPointF ControllerData::_getScreenPt( QPointF imagePt, bool* valid ) const {
     return screenPt;
 }
 
-int ControllerData::_getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const {
+int ControllerData::_getFrameCount( AxisInfo::KnownType type ) const {
     int frameCount = 1;
     if ( m_dataSource ){
         frameCount = m_dataSource->_getFrameCount( type );
@@ -376,6 +379,14 @@ void ControllerData::_render( int frameIndex ){
     std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frameIndex, frameIndex) );
     m_drawSync->setInput( rawData );
     m_drawSync->setContours( m_dataContours );
+
+    //Which display axes will be drawn.
+    AxisInfo::KnownType xType = m_dataSource->_getAxisXType();
+    AxisInfo::KnownType yType = m_dataSource->_getAxisYType();
+    QString displayLabelX = AxisMapper::getPurpose( xType );
+    QString displayLabelY = AxisMapper::getPurpose( yType );
+    gridService->setAxisLabel( 0, displayLabelX );
+    gridService->setAxisLabel( 1, displayLabelY );
 
     bool contourDraw = m_dataContours->isContourDraw();
     bool gridDraw = m_dataGrid->_isGridVisible();

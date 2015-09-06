@@ -276,6 +276,24 @@ void GridControls::_initializeCallbacks(){
             return result;
         });
 
+    addCommandCallback( "setLabelDecimals", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {DataGrid::LABEL_DECIMAL_PLACES};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString decimalsStr = dataValues[DataGrid::LABEL_DECIMAL_PLACES];
+        bool validInt = false;
+        int decimalPlaces = decimalsStr.toInt( &validInt );
+        if ( validInt ){
+            result = setLabelDecimals( decimalPlaces );
+        }
+        else {
+            result = "Grid label decimal places must be an integer:"+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
     addCommandCallback( "setLabelColor", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
             int redAmount = 0;
@@ -651,6 +669,15 @@ QString GridControls::setLabelFormat( const QString& labelSide, const QString& l
     bool labelFormatChanged = false;
     QString result = m_dataGrid->_setLabelFormat( labelSide, labelFormat, &labelFormatChanged );
     if ( labelFormatChanged ){
+        _updateGrid();
+    }
+    return result;
+}
+
+QString GridControls::setLabelDecimals( int decimalPlaces ){
+    bool decimalsChanged = false;
+    QString result = m_dataGrid->_setLabelDecimalPlaces( decimalPlaces, &decimalsChanged );
+    if ( decimalsChanged ){
         _updateGrid();
     }
     return result;

@@ -46,12 +46,12 @@ bool LabelFormats::m_registered =
 LabelFormats::LabelFormats( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
 
-    m_labelFormats.resize( 2 );
+    m_labelFormats.resize( 5 );
     m_labelFormats[0] = FORMAT_NONE;
     m_labelFormats[1] = FORMAT_DEFAULT;
-    //m_labelFormats[1] = FORMAT_DEG_MIN_SEC;
-    //m_labelFormats[2] = FORMAT_DECIMAL_DEG;
-    //m_labelFormats[3] = FORMAT_HR_MIN_SEC;
+    m_labelFormats[2] = FORMAT_DEG_MIN_SEC;
+    m_labelFormats[3] = FORMAT_HR_MIN_SEC;
+    m_labelFormats[4] = FORMAT_DECIMAL_DEG;
 
     _initializeDefaultState();
 }
@@ -82,6 +82,32 @@ QString LabelFormats::getDirection( const QString& direction ) const {
     return actualDirection;
 }
 
+QString LabelFormats::_addDecimalSeconds( const QString& baseFormat, int decimals ) const {
+    QString secondFormat = baseFormat;
+    if ( secondFormat.length() > 0 ){
+        if ( decimals > 0 ){
+            secondFormat = secondFormat + "."+QString::number(decimals);
+        }
+    }
+    return secondFormat;
+}
+
+QString LabelFormats::_getDisplayFormat( const QString& format, int decimals ) const {
+    QString actualFormat = getFormat( format );
+    QString displayFormat = "";
+    if ( actualFormat == FORMAT_DEG_MIN_SEC ){
+        displayFormat = "dms";
+    }
+    else if ( actualFormat == FORMAT_DECIMAL_DEG ){
+        displayFormat = "d";
+    }
+    else if ( actualFormat == FORMAT_HR_MIN_SEC ){
+        displayFormat = "hms";
+    }
+    displayFormat = _addDecimalSeconds( displayFormat, decimals );
+    return displayFormat;
+}
+
 QString LabelFormats::getFormat( const QString& format ) const {
     QString actualFormat;
     int formatCount = m_labelFormats.size();
@@ -99,14 +125,18 @@ QString LabelFormats::getFormat( const QString& format ) const {
 QStringList LabelFormats::getLabelFormats( Carta::Lib::AxisInfo::KnownType direction ) const {
     QStringList buff;
     if ( direction == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON ){
-        //buff.append( FORMAT_HR_MIN_SEC );
-        //buff.append( FORMAT_DECIMAL_DEG );
+        buff.append( FORMAT_HR_MIN_SEC );
+        buff.append( FORMAT_DECIMAL_DEG );
         buff.append( FORMAT_DEFAULT );
         buff.append( FORMAT_NONE );
     }
     else if ( direction == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
-        //buff.append( FORMAT_DEG_MIN_SEC );
-        //buff.append( FORMAT_DECIMAL_DEG );
+        buff.append( FORMAT_DEG_MIN_SEC );
+        buff.append( FORMAT_DECIMAL_DEG );
+        buff.append( FORMAT_DEFAULT );
+        buff.append( FORMAT_NONE );
+    }
+    else {
         buff.append( FORMAT_DEFAULT );
         buff.append( FORMAT_NONE );
     }
@@ -129,19 +159,20 @@ std::vector<int> LabelFormats::_getFormatIndices( Carta::Lib::AxisInfo::KnownTyp
     //Right ascension
     std::vector<int> indices;
     if ( axisIndex == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON ){
-        //indices.push_back( _getIndex( FORMAT_HR_MIN_SEC ) );
-        //indices.push_back( _getIndex( FORMAT_DECIMAL_DEG ) );
+        indices.push_back( _getIndex( FORMAT_HR_MIN_SEC ) );
+        indices.push_back( _getIndex( FORMAT_DECIMAL_DEG ) );
         indices.push_back( _getIndex( FORMAT_DEFAULT) );
         indices.push_back( _getIndex( FORMAT_NONE ) );
     }
     else if ( axisIndex == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
-        //indices.push_back( _getIndex( FORMAT_DEG_MIN_SEC ) );
-        //indices.push_back( _getIndex( FORMAT_DECIMAL_DEG ) );
+        indices.push_back( _getIndex( FORMAT_DEG_MIN_SEC ) );
+        indices.push_back( _getIndex( FORMAT_DECIMAL_DEG ) );
         indices.push_back( _getIndex( FORMAT_DEFAULT) );
         indices.push_back( _getIndex( FORMAT_NONE ) );
     }
     else {
-        qDebug() << "Unknown formats for axis="<<static_cast<int>(axisIndex);
+        indices.push_back( _getIndex( FORMAT_DEFAULT) );
+        indices.push_back( _getIndex( FORMAT_NONE ) );
     }
     return indices;
 }

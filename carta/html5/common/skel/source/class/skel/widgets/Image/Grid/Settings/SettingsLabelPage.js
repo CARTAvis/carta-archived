@@ -34,7 +34,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
                     try {
                         var fonts = JSON.parse( val );
                         this.m_familyCombo.setComboItems( fonts.family );
-                        this.m_sizeCombo.setComboItems( fonts.size );
+                        this.m_fontSizeSpin.setMinimum( fonts.fontSizeMin );
+                        this.m_fontSizeSpin.setMaximum( fonts.fontSizeMax );
                     }
                     catch( err ){
                         console.log( "Axes coordinate system could not parse: "+val );
@@ -77,24 +78,59 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
             familyContainer.add( this.m_familyCombo );
             
             familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            this.m_sizeCombo = new skel.boundWidgets.ComboBox( "setFontSize", "size");
-            this.m_sizeCombo.setToolTipText( "Select a font size.");
+            this.m_fontSizeSpin = new qx.ui.form.Spinner();
+            this.m_fontSizeSpin.addListener( skel.widgets.Path.CHANGE_VALUE,
+                    this._sendFontSize, this );
+            this.m_fontSizeSpin.setToolTipText( "Select a font size.");
             var sizeLabel = new qx.ui.basic.Label( "Size:");
             familyContainer.add( sizeLabel );
-            familyContainer.add( this.m_sizeCombo );
+            familyContainer.add( this.m_fontSizeSpin );
+            
+            familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            this.m_decimalSpin = new qx.ui.form.Spinner();
+            this.m_decimalSpin.setToolTipText( "Set the number of label decimal places");
+            this.m_decimalSpin.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._sendDecimals, this );
+            var decimalLabel = new qx.ui.basic.Label( "Decimals:");
+            familyContainer.add( decimalLabel );
+            familyContainer.add( this.m_decimalSpin );
             
             familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
             this.m_content.add( familyContainer );
         },
+        
+        
         
         /**
          * Update from the server when the grid control settings have changed.
          * @param controls {Object} - information about the grid control settings from the server.
          */
         setControls : function( controls ){
-            this.m_sizeCombo.setComboValue( controls.grid.font.size );
+            this.m_fontSizeSpin.setValue( controls.grid.font.size );
             this.m_familyCombo.setComboValue( controls.grid.font.family );
             this.m_gridLabels.setControls( controls.grid.labelFormats );
+            this.m_decimalSpin.setMaximum( controls.grid.decimalsMax );
+            this.m_decimalSpin.setValue( controls.grid.decimals );
+        },
+        
+        /**
+         * Send the number of decimals to use for axis labels to the server.
+         */
+        _sendDecimals : function(){
+            var params = "decimals:"+this.m_decimalSpin.getValue();
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setLabelDecimals";
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
+        
+        /**
+         * Send the label font size to the server.
+         */
+        _sendFontSize : function(){
+            var params = "size:"+this.m_fontSizeSpin.getValue();
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setFontSize";
+            this.m_connector.sendCommand( cmd, params, function(){});
         },
         
         /**
@@ -103,7 +139,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
          */
         setId : function( gridId ){
             this.m_id = gridId;
-            this.m_sizeCombo.setId( gridId );
             this.m_familyCombo.setId ( gridId );
             this.m_gridLabels.setId( gridId );
         },
@@ -112,8 +147,9 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
         m_id : null,
         m_connector : null,
         
-        m_sizeCombo : null,
+        m_fontSizeSpin : null,
         m_familyCombo : null,
-        m_gridLabels : null
+        m_gridLabels : null,
+        m_decimalSpin : null
     }
 });

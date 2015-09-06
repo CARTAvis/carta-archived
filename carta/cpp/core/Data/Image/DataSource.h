@@ -109,10 +109,30 @@ private:
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
     /**
+     * Returns the type of the axis with the given index in the image.
+     * @param index - the index of the axis in the coordinate system.
+     * @return the type of the corresponding axis or AxisInfo::KnownType::OTHER
+     *      if the index does not correspond to a coordinate axis in the image.
+     */
+    Carta::Lib::AxisInfo::KnownType _getAxisType( int index ) const;
+
+    /**
+     * Return the x display axis.
+     * @return the x display axis.
+     */
+    Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
+
+    /**
+     * Return the y display axis.
+     * @return the y display axis.
+     */
+    Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
+
+    /**
      * Return the z display axis.
      * @return the z display axis.
      */
-    Carta::Lib::AxisInfo::KnownType _getAxisZ() const;
+    Carta::Lib::AxisInfo::KnownType _getAxisZType() const;
 
     /**
      * Return the number of frames for a particular axis in the image.

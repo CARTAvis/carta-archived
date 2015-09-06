@@ -40,12 +40,6 @@ public:
     QStringList getFontFamilies() const;
 
     /**
-     * Returns a list of available font sizes.
-     * @return a QStringList containing the available font point sizes.
-     */
-    QStringList getFontSizes() const;
-
-    /**
      * Returns the index of the font family or -1 if no such font family exists.
      * @param name - an identifier for a font family.
      * @return the index of the identified font family or -1 if no such family exists.
@@ -68,6 +62,8 @@ public:
 
 
     const static QString CLASS_NAME;
+    const static QString FONT_SIZE_MIN;
+    const static QString FONT_SIZE_MAX;
     const static QString FONT_SIZE;
     const static QString FONT_FAMILY;
 private:
@@ -76,8 +72,6 @@ private:
     void _initializeCallbacks();
 
     std::vector<QString> m_fontFamilies;
-    std::vector<int> m_fontSizes;
-
 
     static bool m_registered;
 

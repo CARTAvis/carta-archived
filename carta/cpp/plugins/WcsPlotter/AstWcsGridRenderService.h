@@ -44,7 +44,13 @@ public:
     startRendering( JobId jobId = 0) override;
 
     virtual void
+    setAxisLabel( int axisIndex, const QString& axisLabel ) override;
+
+    virtual void
     setAxisLabelLocation( int axisIndex, const QString& edge ) override;
+
+    virtual void
+    setAxisLabelFormat( int axisIndex, const QString& formatStr ) override;
 
     virtual void
     setAxesVisible( bool flag ) override;
@@ -107,7 +113,10 @@ private:
     double m_gridDensity = 0.5;
     bool m_internalLabels = false;
     bool m_emptyGridFlag = true;
+
+    QList<QString> m_labels { "","" };
     QList<QString> m_labelLocations = {"left","bottom"};
+    QList<QString> m_labelFormats = { "", "" };
 
     struct Pimpl;
     std::unique_ptr < Pimpl > m_pimpl; // = nullptr;

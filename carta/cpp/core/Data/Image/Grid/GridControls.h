@@ -130,6 +130,16 @@ public:
     QStringList setLabelColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
+     * Set the number of decimal places for axis labels.
+     * @param decimalsPlaces - a nonnegative integer representing the number of decimal
+     *      places to display.
+     * @return an error message if the label decimal places could not be set; an
+     *      empty string otherwise.
+     */
+    QString setLabelDecimals( int decimalPlaces );
+
+
+    /**
      * Set the axis label format.
      * @param labelSide - an identifier for a side of the grid where the format applies.
      * @param labelFormat - the format to use for the axis label.

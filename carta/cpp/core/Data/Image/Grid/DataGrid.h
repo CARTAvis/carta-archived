@@ -44,6 +44,9 @@ private:
     int _getMargin( const QString& direction ) const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getDisplayAxes() const;
     QString _getFormat( const Carta::State::StateInterface& state, const QString& direction ) const;
+    //Return a format that the renderer can understand.
+    QString _getFormatDisplay( const Carta::State::StateInterface& state,
+            const QString& direction ) const;
     QString _getLabelLocation(const Carta::State::StateInterface& state, int axisIndex ) const;
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> _getRenderer();
     /**
@@ -66,6 +69,7 @@ private:
     QString _setGridTransparency( int transparency, bool* transparencyChanged );
     QString _setGridThickness( int thickness, bool* coordChanged );
     QStringList _setLabelColor( int redAmount, int greenAmount, int blueAmount, bool* labelColorChanged );
+    QString _setLabelDecimalPlaces( int decimalPlaces, bool* decimalsChanged );
     QString _setLabelFormat( const QString& side, const QString& format, bool* labelFormatChanged );
     QString _setShowAxis( bool showAxis, bool* gridChanged );
     QString _setShowCoordinateSystem( bool showCoordinateSystem, bool* coordChanged );
@@ -101,6 +105,8 @@ private:
     const static QString FONT;
     const static QString LABEL_AXIS;
     const static QString LABEL_COLOR;
+    const static QString LABEL_DECIMAL_PLACES;
+    const static QString LABEL_DECIMAL_PLACES_MAX;
     const static QString LABEL_FORMAT;
     const static QString LABEL_SIDE;
     const static QString FORMAT;
@@ -115,6 +121,7 @@ private:
     const static QString THEME;
     const static QString TICK;
     const static QString TICK_LENGTH;
+    const static int LABEL_DECIMAL_MAX;
     const static int MARGIN_DEFAULT;
     const static int MARGIN_LABEL;
     const static int TICK_LENGTH_MAX;

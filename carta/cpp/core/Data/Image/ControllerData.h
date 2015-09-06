@@ -120,7 +120,7 @@ private:
      * @param fileName a locator for data.
      */
     bool _contains(const QString& fileName) const;
-    Carta::Lib::AxisInfo::KnownType _getAxisZ() const;
+    Carta::Lib::AxisInfo::KnownType _getAxisZType() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
     /**

@@ -9,12 +9,16 @@
 #include <QPainter>
 #include <QTime>
 
+
+
 typedef Carta::Lib::LinearMap1D LinMap;
 namespace VG = Carta::Lib::VectorGraphics; // love c++11
 namespace VGE = VG::Entries;
 
 namespace WcsPlotterPluginNS
 {
+
+
 struct AstWcsGridRenderService::Pimpl
 {
     // we want to remember index and size about fonts
@@ -267,29 +271,28 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( "LabelUp(2)=0" ); // align labels to axes
     sgp.setPlotOption( "Size=9" ); // default font
 
-    //Turn axis labelling off if we are not drawing the axes.
+    //Turn axis  labelling off if we are not drawing the axes.
     if (m_axes){
-        sgp.setPlotOption( "TextLab(1)=1" );
-        sgp.setPlotOption( "TextLab(2)=1" );
+        int labelCount = m_labels.size();
+        for ( int i = 0; i < labelCount; i++ ){
+            int axisIndex = i+ 1;
+            sgp.setPlotOption( QString("TextLab(%1)=1").arg(axisIndex) );
+            if ( m_labels[i].length() > 0 ){
+                sgp.setPlotOption( QString("Label(%1)=%2")
+                        .arg(axisIndex).arg( m_labels[i]) );
+            }
+            if ( m_labelFormats[i].length() > 0 ){
+                sgp.setPlotOption( QString("Format(%1)=%2")
+                        .arg(axisIndex).arg( m_labelFormats[i]) );
+            }
+            if ( m_labelLocations[i].length() > 0 ){
+                sgp.setPlotOption( QString("Edge(%1)=%2")
+                        .arg(axisIndex).arg( m_labelLocations[i]) );
+            }
+        }
     }
     else {
         _turnOffLabels( &sgp, 1 );
-        _turnOffLabels( &sgp, 2 );
-    }
-
-    //Set the location of the axis labels
-    if ( m_labelLocations[0].length() > 0 ){
-        QString edgeOption1 = QString("Edge(1)=%1").arg( m_labelLocations[0] );
-        sgp.setPlotOption( edgeOption1 );
-    }
-    else {
-        _turnOffLabels( &sgp, 1 );
-    }
-    if ( m_labelLocations[1].length() > 0 ){
-        QString edgeOption2 = QString( "Edge(2)=%1").arg( m_labelLocations[1] );
-        sgp.setPlotOption( edgeOption2 );
-    }
-    else {
         _turnOffLabels( &sgp, 2 );
     }
 
@@ -445,12 +448,31 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
 } // setPen
 
 void
+AstWcsGridRenderService::setAxisLabel( int axisIndex, const QString& label ){
+    CARTA_ASSERT( axisIndex == 0 || axisIndex ==1 );
+    CARTA_ASSERT( !label.isEmpty() );
+    if ( m_labels[axisIndex] != label ){
+        m_vgValid = false;
+        m_labels[axisIndex] = label;
+    }
+}
+
+void
 AstWcsGridRenderService::setAxisLabelLocation( int axisIndex, const QString& edge ){
     CARTA_ASSERT( axisIndex == 0 || axisIndex ==1 );
     CARTA_ASSERT( edge == "top" || edge == "bottom" || edge =="left" || edge=="right" || edge=="");
     if ( m_labelLocations[axisIndex] != edge ){
         m_vgValid = false;
         m_labelLocations[axisIndex] = edge;
+    }
+}
+
+void
+AstWcsGridRenderService::setAxisLabelFormat( int axisIndex, const QString& formatStr ){
+    CARTA_ASSERT( axisIndex == 0 || axisIndex == 1 );
+    if ( m_labelFormats[axisIndex] != formatStr ){
+        m_vgValid = false;
+        m_labelFormats[axisIndex] = formatStr;
     }
 }
 

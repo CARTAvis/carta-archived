@@ -71,16 +71,28 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     return types;
 }
 
-AxisInfo::KnownType DataSource::_getAxisZ() const {
-    AxisInfo::KnownType zType = AxisInfo::KnownType::OTHER;
+AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
+    AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
     CoordinateFormatterInterface::SharedPtr cf(
                        m_image-> metaData()-> coordinateFormatter()-> clone() );
     int axisCount = cf->nAxes();
-    if ( m_axisIndexZ < axisCount ){
-        AxisInfo zAxisInfo = cf->axisInfo( m_axisIndexZ );
-        zType = zAxisInfo.knownType();
+    if ( index < axisCount ){
+        AxisInfo axisInfo = cf->axisInfo( index );
+        type = axisInfo.knownType();
     }
-    return zType;
+    return type;
+}
+
+AxisInfo::KnownType DataSource::_getAxisXType() const {
+    return _getAxisType( m_axisIndexX );
+}
+
+AxisInfo::KnownType DataSource::_getAxisYType() const {
+    return _getAxisType( m_axisIndexY );
+}
+
+AxisInfo::KnownType DataSource::_getAxisZType() const {
+    return _getAxisType( m_axisIndexZ );
 }
 
 QStringList DataSource::_getCoordinates( double x, double y, int frameIndex,

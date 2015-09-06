@@ -67,10 +67,18 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) = 0;
 
+    //Set the label for an axis.
+    virtual void
+    setAxisLabel( int axisIndex, const QString& axisLabel ) = 0;
+
     // set on which edge (top,bottom,left,right) the given axis should
     // be drawn; setting the edge to "" will remove labelling for the axis.
     virtual void
     setAxisLabelLocation( int axisIndex, const QString& edge ) = 0;
+
+    // set the format to use when labelling an axis.
+    virtual void
+    setAxisLabelFormat( int axisIndex, const QString& formatStr ) = 0;
 
     //Set whether or not to draw axes/border.
     virtual void

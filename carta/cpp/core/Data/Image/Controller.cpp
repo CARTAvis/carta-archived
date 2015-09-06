@@ -250,7 +250,7 @@ void Controller::centerOnPixel( double centerX, double centerY ){
 void Controller::_contoursChanged(){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        AxisInfo::KnownType hiddenAxis = m_datas[imageIndex]->_getAxisZ();
+        AxisInfo::KnownType hiddenAxis = m_datas[imageIndex]->_getAxisZType();
         int selectIndex= static_cast<int>(hiddenAxis);
         int frameIndex = m_selects[selectIndex]->getIndex();
         m_datas[imageIndex]->_render( frameIndex );
@@ -287,7 +287,7 @@ std::set<AxisInfo::KnownType> Controller::getAxesZ() const {
     int dataCount = m_datas.size();
     std::set<AxisInfo::KnownType> axes;
     for ( int i = 0; i < dataCount; i++ ){
-        AxisInfo::KnownType zAxis = m_datas[i]->_getAxisZ();
+        AxisInfo::KnownType zAxis = m_datas[i]->_getAxisZType();
         if ( zAxis != AxisInfo::KnownType::OTHER ){
             axes.insert( zAxis );
         }
@@ -403,7 +403,7 @@ QString Controller::getPixelValue( double x, double y ) const {
     QString result("");
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZ();
+        AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZType();
         int selectIndex = static_cast<int>( axisType );
         int frameIndex = m_selects[selectIndex]->getIndex();
         if ( frameIndex >= 0 ){
@@ -426,7 +426,7 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZ();
+        AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZType();
         int selectIndex = static_cast<int>( axisType );
         int frameIndex = m_selects[selectIndex]->getIndex();
         QStringList coordList = m_datas[imageIndex]->_getCoordinates( x, y, frameIndex, system );
@@ -530,7 +530,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
         imageIndex = m_selectImage->getIndex();
     }
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZ();
+        AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZType();
         int selectIndex = static_cast<int>( axisType );
         int frameIndex = m_selects[selectIndex]->getIndex();
         if ( !applyAll ){
@@ -766,7 +766,7 @@ void Controller::_loadView( ) {
         if (m_datas[imageIndex] != nullptr) {
 
             //Determine the index of the frame to load.
-            AxisInfo::KnownType type = m_datas[imageIndex]->_getAxisZ();
+            AxisInfo::KnownType type = m_datas[imageIndex]->_getAxisZType();
             int selectIndex = static_cast<int>( type );
             int frameIndex = m_selects[selectIndex]->getIndex();
 
@@ -845,7 +845,7 @@ void Controller::_removeData( int index ){
 void Controller::_render(){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        AxisInfo::KnownType zAxis = m_datas[imageIndex]->_getAxisZ();
+        AxisInfo::KnownType zAxis = m_datas[imageIndex]->_getAxisZType();
         int axisIndex = static_cast<int>( zAxis );
         int frameIndex = m_selects[axisIndex]->getIndex();
         m_datas[imageIndex]->_render( frameIndex );
@@ -903,7 +903,7 @@ void Controller::resetStateData( const QString& state ){
         QString gridStr = dataState.toString( gridLookup );
         StateInterface gridState( "" );
         gridState.setState( gridStr );
-        AxisInfo::KnownType axisType = m_datas[i]->_getAxisZ();
+        AxisInfo::KnownType axisType = m_datas[i]->_getAxisZType();
         int axisIndex = static_cast<int>( axisType );
         int frameIndex = m_selects[axisIndex]->getIndex();
         m_datas[i]->_gridChanged( gridState, false, frameIndex );
@@ -993,7 +993,7 @@ QString Controller::saveImage( const QString& fileName, double scale ){
     if ( !securityRestricted ){
         int imageIndex = m_selectImage->getIndex();
         if ( 0<= imageIndex && imageIndex < m_datas.size()){
-            AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZ();
+            AxisInfo::KnownType axisType = m_datas[imageIndex]->_getAxisZType();
             int axisIndex = static_cast<int>( axisType );
             int frameIndex = m_selects[axisIndex]->getIndex();
             //Check and make sure the directory exists.
@@ -1131,7 +1131,7 @@ void Controller::setFrame(int value, AxisInfo::KnownType axisType ) {
             int imageIndex = m_selectImage->getIndex();
             int dataCount = m_datas.size();
             if ( 0 <= imageIndex && imageIndex < dataCount ){
-                AxisInfo::KnownType zAxis = m_datas[imageIndex]->_getAxisZ();
+                AxisInfo::KnownType zAxis = m_datas[imageIndex]->_getAxisZType();
                 if ( zAxis == axisType ){
                     _updateCursorText( true );
                     emit channelChanged( this );
@@ -1215,7 +1215,7 @@ void Controller::_updateCursorText(bool notifyClients ){
     QString formattedCursor;
     int imageIndex = m_selectImage->getIndex();
     if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
-        AxisInfo::KnownType zAxis = m_datas[imageIndex]->_getAxisZ();
+        AxisInfo::KnownType zAxis = m_datas[imageIndex]->_getAxisZType();
         int selectIndex = static_cast<int>( zAxis );
         int frameIndex = m_selects[selectIndex]->getIndex();
         int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
