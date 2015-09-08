@@ -30,7 +30,8 @@ SOURCES += \
     Algorithms/ContourConrec.cpp \
     IWcsGridRenderService.cpp \
     ContourSet.cpp \
-    Algorithms/LineCombiner.cpp
+    Algorithms/LineCombiner.cpp \
+    IImageRenderService.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -64,7 +65,9 @@ HEADERS += \
     ContourSet.h \
     Algorithms/LineCombiner.h \
     Hooks/GetInitialFileList.h \
-    Hooks/Initialize.h
+    Hooks/Initialize.h \
+    IImageRenderService.h \
+    Hooks/GetImageRenderService.h
 
 unix {
     target.path = /usr/lib

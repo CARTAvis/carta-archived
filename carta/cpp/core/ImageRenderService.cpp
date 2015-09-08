@@ -46,7 +46,7 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     }
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
-    Q_UNUSED( bytesPerLine);
+    Q_UNUSED( bytesPerLine );
 
     // start with a pointer to the beginning of last row (we are constructing image
     // bottom-up)
@@ -161,7 +161,7 @@ Service::setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & param
     m_cachedPPinterp = nullptr;
 }
 
-const PixelPipelineCacheSettings &
+const Service::PixelPipelineCacheSettings &
 Service::pixelPipelineCacheSettings() const
 {
     return m_pixelPipelineCacheSettings;
@@ -182,7 +182,8 @@ Service::render( JobId jobId )
     return m_lastSubmittedJobId;
 }
 
-Service::Service( QObject * parent ) : QObject( parent )
+Service::Service( QObject * parent )
+    : Carta::Lib::IImageRenderService( parent )
 {
     // hook up the internal schedule helper signal to the scheduleJob slot, using
     // queued connection
@@ -395,6 +396,7 @@ Service::internalRenderSlot()
     // insert this image into frame cache
     m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
 } // internalRenderSlot
+
 }
 }
 }

@@ -185,7 +185,7 @@ class ImageViewController : public QObject, public IView
 
 public:
 
-    typedef Carta::Core::ImageRenderService::PixelPipelineCacheSettings PPCsettings;
+    typedef Carta::Lib::IImageRenderService::PixelPipelineCacheSettings PPCsettings;
 
     explicit
     ImageViewController( QString statePrefix, QString viewName, QObject * parent = 0 );
