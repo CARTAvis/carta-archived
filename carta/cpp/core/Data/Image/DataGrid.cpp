@@ -473,10 +473,10 @@ QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmo
 QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordChanged ){
     QString result;
     *coordChanged = false;
-    bool validCoord = m_coordSystems->isCoordinateSystem( coordSystem );
-    if ( validCoord ){
-        if ( m_state.getValue<QString>( COORD_SYSTEM) != coordSystem ){
-            m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
+    QString recognizedSystem = m_coordSystems->getCoordinateSystem( coordSystem );
+    if ( !recognizedSystem.isEmpty() ){
+        if ( m_state.getValue<QString>( COORD_SYSTEM) != recognizedSystem ){
+            m_state.setValue<QString>( COORD_SYSTEM, recognizedSystem );
             *coordChanged = true;
         }
     }
@@ -486,15 +486,14 @@ QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordC
     return result;
 }
 
-
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){
     QString result;
     *familyChanged = false;
-    bool validFont = m_fonts->isFontFamily( fontFamily );
-    if ( validFont ){
+    QString recognizedFont = m_fonts->getFontFamily( fontFamily );
+    if ( !recognizedFont.isEmpty() ){
         QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
-        if ( m_state.getValue<QString>( familyLookup ) != fontFamily ){
-            m_state.setValue<QString>( familyLookup, fontFamily );
+        if ( m_state.getValue<QString>( familyLookup ) != recognizedFont ){
+            m_state.setValue<QString>( familyLookup, recognizedFont );
             *familyChanged = true;
         }
     }
@@ -696,10 +695,11 @@ QString DataGrid::_setTickTransparency( int transparency, bool* transparencyChan
 QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
     *themeChanged = false;
     QString result;
-    if ( m_themes->isTheme( theme )){
+    QString recognizedTheme = m_themes->getTheme( theme );
+    if ( !recognizedTheme.isEmpty() ){
         QString oldTheme = m_state.getValue<QString>( THEME );
-        if ( oldTheme != theme ){
-            m_state.setValue<QString>( THEME, theme );
+        if ( oldTheme != recognizedTheme ){
+            m_state.setValue<QString>( THEME, recognizedTheme );
             *themeChanged = true;
         }
     }
@@ -708,7 +708,6 @@ QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
     }
     return result;
 }
-
 
 DataGrid::~DataGrid(){
 
