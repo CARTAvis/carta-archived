@@ -8,6 +8,7 @@
 #include "../PluginManager.h"
 #include "Algorithms/quantileAlgorithms.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/GetImageRenderService.h"
 #include "GrayColormap.h"
 #include <QPainter>
 #include <QTime>
@@ -47,7 +48,26 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_connector = globals.connector();
 
     // create an image render service and connect it to ourselves
-    m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
+//    m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
+
+    {
+        qDebug() << "Looking for image render service in plugins";
+        auto res = Globals::instance()-> pluginManager()
+                       -> prepare < Carta::Lib::Hooks::GetImageRenderService > ().first();
+        if ( res.isNull() || ! res.val() ) {
+            qWarning( "Could not find image render service in plugins" );
+            m_renderService = nullptr;
+        }
+        else {
+            qWarning( "Obtained image render service from a plugin" );
+            m_renderService = res.val();
+        }
+        if ( ! m_renderService ) {
+            qWarning( "Creating default image render service" );
+            m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
+        }
+    }
+
 
     // create a new wcs grid renderer (take the first one that plugins provide), and
     // connect it

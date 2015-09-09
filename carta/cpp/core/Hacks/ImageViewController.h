@@ -37,11 +37,16 @@ class ServiceSync : public QObject
 public:
 
     typedef int64_t JobId;
-    typedef Carta::Core::ImageRenderService::Service IRS;
+    //    typedef Carta::Core::ImageRenderService::Service IRS;
+    typedef Carta::Lib::IImageRenderService IRS;
     typedef Carta::Lib::IWcsGridRenderService GRS;
     typedef ContourEditorController CEC;
 
-    ServiceSync( IRS::Service::SharedPtr imageRendererService,
+//    ServiceSync( IRS::Service::SharedPtr imageRendererService,
+//                 GRS::SharedPtr gridRendererService,
+//                 CEC::SharedPtr contourController,
+//                 QObject * parent = nullptr )
+    ServiceSync( IRS::SharedPtr imageRendererService,
                  GRS::SharedPtr gridRendererService,
                  CEC::SharedPtr contourController,
                  QObject * parent = nullptr )
@@ -172,7 +177,8 @@ private:
     Carta::Lib::VectorGraphics::VGList m_grsVGList;
     Carta::Lib::VectorGraphics::VGList m_cecVGList;
 
-    IRS::Service::SharedPtr m_irs = nullptr;
+//    IRS::Service::SharedPtr m_irs = nullptr;
+    IRS::SharedPtr m_irs = nullptr;
     GRS::SharedPtr m_grs = nullptr;
     ContourEditorController::SharedPtr m_cec = nullptr;
 };
@@ -291,7 +297,9 @@ private:
     Carta::Lib::PixelPipeline::CustomizablePixelPipeline::SharedPtr m_pixelPipeline;
 
     /// the image rendering service
-    Carta::Core::ImageRenderService::Service::SharedPtr m_renderService;
+    Carta::Lib::IImageRenderService::SharedPtr m_renderService;
+
+//    Carta::Core::ImageRenderService::Service::SharedPtr m_renderService;
 
     /// pointer to connector
     IConnector * m_connector = nullptr;

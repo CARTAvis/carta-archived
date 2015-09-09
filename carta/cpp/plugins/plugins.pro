@@ -16,6 +16,10 @@ SUBDIRS += ColormapsPy
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 
+# adrianna's render plugin
+
+SUBDIRS += hpcImgRender
+
 # experimental plugins:
 
 SUBDIRS += tester1
