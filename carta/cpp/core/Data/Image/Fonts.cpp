@@ -72,6 +72,18 @@ int Fonts::getDefaultSize() const {
     return fontSize;
 }
 
+QString Fonts::getFontFamily( const QString& fontFamily ) const {
+    QString actualFont;
+    int familyCount = m_fontFamilies.size();
+    for ( int i = 0; i < familyCount; i++ ){
+        int compareResult = QString::compare( fontFamily, m_fontFamilies[i], Qt::CaseInsensitive);
+        if ( compareResult == 0 ){
+            actualFont = m_fontFamilies[i];
+            break;
+        }
+    }
+    return actualFont;
+}
 
 QStringList Fonts::getFontFamilies() const {
     QStringList buff;
@@ -127,15 +139,6 @@ void Fonts::_initializeDefaultState(){
         m_state.setValue<int>( lookup, m_fontSizes[i]);
     }
     m_state.flushState();
-}
-
-bool Fonts::isFontFamily( const QString& name ) const {
-    bool validFamily = false;
-    QStringList fontList = getFontFamilies();
-    if ( fontList.contains(name)){
-        validFamily = true;
-    }
-    return validFamily;
 }
 
 bool Fonts::isFontSize( int fontSize ) const {

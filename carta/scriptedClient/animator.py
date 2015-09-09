@@ -73,3 +73,22 @@ class Animator(CartaView):
         if (result[0] != "error"):
             result = int(result[0])
         return result
+
+    def getMaxImageCount(self):
+        """
+        Get the number of images being managed by the animator.
+
+        Returns
+        -------
+        integer
+            The number of images being managed by the animator.
+            Error information if the number of images could not be
+            obtained.
+        """
+        result = self.con.cmdTagList("getMaxImageCount",
+                                     animatorView=self.getId())
+        if (result[0] != "error"):
+            returnResult = int(result[0])
+        else:
+            returnResult = result
+        return returnResult

@@ -2,7 +2,6 @@ import unittest
 import tHistogram
 import tLayout
 import tLoadImage
-import tStatistics
 import tMenuToolVisibility
 import tAnimatorTapeDeck
 import tAnimatorSettings
@@ -25,7 +24,6 @@ def suite():
     test_suite.addTest( unittest.makeSuite(tAnimatorSettings.tAnimatorSettings))
     test_suite.addTest( unittest.makeSuite(tAnimatorLinks.tAnimatorLinks))
     test_suite.addTest( unittest.makeSuite(tHistogram.tHistogram)) 
-    #test_suite.addTest( unittest.makeSuite(tStatistics.tStatistics))
     test_suite.addTest( unittest.makeSuite(tSnapshotData.tSnapshotData))   
     test_suite.addTest( unittest.makeSuite(tSnapshotLayout.tSnapshotLayout))
     test_suite.addTest( unittest.makeSuite(tSnapshotPreferences.tSnapshotPreferences))

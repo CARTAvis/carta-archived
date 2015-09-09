@@ -14,27 +14,7 @@ class Image(CartaView):
     Represents an image view.
     """
 
-    def loadFile(self, filename):
-        """
-        Load a file from /scratch/Images into the image view.
-
-        Parameters
-        ----------
-        filename: string
-            A path, relative to /scratch/Images, identifying the file to
-            be loaded.
-
-        Returns
-        -------
-        list
-            An error message if there was a problem loading the file,
-            and nothing otherwise.
-        """
-        result = self.con.cmdTagList("loadFile", imageView=self.getId(),
-                                     fname="/RootDirectory/"+filename)
-        return result
-
-    def loadLocalFile(self, fileName):
+    def loadFile(self, fileName):
         """
         Load a file into the image view.
 
@@ -49,7 +29,7 @@ class Image(CartaView):
             An error message if there was a problem loading the file,
             and nothing otherwise.
         """
-        result = self.con.cmdTagList("loadLocalFile", imageView=self.getId(),
+        result = self.con.cmdTagList("loadFile", imageView=self.getId(),
                                      fname=fileName)
         return result
 
@@ -315,14 +295,47 @@ class Image(CartaView):
             result = result[1]
         return result
 
+    def resetZoom(self):
+        """
+        Reset the zoom to its original value.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("resetZoom", imageView=self.getId())
+        return result
+
+    def centerImage(self):
+        """
+        Center the image.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("centerImage", imageView=self.getId())
+        return result
+
     def addLink(self, dest):
         """
         Establish a link between this image viewer and a destination
         object.
+        The parameters are CartaView objects that are obtained by
+        commands such as getHistogramViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then add a link between the
+        first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            i[0].addLink(h[0])
 
         Parameters
         ----------
-        dest: Carta object
+        dest: CartaView object
             The object to link to this image viewer.
 
         Returns
@@ -341,10 +354,19 @@ class Image(CartaView):
         """
         Remove a link between this image viewer and a destination
         object.
+        The parameters are CartaView objects that are obtained by
+        commands such as getHistogramViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then remove the link between
+        the first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            i[0].removeLink(h[0])
 
         Parameters
         ----------
-        dest: Carta object
+        dest: CartaView object
             The object to remove the link from.
 
         Returns
@@ -512,11 +534,23 @@ class Image(CartaView):
 
     def centerOnCoordinate(self, skyCoord):
         """
-        Centers the image on an astropy Sky Coordinate object.
+        Centers the image on an Astropy SkyCoord object.
+        
+        Astropy needs to be installed for this command to work. See
+        http://www.astropy.org for more information about Astropy and
+        how to install it.
+
+        For example, the following sequence of commands will focus the
+        image viewer on the coordinates of M33 (regardless of whether
+        or not M33 is contained within the current image).
+
+            from astropy.coordinates import SkyCoord
+            i = v.getImageViews()
+            i[0].centerOnCoordinate(SkyCoord.from_name("M33"))
 
         Parameters
         ----------
-        skyCoord: astropy Sky Coordinate object
+        skyCoord: Astropy SkyCoord object
             The object to center the image on.
 
         Returns
