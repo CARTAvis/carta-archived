@@ -1,0 +1,14 @@
+machine:
+  services:
+    - docker
+
+
+dependencies:
+  cache_directories:
+    - "~/docker"
+
+  override:
+    - docker info
+    - mkdir -p ~/docker
+    - if [[ -e ~/docker/image1.tar ]]; then docker load -i ~/docker/image1.tar; else  docker pull docker.io/astrilet/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image1.tar; fi
+    - docker build -t astrilet/circlecibuild .
