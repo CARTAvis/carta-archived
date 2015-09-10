@@ -224,6 +224,14 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this.m_slider.setMinimum( this.m_frameLow );
             }
         },
+        
+        /**
+         * Return the type of the animator.
+         * @return {String} - the type of animator.
+         */
+        getTitle : function(){
+            return this.m_title;
+        },
 
         /**
          * Move to the smallest available frame.
@@ -348,6 +356,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 flex : 1
             });
             this.m_settingsCheck = new qx.ui.form.CheckBox("Settings...");
+            skel.widgets.TestID.addTestId( this.m_settingsCheck, this.m_title+"SettingsCheck");
             this.m_settingsCheck.setToolTipText( "Show additional animator settings.");
             this.m_settingsListener = this.m_settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, this._sendSettingsCmd, this);
             locationComposite.add(this.m_settingsCheck);

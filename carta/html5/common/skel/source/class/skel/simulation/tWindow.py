@@ -133,7 +133,7 @@ class tWindow(unittest.TestCase):
         self.assertEqual( windowCount, newWindowCount, "Window count has changed")
         colorWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")))
         
-    # Test that we can add a window and change it into a statistics view.
+    # Test that we can add a window and change it into a histogram view.
     def test_add_window(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()

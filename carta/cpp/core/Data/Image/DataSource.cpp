@@ -270,7 +270,6 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
         // indicate bad clip if no finite numbers were found
         if ( allValues.size() > 0 ) {
             int locationIndex = allValues.size() * percentile - 1;
-
             if ( locationIndex < 0 ){
                 locationIndex = 0;
             }
@@ -326,18 +325,17 @@ QString DataSource::_getPixelUnits() const {
     return units;
 }
 
-NdArray::RawViewInterface * DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
+NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
     NdArray::RawViewInterface* rawData = nullptr;
+
     int targetAxis = axisIndex;
     if ( axisIndex == -1 ){
         targetAxis = m_axisIndexZ;
     }
     int imageDim =m_image->dims().size();
-    if ( m_image && targetAxis >= 0 && targetAxis < imageDim ){
-        auto frameSlice = SliceND().next();
-
+    if ( m_image ){
+        SliceND frameSlice = SliceND().next();
         for ( int i = 0; i < imageDim; i++ ){
-        //for( size_t i=2; i < m_image->dims().size(); i++ ){
             if ( i == m_axisIndexX || i == m_axisIndexY ){
 
             }
@@ -362,7 +360,6 @@ NdArray::RawViewInterface * DataSource::_getRawData( int frameStart, int frameEn
     }
     return rawData;
 }
-
 
 
 double DataSource::_getZoom() const {
@@ -401,18 +398,8 @@ void DataSource::_load(int frameIndex,  double minClipPercentile, double maxClip
         frameIndex = Carta::Lib::clamp( frameIndex, 0, m_image-> dims()[m_axisIndexZ] - 1 );
     }
 
-    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
-    auto frameSlice = SliceND().next();
-    for ( int i = 0 ; i < imageSize; i++ ) {
-    //for ( size_t i = 2 ; i < m_image->dims().size() ; i++ ) {
-        if ( i != m_axisIndexX && i != m_axisIndexY){
-            frameSlice.next().index( i == m_axisIndexZ ? frameIndex : 0 );
-        }
-    }
-
     // get a view of the data using the slice description and make a shared pointer out of it
-    NdArray::RawViewInterface::SharedPtr view( m_image-> getDataSlice( frameSlice ) );
-
+    NdArray::RawViewInterface::SharedPtr view( _getRawData( frameIndex, frameIndex) );
     //Update the clip values
     _updateClips( view, frameIndex, minClipPercentile, maxClipPercentile );
 
@@ -524,7 +511,6 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
         m_axisIndexX = static_cast<int>(displayAxisTypes[0]);
         m_axisIndexY = static_cast<int>(displayAxisTypes[1]);
         m_axisIndexZ = static_cast<int>(displayAxisTypes[2]);
-        qDebug() << "DataSource X="<<m_axisIndexX<<" Y="<<m_axisIndexY<<" Z="<<m_axisIndexZ;
     }
 }
 

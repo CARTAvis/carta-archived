@@ -76,6 +76,24 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 }
             };
         },
+        
+        /**
+         * Return the percentage of the value based on a log
+         * scale.
+         * @param value {number} - a number to be converted to a slider percentage
+         *      using a logarithmic scale.
+         */
+        _getLogPercent : function( value ){
+            var percent = 0;
+            if ( value >= 1 ){
+                var maxValue = this.m_slider.getMaximum();
+                var logMax = Math.log( maxValue );
+                var logValue = Math.log( value );
+                percent = logValue / logMax;
+            }
+            return percent;
+        },
+        
 
         /**
          * Initializes the UI.
@@ -116,19 +134,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                                 }
                             }
                             else {
-                                if ( value >= 1 ){
-                                    var maxValue = this.m_slider.getMaximum();
-                                    var logMax = Math.log( maxValue );
-                                    var logValue = Math.log( value );
-                                    var percent = logValue / logMax;
-                                    var newVal = Math.round( percent * maxValue );
-                                    if ( newVal < this.m_slider.getMinimum() ){
-                                        newVal = this.m_slider.getMinimum();
-                                    }
-                                    if ( newVal != sliderValue ){
-                                        this.m_slider.setValue( newVal );
-                                    }
-                                }
+                                this._setSliderLogValue( value );
                             }
                         }
                 }, this);
@@ -171,7 +177,6 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
             var value = this.m_slider.getValue();
             if ( this.m_connector !== null && this.m_id !== null ){
                 //Notify the server of the new value.
-                
                 var percentValue = value;
                 if ( this.m_normalize ){
                     percentValue = ( value - this.m_slider.getMinimum() ) / 
@@ -196,7 +201,19 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
          *      slider; false, otherwise.
          */
         setLogarithmic : function( useLogScale ){
-            this.m_logScale = useLogScale;
+            if ( this.m_logScale != useLogScale ){
+                //Adjust the current slider value
+                var val = this.m_text.getValue();
+                this.m_slider.removeListenerById( this.m_listenerId);
+                if ( useLogScale ){
+                    this._setSliderLogValue( val );
+                }
+                else {
+                    this.m_slider.setValue( val );
+                }
+                this.m_listenerId = this.m_slider.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendCmd, this);
+                this.m_logScale = useLogScale;
+            }
         },
         
         /**
@@ -208,6 +225,25 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
             this.m_text.setUpperBound( value );
         },
         
+        /**
+         * Set the slider value using a logarithmic scale.
+         * @param value {Number} - the non-logarithmic value.
+         */
+        _setSliderLogValue : function( value ){
+            if ( value >= 1 ){
+                var maxValue = this.m_slider.getMaximum();
+                var percent = this._getLogPercent( value );
+                var newVal = Math.round( percent * maxValue );
+                if ( newVal < this.m_slider.getMinimum() ){
+                    newVal = this.m_slider.getMinimum();
+                }
+                var oldVal = this.m_slider.getValue();
+                if ( newVal != oldVal ){
+                    this.m_slider.setValue( newVal );
+                }
+            }
+        },
+
         
         /**
          * Set a new value.

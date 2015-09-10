@@ -150,6 +150,7 @@ private:
     bool _addAnimatorType( const QString& type, QString& animatorTypeId );
     void _adjustStateAnimatorTypes();
     void _addRemoveImageAnimator();
+    Controller* _getControllerSelected() const;
     int _getMaxImageCount() const;
     int _getAnimatorTypeVisibleCount() const;
     void _initializeState();
@@ -162,7 +163,7 @@ private:
     //Reset the state of an individual animator.
     void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
 
-    void _updateAnimatorBound( const QString& key );
+    bool _updateAnimatorBound( const QString& key );
     void _updateAnimatorBounds();
     void _updateSupportedZAxes( Controller* controller );
 

@@ -70,7 +70,6 @@ void ContourSpacingModes::_initializeDefaultState(){
         QString lookup = Carta::State::UtilState::getLookup( SPACING_MODE, i );
         m_state.setValue<QString>( lookup, m_spacingModes[i] );
     }
-    qDebug() << "Contour spacing modes state="<<m_state.toString();
     m_state.flushState();
 }
 

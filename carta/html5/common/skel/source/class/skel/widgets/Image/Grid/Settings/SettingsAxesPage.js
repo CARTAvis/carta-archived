@@ -52,7 +52,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
          */
         _initDisplayAxes : function( container ){
             this.m_axesDisplay = new skel.widgets.Image.Grid.Settings.DisplayAxes();
-            container.add( this.m_axesDisplay );
+            //container.add( this.m_axesDisplay );
         },
         
         /**

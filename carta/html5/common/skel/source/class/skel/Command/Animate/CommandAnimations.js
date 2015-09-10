@@ -45,16 +45,50 @@ qx.Class.define("skel.Command.Animate.CommandAnimations", {
             return cmd;
         },
         
+        /**
+         * Returns whether there is an existing animation command with the given name.
+         * @param animateName {String} - an identifier for a type of animation.
+         * @return {boolean} - true if there is already an animation command with the given
+         *      name; false otherwise.
+         */
+        isExisting : function( animateName ){
+            var existing = false;
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                if ( this.m_cmds[i].getLabel() == animateName ){
+                    existing = true;
+                    break;
+                }
+            }
+            return existing;
+        },
+        
         
         /**
          * Set the list of animators that are available for display based on the image.
          * @param animators {String} - a list of available animators.
          */
         setAnimations : function( animators ){
-            this.m_cmds = [];
-            //Make a command for each of the supported animations.
+            
+            //Make a command for each of the supported animations if we don't already have one.
             for ( var j = 0; j < animators.length; j++ ){
-                this.m_cmds[j] = new skel.Command.Animate.CommandAnimate(animators[j]);
+                if ( ! this.isExisting( animators[j] ) ){
+                    this.m_cmds.push( new skel.Command.Animate.CommandAnimate(animators[j]) );
+                }
+            }
+            
+            //Remove any animators that are no longer supported.
+            for ( var i = this.m_cmds.length-1; i>= 0; i-- ){
+                var removal = true;
+                var cmdLabel = this.m_cmds[i].getLabel();
+                for ( var j = 0; j < animators.length; j++ ){
+                    if ( cmdLabel == animators[j] ){
+                        removal = false;
+                        break;
+                    }
+                }
+                if ( removal ){
+                    this.m_cmds.splice( i, 1 );
+                }
             }
             this.setValue( this.m_cmds );
         }

@@ -99,9 +99,21 @@ class tAnimator(unittest.TestCase):
         ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.SPACE).send_keys(
             ).send_keys(Keys.ENTER).perform()
         time.sleep(timeout)
+        
+    def hideImageAnimator(self, driver):
+        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
+        ActionChains(driver).click( animWindow ).perform()
+        # Click on the animate button on the menu tool bar
+        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
+        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+
 
     # Open Settings
-    def _openSettings(self, driver):
+    def _openSettings(self, driver, name):
         # Click Settings to reveal animation settings
-        settingsCheckBox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Settings...']")))  
+        settingsId = name + "SettingsCheck"
+        print "Settings id ", settingsId
+        settingsXPath = "//div[@id='" + settingsId + "']/div[@qxclass='qx.ui.basic.Image']"
+        settingsCheckBox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, settingsXPath )))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", settingsCheckBox)
         ActionChains(driver).click( settingsCheckBox ).perform()

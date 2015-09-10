@@ -37,6 +37,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
             if ( regNeeded ){
                 this.initID( index );
             }
+            this._initSupportedCommands();
             skel.widgets.TestID.addTestId( this, this.m_pluginId );
         }
         else {
@@ -540,7 +541,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     this.windowSharedVarUpdate( winObj );
                 }
                 catch( err ){
-                    console.log( "Could not parse: "+val );
+                    console.log( "Display Window could not parse: "+val );
+                    console.log( "Err: "+err)
                 }
             }
         },
@@ -564,7 +566,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                     }
                 }
                 catch( err ){
-                    console.log( "Could not parse: "+val );
+                    console.log( "Link var: "+val );
+                    console.log( "Link err: "+err);
                 }
             }
         },
@@ -609,6 +612,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
                         skel.Command.Command.clearActiveWindows();
                     }
                     skel.Command.Command.addActiveWindow( this );
+                   
                     this._initContextMenu();
                 }
                 else {

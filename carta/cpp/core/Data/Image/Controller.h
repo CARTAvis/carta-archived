@@ -15,7 +15,7 @@
 #include <QList>
 #include <QObject>
 #include <QImage>
-//#include <memory>
+
 #include <set>
 
 class ImageView;
@@ -319,6 +319,10 @@ public:
      */
     void resetState( const QString& state );
 
+    /**
+     * Return a shared pointer to the grid controls.
+     * @return - a shared pointer to the grid controls.
+     */
     std::shared_ptr<GridControls> getGridControls();
 
     virtual ~Controller();
@@ -396,16 +400,8 @@ private:
 
     class Factory;
 
-    std::set<Carta::Lib::AxisInfo::KnownType> getAxesZ() const;
-
-    /**
-     * Make a frame selection.
-     * @param axisType - the axis for which a frame is being set.
-     * @param val  a frame index for the axis..
-     */
-    void setFrame(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
-
-
+    int _getFrameIndexZ( int imageIndex ) const;
+    std::set<Carta::Lib::AxisInfo::KnownType> _getAxesZ() const;
 
     //Provide default values for state.
     void _initializeState();
@@ -418,6 +414,16 @@ private:
     void _render();
     void _saveRegions();
     void _scheduleFrameRepaint( const QImage& img );
+
+
+    /**
+     * Make a frame selection.
+     * @param axisType - the axis for which a frame is being set.
+     * @param val  a frame index for the axis.
+     */
+    void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+
+
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
 

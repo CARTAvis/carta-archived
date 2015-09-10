@@ -17,7 +17,7 @@ qx.Class.define(
      */
     construct : function(index, detached ) {
         this.base(arguments, skel.widgets.Path.getInstance().ANIMATOR, index, detached );
-        this.setLayout(new qx.ui.layout.VBox(5));
+        this.m_content.setLayout(new qx.ui.layout.VBox(5));
         this.m_links = [];
     },
 
@@ -30,13 +30,17 @@ qx.Class.define(
         _addSupportedAnimations : function( animators ){
             //Initialize the supported animations
             this.m_supportedAnimations = [];
+            if ( this.m_animators === null ){
+                this.m_animators = [];
+            }
+          
             for (var i = 0; i < animators.length; i++ ){
                 var animId = animators[i].type;
-                this.m_supportedAnimations[i] = animId;
-                if (this.m_animators[animId] === undefined ) {
-                    this.m_animators[animId] = new skel.boundWidgets.Animator(animId, this.m_identifier);
-                    this.m_animators[animId].addListener( "movieStart", this._movieStarted, this );
-                    this.m_animators[animId].addListener( "movieStop", this._movieStopped, this );
+                this.m_supportedAnimations.push( animId );
+                if (this.m_animators.length <= i || this.m_animators[i].getTitle() != animId ) {
+                    this.m_animators[i] = new skel.boundWidgets.Animator(animId, this.m_identifier);
+                    this.m_animators[i].addListener( "movieStart", this._movieStarted, this );
+                    this.m_animators[i].addListener( "movieStop", this._movieStopped, this );
                 }
             }
         },
@@ -45,15 +49,16 @@ qx.Class.define(
          * Initialize the window specific commands that are supported.
          */
         _initSupportedCommands : function(){
-            
-            var linksCmd = skel.Command.Link.CommandLink.getInstance();
-            this.m_supportedCmds.push( linksCmd.getLabel() );
             var animCmd = skel.Command.Animate.CommandAnimations.getInstance();
+            if ( this.m_supportedCmds.length == 0 ){
+                var linksCmd = skel.Command.Link.CommandLink.getInstance();
+                this.m_supportedCmds.push( linksCmd.getLabel() );
+                this.m_supportedCmds.push( animCmd.getLabel() );
+                arguments.callee.base.apply(this, arguments);
+            }
             if ( this.m_supportedAnimations !== null ){
                 animCmd.setAnimations( this.m_supportedAnimations );
             }
-            this.m_supportedCmds.push( animCmd.getLabel() );
-            arguments.callee.base.apply(this, arguments);
         },
         
         /**
@@ -65,7 +70,15 @@ qx.Class.define(
         isVisible : function( animId ){
             var visible = false;
             if ( this.m_animators !== null ){
-                if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
+                var animIndex = -1;
+                for ( var i = 0; i < this.m_animators.length; i++ ){
+                    if ( this.m_animators[i].getTitle() == animId ){
+                        animIndex = i;
+                        break;
+                    }
+                }
+                
+                if ( this.m_content.indexOf( this.m_animators[animIndex] ) >= 0 ){
                     visible = true;
                 }
             }
@@ -78,11 +91,8 @@ qx.Class.define(
          */
         _movieStopped : function( ev ){
             var data = ev.getData();
-            for (var i = 0; i < this.m_supportedAnimations.length; i++) {
-                var animId = this.m_supportedAnimations[i];
-                if ( this.m_animators[animId] !== undefined ){
-                    this.m_animators[animId].movieStopped( data.title );
-                }
+            for (var i = 0; i < this.m_animators.length; i++) {
+                this.m_animators[i].movieStopped( data.title );
             }
         },
         
@@ -92,11 +102,8 @@ qx.Class.define(
          */
         _movieStarted : function( ev ){
             var data = ev.getData();
-            for ( var i = 0; i < this.m_supportedAnimations.length; i++ ){
-                var animId = this.m_supportedAnimations[i];
-                if ( this.m_animators[animId] !== undefined ){
-                    this.m_animators[animId].movieStarted( data.title );
-                }
+            for ( var i = 0; i < this.m_animators.length; i++ ){
+                this.m_animators[i].movieStarted( data.title );
             }
         },
         
@@ -108,21 +115,22 @@ qx.Class.define(
         _removeUnsupportedAnimations : function( animators ){
             if ( this.m_supportedAnimations !== null ){
                 for ( var i = this.m_supportedAnimations.length-1; i >= 0; i-- ){
-                    var animatorFound = false;
+                    var animIndex = -1;
                     for ( var j = 0; j < animators.length; j++ ){
                         if ( animators[j] == this.m_supportedAnimations[i] ){
-                            animatorFound = true;
+                            animIndex = j;
                             break;
                         }
                     }
-                    if ( !animatorFound ){
-                        var animId = this.m_supportedAnimations[i];
-                        if ( this.m_animators[animId] !== undefined ){
-                            if ( this.m_content.indexOf( this.m_animators[animId] ) >= 0 ){
-                                this.m_content.remove( this.m_animators[animId] );
+                   
+                    if ( animIndex >= 0 ){
+                        if ( animIndex < this.m_animators.length ){
+                            if ( this.m_content.indexOf( this.m_animators[i] ) >= 0 ){
+                                this.m_content.remove( this.m_animators[i] );
                             }
                         }
                         this.m_supportedAnimations.splice( i, 1 );
+                        this.m_animators.splice(i, 1 );
                     }
                 }
             }
@@ -134,8 +142,8 @@ qx.Class.define(
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
-            arguments.callee.base.apply(this, arguments, selected, multiple );
             this.updateCmds();
+            arguments.callee.base.apply(this, arguments, selected, multiple );
         },
         
         
@@ -145,7 +153,7 @@ qx.Class.define(
          */
         _showHideAnimation : function( animators ) {
             if ( this.m_animators === null ){
-                this.m_animators = {};
+                this.m_animators = [];
             }
             if ( this.m_supportedAnimations === null ){
                 return;
@@ -159,15 +167,15 @@ qx.Class.define(
             for ( var i = 0; i < animators.length; i++ ){
                 var animId = animators[i].type;
                 var visible = animators[i].visible;
-                var contentIndex = this.m_content.indexOf( this.m_animators[animId] );
+                var contentIndex = this.m_content.indexOf( this.m_animators[i] );
                 if ( visible ){
                     if ( contentIndex < 0 ){
-                        this.m_content.add( this.m_animators[animId] );
+                        this.m_content.add( this.m_animators[i] );
                     }
                 }
                 else {
                     if ( contentIndex >= 0 ){
-                        this.m_content.remove( this.m_animators[animId] );
+                        this.m_content.remove( this.m_animators[i] );
                     }
                 }
             }
@@ -199,6 +207,7 @@ qx.Class.define(
             this._removeUnsupportedAnimations( animObj.animators );
             this._addSupportedAnimations( animObj.animators );
             this._showHideAnimation( animObj.animators );
+            this.updateCmds();
         },
         
         //List of all animators that are available

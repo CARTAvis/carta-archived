@@ -343,8 +343,6 @@ private:
 
     double _getBufferedIntensity( const QString& clipKey, const QString& percentKey );
     std::pair<int,int> _getFrameBounds() const;
-    double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
-    bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
     Controller* _getControllerSelected() const;
     void _loadData( Controller* controller);
 
