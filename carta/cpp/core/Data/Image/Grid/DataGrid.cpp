@@ -606,7 +606,6 @@ QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordC
     return result;
 }
 
-
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){
     QString result;
     *familyChanged = false;
@@ -902,7 +901,6 @@ QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
     }
     return result;
 }
-
 
 DataGrid::~DataGrid(){
 

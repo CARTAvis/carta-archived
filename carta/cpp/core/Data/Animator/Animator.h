@@ -125,6 +125,12 @@ public:
      */
     virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
 
+    /**
+     * Get the number of images being managed by the animator.
+     * @return the number of images being managed by the animator.
+     */
+    int getMaxImageCount() const;
+
     static const QString CLASS_NAME;
     static const QString TYPE;
 

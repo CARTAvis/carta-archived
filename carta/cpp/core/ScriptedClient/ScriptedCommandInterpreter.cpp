@@ -25,10 +25,13 @@ ScriptedCommandInterpreter::ScriptedCommandInterpreter( int port, QObject * pare
              this, & ScriptedCommandInterpreter::asyncMessageReceivedCB );
 }
 
-/// this is just a quick demo how to listen to TagMessage, convert them to Json,
-/// extract info from Json, and pack results back into Json, then to TagMessage...
-///
-/// it could probably use some error checking, like asserts etc...
+/// The bulk of this method is a massive if/else if/.../else statement.
+/// It's not pretty, but it works. So far I have been unable to come up
+/// with a way of simplifying it that doesn't just make it needlessly
+/// complex.
+/// In order to make it more readable, I have tried to include some
+/// extra comments about the commands, and also to group the commands
+/// according to which Python classes they relate to.
 void
 ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 {
@@ -43,13 +46,21 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         return;
     }
     QJsonObject jo = jm.doc().object();
+    // Get the command name and the arguments.
+    // Arguments will be parsed according to the command name.
     QString cmd = jo["cmd"].toString().toLower();
     auto args = jo["args"].toObject();
-    QJsonObject rjo;
     QStringList result;
+    // By default, assume that we will be sending a proper result back.
+    // If an error occurs, key will be set to "error".
     QString key = "result";
 
-    /// application commands
+    /// Section: Application Commands
+    /// -----------------------------
+    /// These commands come from the Python Cartavis class. They are
+    /// mainly concerned with the application as a whole, dealing with
+    /// things like the different windows in the GUI and the
+    /// relationships between the windows.
 
     if ( cmd == "getcolormapviews" ) {
         result = m_scriptFacade->getColorMapViews();
@@ -89,6 +100,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString plugins = args["plugins"].toString();
         QStringList pluginsList = plugins.split(' ');
         result = m_scriptFacade->setPlugins(pluginsList);
+    }
+
+    else if ( cmd == "getpluginlist" ) {
+        result = m_scriptFacade->getPluginList();
     }
 
     else if ( cmd == "addlink" ) {
@@ -139,7 +154,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getColorMaps();
     }
 
-    /// colormap commands
+    /// Section: Colormap Commands
+    /// --------------------------
+    /// These commands come from the Python Colormap class. They enable
+    /// colormaps to be set and manipulated.
 
     else if ( cmd == "setcolormap" ) {
         QString colormapId = args["colormapId"].toString();
@@ -179,18 +197,16 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setDataTransform( colormapId, transform );
     }
 
-    /// image/controller commands
+    /// Section: Image/Controller Commands
+    /// ----------------------------------
+    /// These commands come from the Python Image class. They allow
+    /// images to be loaded and manipulated and can also return
+    /// information about the images.
 
     else if ( cmd == "loadfile" ) {
         QString imageView = args["imageView"].toString();
         QString fileName = args["fname"].toString();
         result = m_scriptFacade->loadFile( imageView, fileName );
-    }
-
-    else if ( cmd == "loadlocalfile" ) {
-        QString imageView = args["imageView"].toString();
-        QString fileName = args["fname"].toString();
-        result = m_scriptFacade->loadLocalFile( imageView, fileName );
     }
 
     else if ( cmd == "getlinkedcolormaps" ) {
@@ -241,6 +257,16 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     else if ( cmd == "getzoomlevel" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getZoomLevel( imageView );
+    }
+
+    else if ( cmd == "resetzoom" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->resetZoom( imageView );
+    }
+
+    else if ( cmd == "centerimage" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->centerImage( imageView );
     }
 
     else if ( cmd == "getimagedimensions" ) {
@@ -324,117 +350,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->closeImage( imageView, imageName );
     }
 
-    /// animator commands
-
-    else if ( cmd == "setchannel" ) {
-        QString animatorView = args["animatorView"].toString();
-        int channel = args["channel"].toInt();
-        result = m_scriptFacade->setChannel( animatorView, channel );
-    }
-
-    else if ( cmd == "setimage" ) {
-        QString animatorView = args["animatorView"].toString();
-        int image = args["image"].toInt();
-        result = m_scriptFacade->setImage( animatorView, image );
-    }
-
-    else if ( cmd == "showimageanimator" ) {
-        QString animatorView = args["animatorView"].toString();
-        result = m_scriptFacade->showImageAnimator( animatorView );
-    }
-
-    else if (cmd == "getchannelindex" ) {
-        QString animatorView = args["animatorView"].toString();
-        result = m_scriptFacade->getChannelIndex( animatorView );
-    }
-
-    /// histogram commands
-
-    else if ( cmd == "setclipbuffer" ) {
-        QString histogramView = args["histogramView"].toString();
-        int bufferAmount = args["bufferAmount"].toInt();
-        result = m_scriptFacade->setClipBuffer( histogramView, bufferAmount );
-    }
-
-    else if ( cmd == "setuseclipbuffer" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString useBuffer = args["useBuffer"].toString().toLower();
-        result = m_scriptFacade->setUseClipBuffer( histogramView, useBuffer );
-    }
-
-    else if ( cmd == "setcliprange" ) {
-        QString histogramView = args["histogramView"].toString();
-        double minRange = args["minRange"].toDouble();
-        double maxRange = args["maxRange"].toDouble();
-        result = m_scriptFacade->setClipRange( histogramView, minRange, maxRange );
-    }
-
-    else if ( cmd == "applyclips" ) {
-        QString histogramView = args["histogramView"].toString();
-        double clipMinValue = args["clipMinValue"].toDouble();
-        double clipMaxValue = args["clipMaxValue"].toDouble();
-        QString modeStr = args["modeStr"].toString();
-        result = m_scriptFacade->applyClips( histogramView, clipMinValue, clipMaxValue, modeStr );
-    }
-
-    else if ( cmd == "setbincount" ) {
-        QString histogramView = args["histogramView"].toString();
-        int binCount = args["binCount"].toInt();
-        result = m_scriptFacade->setBinCount( histogramView, binCount );
-    }
-
-    else if ( cmd == "setbinwidth" ) {
-        QString histogramView = args["histogramView"].toString();
-        double binWidth = args["binWidth"].toDouble();
-        result = m_scriptFacade->setBinWidth( histogramView, binWidth );
-    }
-
-    else if ( cmd == "setplanemode" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString planeMode = args["planeMode"].toString();
-        result = m_scriptFacade->setPlaneMode( histogramView, planeMode );
-    }
-
-    else if ( cmd == "setplanerange" ) {
-        QString histogramView = args["histogramView"].toString();
-        double minPlane = args["minPlane"].toDouble();
-        double maxPlane = args["maxPlane"].toDouble();
-        result = m_scriptFacade->setPlaneRange( histogramView, minPlane, maxPlane );
-    }
-
-    else if ( cmd == "setchannelunit" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString unit = args["unit"].toString();
-        result = m_scriptFacade->setChannelUnit( histogramView, unit );
-    }
-
-    else if ( cmd == "setgraphstyle" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString graphStyle = args["graphStyle"].toString();
-        result = m_scriptFacade->setGraphStyle( histogramView, graphStyle );
-    }
-
-    else if ( cmd == "setlogcount" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString logCount = args["logCount"].toString().toLower();
-        result = m_scriptFacade->setLogCount( histogramView, logCount );
-    }
-
-    else if ( cmd == "setcolored" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString colored = args["colored"].toString().toLower();
-        result = m_scriptFacade->setColored( histogramView, colored );
-    }
-
-    else if ( cmd == "savehistogram" ) {
-        QString histogramView = args["histogramView"].toString();
-        QString filename = args["filename"].toString();
-        int width = args["width"].toInt();
-        int height = args["height"].toInt();
-        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
-    }
-
-    /// grid commands
+    /// Section: Grid Commands
+    /// ----------------------------------
+    /// These commands also come from the Python Image class. They allow
+    /// the grid to be manipulated.
 
     else if ( cmd == "setgridaxescolor" ) {
         QString imageView = args["imageView"].toString();
@@ -576,11 +495,131 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridTheme( imageView, theme );
     }
 
-    /// commands for testing
+    /// Section: Animator Commands
+    /// --------------------------
+    /// These commands come from the Python Animator class. They allow
+    /// the animators to be manipulated and can also return information
+    /// about the animators.
 
-    else if ( cmd == "fakecommand" ) {
-        QString data = args["data"].toString();
-        result.append("Fake command received");
+    else if ( cmd == "setchannel" ) {
+        QString animatorView = args["animatorView"].toString();
+        int channel = args["channel"].toInt();
+        result = m_scriptFacade->setChannel( animatorView, channel );
+    }
+
+    else if ( cmd == "setimage" ) {
+        QString animatorView = args["animatorView"].toString();
+        int image = args["image"].toInt();
+        result = m_scriptFacade->setImage( animatorView, image );
+    }
+
+    else if ( cmd == "showimageanimator" ) {
+        QString animatorView = args["animatorView"].toString();
+        result = m_scriptFacade->showImageAnimator( animatorView );
+    }
+
+    else if ( cmd == "getmaximagecount" ) {
+        QString animatorView = args["animatorView"].toString();
+        result = m_scriptFacade->getMaxImageCount( animatorView );
+    }
+
+    /// Section: Histogram Commands
+    /// --------------------------
+    /// These commands come from the Python Histogram class. They allow
+    /// the histograms to be manipulated and can also return information
+    /// about the histograms.
+
+    else if ( cmd == "setclipbuffer" ) {
+        QString histogramView = args["histogramView"].toString();
+        int bufferAmount = args["bufferAmount"].toInt();
+        result = m_scriptFacade->setClipBuffer( histogramView, bufferAmount );
+    }
+
+    else if ( cmd == "setuseclipbuffer" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString useBuffer = args["useBuffer"].toString().toLower();
+        result = m_scriptFacade->setUseClipBuffer( histogramView, useBuffer );
+    }
+
+    else if ( cmd == "setcliprange" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minRange = args["minRange"].toDouble();
+        double maxRange = args["maxRange"].toDouble();
+        result = m_scriptFacade->setClipRange( histogramView, minRange, maxRange );
+    }
+
+    else if ( cmd == "setcliprangepercent" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minPercent = args["minPercent"].toDouble();
+        double maxPercent = args["maxPercent"].toDouble();
+        result = m_scriptFacade->setClipRangePercent( histogramView, minPercent, maxPercent );
+    }
+
+    else if ( cmd == "getcliprange" ) {
+        QString histogramView = args["histogramView"].toString();
+        result = m_scriptFacade->getClipRange( histogramView );
+    }
+
+    else if ( cmd == "applyclips" ) {
+        QString histogramView = args["histogramView"].toString();
+        result = m_scriptFacade->applyClips( histogramView );
+    }
+
+    else if ( cmd == "setbincount" ) {
+        QString histogramView = args["histogramView"].toString();
+        int binCount = args["binCount"].toInt();
+        result = m_scriptFacade->setBinCount( histogramView, binCount );
+    }
+
+    else if ( cmd == "setbinwidth" ) {
+        QString histogramView = args["histogramView"].toString();
+        double binWidth = args["binWidth"].toDouble();
+        result = m_scriptFacade->setBinWidth( histogramView, binWidth );
+    }
+
+    else if ( cmd == "setplanemode" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString planeMode = args["planeMode"].toString();
+        result = m_scriptFacade->setPlaneMode( histogramView, planeMode );
+    }
+
+    else if ( cmd == "setplanerange" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minPlane = args["minPlane"].toDouble();
+        double maxPlane = args["maxPlane"].toDouble();
+        result = m_scriptFacade->setPlaneRange( histogramView, minPlane, maxPlane );
+    }
+
+    else if ( cmd == "setchannelunit" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString unit = args["unit"].toString();
+        result = m_scriptFacade->setChannelUnit( histogramView, unit );
+    }
+
+    else if ( cmd == "setgraphstyle" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString graphStyle = args["graphStyle"].toString();
+        result = m_scriptFacade->setGraphStyle( histogramView, graphStyle );
+    }
+
+    else if ( cmd == "setlogcount" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString logCount = args["logCount"].toString().toLower();
+        result = m_scriptFacade->setLogCount( histogramView, logCount );
+    }
+
+    else if ( cmd == "setcolored" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString colored = args["colored"].toString().toLower();
+        result = m_scriptFacade->setColored( histogramView, colored );
+    }
+
+    else if ( cmd == "savehistogram" ) {
+        QString histogramView = args["histogramView"].toString();
+        QString filename = args["filename"].toString();
+        int width = args["width"].toInt();
+        int height = args["height"].toInt();
+        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
     }
 
     else {
@@ -592,6 +631,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     if ( result[0] == "error" ) {
         key = "error";
     }
+
+    QJsonObject rjo;
     rjo.insert( key, QJsonValue::fromVariant( result ) );
     JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
     m_messageListener->send( rjm.toTagMessage() );

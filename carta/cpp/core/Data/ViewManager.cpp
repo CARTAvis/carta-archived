@@ -505,8 +505,7 @@ bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
            //Add the data to it
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
-           m_controllers[i]->addData( path );
-           result = true;
+           result = m_controllers[i]->addData( path );
            break;
         }
     }

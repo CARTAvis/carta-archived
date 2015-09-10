@@ -87,7 +87,6 @@ void Themes::_initializeDefaultState(){
     m_state.flushState();
 }
 
-
 Themes::~Themes(){
 
 }

@@ -119,7 +119,6 @@ void CoordinateSystems::_initializeDefaultState(){
     m_state.flushState();
 }
 
-
 void CoordinateSystems::_initializeCallbacks(){
     addCommandCallback( "getCoordSystems", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {

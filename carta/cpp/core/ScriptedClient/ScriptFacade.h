@@ -15,6 +15,12 @@ namespace Carta {
     }
 }
 
+namespace Carta {
+    namespace State {
+        class CartaObject;
+    }
+}
+
 class ScriptFacade: public QObject {
 
     Q_OBJECT
@@ -94,24 +100,13 @@ public:
     QStringList setImageLayout();
 
     /**
-     * Load a file from /scratch/Images into an image view.
-     * @param objectId the unique server-side id of an object that displays an
-     * image view.
-     * @param fileName a path, relative to /scratch/Images, identifying the
-     * file containing an image.
-     * @return an error message if there was a problem loading the file;
-     *      an empty string otherwise.
-     */
-    QStringList loadFile( const QString& objectId, const QString& fileName);
-
-    /**
      * Load a file into an image view.
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      * @return an error message if there was a problem loading the file;
      *      an empty string otherwise.
      */
-    QStringList loadLocalFile( const QString& objectId, const QString& fileName);
+    QStringList loadFile( const QString& objectId, const QString& fileName);
 
     /**
      * Show the image animator.
@@ -120,6 +115,14 @@ public:
      *      an empty string otherwise.
      */
     QStringList showImageAnimator( const QString& animatorId );
+
+    /**
+     * Get the number of images being managed by the animator.
+     * @param animatorId the unique server-side id of an object managing an animator.
+     * @return an error message if there was a problem showing the image animator;
+     *      an integer indicating the number of images otherwise.
+     */
+    QStringList getMaxImageCount( const QString& animatorId );
 
     /**
      * Return the current channel selection of the animator.
@@ -210,6 +213,12 @@ public:
      * @return error information if plugins could not be set.
      */
     QStringList setPlugins( const QStringList& names );
+
+    /**
+     * Returns a list of the current plugins in the view.
+     * @return a list of view plugins.
+     */
+    QStringList getPluginList() const;
 
     /**
      * Set the image channel to the specified value.
@@ -358,6 +367,20 @@ public:
     QStringList getZoomLevel( const QString& controlId );
 
     /**
+     * Reset the zoom to its original value.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return error information if the zoom could not be reset.
+     */
+    QStringList resetZoom( const QString& controlId );
+
+    /**
+     * Center the image.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return error information if the image could not be centered.
+     */
+    QStringList centerImage( const QString& controlId );
+
+    /**
      * Get the image dimensions.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of the image dimensions, or error information if the
@@ -450,14 +473,28 @@ public:
     QStringList setClipRange( const QString& histogramId, double minRange, double maxRange );
 
     /**
+     * Set the lower and upper bounds for the histogram as percentages of the entire range.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @param minPercent a number in [0,100) representing the amount to leave off on the left.
+     * @param maxPercent a number in [0,100) representing the amount to leave off on the right.
+     * @return an error message if there was a problem setting the range; an empty string otherwise.
+     */
+    QStringList setClipRangePercent( const QString& histogramId, double minPercent, double maxPercent );
+
+    /**
+     * Get the values of the lower and upper bounds for the histogram horizontal axis.
+     * @param histogramId the unique server-side id of an object managing a histogram.
+     * @return The lower and upper bounds for the histogram horizontal axis;
+     *         Error message if an error occurred.
+     */
+    QStringList getClipRange( const QString& histogramId );
+
+    /**
      * Applies clips to image.
      * @param histogramId the unique server-side id of an object managing a histogram.
-     * @param clipMinValue the minimum of data to be shown.
-     * @param clipMaxValue the maximum of data to be shown.
-     * @param mode can be either "percent" or "intensity"
      * @return an error message if there was a problem applying the clips; an empty string otherwise.
      */
-    QStringList applyClips( const QString& histogramId, double clipMinPercent, double clipMaxPercent, QString mode );
+    QStringList applyClips( const QString& histogramId );
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -823,8 +860,11 @@ private:
      */
     QString getStatisticsViewId( int index = -1 ) const;
 
-private:
+    Carta::State::CartaObject* _getObject( const QString& id );
+    QStringList _logErrorMessage( const QString& key, const QString& value );
+
     const static QString TOGGLE;
     const static QString ERROR;
+    const static QString UNKNOWN_ERROR;
 };
 

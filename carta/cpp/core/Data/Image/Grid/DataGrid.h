@@ -83,7 +83,6 @@ private:
     QString _setTickTransparency( int transparency, bool* transparencyChanged );
     QString _setTheme( const QString& theme, bool* themeChanged );
 
-
     Carta::State::StateInterface _getState();
     QPen _getPen( const QString& key, const Carta::State::StateInterface& state );
     void _initializeDefaultPen( const QString& key, int red, int green, int blue,

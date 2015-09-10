@@ -85,6 +85,16 @@ class Cartavis:
     def getImageViews(self):
         """
         Return a list of the image views defined by the layout.
+        If there is more than one image view in the current application
+        layout, each one can be accessed via its own element in the
+        list. For example, if there are 3 image views in the GUI, the
+        following sequence of commands can be used to load a different
+        image in each viewer:
+
+            i = v.getImageViews()
+            i[0].loadLocalFile('/tmp/m31.fits')
+            i[1].loadLocalFile('/tmp/m42.fits')
+            i[2].loadLocalFile('/tmp/m33.fits')
 
         Returns
         -------
@@ -103,6 +113,16 @@ class Cartavis:
     def getColormapViews(self):
         """
         Return a list of the colormap views defined by the layout.
+        If there is more than one colormap view in the current
+        application layout, each one can be accessed via its own element
+        in the list. For example, if there are 3 colormap views in the
+        GUI, the following sequence of commands can be used to load a
+        different colormap in each one: 
+
+            c = v.getColormapViews()
+            c[0].setColormap('coolwarm')
+            c[1].setColormap('spring')
+            c[2].setColormap('cubehelix')
 
         Returns
         -------
@@ -121,6 +141,16 @@ class Cartavis:
     def getAnimatorViews(self):
         """
         Return a list of the animator views defined by the layout.
+        If there is more than one animator view in the current
+        application layout, each one can be accessed via its own element
+        in the list. For example, if there are 3 animator views in the
+        GUI, the following sequence of commands can be used to display a
+        different channel in each one: 
+
+            a = v.getAnimatorViews()
+            a[0].setChannel(1)
+            a[1].setChannel(110)
+            a[2].setChannel(5)
 
         Returns
         -------
@@ -139,6 +169,16 @@ class Cartavis:
     def getHistogramViews(self):
         """
         Return a list of the histogram views defined by the layout.
+        If there is more than one histogram view in the current
+        application layout, each one can be accessed via its own element
+        in the list. For example, if there are 3 histogram views in the
+        GUI, the following sequence of commands can be used to set a
+        different clip range percent in each one:
+
+            h = v.getHistogramViews()
+            h[0].setClipRangePercent(1, 99)
+            h[1].setClipRangePercent(5, 95)
+            h[2].setClipRangePercent(0.1, 99.9)
 
         Returns
         -------
@@ -246,15 +286,91 @@ class Cartavis:
         result = self.con.cmdTagList("setPlugins", plugins=pluginString)
         return result
 
-    def addLink(self, source, dest):
+    def getPluginList(self):
         """
-        Establish a link between a source and destination.
+        Returns a list of the current plugins in the view.
+
+        Returns
+        -------
+        list
+            A list of view plugins.
+        """
+        result = self.con.cmdTagList("getPluginList")
+        return result
+
+    def getEmptyWindowCount(self):
+        """
+        Returns the number of empty windows in the application.
+        This is a convenience function that simply counts the number of
+        occurrences of 'Empty' in the output of getPluginList().
+
+        Returns
+        -------
+        integer
+            The number of empty windows in the application.
+        """
+        plugins = self.getPluginList()
+        result = plugins.count('Empty')
+        return result
+
+    def setEmptyWindowPlugin(self, n, plugin):
+        """
+        Set the nth empty window to a desired plugin.
+        A convenience function.
+        Note that since this function changes the number of empty
+        windows, it is possible to repeatedly call it with n set to 0
+        to set a different empty window to a plugin each time. e.g. if
+        there are 4 empty windows, calling:
+
+            v.setEmptyWindowPlugin(0, 'CasaImageLoader')
+            v.setEmptyWindowPlugin(0, 'CasaImageLoader')
+            v.setEmptyWindowPlugin(0, 'Histogram')
+            v.setEmptyWindowPlugin(0, 'Animator')
+
+        will set each of the empty windows to the desired plugins.
 
         Parameters
         ----------
-        source: Carta object
+        n: integer
+            A number in [0, getEmptyWindowCount()) indicating which
+            empty window should be changed.
+        plugin: string
+            A valid plugin name.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = []
+        emptyCount = self.getEmptyWindowCount()
+        if (n >= emptyCount):
+            result = ["error", "Invalid empty window number: " + str(n)]
+        else:
+            plugins = self.getPluginList()
+            emptyIndexes = [i for i, x in enumerate(plugins) if x == 'Empty']
+            plugins[emptyIndexes[n]] = plugin
+            result = self.setPlugins(plugins)
+        return result
+
+    def addLink(self, source, dest):
+        """
+        Establish a link between a source and destination.
+        The parameters are CartaView objects that are obtained by
+        commands such as getImageViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then create a link between the
+        first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            v.addLink(i[0], h[0])
+
+        Parameters
+        ----------
+        source: CartaView object
             The source object for the link.
-        dest: Carta object
+        dest: CartaView object
             The destination object for the link.
 
         Returns
@@ -270,12 +386,21 @@ class Cartavis:
     def removeLink(self, source, dest):
         """
         Remove a link from a source to a destination.
+        The parameters are CartaView objects that are obtained by
+        commands such as getImageViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then remove the link between
+        the first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            v.removeLink(i[0], h[0])
 
         Parameters
         ----------
-        source: Carta object
+        source: CartaView object
             The source object for the link.
-        dest: Carta object
+        dest: CartaView object
             The destination object for the link.
 
         Returns
@@ -352,22 +477,3 @@ class Cartavis:
                                    self.con)
                 snapshotObjects.append(snapObj)
         return snapshotObjects
-
-    def fakeCommand(self, infile):
-        """
-        Purely for the purpose of testing what happens when an
-        arbitrarily large command is sent.
-        """
-        f = open(infile, 'r')
-        print "Start time: " + time.asctime()
-        result = self.con.cmdTagList("fakeCommand", data=f.read())
-        print "Finish time: " + time.asctime()
-        return result
-
-    def uc(self):
-        """
-        A command that is not implemented on the C++ side.
-        For testing purposes only.
-        """
-        result = self.con.cmdTagList("unknownCommand")
-        return result
