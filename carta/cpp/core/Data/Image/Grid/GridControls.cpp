@@ -143,16 +143,6 @@ void GridControls::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( "setAxisZ", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) ->QString {
-        std::set<QString> keys = {AxisMapper::AXIS_Z};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString axisName = dataValues[AxisMapper::AXIS_Z];
-        QString result = setAxis( AxisMapper::AXIS_Z, axisName );
-        return result;
-    });
-
-
     addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
                 std::set<QString> keys = {DataGrid::COORD_SYSTEM};
@@ -564,6 +554,8 @@ QStringList GridControls::setAxesColor( int redAmount, int greenAmount, int blue
     }
     return result;
 }
+
+
 
 QString GridControls::setAxis( const QString& axisId, const QString& purpose ){
     bool axisChanged = false;

@@ -28,21 +28,43 @@ qx.Class.define(
          * @param animators {Array} - a list of available animators.
          */
         _addSupportedAnimations : function( animators ){
-            //Initialize the supported animations
-            this.m_supportedAnimations = [];
+            //Initialize the supported animators
             if ( this.m_animators === null ){
                 this.m_animators = [];
             }
-          
+            
             for (var i = 0; i < animators.length; i++ ){
                 var animId = animators[i].type;
-                this.m_supportedAnimations.push( animId );
-                if (this.m_animators.length <= i || this.m_animators[i].getTitle() != animId ) {
-                    this.m_animators[i] = new skel.boundWidgets.Animator(animId, this.m_identifier);
-                    this.m_animators[i].addListener( "movieStart", this._movieStarted, this );
-                    this.m_animators[i].addListener( "movieStop", this._movieStopped, this );
+                //Go through the existing animators and see if there is already one
+                //with the given title.
+                var animIndex = -1;
+                for ( var j = 0; j < this.m_animators.length; j++ ){
+                    if ( this.m_animators[j].getTitle() == animId ){
+                        animIndex = j;
+                        break;
+                    }
+                }
+
+                //Add a new animator
+                if ( animIndex == -1 ) {
+                    var anim = new skel.boundWidgets.Animator(animId, this.m_identifier);
+                    anim.addListener( "movieStart", this._movieStarted, this );
+                    anim.addListener( "movieStop", this._movieStopped, this );
+                    this.m_animators.push( anim );
                 }
             }
+        },
+        
+        /**
+         * Returns the names of the existing animators.
+         * @return {Array}- the names of existing animators.
+         */
+        _getSupportedAnimators : function(){
+            var supportedAnims = [];
+            for ( var i = 0; i < this.m_animators.length; i++ ){
+                supportedAnims.push( this.m_animators[i].getTitle() );
+            }
+            return supportedAnims;
         },
         
         /**
@@ -56,9 +78,7 @@ qx.Class.define(
                 this.m_supportedCmds.push( animCmd.getLabel() );
                 arguments.callee.base.apply(this, arguments);
             }
-            if ( this.m_supportedAnimations !== null ){
-                animCmd.setAnimations( this.m_supportedAnimations );
-            }
+            //this.updateCmds();
         },
         
         /**
@@ -113,24 +133,27 @@ qx.Class.define(
          * @param animators {Array} - a list of currently supported animators.
          */
         _removeUnsupportedAnimations : function( animators ){
-            if ( this.m_supportedAnimations !== null ){
-                for ( var i = this.m_supportedAnimations.length-1; i >= 0; i-- ){
+            if ( this.m_animators !== null ){
+                //Determine if the animator still exists.
+                for ( var i = this.m_animators.length-1; i >= 0; i-- ){
                     var animIndex = -1;
                     for ( var j = 0; j < animators.length; j++ ){
-                        if ( animators[j] == this.m_supportedAnimations[i] ){
+                        if ( animators[j] == this.m_animators[i].getTitle() ){
                             animIndex = j;
                             break;
                         }
                     }
                    
-                    if ( animIndex >= 0 ){
-                        if ( animIndex < this.m_animators.length ){
+                    //The animator does not still exists
+                    if ( animIndex < 0 ){
+                        if ( i < this.m_animators.length ){
+                            //Remove the animator from the view
                             if ( this.m_content.indexOf( this.m_animators[i] ) >= 0 ){
-                                this.m_content.remove( this.m_animators[i] );
+                               this.m_content.remove( this.m_animators[i] );
                             }
+                            //Remove it from the list
+                            this.m_animators.splice(i, 1 );
                         }
-                        this.m_supportedAnimations.splice( i, 1 );
-                        this.m_animators.splice(i, 1 );
                     }
                 }
             }
@@ -154,9 +177,6 @@ qx.Class.define(
         _showHideAnimation : function( animators ) {
             if ( this.m_animators === null ){
                 this.m_animators = [];
-            }
-            if ( this.m_supportedAnimations === null ){
-                return;
             }
             if ( this.m_identifier === null || this.m_identifier.length === 0 ){
                 return;
@@ -187,13 +207,15 @@ qx.Class.define(
          */
         updateCmds : function(){
             var animAllCmd = skel.Command.Animate.CommandAnimations.getInstance();
-            if ( this.m_supportedAnimations !== null ){
-                animAllCmd.setAnimations( this.m_supportedAnimations );
-                for (var i = 0; i < this.m_supportedAnimations.length; i++) {
-                    var animId = this.m_supportedAnimations[i];
+            var supportedAnims = this._getSupportedAnimators();
+            animAllCmd.setAnimations( supportedAnims );
+            if ( this.m_animators !== null ){
+                for (var i = 0; i < this.m_animators.length; i++) {
+                    var animId = this.m_animators[i].getTitle();
                     var animCmd = animAllCmd.getCmd( animId );
                     var visible = this.isVisible( animId );
                     animCmd.setValue( visible );
+                    supportedAnims.push( animId );
                 }
             }
         },
@@ -209,9 +231,6 @@ qx.Class.define(
             this._showHideAnimation( animObj.animators );
             this.updateCmds();
         },
-        
-        //List of all animators that are available
-        m_supportedAnimations : null,
         
         //Tape deck widgets
         m_animators : null

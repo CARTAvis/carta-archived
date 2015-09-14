@@ -64,7 +64,6 @@ public:
 
     const static QString AXIS_X;
     const static QString AXIS_Y;
-    const static QString AXIS_Z;
     const static QString RIGHT_ASCENSION;
     const static QString DECLINATION;
     const static QString SPECTRAL;

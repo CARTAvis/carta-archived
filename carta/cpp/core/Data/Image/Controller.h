@@ -76,10 +76,23 @@ public:
     QString applyClips( double minIntensityPercentile, double maxIntensityPercentile );
 
     /**
+     * Center the image on the pixel with coordinates (x, y).
+     * @param imgX the x-coordinate for the center of the pan.
+     * @param imgY the y-coordinate for the center of the pan.
+     */
+    void centerOnPixel( double imgX , double imgY);
+
+    /**
      * Close the given image.
      * @param name an identifier for the image to close.
      */
     QString closeImage( const QString& name );
+
+    /**
+     * Return a shared pointer to the grid controls.
+     * @return - a shared pointer to the grid controls.
+     */
+    std::shared_ptr<GridControls> getGridControls();
 
     /**
      * Return the percentile corresponding to the given intensity in the current frame.
@@ -122,132 +135,11 @@ public:
      */
     bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
 
-    //IColoredView interface.
-    virtual void setColorMap( const QString& colorMapName ) Q_DECL_OVERRIDE;
-    virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
-    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
-    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
-    virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
+
 
 
 
     std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
-
-
-    /**
-     * Return the index of the image that is currently at the top of the stack.
-     * @return the index of the current image.
-     */
-    int getSelectImageIndex() const ;
-
-    /**
-     * Return the frame upper bound.
-     * @param type - the axis for which a frame upper bound is needed.
-     * @return the largest frame for a particular axis in the image.
-     */
-    int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
-
-    /**
-     * Returns an identifier for the data source at the given index.
-     * @param index the index of a data source.
-     * @return an identifier for the image.
-     */
-    QString getImageName(int index) const;
-
-    /**
-     * Center the image.
-     */
-    void resetPan();
-
-    /**
-     * Reset the zoom to its original value.
-     */
-    void resetZoom();
-
-    /**
-     *  Make a data selection.
-     *  @param imageIndex - a String representing the index of a specific data selection.
-     */
-    void setFrameImage(int imageIndex);
-
-
-    /**
-     * Set the data transform.
-     * @param name QString a unique identifier for a data transform.
-     */
-    void setTransformData( const QString& name );
-
-
-    /**
-     * Save the state of this controller.
-     */
-    void saveState();
-
-    /**
-     * Save a copy of the full image in the current image view.
-     * @param filename the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there is an initial problem with saving;
-     *      an empty string if the save operation has been initiated.
-     */
-    QString saveImage( const QString& filename,  double scale );
-
-    /**
-     * Save a copy of the full image in the current image view using the current scale.
-     * @param filename the full path where the file is to be saved.
-     * @return an error message if there is an initial problem with saving;
-     *      an empty string if the save operation has been initiated.
-     */
-    QString saveImage( const QString& filename );
-
-    /**
-     * Reset the images that are loaded and other data associated state.
-     * @param state - the data state.
-     */
-    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
-
-    /**
-     * Returns a json string representing the state of this controller.
-     * @param type - the type of snapshot to return.
-     * @param sessionId - an identifier for the user's session.
-     * @return a string representing the state of this controller.
-     */
-    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
-
-    /**
-     * Set the overall clip amount for the data.
-     * @param clipValue a number between 0 and 1.
-     * @return an error message if the clip value cannot be set; otherwise and empty string.
-     */
-    QString setClipValue( double clipValue );
-
-    /**
-     * Change the pan of the current image.
-     * @param imgX the x-coordinate for the center of the pan.
-     * @param imgY the y-coordinate for the center of the pan.
-     */
-    void updatePan( double imgX , double imgY);
-
-    /**
-     * Center the image on the pixel with coordinates (x, y).
-     * @param imgX the x-coordinate for the center of the pan.
-     * @param imgY the y-coordinate for the center of the pan.
-     */
-    void centerOnPixel( double imgX , double imgY);
-
-    /**
-     * Update the zoom settings.
-     * @param centerX the screen x-coordinate where the zoom was centered.
-     * @param centerY the screen y-coordinate where the zoom was centered.
-     * @param z either positive or negative depending on the desired zoom direction.
-     */
-    void updateZoom( double centerX, double centerY, double z );
-
-    /**
-     * Set the zoom level
-     * @param zoomLevel either positive or negative depending on the desired zoom direction.
-     */
-    void setZoomLevel( double zoomLevel );
 
     /**
      * Return the current axis frame.
@@ -314,16 +206,132 @@ public:
     QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
 
     /**
+     * Return the index of the image that is currently at the top of the stack.
+     * @return the index of the current image.
+     */
+    int getSelectImageIndex() const ;
+
+    /**
+     * Return the frame upper bound.
+     * @param type - the axis for which a frame upper bound is needed.
+     * @return the largest frame for a particular axis in the image.
+     */
+    int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
+
+    /**
+     * Returns an identifier for the data source at the given index.
+     * @param index the index of a data source.
+     * @return an identifier for the image.
+     */
+    QString getImageName(int index) const;
+
+    /**
+     * Returns a json string representing the state of this controller.
+     * @param type - the type of snapshot to return.
+     * @param sessionId - an identifier for the user's session.
+     * @return a string representing the state of this controller.
+     */
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
+
+    /**
+     * Center the image.
+     */
+    void resetPan();
+
+    /**
      * Restore the state from a string representation.
      * @param state- a json representation of state.
      */
     void resetState( const QString& state );
 
     /**
-     * Return a shared pointer to the grid controls.
-     * @return - a shared pointer to the grid controls.
+     * Reset the zoom to its original value.
      */
-    std::shared_ptr<GridControls> getGridControls();
+    void resetZoom();
+
+    /**
+     * Save a copy of the full image in the current image view.
+     * @param filename the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @return an error message if there is an initial problem with saving;
+     *      an empty string if the save operation has been initiated.
+     */
+    QString saveImage( const QString& filename,  double scale );
+
+    /**
+     * Save a copy of the full image in the current image view using the current scale.
+     * @param filename the full path where the file is to be saved.
+     * @return an error message if there is an initial problem with saving;
+     *      an empty string if the save operation has been initiated.
+     */
+    QString saveImage( const QString& filename );
+
+    /**
+     *  Make a data selection.
+     *  @param imageIndex - a String representing the index of a specific data selection.
+     */
+    void setFrameImage(int imageIndex);
+
+
+    /**
+     * Set the data transform.
+     * @param name QString a unique identifier for a data transform.
+     */
+    void setTransformData( const QString& name );
+
+    //IColoredView interface.
+    virtual void setColorMap( const QString& colorMapName ) Q_DECL_OVERRIDE;
+    virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
+    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
+    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
+    virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
+
+
+    /**
+     * Save the state of this controller.
+     */
+    void saveState();
+
+
+
+    /**
+     * Set the zoom level
+     * @param zoomLevel either positive or negative depending on the desired zoom direction.
+     */
+    void setZoomLevel( double zoomLevel );
+
+    /**
+     * Reset the images that are loaded and other data associated state.
+     * @param state - the data state.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+
+    /**
+     * Set the overall clip amount for the data.
+     * @param clipValue a number between 0 and 1.
+     * @return an error message if the clip value cannot be set; otherwise and empty string.
+     */
+    QString setClipValue( double clipValue );
+
+    /**
+     * Change the pan of the current image.
+     * @param imgX the x-coordinate for the center of the pan.
+     * @param imgY the y-coordinate for the center of the pan.
+     */
+    void updatePan( double imgX , double imgY);
+
+
+
+    /**
+     * Update the zoom settings.
+     * @param centerX the screen x-coordinate where the zoom was centered.
+     * @param centerY the screen y-coordinate where the zoom was centered.
+     * @param z either positive or negative depending on the desired zoom direction.
+     */
+    void updateZoom( double centerX, double centerY, double z );
+
 
     virtual ~Controller();
 
@@ -400,8 +408,9 @@ private:
 
     class Factory;
 
-    int _getFrameIndexZ( int imageIndex ) const;
-    std::set<Carta::Lib::AxisInfo::KnownType> _getAxesZ() const;
+    std::vector<int> _getFrameIndices( int imageIndex ) const;
+    set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
+    std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
     //Provide default values for state.
     void _initializeState();
@@ -426,6 +435,7 @@ private:
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
+    void _updateDisplayAxes( int targetIndex );
 
     static bool m_registered;
 

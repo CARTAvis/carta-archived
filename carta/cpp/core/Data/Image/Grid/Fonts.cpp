@@ -42,17 +42,6 @@ Fonts::Fonts( const QString& path, const QString& id):
     m_fontFamilies[1] = "Times New Roman";
     m_fontFamilies[2] = "Courier New";
 
-
-
-    //Find the renderer so we can get the list of fonts (once the code is written!!!!)
-    auto res = Globals::instance()-> pluginManager()
-                   -> prepare < Carta::Lib::Hooks::GetWcsGridRendererHook > ().first();
-    if ( res.isNull() || ! res.val() ) {
-        qWarning( "wcsgrid: Could not find any WCS grid renderers" );
-    }
-    else {
-        const std::shared_ptr<Carta::Lib::IWcsGridRenderService> renderer = res.val();
-    }
     _initializeDefaultState();
 }
 

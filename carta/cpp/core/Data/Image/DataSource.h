@@ -21,6 +21,7 @@ namespace Image {
 }
 
 class CoordinateFormatterInterface;
+class SliceND;
 
 namespace Carta {
 namespace Lib {
@@ -108,6 +109,8 @@ private:
      */
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
+
+
     /**
      * Returns the type of the axis with the given index in the image.
      * @param index - the index of the axis in the coordinate system.
@@ -129,10 +132,10 @@ private:
     Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
 
     /**
-     * Return the z display axis.
-     * @return the z display axis.
+     * Return the hidden axes.
+     * @return the hidden axes.
      */
-    Carta::Lib::AxisInfo::KnownType _getAxisZType() const;
+    std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
     /**
      * Return the number of frames for a particular axis in the image.
@@ -193,10 +196,16 @@ private:
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
-     * @param frameIndex the index of the frame in the current z-axis.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, int frameIndex, Carta::Lib::KnownSkyCS cs);
+    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs);
+
+    /**
+     * Returns the number of frames in the horizontal and vertical display directions,
+     * respectively.
+     * @return - a pair consisting of frame counts on the horizontal and vertical axis.
+     */
+    std::pair<int,int> _getDisplayDims() const;
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -256,7 +265,7 @@ private:
      * Note the xy coordinates are expected to be in casa pixel coordinates, i.e.
      * the CENTER of the left-bottom-most pixel is 0.0,0.0.
      */
-    QString _getPixelValue( double x, double y, int frameIndex ) const;
+    QString _getPixelValue( double x, double y) const;
 
     /**
      * Return the units of the pixels.
@@ -268,11 +277,10 @@ private:
      * Return the coordinates at pixel (x, y) in the given coordinate system.
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
-     * @param frameIndex - the frame index.
      * @param system the desired coordinate system.
      * @return a list formatted coordinates.
      */
-    QStringList _getCoordinates( double x, double y, int frameIndex, Carta::Lib::KnownSkyCS system ) const;
+    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
 
 
     /**
@@ -283,8 +291,12 @@ private:
      * @param axisIndex - the axis for the frames or -1 for all axes.
      * @return the raw data or nullptr if there is none.
      */
-    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex = -1 ) const;
-
+    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
+    NdArray::RawViewInterface* _getRawDataCurrent( ) const;
+    //Returns an identifier for the current image slice being rendered.
+    QString _getViewIdCurrent() const;
+    void _getHiddenFrameSlice( SliceND* frameSlice, int axisIndex ) const;
+    int _getQuantileCacheIndex() const;
     //Initialize static objects.
     void _initializeSingletons( );
 
@@ -294,7 +306,7 @@ private:
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    void _load(int frameIndex, double clipMinPercentile, double clipMaxPercentile );
+    void _load(std::vector<int> frames, double clipMinPercentile, double clipMaxPercentile );
 
     /**
      * Center the image.
@@ -305,6 +317,8 @@ private:
      * Reset the zoom to the original value.
      */
     void _resetZoom();
+
+    void _resizeQuantileCache();
 
     /**
      * Set the center for this image's display.
@@ -341,7 +355,7 @@ private:
     void _viewResize( const QSize& newSize );
 
 
-    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
+    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile );
 
     /**
@@ -375,7 +389,7 @@ private:
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;
-    int m_axisIndexZ;
+    std::vector<int> m_frames;
 
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);

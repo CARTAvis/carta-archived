@@ -75,13 +75,31 @@ void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displa
     }
 }
 
-AxisInfo::KnownType ControllerData::_getAxisZType() const {
+AxisInfo::KnownType ControllerData::_getAxisXType() const {
     AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
     if ( m_dataSource ){
-        axisType = m_dataSource->_getAxisZType();
+        axisType = m_dataSource->_getAxisXType();
     }
     return axisType;
 }
+
+AxisInfo::KnownType ControllerData::_getAxisYType() const {
+    AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
+    if ( m_dataSource ){
+        axisType = m_dataSource->_getAxisYType();
+    }
+    return axisType;
+}
+
+std::vector<AxisInfo::KnownType> ControllerData::_getAxisZTypes() const {
+    std::vector<AxisInfo::KnownType> axisTypes;
+    if ( m_dataSource ){
+        axisTypes = m_dataSource->_getAxisZTypes();
+    }
+    return axisTypes;
+}
+
+
 
 std::vector<AxisInfo::KnownType> ControllerData::_getAxisTypes() const {
     std::vector<AxisInfo::KnownType> axisTypes;
@@ -91,21 +109,21 @@ std::vector<AxisInfo::KnownType> ControllerData::_getAxisTypes() const {
     return axisTypes;
 }
 
-QStringList ControllerData::_getCoordinates( double x, double y, int frameIndex,
+QStringList ControllerData::_getCoordinates( double x, double y,
         Carta::Lib::KnownSkyCS system ) const{
     QStringList coordStr;
     if ( m_dataSource ){
-        coordStr = m_dataSource->_getCoordinates( x, y, frameIndex, system );
+        coordStr = m_dataSource->_getCoordinates( x, y, system );
     }
     return coordStr;
 }
 
 
-QString ControllerData::_getCursorText( int mouseX, int mouseY, int frameIndex){
+QString ControllerData::_getCursorText( int mouseX, int mouseY ){
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
-        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, frameIndex, cs );
+        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs );
     }
     return cursorText;
 
@@ -135,10 +153,10 @@ QPointF ControllerData::_getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
-QString ControllerData::_getPixelValue( double x, double y, int frameIndex ) const {
+QString ControllerData::_getPixelValue( double x, double y ) const {
     QString pixelValue = "";
     if ( m_dataSource ){
-        pixelValue = m_dataSource->_getPixelValue( x, y, frameIndex );
+        pixelValue = m_dataSource->_getPixelValue( x, y );
     }
     return pixelValue;
 }
@@ -262,11 +280,11 @@ QSize ControllerData::_getOutputSize() const {
 }
 
 
-void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bool renderImage, int frameIndex ){
+void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bool renderImage ){
     m_dataGrid->_resetState( state );
     m_state.setObject(DataGrid::GRID, m_dataGrid->_getState().toString());
     if ( renderImage ){
-        _render( frameIndex );
+        _render( );
     }
 }
 
@@ -340,20 +358,24 @@ void ControllerData::_renderingDone(
 }
 
 
-void ControllerData::_load(int frameIndex, bool /*recomputeClipsOnNewFrame*/,
+void ControllerData::_load(vector<int> frames, bool /*recomputeClipsOnNewFrame*/,
         double minClipPercentile, double maxClipPercentile){
     if ( m_dataSource ){
-        m_dataSource->_load( frameIndex, /*recomputeClipsOnNewFrame,*/
+        m_dataSource->_load( frames, /*recomputeClipsOnNewFrame,*/
                 minClipPercentile, maxClipPercentile );
-        if ( m_dataGrid->_isGridVisible() ){
-            std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-            gridService-> setInputImage( m_dataSource->_getImage() );
+        if ( m_dataGrid ){
+            if ( m_dataGrid->_isGridVisible() ){
+                std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
+                gridService-> setInputImage( m_dataSource->_getImage() );
+            }
         }
-        _render( frameIndex );
+        _render( );
     }
 }
 
-void ControllerData::_render( int frameIndex ){
+
+
+void ControllerData::_render( ){
     // erase current grid
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
     std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
@@ -376,7 +398,7 @@ void ControllerData::_render( int frameIndex ){
     gridService-> setImageRect( inputRect );
     gridService-> setOutputRect( outputRect );
 
-    std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frameIndex, frameIndex) );
+    std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawDataCurrent( ));
     m_drawSync->setInput( rawData );
     m_drawSync->setContours( m_dataContours );
 
@@ -405,30 +427,46 @@ void ControllerData::_resetPan(){
     }
 }
 
-void ControllerData::_saveImage( const QString& saveName, double scale,
-        int frameIndex ){
+QString ControllerData::_saveImage( const QString& saveName, double scale ){
+    QString result;
     if ( m_dataSource ){
-        QString fileName = m_dataSource->_getFileName();
+
         std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline =
                 m_dataSource->_getPipeline();
-        std::shared_ptr<Image::ImageInterface> image = m_dataSource->_getImage();
         m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
-                image, pipeline, fileName );
-        PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-        int width = prefSave->getWidth();
-        int height = prefSave->getHeight();
-        Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-        m_saveService->setOutputSize( QSize( width, height ) );
-        m_saveService->setAspectRatioMode( aspectRatioMode );
-        m_saveService->setFrameIndex( frameIndex );
+               pipeline );
 
-        m_saveService->setZoom( scale );
+        QString viewId = m_dataSource->_getViewIdCurrent();
+        std::shared_ptr<NdArray::RawViewInterface> view( m_dataSource->_getRawDataCurrent());
+        if ( view != nullptr ){
+            m_saveService->setInputView( view, viewId );
+            PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
+            int width = prefSave->getWidth();
+            int height = prefSave->getHeight();
+            Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
+            m_saveService->setOutputSize( QSize( width, height ) );
+            m_saveService->setAspectRatioMode( aspectRatioMode );
+            std::pair<int,int> displayDims = m_dataSource->_getDisplayDims();
+            m_saveService->setDisplayShape( displayDims.first, displayDims.second );
 
-        connect( m_saveService, & Carta::Core::ImageSaveService::ImageSaveService::saveImageResult,
-                this, & ControllerData::_saveImageResultCB );
+            m_saveService->setZoom( scale );
 
-        m_saveService->saveFullImage();
+            connect( m_saveService, & Carta::Core::ImageSaveService::ImageSaveService::saveImageResult,
+                    this, & ControllerData::_saveImageResultCB );
+
+            bool saveStarted = m_saveService->saveFullImage();
+            if ( !saveStarted ){
+                result = "Image was not rendered";
+            }
+        }
+        else {
+            result = "There was no data to save.";
+        }
     }
+    else {
+        result = "There was no image to save.";
+    }
+    return result;
 }
 
 void ControllerData::_saveImageResultCB( bool result ){
@@ -508,10 +546,10 @@ void ControllerData::setGamma( double gamma ){
     }
 }
 
-void ControllerData::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
+void ControllerData::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile ){
     if ( m_dataSource ){
-        m_dataSource->_updateClips( view, frameIndex, minClipPercentile, maxClipPercentile );
+        m_dataSource->_updateClips( view,  minClipPercentile, maxClipPercentile );
     }
 }
 

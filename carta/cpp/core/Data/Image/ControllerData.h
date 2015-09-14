@@ -120,7 +120,9 @@ private:
      * @param fileName a locator for data.
      */
     bool _contains(const QString& fileName) const;
-    Carta::Lib::AxisInfo::KnownType _getAxisZType() const;
+    Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
+    Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
+    std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
     /**
@@ -186,10 +188,9 @@ private:
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
-     * @param frameIndex the frame index for the current z-axis.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, int frameIndex);
+    QString _getCursorText( int mouseX, int mouseY);
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -241,13 +242,12 @@ private:
      * Return the value of the pixel at (x, y).
      * @param x the x-coordinate of the desired pixel
      * @param y the y-coordinate of the desired pixel.
-     * @param frameIndex - the frameIndex.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      *
      * Note the xy coordinates are expected to be in casa pixel coordinates, i.e.
      * the CENTER of the left-bottom-most pixel is 0.0,0.0.
      */
-    QString _getPixelValue( double x, double y, int frameIndex ) const;
+    QString _getPixelValue( double x, double y ) const;
 
     /**
      * Return the units of the pixels.
@@ -262,9 +262,9 @@ private:
      * @param system the desired coordinate system.
      * @return the coordinates at pixel (x, y).
      */
-    QStringList _getCoordinates( double x, double y, int frameIndex, Carta::Lib::KnownSkyCS system ) const;
+    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
 
-    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage, int frameIndex );
+    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage );
 
     /**
      * Respond to a change in display axes.
@@ -276,25 +276,25 @@ private:
 
     /**
      * Loads the data source as a QImage.
-     * @param frameIndex the frame to load.
+     * @param frames - list of frames to load, one for each of the known axis types.
      * @param true to force a recompute of the image clip.
      */
-    Nullable<QImage> _load(int frameIndex, bool forceReload );
+    Nullable<QImage> _load(std::vector<int> frames, bool forceReload );
 
     /**
      * Return a QImage representation of this data.
-     * @param frameIndex the index of the spectral coordinate to load.
+     * @param frames - a list of frames to load, one for each of the known axis types.
      * @param autoClip true if clips should be automatically generated; false otherwise.
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    void _load(int frameIndex, bool autoClip, double clipMinPercentile,
+    void _load( vector<int> frames, bool autoClip, double clipMinPercentile,
             double clipMaxPercentile );
 
     /**
      * Generate a new QImage.
      */
-    void _render( int frameIndex );
+    void _render( );
 
     /**
      * Center the image.
@@ -308,11 +308,11 @@ private:
 
     /**
      * Save a copy of the full image in the current image view.
-     * @param filename the full path where the file is to be saved.
+     * @param saveName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
-     * @param frameIndex the frame index of the z-axis.
+     * @return an error message if there was a problem saving the image.
      */
-    void _saveImage( const QString& savename,  double scale, int frameIndex );
+    QString _saveImage( const QString& saveName,  double scale );
 
     /**
      * Set contour set to be rendered.
@@ -353,7 +353,7 @@ private:
      */
     void _viewResize( const QSize& newSize );
 
-    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
+    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile );
 
     /**

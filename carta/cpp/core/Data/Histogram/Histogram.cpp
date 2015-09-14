@@ -960,9 +960,11 @@ void Histogram::_loadData( Controller* controller ){
         minFrequency = m_stateData.getValue<double>(PLANE_MIN);
         maxFrequency = m_stateData.getValue<double>(PLANE_MAX);
     }
+
     std::pair<int,int> frameBounds = _getFrameBounds();
     int minChannel = frameBounds.first;
     int maxChannel = frameBounds.second;
+
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
@@ -1870,7 +1872,8 @@ int Histogram::_toBinCount( double width ) const {
 }
 
 void Histogram::_updateChannel( Controller* controller ){
-    setCubeChannel( controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL ));
+    int spectralFrame = controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+    setCubeChannel( spectralFrame );
     QString mode = m_state.getValue<QString>(PLANE_MODE);
     if ( mode == PLANE_MODE_SINGLE ){
         _generateHistogram(true, controller );

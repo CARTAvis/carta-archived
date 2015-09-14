@@ -28,7 +28,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
             this._updateAxes( controls.supportedAxes );
             this._setAxisX( controls.xAxis );
             this._setAxisY( controls.yAxis );
-            this._setAxisZ( controls.zAxis );
             //this.fireDataEvent( "gridControlsChanged", data );
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
@@ -63,11 +62,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
             this.m_axisYCombo.setToolTipText( "Set the vertical display axis of the image(s).");
             content.add( axisYLabel, {row:2,column:0});
             content.add( this.m_axisYCombo, {row:2,column:1});
-            var axisZLabel = new qx.ui.basic.Label( "Z Axis:");
-            this.m_axisZCombo = new skel.widgets.CustomUI.SelectBox( "setAxisZ", "zAxis");
-            this.m_axisZCombo.setToolTipText( "Set the hidden (animation) axis of the image(s).");
-            content.add( axisZLabel, {row:3, column:0});
-            content.add( this.m_axisZCombo, {row:3, column:1});
             
             gridLayout.setRowFlex( 4, 1 );
             content.add( new qx.ui.core.Spacer(), {row:4, column:0,colSpan:2});
@@ -90,13 +84,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
             this.m_axisYCombo.setSelectValue( val, false );
         },
         
-        /**
-         * Set the image axis that should be the z-axis of the display.
-         * @param val {String} - an identifier for the z-axis that should be displayed.
-         */
-        _setAxisZ : function( val ){
-            this.m_axisZCombo.setSelectValue( val, false );
-        },
         
         /**
          * Send a command to the server to get the grid controls id.
@@ -107,7 +94,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
                 this.m_id = dataId;
                 this.m_axisXCombo.setId( dataId );
                 this.m_axisYCombo.setId( dataId );
-                this.m_axisZCombo.setId( dataId );
             }
         },
         
@@ -119,7 +105,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
         _updateAxes : function( axes ){
             this.m_axisXCombo.setSelectItems( axes );
             this.m_axisYCombo.setSelectItems( axes );
-            this.m_axisZCombo.setSelectItems( axes );
         },
         
         m_id : null,
@@ -127,7 +112,6 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
         m_sharedVar : null,
         
         m_axisXCombo : null,
-        m_axisYCombo : null,
-        m_axisZCombo : null
+        m_axisYCombo : null
     }
 });

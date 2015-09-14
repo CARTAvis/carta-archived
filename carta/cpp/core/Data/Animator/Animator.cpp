@@ -148,7 +148,7 @@ void Animator::_axesChanged(){
     for( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
         if ( controller != nullptr ){
-            std::set<AxisInfo::KnownType> zAxes = controller->_getAxesZ();
+            std::set<AxisInfo::KnownType> zAxes = controller->_getAxesHidden();
             for ( std::set<AxisInfo::KnownType>::iterator it = zAxes.begin();
                     it != zAxes.end(); it++ ){
                 QString purpose = AxisMapper::getPurpose( *it );
@@ -490,27 +490,55 @@ void Animator::resetStateData( const QString& state ){
     }
 }
 
+bool Animator::_setAnimatorVisibility( const QString& key, bool visible ){
+    bool visibilityChanged = false;
+    if ( m_animators.contains( key ) ){
+        bool animVisible = m_animators[key]->isVisible();
+        if ( animVisible != visible ){
+           m_animators[key]->setVisible( visible );
+           visibilityChanged = true;
+        }
+    }
+    return visibilityChanged;
+}
 
 bool Animator::_updateAnimatorBound( const QString& key ){
     int maxFrame = 0;
     bool visibilityChanged = false;
     AxisInfo::KnownType axisType = AxisMapper::getType( key );
+    std::vector<AxisInfo::KnownType> animationAxes;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
         maxFrame = controller->getFrameUpperBound( axisType );
+        animationAxes = controller->_getAxisZTypes();
     }
     m_animators[key]->setUpperBound( maxFrame );
 
-    if ( maxFrame > 1 ){
-        if ( !m_animators[key]->isVisible() ){
-            m_animators[key]->setVisible( true );
-            visibilityChanged = true;
+    //Decide the visibility of the animator based on whether it is an animation axis
+    int animAxisCount = animationAxes.size();
+    if ( animAxisCount > 0 ){
+        bool axisFound = false;
+        for ( int i = 0; i < animAxisCount; i++ ){
+            QString animPurpose = AxisMapper::getPurpose( animationAxes[i] );
+            if ( animPurpose == key ){
+                axisFound = true;
+                break;
+            }
         }
-    }
-    else {
-        if ( m_animators[key]->isVisible() ){
-            m_animators[key]->setVisible( false );
-            visibilityChanged = true;
+
+
+        //Okay we will set the animator visible if it has at least one
+        //frame.
+        if ( axisFound ){
+            if ( maxFrame > 1 ){
+                visibilityChanged = _setAnimatorVisibility( key, true );
+            }
+            else {
+                visibilityChanged = _setAnimatorVisibility( key, false );
+            }
+        }
+        else {
+            visibilityChanged = _setAnimatorVisibility( key, false );
         }
     }
     return visibilityChanged;
@@ -534,9 +562,10 @@ void Animator::_updateAnimatorBounds(){
 
 
 void Animator::_updateSupportedZAxes( Controller* controller ){
-    std::set<AxisInfo::KnownType> animAxes = controller->_getAxesZ();
+    std::set<AxisInfo::KnownType> animAxes = controller->_getAxesHidden();
     for ( std::set<AxisInfo::KnownType>::iterator it = animAxes.begin();
         it != animAxes.end(); it++ ){
+
         QString animName = AxisMapper::getPurpose( *it );
         QString animId;
         addAnimator( animName , animId );

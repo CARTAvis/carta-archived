@@ -4,6 +4,7 @@
 #include "Fonts.h"
 #include "Themes.h"
 #include "Globals.h"
+#include "DummyGridRenderer.h"
 #include "CartaLib/AxisInfo.h"
 #include "Data/Image/CoordinateSystems.h"
 #include "LabelFormats.h"
@@ -89,13 +90,11 @@ void DataGrid::_addUsedPurpose( const QString& key, const QString& targetPurpose
 }
 
 std::vector<AxisInfo::KnownType> DataGrid::_getDisplayAxes() const {
-    std::vector<AxisInfo::KnownType> displayTypes( 3 );
+    std::vector<AxisInfo::KnownType> displayTypes( 2 );
     QString xPurposeName = m_state.getValue<QString>( AxisMapper::AXIS_X );
     displayTypes[0] = AxisMapper::getType( xPurposeName );
     QString yPurposeName = m_state.getValue<QString>( AxisMapper::AXIS_Y );
     displayTypes[1] = AxisMapper::getType( yPurposeName );
-    QString zPurposeName = m_state.getValue<QString>( AxisMapper::AXIS_Z );
-    displayTypes[2] = AxisMapper::getType( zPurposeName );
     return displayTypes;
 }
 
@@ -192,12 +191,18 @@ void DataGrid::_initializeGridRenderer(){
                    -> prepare < Carta::Lib::Hooks::GetWcsGridRendererHook > ().first();
     if ( res.isNull() || ! res.val() ) {
         qWarning( "wcsgrid: Could not find any WCS grid renderers" );
+        m_wcsGridRenderer = nullptr;
     }
     else {
         m_wcsGridRenderer = res.val();
-        _resetGridRenderer();
-        m_wcsGridRenderer-> setEmptyGrid( false );
     }
+    if ( ! m_wcsGridRenderer ) {
+        qWarning( "wcsgrid: Creating dummy grid renderer" );
+        m_wcsGridRenderer.reset( new Carta::Core::DummyGridRenderer() );
+    }
+
+    _resetGridRenderer();
+    m_wcsGridRenderer-> setEmptyGrid( false );
 }
 
 void DataGrid::_initializeDefaultPen( const QString& key, int red, int green, int blue,
@@ -282,10 +287,6 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<QString>( AxisMapper::AXIS_X, xName );
     QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y );
     m_state.insertValue<QString>( AxisMapper::AXIS_Y, yName );
-    QString zName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Z );
-    m_state.insertValue<QString>( AxisMapper::AXIS_Z, zName );
-
-
 
     m_state.flushState();
 }

@@ -169,6 +169,8 @@ private:
     //Reset the state of an individual animator.
     void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
 
+    bool _setAnimatorVisibility( const QString& key, bool visible );
+
     bool _updateAnimatorBound( const QString& key );
     void _updateAnimatorBounds();
     void _updateSupportedZAxes( Controller* controller );

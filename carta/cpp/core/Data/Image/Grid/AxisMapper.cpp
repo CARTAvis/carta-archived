@@ -13,7 +13,6 @@ namespace Data {
 
 const QString AxisMapper::AXIS_X = "xAxis";
 const QString AxisMapper::AXIS_Y = "yAxis";
-const QString AxisMapper::AXIS_Z = "zAxis";
 const QString AxisMapper::RIGHT_ASCENSION = "Right Ascension";
 const QString AxisMapper::DECLINATION = "Declination";
 const QString AxisMapper::SPECTRAL = "Channel";
@@ -36,9 +35,6 @@ QString AxisMapper::getDefaultPurpose( const QString& axis ){
     else if ( axis == AXIS_Y ){
         name = DECLINATION;
     }
-    else if ( axis == AXIS_Z ){
-        name = SPECTRAL;
-    }
     return name;
 }
 
@@ -50,14 +46,11 @@ QString AxisMapper::getDisplayName( const QString& axisName ){
     else if ( QString::compare( axisName, AXIS_Y, Qt::CaseInsensitive) == 0 ){
         result = AXIS_Y;
     }
-    else if ( QString::compare( axisName, AXIS_Z, Qt::CaseInsensitive) == 0 ){
-        result = AXIS_Z;
-    }
     return result;
 }
 
 QStringList AxisMapper::getDisplayNames(){
-    QStringList names = {AXIS_X, AXIS_Y, AXIS_Z};
+    QStringList names = {AXIS_X, AXIS_Y};
     return names;
 }
 

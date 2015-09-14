@@ -68,8 +68,30 @@ public:
         int axisIndex = -1;
         //int imageSize = m_dims.size();
         const casa::CoordinateSystem & coords = m_casaII->coordinates();
-        if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
-            axisIndex = coords.spectralCoordinateNumber();
+        if ( type == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON ){
+            casa::Vector<casa::Int> directionIndices = coords.directionAxesNumbers();
+            if ( directionIndices.size() >= 2 ){
+                axisIndex = directionIndices[0];
+            }
+        }
+        else if ( type == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
+            casa::Vector<casa::Int> directionIndices = coords.directionAxesNumbers();
+            if ( directionIndices.size() >= 2 ){
+                axisIndex = directionIndices[1];
+            }
+        }
+
+        else if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
+            axisIndex = coords.spectralAxisNumber();
+        }
+        else if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
+            axisIndex = coords.polarizationAxisNumber();
+        }
+        else if ( type == Carta::Lib::AxisInfo::KnownType::QUALITY ){
+            axisIndex = coords.qualityAxisNumber();
+        }
+        else if ( type == Carta::Lib::AxisInfo::KnownType::TABULAR ){
+
         }
         else {
             qDebug() << "Todo: need to implement other cases of getAxisIndex";

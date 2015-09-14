@@ -28,7 +28,6 @@ ImageHistogram<T>::ImageHistogram( ):
 	m_intensityMin( ALL_INTENSITIES ),
 	m_intensityMax( ALL_INTENSITIES),
 	m_binCount( 25 ){
-	m_specIndex = -1;
 }
 
 template <class T>
@@ -109,6 +108,7 @@ bool ImageHistogram<T>::compute( ){
 		}
 	}
 	else {
+	    qDebug() << "m_histogram maker was null";
 		success = false;
 	}
 	return success;
@@ -125,10 +125,7 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
 			//exists because images can be rotated when they
 			//come into the viewer.  CoordinateSystem does not
 			//take rotation into account.
-			int spectralIndex = m_specIndex;
-			if ( spectralIndex == -1 ){
-				spectralIndex = cSys.findCoordinate(casa::Coordinate::SPECTRAL);
-			}
+			int spectralIndex = cSys.spectralAxisNumber();
 			if ( spectralIndex >= 0 ){
                 casa::IPosition imShape = image->shape();
 
