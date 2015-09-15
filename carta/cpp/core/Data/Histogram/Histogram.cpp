@@ -179,10 +179,14 @@ void Histogram::_createHistogram( Controller* controller){
     std::pair<int,int> frameBounds = _getFrameBounds();
     bool minValid = controller->getIntensity( frameBounds.first, frameBounds.second, 0, &minIntensity );
     bool maxValid = controller->getIntensity( frameBounds.first, frameBounds.second, 1, &maxIntensity );
+    qDebug() << "createHistogram minValid="<<minValid<<" maxValid="<<maxValid;
+
+
     if(minValid && maxValid){
         int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
         minIntensity = Util::roundToDigits( minIntensity, significantDigits );
         maxIntensity = Util::roundToDigits( maxIntensity, significantDigits );
+        qDebug() << "minIntensity="<<minIntensity<<" maxIntensity="<<maxIntensity;
         m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0 );
         m_stateData.setValue<double>(CLIP_MAX_PERCENT, 100 );
         m_stateData.setValue<double>(CLIP_MIN, minIntensity);
@@ -204,6 +208,9 @@ void Histogram::_createHistogram( Controller* controller){
         }
 
         m_stateData.flushState();
+    }
+    else {
+        qDebug() << "Min max intensity were not valid";
     }
     _generateHistogram( true, controller );
 }
@@ -323,6 +330,7 @@ QString Histogram::getStateString( const QString& sessionId, SnapshotType type )
 
 double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& percentKey ){
     double intensity = m_stateData.getValue<double>(clipKey);
+    qDebug() << "_getBufferedIntensity intensity="<<intensity;
     //Add padding to either side of the intensity if we are not already at our max.
     if ( m_state.getValue<bool>(CLIP_BUFFER) ){
         float bufferPercentile = m_stateData.getValue<int>(CLIP_BUFFER_SIZE ) / 2.0;
@@ -341,9 +349,13 @@ double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& 
             if ( controller != nullptr ){
                 double actualIntensity = intensity;
                 std::pair<int,int> frameBounds = _getFrameBounds();
+                qDebug() << "Framebounds.first="<<frameBounds.first<<" second="<<frameBounds.second;
                 bool intensityValid = controller->getIntensity( frameBounds.first, frameBounds.second, percentile, &actualIntensity );
                 if ( intensityValid ){
                     intensity = actualIntensity;
+                }
+                else {
+                    qDebug() << "Intensity not valid";
                 }
             }
         }
@@ -964,12 +976,15 @@ void Histogram::_loadData( Controller* controller ){
     std::pair<int,int> frameBounds = _getFrameBounds();
     int minChannel = frameBounds.first;
     int maxChannel = frameBounds.second;
-
+    qDebug() << "minChannel="<<minChannel<<" maxChannel="<<maxChannel;
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
+    qDebug() << "minIntensity="<<minIntensity;
+    qDebug() << "maxIntensity="<<maxIntensity;
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
     if ( controller != nullptr ){
         int stackedImageCount = controller->getStackedImageCount();
+        qDebug() << "stackedImagecount="<<stackedImageCount;
         if ( stackedImageCount > 0 ){
             dataSources = _generateData( controller );
             auto result = Globals::instance()-> pluginManager()
@@ -1609,6 +1624,7 @@ QString Histogram::setBinCount( int binCount ){
 
 QString Histogram::setCubeChannel( int channel ){
     QString result;
+    qDebug() << "Set cube channel="<<channel;
     if ( channel < 0 ){
         result = "Invalid cube channel "+QString::number( channel );
     }
@@ -1873,6 +1889,7 @@ int Histogram::_toBinCount( double width ) const {
 
 void Histogram::_updateChannel( Controller* controller ){
     int spectralFrame = controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+    qDebug() << "Setting spectralFrame="<<spectralFrame;
     setCubeChannel( spectralFrame );
     QString mode = m_state.getValue<QString>(PLANE_MODE);
     if ( mode == PLANE_MODE_SINGLE ){

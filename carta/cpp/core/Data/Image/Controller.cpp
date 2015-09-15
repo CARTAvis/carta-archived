@@ -318,10 +318,18 @@ int Controller::getFrameUpperBound( AxisInfo::KnownType axisType ) const {
 }
 
 int Controller::getFrame( AxisInfo::KnownType axisType ) const {
-    int frame = 0;
+    int frame = -1;
     if ( axisType != AxisInfo::KnownType::OTHER ){
-        int selectIndex = static_cast<int>( axisType );
-        frame = m_selects[selectIndex]->getIndex();
+        int imageIndex = m_selectImage->getIndex();
+        if ( 0 <= imageIndex && imageIndex < m_datas.size()){
+            std::vector<AxisInfo::KnownType> supportedAxes = m_datas[imageIndex]->_getAxisTypes();
+            //Make sure the axis is an axis in the image.
+            std::vector<AxisInfo::KnownType>::iterator it  = find( supportedAxes.begin(), supportedAxes.end(), axisType );
+            if ( it != supportedAxes.end() ){
+                int selectIndex = static_cast<int>( axisType );
+                frame = m_selects[selectIndex]->getIndex();
+            }
+        }
     }
     return frame;
 }
@@ -1299,8 +1307,11 @@ void Controller::updatePan( double centerX , double centerY){
         bool validImage = false;
         QPointF oldImageCenter = m_datas[imageIndex]-> _getImagePt( { centerX, centerY }, &validImage );
         if ( validImage ){
+
+            double imageX = oldImageCenter.x();
+            double imageY = oldImageCenter.y();
             for ( std::shared_ptr<ControllerData> data : m_datas ){
-                data->_setPan( oldImageCenter.x(), oldImageCenter.y() );
+                data->_setPan( imageX, imageY );
             }
             _render();
             _updateCursorText( true );

@@ -145,7 +145,7 @@ Carta::State::StateInterface ControllerData::_getGridState() const {
 QPointF ControllerData::_getImagePt( QPointF screenPt, bool* valid ) const {
     QPointF imagePt;
     if ( m_dataSource ){
-        m_dataSource->_getImagePt( screenPt, valid );
+        imagePt = m_dataSource->_getImagePt( screenPt, valid );
     }
     else {
         *valid = false;

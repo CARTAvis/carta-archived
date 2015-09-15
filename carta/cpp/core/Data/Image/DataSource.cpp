@@ -356,36 +356,33 @@ NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd
     NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         int imageDim =m_image->dims().size();
-        if ( 0 <= axisIndex && axisIndex < imageDim ){
-
-            SliceND frameSlice = SliceND().next();
-            for ( int i = 0; i < imageDim; i++ ){
-                if ( i != m_axisIndexX && i != m_axisIndexY ){
-                    int sliceSize = m_image->dims()[i];
-                    SliceND& slice = frameSlice.next();
-                    //If it is the target axis,
-                    if ( i == axisIndex ){
-                       //Use the passed in frame range
-                       if (0 <= frameStart && frameStart < sliceSize &&
-                            0 <= frameEnd && frameEnd < sliceSize ){
-                            slice.start( frameStart );
-                            slice.end( frameEnd + 1);
-                       }
-                       else {
-                           slice.start(0);
-                           slice.end( sliceSize);
-                       }
-                    }
-                    //Or the entire range
-                    else {
-                       slice.start( 0 );
-                       slice.end( sliceSize );
-                    }
-                    slice.step( 1 );
+        SliceND frameSlice = SliceND().next();
+        for ( int i = 0; i < imageDim; i++ ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                int sliceSize = m_image->dims()[i];
+                SliceND& slice = frameSlice.next();
+                //If it is the target axis,
+                if ( i == axisIndex ){
+                   //Use the passed in frame range
+                   if (0 <= frameStart && frameStart < sliceSize &&
+                        0 <= frameEnd && frameEnd < sliceSize ){
+                        slice.start( frameStart );
+                        slice.end( frameEnd + 1);
+                   }
+                   else {
+                       slice.start(0);
+                       slice.end( sliceSize);
+                   }
                 }
+                //Or the entire range
+                else {
+                   slice.start( 0 );
+                   slice.end( sliceSize );
+                }
+                slice.step( 1 );
             }
-            rawData = m_image->getDataSlice( frameSlice );
         }
+        rawData = m_image->getDataSlice( frameSlice );
     }
     return rawData;
 }
