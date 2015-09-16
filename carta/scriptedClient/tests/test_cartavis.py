@@ -96,12 +96,7 @@ def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_cubehelix.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
-    c[0].setColormap('cubehelix')
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _setColormap(i[0], c[0], tempImageDir)
 
 @pytest.mark.xfail(reason="saveImage() has been deprecated for now.")
 def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
@@ -298,6 +293,88 @@ def test_setBinCount(cartavisInstance, tempImageDir, cleanSlate):
     h[0].setPlaneMode('all')
     h[0].setBinCount(100)
     h[0].saveHistogram(tempImageDir + '/' + imageName, 200, 200)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_closeImage(cartavisInstance, cleanSlate):
+    """
+    Test that an image can be closed.
+    """
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    imagesBefore = i[0].getImageNames()
+    i[0].closeImage(imagesBefore[0])
+    imagesAfter = i[0].getImageNames()
+    assert imagesBefore[0] not in imagesAfter
+
+def test_getImageNames(cartavisInstance, cleanSlate):
+    """
+    Test that the list of names of open images can be obtained.
+    """
+    i = cartavisInstance.getImageViews()
+    imageToLoad = (os.getcwd() + '/data/mexinputtest.fits')
+    imagesBefore = i[0].getImageNames()
+    print "imagesBefore: " + str(imagesBefore)
+    assert imageToLoad not in imagesBefore
+    i[0].loadFile(imageToLoad)
+    imagesAfter = i[0].getImageNames()
+    print "imagesAfter: " + str(imagesAfter)
+    assert imageToLoad in imagesAfter
+
+def test_getLinkedAnimators(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the list of animators linked to the image view can be
+    obtained.
+    This can be accomplished by performing an operation with one of the
+    linked animators and confirming that the operation was successful.
+    Right now this is the same thing that test_setImage() is doing, but
+    with the animators being obtained via the image instead of via the
+    application.
+    """
+    image1 = 'mexinputtest.png'
+    image2 = 'qualityimage.png'
+    i = cartavisInstance.getImageViews()
+    a = i[0].getLinkedAnimators()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    a[0].setImage(0)
+    i[0].saveFullImage(tempImageDir + '/' + image1)
+    a[0].setImage(1)
+    i[0].saveFullImage(tempImageDir + '/' + image2)
+    reference1 = Image.open(os.getcwd() + '/data/' + image1)
+    comparison1 = Image.open(tempImageDir + '/' + image1)
+    reference2 = Image.open(os.getcwd() + '/data/' + image2)
+    comparison2 = Image.open(tempImageDir + '/' + image2)
+    assert list(reference1.getdata()) == list(comparison1.getdata())
+    assert list(reference2.getdata()) == list(comparison2.getdata())
+
+def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the list of colormap views linked to the image view can be
+    obtained.
+    This can be accomplished by performing an operation with one of the
+    linked colormap views and confirming that the operation was
+    successful.
+    Right now this is the same thing that test_setColormap() is doing,
+    but with the colormaps being obtained via the image instead of via
+    the application.
+    """
+    imageName = 'mexinputtest_cubehelix.png'
+    i = cartavisInstance.getImageViews()
+    c = i[0].getLinkedColormaps()
+    _setColormap(i[0], c[0], tempImageDir)
+
+def _setColormap(imageView, colormapView, tempImageDir):
+    """
+    A common private function for commands that need to test that a
+    colormap can be set.
+    """
+    imageName = 'mexinputtest_cubehelix.png'
+    imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    colormapView.setColormap('cubehelix')
+    imageView.saveFullImage(tempImageDir + '/' + imageName)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
