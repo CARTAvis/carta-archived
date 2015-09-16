@@ -334,6 +334,23 @@ def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
     c = i[0].getLinkedColormaps()
     _setColormap(i[0], c[0], tempImageDir)
 
+def test_loadFile(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that a file can be loaded into an image view.
+    """
+    i = cartavisInstance.getImageViews()
+    # First, check that trying to load a nonexistent file generates an
+    # error.
+    nonexistentLoadResult = i[0].loadFile('nonexistentFile.fits')
+    assert nonexistentLoadResult[0] == 'error'
+    # Next, check that trying to load an existing file does not generate
+    # an error.
+    loadResult = i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert loadResult[0] != 'error'
+    # Finally, check that the image that has been loaded is actually
+    # the image we expect.
+    _saveFullImage(i[0], 'mexinputtest.png', tempImageDir)
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
@@ -362,6 +379,16 @@ def _setColormap(imageView, colormapView, tempImageDir):
     imageName = 'mexinputtest_cubehelix.png'
     imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
     colormapView.setColormap('cubehelix')
+    imageView.saveFullImage(tempImageDir + '/' + imageName)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def _saveFullImage(imageView, imageName, tempImageDir):
+    """
+    A common private function for commands that need to save a full
+    image and test that it has been saved properly.
+    """
     imageView.saveFullImage(tempImageDir + '/' + imageName)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
