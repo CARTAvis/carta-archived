@@ -84,10 +84,7 @@ def test_saveFullImage(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest.png'
     i = cartavisInstance.getImageViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -185,10 +182,7 @@ def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('cubehelix')
     c[0].invertColormap(True)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 def test_reverseColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -200,10 +194,7 @@ def test_reverseColormap(cartavisInstance, tempImageDir, cleanSlate):
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('cubehelix')
     c[0].reverseColormap(True)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 def test_setColorMix(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -214,10 +205,7 @@ def test_setColorMix(cartavisInstance, tempImageDir, cleanSlate):
     c = cartavisInstance.getColormapViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColorMix(0.7, 0.3, 0.8)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
     # Check that invalid values cause error information to be returned.
     assert c[0].setColorMix(-1,-1,-1)[0] != ''
 
@@ -230,10 +218,7 @@ def test_setDataTransform(cartavisInstance, tempImageDir, cleanSlate):
     c = cartavisInstance.getColormapViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setDataTransform('square root')
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
     # Check that invalid values cause error information to be returned.
     assert c[0].setDataTransform('squarepants')[0] != ''
 
@@ -246,10 +231,7 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     c = cartavisInstance.getColormapViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setGamma(0.25)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 @pytest.mark.xfail(reason="The behaviour of the saveHistogram() funtion\
                    has changed.")
@@ -361,15 +343,9 @@ def _setImage(imageView, animatorView, tempImageDir):
     imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
     imageView.loadFile(os.getcwd() + '/data/qualityimage.fits')
     animatorView.setImage(0)
-    imageView.saveFullImage(tempImageDir + '/' + image1)
+    _saveFullImage(imageView, image1, tempImageDir)
     animatorView.setImage(1)
-    imageView.saveFullImage(tempImageDir + '/' + image2)
-    reference1 = Image.open(os.getcwd() + '/data/' + image1)
-    comparison1 = Image.open(tempImageDir + '/' + image1)
-    reference2 = Image.open(os.getcwd() + '/data/' + image2)
-    comparison2 = Image.open(tempImageDir + '/' + image2)
-    assert list(reference1.getdata()) == list(comparison1.getdata())
-    assert list(reference2.getdata()) == list(comparison2.getdata())
+    _saveFullImage(imageView, image2, tempImageDir)
 
 def _setColormap(imageView, colormapView, tempImageDir):
     """
@@ -379,10 +355,7 @@ def _setColormap(imageView, colormapView, tempImageDir):
     imageName = 'mexinputtest_cubehelix.png'
     imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
     colormapView.setColormap('cubehelix')
-    imageView.saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(imageView, imageName, tempImageDir)
 
 def _saveFullImage(imageView, imageName, tempImageDir):
     """
