@@ -171,22 +171,9 @@ def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the image properly.
     """
-    image1 = 'mexinputtest.png'
-    image2 = 'qualityimage.png'
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
-    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
-    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
-    a[0].setImage(0)
-    i[0].saveFullImage(tempImageDir + '/' + image1)
-    a[0].setImage(1)
-    i[0].saveFullImage(tempImageDir + '/' + image2)
-    reference1 = Image.open(os.getcwd() + '/data/' + image1)
-    comparison1 = Image.open(tempImageDir + '/' + image1)
-    reference2 = Image.open(os.getcwd() + '/data/' + image2)
-    comparison2 = Image.open(tempImageDir + '/' + image2)
-    assert list(reference1.getdata()) == list(comparison1.getdata())
-    assert list(reference2.getdata()) == list(comparison2.getdata())
+    _setImage(i[0], a[0], tempImageDir)
 
 def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -329,26 +316,10 @@ def test_getLinkedAnimators(cartavisInstance, tempImageDir, cleanSlate):
     obtained.
     This can be accomplished by performing an operation with one of the
     linked animators and confirming that the operation was successful.
-    Right now this is the same thing that test_setImage() is doing, but
-    with the animators being obtained via the image instead of via the
-    application.
     """
-    image1 = 'mexinputtest.png'
-    image2 = 'qualityimage.png'
     i = cartavisInstance.getImageViews()
     a = i[0].getLinkedAnimators()
-    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
-    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
-    a[0].setImage(0)
-    i[0].saveFullImage(tempImageDir + '/' + image1)
-    a[0].setImage(1)
-    i[0].saveFullImage(tempImageDir + '/' + image2)
-    reference1 = Image.open(os.getcwd() + '/data/' + image1)
-    comparison1 = Image.open(tempImageDir + '/' + image1)
-    reference2 = Image.open(os.getcwd() + '/data/' + image2)
-    comparison2 = Image.open(tempImageDir + '/' + image2)
-    assert list(reference1.getdata()) == list(comparison1.getdata())
-    assert list(reference2.getdata()) == list(comparison2.getdata())
+    _setImage(i[0], a[0], tempImageDir)
 
 def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -357,14 +328,31 @@ def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
     This can be accomplished by performing an operation with one of the
     linked colormap views and confirming that the operation was
     successful.
-    Right now this is the same thing that test_setColormap() is doing,
-    but with the colormaps being obtained via the image instead of via
-    the application.
     """
     imageName = 'mexinputtest_cubehelix.png'
     i = cartavisInstance.getImageViews()
     c = i[0].getLinkedColormaps()
     _setColormap(i[0], c[0], tempImageDir)
+
+def _setImage(imageView, animatorView, tempImageDir):
+    """
+    A common private function for commands that need to test that an
+    image can be set by an animator.
+    """
+    image1 = 'mexinputtest.png'
+    image2 = 'qualityimage.png'
+    imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    imageView.loadFile(os.getcwd() + '/data/qualityimage.fits')
+    animatorView.setImage(0)
+    imageView.saveFullImage(tempImageDir + '/' + image1)
+    animatorView.setImage(1)
+    imageView.saveFullImage(tempImageDir + '/' + image2)
+    reference1 = Image.open(os.getcwd() + '/data/' + image1)
+    comparison1 = Image.open(tempImageDir + '/' + image1)
+    reference2 = Image.open(os.getcwd() + '/data/' + image2)
+    comparison2 = Image.open(tempImageDir + '/' + image2)
+    assert list(reference1.getdata()) == list(comparison1.getdata())
+    assert list(reference2.getdata()) == list(comparison2.getdata())
 
 def _setColormap(imageView, colormapView, tempImageDir):
     """
