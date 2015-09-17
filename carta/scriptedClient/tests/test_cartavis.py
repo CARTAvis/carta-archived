@@ -333,6 +333,31 @@ def test_loadFile(cartavisInstance, tempImageDir, cleanSlate):
     # the image we expect.
     _saveFullImage(i[0], 'mexinputtest.png', tempImageDir)
 
+def test_getIntensity(cartavisInstance, cleanSlate):
+    """
+    Test that the intensity of an image can be obtained.
+    """
+    i = cartavisInstance.getImageViews()
+    loadResult = i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    intensity = i[0].getIntensity(0, 0, 0.5)
+    assert intensity == 49.5
+
+def test_getMaxImageCount(cartavisInstance, cleanSlate):
+    """
+    Test that the animator can return the number of images currently
+    being managed.
+    """
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    assert a[0].getMaxImageCount() == 0
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert a[0].getMaxImageCount() == 1
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    assert a[0].getMaxImageCount() == 2
+    for f in (i[0].getImageNames()):
+        i[0].closeImage(f)
+    assert a[0].getMaxImageCount() == 0
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
