@@ -358,6 +358,69 @@ def test_getMaxImageCount(cartavisInstance, cleanSlate):
         i[0].closeImage(f)
     assert a[0].getMaxImageCount() == 0
 
+def test_getColormaps(cartavisInstance):
+    """
+    Test that the list of available colormaps can be obtained.
+    """
+    cm = cartavisInstance.getColormaps()
+    assert cm
+
+def test_setAnalysisLayout(cartavisInstance):
+    """
+    Test that the analysis layout can be set.
+    """
+    assert cartavisInstance.setAnalysisLayout() == ['']
+
+def test_getEmptyWindowCount(cartavisInstance):
+    """
+    Test that the number of empty windows can be obtained.
+    """
+    rows = 3
+    cols = 3
+    cartavisInstance.setImageLayout()
+    emptyCount = cartavisInstance.getEmptyWindowCount()
+    assert emptyCount == 0
+    cartavisInstance.setCustomLayout(rows, cols)
+    newEmptyCount = cartavisInstance.getEmptyWindowCount()
+    assert newEmptyCount == rows * cols - 1
+
+def test_getAnimatorViews(cartavisInstance):
+    """
+    Test that the animator views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert not cartavisInstance.getAnimatorViews()
+    cartavisInstance.setAnalysisLayout()
+    assert cartavisInstance.getAnimatorViews()
+
+def test_getColormapViews(cartavisInstance):
+    """
+    Test that the colormap views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert not cartavisInstance.getColormapViews()
+    cartavisInstance.setAnalysisLayout()
+    assert cartavisInstance.getColormapViews()
+
+def test_getHistogramViews(cartavisInstance):
+    """
+    Test that the histogram views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert not cartavisInstance.getHistogramViews()
+    cartavisInstance.setAnalysisLayout()
+    assert cartavisInstance.getHistogramViews()
+
+def test_getImageViews(cartavisInstance):
+    """
+    Test that the image views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert cartavisInstance.getImageViews()
+    cartavisInstance.setCustomLayout(2, 2)
+    cartavisInstance.setPlugins(['Empty', 'Empty', 'Empty', 'Empty'])
+    assert not cartavisInstance.getImageViews()
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
