@@ -421,6 +421,23 @@ def test_getImageViews(cartavisInstance):
     cartavisInstance.setPlugins(['Empty', 'Empty', 'Empty', 'Empty'])
     assert not cartavisInstance.getImageViews()
 
+def test_setImageLayout(cartavisInstance):
+    """
+    Test that the image layout can be set.
+    """
+    cartavisInstance.setImageLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['CasaImageLoader', 'Hidden']
+
+def test_setAnalysisLayout(cartavisInstance):
+    """
+    Test that the analysis layout can be set.
+    """
+    cartavisInstance.setAnalysisLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
+                              'Hidden', u'Histogram']
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
