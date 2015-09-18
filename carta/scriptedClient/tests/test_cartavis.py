@@ -421,6 +421,86 @@ def test_getImageViews(cartavisInstance):
     cartavisInstance.setPlugins(['Empty', 'Empty', 'Empty', 'Empty'])
     assert not cartavisInstance.getImageViews()
 
+def test_setImageLayout(cartavisInstance):
+    """
+    Test that the image layout can be set.
+    """
+    cartavisInstance.setImageLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['CasaImageLoader', 'Hidden']
+
+def test_setAnalysisLayout(cartavisInstance):
+    """
+    Test that the analysis layout can be set.
+    """
+    cartavisInstance.setAnalysisLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
+                              'Hidden', u'Histogram']
+
+def test_removeLink(cartavisInstance, cleanSlate):
+    """
+    Test that a link between an image view and other view types can be
+    removed.
+    Since link a link can be removed directly from an Image object or
+    from the Cartavis class, both methods will be tested.
+    """
+    i = cartavisInstance.getImageViews()
+    # First, the Image way
+    laBefore = i[0].getLinkedAnimators()
+    assert len(laBefore) > 0
+    i[0].removeLink(laBefore[0])
+    laAfter = i[0].getLinkedAnimators()
+    assert len(laAfter) == len(laBefore) - 1
+    # Second, the Cartavis way
+    lcBefore = i[0].getLinkedColormaps()
+    assert len(lcBefore) > 0
+    cartavisInstance.removeLink(lcBefore[0], i[0])
+    lcAfter = i[0].getLinkedColormaps()
+    assert len(lcAfter) == len(lcBefore) - 1
+
+def test_addLink(cartavisInstance):
+    """
+    Test that a link between an image view and another view type can be
+    added.
+    Since link a link can be added directly from an Image object or from
+    the Cartavis class, both methods will be tested.
+    """
+    cartavisInstance.setImageLayout()
+    cartavisInstance.setCustomLayout(2, 2)
+    cartavisInstance.setPlugins(['Animator', 'CasaImageLoader', 'Colormap',
+                         'Histogram'])
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    c = cartavisInstance.getColormapViews()
+    # First, the Image way
+    laBefore = i[0].getLinkedAnimators()
+    i[0].addLink(a[0])
+    laAfter = i[0].getLinkedAnimators()
+    assert len(laAfter) == len(laBefore) + 1
+    # Second, the Cartavis way
+    lcBefore = i[0].getLinkedColormaps()
+    cartavisInstance.addLink(c[0], i[0])
+    lcAfter = i[0].getLinkedColormaps()
+    assert len(lcAfter) == len(lcBefore) + 1
+
+def test_setEmptyWindowPlugin(cartavisInstance):
+    """
+    Test that an empty window can be set to a plugin.
+    """
+    cartavisInstance.setImageLayout()
+    cartavisInstance.setCustomLayout(2, 2)
+    plugins = cartavisInstance.getPluginList()
+    # Even though the first argument to setEmptyWindowPlugin() is
+    # relative to the number of empty windows (e.g. 0 means that the
+    # first empty window will be changed), we will keep track of the
+    # index of the first empty window so that we can later check that it
+    # has actually changed.
+    firstEmpty = plugins.index('Empty')
+    cartavisInstance.setEmptyWindowPlugin(0, 'CasaImageLoader')
+    pluginsAfter = cartavisInstance.getPluginList()
+    assert pluginsAfter[firstEmpty] != 'Empty'
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
