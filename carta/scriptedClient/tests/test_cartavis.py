@@ -365,12 +365,6 @@ def test_getColormaps(cartavisInstance):
     cm = cartavisInstance.getColormaps()
     assert cm
 
-def test_setAnalysisLayout(cartavisInstance):
-    """
-    Test that the analysis layout can be set.
-    """
-    assert cartavisInstance.setAnalysisLayout() == ['']
-
 def test_getEmptyWindowCount(cartavisInstance):
     """
     Test that the number of empty windows can be obtained.
