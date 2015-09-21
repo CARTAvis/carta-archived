@@ -319,6 +319,23 @@ class Image(CartaView):
         result = self.con.cmdTagList("centerImage", imageView=self.getId())
         return result
 
+    def getCenterPixel(self):
+        """
+        Get the image pixel that is currently centered.
+
+        Returns
+        -------
+        list
+            Two floating point values representing the currently
+            centered x- and y-values, respectively, of the image.
+            Error information if the center pixel could not be obtained
+            (e.g. if there is no image currently loaded).
+        """
+        result = self.con.cmdTagList("getCenterPixel", imageView=self.getId())
+        if (result[0] != "error"):
+            result = [float(x) for x in result]
+        return result
+
     def addLink(self, dest):
         """
         Establish a link between this image viewer and a destination

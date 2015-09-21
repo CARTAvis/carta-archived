@@ -224,6 +224,13 @@ public:
     void centerOnPixel( double imgX , double imgY);
 
     /**
+     * Get the image pixel that is currently centered.
+     * @return a list of the x- and y-coordinates of the center pixel,
+     * or error information if the center pixel could not be obtained.
+    */
+    QStringList getCenterPixel();
+
+    /**
      * Update the zoom settings.
      * @param centerX the screen x-coordinate where the zoom was centered.
      * @param centerY the screen y-coordinate where the zoom was centered.

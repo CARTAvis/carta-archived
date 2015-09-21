@@ -772,6 +772,27 @@ QStringList ScriptFacade::centerImage( const QString& controlId ) {
     return resultList;
 }
 
+QStringList ScriptFacade::getCenterPixel( const QString& controlId ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getCenterPixel();
+            if ( resultList[0] == "null" ) {
+                resultList = _logErrorMessage( ERROR, "The center pixel could not be obtained." );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( controlId );

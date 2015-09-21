@@ -1064,6 +1064,17 @@ void Controller::centerOnPixel( double centerX, double centerY ){
     }
 }
 
+QStringList Controller::getCenterPixel() {
+    int imageIndex = m_selectImage->getIndex();
+    QStringList returnValue = QStringList( "null" );
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
+        QPointF center = m_datas[imageIndex]->_getCenter();
+        returnValue = QStringList( QString::number( center.x() ) );
+        returnValue.append( QString::number( center.y() ) );
+    }
+    return returnValue;
+}
+
 void Controller::setZoomLevel( double zoomFactor ){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && m_datas.size() > 0 ){

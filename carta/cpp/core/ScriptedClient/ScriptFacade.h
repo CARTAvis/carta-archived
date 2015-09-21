@@ -381,6 +381,14 @@ public:
     QStringList centerImage( const QString& controlId );
 
     /**
+     * Get the image pixel that is currently centered.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of the x- and y-coordinates of the center pixel,
+     * or error information if the center pixel could not be obtained.
+    */
+    QStringList getCenterPixel( const QString& controlId );
+
+    /**
      * Get the image dimensions.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of the image dimensions, or error information if the
