@@ -509,7 +509,7 @@ def test_setCustomLayout(cartavisInstance):
     rows = 3
     cols = 4
     assert cartavisInstance.setCustomLayout(rows, cols) == ['']
-    # Do the right number of plugins appear?
+    # Does the right number of plugins appear?
     assert len(cartavisInstance.getPluginList()) == rows * cols
     # Does an error message get returned if we try setting an invalid
     # value?
@@ -530,6 +530,18 @@ def test_centerImage(cartavisInstance):
     # Now, center the image and check that it is centered properly.
     i[0].centerImage()
     assert i[0].getCenterPixel() == center
+
+def test_getPluginList(cartavisInstance):
+    """
+    Test that the list of plugins can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['CasaImageLoader', 'Hidden']
+    cartavisInstance.setAnalysisLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
+                              'Hidden', u'Histogram']
 
 def _setImage(imageView, animatorView, tempImageDir):
     """
