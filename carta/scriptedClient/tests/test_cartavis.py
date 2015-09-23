@@ -502,6 +502,19 @@ def test_getCenterPixel(cartavisInstance, cleanSlate):
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getCenterPixel() == [5.0, 5.0]
 
+def test_setCustomLayout(cartavisInstance):
+    """
+    Test that a custom layout can be set.
+    """
+    rows = 3
+    cols = 4
+    assert cartavisInstance.setCustomLayout(rows, cols) == ['']
+    # Do the right number of plugins appear?
+    assert len(cartavisInstance.getPluginList()) == rows * cols
+    # Does an error message get returned if we try setting an invalid
+    # value?
+    assert cartavisInstance.setCustomLayout(-1, cols) != ['']
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
