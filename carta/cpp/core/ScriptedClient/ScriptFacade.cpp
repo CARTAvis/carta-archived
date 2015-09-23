@@ -508,7 +508,7 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
         if ( obj != nullptr ){
             Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
             if ( controller != nullptr ){
-                controller->saveImage( filename, scale );
+                errorList = QStringList( controller->saveImage( filename, scale ) );
             }
         }
     }
@@ -522,6 +522,9 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
         if ( !aspectModeError.isEmpty() ){
             errorList.append( aspectModeError );
         }
+    }
+    if ( errorList.length() == 0 ) {
+        errorList = QStringList("");
     }
     return errorList;
 }

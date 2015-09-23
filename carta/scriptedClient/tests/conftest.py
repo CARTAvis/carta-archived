@@ -1,4 +1,5 @@
 import os
+import time
 import pytest
 import cartavis
 
@@ -16,7 +17,7 @@ def pytest_addoption(parser):
     parser.addoption("--imageFile", action="store", help="The full path of a\
                      compatible image file to load.")
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def cartavisInstance(request):
     """
     Return an instance of the Carta application for use by the tests.
@@ -33,6 +34,7 @@ def cartavisInstance(request):
     os.chdir(directory)
     v = cartavis.Cartavis(directory + '/' + executable, configFile, int(port),
                           htmlFile, imageFile)
+    time.sleep(5)
     os.chdir(currentDir)
     def fin():
         v.quit()
@@ -49,13 +51,9 @@ def tempImageDir(request):
     """
     imageDir = '/tmp/cartavis-test'
     if not os.path.isdir(imageDir):
-        print "Making tempImageDir"
         os.makedirs(imageDir)
     def fin():
-        print "fin()"
-        print "imageDir = " + imageDir
         for file in os.listdir(imageDir):
-            print "deleting " + imageDir + '/' + file
             os.remove(imageDir + '/' + file)
         os.rmdir(imageDir)
     #request.addfinalizer(fin)
@@ -70,14 +68,15 @@ def cleanSlate(request, cartavisInstance):
     that depends on the colormap being Gray, the second test may fail
     if the colormap is not reset first.
     """
+    # Reset the layout to the default analysis layout
+    # Set it back to image layout first; otherwise, resetting may not
+    # work
+    cartavisInstance.setImageLayout() 
+    cartavisInstance.setAnalysisLayout()
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
     #h = cartavisInstance.getHistogramViews()
     a = cartavisInstance.getAnimatorViews()
-    # Reset the layout to the default analysis layout
-    # Set it back to image layout first, otherwise, resetting may not work
-    cartavisInstance.setImageLayout() 
-    cartavisInstance.setAnalysisLayout()
     # Reset the colormap
     c[0].setColormap('Gray')
     c[0].invertColormap(False)

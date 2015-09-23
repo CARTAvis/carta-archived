@@ -4,7 +4,7 @@ import cartavis
 from PIL import Image, ImageChops
 from astropy.coordinates import SkyCoord
 
-def test_getPixelValue(cartavisInstance):
+def test_getPixelValue(cartavisInstance, cleanSlate):
     """
     Test pixel values on an image with known pixel values.
     """
@@ -15,7 +15,7 @@ def test_getPixelValue(cartavisInstance):
     # image.
     assert i[0].getPixelValue(-1,-1)[0] == ''
 
-def test_getChannelCount(cartavisInstance):
+def test_getChannelCount(cartavisInstance, cleanSlate):
     """
     Test that the channel count is being returned properly for images
     with both one channel and multiple channels.
@@ -26,7 +26,7 @@ def test_getChannelCount(cartavisInstance):
     i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
     assert i[0].getChannelCount() == 5
 
-def test_getPixelUnits(cartavisInstance):
+def test_getPixelUnits(cartavisInstance, cleanSlate):
     """
     Test that the pixel units are being returned properly for an image
     with known units.
@@ -35,7 +35,7 @@ def test_getPixelUnits(cartavisInstance):
     i[0].loadFile(os.getcwd() + '/data/imagetestimage.fits')
     assert i[0].getPixelUnits()[0] == 'Jy/beam'
 
-def test_getImageDimensions(cartavisInstance):
+def test_getImageDimensions(cartavisInstance, cleanSlate):
     """
     Test that the image dimensions are being returned properly for an
     image with known dimensions.
@@ -44,7 +44,7 @@ def test_getImageDimensions(cartavisInstance):
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getImageDimensions() == [10, 10]
 
-def test_zoomLevel(cartavisInstance):
+def test_zoomLevel(cartavisInstance, cleanSlate):
     """
     Test that the zoom level is being set and returned properly.
     This is done by getting the zoom level, setting the zoom level to a
@@ -52,11 +52,12 @@ def test_zoomLevel(cartavisInstance):
     level is indeed the same multiple of the old zoom level.
     """
     i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     oldZoom = i[0].getZoomLevel()
     i[0].setZoomLevel(1.1 * oldZoom)
     assert i[0].getZoomLevel() == 1.1 * oldZoom
 
-def test_getCoordinates(cartavisInstance):
+def test_getCoordinates(cartavisInstance, cleanSlate):
     """
     Test that the coordinate values are being returned properly in each
     coordinate system.
@@ -285,11 +286,9 @@ def test_getImageNames(cartavisInstance, cleanSlate):
     i = cartavisInstance.getImageViews()
     imageToLoad = (os.getcwd() + '/data/mexinputtest.fits')
     imagesBefore = i[0].getImageNames()
-    print "imagesBefore: " + str(imagesBefore)
     assert imageToLoad not in imagesBefore
     i[0].loadFile(imageToLoad)
     imagesAfter = i[0].getImageNames()
-    print "imagesAfter: " + str(imagesAfter)
     assert imageToLoad in imagesAfter
 
 def test_getLinkedAnimators(cartavisInstance, tempImageDir, cleanSlate):
@@ -494,6 +493,14 @@ def test_setEmptyWindowPlugin(cartavisInstance):
     cartavisInstance.setEmptyWindowPlugin(0, 'CasaImageLoader')
     pluginsAfter = cartavisInstance.getPluginList()
     assert pluginsAfter[firstEmpty] != 'Empty'
+
+def test_getCenterPixel(cartavisInstance, cleanSlate):
+    """
+    Test that the currently centered image pixel can be obtained.
+    """
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert i[0].getCenterPixel() == [5.0, 5.0]
 
 def _setImage(imageView, animatorView, tempImageDir):
     """
