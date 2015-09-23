@@ -515,6 +515,22 @@ def test_setCustomLayout(cartavisInstance):
     # value?
     assert cartavisInstance.setCustomLayout(-1, cols) != ['']
 
+def test_centerImage(cartavisInstance):
+    """
+    Test that the image can be centered properly.
+    """
+    cartavisInstance.setImageLayout()
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    dim = i[0].getImageDimensions()
+    center = [dim[0]/2.0, dim[1]/2.0]
+    # First, deliberately set the image to off center
+    i[0].centerOnPixel(-1,-1)
+    assert i[0].getCenterPixel() != center
+    # Now, center the image and check that it is centered properly.
+    i[0].centerImage()
+    assert i[0].getCenterPixel() == center
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
