@@ -153,10 +153,14 @@ def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
     i[0].loadFile(os.getcwd() + '/data/RaDecVel.fits')
+    channels = i[0].getChannelCount()
     a[0].setChannel(0)
     _saveFullImage(i[0], image1, tempImageDir)
     a[0].setChannel(1)
     _saveFullImage(i[0], image2, tempImageDir)
+    # Also check that invalid channel values yield error messages
+    assert a[0].setChannel(channels+10) != ['']
+    assert a[0].setChannel(-10) != ['']
 
 def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
     """
