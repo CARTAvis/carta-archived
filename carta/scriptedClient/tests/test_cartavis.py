@@ -543,6 +543,17 @@ def test_getPluginList(cartavisInstance):
     assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
                               'Hidden', u'Histogram']
 
+def test_getChannelIndex(cartavisInstance, cleanSlate):
+    """
+    Test that the channel index can be obtained from the animator.
+    """
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    assert a[0].getChannelIndex() == 0
+    a[0].setChannel(4)
+    assert a[0].getChannelIndex() == 4
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an

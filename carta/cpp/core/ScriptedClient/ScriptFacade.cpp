@@ -406,17 +406,19 @@ QStringList ScriptFacade::getChannelIndex( const QString& animatorId ){
 }
 
 QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
-    QStringList resultList("");
+    QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( animatorId );
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
             Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
             if ( animType != nullptr ){
-                animType->setFrame( index );
+                QString result = animType->setFrame( index );
+                resultList = QStringList( result );
             }
             else {
-                qDebug()<<"Could not get channel animator";
+                resultList = QStringList( ERROR );
+                resultList.append( "Could not get channel animator" );
             }
         }
         else {
@@ -425,6 +427,9 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
     }
     else {
         resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
     }
     return resultList;
 }

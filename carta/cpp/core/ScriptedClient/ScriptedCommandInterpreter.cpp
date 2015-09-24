@@ -528,6 +528,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getMaxImageCount( animatorView );
     }
 
+    else if ( cmd == "getchannelindex" ) {
+        QString animatorView = args["animatorView"].toString();
+        result = m_scriptFacade->getChannelIndex( animatorView );
+    }
+
     /// Section: Histogram Commands
     /// --------------------------
     /// These commands come from the Python Histogram class. They allow
