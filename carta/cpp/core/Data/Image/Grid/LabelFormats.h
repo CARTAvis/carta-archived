@@ -1,5 +1,5 @@
 /***
- * List of all available LabelFormats.
+ * Translator for Label formats.
  *
  */
 
@@ -8,7 +8,9 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/AxisLabelInfo.h"
 #include <vector>
+
 
 namespace Carta {
 
@@ -21,11 +23,40 @@ class LabelFormats : public Carta::State::CartaObject {
 public:
 
     /**
+     * Translates between a string representation of an axis label format and the enumerated class
+     * of recognized formats.
+     * @param formatStr - a string representation of an axis format.
+     * @return the corresponding enumerated axis label format.
+     */
+    Carta::Lib::AxisLabelInfo::Formats getAxisLabelFormat( const QString& formatStr ) const;
+
+    /**
+     * Translates between a
+     */
+    Carta::Lib::AxisLabelInfo::Locations getAxisLabelLocation( const QString& locationStr ) const;
+
+    /**
      * Returns the default label format.
      * @param direction - an identifier for the location of the label.
      * @return an identifier for the default label format.
      */
     QString getDefaultFormat( const QString& direction ) const;
+
+    /**
+     * Returns whether or not the format refers to THE default format or instead refers
+     * to a specific format.
+     * @return format - a string describing a format.
+     * @return true if the passed in format specifies using the default format; false if
+     *  it refers to a specific format or an unrecognized format.
+     */
+    bool isDefault( const QString& format ) const;
+
+    /**
+     * Returns the default format for the axis of the indicated type.
+     * @param axis - the type of axis.
+     * @return - the default format for the axis.
+     */
+    QString getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis ) const;
 
     /**
      * Translates a non case sensitive grid label side into one

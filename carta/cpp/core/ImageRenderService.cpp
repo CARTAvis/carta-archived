@@ -26,11 +26,12 @@ static constexpr bool QtPremultipliedBugStillExists = true;
 /// \param m_qImage
 template < class Pipeline >
 static void
-iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
+iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage, int displayAxisX, int displayAxisY )
 {
-    qDebug() << "rv2qi2" << rawView-> dims();
+    //qDebug() << "rv2qi2" << rawView-> dims();
     typedef double Scalar;
-    QSize size( rawView->dims()[0], rawView->dims()[1] );
+
+    QSize size( rawView->dims()[displayAxisX], rawView->dims()[displayAxisY] );
 
     QImage::Format desiredFormat = OptimalQImageFormat;
     if ( QtPremultipliedBugStillExists ) {
@@ -83,10 +84,16 @@ namespace Core
 namespace ImageRenderService
 {
 void
-Service::setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId )
+Service::setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId, int displayAxisX, int displayAxisY )
 {
+    CARTA_ASSERT( displayAxisX >= 0 );
+    CARTA_ASSERT( displayAxisY >= 0 );
+    int viewSize = view->dims().size();
+    CARTA_ASSERT( displayAxisX < viewSize && displayAxisY < viewSize);
     m_inputView = view;
-    qDebug() << "xyz setInputView" << m_inputView.get() << this;
+
+    m_displayAxisX = displayAxisX;
+    m_displayAxisY = displayAxisY;
     m_inputViewCacheId = cacheId;
     m_frameImage = QImage(); // indicate a need to recompute
 }
@@ -273,7 +280,7 @@ Service::internalRenderSlot()
 //             << m_frameCache.size() << "entries";
 //    qDebug() << "id:" << cacheId;
     struct Scope {
-        ~Scope() { qDebug() << "internalRenderSlot done"; } }
+        ~Scope() { /*qDebug() << "internalRenderSlot done";*/ } }
     debugScopeGuard;
 
     auto cachedImage = m_frameCache.object( cacheId );
@@ -300,6 +307,7 @@ Service::internalRenderSlot()
 
     // render the frame if needed
     if ( m_frameImage.isNull() ) {
+
         if ( pixelPipelineCacheSettings().enabled ) {
             if ( pixelPipelineCacheSettings().interpolated ) {
                 if ( ! m_cachedPPinterp ) {
@@ -307,7 +315,7 @@ Service::internalRenderSlot()
                     m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
                                               pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
+                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage, m_displayAxisX, m_displayAxisY );
             }
             else {
                 if ( ! m_cachedPP ) {
@@ -315,11 +323,11 @@ Service::internalRenderSlot()
                     m_cachedPP-> cache( * m_pixelPipelineRaw,
                                         pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage );
+                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage, m_displayAxisX, m_displayAxisY );
             }
         }
         else {
-            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
+            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage, m_displayAxisX, m_displayAxisY );
         }
     }
 

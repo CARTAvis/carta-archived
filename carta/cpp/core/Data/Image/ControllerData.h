@@ -8,6 +8,8 @@
 #include "State/StateInterface.h"
 #include "Data/IColoredView.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/AxisInfo.h"
+#include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include <QImage>
 #include <memory>
@@ -125,6 +127,13 @@ private:
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
+    /**
+     * Get label format information for the given axis and type.
+     * @param axisIndex - the plotting index of the axis (0 or 1).
+     * @param axisType - the type of the axis (declination, ra, etc )
+     * @return - information about how the axis labels should be formatted.
+     */
+    Carta::Lib::AxisLabelInfo _getAxisLabelInfo( int axisIndex, Carta::Lib::AxisInfo::KnownType axisType ) const;
     /**
      * Return the number of frames for the given axis in the image.
      * @param type  - the axis for which a frame count is needed.

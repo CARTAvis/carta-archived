@@ -17,6 +17,10 @@ DummyGridRenderer::DummyGridRenderer()
 }
 
 void
+DummyGridRenderer::setAxisPermutations( std::vector<int> )
+{}
+
+void
 DummyGridRenderer::setInputImage( Image::ImageInterface::SharedPtr )
 { }
 
@@ -48,16 +52,12 @@ void
 DummyGridRenderer::setGridLinesVisible( bool )
 { }
 
-void
-DummyGridRenderer::setAxisLabel( int axisIndex, const QString& axisLabel ){
+void DummyGridRenderer::setAxisLabelInfo( int, const Carta::Lib::AxisLabelInfo& ){
+
 }
 
 void
-DummyGridRenderer::setAxisLabelLocation( int, const QString& ){
-}
-
-void
-DummyGridRenderer::setAxisLabelFormat( int, const QString& ){
+DummyGridRenderer::setAxisLabel( int, const QString& ){
 }
 
 void

@@ -104,6 +104,28 @@ private:
     void _setDisplayAxes(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes );
 
     /**
+     * Set a particular axis type to be one of the display axes.
+     * @param axisType - the type of axis.
+     * @param axisIndex - a pointer to the display axis index.
+     * @return true if the specified display axis changes; false otherwise.
+     */
+    bool _setDisplayAxis( Carta::Lib::AxisInfo::KnownType axisType, int* axisIndex );
+
+    /**
+     * Returns the index of the axis of the given type in the image or -1 if there is
+     * no such axis
+     * @param axisType - the type of axis.
+     * @return the index of the axis in the image or -1 if there is no such axis.
+     */
+    int _getAxisIndex( Carta::Lib::AxisInfo::KnownType axisType ) const;
+
+    /**
+     * Return a list of the current axis permutations.
+     * @return a list showing the current axis permutations.
+     */
+    std::vector<int> _getAxisPerms() const;
+
+    /**
      * Return a list of axes in the image.
      * @return - a list of axes that are present in the image.
      */
@@ -292,17 +314,23 @@ private:
      * @return the raw data or nullptr if there is none.
      */
     NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
+
+    /**
+     * Returns the raw data for the current view.
+     * @return the raw data for the current view or nullptr if there is none.
+     */
     NdArray::RawViewInterface* _getRawDataCurrent( ) const;
+
     //Returns an identifier for the current image slice being rendered.
     QString _getViewIdCurrent() const;
-    void _getHiddenFrameSlice( SliceND* frameSlice, int axisIndex ) const;
     int _getQuantileCacheIndex() const;
+
     //Initialize static objects.
     void _initializeSingletons( );
 
     /**
      * Return a QImage representation of this data.
-     * @param frameIndex the index of the spectral coordinate to load.
+     * @param -frames a list of frames to load, one for each axis.
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
@@ -348,6 +376,11 @@ private:
      */
     void _setTransformData( const QString& name );
 
+    /**
+     * Update the data when parameters that govern data selection have changed
+     * such as when different display axes have been selected.
+     */
+    std::shared_ptr<NdArray::RawViewInterface> _updateRenderedView();
 
     /**
      * Resize the view of the image.

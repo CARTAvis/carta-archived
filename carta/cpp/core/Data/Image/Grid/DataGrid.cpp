@@ -105,12 +105,27 @@ QString DataGrid::_getFormat( const Carta::State::StateInterface& state, const Q
     return format;
 }
 
-QString DataGrid::_getFormatDisplay( const Carta::State::StateInterface& state,
-        const QString& direction ) const {
-    QString format = _getFormat( state, direction );
-    int decimals = state.getValue<int>( LABEL_DECIMAL_PLACES );
-    QString displayFormat = m_formats->_getDisplayFormat( format, decimals );
-    return displayFormat;
+
+
+
+
+Carta::Lib::AxisLabelInfo DataGrid::_getAxisLabelInfo( int axisIndex,
+        Carta::Lib::AxisInfo::KnownType axisType ) const {
+
+    Carta::Lib::AxisLabelInfo info;
+    int precision= m_state.getValue<int>(LABEL_DECIMAL_PLACES );
+    info.setPrecision( precision );
+    QString labelLocation = _getLabelLocation( m_state, axisIndex );
+    Carta::Lib::AxisLabelInfo::Locations location = m_formats->getAxisLabelLocation( labelLocation );
+    info.setLocation( location );
+
+    QString format = _getFormat( m_state, labelLocation );
+    if ( m_formats->isDefault( format ) ){
+        format = m_formats->getDefaultFormatForAxis( axisType );
+    }
+    Carta::Lib::AxisLabelInfo::Formats axisFormat = m_formats->getAxisLabelFormat( format );
+    info.setFormat( axisFormat );
+    return info;
 }
 
 QString DataGrid::_getLabelLocation( const Carta::State::StateInterface& state, int axisIndex ) const {
@@ -416,15 +431,6 @@ void DataGrid::_resetGridRenderer(){
         Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
         m_wcsGridRenderer-> setSkyCS( index );
 
-        int axisCount = 2;
-        for ( int i = 0; i < axisCount; i++ ){
-            QString labelLocation = _getLabelLocation( m_state, i );
-            m_wcsGridRenderer->setAxisLabelLocation( i, labelLocation );
-            if ( labelLocation.length() > 0 ){
-                QString format = _getFormatDisplay( m_state, labelLocation );
-                m_wcsGridRenderer->setAxisLabelFormat( i, format );
-            }
-        }
     }
 }
 

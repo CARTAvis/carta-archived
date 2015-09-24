@@ -22,6 +22,8 @@
 #include <QFont>
 
 class QImage;
+class AstFrame;
+class AstFrameSet;
 
 namespace WcsPlotterPluginNS
 {
@@ -67,6 +69,9 @@ public:
     void
     setInputRect( const QRectF & rect );
 
+    void
+    setAxisPermutation( std::vector<int>& perm );
+
     /// read/write access to indexed fonts
     std::vector<QFont> & fonts() { return m_qfonts; }
 
@@ -105,11 +110,15 @@ protected:
     QRectF m_orect, m_irect;
     std::vector<QPen> m_pens;
     std::vector<QFont> m_qfonts;
+    std::vector<int> m_axisPerms;
     double m_densityModifier = 1.0;
 
     int m_shadowPenIndex;
 //    QPen m_shadowPen = QPen( QColor( 0, 0, 0, 0), 1);
 
     VGComposer * m_vgc = nullptr;
+
+private:
+    AstFrame* _permuteAxes( AstFrameSet* frameSet ) const;
 };
 }

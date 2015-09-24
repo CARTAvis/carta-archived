@@ -7,6 +7,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/IWcsGridRenderService.h"
+#include "CartaLib/AxisInfo.h"
 #include <QColor>
 #include <QObject>
 #include <QTimer>
@@ -29,6 +30,9 @@ public:
     ~AstWcsGridRenderService();
 
     virtual void
+    setAxisPermutations( std::vector<int> perms ) override;
+
+    virtual void
     setInputImage( Image::ImageInterface::SharedPtr image ) override;
 
     virtual void
@@ -43,14 +47,10 @@ public:
     virtual JobId
     startRendering( JobId jobId = 0) override;
 
+    virtual void setAxisLabelInfo( int axisIndex, const Carta::Lib::AxisLabelInfo& labelInfo ) override;
+
     virtual void
     setAxisLabel( int axisIndex, const QString& axisLabel ) override;
-
-    virtual void
-    setAxisLabelLocation( int axisIndex, const QString& edge ) override;
-
-    virtual void
-    setAxisLabelFormat( int axisIndex, const QString& formatStr ) override;
 
     virtual void
     setAxesVisible( bool flag ) override;
@@ -98,6 +98,11 @@ private slots:
 //    dbgSlot();
 
 private:
+
+    //Translate an enumerated type and precision to a string the AST library understands.
+    QString _getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat, int decimals ) const;
+    //Translate an enumerated position to a string the AST library understands.
+    QString _getDisplayLocation( const Carta::Lib::AxisLabelInfo::Locations& labelLocation ) const;
     //Don't draw tick marks.
     void _turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp);
     //Don't label a particular axis
@@ -114,9 +119,11 @@ private:
     bool m_internalLabels = false;
     bool m_emptyGridFlag = true;
 
+    //Main title of the axis labels.
     QList<QString> m_labels { "","" };
-    QList<QString> m_labelLocations = {"left","bottom"};
-    QList<QString> m_labelFormats = { "", "" };
+
+    //Information about the formatting of axis labels.
+    QVector<Carta::Lib::AxisLabelInfo> m_labelInfos;
 
     struct Pimpl;
     std::unique_ptr < Pimpl > m_pimpl; // = nullptr;
@@ -143,6 +150,9 @@ private:
     // how long to make the tick marks.
     double m_tickLength = .01;
 
+    std::vector<int> m_axisPerms;
+
+    //Whether or not to show axis labels
     bool m_axisLabels = false;
 
     // another debug timer

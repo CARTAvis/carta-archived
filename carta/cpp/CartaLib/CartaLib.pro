@@ -20,6 +20,7 @@ SOURCES += \
     PixelType.cpp \
     Slice.cpp \
     AxisInfo.cpp \
+    AxisLabelInfo.cpp \
     ICoordinateFormatter.cpp \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
@@ -47,6 +48,7 @@ HEADERS += \
     Nullable.h \
     Slice.h \
     AxisInfo.h \
+    AxisLabelInfo.h \
     ICoordinateFormatter.h \
     IPlotLabelGenerator.h \
     Hooks/LoadAstroImage.h \

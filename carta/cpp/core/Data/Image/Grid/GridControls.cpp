@@ -525,7 +525,8 @@ QStringList GridControls::_parseColorParams( const QString& params, const QStrin
 
 void GridControls::_resetState( const Carta::State::StateInterface& otherState ){
     m_dataGrid->_resetState( otherState );
-    m_state.setObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
+    QString gridStateStr = m_dataGrid->_getState().toString();
+    m_state.setObject( DataGrid::GRID, gridStateStr );
     m_state.flushState();
 }
 
@@ -561,8 +562,8 @@ QString GridControls::setAxis( const QString& axisId, const QString& purpose ){
     bool axisChanged = false;
     QString result = m_dataGrid->_setAxis( axisId, purpose, &axisChanged );
     if ( axisChanged ){
-        _notifyAxesChanged();
         _updateGrid();
+        _notifyAxesChanged();
     }
     return result;
 }
@@ -780,10 +781,12 @@ QString GridControls::setTheme( const QString& theme ){
 void GridControls::_updateGrid(){
     bool applyAll = m_state.getValue<bool>( ALL );
     Carta::State::StateInterface gridState = m_dataGrid->_getState();
-    emit gridChanged( gridState, applyAll );
     QString gridStateStr = gridState.toString();
+
     m_state.setObject( DataGrid::GRID, gridStateStr );
     m_state.flushState();
+    emit gridChanged( gridState, applyAll );
+
 }
 
 GridControls::~GridControls(){

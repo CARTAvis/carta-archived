@@ -34,25 +34,38 @@ qx.Class.define(
             }
             
             for (var i = 0; i < animators.length; i++ ){
-                var animId = animators[i].type;
-                //Go through the existing animators and see if there is already one
-                //with the given title.
-                var animIndex = -1;
-                for ( var j = 0; j < this.m_animators.length; j++ ){
-                    if ( this.m_animators[j].getTitle() == animId ){
-                        animIndex = j;
-                        break;
+                if ( animators[i].visible ){
+                    var animId = animators[i].type;
+                    //Go through the existing animators and see if there is already one
+                    //with the given title.
+                    var animator = this._getAnimator( animId );
+                    //Add a new animator
+                    if ( animator === null ) {
+                        var anim = new skel.boundWidgets.Animator(animId, this.m_identifier);
+                        anim.addListener( "movieStart", this._movieStarted, this );
+                        anim.addListener( "movieStop", this._movieStopped, this );
+                        this.m_animators.push( anim );
                     }
                 }
-
-                //Add a new animator
-                if ( animIndex == -1 ) {
-                    var anim = new skel.boundWidgets.Animator(animId, this.m_identifier);
-                    anim.addListener( "movieStart", this._movieStarted, this );
-                    anim.addListener( "movieStop", this._movieStopped, this );
-                    this.m_animators.push( anim );
+            }
+        },
+        
+        /**
+         * Returns the animator of the corresponding type or null if there is no
+         * such animator.
+         * @param type {String} - the type of axis being animated.
+         * @return {skel.boundWidgets.Animator} - the corresponding animator.
+         */
+        _getAnimator : function( type ){
+            var target = null;
+            if ( this.m_animators !== null ){
+                for ( var i = 0; i < this.m_animators.length; i++ ){
+                    if ( this.m_animators[i].getTitle() == type ){
+                        target = this.m_animators[i];
+                    }
                 }
             }
+            return target;
         },
         
         /**
@@ -90,16 +103,11 @@ qx.Class.define(
         isVisible : function( animId ){
             var visible = false;
             if ( this.m_animators !== null ){
-                var animIndex = -1;
-                for ( var i = 0; i < this.m_animators.length; i++ ){
-                    if ( this.m_animators[i].getTitle() == animId ){
-                        animIndex = i;
-                        break;
+                var animator = this._getAnimator( animId );
+                if ( animator !== null ){
+                    if ( this.m_content.indexOf( animator ) >= 0 ){
+                        visible = true;
                     }
-                }
-                
-                if ( this.m_content.indexOf( this.m_animators[animIndex] ) >= 0 ){
-                    visible = true;
                 }
             }
             return visible;
@@ -127,6 +135,7 @@ qx.Class.define(
             }
         },
         
+        
         /**
          * Remove animators that are for axes that do not exist for currently loaded
          * images.
@@ -138,22 +147,22 @@ qx.Class.define(
                 for ( var i = this.m_animators.length-1; i >= 0; i-- ){
                     var animIndex = -1;
                     for ( var j = 0; j < animators.length; j++ ){
-                        if ( animators[j] == this.m_animators[i].getTitle() ){
-                            animIndex = j;
-                            break;
+                        if ( animators[j].type == this.m_animators[i].getTitle() ){
+                            if ( !animators[j].visible ){
+                                animIndex = j;
+                                break;
+                            }
                         }
                     }
                    
                     //The animator does not still exists
-                    if ( animIndex < 0 ){
-                        if ( i < this.m_animators.length ){
-                            //Remove the animator from the view
-                            if ( this.m_content.indexOf( this.m_animators[i] ) >= 0 ){
-                               this.m_content.remove( this.m_animators[i] );
-                            }
-                            //Remove it from the list
-                            this.m_animators.splice(i, 1 );
+                    if ( animIndex >= 0 ){
+                        //Remove the animator from the view
+                        if ( this.m_content.indexOf( this.m_animators[i] ) >= 0 ){
+                           this.m_content.remove( this.m_animators[i] );
                         }
+                        //Remove it from the list
+                        this.m_animators.splice(i, 1 );
                     }
                 }
             }
@@ -187,15 +196,18 @@ qx.Class.define(
             for ( var i = 0; i < animators.length; i++ ){
                 var animId = animators[i].type;
                 var visible = animators[i].visible;
-                var contentIndex = this.m_content.indexOf( this.m_animators[i] );
-                if ( visible ){
-                    if ( contentIndex < 0 ){
-                        this.m_content.add( this.m_animators[i] );
+                var animator = this._getAnimator( animId );
+                if ( animator != null ){
+                    var contentIndex = this.m_content.indexOf( animator );
+                    if ( visible ){
+                        if ( contentIndex < 0 ){
+                            this.m_content.add( animator );
+                        }
                     }
-                }
-                else {
-                    if ( contentIndex >= 0 ){
-                        this.m_content.remove( this.m_animators[i] );
+                    else {
+                        if ( contentIndex >= 0 ){
+                            this.m_content.remove( animator );
+                        }
                     }
                 }
             }

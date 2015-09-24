@@ -100,7 +100,7 @@ void DataContours::_initializeDefaultState(){
 
     int contourCount = m_contours.size();
     m_state.insertArray( CONTOURS, contourCount );
-    m_state.insertValue<bool>( CONTOUR_DRAW, /*true*/false );
+    m_state.insertValue<bool>( CONTOUR_DRAW, true );
     m_state.insertValue<QString>(SET_NAME, "");
 
     m_state.flushState();

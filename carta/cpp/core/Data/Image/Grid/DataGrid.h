@@ -44,10 +44,14 @@ private:
     int _getMargin( const QString& direction ) const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getDisplayAxes() const;
     QString _getFormat( const Carta::State::StateInterface& state, const QString& direction ) const;
-    //Return a format that the renderer can understand.
-    QString _getFormatDisplay( const Carta::State::StateInterface& state,
-            const QString& direction ) const;
     QString _getLabelLocation(const Carta::State::StateInterface& state, int axisIndex ) const;
+    /**
+     * Return axis format information for the indicated plot axis (0 or 1) and axis type.
+     * @param axisIndex - a plotted display axis (0 or 1).
+     * @param axisType - the underlying type of axis (RA,DEC, etc).
+     * @return information about how axis labels should be formatted.
+     */
+    Carta::Lib::AxisLabelInfo _getAxisLabelInfo( int axisIndex, Carta::Lib::AxisInfo::KnownType axisType ) const;
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> _getRenderer();
     /**
      * Returns the currently selected coordinate system.

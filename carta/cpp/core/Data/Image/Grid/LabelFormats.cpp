@@ -65,6 +65,15 @@ QString LabelFormats::getDefaultFormat( const QString& direction ) const {
     return format;
 }
 
+QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis ) const {
+    QString defaultFormat = FORMAT_NONE;
+    if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON  ||
+         axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT){
+        defaultFormat = FORMAT_DECIMAL_DEG;
+    }
+    return defaultFormat;
+}
+
 QString LabelFormats::getDirection( const QString& direction ) const {
     QString actualDirection;
     if ( QString::compare( direction, EAST, Qt::CaseInsensitive) == 0 ){
@@ -80,6 +89,14 @@ QString LabelFormats::getDirection( const QString& direction ) const {
         actualDirection = SOUTH;
     }
     return actualDirection;
+}
+
+bool LabelFormats::isDefault( const QString& format ) const {
+    bool defaultFormat = false;
+    if ( QString::compare( format, FORMAT_DEFAULT, Qt::CaseInsensitive) == 0 ){
+        defaultFormat = true;
+    }
+    return defaultFormat;
 }
 
 QString LabelFormats::_addDecimalSeconds( const QString& baseFormat, int decimals ) const {
@@ -119,6 +136,42 @@ QString LabelFormats::getFormat( const QString& format ) const {
         }
     }
     return actualFormat;
+}
+
+Carta::Lib::AxisLabelInfo::Formats LabelFormats::getAxisLabelFormat( const QString& formatStr ) const {
+    QString actualFormat = getFormat( formatStr );
+    Carta::Lib::AxisLabelInfo::Formats target = Carta::Lib::AxisLabelInfo::Formats::OTHER;
+    if ( actualFormat == FORMAT_DEG_MIN_SEC ){
+        target = Carta::Lib::AxisLabelInfo::Formats::DEG_MIN_SEC;
+    }
+    else if ( actualFormat == FORMAT_DECIMAL_DEG ){
+        target = Carta::Lib::AxisLabelInfo::Formats::DECIMAL_DEG;
+    }
+    else if ( actualFormat == FORMAT_HR_MIN_SEC ){
+        target = Carta::Lib::AxisLabelInfo::Formats::HR_MIN_SEC;
+    }
+    else if ( actualFormat == FORMAT_NONE ){
+        target = Carta::Lib::AxisLabelInfo::Formats::NONE;
+    }
+    return target;
+}
+
+Carta::Lib::AxisLabelInfo::Locations LabelFormats::getAxisLabelLocation( const QString& locationStr ) const {
+    QString actualLocation = getDirection( locationStr );
+    Carta::Lib::AxisLabelInfo::Locations target = Carta::Lib::AxisLabelInfo::Locations::OTHER;
+    if ( actualLocation == EAST ){
+        target = Carta::Lib::AxisLabelInfo::Locations::EAST;
+    }
+    else if ( actualLocation == WEST ){
+        target = Carta::Lib::AxisLabelInfo::Locations::WEST;
+    }
+    else if ( actualLocation == NORTH ){
+        target = Carta::Lib::AxisLabelInfo::Locations::NORTH;
+    }
+    else if ( actualLocation == SOUTH ){
+        target = Carta::Lib::AxisLabelInfo::Locations::SOUTH;
+    }
+    return target;
 }
 
 

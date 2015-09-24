@@ -8,7 +8,7 @@
 #include "CartaLib/LinearMap.h"
 #include <QPainter>
 #include <QTime>
-
+#include <set>
 
 
 typedef Carta::Lib::LinearMap1D LinMap;
@@ -47,8 +47,8 @@ struct AstWcsGridRenderService::Pimpl
 };
 
 AstWcsGridRenderService::AstWcsGridRenderService()
-    : IWcsGridRenderService()
-{
+    : IWcsGridRenderService(),
+      m_labelInfos(2){
     // initialize private members, starting with pimpl
     m_pimpl.reset( new Pimpl );
     // make default pens
@@ -235,6 +235,7 @@ AstWcsGridRenderService::renderNow()
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
     sgp.setFitsHeader( m().fitsHeader.join( "" ) );
+    sgp.setAxisPermutation( m_axisPerms );
     sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
@@ -278,16 +279,23 @@ AstWcsGridRenderService::renderNow()
             int axisIndex = i+ 1;
             sgp.setPlotOption( QString("TextLab(%1)=1").arg(axisIndex) );
             if ( m_labels[i].length() > 0 ){
-                sgp.setPlotOption( QString("Label(%1)=%2")
-                        .arg(axisIndex).arg( m_labels[i]) );
+                QString label = QString( "Label(%1)=%2").arg(axisIndex).arg(m_labels[i]);
+                sgp.setPlotOption( label );
             }
-            if ( m_labelFormats[i].length() > 0 ){
-                sgp.setPlotOption( QString("Format(%1)=%2")
-                        .arg(axisIndex).arg( m_labelFormats[i]) );
-            }
-            if ( m_labelLocations[i].length() > 0 ){
-                sgp.setPlotOption( QString("Edge(%1)=%2")
-                        .arg(axisIndex).arg( m_labelLocations[i]) );
+        }
+        int labelInfoSize = m_labelInfos.size();
+        for ( int i = 0; i < labelInfoSize; i++ ){
+            int axisIndex = i + 1;
+            Carta::Lib::AxisLabelInfo::Formats labelFormat = m_labelInfos[i].getFormat();
+            int precision = m_labelInfos[i].getPrecision();
+            QString completeFormat = _getDisplayFormat( labelFormat, precision );
+            QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
+            sgp.setPlotOption( format );
+            Carta::Lib::AxisLabelInfo::Locations labelLocation = m_labelInfos[i].getLocation();
+            QString location = _getDisplayLocation( labelLocation );
+            if ( location.length() > 0 ){
+                QString edgeStr =QString("Edge(%1)=%2").arg(axisIndex).arg( location );
+                sgp.setPlotOption( edgeStr );
             }
         }
     }
@@ -332,6 +340,8 @@ AstWcsGridRenderService::renderNow()
 
     sgp.setShadowPenIndex( si( Element::Shadow ) );
 
+
+
 //    sgp.setPlotOption( "Format(1)=\"+tms.10\"");
 //            sgp.setPlotOption( "Format(1)=\"gtms\"");
     // grid density
@@ -362,7 +372,7 @@ AstWcsGridRenderService::renderNow()
         } // switch
     }
 
-    if ( ! system.isEmpty() ) {
+    if ( ! system.isEmpty() ){
         sgp.setPlotOption( "System=" + system );
     }
 
@@ -379,6 +389,27 @@ AstWcsGridRenderService::renderNow()
     // Report the result.
     emit done( m_vgc.vgList(), m().lastSubmittedJobId );
 } // startRendering
+
+void AstWcsGridRenderService::setAxisPermutations( std::vector<int> perms ){
+    if ( perms.size() != m_axisPerms.size()){
+        m_axisPerms = perms;
+        m_vgValid = false;
+    }
+    else {
+        int permCount = perms.size();
+        //Check that the elements are unique
+        std::set<int> permsUnique( perms.begin(), perms.end() );
+        int uniqueCount = permsUnique.size();
+        CARTA_ASSERT( uniqueCount == permCount );
+        for ( int i = 0; i < permCount; i++ ){
+            if ( perms[i] != m_axisPerms[i] ){
+                CARTA_ASSERT( perms[i] >= 1 && perms[i] <= permCount );
+                m_axisPerms[i] = perms[i];
+                m_vgValid = false;
+            }
+        }
+    }
+}
 
 void AstWcsGridRenderService::setAxesVisible( bool flag ){
     if ( m_axes != flag ){
@@ -424,6 +455,8 @@ AstWcsGridRenderService::setSkyCS( Carta::Lib::KnownSkyCS cs )
     }
 }
 
+
+
 void
 AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, const QPen & pen )
 {
@@ -447,6 +480,16 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
     }
 } // setPen
 
+
+void AstWcsGridRenderService::setAxisLabelInfo( int axisIndex, const Carta::Lib::AxisLabelInfo& labelInfo ){
+    CARTA_ASSERT( axisIndex == 0 || axisIndex == 1 );
+
+    if ( m_labelInfos[axisIndex] != labelInfo ){
+        m_vgValid = false;
+        m_labelInfos[axisIndex] = labelInfo;
+    }
+}
+
 void
 AstWcsGridRenderService::setAxisLabel( int axisIndex, const QString& label ){
     CARTA_ASSERT( axisIndex == 0 || axisIndex ==1 );
@@ -457,24 +500,44 @@ AstWcsGridRenderService::setAxisLabel( int axisIndex, const QString& label ){
     }
 }
 
-void
-AstWcsGridRenderService::setAxisLabelLocation( int axisIndex, const QString& edge ){
-    CARTA_ASSERT( axisIndex == 0 || axisIndex ==1 );
-    CARTA_ASSERT( edge == "top" || edge == "bottom" || edge =="left" || edge=="right" || edge=="");
-    if ( m_labelLocations[axisIndex] != edge ){
-        m_vgValid = false;
-        m_labelLocations[axisIndex] = edge;
+QString AstWcsGridRenderService::_getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat, int decimals ) const {
+    QString displayFormat = "";
+    if ( baseFormat == Carta::Lib::AxisLabelInfo::Formats::DEG_MIN_SEC ){
+        displayFormat = "dms";
     }
+    else if ( baseFormat == Carta::Lib::AxisLabelInfo::Formats::DECIMAL_DEG ){
+        displayFormat = "d";
+    }
+    else if ( baseFormat == Carta::Lib::AxisLabelInfo::Formats::HR_MIN_SEC ){
+        displayFormat = "hms";
+    }
+
+    if ( displayFormat.length() > 0 ){
+        if ( decimals > 0 ){
+            displayFormat = displayFormat + "."+QString::number(decimals);
+        }
+    }
+    return displayFormat;
 }
 
-void
-AstWcsGridRenderService::setAxisLabelFormat( int axisIndex, const QString& formatStr ){
-    CARTA_ASSERT( axisIndex == 0 || axisIndex == 1 );
-    if ( m_labelFormats[axisIndex] != formatStr ){
-        m_vgValid = false;
-        m_labelFormats[axisIndex] = formatStr;
+QString AstWcsGridRenderService::_getDisplayLocation( const Carta::Lib::AxisLabelInfo::Locations& labelLocation ) const {
+    QString location = "";
+    if ( labelLocation == Carta::Lib::AxisLabelInfo::Locations::EAST ){
+        location = "left";
     }
+    else if ( labelLocation == Carta::Lib::AxisLabelInfo::Locations::WEST ){
+        location = "right";
+    }
+    else if ( labelLocation == Carta::Lib::AxisLabelInfo::Locations::NORTH ){
+        location = "top";
+    }
+    else if ( labelLocation == Carta::Lib::AxisLabelInfo::Locations::SOUTH ){
+        location = "bottom";
+    }
+    return location;
 }
+
+
 
 //const QPen &
 //AstWcsGridRenderService::pen( Carta::Lib::IWcsGridRenderService::Element e )

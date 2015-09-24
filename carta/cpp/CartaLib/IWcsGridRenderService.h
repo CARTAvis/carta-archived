@@ -6,6 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include <memory>
 
@@ -47,6 +48,12 @@ public:
         __count ///< internal, don't use
     };
 
+    /// set the new ordering for the axes in cases where the display axes are not
+    /// the first two axes in the image.  The perm list should match the dimensions
+    /// in the image and containing unique integers ranging from 1 to perms.size().
+    virtual void
+    setAxisPermutations( std::vector<int> perms ) = 0;
+
     /// set the input data, shold have at least 2 dimensions
     /// \note the data is not imporant, only meta data attached to this is important
     virtual void
@@ -71,14 +78,9 @@ public:
     virtual void
     setAxisLabel( int axisIndex, const QString& axisLabel ) = 0;
 
-    // set on which edge (top,bottom,left,right) the given axis should
-    // be drawn; setting the edge to "" will remove labelling for the axis.
+    //Set information about the axis labels.
     virtual void
-    setAxisLabelLocation( int axisIndex, const QString& edge ) = 0;
-
-    // set the format to use when labelling an axis.
-    virtual void
-    setAxisLabelFormat( int axisIndex, const QString& formatStr ) = 0;
+    setAxisLabelInfo( int axisIndex, const AxisLabelInfo& labelInfo ) = 0;
 
     //Set whether or not to draw axes/border.
     virtual void

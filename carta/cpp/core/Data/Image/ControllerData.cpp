@@ -4,14 +4,15 @@
 #include "DataSource.h"
 #include "DrawSynchronizer.h"
 #include "Data/Preferences/PreferencesSave.h"
-#include "CartaLib/IImage.h"
 #include "Data/Util.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
+
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include "CartaLib/IWcsGridRenderService.h"
 #include "../../ImageRenderService.h"
 #include "../../ImageSaveService.h"
-#include "CartaLib/IWcsGridRenderService.h"
+
 
 #include <QDebug>
 #include <QTime>
@@ -391,12 +392,21 @@ void ControllerData::_render( ){
                        renderSize.width() - leftMargin - rightMargin,
                        renderSize.height() - topMargin - bottomMargin );
 
-    QRectF inputRect(
-        imageService-> screen2img( outputRect.topLeft() ),
-        imageService-> screen2img( outputRect.bottomRight() ) );
+    QPointF topLeft = outputRect.topLeft();
+    QPointF bottomRight = outputRect.bottomRight();
+
+    std::vector<int> axisPerms = m_dataSource->_getAxisPerms();
+
+    QPointF topLeftInput = imageService-> screen2img( topLeft );
+    QPointF bottomRightInput = imageService->screen2img( bottomRight );
+
+    gridService->setAxisPermutations( axisPerms );
+
+    QRectF inputRect( topLeftInput, bottomRightInput );
 
     gridService-> setImageRect( inputRect );
     gridService-> setOutputRect( outputRect );
+
 
     std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawDataCurrent( ));
     m_drawSync->setInput( rawData );
@@ -410,10 +420,20 @@ void ControllerData::_render( ){
     gridService->setAxisLabel( 0, displayLabelX );
     gridService->setAxisLabel( 1, displayLabelY );
 
+    AxisInfo::KnownType horAxisType = m_dataSource->_getAxisXType();
+    Carta::Lib::AxisLabelInfo horAxisInfo = m_dataGrid->_getAxisLabelInfo( 0, horAxisType );
+    gridService->setAxisLabelInfo( 0, horAxisInfo );
+    AxisInfo::KnownType vertAxisType = m_dataSource->_getAxisYType();
+    Carta::Lib::AxisLabelInfo vertAxisInfo = m_dataGrid->_getAxisLabelInfo( 1, vertAxisType );
+    gridService->setAxisLabelInfo( 1, vertAxisInfo );
+
     bool contourDraw = m_dataContours->isContourDraw();
     bool gridDraw = m_dataGrid->_isGridVisible();
     m_drawSync-> start( contourDraw, gridDraw );
 }
+
+
+
 
 void ControllerData::_resetZoom(){
     if ( m_dataSource ){
@@ -436,9 +456,10 @@ QString ControllerData::_saveImage( const QString& saveName, double scale ){
         m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
                pipeline );
 
-        QString viewId = m_dataSource->_getViewIdCurrent();
+
         std::shared_ptr<NdArray::RawViewInterface> view( m_dataSource->_getRawDataCurrent());
         if ( view != nullptr ){
+            QString viewId = m_dataSource->_getViewIdCurrent();
             m_saveService->setInputView( view, viewId );
             PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
             int width = prefSave->getWidth();

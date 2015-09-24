@@ -102,6 +102,8 @@ bool Animator::_addAnimatorType( const QString& type, QString& animatorTypeId ){
     return animatorAdded;
 }
 
+
+
 QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
     QString result;
     if ( !m_animators.contains( type )){
@@ -158,12 +160,14 @@ void Animator::_axesChanged(){
             }
         }
     }
+
     //Remove any existing animators if they are no longer supported.
     QList<QString> keys = m_animators.keys();
     int animCount = keys.size();
     for ( int i = 0; i < animCount; i++ ){
         QString animType = m_animators[keys[i]]->getType();
-        if ( !existingAnimators.contains( animType ) && animType != Selection::IMAGE ){
+        bool existing = existingAnimators.contains( animType );
+        if ( !existing && animType != Selection::IMAGE ){
             removeAnimator( animType );
         }
     }
@@ -394,7 +398,7 @@ QString Animator::removeAnimator( const QString& type ){
         m_animators[type]->setVisible( false );
         _adjustStateAnimatorTypes();
     }
-    else if ( type != Selection::IMAGE && type != Selection::CHANNEL ){
+    else if ( type != Selection::IMAGE ){
         result= "Error removing animator; unrecognized type="+type;
         Util::commandPostProcess( result);
     }
@@ -567,8 +571,10 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
         it != animAxes.end(); it++ ){
 
         QString animName = AxisMapper::getPurpose( *it );
-        QString animId;
-        addAnimator( animName , animId );
+        if ( !m_animators.contains( animName )){
+            QString animId;
+            addAnimator( animName , animId );
+        }
     }
 }
 

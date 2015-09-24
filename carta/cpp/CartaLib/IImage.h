@@ -321,9 +321,6 @@ public:
     virtual const VI &
     dims() const = 0;
 
-    /// return the index of the specified axis in the image.
-    virtual int getAxisIndex( Carta::Lib::AxisInfo::KnownType axis ) const = 0;
-
     /// Used to determine the type of the image (raster, contour, vector).
     /// May need to evolve.
     /// \todo I am not sure if this belongs here... This interface has been
