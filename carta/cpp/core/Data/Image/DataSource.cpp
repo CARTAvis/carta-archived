@@ -28,8 +28,7 @@ CoordinateSystems* DataSource::m_coords = nullptr;
 DataSource::DataSource() :
     m_image( nullptr ),
     m_axisIndexX( 0 ),
-    m_axisIndexY( 1 ),
-    m_frames( static_cast<int>(AxisInfo::KnownType::OTHER) ){
+    m_axisIndexY( 1 ){
         m_cmapUseCaching = true;
         m_cmapUseInterpolatedCaching = true;
         m_cmapCacheSize = 1000;
@@ -58,6 +57,27 @@ bool DataSource::_contains(const QString& fileName) const {
     }
     return representsData;
 }
+
+std::vector<int> DataSource::_fitFramesToImage( const vector<int>& sourceFrames ) const {
+    int sourceFrameCount = sourceFrames.size();
+    std::vector<int> outputFrames( sourceFrameCount );
+    if ( m_image ){
+        for ( int i = 0; i < sourceFrameCount; i++ ){
+            AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
+            int axisIndex = _getAxisIndex( axisType );
+            //The image doesn't h_ave this particular axis.
+            if ( axisIndex < 0 ) {
+                outputFrames[i] = 0;
+            }
+            //The image has the axis so make the frame bounded by the image size.
+            else {
+                outputFrames[i] = Carta::Lib::clamp( sourceFrames[i], 0, m_image-> dims()[axisIndex] - 1 );
+            }
+        }
+    }
+    return outputFrames;
+}
+
 
 std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     std::vector<AxisInfo::KnownType> types;
@@ -121,7 +141,8 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisZTypes() const {
 }
 
 QStringList DataSource::_getCoordinates( double x, double y,
-        Carta::Lib::KnownSkyCS system) const{
+        Carta::Lib::KnownSkyCS system, const std::vector<int>& frames ) const{
+    std::vector<int> mFrames = _fitFramesToImage( frames );
     CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
     cf-> setSkyCS( system );
     int imageSize = m_image->dims().size();
@@ -136,7 +157,7 @@ QStringList DataSource::_getCoordinates( double x, double y,
         else {
             AxisInfo::KnownType axisType = _getAxisType( i );
             int axisIndex = static_cast<int>( axisType );
-            pixel[i] = m_frames[axisIndex];
+            pixel[i] = mFrames[axisIndex];
         }
     }
     QStringList list = cf-> formatFromPixelCoordinate( pixel );
@@ -145,7 +166,7 @@ QStringList DataSource::_getCoordinates( double x, double y,
 
 
 QString DataSource::_getCursorText( int mouseX, int mouseY,
-        Carta::Lib::KnownSkyCS cs ){
+        Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames ){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
@@ -162,7 +183,7 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
         QString coordName = m_coords->getName( cf->skyCS() );
         //out << "Default sky cs:" << coordName << "\n";
 
-        QString pixelValue = _getPixelValue( round(imgX), round(imgY) );
+        QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
         out << pixelValue << " " << pixelUnits;
         out <<"Pixel:" << imgX << "," << imgY << "\n";
@@ -175,7 +196,7 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
             ais.push_back( ai );
         }
 
-        QStringList coordList = _getCoordinates( imgX, imgY, cs);
+        QStringList coordList = _getCoordinates( imgX, imgY, cs, frames);
         for ( size_t i = 0 ; i < ais.size() ; i++ ) {
             out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
         }
@@ -220,12 +241,12 @@ QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
-QString DataSource::_getPixelValue( double x, double y) const {
+QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
     QString pixelValue = "";
     int valX = (int)(round(x));
     int valY = (int)(round(y));
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
-        NdArray::RawViewInterface* rawData = _getRawDataCurrent();
+        NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
             double val =  view.get( { valX, valY } );
@@ -418,7 +439,7 @@ NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd
 }
 
 
-int DataSource::_getQuantileCacheIndex() const {
+int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     int cacheIndex = 0;
     int imageSize = m_image->dims().size();
     int mult = 1;
@@ -426,7 +447,7 @@ int DataSource::_getQuantileCacheIndex() const {
         if ( i != m_axisIndexX && i != m_axisIndexY ){
             AxisInfo::KnownType axisType = _getAxisType( i );
             int index = static_cast<int>( axisType );
-            int frame = m_frames[index];
+            int frame = frames[index];
             cacheIndex = cacheIndex + mult * frame;
             mult = mult * m_image->dims()[i];
         }
@@ -434,8 +455,9 @@ int DataSource::_getQuantileCacheIndex() const {
     return cacheIndex;
 }
 
-NdArray::RawViewInterface* DataSource::_getRawDataCurrent( ) const {
+NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
     NdArray::RawViewInterface* rawData = nullptr;
+    std::vector<int> mFrames = _fitFramesToImage( frames );
     if ( m_image ){
         int imageDim =m_image->dims().size();
         SliceND nextSlice = SliceND();
@@ -443,9 +465,10 @@ NdArray::RawViewInterface* DataSource::_getRawDataCurrent( ) const {
         for ( int i = 0; i < imageDim; i++ ){
             if ( i != m_axisIndexX && i != m_axisIndexY ){
                 AxisInfo::KnownType type = _getAxisType( i );
-                int frameIndex = m_frames[static_cast<int>( type)];
-                slice.start( m_frames[frameIndex] );
-                slice.end( m_frames[frameIndex] + 1);
+                int axisIndex = static_cast<int>( type );
+                int frameIndex = mFrames[axisIndex];
+                slice.start( frameIndex );
+                slice.end( frameIndex + 1);
             }
             if ( i < imageDim - 1 ){
                 slice.next();
@@ -456,7 +479,7 @@ NdArray::RawViewInterface* DataSource::_getRawDataCurrent( ) const {
     return rawData;
 }
 
-QString DataSource::_getViewIdCurrent() const {
+QString DataSource::_getViewIdCurrent( const std::vector<int>& frames ) const {
    // We create an identifier consisting of the file name and -1 for the two display axes
    // and frame indices for the other axes.
    QString renderId = m_fileName;
@@ -464,7 +487,7 @@ QString DataSource::_getViewIdCurrent() const {
        int imageSize = m_image->dims().size();
        for ( int i = 0; i < imageSize; i++ ){
            AxisInfo::KnownType axisType = _getAxisType( i );
-           int axisFrame = m_frames[static_cast<int>(axisType)];
+           int axisFrame = frames[static_cast<int>(axisType)];
            QString prefix;
            //Hidden axis identified with an "f" and the index of the frame.
            if ( i != m_axisIndexX && i != m_axisIndexY ){
@@ -514,38 +537,19 @@ void DataSource::_initializeSingletons( ){
 void DataSource::_load(std::vector<int> frames,  double minClipPercentile, double maxClipPercentile){
     int frameSize = frames.size();
     CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
-    for ( int i = 0; i < frameSize; i++ ){
-        AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-        int axisIndex = _getAxisIndex( axisType );
-        //The image doesn't h_ave this particular axis.
-        if ( axisIndex < 0 ) {
-            m_frames[i] = 0;
-        }
-        //The image has the axis so make the frame bounded by the image size.
-        else {
-            m_frames[i] = Carta::Lib::clamp( frames[i], 0, m_image-> dims()[axisIndex] - 1 );
-        }
-    }
-
-    std::shared_ptr<NdArray::RawViewInterface> view( _getRawDataCurrent() );
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( mFrames ) );
 
     //Update the clip values
-    _updateClips( view,  minClipPercentile, maxClipPercentile );
+    _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
 
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 
-    QString renderId = _getViewIdCurrent();
+    QString renderId = _getViewIdCurrent( mFrames );
     m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
 }
 
-std::shared_ptr<NdArray::RawViewInterface> DataSource::_updateRenderedView(){
-    // get a view of the data using the slice description and make a shared pointer out of it
-    std::shared_ptr<NdArray::RawViewInterface> view( _getRawDataCurrent() );
-    // tell the render service to render this job
-    QString renderId = _getViewIdCurrent();
-    m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
-    return view;
-}
+
 
 
 void DataSource::_resetZoom(){
@@ -656,7 +660,8 @@ bool DataSource::_setDisplayAxis( AxisInfo::KnownType axisType, int* axisIndex )
     return displayAxisChanged;
 }
 
-void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTypes ){
+void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTypes,
+        const std::vector<int>& frames ){
     int displayAxisCount = displayAxisTypes.size();
     CARTA_ASSERT( displayAxisCount == 2 );
     bool axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
@@ -664,7 +669,8 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
     if ( axisXChanged || axisYChanged ){
         _resetPan();
         _resizeQuantileCache();
-        _updateRenderedView();
+        std::vector<int> mFrames = _fitFramesToImage( frames );
+        _updateRenderedView( mFrames );
     }
 }
 
@@ -693,10 +699,12 @@ void DataSource::setGamma( double gamma ){
 
 
 void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
-        double minClipPercentile, double maxClipPercentile ){
-    int quantileIndex = this->_getQuantileCacheIndex();
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    int quantileIndex = this->_getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex];
     NdArray::Double doubleView( view.get(), false );
+    int viewSize = doubleView.dims().size();
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, {minClipPercentile, maxClipPercentile });
     bool clipsChanged = false;
@@ -719,6 +727,15 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
             m_pixelPipeline-> setMinMax( newClips[0], newClips[1] );
         }
     }
+}
+
+std::shared_ptr<NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){
+    // get a view of the data using the slice description and make a shared pointer out of it
+    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( frames ) );
+    // tell the render service to render this job
+    QString renderId = _getViewIdCurrent( frames );
+    m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
+    return view;
 }
 
 void DataSource::_viewResize( const QSize& newSize ){

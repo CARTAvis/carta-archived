@@ -197,9 +197,10 @@ private:
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
+     * @param frames - list of image frames.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY);
+    QString _getCursorText( int mouseX, int mouseY, const std::vector<int>& frames );
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -251,12 +252,13 @@ private:
      * Return the value of the pixel at (x, y).
      * @param x the x-coordinate of the desired pixel
      * @param y the y-coordinate of the desired pixel.
+     * @param frames - list of image frames.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      *
      * Note the xy coordinates are expected to be in casa pixel coordinates, i.e.
      * the CENTER of the left-bottom-most pixel is 0.0,0.0.
      */
-    QString _getPixelValue( double x, double y ) const;
+    QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
 
     /**
      * Return the units of the pixels.
@@ -269,17 +271,22 @@ private:
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
      * @param system the desired coordinate system.
+     * @param frames - list of image frames.
      * @return the coordinates at pixel (x, y).
      */
-    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
+    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
+            const std::vector<int>& frames) const;
 
-    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage );
+    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage,
+            const std::vector<int>& frames );
 
     /**
      * Respond to a change in display axes.
      * @param displayAxisTypes - the x-, y-, and z- axes to display.
+     * @param frames - list of image frames.
      */
-    void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes );
+    void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes,
+            const std::vector<int>& frames );
     void _initializeState();
     void _initializeSingletons( );
 
@@ -302,8 +309,9 @@ private:
 
     /**
      * Generate a new QImage.
+     * @param frames - list of image frames.
      */
-    void _render( );
+    void _render( const std::vector<int>& frames );
 
     /**
      * Center the image.
@@ -319,9 +327,10 @@ private:
      * Save a copy of the full image in the current image view.
      * @param saveName the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.
+     * @param frames - list of image frames.
      * @return an error message if there was a problem saving the image.
      */
-    QString _saveImage( const QString& saveName,  double scale );
+    QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
 
     /**
      * Set contour set to be rendered.
@@ -363,7 +372,7 @@ private:
     void _viewResize( const QSize& newSize );
 
     void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
-            double minClipPercentile, double maxClipPercentile );
+            double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
     /**
      *  Constructor.

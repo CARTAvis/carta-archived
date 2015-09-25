@@ -70,9 +70,10 @@ bool ControllerData::_contains(const QString& fileName) const {
     return representsData;
 }
 
-void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes){
+void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
+        const std::vector<int>& frames ){
     if ( m_dataSource ){
-        m_dataSource->_setDisplayAxes( displayAxisTypes );
+        m_dataSource->_setDisplayAxes( displayAxisTypes, frames );
     }
 }
 
@@ -111,20 +112,20 @@ std::vector<AxisInfo::KnownType> ControllerData::_getAxisTypes() const {
 }
 
 QStringList ControllerData::_getCoordinates( double x, double y,
-        Carta::Lib::KnownSkyCS system ) const{
+        Carta::Lib::KnownSkyCS system, const std::vector<int>& frames ) const{
     QStringList coordStr;
     if ( m_dataSource ){
-        coordStr = m_dataSource->_getCoordinates( x, y, system );
+        coordStr = m_dataSource->_getCoordinates( x, y, system, frames );
     }
     return coordStr;
 }
 
 
-QString ControllerData::_getCursorText( int mouseX, int mouseY ){
+QString ControllerData::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames ){
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
-        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs );
+        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs, frames );
     }
     return cursorText;
 
@@ -154,10 +155,10 @@ QPointF ControllerData::_getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
-QString ControllerData::_getPixelValue( double x, double y ) const {
+QString ControllerData::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
     QString pixelValue = "";
     if ( m_dataSource ){
-        pixelValue = m_dataSource->_getPixelValue( x, y );
+        pixelValue = m_dataSource->_getPixelValue( x, y, frames );
     }
     return pixelValue;
 }
@@ -281,11 +282,12 @@ QSize ControllerData::_getOutputSize() const {
 }
 
 
-void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bool renderImage ){
+void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bool renderImage,
+        const std::vector<int>& frames ){
     m_dataGrid->_resetState( state );
     m_state.setObject(DataGrid::GRID, m_dataGrid->_getState().toString());
     if ( renderImage ){
-        _render( );
+        _render( frames );
     }
 }
 
@@ -370,13 +372,13 @@ void ControllerData::_load(vector<int> frames, bool /*recomputeClipsOnNewFrame*/
                 gridService-> setInputImage( m_dataSource->_getImage() );
             }
         }
-        _render( );
+        _render( frames  );
     }
 }
 
 
 
-void ControllerData::_render( ){
+void ControllerData::_render( const std::vector<int>& frames){
     // erase current grid
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
     std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
@@ -408,7 +410,7 @@ void ControllerData::_render( ){
     gridService-> setOutputRect( outputRect );
 
 
-    std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawDataCurrent( ));
+    std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
     m_drawSync->setInput( rawData );
     m_drawSync->setContours( m_dataContours );
 
@@ -447,7 +449,8 @@ void ControllerData::_resetPan(){
     }
 }
 
-QString ControllerData::_saveImage( const QString& saveName, double scale ){
+QString ControllerData::_saveImage( const QString& saveName, double scale,
+        const std::vector<int>& frames ){
     QString result;
     if ( m_dataSource ){
 
@@ -456,10 +459,9 @@ QString ControllerData::_saveImage( const QString& saveName, double scale ){
         m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
                pipeline );
 
-
-        std::shared_ptr<NdArray::RawViewInterface> view( m_dataSource->_getRawDataCurrent());
+        std::shared_ptr<NdArray::RawViewInterface> view( m_dataSource->_getRawData( frames ));
         if ( view != nullptr ){
-            QString viewId = m_dataSource->_getViewIdCurrent();
+            QString viewId = m_dataSource->_getViewIdCurrent( frames );
             m_saveService->setInputView( view, viewId );
             PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
             int width = prefSave->getWidth();
@@ -568,9 +570,9 @@ void ControllerData::setGamma( double gamma ){
 }
 
 void ControllerData::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
-        double minClipPercentile, double maxClipPercentile ){
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     if ( m_dataSource ){
-        m_dataSource->_updateClips( view,  minClipPercentile, maxClipPercentile );
+        m_dataSource->_updateClips( view,  minClipPercentile, maxClipPercentile, frames );
     }
 }
 

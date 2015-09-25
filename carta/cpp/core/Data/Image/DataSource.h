@@ -98,18 +98,11 @@ private:
     bool _contains(const QString& fileName) const;
 
     /**
-     * Set the x-, y-, and z- axes that are to be displayed.
-     * @param displayAxisTypes - the list of display axes.
+     * Resizes the frame indices to fit the current image.
+     * @param sourceFrames - a list of current image frames.
+     * @return a list of frames that will fit the current image.
      */
-    void _setDisplayAxes(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes );
-
-    /**
-     * Set a particular axis type to be one of the display axes.
-     * @param axisType - the type of axis.
-     * @param axisIndex - a pointer to the display axis index.
-     * @return true if the specified display axis changes; false otherwise.
-     */
-    bool _setDisplayAxis( Carta::Lib::AxisInfo::KnownType axisType, int* axisIndex );
+    std::vector<int> _fitFramesToImage( const std::vector<int>& sourceFrames ) const;
 
     /**
      * Returns the index of the axis of the given type in the image or -1 if there is
@@ -218,9 +211,10 @@ private:
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
+     * @param frames - a list of current image frames.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs);
+    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames);
 
     /**
      * Returns the number of frames in the horizontal and vertical display directions,
@@ -281,13 +275,13 @@ private:
      * Return the value of the pixel at (x, y).
      * @param x the x-coordinate of the desired pixel
      * @param y the y-coordinate of the desired pixel.
-     * @param frameIndex - the frameIndex.
+     * @param frames - a list of current image frames.
      * @return the value of the pixel at (x, y), or blank if it could not be obtained.
      *
      * Note the xy coordinates are expected to be in casa pixel coordinates, i.e.
      * the CENTER of the left-bottom-most pixel is 0.0,0.0.
      */
-    QString _getPixelValue( double x, double y) const;
+    QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
 
     /**
      * Return the units of the pixels.
@@ -300,9 +294,11 @@ private:
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
      * @param system the desired coordinate system.
+     * @param frames - a list of current image frames.
      * @return a list formatted coordinates.
      */
-    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
+    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
+           const std::vector<int>& frames) const;
 
 
     /**
@@ -317,13 +313,14 @@ private:
 
     /**
      * Returns the raw data for the current view.
+     * @param frames - a list of current image frames.
      * @return the raw data for the current view or nullptr if there is none.
      */
-    NdArray::RawViewInterface* _getRawDataCurrent( ) const;
+    NdArray::RawViewInterface* _getRawData( const std::vector<int> frames ) const;
 
     //Returns an identifier for the current image slice being rendered.
-    QString _getViewIdCurrent() const;
-    int _getQuantileCacheIndex() const;
+    QString _getViewIdCurrent( const std::vector<int>& frames ) const;
+    int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
 
     //Initialize static objects.
     void _initializeSingletons( );
@@ -334,7 +331,7 @@ private:
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    void _load(std::vector<int> frames, double clipMinPercentile, double clipMaxPercentile );
+    void _load( std::vector<int> frames, double clipMinPercentile, double clipMaxPercentile );
 
     /**
      * Center the image.
@@ -347,6 +344,22 @@ private:
     void _resetZoom();
 
     void _resizeQuantileCache();
+
+    /**
+     * Set the x-, y-, and z- axes that are to be displayed.
+     * @param displayAxisTypes - the list of display axes.
+     * @param frames - a list of current image frames.
+     */
+    void _setDisplayAxes(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes,
+             const std::vector<int>& frames );
+
+    /**
+     * Set a particular axis type to be one of the display axes.
+     * @param axisType - the type of axis.
+     * @param axisIndex - a pointer to the display axis index.
+     * @return true if the specified display axis changes; false otherwise.
+     */
+    bool _setDisplayAxis( Carta::Lib::AxisInfo::KnownType axisType, int* axisIndex );
 
     /**
      * Set the center for this image's display.
@@ -379,8 +392,9 @@ private:
     /**
      * Update the data when parameters that govern data selection have changed
      * such as when different display axes have been selected.
+     * @param frames - a list of current image frames.
      */
-    std::shared_ptr<NdArray::RawViewInterface> _updateRenderedView();
+    std::shared_ptr<NdArray::RawViewInterface> _updateRenderedView( const std::vector<int>& frames );
 
     /**
      * Resize the view of the image.
@@ -389,7 +403,7 @@ private:
 
 
     void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
-            double minClipPercentile, double maxClipPercentile );
+            double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
     /**
      *  Constructor.
@@ -422,7 +436,6 @@ private:
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;
-    std::vector<int> m_frames;
 
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);

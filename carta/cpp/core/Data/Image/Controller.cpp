@@ -251,7 +251,8 @@ void Controller::centerOnPixel( double centerX, double centerY ){
 void Controller::_contoursChanged(){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        m_datas[imageIndex]->_render( );
+        std::vector<int> frames = _getFrameIndices( imageIndex );
+        m_datas[imageIndex]->_render( frames );
     }
 }
 
@@ -264,7 +265,8 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     if ( !applyAll ){
         if (imageIndex >= 0 && imageIndex < m_datas.size()) {
             if (m_datas[imageIndex] != nullptr) {
-                m_datas[imageIndex]->_displayAxesChanged( displayAxisTypes );
+                std::vector<int> frames = _getFrameIndices( imageIndex );
+                m_datas[imageIndex]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
     }
@@ -272,7 +274,8 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
         int dataCount = m_datas.size();
         for ( int i = 0; i < dataCount; i++ ){
             if ( m_datas[i] != nullptr ){
-                m_datas[i]->_displayAxesChanged( displayAxisTypes );
+                std::vector<int> frames = _getFrameIndices( i );
+                m_datas[i]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
     }
@@ -428,7 +431,8 @@ QString Controller::getPixelValue( double x, double y ) const {
     QString result("");
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        result = m_datas[imageIndex]->_getPixelValue( x, y );
+        std::vector<int> frames = _getFrameIndices( imageIndex );
+        result = m_datas[imageIndex]->_getPixelValue( x, y, frames );
     }
     return result;
 }
@@ -446,7 +450,7 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     QStringList result;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        QStringList coordList = m_datas[imageIndex]->_getCoordinates( x, y, system );
+        QStringList coordList = m_datas[imageIndex]->_getCoordinates( x, y, system, _getFrameIndices(imageIndex) );
         for ( int i = 0; i <= 1; i++ ){
             result.append( coordList[i] );
         }
@@ -561,8 +565,9 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
         imageIndex = m_selectImage->getIndex();
     }
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
+        std::vector<int> frames = _getFrameIndices( imageIndex );
         if ( !applyAll ){
-            m_datas[imageIndex]->_gridChanged( state, true);
+            m_datas[imageIndex]->_gridChanged( state, true, frames );
         }
         else {
             int dataCount = m_datas.size();
@@ -572,7 +577,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
                     renderedImage = true;
                 }
                 if ( m_datas[i] != nullptr ){
-                    m_datas[i]->_gridChanged( state, renderedImage );
+                    m_datas[i]->_gridChanged( state, renderedImage, frames );
                 }
             }
         }
@@ -873,7 +878,8 @@ void Controller::_removeData( int index ){
 void Controller::_render(){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
-        m_datas[imageIndex]->_render( );
+        std::vector<int> frames = _getFrameIndices( imageIndex );
+        m_datas[imageIndex]->_render( frames );
     }
 }
 
@@ -928,7 +934,8 @@ void Controller::resetStateData( const QString& state ){
         QString gridStr = dataState.toString( gridLookup );
         StateInterface gridState( "" );
         gridState.setState( gridStr );
-        m_datas[i]->_gridChanged( gridState, false );
+        std::vector<int> frames = _getFrameIndices( i );
+        m_datas[i]->_gridChanged( gridState, false, frames );
     }
 
     //Notify others there has been a change to the data.
@@ -1026,7 +1033,8 @@ QString Controller::saveImage( const QString& fileName, double scale ){
                 result = "Please make sure the save path is valid: "+fileName;
             }
             else {
-                result = m_datas[imageIndex]->_saveImage( fileName, scale );
+                std::vector<int> frames = _getFrameIndices( imageIndex );
+                result = m_datas[imageIndex]->_saveImage( fileName, scale, frames );
             }
         }
         else {
@@ -1235,7 +1243,7 @@ void Controller::_updateCursorText(bool notifyClients ){
     if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
         int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
         int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-        QString cursorText = m_datas[imageIndex]->_getCursorText( mouseX, mouseY);
+        QString cursorText = m_datas[imageIndex]->_getCursorText( mouseX, mouseY, _getFrameIndices( imageIndex));
         if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
             m_stateMouse.setValue<QString>( CURSOR, cursorText );
             if ( notifyClients ){
