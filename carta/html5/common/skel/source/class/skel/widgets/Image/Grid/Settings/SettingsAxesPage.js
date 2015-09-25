@@ -67,8 +67,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
                     1, 10, 1, "Thickness", false, "Set axes thickness.", "Slide to set axes thickness.",
                     "axesThicknessTextField", "axesThicknessSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setAxesTransparency", "alpha",
-                    0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, 
-                    "Set the axes transparency.", "Slide to set the axes transparency.",
+                    0, skel.widgets.Path.MAX_RGB, 25, "Opacity", false, 
+                    "Set the axes opacity.", "Slide to set the axes opacity.",
                     "axesTransparencyTextField", "axesTransparencySlider", false);
          
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});

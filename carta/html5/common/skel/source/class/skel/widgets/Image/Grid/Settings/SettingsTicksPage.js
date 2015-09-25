@@ -48,7 +48,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
                     0, 50, 5, "Length", false, "Set tick length.", "Slide to set tick length.",
                     "tickLengthTextField", "tickLengthSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setTickTransparency", "alpha",
-                    0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the tick transparency.", "Slide to set the tick transparency.",
+                    0, skel.widgets.Path.MAX_RGB, 25, "Opacity", false, "Set the tick opacity.", "Slide to set the tick opacity.",
                     "tickTransparencyTextField", "tickTransparencySlider", false);
             sliderContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             sliderContainer.add( this.m_length );

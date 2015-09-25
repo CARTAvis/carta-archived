@@ -177,9 +177,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( limit != this.m_highBoundsSpinner.getMaximum()){
                 this.m_highBoundsSpinner.setMaximum( limit );
             }
-            //var highSpinValue = this.m_highBoundsSpinner.getValue();
-            //this.m_highBoundsSpinner.setValue( limit );
-            var valStr = this.m_frameHigh + "";
+            var valStr = limit + "";
             if ( this.m_endLabel.getValue() !== valStr ){
                 this.m_endLabel.setValue( valStr);
             }
@@ -344,7 +342,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }, this);
 
-            var endLabel = new qx.ui.basic.Label("out of ");
+            var endLabel = new qx.ui.basic.Label("<= ");
             this.m_endLabel = new qx.ui.basic.Label("");
             var locationComposite = new qx.ui.container.Composite();
             locationComposite.setLayout(new qx.ui.layout.HBox(5));

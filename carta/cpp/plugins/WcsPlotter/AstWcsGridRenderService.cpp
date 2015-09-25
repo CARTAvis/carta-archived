@@ -500,10 +500,19 @@ AstWcsGridRenderService::setAxisLabel( int axisIndex, const QString& label ){
     }
 }
 
-QString AstWcsGridRenderService::_getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat, int decimals ) const {
+QString AstWcsGridRenderService::_getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat,
+        int decimals ) const {
     QString displayFormat = "";
+    //Standard behaviour for an HMS axis is to have one extra decimal
+    //place compared to a DMS axis so they have roughly the same precision
+    //(an hour of arc is bigger than a degree of arc).
+    //Implemented by subtracting one from decimals (when it is positive) in the case of dms
+    int actualDecimals = decimals;
     if ( baseFormat == Carta::Lib::AxisLabelInfo::Formats::DEG_MIN_SEC ){
         displayFormat = "dms";
+        if ( decimals > 0 ){
+            actualDecimals = decimals - 1;
+        }
     }
     else if ( baseFormat == Carta::Lib::AxisLabelInfo::Formats::DECIMAL_DEG ){
         displayFormat = "d";
@@ -513,8 +522,8 @@ QString AstWcsGridRenderService::_getDisplayFormat( const Carta::Lib::AxisLabelI
     }
 
     if ( displayFormat.length() > 0 ){
-        if ( decimals > 0 ){
-            displayFormat = displayFormat + "."+QString::number(decimals);
+        if ( actualDecimals > 0 ){
+            displayFormat = displayFormat + "."+QString::number(actualDecimals);
         }
     }
     return displayFormat;

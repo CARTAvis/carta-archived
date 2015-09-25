@@ -109,21 +109,6 @@ QString LabelFormats::_addDecimalSeconds( const QString& baseFormat, int decimal
     return secondFormat;
 }
 
-QString LabelFormats::_getDisplayFormat( const QString& format, int decimals ) const {
-    QString actualFormat = getFormat( format );
-    QString displayFormat = "";
-    if ( actualFormat == FORMAT_DEG_MIN_SEC ){
-        displayFormat = "dms";
-    }
-    else if ( actualFormat == FORMAT_DECIMAL_DEG ){
-        displayFormat = "d";
-    }
-    else if ( actualFormat == FORMAT_HR_MIN_SEC ){
-        displayFormat = "hms";
-    }
-    displayFormat = _addDecimalSeconds( displayFormat, decimals );
-    return displayFormat;
-}
 
 QString LabelFormats::getFormat( const QString& format ) const {
     QString actualFormat;

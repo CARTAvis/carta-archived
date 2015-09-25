@@ -88,10 +88,10 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
             
             familyContainer.add( new qx.ui.core.Spacer(), {flex:1});
             this.m_decimalSpin = new qx.ui.form.Spinner();
-            this.m_decimalSpin.setToolTipText( "Set the number of label decimal places");
+            this.m_decimalSpin.setToolTipText( "Set the precision of the axis labels");
             this.m_decimalSpin.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     this._sendDecimals, this );
-            var decimalLabel = new qx.ui.basic.Label( "Decimals:");
+            var decimalLabel = new qx.ui.basic.Label( "Precision:");
             familyContainer.add( decimalLabel );
             familyContainer.add( this.m_decimalSpin );
             

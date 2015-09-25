@@ -704,7 +704,6 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
     int quantileIndex = this->_getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex];
     NdArray::Double doubleView( view.get(), false );
-    int viewSize = doubleView.dims().size();
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, {minClipPercentile, maxClipPercentile });
     bool clipsChanged = false;

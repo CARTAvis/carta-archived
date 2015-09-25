@@ -45,7 +45,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsGridPage", {
                     1, 10, 1, "Thickness", false, "Set grid thickness.", "Slide to set grid thickness.",
                     "gridThicknessTextField", "gridThicknessSlider", false);
             this.m_transparency = new skel.widgets.CustomUI.TextSlider("setGridTransparency", "alpha",
-                    0, skel.widgets.Path.MAX_RGB, 25, "Transparency", false, "Set the grid transparency.", "Slide to set the grid transparency.",
+                    0, skel.widgets.Path.MAX_RGB, 25, "Opacity", false, "Set the grid opacity.", "Slide to set the grid opacity.",
                     "gridTransparencyTextField", "gridTransparencySlider", false);
             this.m_spacing = new skel.widgets.CustomUI.TextSlider("setGridSpacing", "spacing",
                     0, skel.widgets.CustomUI.TextSlider.MAX_SLIDER, 25, "Spacing", false, "Set grid spacing.", "Slide to set grid spacing.",

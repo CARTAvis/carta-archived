@@ -72,7 +72,7 @@ QString AnimatorType::getType() const {
 
 void AnimatorType::_initializeState( ){
     m_state.insertValue<int>( STEP, 1 );
-    m_state.insertValue<int>( RATE, 20 );
+    m_state.insertValue<int>( RATE, 100 );
     m_state.insertValue<bool>(SETTINGS_VISIBLE, false );
     m_state.insertValue<QString>( END_BEHAVIOR, "Wrap");
     //m_state.insertValue<bool>( VISIBLE, true);
