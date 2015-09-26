@@ -1,12 +1,12 @@
 /**
- * Displays a color map as a gradient.
+ * Displays lines showing the amount of red, blue and green in the color map.
  */
 /*global mImport */
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Colormap.ColorGradient", {
+qx.Class.define("skel.widgets.Colormap.ColorMixCanvas", {
     extend: qx.ui.embed.Canvas,
     
     /**
@@ -20,20 +20,6 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
 
     members : {
         
-        /**
-         * Adds a color to the gradient.
-         * @param gradient {Object} a canvas gradient.
-         * @param stopIndex {Number} the index of the color to add.
-         * @param posIndex {Number} the location in the gradient for the color.
-         */
-        _addStop : function( gradient, stopIndex, posIndex ){
-            var floatStop = posIndex / this.m_stops.length;
-            var redHex = this._processColor( this.m_stops[stopIndex], 1, this.m_scaleRed );
-            var greenHex = this._processColor( this.m_stops[stopIndex], 3, this.m_scaleGreen );
-            var blueHex = this._processColor( this.m_stops[stopIndex], 5, this.m_scaleBlue );
-            var stop = "#"+redHex+greenHex+blueHex;
-            gradient.addColorStop( floatStop, stop );
-        },
         
         /**
          * Template method, which can be used by derived classes to redraw the
@@ -47,31 +33,57 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
         _draw: function (width, height, ctx) {
             this.base(arguments);
             ctx.clearRect( 0, 0, width, height);
-            this._drawGradient( width, height, ctx );
+            this._drawColorGraph( width, height, ctx );
+        },
+
+        
+        /**
+         * Draws a colored line indicating the amount of that color in the map.
+         * @param width {Integer} New canvas width
+         * @param height {Integer} New canvas height
+         * @param ctx {CanvasRenderingContext2D} The rendering ctx to draw to.
+         * @param colorStr {String} a string naming a color.
+         * @param hexIndex {Number} the location in the hex representation where the color can be found.
+         * @param scaleFactor {Number} a multiplier to adjust the color strength.
+         */
+        _drawColor : function( width, height, ctx, colorStr, hexIndex, scaleFactor ){
+            if ( this.m_stops !== null ){
+                ctx.beginPath();
+                var drawHeight = height;
+                var drawStart = 0;
+               
+                for ( var i = 0; i < this.m_stops.length; i++ ){
+                    var colorIndex = i;
+                    if ( this.m_reverse ){
+                        colorIndex = this.m_stops.length - i - 1;
+                    }
+                    var hexColor = this.m_stops[colorIndex].substring( hexIndex, hexIndex + 2);
+                    var intColor = parseInt( hexColor, 16 );
+                    if ( this.m_invert ){
+                        intColor = 255 - intColor;
+                    }
+                    var percentColor = intColor / 255;
+                    var lineY = drawHeight - drawHeight * percentColor * scaleFactor;
+                    var lineX = i / this.m_stops.length * width;
+                    ctx.lineTo( lineX, lineY );
+                }
+                ctx.strokeStyle = colorStr;
+                ctx.lineWidth = 5;
+                ctx.stroke();
+            }
         },
         
         /**
-         * Draws a color gradient.
+         * Draws three colored lines indicating the amount of blue, red, and green in the map.
          * @param width {Integer} New canvas width
          * @param height {Integer} New canvas height
-         * @param ctx {CanvasRenderingContext2D} The rendering ctx to draw to
+         * @param ctx {CanvasRenderingContext2D} The rendering ctx to draw to.
          */
-        _drawGradient : function( width, height, ctx ){
-            var grd = ctx.createLinearGradient( 0, 0, width, 0);
-            if ( this.m_stops !== null ){
-                for ( var i = 0; i < this.m_stops.length; i++ ){
-                    if ( ! this.m_reverse ){
-                        this._addStop( grd, i, i );
-                    }
-                    else {
-                        this._addStop( grd, this.m_stops.length -i - 1, i );
-                    }
-                }
-            }
-            ctx.fillStyle = grd;
-            ctx.fillRect( 0, 0, width, height );
+        _drawColorGraph : function( width, height, ctx ){
+            this._drawColor( width, height, ctx, "red", 1, this.m_scaleRed);
+            this._drawColor( width, height, ctx, "green", 3, this.m_scaleGreen );
+            this._drawColor( width, height, ctx, "blue", 5, this.m_scaleBlue );
         },
-        
         
         /**
          * Initializes the UI.
@@ -80,35 +92,10 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             this.setAllowGrowX( true );
             this.setAllowGrowY( true );
             this.setMinWidth( 100 );
-            this.setMinHeight( 25 );
+            this.setHeight( 25 );
             this.m_connector = mImport("connector");
         },
         
-        /**
-         * Reads a color from the hex representation and applies inversion and scaling,
-         * if appropriate.
-         * @param stop {String} the hex representation of a color.
-         * @param hexIndex {Number} the index of the color in the hex representation.
-         * @param scale {Number} a scaling factor for the color.
-         */
-        _processColor : function ( stop, hexIndex, scale ){
-            var start = hexIndex;
-            var end = hexIndex + 2;
-            if ( stop.substring(0,1) === "0"){
-                start = 1;
-            }
-            var colorHex = stop.substring( start, end );
-            var rgbColor = parseInt( colorHex, 16 );
-            if ( this.m_invert ){
-                rgbColor = 255 - rgbColor;
-            }
-            rgbColor = Math.round(rgbColor * scale);
-            var processedHex = rgbColor.toString( 16 );
-            if ( processedHex.length == 1 ){
-                processedHex = "0"+processedHex;
-            }
-            return processedHex;
-        },
         
         /**
          * Requests information from the server about the colors comprising the 

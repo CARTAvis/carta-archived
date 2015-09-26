@@ -24,6 +24,8 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
     },
 
     members : {
+        
+        
         /**
          * Callback for a server error when setting the color mix.
          * @param anObject {skel.widgets.ColorMap.ColorMix}.
@@ -72,6 +74,8 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             sliderContainer.setHeight( 50 );
             sliderContainer.setAllowGrowX( true );
             sliderContainer.setLayout( new qx.ui.layout.VBox(2));
+            this.m_colorCanvas = new skel.widgets.Colormap.ColorMixCanvas();
+            sliderContainer.add( this.m_colorCanvas );
             this.m_redSlider = new qx.ui.form.Slider();
             this.m_redSlider.setDecorator( "slider-red");
             this.m_redSliderListenerId = this._initSlider( this.m_redSlider, sliderContainer );
@@ -81,6 +85,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             this.m_blueSlider = new qx.ui.form.Slider();
             this.m_blueSliderListenerId = this._initSlider( this.m_blueSlider, sliderContainer );
             this.m_blueSlider.setDecorator( "slider-blue" );
+            
             this._add( sliderContainer );
             
             var syncContainer = new qx.ui.container.Composite();
@@ -113,6 +118,20 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         },
         
         /**
+         * Return the amount of a color in the map.
+         * @param percent {Number} the percentage of the color in the map.
+         * @return {Number} the amount of the color in the map.
+         */
+        _percentToValue : function( percent ){
+            var minSlider = skel.widgets.Colormap.ColorMix.SLIDER_MIN;
+            var range = this._getRange();
+            var value = percent * range + minSlider;
+            value = Math.floor( value );
+            return value;
+        },
+        
+        
+        /**
          * Callback for a slider changing its value.
          * @param e {qx.ui.event.Type}.
          */
@@ -141,18 +160,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
             }
         },
         
-        /**
-         * Return the amount of a color in the map.
-         * @param percent {Number} the percentage of the color in the map.
-         * @return {Number} the amount of the color in the map.
-         */
-        _percentToValue : function( percent ){
-            var minSlider = skel.widgets.Colormap.ColorMix.SLIDER_MIN;
-            var range = this._getRange();
-            var value = percent * range + minSlider;
-            value = Math.floor( value );
-            return value;
-        },
+
         
         /**
          * Notify the server that the color mix has changed.
@@ -186,6 +194,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
          * @param bluePercent {Number} a decimal in [0,1] indicating the blue percentage.
          */
         setMix : function( redPercent, greenPercent, bluePercent ){
+            this.m_colorCanvas.setScales( redPercent, greenPercent, bluePercent );
             this.m_redSlider.removeListenerById( this.m_redSliderListenerId );
             this.m_greenSlider.removeListenerById( this.m_greenSliderListenerId );
             this.m_blueSlider.removeListenerById( this.m_blueSliderListenerId );
@@ -207,26 +216,31 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         },
         
         /**
-         * Adds menu items to the container.
-         * @param container {qx.ui.container.Container}.
+         * Invert the colors in the mix.
+         * @param invert {boolean} - invert the colors in the mix.
          */
-        addMenuItems : function( container){
-            if ( container.indexOf( this.m_synchronizeCheck) < 0 ){
-                container.add( this.m_synchronizeCheck );
-            }
+        setInvert : function( invert ){
+            this.m_colorCanvas.setInvert( invert );
         },
         
         /**
-         * Removes menu items from the container.
-         * @param container {qx.ui.container.Container}.
+         * Reverse the colors in the mix.
+         * @param reverse {boolean} - reverse the colors in the mix.
          */
-        removeMenuItems : function( container ){
-            if ( container.indexOf( this.m_synchronizeCheck) >= 0 ){
-                container.remove( this.m_synchronizeCheck);
-            }
+        setReverse : function( reverse ){
+            this.m_colorCanvas.setReverse( reverse );
+        },
+        
+        /**
+         * Set the name of the color map being used.
+         * @param name {String} - the name of the color map in use.
+         */
+        setColorMapName : function( name ){
+            this.m_colorCanvas.setColorName( name );
         },
         
         m_id : null,
+        m_colorCanvas : null,
         m_connector : null,
         m_redSlider : null,
         m_redSliderListenerId : null,

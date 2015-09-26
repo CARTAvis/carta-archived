@@ -327,6 +327,9 @@ public:
     const static QString GRAPH_STYLE_OUTLINE;
     const static QString GRAPH_STYLE_FILL;
 
+signals:
+    void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
+
 public slots:
     void updateColorMap( Colormap* );
 

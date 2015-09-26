@@ -179,7 +179,6 @@ void Histogram::_createHistogram( Controller* controller){
     std::pair<int,int> frameBounds = _getFrameBounds();
     bool minValid = controller->getIntensity( frameBounds.first, frameBounds.second, 0, &minIntensity );
     bool maxValid = controller->getIntensity( frameBounds.first, frameBounds.second, 1, &maxIntensity );
-
     if(minValid && maxValid){
         int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
         minIntensity = Util::roundToDigits( minIntensity, significantDigits );
@@ -190,6 +189,7 @@ void Histogram::_createHistogram( Controller* controller){
         m_stateData.setValue<double>(CLIP_MAX, maxIntensity);
         m_stateData.setValue<double>(COLOR_MIN, minIntensity );
         m_stateData.setValue<double>(COLOR_MAX, maxIntensity );
+        emit colorIntensityBoundsChanged( minIntensity, maxIntensity );
         double binWidth = qAbs( maxIntensity - minIntensity ) / m_state.getValue<int>(BIN_COUNT);
         setBinWidth( binWidth );
 
@@ -238,10 +238,13 @@ void Histogram::_endSelectionColor(const QString& params ){
 void Histogram::_finishClips (){
     bool customClip = m_state.getValue<bool>(CUSTOM_CLIP );
     if ( !customClip ){
-        m_stateData.setValue<double>(COLOR_MIN, m_stateData.getValue<double>(CLIP_MIN));
-        m_stateData.setValue<double>(COLOR_MAX, m_stateData.getValue<double>(CLIP_MAX));
+        double clipMin = m_stateData.getValue<double>(CLIP_MIN);
+        double clipMax = m_stateData.getValue<double>(CLIP_MAX);
+        m_stateData.setValue<double>(COLOR_MIN, clipMin );
+        m_stateData.setValue<double>(COLOR_MAX, clipMax );
         m_stateData.setValue<double>(COLOR_MIN_PERCENT, m_stateData.getValue<double>(CLIP_MIN_PERCENT));
         m_stateData.setValue<double>(COLOR_MAX_PERCENT, m_stateData.getValue<double>(CLIP_MAX_PERCENT));
+        emit colorIntensityBoundsChanged( clipMin, clipMax );
     }
     m_stateData.flushState();
     _generateHistogram( true );
@@ -1408,6 +1411,7 @@ QString Histogram::setColorMin( double colorMin, bool finish ){
     if( colorMinRounded < colorMax ){
         if ( qAbs(colorMinRounded - oldMin) > m_errorMargin){
             m_stateData.setValue<double>(COLOR_MIN, colorMinRounded );
+            emit colorIntensityBoundsChanged( colorMinRounded, colorMax );
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
@@ -1444,6 +1448,7 @@ QString Histogram::setColorMax( double colorMax, bool finish ){
     if ( colorMin < colorMaxRounded ){
         if ( qAbs(colorMaxRounded - oldMax) > m_errorMargin){
             m_stateData.setValue<double>(COLOR_MAX, colorMaxRounded );
+            emit colorIntensityBoundsChanged( colorMin, colorMaxRounded );
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
@@ -1491,7 +1496,9 @@ QString Histogram::setColorMaxPercent( double colorMaxPercent, bool complete ){
                      if(validIntensity){
                          double oldColorMax = m_stateData.getValue<double>(COLOR_MAX);
                          if(qAbs(oldColorMax - colorMax) > m_errorMargin){
-                             m_stateData.setValue<double>(COLOR_MAX, Util::roundToDigits(colorMax,significantDigits));
+                             double roundedMax = Util::roundToDigits(colorMax,significantDigits);
+                             m_stateData.setValue<double>(COLOR_MAX, roundedMax );
+                             emit colorIntensityBoundsChanged( m_stateData.getValue<double>(COLOR_MIN), roundedMax );
                          }
                      }
                      else {
@@ -1533,7 +1540,9 @@ QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
                      if(validIntensity){
                          double oldColorMin = m_stateData.getValue<double>(COLOR_MIN);
                          if(qAbs(oldColorMin - colorMin) > m_errorMargin){
-                             m_stateData.setValue<double>(COLOR_MIN, Util::roundToDigits(colorMin,significantDigits));
+                             double minRounded = Util::roundToDigits(colorMin,significantDigits);
+                             m_stateData.setValue<double>(COLOR_MIN, minRounded );
+                             emit colorIntensityBoundsChanged( minRounded, m_stateData.getValue<double>(COLOR_MAX));
                          }
                      }
                      else {

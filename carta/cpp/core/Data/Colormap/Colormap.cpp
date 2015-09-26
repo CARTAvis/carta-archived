@@ -31,6 +31,8 @@ const QString Colormap::BLUE_PERCENT = "bluePercent";
 const QString Colormap::COLOR_MIX_RED = COLOR_MIX + "/" + RED_PERCENT;
 const QString Colormap::COLOR_MIX_GREEN = COLOR_MIX + "/" + GREEN_PERCENT;
 const QString Colormap::COLOR_MIX_BLUE = COLOR_MIX + "/" + BLUE_PERCENT;
+const QString Colormap::INTENSITY_MIN = "intensityMin";
+const QString Colormap::INTENSITY_MAX = "intensityMax";
 const QString Colormap::SCALE_1 = "scale1";
 const QString Colormap::SCALE_2 = "scale2";
 const QString Colormap::GAMMA = "gamma";
@@ -57,6 +59,7 @@ bool Colormap::m_registered =
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_linkImpl( new LinkableImpl( path ) ),
+    m_stateData( Carta::State::UtilState::getLookup(path, Carta::State::StateInterface::STATE_DATA)),
     m_stateMouse(Carta::State::UtilState::getLookup(path,ImageView::VIEW)){
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -78,6 +81,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         if ( objAdded ){
             setColorProperties( target );
             connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT(setColorProperties(Controller*)));
+
         }
     }
     else {
@@ -87,6 +91,8 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
             if ( objAdded ){
                 connect( this, SIGNAL(colorMapChanged( Colormap*)), hist, SLOT( updateColorMap( Colormap*)));
                 hist->updateColorMap( this );
+
+                connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
             }
         }
         else {
@@ -163,6 +169,10 @@ void Colormap::_initializeDefaultState(){
     m_state.insertValue<QString>(TRANSFORM_IMAGE, "Gamma");
     m_state.insertValue<QString>(TRANSFORM_DATA, "None");
     m_state.flushState();
+
+    m_stateData.insertValue<double>( INTENSITY_MIN, 0 );
+    m_stateData.insertValue<double>( INTENSITY_MAX, 1 );
+    m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(ImageView::MOUSE_X, 0 );
@@ -580,6 +590,24 @@ QString Colormap::setSignificantDigits( int digits ){
 void Colormap::_setErrorMargin(){
     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
     m_errorMargin = 1.0/qPow(10,significantDigits);
+}
+
+void Colormap::_updateIntensityBounds( double minIntensity, double maxIntensity ){
+    double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
+    bool intensityChanged = false;
+    if ( oldMinIntensity != minIntensity ){
+        intensityChanged = true;
+        m_stateData.setValue<double>( INTENSITY_MIN, minIntensity );
+    }
+
+    double oldMaxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
+    if ( oldMaxIntensity != maxIntensity ){
+        intensityChanged = true;
+        m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
+    }
+    if ( intensityChanged ){
+        m_stateData.flushState();
+    }
 }
 
 Colormap::~Colormap(){
