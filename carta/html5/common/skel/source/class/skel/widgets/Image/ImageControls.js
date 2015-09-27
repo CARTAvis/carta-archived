@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Image.ImageControls", {
-    extend : qx.ui.core.Widget, 
+    extend : qx.ui.tabview.TabView,
 
     /**
      * Constructor.
@@ -23,27 +23,22 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
    
     members : {
         
-
-        
         /**
          * Initializes the UI.
          */
         _init : function( ) {
-            this.setPadding( 0, 0, 0, 0 );
 
-            this._setLayout( new qx.ui.layout.VBox(1));
-            this.m_tabView = new qx.ui.tabview.TabView();
-            this.m_tabView.setContentPadding( 2, 2, 2, 2 );
-            this._add( this.m_tabView );
+            this.setContentPadding( 2, 2, 2, 2 );
             
             this.m_gridControls = new skel.widgets.Image.Grid.GridControls();
             this.m_gridControls.addListener( "gridControlsChanged", function(ev){
                 this.fireDataEvent( "gridControlsChanged", ev.getData() );
             }, this );
-            this.m_tabView.add( this.m_gridControls );
+            this.add( this.m_gridControls );
             
             this.m_contourControls = new skel.widgets.Image.Contour.ContourControls();
-            this.m_tabView.add( this.m_contourControls );
+            this.add( this.m_contourControls );
+            
         },
         
         
@@ -57,8 +52,6 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
         },
         
         m_id : null,
-        
-        m_tabView : null,
         
         m_gridControls : null,
         m_contourControls : null

@@ -74,8 +74,10 @@ qx.Class.define(
          */
         _getSupportedAnimators : function(){
             var supportedAnims = [];
-            for ( var i = 0; i < this.m_animators.length; i++ ){
-                supportedAnims.push( this.m_animators[i].getTitle() );
+            if ( this.m_animators != null ){
+                for ( var i = 0; i < this.m_animators.length; i++ ){
+                    supportedAnims.push( this.m_animators[i].getTitle() );
+                }
             }
             return supportedAnims;
         },

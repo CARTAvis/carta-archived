@@ -28,7 +28,6 @@ HEADERS += \
     ImageView.h \
     Data/Animator/Animator.h \
     Data/Animator/AnimatorType.h \
-    Data/Animator/AnimationTypes.h \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
@@ -123,7 +122,6 @@ SOURCES += \
     Data/Settings.cpp \
     Data/Animator/Animator.cpp \
     Data/Animator/AnimatorType.cpp \
-    Data/Animator/AnimationTypes.cpp \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \

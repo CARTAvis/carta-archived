@@ -252,7 +252,8 @@ void Controller::_contoursChanged(){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         std::vector<int> frames = _getFrameIndices( imageIndex );
-        m_datas[imageIndex]->_render( frames );
+        const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
+        m_datas[imageIndex]->_render( frames, cs );
     }
 }
 
@@ -305,6 +306,15 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
 
     }
     return axes;
+}
+
+Carta::Lib::KnownSkyCS Controller::getCoordinateSystem() const {
+    int imageIndex = m_selectImage->getIndex();
+    Carta::Lib::KnownSkyCS cs = Carta::Lib::KnownSkyCS::Unknown;
+    if ( 0 <= imageIndex && imageIndex < m_datas.size() ){
+        cs = m_datas[imageIndex]->_getCoordinateSystem();
+    }
+    return cs;
 }
 
 std::shared_ptr<GridControls> Controller::getGridControls() {
@@ -527,8 +537,9 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
         dataState.setValue<int>(StateInterface::INDEX, getIndex() );
         int selectCount = m_selects.size();
+        const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
         for ( int i = 0; i < selectCount; i++ ){
-            QString axisName = AxisMapper::getPurpose( static_cast<AxisInfo::KnownType>(i));
+            QString axisName = AxisMapper::getPurpose( static_cast<AxisInfo::KnownType>(i), cs );
             dataState.insertValue<QString>( axisName, m_selects[i]->getStateString());
         }
         dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
@@ -807,7 +818,8 @@ void Controller::_loadView( ) {
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
             double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
             double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
-            m_datas[imageIndex]->_load(frames, autoClip, clipValueMin, clipValueMax);
+            const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
+            m_datas[imageIndex]->_load(frames, autoClip, clipValueMin, clipValueMax, cs);
         }
         else {
             qDebug() << "Uninitialized image: "<<imageIndex;
@@ -879,7 +891,8 @@ void Controller::_render(){
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size()){
         std::vector<int> frames = _getFrameIndices( imageIndex );
-        m_datas[imageIndex]->_render( frames );
+        const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
+        m_datas[imageIndex]->_render( frames, cs );
     }
 }
 
@@ -911,14 +924,7 @@ void Controller::resetStateData( const QString& state ){
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
 
-    //Now we need to restore the axis states.
-    int selectCount = m_selects.size();
-    for ( int i = 0; i < selectCount; i++ ){
-        AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-        QString axisPurpose = AxisMapper::getPurpose( axisType );
-        QString axisState = dataState.getValue<QString>( axisPurpose );
-        m_selects[i]->resetState( axisState );
-    }
+
 
     //Reset the image select state.
     QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
@@ -936,6 +942,16 @@ void Controller::resetStateData( const QString& state ){
         gridState.setState( gridStr );
         std::vector<int> frames = _getFrameIndices( i );
         m_datas[i]->_gridChanged( gridState, false, frames );
+    }
+
+    //Now we need to restore the axis states.
+    int selectCount = m_selects.size();
+    for ( int i = 0; i < selectCount; i++ ){
+        AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
+        const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+        QString axisPurpose = AxisMapper::getPurpose( axisType, cs );
+        QString axisState = dataState.getValue<QString>( axisPurpose );
+        m_selects[i]->resetState( axisState );
     }
 
     //Notify others there has been a change to the data.
@@ -1261,8 +1277,9 @@ void Controller::_updateDisplayAxes( int targetIndex ){
             m_gridControls->_setAxisTypes( supportedAxes );
             AxisInfo::KnownType xType = m_datas[targetIndex]->_getAxisXType();
             AxisInfo::KnownType yType = m_datas[targetIndex]->_getAxisYType();
-            QString xPurpose = AxisMapper::getPurpose( xType );
-            QString yPurpose = AxisMapper::getPurpose( yType );
+            const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+            QString xPurpose = AxisMapper::getPurpose( xType, cs );
+            QString yPurpose = AxisMapper::getPurpose( yType, cs );
             m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
             m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
         }

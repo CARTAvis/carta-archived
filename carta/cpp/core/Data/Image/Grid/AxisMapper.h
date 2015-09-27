@@ -8,6 +8,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/CartaLib.h"
 
 namespace Carta {
 
@@ -29,16 +30,20 @@ public:
     /**
      * Returns a purpose for the axis of the known type.
      * @param type - an identifier for an axis type.
+     * @param cs - an enumerated coordinate system type.
      * @return a string based purpose for the axis passed in.
      */
-    static QString getPurpose( Carta::Lib::AxisInfo::KnownType type );
+    static QString getPurpose( Carta::Lib::AxisInfo::KnownType type,
+            const Carta::Lib::KnownSkyCS& cs);
 
     /**
      * Returns the default purpose for the standard x-, y-, and z- display axes.
      * @param axis - and identifier for the x-, y, or z- display axes.
+     * @param cs - an enumerated coordinate system type.
      * @return the default purpose for the display axis.
      */
-    static QString getDefaultPurpose( const QString& axis );
+    static QString getDefaultPurpose( const QString& axis,
+            const Carta::Lib::KnownSkyCS& cs );
 
     /**
      * Returns the axis type identifier for the axis with the given purpose.
@@ -58,6 +63,10 @@ public:
      */
     static QString getDisplayName( const QString& axisName );
 
+    /**
+     * Return the names of the x- and y-axes.
+     * @return - the names of the x- and y-axes.
+     */
     static QStringList getDisplayNames();
 
     virtual ~AxisMapper();
@@ -65,14 +74,17 @@ public:
     const static QString AXIS_X;
     const static QString AXIS_Y;
     const static QString RIGHT_ASCENSION;
+    const static QString LONGITUDE;
     const static QString DECLINATION;
+    const static QString LATITUDE;
     const static QString SPECTRAL;
     const static QString STOKES;
     const static QString TABULAR;
     const static QString QUALITY;
 
 private:
-
+    static QString _getAxisRAPurpose( const Carta::Lib::KnownSkyCS& cs );
+    static QString _getAxisDECPurpose( const Carta::Lib::KnownSkyCS& cs );
     AxisMapper( );
 
 

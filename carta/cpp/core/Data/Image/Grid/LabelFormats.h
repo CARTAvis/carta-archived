@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include <vector>
@@ -54,9 +55,11 @@ public:
     /**
      * Returns the default format for the axis of the indicated type.
      * @param axis - the type of axis.
+     * @param cs - an enumerated coordinate system type.
      * @return - the default format for the axis.
      */
-    QString getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis ) const;
+    QString getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis,
+            const Carta::Lib::KnownSkyCS& cs ) const;
 
     /**
      * Translates a non case sensitive grid label side into one

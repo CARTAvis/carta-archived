@@ -1,6 +1,5 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator/Animator.h"
-#include "Data/Animator/AnimationTypes.h"
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/Colormap/Colormaps.h"

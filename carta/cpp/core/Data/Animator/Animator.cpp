@@ -153,7 +153,8 @@ void Animator::_axesChanged(){
             std::set<AxisInfo::KnownType> zAxes = controller->_getAxesHidden();
             for ( std::set<AxisInfo::KnownType>::iterator it = zAxes.begin();
                     it != zAxes.end(); it++ ){
-                QString purpose = AxisMapper::getPurpose( *it );
+                const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+                QString purpose = AxisMapper::getPurpose( *it, cs );
                 QString animId;
                 addAnimator( purpose, animId );
                 existingAnimators.insert( purpose );
@@ -522,14 +523,16 @@ bool Animator::_updateAnimatorBound( const QString& key ){
     int animAxisCount = animationAxes.size();
     if ( animAxisCount > 0 ){
         bool axisFound = false;
-        for ( int i = 0; i < animAxisCount; i++ ){
-            QString animPurpose = AxisMapper::getPurpose( animationAxes[i] );
-            if ( animPurpose == key ){
-                axisFound = true;
-                break;
+        if ( controller != nullptr ){
+            for ( int i = 0; i < animAxisCount; i++ ){
+                const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+                QString animPurpose = AxisMapper::getPurpose( animationAxes[i], cs );
+                if ( animPurpose == key ){
+                    axisFound = true;
+                    break;
+                }
             }
         }
-
 
         //Okay we will set the animator visible if it has at least one
         //frame.
@@ -569,8 +572,8 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
     std::set<AxisInfo::KnownType> animAxes = controller->_getAxesHidden();
     for ( std::set<AxisInfo::KnownType>::iterator it = animAxes.begin();
         it != animAxes.end(); it++ ){
-
-        QString animName = AxisMapper::getPurpose( *it );
+        const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+        QString animName = AxisMapper::getPurpose( *it, cs );
         if ( !m_animators.contains( animName )){
             QString animId;
             addAnimator( animName , animId );

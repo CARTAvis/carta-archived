@@ -110,8 +110,7 @@ QString DataGrid::_getFormat( const Carta::State::StateInterface& state, const Q
 
 
 Carta::Lib::AxisLabelInfo DataGrid::_getAxisLabelInfo( int axisIndex,
-        Carta::Lib::AxisInfo::KnownType axisType ) const {
-
+        Carta::Lib::AxisInfo::KnownType axisType, const Carta::Lib::KnownSkyCS& cs ) const {
     Carta::Lib::AxisLabelInfo info;
     int precision= m_state.getValue<int>(LABEL_DECIMAL_PLACES );
     info.setPrecision( precision );
@@ -121,7 +120,7 @@ Carta::Lib::AxisLabelInfo DataGrid::_getAxisLabelInfo( int axisIndex,
 
     QString format = _getFormat( m_state, labelLocation );
     if ( m_formats->isDefault( format ) ){
-        format = m_formats->getDefaultFormatForAxis( axisType );
+        format = m_formats->getDefaultFormatForAxis( axisType, cs );
     }
     Carta::Lib::AxisLabelInfo::Formats axisFormat = m_formats->getAxisLabelFormat( format );
     info.setFormat( axisFormat );
@@ -298,9 +297,10 @@ void DataGrid::_initializeDefaultState(){
     _initializeLabelFormat( LabelFormats::SOUTH, formatSouth, AxisInfo::KnownType::DIRECTION_LON );
 
     m_state.insertArray( SUPPORTED_AXES, 0);
-    QString xName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_X );
+    const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getDefaultType();
+    QString xName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_X, cs );
     m_state.insertValue<QString>( AxisMapper::AXIS_X, xName );
-    QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y );
+    QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y, cs );
     m_state.insertValue<QString>( AxisMapper::AXIS_Y, yName );
 
     m_state.flushState();
@@ -535,13 +535,15 @@ QString DataGrid::_setAxesThickness( int thickness, bool* thicknessChanged ){
     return result;
 }
 
-bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
+bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
     int axisCount = supportedAxes.size();
     bool axisTypesChanged = false;
     int oldCount = m_state.getArraySize( SUPPORTED_AXES );
     m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+    QString coordStr = m_state.getValue<QString>( COORD_SYSTEM );
+    const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getIndex( coordStr );
     for ( int i = 0; i < axisCount; i++ ){
-        QString name = AxisMapper::getPurpose( supportedAxes[i] );
+        QString name = AxisMapper::getPurpose( supportedAxes[i], cs );
         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
         QString oldName;
         if ( i < oldCount ){

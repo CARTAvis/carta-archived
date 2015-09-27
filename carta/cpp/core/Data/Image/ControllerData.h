@@ -272,10 +272,17 @@ private:
      * @param y the y-coordinate of the desired pixel.
      * @param system the desired coordinate system.
      * @param frames - list of image frames.
+     * @param system - an enumerated coordinate system type.
      * @return the coordinates at pixel (x, y).
      */
     QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
             const std::vector<int>& frames) const;
+
+    /**
+     * Return the coordinate system in use.
+     * @return - an enumerated coordinate system type.
+     */
+    Carta::Lib::KnownSkyCS _getCoordinateSystem() const;
 
     void _gridChanged( const Carta::State::StateInterface& state, bool renderImage,
             const std::vector<int>& frames );
@@ -303,15 +310,17 @@ private:
      * @param autoClip true if clips should be automatically generated; false otherwise.
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
+     * @param cs - an enumerated coordinate system type.
      */
     void _load( vector<int> frames, bool autoClip, double clipMinPercentile,
-            double clipMaxPercentile );
+            double clipMaxPercentile, const Carta::Lib::KnownSkyCS& cs );
 
     /**
      * Generate a new QImage.
      * @param frames - list of image frames.
+     * @param cs - an enumerated coordinate system type.
      */
-    void _render( const std::vector<int>& frames );
+    void _render( const std::vector<int>& frames, const Carta::Lib::KnownSkyCS& cs );
 
     /**
      * Center the image.

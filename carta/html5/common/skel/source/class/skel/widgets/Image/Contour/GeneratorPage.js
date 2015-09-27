@@ -73,6 +73,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var nameLabel = new qx.ui.basic.Label( "Name:");
             nameContainer.add( nameLabel );
             this.m_nameCombo = new skel.boundWidgets.ComboBox();
+            var defaultItem= ["Default"];
+            this.m_nameCombo.setComboItems( defaultItem );
             this.m_nameCombo.setToolTipText( "Specify or select the name of the contour set to add and/or delete.");
             nameContainer.add( this.m_nameCombo );
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});

@@ -89,6 +89,12 @@ public:
     QString closeImage( const QString& name );
 
     /**
+     * Return the coordinate system in use.
+     * @return - an enumerated coordinate system type.
+     */
+    Carta::Lib::KnownSkyCS getCoordinateSystem() const;
+
+    /**
      * Return a shared pointer to the grid controls.
      * @return - a shared pointer to the grid controls.
      */

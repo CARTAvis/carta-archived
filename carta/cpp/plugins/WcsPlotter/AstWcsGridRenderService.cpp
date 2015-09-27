@@ -272,6 +272,36 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( "LabelUp(2)=0" ); // align labels to axes
     sgp.setPlotOption( "Size=9" ); // default font
 
+
+    QString system;
+    {
+        typedef Carta::Lib::KnownSkyCS KS;
+        switch ( m().knownSkyCS )
+        {
+        case KS::J2000 :
+            system = "J2000";
+            break;
+        case KS::B1950 :
+            system = "FK4";
+            break;
+        case KS::ICRS :
+            system = "ICRS";
+            break;
+        case KS::Galactic :
+            system = "GALACTIC";
+            break;
+        case KS::Ecliptic :
+            system = "ECLIPTIC";
+            break;
+        default :
+            system = "";
+        } // switch
+    }
+
+    if ( ! system.isEmpty() ){
+        sgp.setPlotOption( "System=" + system );
+    }
+
     //Turn axis  labelling off if we are not drawing the axes.
     if (m_axes){
         int labelCount = m_labels.size();
@@ -279,23 +309,29 @@ AstWcsGridRenderService::renderNow()
             int axisIndex = i+ 1;
             sgp.setPlotOption( QString("TextLab(%1)=1").arg(axisIndex) );
             if ( m_labels[i].length() > 0 ){
-                QString label = QString( "Label(%1)=%2").arg(axisIndex).arg(m_labels[i]);
+                QString baseLabel = m_labels[i];
+
+                //Format
+                Carta::Lib::AxisLabelInfo::Formats labelFormat = m_labelInfos[i].getFormat();
+                int precision = m_labelInfos[i].getPrecision();
+                QString completeFormat = _getDisplayFormat( labelFormat, precision );
+                QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
+                sgp.setPlotOption( format );
+
+                //Label with format added - seems to be added automatically for J2000.
+                if ( system != "J2000" ){
+                    baseLabel = baseLabel +"(" + completeFormat+")";
+                }
+                QString label = QString( "Label(%1)=%2").arg(axisIndex).arg( baseLabel);
                 sgp.setPlotOption( label );
-            }
-        }
-        int labelInfoSize = m_labelInfos.size();
-        for ( int i = 0; i < labelInfoSize; i++ ){
-            int axisIndex = i + 1;
-            Carta::Lib::AxisLabelInfo::Formats labelFormat = m_labelInfos[i].getFormat();
-            int precision = m_labelInfos[i].getPrecision();
-            QString completeFormat = _getDisplayFormat( labelFormat, precision );
-            QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
-            sgp.setPlotOption( format );
-            Carta::Lib::AxisLabelInfo::Locations labelLocation = m_labelInfos[i].getLocation();
-            QString location = _getDisplayLocation( labelLocation );
-            if ( location.length() > 0 ){
-                QString edgeStr =QString("Edge(%1)=%2").arg(axisIndex).arg( location );
-                sgp.setPlotOption( edgeStr );
+
+                //Label location
+                Carta::Lib::AxisLabelInfo::Locations labelLocation = m_labelInfos[i].getLocation();
+                QString location = _getDisplayLocation( labelLocation );
+                if ( location.length() > 0 ){
+                    QString edgeStr =QString("Edge(%1)=%2").arg(axisIndex).arg( location );
+                    sgp.setPlotOption( edgeStr );
+                }
             }
         }
     }
@@ -347,34 +383,7 @@ AstWcsGridRenderService::renderNow()
     // grid density
     sgp.setDensityModifier( m_gridDensity );
 
-    QString system;
-    {
-        typedef Carta::Lib::KnownSkyCS KS;
-        switch ( m().knownSkyCS )
-        {
-        case KS::J2000 :
-            system = "J2000";
-            break;
-        case KS::B1950 :
-            system = "FK4";
-            break;
-        case KS::ICRS :
-            system = "ICRS";
-            break;
-        case KS::Galactic :
-            system = "GALACTIC";
-            break;
-        case KS::Ecliptic :
-            system = "ECLIPTIC";
-            break;
-        default :
-            system = "";
-        } // switch
-    }
 
-    if ( ! system.isEmpty() ){
-        sgp.setPlotOption( "System=" + system );
-    }
 
     // do the actual plot
     bool plotSuccess = sgp.plot();

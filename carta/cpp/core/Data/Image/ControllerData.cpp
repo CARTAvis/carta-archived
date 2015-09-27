@@ -120,6 +120,13 @@ QStringList ControllerData::_getCoordinates( double x, double y,
     return coordStr;
 }
 
+Carta::Lib::KnownSkyCS ControllerData::_getCoordinateSystem() const {
+    Carta::Lib::KnownSkyCS cs = Carta::Lib::KnownSkyCS::Unknown;
+    if ( m_dataGrid ){
+        cs = m_dataGrid->_getSkyCS();
+    }
+    return cs;
+}
 
 QString ControllerData::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames ){
     QString cursorText;
@@ -287,7 +294,8 @@ void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bo
     m_dataGrid->_resetState( state );
     m_state.setObject(DataGrid::GRID, m_dataGrid->_getState().toString());
     if ( renderImage ){
-        _render( frames );
+        const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
+        _render( frames, cs );
     }
 }
 
@@ -362,7 +370,7 @@ void ControllerData::_renderingDone(
 
 
 void ControllerData::_load(vector<int> frames, bool /*recomputeClipsOnNewFrame*/,
-        double minClipPercentile, double maxClipPercentile){
+        double minClipPercentile, double maxClipPercentile, const Carta::Lib::KnownSkyCS& cs ){
     if ( m_dataSource ){
         m_dataSource->_load( frames, /*recomputeClipsOnNewFrame,*/
                 minClipPercentile, maxClipPercentile );
@@ -372,13 +380,13 @@ void ControllerData::_load(vector<int> frames, bool /*recomputeClipsOnNewFrame*/
                 gridService-> setInputImage( m_dataSource->_getImage() );
             }
         }
-        _render( frames  );
+        _render( frames, cs );
     }
 }
 
 
 
-void ControllerData::_render( const std::vector<int>& frames){
+void ControllerData::_render( const std::vector<int>& frames, const Carta::Lib::KnownSkyCS& cs ){
     // erase current grid
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
     std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
@@ -417,16 +425,16 @@ void ControllerData::_render( const std::vector<int>& frames){
     //Which display axes will be drawn.
     AxisInfo::KnownType xType = m_dataSource->_getAxisXType();
     AxisInfo::KnownType yType = m_dataSource->_getAxisYType();
-    QString displayLabelX = AxisMapper::getPurpose( xType );
-    QString displayLabelY = AxisMapper::getPurpose( yType );
+    QString displayLabelX = AxisMapper::getPurpose( xType, cs );
+    QString displayLabelY = AxisMapper::getPurpose( yType, cs );
     gridService->setAxisLabel( 0, displayLabelX );
     gridService->setAxisLabel( 1, displayLabelY );
 
     AxisInfo::KnownType horAxisType = m_dataSource->_getAxisXType();
-    Carta::Lib::AxisLabelInfo horAxisInfo = m_dataGrid->_getAxisLabelInfo( 0, horAxisType );
+    Carta::Lib::AxisLabelInfo horAxisInfo = m_dataGrid->_getAxisLabelInfo( 0, horAxisType, cs );
     gridService->setAxisLabelInfo( 0, horAxisInfo );
     AxisInfo::KnownType vertAxisType = m_dataSource->_getAxisYType();
-    Carta::Lib::AxisLabelInfo vertAxisInfo = m_dataGrid->_getAxisLabelInfo( 1, vertAxisType );
+    Carta::Lib::AxisLabelInfo vertAxisInfo = m_dataGrid->_getAxisLabelInfo( 1, vertAxisType, cs );
     gridService->setAxisLabelInfo( 1, vertAxisInfo );
 
     bool contourDraw = m_dataContours->isContourDraw();

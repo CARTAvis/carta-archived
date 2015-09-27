@@ -65,11 +65,16 @@ QString LabelFormats::getDefaultFormat( const QString& direction ) const {
     return format;
 }
 
-QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis ) const {
-    QString defaultFormat = FORMAT_NONE;
-    if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON  ||
-         axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT){
-        defaultFormat = FORMAT_DECIMAL_DEG;
+QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis,
+        const Carta::Lib::KnownSkyCS& cs ) const {
+    QString defaultFormat = FORMAT_DECIMAL_DEG;
+    if ( cs != Carta::Lib::KnownSkyCS::Galactic && cs != Carta::Lib::KnownSkyCS::Ecliptic ){
+        if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON ){
+            defaultFormat = FORMAT_HR_MIN_SEC;
+        }
+        else if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
+            defaultFormat = FORMAT_DEG_MIN_SEC;
+        }
     }
     return defaultFormat;
 }
