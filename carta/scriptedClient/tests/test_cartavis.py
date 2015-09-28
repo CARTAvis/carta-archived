@@ -144,26 +144,23 @@ def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
-@pytest.mark.skipif(True, reason="Unknown reason.")
 def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the channel properly.
     """
-    image1 = 'WFPC2u5780205r_c0fx_channel1.png'
-    image2 = 'WFPC2u5780205r_c0fx_channel2.png'
+    image1 = 'RaDecVel_channel1.png'
+    image2 = 'RaDecVel_channel2.png'
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
-    i[0].loadFile(os.getcwd() + '/data/WFPC2u5780205r_c0fx.fits')
+    i[0].loadFile(os.getcwd() + '/data/RaDecVel.fits')
+    channels = i[0].getChannelCount()
     a[0].setChannel(0)
-    i[0].saveFullImage(tempImageDir + '/' + image1)
+    _saveFullImage(i[0], image1, tempImageDir)
     a[0].setChannel(1)
-    i[0].saveFullImage(tempImageDir + '/' + image2)
-    reference1 = Image.open(os.getcwd() + '/data/' + image1)
-    comparison1 = Image.open(tempImageDir + '/' + image1)
-    reference2 = Image.open(os.getcwd() + '/data/' + image2)
-    comparison2 = Image.open(tempImageDir + '/' + image2)
-    assert list(reference1.getdata()) == list(comparison1.getdata())
-    assert list(reference2.getdata()) == list(comparison2.getdata())
+    _saveFullImage(i[0], image2, tempImageDir)
+    # Also check that invalid channel values yield error messages
+    assert a[0].setChannel(channels+10) != ['']
+    assert a[0].setChannel(-10) != ['']
 
 def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
     """

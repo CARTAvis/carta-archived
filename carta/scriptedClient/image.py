@@ -3,7 +3,6 @@
 
 from astropy.coordinates import SkyCoord
 
-from statistics import Statistics
 from cartaview import CartaView
 from histogram import Histogram
 from animator import Animator
@@ -86,24 +85,6 @@ class Image(CartaView):
                 linkedHistogramView = Histogram(histogram, self.con)
                 linkedHistogramViews.append(linkedHistogramView)
         return linkedHistogramViews
-
-    def getLinkedStatistics(self):
-        """
-        Get the statistics that are linked to this image view.
-
-        Returns
-        -------
-        list
-            A list of Statistics objects.
-        """
-        resultList = self.con.cmdTagList("getLinkedStatistics",
-                                         imageView=self.getId())
-        linkedStatisticsViews = []
-        if (resultList[0] != ""):
-            for statistics in resultList:
-                linkedStatisticsView = Statistics(statistics, self.con)
-                linkedStatisticsViews.append(linkedStatisticsView)
-        return linkedStatisticsViews
 
     def setClipValue(self, index):
         """
