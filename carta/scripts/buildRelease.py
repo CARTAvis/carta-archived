@@ -7,7 +7,7 @@ defaultSettings = {
     "version" : "0.0.0",
     "destination" : "/tmp/cartaBuild-0.0.0",
     "qmakebin" : "/usr/bin/qmake",
-    "makeflags" : [ "-j4" ]
+    "makeflags" : [ "-j12" ]
 
 }
 
@@ -78,10 +78,11 @@ print settings
 
 # ask user if this is ok
 while True:
-    print "Current settings:"
+    print "Current settings (from", getJsonPath(srcRoot), "):"
     print "  1) Version:" , settings["version"]
     print "  2) Destination:" , settings["destination"]
     print "  3) qmake:" , settings["qmakebin"]
+    print "   ) makeflagse:" , " ".join(settings["makeflags"])
     print "  0) Go"
 
     try:
@@ -145,29 +146,5 @@ shutil.copy( srcRoot + "/carta/html5/server/serverConnector.js",
              settings["destination"] + "/html")
 
 
-done()
 
-call(["ls", "-l"])
-
-def getLastBuildVersion():
-    f = open('../lastBuildVersion', 'r')
-    line = f.readline()
-
-def getBuildVersion():
-    # check if we have last version
-    version = getLastBuildVersion()
-
-
-
-def updateJsonFile():
-    jsonFile = open("replayScript.json", "r")
-    data = json.load(jsonFile)
-    jsonFile.close()
-
-    tmp = data["location"]
-    data["location"] = path
-    data["mode"] = "replay"
-
-    jsonFile = open("replayScript.json", "w+")
-    jsonFile.write(json.dumps(data))
-    jsonFile.close()
+print "Done"
