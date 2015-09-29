@@ -1,9 +1,14 @@
+general:
+  branches:
+    ignore:
+      - master 
+      - develop
+
 machine:
   services:
     - docker
 
-
-dependencies:
+dependenciea:
   cache_directories:
     - "~/docker"
 
