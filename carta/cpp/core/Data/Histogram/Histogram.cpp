@@ -174,6 +174,8 @@ void Histogram::clear(){
 }
 
 void Histogram::_createHistogram( Controller* controller){
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
+    m_histogram->setPipeline( pipeline );
     double minIntensity = 0;
     double maxIntensity = 0;
     std::pair<int,int> frameBounds = _getFrameBounds();

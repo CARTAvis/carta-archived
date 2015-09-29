@@ -51,7 +51,19 @@ void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
         double middle = ( r.left() + r.right() ) / 2;
         QwtPainter::drawLine( painter, middle, r.bottom(), middle, r.top() );
     }
-    else if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ){
+    else if ( m_drawStyle != Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ){
+            qCritical() << "Unrecognized draw style="<< m_drawStyle;
+    }
+
+
+    if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ||
+            ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_FILL && m_colored ) ){
+        //Draw a black outline for colored fill style
+        if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_FILL && m_colored ){
+            QColor outlineC( "black" );
+            painter->setPen( outlineC );
+        }
+
         //Draw the top
         double top = r.top();
         double right = r.right();
@@ -66,9 +78,7 @@ void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
             m_lastX = right;
         }
     }
-    else {
-        qCritical() << "Unrecognized draw style="<< m_drawStyle;
-    }
+
 }
 
 
