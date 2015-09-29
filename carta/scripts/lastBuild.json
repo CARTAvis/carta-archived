@@ -1,0 +1,8 @@
+{
+    "destination": "/tmp/cartaBuild-0.0.0",
+    "makeflags": [
+        "-j4"
+    ],
+    "qmakebin": "/home/pfederl/Software/Qt/5.3/gcc_64/bin/qmake",
+    "version": "0.0.0"
+}

@@ -198,7 +198,7 @@ unix:macx {
 	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
 	LIBS +=-L../CartaLib -lCartaLib -framework qwt
 }
-else{
+else {
 	QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
 	LIBS +=-L../CartaLib -lCartaLib -L$$QWT_ROOT/lib -lqwt
 }

@@ -57,10 +57,6 @@
     // listen for command results callbacks and always invoke the top callback
     // in the list
     // the command results always arrive in the same order they were sent
-    /***
-     * Note:  The assumption above is wrong.  Command results arrive back in stack order.
-     */
-    // TODO: this is a bug (https://github.com/Astroua/CARTAvis/issues/4)
     QtConnector.jsCommandResultsSignal.connect(function(result) {
         //console.log( "DesktopConnector callback result="+result);
         if (m_commandCallbacks.length < 1) {

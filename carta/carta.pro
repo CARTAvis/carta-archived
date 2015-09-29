@@ -49,5 +49,13 @@ dbg( "===---------------------------------------------====")
 #    dbg( "$${var} = $${x}")
 #}
 
+#mytarget.target = buildfile.txt
+#mytarget.commands = touch $$mytarget.target
+#mytarget.depends = mytarget2 mytarget3
+
+#mytarget2.commands = @echo Building $$mytarget.target
+#mytarget3.commands = @echo top src/build: $$top_srcdir $$top_builddir
+
+#QMAKE_EXTRA_TARGETS += mytarget mytarget2 mytarget3
 
 
