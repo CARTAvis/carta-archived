@@ -169,6 +169,7 @@ bool Controller::addData(const QString& fileName) {
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
     bool clipsChanged = false;
+
     if ( minIntensityPercentile < maxIntensityPercentile ){
         const double ERROR_MARGIN = 0.0001;
         if ( 0 <= minIntensityPercentile && minIntensityPercentile <= 1 ){
@@ -191,10 +192,11 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
         else {
             result = "Maximum intensity percentile invalid [0,1]: "+ QString::number( maxIntensityPercentile);
         }
+
         if( clipsChanged ){
             m_state.flushState();
             if ( m_view ){
-                _scheduleFrameReload();
+                _scheduleFrameReload( true );
             }
         }
     }
@@ -622,16 +624,17 @@ void Controller::_initializeCallbacks(){
         std::set<QString> keys = {"autoClip"};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipKey = *keys.begin();
-        bool autoClip = false;
-        if ( dataValues[clipKey] == "true"){
-            autoClip = true;
+        bool validBool = false;
+        bool autoClip = Util::toBool( dataValues[clipKey], &validBool );
+        QString result;
+        if ( validBool ){
+            setAutoClip( autoClip );
         }
-        bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
-        if ( autoClip != oldAutoClip ){
-            m_state.setValue<bool>( AUTO_CLIP, autoClip );
-            m_state.flushState();
+        else {
+            result = "Auto clip must be true/false: "+params;
         }
-        return "";
+        Util::commandPostProcess( result );
+        return result;
     });
 
     QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( ImageView::VIEW, POINTER_MOVE));
@@ -800,7 +803,7 @@ void Controller::_initializeState(){
 
 
 
-void Controller::_loadView( ) {
+void Controller::_loadView(  bool newClips ) {
     m_reloadFrameQueued = false;
     //Determine the index of the data to load.
     int imageIndex = 0;
@@ -816,6 +819,9 @@ void Controller::_loadView( ) {
 
             //Load the image.
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
+            if ( newClips ){
+                autoClip = true;
+            }
             double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
             double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
             const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
@@ -1101,15 +1107,22 @@ void Controller::_scheduleFrameRepaint( const QImage& img ){
 }
 
 
-void Controller::_scheduleFrameReload(){
+void Controller::_scheduleFrameReload( bool newClips ){
     if ( m_datas.size() > 0  ){
-
         // if reload is already pending, do nothing
         if ( m_reloadFrameQueued ) {
             return;
         }
         m_reloadFrameQueued = true;
-        QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
+        QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
+    }
+}
+
+void Controller::setAutoClip( bool autoClip ){
+    bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
+    if ( autoClip != oldAutoClip ){
+        m_state.setValue<bool>( AUTO_CLIP, autoClip );
+        m_state.flushState();
     }
 }
 

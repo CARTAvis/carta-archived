@@ -267,6 +267,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
         
         /**
+         * Set the appearance of this window based on whether or not it is selected.
+         * @param selected {boolean} true if the window is selected; false otherwise.
+         * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
+         */
+        setSelected : function(selected, multiple) {
+            this.updateCmds();
+            arguments.callee.base.apply(this, arguments, selected, multiple );
+        },
+        
+        /**
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
@@ -301,6 +311,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
         
         /**
+         * Update the commands about clip settings.
+         */
+        updateCmds : function(){
+            var autoClipCmd = skel.Command.Clip.CommandClipAuto.getInstance();
+            autoClipCmd.setValue( this.m_autoClip );
+            var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
+            clipValsCmd.setClipValue( this.m_clipPercent );
+        },
+        
+        /**
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
@@ -317,7 +337,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_imageControls.setId( this.getIdentifier());
         },
         
-
+        /**
+         * Update from the server.
+         * @param winObj {Object} - an object containing server side information values.
+         */
+        windowSharedVarUpdate : function( winObj ){
+            if ( winObj !== null ){
+                this.m_autoClip = winObj.autoClip;
+                this.m_clipPercent = winObj.clipValueMax - winObj.clipValueMin;
+            }
+        },
+        
+        m_autoClip : false,
+        m_clipPercent : 0,
+        
         m_regionButton : null,
         m_renderButton : null,
         m_drawCanvas : null,

@@ -274,6 +274,13 @@ public:
     QString saveImage( const QString& filename );
 
     /**
+     * Set whether or not clip values should be recomputed when the frame changes.
+     * @param autoClip - whether or not clips should be recomputed when the frame
+     *      changed.
+     */
+    void setAutoClip( bool autoClip );
+
+    /**
      *  Make a data selection.
      *  @param imageIndex - a String representing the index of a specific data selection.
      */
@@ -380,7 +387,8 @@ private slots:
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
     //Refresh the view based on the latest data selection information.
-    void _loadView();
+    //The parameter newClips is set if the clip values have changed and need to be recomputed.
+    void _loadView( bool newClips = false );
 
     /**
      * The rendering service has finished and produced a new QImage for display.
@@ -394,8 +402,9 @@ private slots:
 
     /**
      * Schedule a frame reload event.
+     * @param newClips - set when the clip values have changed and will need to be recomputed.
      */
-    void _scheduleFrameReload();
+    void _scheduleFrameReload( bool newClips = false );
 
     /**
      * Repaint the image.

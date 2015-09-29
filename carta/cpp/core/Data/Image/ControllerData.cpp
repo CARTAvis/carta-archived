@@ -369,10 +369,10 @@ void ControllerData::_renderingDone(
 }
 
 
-void ControllerData::_load(vector<int> frames, bool /*recomputeClipsOnNewFrame*/,
+void ControllerData::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile, const Carta::Lib::KnownSkyCS& cs ){
     if ( m_dataSource ){
-        m_dataSource->_load( frames, /*recomputeClipsOnNewFrame,*/
+        m_dataSource->_load( frames, recomputeClipsOnNewFrame,
                 minClipPercentile, maxClipPercentile );
         if ( m_dataGrid ){
             if ( m_dataGrid->_isGridVisible() ){

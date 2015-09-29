@@ -534,22 +534,23 @@ void DataSource::_initializeSingletons( ){
 }
 
 
-void DataSource::_load(std::vector<int> frames,  double minClipPercentile, double maxClipPercentile){
+void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
+        double minClipPercentile, double maxClipPercentile){
     int frameSize = frames.size();
     CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
     std::vector<int> mFrames = _fitFramesToImage( frames );
     std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( mFrames ) );
 
     //Update the clip values
-    _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
+    if ( recomputeClipsOnNewFrame ){
+        _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
+    }
 
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 
     QString renderId = _getViewIdCurrent( mFrames );
     m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
 }
-
-
 
 
 void DataSource::_resetZoom(){
@@ -720,8 +721,9 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
             clipsChanged = true;
         }
     }
+
     if ( clipsChanged ){
-        if ( newClips.size() > 2 && newClips[0] != newClips[1] ){
+        if ( newClips.size() >= 2 && newClips[0] != newClips[1] ){
             m_quantileCache[ quantileIndex ] = newClips;
             m_pixelPipeline-> setMinMax( newClips[0], newClips[1] );
         }

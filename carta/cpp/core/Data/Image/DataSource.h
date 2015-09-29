@@ -328,10 +328,13 @@ private:
     /**
      * Return a QImage representation of this data.
      * @param -frames a list of frames to load, one for each axis.
+     * @param - recomputeClipsOnNewFrame - true if the clips should be recalculated when the frame
+     *      is changed; false otherwise.
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    void _load( std::vector<int> frames, double clipMinPercentile, double clipMaxPercentile );
+    void _load( std::vector<int> frames, bool recomputeClipsOnNewFrame,
+            double clipMinPercentile, double clipMaxPercentile );
 
     /**
      * Center the image.
