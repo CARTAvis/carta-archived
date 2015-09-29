@@ -15,8 +15,7 @@ namespace Carta {
 namespace Data {
 
 class DataContours;
-class ContourGenerateModes;
-class ContourSpacingModes;
+class GeneratorState;
 class IPercentIntensityMap;
 
 class ContourControls : public QObject, public Carta::State::CartaObject{
@@ -55,6 +54,12 @@ public:
      * @param state - a string representation of the contour sets.
      */
     virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
+     * Select a specific contour set.
+     * @param name - a name for a contour set.
+     */
+    void selectContourSet( const QString& name );
 
     /**
      * Set the transparency level of the contours within the specified set.
@@ -184,21 +189,8 @@ signals:
 private:
     const static QString CONTOUR_SETS;
     const static QString CONTOUR_SET_NAME;
-    const static QString DASHED_NEGATIVE;
-    const static QString GENERATE_MODE;
-    const static QString INTERVAL;
-    const static QString LEVEL_COUNT;
-    const static QString LEVEL_COUNT_MAX;
     const static QString LEVEL_LIST;
-    const static QString LEVEL_MIN;
-    const static QString LEVEL_MAX;
     const static QString LEVEL_SEPARATOR;
-    const static QString RANGE_MIN;
-    const static QString RANGE_MAX;
-    const static QString SPACING_MODE;
-    const static QString SPACING_INTERVAL;
-    const static int LEVEL_COUNT_MAX_VALUE;
-    const static double ERROR_MARGIN;
 
     void _addContourSet( const std::vector<double>& levels, const QString& contourSetName );
     void _clearContours();
@@ -212,7 +204,6 @@ private:
     std::vector<double> _getLevelsMinMax(double max, QString& error ) const;
 
     void _initializeDefaultState();
-    void _initializeSingletons( );
     void _initializeCallbacks();
 
     bool _isDuplicate( const QString& contourSetName ) const;
@@ -222,8 +213,6 @@ private:
     void _updateContourSetState();
 
     static bool m_registered;
-    static ContourGenerateModes* m_generateModes;
-    static ContourSpacingModes* m_spacingModes;
     IPercentIntensityMap* m_percentIntensityMap;
 
 
@@ -233,7 +222,8 @@ private:
 
     std::set<shared_ptr<DataContours> > m_dataContours;
 
-    shared_ptr<DataContours> m_drawContours;
+    std::shared_ptr<DataContours> m_drawContours;
+    std::shared_ptr<GeneratorState> m_generatorState;
 
     Carta::State::StateInterface m_stateData;
 

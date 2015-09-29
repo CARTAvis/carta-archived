@@ -20,7 +20,7 @@ namespace Carta {
 
 namespace Data {
 
-
+class GeneratorState;
 
 class DataContours : public QObject, public Carta::State::CartaObject {
 
@@ -145,14 +145,16 @@ public:
 private:
     std::set<Contour> _getContours();
     Contour* _getContour(double level);
+    std::shared_ptr<GeneratorState> _getGenerator() const;
     Carta::State::StateInterface _getState() const;
     void _initializeDefaultState();
     void _initializeCallbacks();
 
     void _updateContourState( );
+    void _updateGeneratorState( const std::shared_ptr<GeneratorState>& other );
 
     std::set<Contour> m_contours;
-
+    std::shared_ptr<GeneratorState> m_generatorState;
 
     static bool m_registered;
 

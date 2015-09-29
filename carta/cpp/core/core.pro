@@ -49,6 +49,7 @@ HEADERS += \
     Data/Image/Contour/ContourSpacingModes.h \
     Data/Image/Contour/ContourStyles.h \
     Data/Image/Contour/DataContours.h \
+    Data/Image/Contour/GeneratorState.h \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
     Data/Image/DrawSynchronizer.h \
@@ -135,6 +136,7 @@ SOURCES += \
     Data/Image/Contour/ContourSpacingModes.cpp \
     Data/Image/Contour/ContourStyles.cpp \
     Data/Image/Contour/DataContours.cpp \
+    Data/Image/Contour/GeneratorState.cpp \
     Data/Image/CoordinateSystems.cpp \
     Data/Image/DataSource.cpp \
     Data/Image/Grid/AxisMapper.cpp \

@@ -1,5 +1,6 @@
 #include <math.h>
 #include "DataContours.h"
+#include "GeneratorState.h"
 #include "Contour.h"
 
 #include "Data/Util.h"
@@ -33,7 +34,8 @@ bool DataContours::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new DataContours::Factory());
 
 DataContours::DataContours( const QString& path, const QString& id):
-    CartaObject( CLASS_NAME, path, id ){
+    CartaObject( CLASS_NAME, path, id ),
+    m_generatorState( new GeneratorState() ) {
     _initializeDefaultState();
 }
 
@@ -52,6 +54,10 @@ Contour* DataContours::_getContour(double level) {
         }
     }
     return target;
+}
+
+std::shared_ptr<GeneratorState> DataContours::_getGenerator() const {
+    return m_generatorState;
 }
 
 int DataContours::getLevelCount() const {
@@ -353,6 +359,10 @@ void DataContours::_updateContourState( ){
         i++;
     }
     m_state.flushState();
+}
+
+void DataContours::_updateGeneratorState( const std::shared_ptr<GeneratorState>& other ){
+    m_generatorState->_updateState( other );
 }
 
 DataContours::~DataContours(){

@@ -72,8 +72,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});
             var nameLabel = new qx.ui.basic.Label( "Name:");
             nameContainer.add( nameLabel );
-            this.m_nameCombo = new skel.boundWidgets.ComboBox();
-            var defaultItem= ["Default"];
+            this.m_nameCombo = new skel.boundWidgets.ComboBox( "selectContourSet", "name");
+            var defaultItem= [this.m_DEFAULT];
             this.m_nameCombo.setComboItems( defaultItem );
             this.m_nameCombo.setToolTipText( "Specify or select the name of the contour set to add and/or delete.");
             nameContainer.add( this.m_nameCombo );
@@ -174,8 +174,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(2));
             butContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            this.m_generateButton = new qx.ui.form.Button( "Add Contour Set");
-            this.m_generateButton.setToolTipText( "Generate a contour set.");
+            this.m_generateButton = new qx.ui.form.Button( "Add/Update Contour Set");
+            this.m_generateButton.setToolTipText( "Generate a contour set or update the levels in an existing contour set.");
             this.m_generateButton.addListener( "execute", this._sendGenerateCmd, this );
             this.m_deleteButton = new qx.ui.form.Button( "Delete Contour Set");
             this.m_deleteButton.setToolTipText( "Delete a contour set.");
@@ -221,10 +221,30 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server to delete a contour set.
          */
         _sendDeleteCmd : function(){
+            
+            //First we erase the item from the combo box so it does not get reset.
+            var name = this.m_nameCombo.getValue();
+            var itemCount = this.m_nameCombo.getItemCount();
+            //There is something else we can select
+            if ( itemCount > 1 ){
+                for ( var i = 0; i < itemCount; i++ ){
+                    var itemName = this.m_nameCombo.getValueAt( i );
+                    if ( itemName != name ){
+                        this.m_nameCombo.setValue( itemName );
+                        break;
+                    }
+                }
+            }
+            //Reset it to Default
+            else {
+                this.m_nameCombo.setValue( this.m_DEFAULT );
+            }
+            
+            //Now notify the server of the delete
             if ( this.m_id !== null && this.m_connector !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "deleteLevels";
-                var name = this.m_nameCombo.getValue();
+                
                 if ( name !== null ){
                     var params = "name:"+name;
                     this.m_connector.sendCommand( cmd, params, function(){});
@@ -349,6 +369,10 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             errorMan.clearErrors();
         },
         
+        /**
+         * Update the names of the contour sets with information from the server.
+         * @param controls {Object} - server information about the contour sets.
+         */
         setControlsData : function( controls ){
             this._setContourSetName( controls );
         },
@@ -360,6 +384,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          */
         setId : function( contourId ){
             this.m_id = contourId;
+            this.m_nameCombo.setId( contourId );
             this.m_limitCombo.setId( contourId );
             this.m_spacingCombo.setId( contourId );
         },
@@ -374,7 +399,9 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             for ( var i = 0; i < controls.contourSets.length; i++ ){
                 names.push( controls.contourSets[i].name );
             }
-            this.m_nameCombo.setComboItems( names );
+            
+                this.m_nameCombo.setComboItems( names );
+           
         },
         
         /**
@@ -417,7 +444,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * @param count {Number} - the number of contour levels.
          */
         _setLevelCount : function( count ){
-            if ( this.m_levelCountSpin.getValue() != count ){
+            var oldLevelCount = this.m_levelCountSpin.getValue();
+            if ( oldLevelCount != count ){
                 this.m_levelCountSpin.setValue( count );
             }
         },
@@ -516,7 +544,9 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         
         m_oldMin : null,
         m_oldMax : null,
-        m_oldInterval : null
+        m_oldInterval : null,
+        
+        m_DEFAULT : "Default"
 
     }
 });

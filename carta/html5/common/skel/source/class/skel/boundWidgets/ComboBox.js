@@ -48,28 +48,91 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         },
         
         /**
+         * Return a list of items in the combo box.
+         * @return {Array} - the items displayed in the combo box.
+         */
+        getComboItems : function(){
+            var items = [];
+            var selectables = this.getChildrenContainer().getSelectables();
+            for ( var i = 0; i < selectables.length; i++ ){
+                items[i] = selectables[i].getLabel();
+            }
+            return items;
+        },
+        
+        /**
+         * Return the number of items in the combo box.
+         * @return {Number} - the combo item count.
+         */
+        getItemCount : function(){
+            var selectables = this.getChildrenContainer().getSelectables();
+            return selectables.length;
+        },
+        
+        /**
+         * Return the value at the given index in the combo box.
+         * @param index {Number} - the index of the combo box item.
+         * @return {String} - the value at the given position in the combo box or
+         *      a blank if no such item exists.
+         */
+        getValueAt : function( index ){
+            var itemCount = this.getItemCount();
+            var value = "";
+            if ( index >= 0 && index < itemCount ){
+                var selectables = this.getChildrenContainer().getSelectables();
+                value = selectables[index].getLabel();
+            }
+            return value;
+        },
+        
+        /**
+         * Returns true if the lists are not the same; false otherwise.
+         * @param oldItems {Array} - one list of items.
+         * @param newItems {Array} - a second list of items.
+         * @return {boolean} - true if the items are the same; false, otherwise.
+         */
+        isItemsChanged : function( oldItems, newItems ){
+            var changed = false;
+            if ( oldItems.length != newItems.length ){
+                changed = true;
+            }
+            else {
+                for ( var i = 0; i < oldItems.length; i++ ){
+                    if ( oldItems[i] != newItems[i] ){
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            return changed;
+        },
+        
+        /**
          * Update the list of combo box items.
          * @param items {Array} the new combo box items to display.
          */
        setComboItems : function ( items ){
-           this.removeAll();
-           var oldValue = this.getValue();
-           for ( var i = 0; i < items.length; i++ ){
-               var newValue = items[i]+"";
-               var tempItem = new qx.ui.form.ListItem( newValue );
-               this.add( tempItem );
-           }
-           //Try to reset the old selection
-           if ( oldValue !== null ){ 
-               if ( items.length > 0 ){
-                   this.setValue( oldValue );
+           var oldItems = this.getComboItems();
+           if ( this.isItemsChanged( oldItems, items ) ){
+               this.removeAll();
+               var oldValue = this.getValue();
+               for ( var i = 0; i < items.length; i++ ){
+                   var newValue = items[i]+"";
+                   var tempItem = new qx.ui.form.ListItem( newValue );
+                   this.add( tempItem );
                }
-           }
-           //Select the first item
-           else if ( items.length > 0 ){
-               var selectables = this.getChildrenContainer().getSelectables(true);
-               if ( selectables.length > 0 ){
-                   this.setValue( selectables[0].getLabel());
+               //Try to reset the old selection
+               if ( oldValue !== null ){ 
+                   if ( items.length > 0 ){
+                       this.setValue( oldValue );
+                   }
+               }
+               //Select the first item
+               else if ( items.length > 0 ){
+                   var selectables = this.getChildrenContainer().getSelectables(true);
+                   if ( selectables.length > 0 ){
+                       this.setValue( selectables[0].getLabel());
+                   }
                }
            }
        },
@@ -104,6 +167,8 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         setId : function( id ){
             this.m_id = id;
         },
+        
+        
         
         m_id : null,
         m_connector : null,

@@ -1,6 +1,7 @@
 #include "ContourControls.h"
 #include "ContourGenerateModes.h"
 #include "ContourSpacingModes.h"
+#include "GeneratorState.h"
 #include "DataContours.h"
 #include "Data/Util.h"
 #include "Data/Image/IPercentIntensityMap.h"
@@ -19,25 +20,11 @@ namespace Data {
 const QString ContourControls::CLASS_NAME = "ContourControls";
 const QString ContourControls::CONTOUR_SETS = "contourSets";
 const QString ContourControls::CONTOUR_SET_NAME = "set";
-const QString ContourControls::DASHED_NEGATIVE = "dashedNegative";
-const QString ContourControls::GENERATE_MODE = "generateMode";
-const QString ContourControls::INTERVAL = "interval";
-const QString ContourControls::LEVEL_COUNT = "levelCount";
-const QString ContourControls::LEVEL_COUNT_MAX = "levelCountMax";
+
 const QString ContourControls::LEVEL_LIST = "levels";
-const QString ContourControls::LEVEL_MIN = "min";
-const QString ContourControls::LEVEL_MAX = "max";
+
 const QString ContourControls::LEVEL_SEPARATOR = ";";
-const QString ContourControls::RANGE_MIN = "rangeMin";
-const QString ContourControls::RANGE_MAX = "rangeMax";
-const QString ContourControls::SPACING_MODE = "spacingMode";
-const QString ContourControls::SPACING_INTERVAL = "spacingInterval";
 
-const int ContourControls::LEVEL_COUNT_MAX_VALUE = 30;
-const double ContourControls::ERROR_MARGIN = 0.000001;
-
-ContourGenerateModes* ContourControls::m_generateModes = nullptr;
-ContourSpacingModes* ContourControls::m_spacingModes = nullptr;
 
 class ContourControls::Factory : public Carta::State::CartaObjectFactory {
 
@@ -61,8 +48,9 @@ bool ContourControls::m_registered =
 ContourControls::ContourControls( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_percentIntensityMap( nullptr ),
+    m_generatorState( new GeneratorState() ),
     m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
-     _initializeSingletons();
+
     _initializeDefaultState();
     _initializeCallbacks();
 }
@@ -72,17 +60,38 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
     int count = levels.size();
     bool levelChanged = false;
     if ( count > 0 ){
+
+        //Make the individual contours in the set.
         std::set<Contour> contours;
         for ( int i = 0; i < count; i++ ){
             Contour contour;
             contour.setLevel( levels[i], &levelChanged );
             contours.insert( contour );
         }
-        ObjectManager* objMan = ObjectManager::objectManager();
-        std::shared_ptr<DataContours> dataContours(objMan->createObject<DataContours>());
+
+        //See if there is an existing contour with that name.
+        std::shared_ptr<DataContours> dataContours( nullptr );
+        for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+                it != m_dataContours.end(); it++ ){
+            QString contourName = (*it)->getName();
+            if ( contourName == contourSetName ){
+                dataContours = (*it);
+                break;
+            }
+        }
+
+        //Create a new contour set if there is not an existing one.
+        if ( !dataContours ){
+            ObjectManager* objMan = ObjectManager::objectManager();
+            dataContours.reset(objMan->createObject<DataContours>());
+            dataContours->setName( contourSetName );
+            m_dataContours.insert( dataContours );
+        }
+
+        //Reset the contours
         dataContours->setContours( contours );
-        dataContours->setName( contourSetName );
-        m_dataContours.insert( dataContours );
+        dataContours->_updateGeneratorState( m_generatorState );
+
         _updateContourSetState();
     }
 }
@@ -122,25 +131,19 @@ QString ContourControls::generateContourSet( const QString& contourSetName ){
     QString result;
     QString setName = contourSetName.trimmed();
     if ( setName.length() > 0 ){
-        bool existingContour = _isDuplicate( contourSetName );
-        if ( !existingContour ){
-            QString generateMethod = m_state.getValue<QString>(GENERATE_MODE);
-            std::set<Contour> contours;
-            if ( generateMethod == ContourGenerateModes::MODE_RANGE ){
-                 result = _generateRange( setName );
-            }
-            else if ( generateMethod == ContourGenerateModes::MODE_MINIMUM ){
-                result = _generateMinimum( setName );
-            }
-            else if ( generateMethod == ContourGenerateModes::MODE_PERCENTILE ){
-                result = _generatePercentile( setName );
-            }
-            else {
-                result = "Unsupported contour generation mode: "+generateMethod;
-            }
+        QString generateMethod = m_generatorState->getGenerateMethod();
+        std::set<Contour> contours;
+        if ( generateMethod == ContourGenerateModes::MODE_RANGE ){
+             result = _generateRange( setName );
+        }
+        else if ( generateMethod == ContourGenerateModes::MODE_MINIMUM ){
+            result = _generateMinimum( setName );
+        }
+        else if ( generateMethod == ContourGenerateModes::MODE_PERCENTILE ){
+            result = _generatePercentile( setName );
         }
         else {
-            result = "The contour set: "+contourSetName+" already exists.  Please choose a new name";
+            result = "Unsupported contour generation mode: "+generateMethod;
         }
     }
     else {
@@ -151,7 +154,7 @@ QString ContourControls::generateContourSet( const QString& contourSetName ){
 
 QString ContourControls::_generateRange( const QString& contourSetName ){
     QString result;
-    double maxLevel = m_state.getValue<double>( RANGE_MAX );
+    double maxLevel = m_generatorState->getRangeMax();
     std::vector<double> levels = _getLevelsMinMax(maxLevel, result );
     if ( result.isEmpty() && levels.size() > 0 ){
         _addContourSet( levels, contourSetName );
@@ -165,11 +168,11 @@ QString ContourControls::_generateRange( const QString& contourSetName ){
 
 QString ContourControls::_generateMinimum( const QString& contourSetName ){
     QString result;
-    double minLevel = m_state.getValue<double>(RANGE_MIN );
-    double step = m_state.getValue<double>(SPACING_INTERVAL );
-    int count = m_state.getValue<int>(LEVEL_COUNT );
+    double minLevel = m_generatorState->getRangeMin();
+    double step = m_generatorState->getSpacingInterval();
+    int count = m_generatorState->getLevelCount();
     double maxLevel = minLevel + step * (count - 1);
-    QString spacingMode = m_state.getValue<QString>(SPACING_MODE );
+    QString spacingMode = m_generatorState->getSpacingMethod();
     if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
         maxLevel = minLevel + qPow( step, (count-1) );
     }
@@ -183,7 +186,7 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
 QString ContourControls::_generatePercentile( const QString& contourSetName ){
     QString result;
     if ( m_percentIntensityMap != nullptr ){
-        double maxLevel = m_state.getValue<double>( RANGE_MAX );
+        double maxLevel = m_generatorState->getRangeMax();;
         //First get the levels as percentiles.
         std::vector<double> percentileLevels = _getLevelsMinMax( maxLevel, result );
         //Map the percentiles to intensities
@@ -213,12 +216,12 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
 
 
 std::vector<double> ContourControls::_getLevels( double minLevel, double maxLevel ) const {
-    int count = m_state.getValue<int>( LEVEL_COUNT );
+    int count = m_generatorState->getLevelCount();
     double step = maxLevel - minLevel;
     if ( count > 2 ){
         step = step / (count - 1 );
     }
-    QString spacingMode = m_state.getValue<QString>(SPACING_MODE);
+    QString spacingMode = m_generatorState->getSpacingMethod();
     std::vector<double> levels;
     if ( ( step > 0 && step != 1 ) || count == 1 ){
         for ( int i = 0; i < count; i++ ){
@@ -234,9 +237,9 @@ std::vector<double> ContourControls::_getLevels( double minLevel, double maxLeve
 }
 
 std::vector<double> ContourControls::_getLevelsMinMax( double max, QString& error ) const {
-    double minLevel = m_state.getValue<double>(RANGE_MIN );
+    double minLevel = m_generatorState->getRangeMin();
     double maxLevel = max;
-    QString spacingMode = m_state.getValue<QString>( SPACING_MODE );
+    QString spacingMode = m_generatorState->getSpacingMethod();
     std::vector<double> levels;
     bool validRange = true;
     if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
@@ -281,25 +284,12 @@ QString ContourControls::getStateString( const QString& /*sessionId*/, SnapshotT
 
 
 void ContourControls::_initializeDefaultState(){
-    m_state.insertValue<QString>(GENERATE_MODE, m_generateModes->getModeDefault());
-    m_state.insertValue<double>(RANGE_MIN, 0 );
-    m_state.insertValue<double>(RANGE_MAX, 1 );
-    m_state.insertValue<bool>(DASHED_NEGATIVE, false );
-    m_state.insertValue<int>(LEVEL_COUNT, 3 );
-    int contourLevelCountMax = Globals::instance()->mainConfig()->getContourLevelCountMax();
-    if ( contourLevelCountMax > 0 ){
-       m_state.insertValue<int>(LEVEL_COUNT_MAX, contourLevelCountMax );
-    }
-    else {
-       m_state.insertValue<int>(LEVEL_COUNT_MAX, LEVEL_COUNT_MAX_VALUE );
-    }
-    m_state.insertValue<QString>(SPACING_MODE, m_spacingModes->getModeDefault());
-    m_state.insertValue<double>(SPACING_INTERVAL, 0.25);
-    m_state.flushState();
+    QString generateState = m_generatorState->getStateString();
+    m_state.setState( generateState );
+
     int contourSetCount = m_dataContours.size();
     m_stateData.insertArray( CONTOUR_SETS, contourSetCount );
     _updateContourSetState();
-
 }
 
 
@@ -318,7 +308,8 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {DataContours::SET_NAME, INTERVAL, LEVEL_MIN, LEVEL_MAX};
+            std::set<QString> keys = {DataContours::SET_NAME, GeneratorState::INTERVAL,
+                    GeneratorState::LEVEL_MIN, GeneratorState::LEVEL_MAX};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString contourSetName = dataValues[DataContours::SET_NAME];
 
@@ -326,15 +317,15 @@ void ContourControls::_initializeCallbacks(){
             //before adding the contour.
             QString result;
             bool validDouble = false;
-            double spaceInterval = dataValues[INTERVAL].toDouble(&validDouble);
+            double spaceInterval = dataValues[GeneratorState::INTERVAL].toDouble(&validDouble);
             if ( validDouble ){
                 result = setSpacingInterval( spaceInterval );
                 if ( result.isEmpty() ){
-                    double levelMin = dataValues[LEVEL_MIN].toDouble(&validDouble);
+                    double levelMin = dataValues[GeneratorState::LEVEL_MIN].toDouble(&validDouble);
                     if ( validDouble ){
                         result = setLevelMin( levelMin );
                         if ( result.isEmpty() ){
-                            double levelMax = dataValues[LEVEL_MAX].toDouble(&validDouble);
+                            double levelMax = dataValues[GeneratorState::LEVEL_MAX].toDouble(&validDouble);
                             if ( validDouble ){
                                 result = setLevelMax( levelMax );
                                 if ( result.isEmpty() ){
@@ -347,7 +338,8 @@ void ContourControls::_initializeCallbacks(){
                 }
             }
             else {
-                result = "Please make sure the contour spacing interval is a valid number: "+dataValues[INTERVAL];
+                result = "Please make sure the contour spacing interval is a valid number: "+
+                        dataValues[GeneratorState::INTERVAL];
             }
             Util::commandPostProcess( result );
             return result;
@@ -399,6 +391,16 @@ void ContourControls::_initializeCallbacks(){
             return result;
         });
 
+    //Set the method for generating contour levels.
+    addCommandCallback( "selectContourSet", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {DataContours::SET_NAME};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString contourSetName = dataValues[DataContours::SET_NAME];
+        selectContourSet( contourSetName );
+        return "";
+    });
+
     addCommandCallback( "setDashedNegative", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {"dashed"};
@@ -430,11 +432,11 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "setInterval", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {INTERVAL};
+                std::set<QString> keys = {GeneratorState::INTERVAL};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                 bool validDouble = false;
                 QString result;
-                double spaceInterval = dataValues[INTERVAL].toDouble(&validDouble);
+                double spaceInterval = dataValues[GeneratorState::INTERVAL].toDouble(&validDouble);
                 if ( validDouble ){
                     result = setSpacingInterval( spaceInterval );
                 }
@@ -505,7 +507,7 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "setLevelMin", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {LEVEL_MIN};
+            std::set<QString> keys = {GeneratorState::LEVEL_MIN};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             bool validDouble = false;
             QString result;
@@ -585,15 +587,7 @@ void ContourControls::_initializeCallbacks(){
 
 
 }
-void ContourControls::_initializeSingletons( ){
-    //Load the available contour generate modes.
-    if ( m_generateModes  == nullptr){
-        m_generateModes = Util::findSingletonObject<ContourGenerateModes>();
-    }
-    if ( m_spacingModes == nullptr ){
-        m_spacingModes = Util::findSingletonObject<ContourSpacingModes>();
-    }
-}
+
 
 bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
     bool duplicateSet = false;
@@ -622,6 +616,33 @@ void ContourControls::resetStateData( const QString& state ){
         m_dataContours.insert( dataContours );
     }
     _updateContourSetState();
+}
+
+void ContourControls::selectContourSet( const QString& name ){
+   std::shared_ptr<DataContours> dataContours( nullptr );
+   for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+           it != m_dataContours.end(); it++ ){
+       QString contourName = (*it)->getName();
+       if ( contourName == name ){
+           dataContours = (*it);
+           break;
+       }
+   }
+   if ( dataContours ){
+       //Existing contour set - use it's method of generating contour levels
+       m_generatorState = dataContours->_getGenerator();
+   }
+   else {
+       //Use a new blank generator but update it with the state of the current generator.
+       std::shared_ptr<GeneratorState> newGen( new GeneratorState() );
+       newGen->_updateState( m_generatorState );
+       m_generatorState = newGen;
+   }
+   QString genStateStr = m_generatorState->getStateString();
+
+   m_state.setState( genStateStr );
+   CartaObject::refreshState();
+   m_state.flushState();
 }
 
 QString ContourControls::setAlpha( const QString& contourName,
@@ -657,11 +678,7 @@ QStringList ContourControls::setColor( const QString& contourName,
 }
 
 void ContourControls::setDashedNegative( bool useDash ){
-    int oldDashed = m_state.getValue<bool>( DASHED_NEGATIVE );
-    if ( oldDashed != useDash ){
-        m_state.setValue<bool>( DASHED_NEGATIVE, useDash );
-        m_state.flushState();
-    }
+    m_generatorState->setDashedNegative( useDash );
 }
 
 void ContourControls::_setDrawContours( std::shared_ptr<DataContours> contours ){
@@ -680,18 +697,7 @@ void ContourControls::_setDrawContours( std::shared_ptr<DataContours> contours )
 
 
 QString ContourControls::setGenerateMethod( const QString& method ){
-    QString recognizedMethod = m_generateModes->getGenerateMethod( method );
-    QString result;
-    if ( !recognizedMethod.isEmpty() ){
-        QString oldMethod = m_state.getValue<QString>( GENERATE_MODE );
-        if ( oldMethod != recognizedMethod ){
-            m_state.setValue<QString>( GENERATE_MODE, recognizedMethod );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "The contour generate method, "+method+" is not supported.";
-    }
+    QString result = m_generatorState->setGenerateMethod( method );
     return result;
 }
 
@@ -700,67 +706,22 @@ void ContourControls::setPercentIntensityMap( IPercentIntensityMap* mapper ){
 }
 
 QString ContourControls::setSpacing( const QString& method ){
-    QString recognizedMethod = m_spacingModes->getSpacingMethod( method );
-    QString result;
-    if ( !recognizedMethod.isEmpty() ){
-        QString oldMethod = m_state.getValue<QString>( SPACING_MODE );
-        if ( oldMethod != recognizedMethod ){
-            m_state.setValue<QString>( SPACING_MODE, recognizedMethod );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "The contour spacing method, "+method+" is not supported.";
-    }
+    QString result = m_generatorState->setSpacing( method );
     return result;
 }
 
 QString ContourControls::setLevelCount( int count ){
-    QString result;
-    if ( count >= 1 ){
-        int oldLevelCount = m_state.getValue<int>( LEVEL_COUNT );
-        if ( oldLevelCount != count ){
-            m_state.setValue<int>( LEVEL_COUNT, count );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "A contour set must have at least one level:"+count;
-    }
+    QString result = m_generatorState->setLevelCount( count );
     return result;
 }
 
 QString ContourControls::setLevelMax( double value ){
-    QString result;
-    double minValue = m_state.getValue<double>( RANGE_MIN );
-    if ( minValue <= value ){
-        double oldMax = m_state.getValue<double>( RANGE_MAX );
-        if ( qAbs( oldMax - value ) > ERROR_MARGIN ){
-            m_state.setValue<double>( RANGE_MAX, value );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "The maximum contour level must be at least as large as the minimum.";
-    }
+    QString result = m_generatorState->setLevelMax( value );
     return result;
 }
 
 QString ContourControls::setLevelMin( double value ){
-    QString result;
-    //If the method used to generate levels  is percentiles, the
-    //value must be in [0,1].
-    double maxValue = m_state.getValue<double>( RANGE_MAX );
-    if ( value <= maxValue ){
-        double oldMin = m_state.getValue<double>( RANGE_MIN );
-        if ( qAbs( oldMin - value ) > ERROR_MARGIN ){
-            m_state.setValue<double>( RANGE_MIN, value );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "The minimum contour level must be less than or equal to the maximum.";
-    }
+    QString result = m_generatorState->setLevelMin( value );
     return result;
 }
 
@@ -803,17 +764,7 @@ QString ContourControls::setLineStyle( const QString& contourName, std::vector<d
 }
 
 QString ContourControls::setSpacingInterval( double interval ){
-    QString result;
-    if ( interval > 0 ){
-        double oldInterval = m_state.getValue<double>( SPACING_INTERVAL );
-        if ( qAbs( oldInterval - interval ) > ERROR_MARGIN ){
-            m_state.setValue<double>( SPACING_INTERVAL, interval );
-            m_state.flushState();
-        }
-    }
-    else {
-        result = "The contour spacing interval must be positive.";
-    }
+    QString result = m_generatorState->setSpacingInterval( interval );
     return result;
 }
 
