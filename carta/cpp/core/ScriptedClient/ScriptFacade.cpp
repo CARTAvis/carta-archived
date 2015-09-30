@@ -30,18 +30,6 @@ ScriptFacade * ScriptFacade::getInstance (){
 
 ScriptFacade::ScriptFacade(){
     m_viewManager = Carta::Data::Util::findSingletonObject<Carta::Data::ViewManager>();
-
-    int numControllers = m_viewManager->getControllerCount();
-    for (int i = 0; i < numControllers; i++) {
-        QString imageView = getImageViewId( i );
-        Carta::State::CartaObject* obj = _getObject( imageView );
-        if ( obj != nullptr ){
-            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-            if ( controller != nullptr ){
-                connect( controller, & Carta::Data::Controller::saveImageResult, this, & ScriptFacade::saveImageResultCB );
-            }
-        }
-    }
 }
 
 QString ScriptFacade::getColorMapId( int index ) const {
@@ -74,6 +62,13 @@ QStringList ScriptFacade::getImageViews() {
     int numControllers = m_viewManager->getControllerCount();
     for (int i = 0; i < numControllers; i++) {
         QString imageView = getImageViewId( i );
+        Carta::State::CartaObject* obj = _getObject( imageView );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                connect( controller, & Carta::Data::Controller::saveImageResult, this, & ScriptFacade::saveImageResultCB, Qt::UniqueConnection );
+            }
+        }
         imageViewList << imageView;
     }
     if (numControllers == 0) {
@@ -950,6 +945,9 @@ QStringList ScriptFacade::closeImage( const QString& controlId, const QString& i
     }
     else {
         resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
     }
     return resultList;
 }

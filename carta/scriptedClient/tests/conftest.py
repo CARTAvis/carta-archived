@@ -17,7 +17,7 @@ def pytest_addoption(parser):
     parser.addoption("--imageFile", action="store", help="The full path of a\
                      compatible image file to load.")
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def cartavisInstance(request):
     """
     Return an instance of the Carta application for use by the tests.
@@ -56,7 +56,7 @@ def tempImageDir(request):
         for file in os.listdir(imageDir):
             os.remove(imageDir + '/' + file)
         os.rmdir(imageDir)
-    #request.addfinalizer(fin)
+    request.addfinalizer(fin)
     return imageDir
 
 @pytest.fixture(scope="function")
@@ -89,5 +89,6 @@ def cleanSlate(request, cartavisInstance):
     # Reset the histogram
     #h[0].setPlaneMode('all')
     # Close all open images
-    for imageName in i[0].getImageNames():
-        i[0].closeImage(imageName)
+    for imageView in i:
+        for imageName in imageView.getImageNames():
+            imageView.closeImage(imageName)
