@@ -1,5 +1,9 @@
 #!/bin/bash
 
+yell() { echo "$0: $*" >&2; }
+die() { yell "$*"; exit 111; }
+try() { "$@" || die "cannot $*"; }
+
 py.test -v test_cartavis.py::test_getPixelValue
 py.test -v test_cartavis.py::test_getChannelCount
 py.test -v test_cartavis.py::test_getPixelUnits
