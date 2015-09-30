@@ -460,7 +460,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
     m_state.insertValue<bool>(GRAPH_LOG_COUNT, true );
     m_state.insertValue<bool>(GRAPH_COLORED, false );
-    m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_SINGLE );
+    m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_ALL );
     m_state.insertValue<QString>(FREQUENCY_UNIT, m_channelUnits->getDefaultUnit());
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
