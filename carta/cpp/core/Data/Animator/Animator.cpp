@@ -509,15 +509,18 @@ bool Animator::_setAnimatorVisibility( const QString& key, bool visible ){
 
 bool Animator::_updateAnimatorBound( const QString& key ){
     int maxFrame = 0;
+    int currentFrame = 0;
     bool visibilityChanged = false;
     AxisInfo::KnownType axisType = AxisMapper::getType( key );
     std::vector<AxisInfo::KnownType> animationAxes;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
         maxFrame = controller->getFrameUpperBound( axisType );
+        currentFrame = controller->getFrame( axisType );
         animationAxes = controller->_getAxisZTypes();
     }
     m_animators[key]->setUpperBound( maxFrame );
+    m_animators[key]->setFrame( currentFrame );
 
     //Decide the visibility of the animator based on whether it is an animation axis
     int animAxisCount = animationAxes.size();
