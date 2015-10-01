@@ -8,14 +8,18 @@ HEADERS += \
     MainWindow.h \
     CustomWebPage.h \
     DesktopPlatform.h \
-    DesktopConnector.h
+    DesktopConnector.h \
+    NetworkReplyFileq.h \
+    NetworkAccessManager.h
 
 SOURCES += \
     MainWindow.cpp \
     CustomWebPage.cpp \
     DesktopPlatform.cpp \
     desktopMain.cpp \
-    DesktopConnector.cpp
+    DesktopConnector.cpp \
+    NetworkAccessManager.cpp \
+    NetworkReplyFileq.cpp
 
 RESOURCES = resources.qrc
 

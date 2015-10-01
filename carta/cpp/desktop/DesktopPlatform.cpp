@@ -92,15 +92,15 @@ DesktopPlatform::DesktopPlatform()
 
     // enable web inspector
     QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
-//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, false);
+//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
 
     // create main window
     m_mainWindow = new MainWindow();
     m_mainWindow-> resize( 1000, 700);
 
     // add platform and connector to JS exports
-    m_mainWindow->exportToJs( "QtPlatform", this);
-    m_mainWindow->exportToJs( "QtConnector", m_connector);
+    m_mainWindow->addJSExport( "QtPlatform", this);
+    m_mainWindow->addJSExport( "QtConnector", m_connector);
 
     // load the url
     m_mainWindow->loadUrl( url);
