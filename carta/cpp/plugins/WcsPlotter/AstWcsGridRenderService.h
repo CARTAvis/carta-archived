@@ -8,6 +8,7 @@
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/AxisLabelInfo.h"
 #include <QColor>
 #include <QObject>
 #include <QTimer>
