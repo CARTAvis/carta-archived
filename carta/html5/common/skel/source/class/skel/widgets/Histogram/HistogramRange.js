@@ -39,16 +39,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          */
         _errorCB : function( textWidget ){
             return function( msg ){
-                if ( msg !== null && msg.length > 0 ){
-                    textWidget.setError( true );
-                }
-                else {
-                    var oldError = textWidget.isError();
-                    if ( oldError ){
-                        textWidget.setError( false );
-                        var errorMan = skel.widgets.ErrorHandler.getInstance();
-                        errorMan.clearErrors();
-                    }
+                if ( msg === null || msg.length == 0 ){
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.clearErrors();
                 }
             };
         },

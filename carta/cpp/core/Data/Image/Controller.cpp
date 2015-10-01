@@ -168,15 +168,14 @@ bool Controller::addData(const QString& fileName) {
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
-    bool clipsChanged = false;
-
+    bool clipsChangedValue = false;
     if ( minIntensityPercentile < maxIntensityPercentile ){
         const double ERROR_MARGIN = 0.0001;
         if ( 0 <= minIntensityPercentile && minIntensityPercentile <= 1 ){
             double oldMin = m_state.getValue<double>(CLIP_VALUE_MIN );
             if ( qAbs(minIntensityPercentile - oldMin) > ERROR_MARGIN ){
                 m_state.setValue<double>(CLIP_VALUE_MIN, minIntensityPercentile );
-                clipsChanged = true;
+                clipsChangedValue = true;
             }
         }
         else {
@@ -186,17 +185,20 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
             double oldMax = m_state.getValue<double>(CLIP_VALUE_MAX);
             if ( qAbs(maxIntensityPercentile - oldMax) > ERROR_MARGIN ){
                 m_state.setValue<double>(CLIP_VALUE_MAX, maxIntensityPercentile );
-                clipsChanged = true;
+                clipsChangedValue = true;
             }
         }
         else {
             result = "Maximum intensity percentile invalid [0,1]: "+ QString::number( maxIntensityPercentile);
         }
 
-        if( clipsChanged ){
+        if( clipsChangedValue ){
             m_state.flushState();
             if ( m_view ){
                 _scheduleFrameReload( true );
+                double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+                double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+                emit clipsChanged( minPercent, maxPercent );
             }
         }
     }
@@ -308,6 +310,16 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
 
     }
     return axes;
+}
+
+double Controller::getClipPercentileMax() const {
+    double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
+    return clipValueMax;
+}
+
+double Controller::getClipPercentileMin() const {
+    double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
+    return clipValueMin;
 }
 
 Carta::Lib::KnownSkyCS Controller::getCoordinateSystem() const {

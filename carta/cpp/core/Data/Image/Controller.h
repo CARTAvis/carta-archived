@@ -95,6 +95,18 @@ public:
     Carta::Lib::KnownSkyCS getCoordinateSystem() const;
 
     /**
+     * Return the minimum clip percentile.
+     * @return the minimum clip percentile.
+     */
+    double getClipPercentileMin() const;
+
+    /**
+     * Return the maximum clip percentile.
+     * @return the maximum clip percentile.
+     */
+    double getClipPercentileMax() const;
+
+    /**
      * Return a shared pointer to the grid controls.
      * @return - a shared pointer to the grid controls.
      */
@@ -354,7 +366,18 @@ public:
 
 signals:
 
+    /**
+     * Notification that the horizontal/vertical display axes have changed.
+     */
     void axesChanged();
+
+    /**
+     * Notification that the image clip values have changed.
+     * @param minPercentile - the new minimum clip percentile.
+     * @param maxPercentile - the new maximum clip percentile.
+     */
+    void clipsChanged( double minPercentile, double maxPercentile );
+
     /**
      *  Notification that the image/selection managed by this controller has
      *  changed.

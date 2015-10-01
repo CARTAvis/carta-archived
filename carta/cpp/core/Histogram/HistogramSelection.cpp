@@ -103,6 +103,10 @@ void HistogramSelection::reset(){
     rangeSet = false;
     m_lowerBound = 0;
     m_upperBound = 0;
+
+    m_clipMin = 0;
+    m_clipMax = 0;
+
 }
 
 void HistogramSelection::setClipValues( double minX, double maxX ){

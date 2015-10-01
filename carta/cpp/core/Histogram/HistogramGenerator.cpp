@@ -61,6 +61,16 @@ HistogramGenerator::HistogramGenerator():
     setLogScale( true );
 }
 
+void HistogramGenerator::clearSelection(){
+    m_range->reset();
+    m_plot->replot();
+}
+
+void HistogramGenerator::clearSelectionColor(){
+    m_rangeColor->reset();
+    m_plot->replot();
+}
+
 std::pair<double,double> HistogramGenerator::getRange(bool* valid ) const {
     std::pair<double,double> result;
     *valid = false;
@@ -145,6 +155,11 @@ void HistogramGenerator::setRangeIntensityColor(double min, double max){
 void HistogramGenerator::setRangePixels(double min, double max){
     m_range->setHeight(m_height);
     m_range->setBoundaryValues(min, max);
+    m_plot->replot();
+}
+
+void HistogramGenerator::setAxisXRange( double min, double max ){
+    m_plot->setAxisScale( QwtPlot::xBottom, min, max );
     m_plot->replot();
 }
 
