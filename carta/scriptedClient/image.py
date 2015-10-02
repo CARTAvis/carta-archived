@@ -1126,3 +1126,20 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      theme=theme)
         return result
+
+    def isEmpty(self):
+        """
+        Checks whether or not the image view is empty.
+
+        Returns
+        -------
+        boolean
+            True if the image view is empty.
+            False if there is at least one image loaded in the image
+            view.
+        """
+        images = self.getImageNames()
+        if (images):
+            return False
+        else:
+            return True

@@ -553,6 +553,15 @@ def test_getChannelIndex(cartavisInstance, cleanSlate):
     a[0].setChannel(4)
     assert a[0].getChannelIndex() == 4
 
+def test_isEmpty(cartavisInstance, cleanSlate):
+    """
+    Test that the isEmpty() Image method returns correct values.
+    """
+    i = cartavisInstance.getImageViews()
+    assert i[0].isEmpty()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert not i[0].isEmpty()
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
