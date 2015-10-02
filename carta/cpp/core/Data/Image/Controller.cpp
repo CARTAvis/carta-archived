@@ -1104,6 +1104,9 @@ QStringList Controller::getImageDimensions( ){
             result.append( QString::number( d ) );
         }
     }
+    else {
+        result = QStringList("");
+    }
     return result;
 }
 
