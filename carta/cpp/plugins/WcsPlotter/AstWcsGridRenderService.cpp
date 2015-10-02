@@ -315,22 +315,28 @@ AstWcsGridRenderService::renderNow()
                 Carta::Lib::AxisLabelInfo::Formats labelFormat = m_labelInfos[i].getFormat();
                 int precision = m_labelInfos[i].getPrecision();
                 QString completeFormat = _getDisplayFormat( labelFormat, precision );
-                QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
-                sgp.setPlotOption( format );
+                if ( completeFormat.length() > 0 ){
+                    QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
+                    sgp.setPlotOption( format );
 
-                //Label with format added - seems to be added automatically for J2000.
-                if ( system != "J2000" ){
-                    baseLabel = baseLabel +"(" + completeFormat+")";
+                    //Label with format added - seems to be added automatically for J2000.
+                    if ( system != "J2000" ){
+                        baseLabel = baseLabel +"(" + completeFormat+")";
+                    }
+                    QString label = QString( "Label(%1)=%2").arg(axisIndex).arg( baseLabel);
+                    sgp.setPlotOption( label );
+
+                    //Label location
+                    Carta::Lib::AxisLabelInfo::Locations labelLocation = m_labelInfos[i].getLocation();
+                    QString location = _getDisplayLocation( labelLocation );
+                    if ( location.length() > 0 ){
+                        QString edgeStr =QString("Edge(%1)=%2").arg(axisIndex).arg( location );
+                        sgp.setPlotOption( edgeStr );
+                    }
                 }
-                QString label = QString( "Label(%1)=%2").arg(axisIndex).arg( baseLabel);
-                sgp.setPlotOption( label );
-
-                //Label location
-                Carta::Lib::AxisLabelInfo::Locations labelLocation = m_labelInfos[i].getLocation();
-                QString location = _getDisplayLocation( labelLocation );
-                if ( location.length() > 0 ){
-                    QString edgeStr =QString("Edge(%1)=%2").arg(axisIndex).arg( location );
-                    sgp.setPlotOption( edgeStr );
+                //If there is no format, turn axis labelling off
+                else {
+                    _turnOffLabels( &sgp, axisIndex );
                 }
             }
         }
@@ -419,6 +425,8 @@ void AstWcsGridRenderService::setAxisPermutations( std::vector<int> perms ){
         }
     }
 }
+
+
 
 void AstWcsGridRenderService::setAxesVisible( bool flag ){
     if ( m_axes != flag ){

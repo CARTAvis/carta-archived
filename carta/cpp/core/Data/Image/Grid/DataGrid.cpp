@@ -99,14 +99,14 @@ std::vector<AxisInfo::KnownType> DataGrid::_getDisplayAxes() const {
 }
 
 QString DataGrid::_getFormat( const Carta::State::StateInterface& state, const QString& direction ) const {
-    QString directionLookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, direction);
-    QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, FORMAT );
-    QString format = state.getValue<QString>( directionFormatLookup );
+    QString format = LabelFormats::FORMAT_NONE;
+    if ( direction.length() > 0 ){
+        QString directionLookup = Carta::State::UtilState::getLookup( LABEL_FORMAT, direction);
+        QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, FORMAT );
+        format = state.getValue<QString>( directionFormatLookup );
+    }
     return format;
 }
-
-
-
 
 
 Carta::Lib::AxisLabelInfo DataGrid::_getAxisLabelInfo( int axisIndex,
@@ -115,15 +115,17 @@ Carta::Lib::AxisLabelInfo DataGrid::_getAxisLabelInfo( int axisIndex,
     int precision= m_state.getValue<int>(LABEL_DECIMAL_PLACES );
     info.setPrecision( precision );
     QString labelLocation = _getLabelLocation( m_state, axisIndex );
-    Carta::Lib::AxisLabelInfo::Locations location = m_formats->getAxisLabelLocation( labelLocation );
-    info.setLocation( location );
+    if ( labelLocation.length() > 0 ){
+        Carta::Lib::AxisLabelInfo::Locations location = m_formats->getAxisLabelLocation( labelLocation );
+        info.setLocation( location );
 
-    QString format = _getFormat( m_state, labelLocation );
-    if ( m_formats->isDefault( format ) ){
-        format = m_formats->getDefaultFormatForAxis( axisType, cs );
+        QString format = _getFormat( m_state, labelLocation );
+        if ( m_formats->isDefault( format ) ){
+            format = m_formats->getDefaultFormatForAxis( axisType, cs );
+        }
+        Carta::Lib::AxisLabelInfo::Formats axisFormat = m_formats->getAxisLabelFormat( format );
+        info.setFormat( axisFormat );
     }
-    Carta::Lib::AxisLabelInfo::Formats axisFormat = m_formats->getAxisLabelFormat( format );
-    info.setFormat( axisFormat );
     return info;
 }
 
@@ -717,7 +719,6 @@ QString DataGrid::_setLabelDecimalPlaces( int decimalPlaces, bool* decimalsChang
 
 QString DataGrid::_setLabelFormat( const QString& side, const QString& format, bool* labelFormatChanged ){
     QString result;
-
     //TODO:  Need to put in a check that the format makes sense the type of axis
     //displayed on the indicated side.
     *labelFormatChanged = false;
@@ -745,6 +746,7 @@ QString DataGrid::_setLabelFormat( const QString& side, const QString& format, b
                     QString dFormatLookup = Carta::State::UtilState::getLookup( dLookup, FORMAT );
                     m_state.setValue<QString>( dFormatLookup, LabelFormats::FORMAT_NONE );
                 }
+
                 *labelFormatChanged = true;
             }
         }
