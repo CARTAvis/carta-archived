@@ -318,28 +318,26 @@ void ContourControls::_initializeCallbacks(){
             QString result;
             bool validDouble = false;
             double spaceInterval = dataValues[GeneratorState::INTERVAL].toDouble(&validDouble);
+            //The spacing interval can be skipped, if we are doing a range, for example, and have
+            //already set the level.
             if ( validDouble ){
                 result = setSpacingInterval( spaceInterval );
-                if ( result.isEmpty() ){
-                    double levelMin = dataValues[GeneratorState::LEVEL_MIN].toDouble(&validDouble);
-                    if ( validDouble ){
-                        result = setLevelMin( levelMin );
-                        if ( result.isEmpty() ){
-                            double levelMax = dataValues[GeneratorState::LEVEL_MAX].toDouble(&validDouble);
-                            if ( validDouble ){
-                                result = setLevelMax( levelMax );
-                                if ( result.isEmpty() ){
-                                    //If the are all valid, generate the contour set.
-                                    result = generateContourSet( contourSetName );
-                                }
+            }
+            if ( result.isEmpty() ){
+                double levelMin = dataValues[GeneratorState::LEVEL_MIN].toDouble(&validDouble);
+                if ( validDouble ){
+                    result = setLevelMin( levelMin );
+                    if ( result.isEmpty() ){
+                        double levelMax = dataValues[GeneratorState::LEVEL_MAX].toDouble(&validDouble);
+                        if ( validDouble ){
+                            result = setLevelMax( levelMax );
+                            if ( result.isEmpty() ){
+                                //If the are all valid, generate the contour set.
+                                result = generateContourSet( contourSetName );
                             }
                         }
                     }
                 }
-            }
-            else {
-                result = "Please make sure the contour spacing interval is a valid number: "+
-                        dataValues[GeneratorState::INTERVAL];
             }
             Util::commandPostProcess( result );
             return result;
