@@ -41,6 +41,7 @@ def test_getImageDimensions(cartavisInstance, cleanSlate):
     image with known dimensions.
     """
     i = cartavisInstance.getImageViews()
+    assert i[0].getImageDimensions()[0] == 'error'
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getImageDimensions() == [10, 10]
 
