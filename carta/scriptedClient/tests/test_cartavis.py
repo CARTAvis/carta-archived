@@ -41,6 +41,7 @@ def test_getImageDimensions(cartavisInstance, cleanSlate):
     image with known dimensions.
     """
     i = cartavisInstance.getImageViews()
+    assert i[0].getImageDimensions()[0] == 'error'
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getImageDimensions() == [10, 10]
 
@@ -552,6 +553,15 @@ def test_getChannelIndex(cartavisInstance, cleanSlate):
     assert a[0].getChannelIndex() == 0
     a[0].setChannel(4)
     assert a[0].getChannelIndex() == 4
+
+def test_isEmpty(cartavisInstance, cleanSlate):
+    """
+    Test that the isEmpty() Image method returns correct values.
+    """
+    i = cartavisInstance.getImageViews()
+    assert i[0].isEmpty()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert not i[0].isEmpty()
 
 def _setImage(imageView, animatorView, tempImageDir):
     """

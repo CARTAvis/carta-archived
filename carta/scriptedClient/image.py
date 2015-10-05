@@ -497,8 +497,6 @@ class Image(CartaView):
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         if (result[0] != "error"):
             result = [int(i) for i in result]
-        else:
-            result = result[1]
         return result
 
     def getIntensity(self, frameLow, frameHigh, percentile):
@@ -1126,3 +1124,20 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      theme=theme)
         return result
+
+    def isEmpty(self):
+        """
+        Checks whether or not the image view is empty.
+
+        Returns
+        -------
+        boolean
+            True if the image view is empty.
+            False if there is at least one image loaded in the image
+            view.
+        """
+        images = self.getImageNames()
+        if (images):
+            return False
+        else:
+            return True

@@ -1104,6 +1104,9 @@ QStringList Controller::getImageDimensions( ){
             result.append( QString::number( d ) );
         }
     }
+    else {
+        result = QStringList("");
+    }
     return result;
 }
 
@@ -1114,6 +1117,9 @@ QStringList Controller::getOutputSize( ){
         QSize outputSize = m_datas[imageIndex]->_getOutputSize();
         result.append( QString::number( outputSize.width() ) );
         result.append( QString::number( outputSize.height() ) );
+    }
+    else {
+        result = QStringList("");
     }
     return result;
 }
