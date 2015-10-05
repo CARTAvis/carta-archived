@@ -10,6 +10,7 @@
 
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IWcsGridRenderService.h"
+#include "CartaLib/AxisDisplayInfo.h"
 #include "../../ImageRenderService.h"
 #include "../../ImageSaveService.h"
 
@@ -18,6 +19,7 @@
 #include <QTime>
 
 using Carta::Lib::AxisInfo;
+using Carta::Lib::AxisDisplayInfo;
 
 namespace Carta {
 
@@ -405,12 +407,21 @@ void ControllerData::_render( const std::vector<int>& frames, const Carta::Lib::
     QPointF topLeft = outputRect.topLeft();
     QPointF bottomRight = outputRect.bottomRight();
 
-    std::vector<int> axisPerms = m_dataSource->_getAxisPerms();
-
     QPointF topLeftInput = imageService-> screen2img( topLeft );
     QPointF bottomRightInput = imageService->screen2img( bottomRight );
 
-    gridService->setAxisPermutations( axisPerms );
+    std::vector<AxisDisplayInfo> axisInfo = m_dataSource->_getAxisDisplayInfo();
+    int axisCount = axisInfo.size();
+    for ( int i = 0; i < axisCount; i++ ){
+        Carta::Lib::AxisInfo::KnownType type = axisInfo[i].getAxisType();
+        int frame = axisInfo[i].getFrame();
+        //Not one of the display frames so reset it with the current frame.
+        if ( frame >= 0 ){
+            frame = m_dataSource->_getFrameIndex( static_cast<int>(type), frames );
+            axisInfo[i].setFrame( frame );
+        }
+    }
+    gridService->setAxisDisplayInfo( axisInfo );
 
     QRectF inputRect( topLeftInput, bottomRightInput );
 

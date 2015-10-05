@@ -235,7 +235,7 @@ AstWcsGridRenderService::renderNow()
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
     sgp.setFitsHeader( m().fitsHeader.join( "" ) );
-    sgp.setAxisPermutation( m_axisPerms );
+    sgp.setAxisDisplayInfo( m_axisDisplayInfos );
     sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
@@ -272,35 +272,13 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( "LabelUp(2)=0" ); // align labels to axes
     sgp.setPlotOption( "Size=9" ); // default font
 
-
-    QString system;
-    {
-        typedef Carta::Lib::KnownSkyCS KS;
-        switch ( m().knownSkyCS )
-        {
-        case KS::J2000 :
-            system = "J2000";
-            break;
-        case KS::B1950 :
-            system = "FK4";
-            break;
-        case KS::ICRS :
-            system = "ICRS";
-            break;
-        case KS::Galactic :
-            system = "GALACTIC";
-            break;
-        case KS::Ecliptic :
-            system = "ECLIPTIC";
-            break;
-        default :
-            system = "";
-        } // switch
-    }
-
+    QString system = _getSystem();
     if ( ! system.isEmpty() ){
-        sgp.setPlotOption( "System=" + system );
-    }
+       //System only makes sense if the display axes are RA and DEC.
+       if ( Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos) ){
+           sgp.setPlotOption( "System=" + system );
+       }
+   }
 
     //Turn axis  labelling off if we are not drawing the axes.
     if (m_axes){
@@ -315,13 +293,19 @@ AstWcsGridRenderService::renderNow()
                 Carta::Lib::AxisLabelInfo::Formats labelFormat = m_labelInfos[i].getFormat();
                 int precision = m_labelInfos[i].getPrecision();
                 QString completeFormat = _getDisplayFormat( labelFormat, precision );
-                if ( completeFormat.length() > 0 ){
-                    QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
-                    sgp.setPlotOption( format );
+                if ( labelFormat != Carta::Lib::AxisLabelInfo::Formats::NONE ){
+                    if ( completeFormat.length() > 0 ){
+                        QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
+                        sgp.setPlotOption( format );
 
-                    //Label with format added - seems to be added automatically for J2000.
-                    if ( system != "J2000" ){
-                        baseLabel = baseLabel +"(" + completeFormat+")";
+                        //Label with format added - seems to be added automatically for J2000.
+                        if ( system != "J2000" ){
+                            baseLabel = baseLabel +"(" + completeFormat+")";
+                        }
+                    }
+                    else {
+                        QString digits = QString( "Digits(%1)=%2").arg(axisIndex).arg(precision);
+                        sgp.setPlotOption( digits );
                     }
                     QString label = QString( "Label(%1)=%2").arg(axisIndex).arg( baseLabel);
                     sgp.setPlotOption( label );
@@ -405,27 +389,21 @@ AstWcsGridRenderService::renderNow()
     emit done( m_vgc.vgList(), m().lastSubmittedJobId );
 } // startRendering
 
-void AstWcsGridRenderService::setAxisPermutations( std::vector<int> perms ){
-    if ( perms.size() != m_axisPerms.size()){
-        m_axisPerms = perms;
+void AstWcsGridRenderService::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> displayInfos ){
+    if ( displayInfos.size() != m_axisDisplayInfos.size()){
+        m_axisDisplayInfos = displayInfos;
         m_vgValid = false;
     }
     else {
-        int permCount = perms.size();
-        //Check that the elements are unique
-        std::set<int> permsUnique( perms.begin(), perms.end() );
-        int uniqueCount = permsUnique.size();
-        CARTA_ASSERT( uniqueCount == permCount );
-        for ( int i = 0; i < permCount; i++ ){
-            if ( perms[i] != m_axisPerms[i] ){
-                CARTA_ASSERT( perms[i] >= 1 && perms[i] <= permCount );
-                m_axisPerms[i] = perms[i];
+        int infoCount = displayInfos.size();
+        for ( int i = 0; i < infoCount; i++ ){
+            if ( displayInfos[i] != m_axisDisplayInfos[i] ){
+                m_axisDisplayInfos[i] = displayInfos[i];
                 m_vgValid = false;
             }
         }
     }
 }
-
 
 
 void AstWcsGridRenderService::setAxesVisible( bool flag ){
@@ -622,6 +600,35 @@ inline AstWcsGridRenderService::Pimpl &
 AstWcsGridRenderService::m()
 {
     return * m_pimpl;
+}
+
+QString
+AstWcsGridRenderService::_getSystem( ){
+   QString system;
+   typedef Carta::Lib::KnownSkyCS KS;
+   switch ( m().knownSkyCS )
+   {
+   case KS::J2000 :
+       system = "J2000";
+       break;
+   case KS::B1950 :
+       system = "FK4";
+       break;
+   case KS::ICRS :
+       system = "ICRS";
+       break;
+   case KS::Galactic :
+       system = "GALACTIC";
+       break;
+   case KS::Ecliptic :
+       system = "ECLIPTIC";
+       break;
+   default :
+       system = "";
+   } // switch
+
+
+   return system;
 }
 
 void

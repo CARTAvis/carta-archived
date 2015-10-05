@@ -110,6 +110,7 @@ public:
     const static QString FORMAT_DEFAULT;
     const static QString FORMAT_NONE;
     const static QString FORMAT_DEG_MIN_SEC;
+    const static QString FORMAT_DECIMAL;
     const static QString FORMAT_DECIMAL_DEG;
     const static QString FORMAT_HR_MIN_SEC;
     const static QString LABEL_AXES;

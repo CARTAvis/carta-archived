@@ -31,7 +31,7 @@ public:
     ~AstWcsGridRenderService();
 
     virtual void
-    setAxisPermutations( std::vector<int> perms ) override;
+    setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> displayInfo ) override;
 
     virtual void
     setInputImage( Image::ImageInterface::SharedPtr image ) override;
@@ -104,6 +104,8 @@ private:
     QString _getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat, int decimals ) const;
     //Translate an enumerated position to a string the AST library understands.
     QString _getDisplayLocation( const Carta::Lib::AxisLabelInfo::Locations& labelLocation ) const;
+
+    QString _getSystem();
     //Don't draw tick marks.
     void _turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp);
     //Don't label a particular axis
@@ -151,7 +153,7 @@ private:
     // how long to make the tick marks.
     double m_tickLength = .01;
 
-    std::vector<int> m_axisPerms;
+    std::vector<Carta::Lib::AxisDisplayInfo> m_axisDisplayInfos;
 
     //Whether or not to show axis labels
     bool m_axisLabels = false;

@@ -53,6 +53,13 @@ bool AxisLabelInfo::operator!=( const AxisLabelInfo& other ) const {
     return !( *this == other );
 }
 
+QString AxisLabelInfo::toString() const {
+    QString str( "Location="+QString::number(static_cast<int>(m_location))+"\n");
+    str = str + "Format="+QString::number(static_cast<int>(m_format))+"\n";
+    str = str + "Precision="+ QString::number(m_precision) + "\n";
+    return str;
+}
+
 AxisLabelInfo::~AxisLabelInfo(){
 }
 

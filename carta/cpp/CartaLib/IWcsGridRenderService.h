@@ -8,6 +8,7 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/AxisDisplayInfo.h"
 #include <memory>
 
 namespace Carta
@@ -49,10 +50,9 @@ public:
     };
 
     /// set the new ordering for the axes in cases where the display axes are not
-    /// the first two axes in the image.  The perm list should match the dimensions
-    /// in the image and containing unique integers ranging from 1 to perms.size().
+    /// the first two axes in the image.
     virtual void
-    setAxisPermutations( std::vector<int> perms ) = 0;
+    setAxisDisplayInfo( std::vector<AxisDisplayInfo> displayInfos ) = 0;
 
     /// set the input data, shold have at least 2 dimensions
     /// \note the data is not imporant, only meta data attached to this is important
