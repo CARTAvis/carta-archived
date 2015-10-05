@@ -11,10 +11,10 @@ try py.test -v test_cartavis.py::test_getImageDimensions
 try py.test -v test_cartavis.py::test_zoomLevel
 try py.test -v test_cartavis.py::test_getCoordinates
 try py.test -v test_cartavis.py::test_saveFullImage
-try py.test -v test_cartavis.py::test_setColormap
+#try py.test -v test_cartavis.py::test_setColormap
 try py.test -v test_cartavis.py::test_setImage
-try py.test -v test_cartavis.py::test_invertColormap
-try py.test -v test_cartavis.py::test_reverseColormap
+#try py.test -v test_cartavis.py::test_invertColormap
+#try py.test -v test_cartavis.py::test_reverseColormap
 try py.test -v test_cartavis.py::test_setColorMix
 try py.test -v test_cartavis.py::test_setDataTransform
 try py.test -v test_cartavis.py::test_setGamma
