@@ -824,6 +824,9 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             resultList = controller->getOutputSize( );
+            if ( resultList[0] == "" ) {
+                resultList = _logErrorMessage( ERROR, "Could not obtain output size." );
+            }
         }
         else {
             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );

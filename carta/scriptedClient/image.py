@@ -497,8 +497,6 @@ class Image(CartaView):
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         if (result[0] != "error"):
             result = [int(i) for i in result]
-        else:
-            result = result[1]
         return result
 
     def getIntensity(self, frameLow, frameHigh, percentile):

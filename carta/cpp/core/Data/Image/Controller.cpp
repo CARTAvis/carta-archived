@@ -1118,6 +1118,9 @@ QStringList Controller::getOutputSize( ){
         result.append( QString::number( outputSize.width() ) );
         result.append( QString::number( outputSize.height() ) );
     }
+    else {
+        result = QStringList("");
+    }
     return result;
 }
 
