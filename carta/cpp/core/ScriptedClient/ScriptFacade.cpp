@@ -522,6 +522,7 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
         if ( !aspectModeError.isEmpty() ){
             errorList.append( aspectModeError );
         }
+        emit saveImageResult( false );
     }
     if ( errorList.length() == 0 ) {
         errorList = QStringList("");

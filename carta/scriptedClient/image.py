@@ -162,8 +162,7 @@ class Image(CartaView):
             Error message if an error occurred; nothing otherwise.
         """
         viewerDim = self.getOutputSize()
-        if (len(viewerDim) != 2):
-            #return "Could not center the image."
+        if (viewerDim[0] == "error"):
             return viewerDim
         self.centerOnPixel(x, y)
         if dim == 'width':
@@ -558,7 +557,10 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      ra=skyCoord.ra.radian,
                                      dec=skyCoord.dec.radian)
-        self.centerOnPixel(float(result[0]), float(result[1]))
+        if (result[0] == "error" or result[0] == ''):
+            result = ["Could not obtain pixel coordinates for " + str(skyCoord)]
+        else:
+            self.centerOnPixel(float(result[0]), float(result[1]))
         return result
 
     def getPixelValue(self, x, y):
