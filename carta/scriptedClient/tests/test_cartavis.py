@@ -1,6 +1,7 @@
 import os
 import pytest
 import cartavis
+from flaky import flaky
 from PIL import Image, ImageChops
 from astropy.coordinates import SkyCoord
 
@@ -58,6 +59,7 @@ def test_zoomLevel(cartavisInstance, cleanSlate):
     i[0].setZoomLevel(1.1 * oldZoom)
     assert i[0].getZoomLevel() == 1.1 * oldZoom
 
+@flaky(max_runs=10)
 def test_getCoordinates(cartavisInstance, cleanSlate):
     """
     Test that the coordinate values are being returned properly in each
