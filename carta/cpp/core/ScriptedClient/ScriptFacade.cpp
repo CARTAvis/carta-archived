@@ -58,10 +58,6 @@ QString ScriptFacade::getHistogramViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Histogram::CLASS_NAME, index );
 }
 
-QString ScriptFacade::getStatisticsViewId( int index ) const {
-    return m_viewManager->getObjectId( Carta::Data::Statistics::CLASS_NAME, index );
-}
-
 QStringList ScriptFacade::getImageViews() {
     QStringList imageViewList;
     int numControllers = m_viewManager->getControllerCount();
@@ -119,19 +115,6 @@ QStringList ScriptFacade::getHistogramViews() {
         histogramViewList = QStringList("");
     }
     return histogramViewList;
-}
-
-QStringList ScriptFacade::getStatisticsViews() {
-    QStringList statisticsViewList;
-    int numStatistics = m_viewManager->getStatisticsCount();
-    for (int i = 0; i < numStatistics; i++) {
-        QString statisticsView = getStatisticsViewId( i );
-        statisticsViewList << statisticsView;
-    }
-    if (numStatistics == 0) {
-        statisticsViewList = QStringList("");
-    }
-    return statisticsViewList;
 }
 
 QStringList ScriptFacade::addLink( const QString& sourceId, const QString& destId ){
@@ -658,30 +641,6 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
         }
         else {
             resultList = _logErrorMessage( ERROR, "Could not find histogram." );
-        }
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
-    QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    for ( int i = 0; i < m_viewManager->getStatisticsCount(); i++ ){
-        QString statisticsId = getStatisticsViewId( i );
-        QString id = objMan->parseId( statisticsId );
-        Carta::State::CartaObject* obj = objMan->getObject( id );
-        if ( obj != nullptr ){
-            Carta::Data::Statistics* statistics = dynamic_cast<Carta::Data::Statistics*>(obj);
-            QList<QString> oldLinks = statistics->getLinks();
-            if (oldLinks.contains( controlId )) {
-                resultList.append( statisticsId );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, "Could not find statistics view." );
         }
     }
     if ( resultList.length() == 0 ) {

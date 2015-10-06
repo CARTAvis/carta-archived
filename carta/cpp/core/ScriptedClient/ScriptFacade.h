@@ -52,12 +52,6 @@ public:
     QStringList getHistogramViews();
 
     /**
-     * Return a list of the statistics views defined by the layout.
-     * @return a QStringList containing the id values of statistics views.
-     */
-    QStringList getStatisticsViews();
-
-    /**
      * Return a list of the names of colormaps available on the server.
      * @return a QStringList containing the names of available color maps.
      */
@@ -333,14 +327,6 @@ public:
      *      empty string if no linked histograms were found.
      */
     QStringList getLinkedHistograms( const QString& controlId );
-
-    /**
-     * Get the statistics views that are linked to the given image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @return a list of ID values for the linked statistics, or a list of a single
-     *      empty string if no linked statistics were found.
-     */
-    QStringList getLinkedStatistics( const QString& controlId );
 
     /**
      * Center the image on the pixel with coordinates (x, y).
@@ -858,15 +844,6 @@ private:
      * @return the unique server side id of the object managing the histogram.
      */
     QString getHistogramViewId( int index = -1 ) const;
-
-    /**
-     * Return the unique server side id of the object responsible for managing a statistics view.
-     * @param index an index identifying the statistics view in the case that more than one
-     *      statistics view is being displayed; an index of -1 indicates a new statistics view should
-     *      be created whereas nonnegative indices refer to existing statistics views.
-     * @return the unique server side id of the object managing the statistics view.
-     */
-    QString getStatisticsViewId( int index = -1 ) const;
 
     Carta::State::CartaObject* _getObject( const QString& id );
     QStringList _logErrorMessage( const QString& key, const QString& value );
