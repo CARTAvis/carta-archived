@@ -38,7 +38,6 @@ INCLUDEPATH += $${CFITSIODIR}/include
 #INCLUDEPATH += $$PWD/../../core
 DEPENDPATH += $$PWD/../../core
 
-
 OTHER_FILES += \
     plugin.json
 

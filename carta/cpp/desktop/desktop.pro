@@ -44,3 +44,15 @@ else{
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }
 
+# for release builds
+carta_qrc {
+
+PREPROCESS_FILES = .
+preprocess.name = autogenerate qrc file for release mode
+preprocess.input = PREPROCESS_FILES
+preprocess.output = files.qrc
+preprocess.commands = touch files.qrc
+preprocess.variable_out = RESOURCES
+QMAKE_EXTRA_COMPILERS += preprocess
+
+}

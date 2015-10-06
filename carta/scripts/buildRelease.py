@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import readline
+from subprocess import call
 
 defaultSettings = {
     "version" : "0.0.0",
@@ -10,6 +11,26 @@ defaultSettings = {
     "makeflags" : [ "-j12" ]
 
 }
+
+def writeQrc(resources=[], prefix = "/", qrcfname = "file.qrc"):
+    """
+    Write to the qrc file under the prefix specified
+    """
+    with open('%s'%qrcfname,'w') as f:
+        f.write('<RCC>\n  <qresource prefix="%s">\n'%prefix)
+        for r in resources:
+            f.write('    <file>%s</file>\n'%r)
+        f.write('  </qresource>\n</RCC>\n')
+
+
+def scanDir(directory):
+    """
+    Scan tree starting from direc
+    """
+    resources = []
+    for path, dirs, files in os.walk(directory):
+        resources += [os.path.join(path,f) for f in files]
+    return resources
 
 
 def rlinput(prompt, prefill=''):
@@ -20,12 +41,21 @@ def rlinput(prompt, prefill=''):
     finally:
         readline.set_startup_hook()
 
-def checkMkPath( path):
+def checkMkPathBad( path):
     try:
         os.mkdir(path)
     except Exception:
         pass
     return os.path.isdir(path)
+
+def checkMkPath(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == os.errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
 
 def getJsonPath( srcRoot):
     return srcRoot + "/carta/scripts/lastBuild.json"
@@ -107,20 +137,9 @@ saveSettings( srcRoot, settings)
 
 # prepare the structure of the destination
 checkMkPath( settings["destination"])
+checkMkPath( settings["destination"] + "/cpp/desktop")
 
-# change directory to destination
-os.chdir( settings["destination"])
-
-# invoke qmake in destination directory
-from subprocess import call
-call([ settings["qmakebin"], "CARTA_BUILD_TYPE=release","-r", srcRoot + "/carta/carta.pro"])
-
-# invoke make on c++ code
-makeArgs = settings["makeflags"][:]
-makeArgs.insert( 0, "make")
-call( makeArgs)
-
-# invoke qooxdoo
+# invoke qooxdoo (we chdir to sources, but the output will be in destination...)
 os.chdir( srcRoot + "/carta/html5/common/skel")
 qooxdooCall = [ "./generate.py" ]
 qooxdooCall.append( "-m")
@@ -128,7 +147,7 @@ qooxdooCall.append( "BUILD_PATH:" + settings["destination"] + "/html")
 qooxdooCall.append( "build")
 call( qooxdooCall)
 
-# copy serverIndex release mode
+# copy other html/javascript files
 import shutil
 shutil.copy( srcRoot + "/carta/html5/desktop/desktopIndexRelease.html",
              settings["destination"] + "/html")
@@ -145,6 +164,44 @@ shutil.copy( srcRoot + "/carta/html5/server/pureweb.min.js",
 shutil.copy( srcRoot + "/carta/html5/server/serverConnector.js",
              settings["destination"] + "/html")
 
+# make a symlink inside cpp/desktop to html, so that we can create a working qrc
+if os.path.exists( settings["destination"] + "/cpp/desktop/html"):
+    os.unlink( settings["destination"] + "/cpp/desktop/html")
+os.symlink( "../../html", settings["destination"] + "/cpp/desktop/html")
 
+# create qrc in the desktop directory
+os.chdir( settings["destination"] + "/cpp/desktop")
+qrcfiles = []
+qrcfiles.append( "html/desktopIndexRelease.html")
+qrcfiles.append( "html/libs.js")
+qrcfiles.append( "html/CallbackList.js")
+qrcfiles.append( "html/desktopConnector.js")
+qrcfiles += scanDir( "html/resource")
+qrcfiles += scanDir( "html/script")
+writeQrc( qrcfiles, "/", "files.qrc")
+
+# change directory to destination
+os.chdir( settings["destination"])
+
+# invoke qmake in destination directory
+call([ settings["qmakebin"], "CARTA_BUILD_TYPE=release","-r",
+    "CONFIG+=carta_qrc",
+    srcRoot + "/carta/carta.pro"])
+
+# invoke make on c++ code
+makeArgs = settings["makeflags"][:]
+makeArgs.insert( 0, "make")
+call( makeArgs)
+
+# make some symlinks to executables
+try:
+    os.symlink( "cpp/desktop/desktop",  settings["destination"] + "/cartaviewer")
+except:
+    pass
+
+try:
+    os.symlink( "cpp/server/server",  settings["destination"] + "/cartaserver")
+except:
+    pass
 
 print "Done"

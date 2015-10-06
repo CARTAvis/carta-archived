@@ -76,16 +76,18 @@ DesktopPlatform::DesktopPlatform()
     QUrl url;
     auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
     if( cmdLineInfo.htmlPath().isEmpty()) {
-        url = QUrl("qrc:///html5/desktop/desktopIndex.html");
+        // check if we have index in qrc
+        if( QFileInfo(":/html/desktopIndexRelease.html").exists()) {
+            url = "qrc:///html/desktopIndexRelease.html";
+        } else {
+            url = "http://www.google.com";
+        }
     } else {
         url = QUrl::fromUserInput( cmdLineInfo.htmlPath());
     }
 
     // get the filename sfrom the command line
     m_initialFileList = cmdLineInfo.fileList();
-    if( m_initialFileList.isEmpty()) {
-        //qFatal( "No input files to open...");
-    }
 
     // create the connector
     m_connector = new DesktopConnector();

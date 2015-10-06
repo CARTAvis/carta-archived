@@ -11,8 +11,6 @@ def print(*args, **kwargs):
     global basename, oldprint
     return oldprint( basename, ':', *args, **kwargs)
 
-print("hello")
-
 # old code:
 #
 #import scipy
