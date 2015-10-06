@@ -874,5 +874,10 @@ private:
     const static QString TOGGLE;
     const static QString ERROR;
     const static QString UNKNOWN_ERROR;
+    const static QString NO_IMAGE;
+    const static QString IMAGE_VIEW_NOT_FOUND;
+    const static QString COLORMAP_VIEW_NOT_FOUND;
+    const static QString HISTOGRAM_NOT_FOUND;
+    const static QString ANIMATOR_NOT_FOUND;
 };
 
