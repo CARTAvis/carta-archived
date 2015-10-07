@@ -90,14 +90,39 @@ def test_saveFullImage(cartavisInstance, tempImageDir, cleanSlate):
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     _saveFullImage(i[0], imageName, tempImageDir)
 
-def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
+def test_setPythonColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
-    Test that a colormap is being applied properly.
+    Test that a Python colormap can be applied properly.
     """
-    imageName = 'mexinputtest_cubehelix.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    _setColormap(i[0], c[0], tempImageDir)
+    imageName = 'mexinputtest_copper.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('copper')
+    _saveFullImage(i[0], imageName, tempImageDir)
+
+def test_setCPPColormap(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that a C++ colormap can be applied properly.
+    """
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    imageName = 'mexinputtest_CubeHelix1.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('CubeHelix1')
+    _saveFullImage(i[0], imageName, tempImageDir)
+
+def test_setDefaultColormap(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the default colormap can be applied properly.
+    """
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    imageName = 'mexinputtest_Gray.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('Gray')
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 @pytest.mark.xfail(reason="saveImage() has been deprecated for now.")
 def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
@@ -174,6 +199,7 @@ def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
     a = cartavisInstance.getAnimatorViews()
     _setImage(i[0], a[0], tempImageDir)
 
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
 def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the colormap is inverted properly.
@@ -186,6 +212,7 @@ def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
     c[0].invertColormap(True)
     _saveFullImage(i[0], imageName, tempImageDir)
 
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
 def test_reverseColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the colormap is reversed properly.
@@ -303,6 +330,7 @@ def test_getLinkedAnimators(cartavisInstance, tempImageDir, cleanSlate):
     a = i[0].getLinkedAnimators()
     _setImage(i[0], a[0], tempImageDir)
 
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
 def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the list of colormap views linked to the image view can be
@@ -311,10 +339,12 @@ def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
     linked colormap views and confirming that the operation was
     successful.
     """
-    imageName = 'mexinputtest_cubehelix.png'
     i = cartavisInstance.getImageViews()
     c = i[0].getLinkedColormaps()
-    _setColormap(i[0], c[0], tempImageDir)
+    imageName = 'mexinputtest_cubehelix.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('cubehelix')
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 def test_loadFile(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -578,16 +608,6 @@ def _setImage(imageView, animatorView, tempImageDir):
     _saveFullImage(imageView, image1, tempImageDir)
     animatorView.setImage(1)
     _saveFullImage(imageView, image2, tempImageDir)
-
-def _setColormap(imageView, colormapView, tempImageDir):
-    """
-    A common private function for commands that need to test that a
-    colormap can be set.
-    """
-    imageName = 'mexinputtest_cubehelix.png'
-    imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
-    colormapView.setColormap('cubehelix')
-    _saveFullImage(imageView, imageName, tempImageDir)
 
 def _saveFullImage(imageView, imageName, tempImageDir):
     """
