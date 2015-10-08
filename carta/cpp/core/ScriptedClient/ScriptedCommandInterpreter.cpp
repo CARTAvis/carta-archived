@@ -25,10 +25,13 @@ ScriptedCommandInterpreter::ScriptedCommandInterpreter( int port, QObject * pare
              this, & ScriptedCommandInterpreter::asyncMessageReceivedCB );
 }
 
-/// this is just a quick demo how to listen to TagMessage, convert them to Json,
-/// extract info from Json, and pack results back into Json, then to TagMessage...
-///
-/// it could probably use some error checking, like asserts etc...
+/// The bulk of this method is a massive if/else if/.../else statement.
+/// It's not pretty, but it works. So far I have been unable to come up
+/// with a way of simplifying it that doesn't just make it needlessly
+/// complex.
+/// In order to make it more readable, I have tried to include some
+/// extra comments about the commands, and also to group the commands
+/// according to which Python classes they relate to.
 void
 ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
 {
@@ -43,13 +46,21 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         return;
     }
     QJsonObject jo = jm.doc().object();
+    // Get the command name and the arguments.
+    // Arguments will be parsed according to the command name.
     QString cmd = jo["cmd"].toString().toLower();
     auto args = jo["args"].toObject();
-    QJsonObject rjo;
     QStringList result;
+    // By default, assume that we will be sending a proper result back.
+    // If an error occurs, key will be set to "error".
     QString key = "result";
 
-    /// application commands
+    /// Section: Application Commands
+    /// -----------------------------
+    /// These commands come from the Python Cartavis class. They are
+    /// mainly concerned with the application as a whole, dealing with
+    /// things like the different windows in the GUI and the
+    /// relationships between the windows.
 
     if ( cmd == "getcolormapviews" ) {
         result = m_scriptFacade->getColorMapViews();
@@ -89,6 +100,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString plugins = args["plugins"].toString();
         QStringList pluginsList = plugins.split(' ');
         result = m_scriptFacade->setPlugins(pluginsList);
+    }
+
+    else if ( cmd == "getpluginlist" ) {
+        result = m_scriptFacade->getPluginList();
     }
 
     else if ( cmd == "addlink" ) {
@@ -139,7 +154,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getColorMaps();
     }
 
-    /// colormap commands
+    /// Section: Colormap Commands
+    /// --------------------------
+    /// These commands come from the Python Colormap class. They enable
+    /// colormaps to be set and manipulated.
 
     else if ( cmd == "setcolormap" ) {
         QString colormapId = args["colormapId"].toString();
@@ -179,18 +197,16 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setDataTransform( colormapId, transform );
     }
 
-    /// image/controller commands
+    /// Section: Image/Controller Commands
+    /// ----------------------------------
+    /// These commands come from the Python Image class. They allow
+    /// images to be loaded and manipulated and can also return
+    /// information about the images.
 
     else if ( cmd == "loadfile" ) {
         QString imageView = args["imageView"].toString();
         QString fileName = args["fname"].toString();
         result = m_scriptFacade->loadFile( imageView, fileName );
-    }
-
-    else if ( cmd == "loadlocalfile" ) {
-        QString imageView = args["imageView"].toString();
-        QString fileName = args["fname"].toString();
-        result = m_scriptFacade->loadLocalFile( imageView, fileName );
     }
 
     else if ( cmd == "getlinkedcolormaps" ) {
@@ -241,6 +257,16 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     else if ( cmd == "getzoomlevel" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getZoomLevel( imageView );
+    }
+
+    else if ( cmd == "resetzoom" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->resetZoom( imageView );
+    }
+
+    else if ( cmd == "centerimage" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->centerImage( imageView );
     }
 
     else if ( cmd == "getimagedimensions" ) {
@@ -324,7 +350,156 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->closeImage( imageView, imageName );
     }
 
-    /// animator commands
+    /// Section: Grid Commands
+    /// ----------------------------------
+    /// These commands also come from the Python Image class. They allow
+    /// the grid to be manipulated.
+
+    else if ( cmd == "setgridaxescolor" ) {
+        QString imageView = args["imageView"].toString();
+        int red = args["red"].toInt();
+        int green = args["green"].toInt();
+        int blue = args["blue"].toInt();
+        result = m_scriptFacade->setGridAxesColor( imageView, red, green, blue );
+    }
+
+    else if ( cmd == "setgridaxesthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int thickness = args["thickness"].toInt();
+        result = m_scriptFacade->setGridAxesThickness( imageView, thickness );
+    }
+
+    else if ( cmd == "setgridaxestransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridAxesTransparency( imageView, transparency );
+    }
+
+    else if ( cmd == "setgridapplyall" ) {
+        QString imageView = args["imageView"].toString();
+        bool applyAll = args["applyAll"].toBool();
+        result = m_scriptFacade->setGridApplyAll( imageView, applyAll );
+    }
+
+    else if ( cmd == "setgridcoordinatesystem" ) {
+        QString imageView = args["imageView"].toString();
+        QString coordSystem = args["coordSystem"].toString();
+        result = m_scriptFacade->setGridCoordinateSystem( imageView, coordSystem );
+    }
+
+    else if ( cmd == "setgridfontfamily" ) {
+        QString imageView = args["imageView"].toString();
+        QString fontFamily = args["fontFamily"].toString();
+        result = m_scriptFacade->setGridFontFamily( imageView, fontFamily );
+    }
+
+    else if ( cmd == "setgridfontsize" ) {
+        QString imageView = args["imageView"].toString();
+        int fontSize = args["fontSize"].toInt();
+        result = m_scriptFacade->setGridFontSize( imageView, fontSize );
+    }
+
+    else if ( cmd == "setgridcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
+    else if ( cmd == "setgridspacing" ) {
+        QString imageView = args["imageView"].toString();
+        double spacing = args["spacing"].toDouble();
+        result = m_scriptFacade->setGridSpacing( imageView, spacing );
+    }
+
+    else if ( cmd == "setgridthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int thickness = args["thickness"].toInt();
+        result = m_scriptFacade->setGridThickness( imageView, thickness );
+    }
+
+    else if ( cmd == "setgridtransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridTransparency( imageView, transparency );
+    }
+
+    else if ( cmd == "setgridlabelcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridLabelColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
+    else if ( cmd == "setshowgridaxis" ) {
+        QString imageView = args["imageView"].toString();
+        bool showAxis = args["showAxis"].toBool();
+        result = m_scriptFacade->setShowGridAxis( imageView, showAxis );
+    }
+
+    else if ( cmd == "setshowgridcoordinatesystem" ) {
+        QString imageView = args["imageView"].toString();
+        bool showCoordinateSystem = args["showCoordinateSystem"].toBool();
+        result = m_scriptFacade->setShowGridCoordinateSystem( imageView, showCoordinateSystem );
+    }
+
+    else if ( cmd == "setshowgridlines" ) {
+        QString imageView = args["imageView"].toString();
+        bool showGridLines = args["showGridLines"].toBool();
+        result = m_scriptFacade->setShowGridLines( imageView, showGridLines );
+    }
+
+    else if ( cmd == "setshowgridinternallabels" ) {
+        QString imageView = args["imageView"].toString();
+        bool showInternalLabels = args["showInternalLabels"].toBool();
+        result = m_scriptFacade->setShowGridInternalLabels( imageView, showInternalLabels );
+    }
+
+    else if ( cmd == "setshowgridstatistics" ) {
+        QString imageView = args["imageView"].toString();
+        bool showStatistics = args["showStatistics"].toBool();
+        result = m_scriptFacade->setShowGridStatistics( imageView, showStatistics );
+    }
+
+    else if ( cmd == "setshowgridticks" ) {
+        QString imageView = args["imageView"].toString();
+        bool showTicks = args["showTicks"].toBool();
+        result = m_scriptFacade->setShowGridTicks( imageView, showTicks );
+    }
+
+    else if ( cmd == "setgridtickcolor" ) {
+        QString imageView = args["imageView"].toString();
+        int redAmount = args["redAmount"].toInt();
+        int greenAmount = args["greenAmount"].toInt();
+        int blueAmount = args["blueAmount"].toInt();
+        result = m_scriptFacade->setGridTickColor( imageView, redAmount, greenAmount, blueAmount );
+    }
+
+    else if ( cmd == "setgridtickthickness" ) {
+        QString imageView = args["imageView"].toString();
+        int tickThickness = args["tickThickness"].toInt();
+        result = m_scriptFacade->setGridTickThickness( imageView, tickThickness );
+    }
+
+    else if ( cmd == "setgridticktransparency" ) {
+        QString imageView = args["imageView"].toString();
+        int transparency = args["transparency"].toInt();
+        result = m_scriptFacade->setGridTickTransparency( imageView, transparency );
+    }
+
+    else if ( cmd == "setgridtheme" ) {
+        QString imageView = args["imageView"].toString();
+        QString theme = args["theme"].toString();
+        result = m_scriptFacade->setGridTheme( imageView, theme );
+    }
+
+    /// Section: Animator Commands
+    /// --------------------------
+    /// These commands come from the Python Animator class. They allow
+    /// the animators to be manipulated and can also return information
+    /// about the animators.
 
     else if ( cmd == "setchannel" ) {
         QString animatorView = args["animatorView"].toString();
@@ -343,7 +518,16 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->showImageAnimator( animatorView );
     }
 
-    /// histogram commands
+    else if ( cmd == "getmaximagecount" ) {
+        QString animatorView = args["animatorView"].toString();
+        result = m_scriptFacade->getMaxImageCount( animatorView );
+    }
+
+    /// Section: Histogram Commands
+    /// --------------------------
+    /// These commands come from the Python Histogram class. They allow
+    /// the histograms to be manipulated and can also return information
+    /// about the histograms.
 
     else if ( cmd == "setclipbuffer" ) {
         QString histogramView = args["histogramView"].toString();
@@ -364,12 +548,21 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setClipRange( histogramView, minRange, maxRange );
     }
 
+    else if ( cmd == "setcliprangepercent" ) {
+        QString histogramView = args["histogramView"].toString();
+        double minPercent = args["minPercent"].toDouble();
+        double maxPercent = args["maxPercent"].toDouble();
+        result = m_scriptFacade->setClipRangePercent( histogramView, minPercent, maxPercent );
+    }
+
+    else if ( cmd == "getcliprange" ) {
+        QString histogramView = args["histogramView"].toString();
+        result = m_scriptFacade->getClipRange( histogramView );
+    }
+
     else if ( cmd == "applyclips" ) {
         QString histogramView = args["histogramView"].toString();
-        double clipMinValue = args["clipMinValue"].toDouble();
-        double clipMaxValue = args["clipMaxValue"].toDouble();
-        QString modeStr = args["modeStr"].toString();
-        result = m_scriptFacade->applyClips( histogramView, clipMinValue, clipMaxValue, modeStr );
+        result = m_scriptFacade->applyClips( histogramView );
     }
 
     else if ( cmd == "setbincount" ) {
@@ -429,13 +622,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
     }
 
-    /// commands for testing
-
-    else if ( cmd == "fakecommand" ) {
-        QString data = args["data"].toString();
-        result.append("Fake command received");
-    }
-
     else {
         qDebug() << "Unknown command, sending error back";
         key = "error";
@@ -445,6 +631,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     if ( result[0] == "error" ) {
         key = "error";
     }
+
+    QJsonObject rjo;
     rjo.insert( key, QJsonValue::fromVariant( result ) );
     JsonMessage rjm = JsonMessage( QJsonDocument( rjo ) );
     m_messageListener->send( rjm.toTagMessage() );

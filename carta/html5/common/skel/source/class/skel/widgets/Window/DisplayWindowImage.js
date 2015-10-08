@@ -15,6 +15,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
      * Constructor.
      */
     construct : function(index, detached) {
+        console.log( "DisplayWindowImage constructed", index, detached);
+        window.imgwin = this;
         this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, index, detached );
         this.m_links = [];
         this.m_viewContent = new qx.ui.container.Composite();

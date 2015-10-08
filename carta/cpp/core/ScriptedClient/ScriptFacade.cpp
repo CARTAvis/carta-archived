@@ -11,6 +11,7 @@
 #include "Data/Layout/Layout.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Statistics.h"
+#include "Data/Image/GridControls.h"
 
 #include <QDebug>
 
@@ -19,6 +20,7 @@ using Carta::State::ObjectManager;
 
 const QString ScriptFacade::TOGGLE = "toggle";
 const QString ScriptFacade::ERROR = "error";
+const QString ScriptFacade::UNKNOWN_ERROR = "An unknown error has occurred";
 
 ScriptFacade * ScriptFacade::getInstance (){
     static ScriptFacade * sc = new ScriptFacade ();
@@ -32,9 +34,7 @@ ScriptFacade::ScriptFacade(){
     int numControllers = m_viewManager->getControllerCount();
     for (int i = 0; i < numControllers; i++) {
         QString imageView = getImageViewId( i );
-        ObjectManager* objMan = ObjectManager::objectManager();
-        QString id = objMan->parseId( imageView );
-        Carta::State::CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = _getObject( imageView );
         if ( obj != nullptr ){
             Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
             if ( controller != nullptr ){
@@ -162,10 +162,15 @@ QStringList ScriptFacade::setPlugins( const QStringList& names ) {
     QStringList resultList("");
     bool result = m_viewManager->setPlugins( names );
     if ( result == false ) {
-        resultList = QStringList( ERROR );
-        QString errorStr = "There was an error setting the plugins: " + names.join( ',' );
-        resultList.append( errorStr );
+        resultList = _logErrorMessage( ERROR, "There was an error setting the plugins: " + names.join( ',' ) );
     }
+    return resultList;
+}
+
+QStringList ScriptFacade::getPluginList() const {
+    QStringList resultList;
+    Carta::Data::Layout* layout = Carta::Data::Util::findSingletonObject<Carta::Data::Layout>();
+    resultList = layout->getPluginList();
     return resultList;
 }
 
@@ -173,20 +178,7 @@ QStringList ScriptFacade::loadFile( const QString& objectId, const QString& file
     QStringList resultList("");
     bool result = m_viewManager->loadFile( objectId, fileName );
     if ( result == false ) {
-        resultList = QStringList( ERROR );
-        QString errorStr = "Could not load file " + fileName;
-        resultList.append( errorStr );
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::loadLocalFile( const QString& objectId, const QString& fileName ){
-    QStringList resultList("");
-    bool result = m_viewManager->loadFile( objectId, fileName );
-    if ( result == false ) {
-        resultList = QStringList( ERROR );
-        QString errorStr = "Could not load file " + fileName;
-        resultList.append( errorStr );
+        resultList = _logErrorMessage( ERROR, "Could not load file " + fileName );
     }
     return resultList;
 }
@@ -202,18 +194,12 @@ QStringList ScriptFacade::setCustomLayout( int rows, int cols ){
     Carta::Data::Layout* layout = Carta::Data::Util::findSingletonObject<Carta::Data::Layout>();
     QString resultStr = layout->setLayoutSize( rows, cols );
     resultList = QStringList( resultStr );
-
-    //QString resultStr = m_viewManager->setCustomView( rows, cols );
-    //QStringList result( resultStr );
-    //return result;
     return resultList;
 }
 
 QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString& colormapName ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( colormapId );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -221,22 +207,18 @@ QStringList ScriptFacade::setColorMap( const QString& colormapId, const QString&
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QString& reverseStr ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( colormapId );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -253,133 +235,54 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "An invalid value was passed to reverse color map");
+                resultList = _logErrorMessage( ERROR, "An invalid value was passed to reverse color map: " + reverseStr );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
 
-/*QStringList ScriptFacade::setCacheColormap( const QString& colormapId, const QString& cacheStr ){
-    QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
-    if ( obj != nullptr ){
-        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
-        if ( colormap != nullptr ){
-            QString result = colormap->setCacheColormap( cacheStr );
-            resultList = QStringList( result );
-        }
-        else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
-        }
-    }
-    else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
-    }
-    return resultList;
-}*/
-
-/*QStringList ScriptFacade::setCacheSize( const QString& colormapId, const QString& cacheSize ){
-    QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
-    if ( obj != nullptr ){
-        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
-        if ( colormap != nullptr ){
-            QString result = colormap->setCacheSize( cacheSize );
-            resultList = QStringList( result );
-        }
-        else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
-        }
-    }
-    else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
-    }
-    return resultList;
-}*/
-
-/*QStringList ScriptFacade::setInterpolatedColorMap( const QString& colormapId, const QString& interpolateStr ){
-    QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
-    if ( obj != nullptr ){
-        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
-        if ( colormap != nullptr ){
-            QString result = colormap->setInterpolatedColorMap( interpolateStr );
-            resultList = QStringList( result );
-        }
-        else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
-        }
-    }
-    else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
-    }
-    return resultList;
-}*/
-
 QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QString& invertStr ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( colormapId );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
-           bool invert = false;
-           bool validBool = true;
-           if ( invertStr == TOGGLE ){
-               invert = ! colormap->isInverted();
-           }
-           else {
-               invert = Carta::Data::Util::toBool( invertStr, &validBool );
-           }
-           if ( validBool ){
-               QString result = colormap->invertColorMap( invert );
-               resultList = QStringList( result );
-           }
-           else {
-               resultList = QStringList( ERROR );
-               resultList.append( "An unrecognized parameter was passed to invert color map");
-           }
+            bool invert = false;
+            bool validBool = true;
+            if ( invertStr == TOGGLE ){
+                invert = ! colormap->isInverted();
+            }
+            else {
+                invert = Carta::Data::Util::toBool( invertStr, &validBool );
+            }
+            if ( validBool ){
+                QString result = colormap->invertColorMap( invert );
+                resultList = QStringList( result );
+            }
+             else {
+                resultList = _logErrorMessage( ERROR, "An unrecognized parameter was passed to invert color map: " + invertStr );
+            }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, double green, double blue ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( colormapId );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -387,22 +290,18 @@ QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, do
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( colormapId );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -410,22 +309,18 @@ QStringList ScriptFacade::setGamma( const QString& colormapId, double gamma ){
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QString& transformString ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( colormapId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( colormapId );
     if ( obj != nullptr ){
         Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
         if ( colormap != nullptr ){
@@ -433,18 +328,54 @@ QStringList ScriptFacade::setDataTransform( const QString& colormapId, const QSt
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified colormap view could not be found: " + colormapId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( animatorId );
+    if ( obj != nullptr ){
+        Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+        if ( animator != nullptr){
+            QString animId; 
+            animator->addAnimator( "Image", animId );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::getMaxImageCount( const QString& animatorId ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( animatorId );
+    if ( obj != nullptr ){
+        Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
+        if ( animator != nullptr){
+            int result = animator->getMaxImageCount();
+            resultList = QStringList( QString::number( result ) );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::getChannelIndex( const QString& animatorId ){
     QStringList resultList("");
     ObjectManager* objMan = ObjectManager::objectManager();
     QString id = objMan->parseId( animatorId );
@@ -452,8 +383,15 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
-            QString animId; 
-            animator->addAnimator( "Image", animId );
+            Carta::Data::AnimatorType* animType = animator->getAnimator( "Channel");
+            if ( animType != nullptr ){
+                int frame = animType->getFrame();
+                resultList = QStringList( QString::number( frame ) );
+            }
+            else {
+                resultList = QStringList( ERROR );
+                resultList.append( "Could not get channel animator." );
+            }
         }
         else {
             resultList = QStringList( ERROR );
@@ -469,9 +407,7 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
 
 QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
     QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( animatorId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( animatorId );
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
@@ -484,44 +420,36 @@ QStringList ScriptFacade::setChannel( const QString& animatorId, int index ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified animator could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
     QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( animatorId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( animatorId );
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
             animator->changeImageIndex( index );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified animator could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified animator could not be found: " + animatorId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setClipValue( const QString& controlId, double clipValue ) {
     QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -530,13 +458,11 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
 
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified colormap view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified controller could not be found: " + controlId );
     }
     return resultList;
 }
@@ -556,7 +482,7 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
         }
         else {
             resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList.append( UNKNOWN_ERROR );
         }
     }
     else {
@@ -674,8 +600,7 @@ QStringList ScriptFacade::getLinkedColorMaps( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find colormap." );
+            resultList = _logErrorMessage( ERROR, "Could not find colormap." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -699,8 +624,7 @@ QStringList ScriptFacade::getLinkedAnimators( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find animator." );
+            resultList = _logErrorMessage( ERROR, "Could not find animator." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -724,8 +648,7 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find histogram." );
+            resultList = _logErrorMessage( ERROR, "Could not find histogram." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -749,8 +672,7 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "Could not find statistics view." );
+            resultList = _logErrorMessage( ERROR, "Could not find statistics view." );
         }
     }
     if ( resultList.length() == 0 ) {
@@ -761,53 +683,43 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
 
 QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, double y ) {
     QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             controller->centerOnPixel( x, y );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setZoomLevel( const QString& controlId, double zoomLevel ) {
     QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             controller->setZoomLevel( zoomLevel );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -815,88 +727,108 @@ QStringList ScriptFacade::getZoomLevel( const QString& controlId ) {
             resultList = QStringList( QString::number( zoomLevel ) );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::resetZoom( const QString& controlId ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->resetZoom();
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::centerImage( const QString& controlId ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->resetPan();
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             resultList = controller->getImageDimensions( );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             resultList = controller->getOutputSize( );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double ra, double dec ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             resultList = controller->getPixelCoordinates( ra, dec );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, double y ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -904,22 +836,18 @@ QStringList ScriptFacade::getPixelValue( const QString& controlId, double x, dou
             resultList = QStringList( resultStr );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -927,44 +855,36 @@ QStringList ScriptFacade::getPixelUnits( const QString& controlId ){
             resultList = QStringList( resultStr );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getCoordinates( const QString& controlId, double x, double y, const Carta::Lib::KnownSkyCS system ){
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             resultList = controller->getCoordinates( x, y, system );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::getImageNames( const QString& controlId ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -977,22 +897,18 @@ QStringList ScriptFacade::getImageNames( const QString& controlId ) {
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::closeImage( const QString& controlId, const QString& imageName ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -1000,22 +916,18 @@ QStringList ScriptFacade::closeImage( const QString& controlId, const QString& i
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferAmount ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1023,13 +935,11 @@ QStringList ScriptFacade::setClipBuffer( const QString& histogramId, int bufferA
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1039,9 +949,7 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
     bool validBool = false;
     bool useBuffer = Carta::Data::Util::toBool( useBufferStr, &validBool );
     if ( validBool || useBufferStr.toLower() == TOGGLE ) {
-        ObjectManager* objMan = ObjectManager::objectManager();
-        QString id = objMan->parseId( histogramId );
-        Carta::State::CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = _getObject( histogramId );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
@@ -1053,26 +961,22 @@ QStringList ScriptFacade::setUseClipBuffer( const QString& histogramId, const QS
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "An unknown error has occurred." );
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "The specified histogram view could not be found." );
+            resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
         }
     }
     else {
-        resultList = QStringList( "Set clip buffer parameter must be true/false or 'toggle': " + useBufferStr );
+        resultList = _logErrorMessage( ERROR, "Set clip buffer parameter must be true/false or 'toggle': " + useBufferStr );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRange, double maxRange ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1080,48 +984,67 @@ QStringList ScriptFacade::setClipRange( const QString& histogramId, double minRa
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
 
-QStringList ScriptFacade::applyClips( const QString& histogramId, double clipMinValue, double clipMaxValue, QString mode ) {
+QStringList ScriptFacade::setClipRangePercent( const QString& histogramId, double minPercent, double maxPercent ) {
     QStringList resultList;
-    QString result = "";
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
-            if ( mode == "percent" ) {
-                result += histogram->setClipMinPercent( clipMinValue );
-                result += histogram->setClipMaxPercent( clipMaxValue );
-            }
-            else if ( mode == "intensity" ) {
-                result += histogram->setClipMin( clipMinValue );
-                result += histogram->setClipMax( clipMaxValue );
-            }
-            else {
-                result = "invalid mode: " + mode;
-            }
-            histogram->applyClips();
+            QString result = histogram->setClipRangePercent( minPercent, maxPercent );
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::getClipRange( const QString& histogramId ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( histogramId );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            std::pair<double, double> clipRange = histogram->getClipRange();
+            resultList << QString::number( clipRange.first) << QString::number( clipRange.second );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::applyClips( const QString& histogramId ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( histogramId );
+    if ( obj != nullptr ){
+        Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
+        if ( histogram != nullptr ){
+            histogram->applyClips();
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1130,9 +1053,7 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
     QStringList resultList;
     double intensity;
     bool valid;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
@@ -1141,27 +1062,22 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
                 resultList = QStringList( QString::number( intensity ) );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "Could not get intensity for the specified parameters." );
+                resultList = _logErrorMessage( ERROR, "Could not get intensity for the specified parameters." );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1169,22 +1085,18 @@ QStringList ScriptFacade::setBinCount( const QString& histogramId, int binCount 
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWidth ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1192,22 +1104,18 @@ QStringList ScriptFacade::setBinWidth( const QString& histogramId, double binWid
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QString& planeMode ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1215,22 +1123,18 @@ QStringList ScriptFacade::setPlaneMode( const QString& histogramId, const QStrin
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minPlane, double maxPlane) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1238,22 +1142,18 @@ QStringList ScriptFacade::setPlaneRange( const QString& histogramId, double minP
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QString& units ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1261,22 +1161,18 @@ QStringList ScriptFacade::setChannelUnit( const QString& histogramId, const QStr
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QString& style ) {
     QStringList resultList;
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1284,13 +1180,11 @@ QStringList ScriptFacade::setGraphStyle( const QString& histogramId, const QStri
             resultList = QStringList( result );
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
 }
@@ -1300,9 +1194,7 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
     bool validBool = false;
     bool logCount = Carta::Data::Util::toBool( logCountStr, &validBool );
     if ( validBool || logCountStr.toLower() == TOGGLE ) {
-        ObjectManager* objMan = ObjectManager::objectManager();
-        QString id = objMan->parseId( histogramId );
-        Carta::State::CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = _getObject( histogramId );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
@@ -1314,17 +1206,15 @@ QStringList ScriptFacade::setLogCount( const QString& histogramId, const QString
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "An unknown error has occurred." );
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "The specified histogram could not be found." );
+            resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
         }
     }
     else {
-        resultList = QStringList( "Set log count parameter must be true/false or 'toggle': " + logCountStr );
+        resultList = _logErrorMessage( ERROR, "Set log count parameter must be true/false or 'toggle': " + logCountStr );
     }
     return resultList;
 }
@@ -1334,9 +1224,7 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
     bool validBool = false;
     bool colored = Carta::Data::Util::toBool( coloredStr, &validBool );
     if ( validBool || coloredStr.toLower() == TOGGLE ) {
-        ObjectManager* objMan = ObjectManager::objectManager();
-        QString id = objMan->parseId( histogramId );
-        Carta::State::CartaObject* obj = objMan->getObject( id );
+        Carta::State::CartaObject* obj = _getObject( histogramId );
         if ( obj != nullptr ){
             Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
             if ( histogram != nullptr ){
@@ -1348,26 +1236,22 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
                 resultList = QStringList( result );
             }
             else {
-                resultList = QStringList( ERROR );
-                resultList.append( "An unknown error has occurred." );
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "The specified histogram could not be found." );
+            resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
         }
     }
     else {
-        resultList = QStringList( "Set colored parameter must be true/false or 'toggle': " + coloredStr );
+        resultList = _logErrorMessage( ERROR, "Set colored parameter must be true/false or 'toggle': " + coloredStr );
     }
     return resultList;
 }
 
 QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ) {
     QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( histogramId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
+    Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
         Carta::Data::Histogram* histogram = dynamic_cast<Carta::Data::Histogram*>(obj);
         if ( histogram != nullptr ){
@@ -1387,28 +1271,496 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
             if ( widthError.isEmpty() && heightError.isEmpty()){
                 QString result = histogram->saveHistogram( filename );
                 if ( !result.isEmpty() ){
-                    resultList.append( ERROR );
-                    resultList.append( result );
+                    resultList = _logErrorMessage( ERROR, result );
                 }
             }
             else {
-                resultList.append( ERROR );
                 if ( !widthError.isEmpty() ){
-                    resultList.append( widthError );
+                    resultList = _logErrorMessage( ERROR, widthError );
                 }
                 if ( !heightError.isEmpty() ){
-                    resultList.append( heightError );
+                    resultList = _logErrorMessage( ERROR, heightError );
                 }
             }
         }
         else {
-            resultList = QStringList( ERROR );
-            resultList.append( "An unknown error has occurred." );
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
         }
     }
     else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified histogram could not be found." );
+        resultList = _logErrorMessage( ERROR, "The specified histogram view could not be found: " + histogramId );
     }
     return resultList;
+}
+
+QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, int green, int blue ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getGridControls()->setAxesColor( red, green, blue );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridAxesThickness( const QString& controlId, int thickness ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setAxesThickness( thickness );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int transparency ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setAxesTransparency( transparency );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyAll ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            controller->getGridControls()->setApplyAll( applyAll );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridCoordinateSystem( const QString& controlId, const QString& coordSystem ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setCoordinateSystem( coordSystem );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QString& fontFamily ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setFontFamily( fontFamily );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSize ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setFontSize( fontSize );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getGridControls()->setGridColor( redAmount, greenAmount, blueAmount );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridSpacing( const QString& controlId, double spacing ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setGridSpacing( spacing );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridThickness( const QString& controlId, int thickness ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setGridThickness( thickness );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+
+}
+
+QStringList ScriptFacade::setGridTransparency( const QString& controlId, int transparency ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setGridTransparency( transparency );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getGridControls()->setLabelColor( redAmount, greenAmount, blueAmount );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAxis ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setShowAxis( showAxis );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId, bool showCoordinateSystem ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setShowCoordinateSystem( showCoordinateSystem );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setShowGridLines( showGridLines );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, bool showInternalLabels ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setShowInternalLabels( showInternalLabels );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool showStatistics ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setShowStatistics( showStatistics );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setShowGridTicks( const QString& controlId, bool showTicks ) {
+    QStringList resultList("");
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setShowTicks( showTicks );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = controller->getGridControls()->setTickColor( redAmount, greenAmount, blueAmount );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridTickThickness( const QString& controlId, int tickThickness ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setTickThickness( tickThickness );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridTickTransparency( const QString& controlId, int transparency ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setTickTransparency( transparency );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setGridTheme( const QString& controlId, const QString& theme ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->getGridControls()->setTheme( theme );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "The specified image view could not be found: " + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+Carta::State::CartaObject* ScriptFacade::_getObject( const QString& id ) {
+    ObjectManager* objMan = ObjectManager::objectManager();
+    QString objId = objMan->parseId( id );
+    Carta::State::CartaObject* obj = objMan->getObject( objId );
+    return obj;
+}
+
+QStringList ScriptFacade::_logErrorMessage( const QString& key, const QString& value ) {
+    QStringList result( key );
+    result.append( value );
+    return result;
 }

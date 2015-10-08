@@ -32,19 +32,26 @@ class CartaView:
     def addLink(self, imageView):
         """
         Establish a link between a source and an image view.
+        The parameter is an Image object that can be obtained with the
+        getImageViews() command. For example, the following sequence of
+        commands will obtain the image views and histogram views, then
+        add a link between the first histogram view and the first image
+        view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            h[0].addLink(i[0])
 
         Parameters
         ----------
-        source: Carta object
-            The source object for the link.
         dest: Image object
             The destination object for the link.
 
         Returns
         -------
         list
-            An error message if there was a problem adding the link; empty
-            otherwise.
+            An error message if there was a problem adding the link;
+            empty otherwise.
         """
         result = self.con.cmdTagList("addLink", sourceView=self.getId(),
                                      destView=imageView.getId())
@@ -53,19 +60,26 @@ class CartaView:
     def removeLink(self, imageView):
         """
         Remove a link between a source and an image view.
+        The parameter is an Image object that can be obtained with the
+        getImageViews() command. For example, the following sequence of
+        commands will obtain the image views and histogram views, then
+        remove the link between the first histogram view and the first
+        image view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            h[0].removeLink(i[0])
 
         Parameters
         ----------
-        source: Carta object
-            The source object for the link.
         dest: Image object
             The destination object for the link.
 
         Returns
         -------
         list
-            An error message if there was a problem removing the link; empty
-            otherwise.
+            An error message if there was a problem removing the link;
+            empty otherwise.
         """
         result = self.con.cmdTagList("removeLink", sourceView=self.getId(),
                                      destView=imageView.getId())

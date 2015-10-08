@@ -60,7 +60,7 @@
   "jobs" :
   {
       // the default job runs multiple jobs
-      "all" : 
+      "all" :
       {
           "run" :
           [
@@ -73,8 +73,6 @@
       , "source-script": {
           "compile-options": {
               "uris": {
-//                  "script": "abcdefg",
-//                  "resource": "xyzw",
                   "add-nocache-param": true
               },
 
@@ -93,8 +91,6 @@
       , "source-all-script": {
       "compile-options": {
           "uris": {
-//              "script": "abcdefg",
-//              "resource": "xyzw",
               "add-nocache-param": true
           },
 
@@ -108,6 +104,15 @@
           }
 
       }
+
+    , "build-script": {
+      "compile-options": {
+        "code": {
+          "format": false
+        }
+      }
+    }
+
   }
 
 

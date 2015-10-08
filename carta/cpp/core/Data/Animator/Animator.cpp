@@ -174,7 +174,7 @@ void Animator::changeImageIndex( int selectedImage ){
     _resetAnimationParameters(selectedImage);
 }
 
-int Animator::_getMaxImageCount() const {
+int Animator::getMaxImageCount() const {
     int linkCount = m_linkImpl->getLinkCount();
     int maxImages = 0;
     for ( int i = 0; i < linkCount; i++ ){
@@ -186,6 +186,11 @@ int Animator::_getMaxImageCount() const {
             }
         }
     }
+    return maxImages;
+}
+
+int Animator::_getMaxImageCount() const {
+    int maxImages = getMaxImageCount();
     return maxImages;
 }
 

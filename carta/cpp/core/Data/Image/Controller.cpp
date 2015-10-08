@@ -327,16 +327,16 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
 
 
 QString Controller::getPreferencesId() const {
-    QString id;
-    if ( m_settings.get() != nullptr ){
-        id = m_settings->getPath();
-    }
-    return id;
+    return m_settings ? m_settings-> getPath() : QString();
+//    QString id;
+//    if ( m_settings.get() != nullptr ){
+//        id = m_settings->getPath();
+//    }
+//    return id;
 }
 
 int Controller::getStackedImageCount() const {
-    int count = m_datas.size();
-    return count;
+    return m_datas.size();
 }
 
 
@@ -1126,7 +1126,6 @@ QString Controller::setClipValue( double clipVal  ) {
     }
     return result;
 }
-
 
 void Controller::_viewResize( const QSize& newSize ){
     for ( int i = 0; i < m_datas.size(); i++ ){

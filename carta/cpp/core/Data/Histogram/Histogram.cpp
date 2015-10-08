@@ -908,7 +908,12 @@ bool Histogram::isLinked( const QString& linkId ) const {
 }
 
 
-void Histogram::_loadData( Controller* controller ){
+void Histogram::_loadData( Controller* controller )
+{
+
+    if( ! controller) {
+        return;
+    }
 
     int binCount = m_state.getValue<int>(BIN_COUNT)+1;
     double minFrequency = -1;
@@ -925,11 +930,14 @@ void Histogram::_loadData( Controller* controller ){
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> dataSources;
-    if ( controller != nullptr ){
-        int stackedImageCount = controller->getStackedImageCount();
-        if ( stackedImageCount > 0 ){
-            dataSources = _generateData( controller );
+
+//    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> dataSources;
+//    if ( controller != nullptr ) {
+        auto dataSources = controller-> getDataSources();
+//        int stackedImageCount = controller->getStackedImageCount();
+//        if ( stackedImageCount > 0 ){
+        if ( dataSources.size() > 0 ) {
+//            dataSources = _generateData( controller );
             auto result = Globals::instance()-> pluginManager()
                                       -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
                                               minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
@@ -949,12 +957,13 @@ void Histogram::_loadData( Controller* controller ){
                 hr->registerError( errorStr );
             }
         }
-        else if ( stackedImageCount == 0 ){
+//        else if ( stackedImageCount == 0 ){
+        else {
             _resetDefaultStateData();
             const Carta::Lib::Hooks::HistogramResult data;
             m_histogram->setData( data );
         }
-    }
+//    }
 }
 
 void Histogram::refreshState() {
@@ -965,8 +974,9 @@ void Histogram::refreshState() {
 }
 
 void Histogram::_refreshView(){
-    QImage * histogramImage = m_histogram->toImage();
-    m_view->resetImage( *histogramImage );
+//    QImage * histogramImage = m_histogram->toImage();
+//    m_view->resetImage( *histogramImage );
+    m_view->resetImage( m_histogram->toImage() );
     m_view->scheduleRedraw();
 }
 
@@ -1061,6 +1071,13 @@ QString Histogram::setClipRange( double clipMin, double clipMax ){
         result = "Minimum clip, "+QString::number(clipMin)+", must be less than maximum clip, "+QString::number(clipMax);
     }
     return result;
+}
+
+std::pair<double, double> Histogram::getClipRange() const {
+    double clipMin = m_stateData.getValue<double>(CLIP_MIN);
+    double clipMax = m_stateData.getValue<double>(CLIP_MAX);
+    std::pair<double, double> clipRangeValues(clipMin, clipMax);
+    return clipRangeValues;
 }
 
 QString Histogram::setCustomClip( bool customClip ){
@@ -1561,14 +1578,16 @@ QString Histogram::saveHistogram( const QString& fileName ){
         int width = prefSave->getWidth();
         int height = prefSave->getHeight();
         Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-        QImage* histogramImage = m_histogram->toImage();
+//        QImage* histogramImage = m_histogram->toImage();
+        QImage histogramImage = m_histogram->toImage();
         QSize outputSize( width, height );
-        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode );
+//        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode );
+        QImage imgScaled = histogramImage.scaled( outputSize, aspectRatioMode );
         bool saveSuccessful = imgScaled.save( fileName );
         if ( !saveSuccessful ){
             result = "The image could not be saved; please check the path: "+fileName+" is valid.";
         }
-        delete histogramImage;
+//        delete histogramImage;
     }
     return result;
 }

@@ -20,13 +20,13 @@ class CCImageBase
     CLASS_BOILERPLATE( CCImageBase );
 
 public:
-    /// \todo not sure if this is necessary for RTTI to work, if it's not it
-    /// can be removed...
-    virtual bool
-    isCasaImage() const final
-    {
-        return true;
-    }
+//    /// \todo not sure if this is necessary for RTTI to work, if it's not it
+//    /// can be removed...
+//    virtual bool
+//    isCasaImage() const final
+//    {
+//        return true;
+//    }
 
     /**
      * Returns a pointer to the underlying casa::LatticeBase* or null if there is no underlying
@@ -34,6 +34,9 @@ public:
      * @return casa::LatticeBase *
      */
     virtual casa::LatticeBase * getCasaImage() = 0;
+
+//    virtual casa::ImageInterface<casa::Float> * getCasaIIfloat() = 0;
+
 
 };
 
@@ -117,6 +120,7 @@ public:
         return m_meta;
     }
 
+    /// call this to create an instance of this class, do not use constructor
     static CCImage::SharedPtr
     create( casa::ImageInterface < PType > * casaImage )
     {
@@ -142,24 +146,29 @@ public:
         return img;
     } // create
 
-    virtual casa::LatticeBase * getCasaImage(){
+    virtual casa::LatticeBase *
+    getCasaImage() override
+    {
         return m_casaII;
     }
 
-    /// this should be protected... but I don't have time to fix the compiler errors
-//    template < class X >
-//    friend class CCImage<PType>;
-//    friend class CCImage<double>;
-//    friend class CCImage<int16_t>;
-//    friend class CCImage<int32_t>;
-//    friend class CCImage<int64_t>;
-//    friend class CCImage<u_int8_t>;
-//protected:
+//    virtual casa::ImageInterface<casa::Float> * getCasaIIfloat() override
+//    {
+//        if( m_pixelType != PixelType::Real32) {
+//            return nullptr;
+//        } else {
+//            return static_cast<
+//        }
+//    }
 
-    CCImage() { }
 
     virtual
     ~CCImage() { }
+
+    /// do not use this!
+    /// \todo constructor should be protected... but I don't have time to fix the
+    /// compiler errors (Pavol)
+    CCImage() { }
 
 protected:
     /// type of the image data
@@ -178,8 +187,10 @@ protected:
     CCMetaDataInterface::SharedPtr m_meta;
 
     /// we want CCRawView to access our internals...
-    /// \todo maybe we just need a public accessor, no? I don't like friends :)
+    /// \todo maybe we just need a public accessor, no? I don't like friends :) (Pavol)
     friend class CCRawView < PType >;
-
-
 };
+
+/// helper to convert carta's image to casacore image interface
+casa::ImageInterface<casa::Float> *
+cartaII2casaII_float( std::shared_ptr<Carta::Lib::Image::ImageInterface> ii) ;

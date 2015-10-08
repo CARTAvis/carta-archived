@@ -8,7 +8,8 @@ defaultSettings = {
     "version" : "0.0.0",
     "destination" : "/tmp/cartaBuild-0.0.0",
     "qmakebin" : "/usr/bin/qmake",
-    "makeflags" : [ "-j12" ]
+    "makeflags" : [ "-j12" ],
+    "qooxdooExtraOptions" : [ "-m", "OPTIMIZE:[]" ]
 
 }
 
@@ -112,7 +113,8 @@ while True:
     print "  1) Version:" , settings["version"]
     print "  2) Destination:" , settings["destination"]
     print "  3) qmake:" , settings["qmakebin"]
-    print "   ) makeflagse:" , " ".join(settings["makeflags"])
+    print "   ) makeflags:" , " ".join(settings["makeflags"])
+    print "   ) qooxdoo extra options:" , " ".join(settings["qooxdooExtraOptions"])
     print "  0) Go"
 
     try:
@@ -144,6 +146,7 @@ os.chdir( srcRoot + "/carta/html5/common/skel")
 qooxdooCall = [ "./generate.py" ]
 qooxdooCall.append( "-m")
 qooxdooCall.append( "BUILD_PATH:" + settings["destination"] + "/html")
+qooxdooCall.extend( settings["qooxdooExtraOptions"])
 qooxdooCall.append( "build")
 call( qooxdooCall)
 

@@ -93,6 +93,7 @@ DesktopPlatform::DesktopPlatform()
     m_connector = new DesktopConnector();
 
     // enable web inspector
+    QWebSettings::enablePersistentStorage( "/tmp/xyz");
     QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
 //    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
 

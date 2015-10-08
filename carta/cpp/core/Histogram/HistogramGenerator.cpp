@@ -196,15 +196,21 @@ void HistogramGenerator::setStyle( QString style ){
 }
 
 
-QImage * HistogramGenerator::toImage( ) const {
-    QwtPlotRenderer * renderer = new QwtPlotRenderer();
-    QImage * histogramImage =new QImage(m_width, m_height, QImage::Format_RGB32);
-    renderer->renderTo(m_plot,*histogramImage);
-    delete renderer;
+//QImage * HistogramGenerator::toImage( ) const {
+//    QwtPlotRenderer * renderer = new QwtPlotRenderer();
+//    QImage * histogramImage =new QImage(m_width, m_height, QImage::Format_RGB32);
+//    renderer->renderTo(m_plot,*histogramImage);
+//    delete renderer;
+//    return histogramImage;
+//}
+
+QImage HistogramGenerator::toImage( ) const
+{
+    QwtPlotRenderer renderer;
+    QImage histogramImage( m_width, m_height, QImage::Format_RGB32);
+    renderer.renderTo( m_plot, histogramImage);
     return histogramImage;
-
 }
-
 
 }
 }

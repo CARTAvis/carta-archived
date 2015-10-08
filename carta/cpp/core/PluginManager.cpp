@@ -406,6 +406,7 @@ PluginManager::loadNativePlugin( PluginManager::PluginInfo & pInfo )
             auto libPath = pInfo.libPaths[ind];
             qDebug() << "    " + QFileInfo( libPath ).fileName();
             QLibrary lib( libPath );
+            lib.setLoadHints(QLibrary::ResolveAllSymbolsHint | QLibrary::ExportExternalSymbolsHint);
             if ( ! lib.load() ) {
                 qDebug() << "      error:" + lib.errorString();
                 libsToLoad.push_back( ind );
@@ -447,7 +448,8 @@ PluginManager::loadNativePlugin( PluginManager::PluginInfo & pInfo )
 
     // for cpp plugins, try to load in the actual plugin shared library
     QPluginLoader loader( pInfo.soPath );
-    loader.setLoadHints( QLibrary::ResolveAllSymbolsHint );
+//    loader.setLoadHints( QLibrary::ResolveAllSymbolsHint );
+    loader.setLoadHints(QLibrary::ResolveAllSymbolsHint | QLibrary::ExportExternalSymbolsHint);
     QObject * plugin = loader.instance();
     if ( ! plugin ) {
         qDebug() << "QPluginLoader error = " << loader.errorString();

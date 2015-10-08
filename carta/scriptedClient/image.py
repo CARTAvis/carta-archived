@@ -14,27 +14,7 @@ class Image(CartaView):
     Represents an image view.
     """
 
-    def loadFile(self, filename):
-        """
-        Load a file from /scratch/Images into the image view.
-
-        Parameters
-        ----------
-        filename: string
-            A path, relative to /scratch/Images, identifying the file to
-            be loaded.
-
-        Returns
-        -------
-        list
-            An error message if there was a problem loading the file,
-            and nothing otherwise.
-        """
-        result = self.con.cmdTagList("loadFile", imageView=self.getId(),
-                                     fname="/RootDirectory/"+filename)
-        return result
-
-    def loadLocalFile(self, fileName):
+    def loadFile(self, fileName):
         """
         Load a file into the image view.
 
@@ -49,7 +29,7 @@ class Image(CartaView):
             An error message if there was a problem loading the file,
             and nothing otherwise.
         """
-        result = self.con.cmdTagList("loadLocalFile", imageView=self.getId(),
+        result = self.con.cmdTagList("loadFile", imageView=self.getId(),
                                      fname=fileName)
         return result
 
@@ -315,14 +295,47 @@ class Image(CartaView):
             result = result[1]
         return result
 
+    def resetZoom(self):
+        """
+        Reset the zoom to its original value.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("resetZoom", imageView=self.getId())
+        return result
+
+    def centerImage(self):
+        """
+        Center the image.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("centerImage", imageView=self.getId())
+        return result
+
     def addLink(self, dest):
         """
         Establish a link between this image viewer and a destination
         object.
+        The parameters are CartaView objects that are obtained by
+        commands such as getHistogramViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then add a link between the
+        first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            i[0].addLink(h[0])
 
         Parameters
         ----------
-        dest: Carta object
+        dest: CartaView object
             The object to link to this image viewer.
 
         Returns
@@ -341,10 +354,19 @@ class Image(CartaView):
         """
         Remove a link between this image viewer and a destination
         object.
+        The parameters are CartaView objects that are obtained by
+        commands such as getHistogramViews() and getColormapViews(). For
+        example, the following sequence of commands will obtain the
+        image views and histogram views, then remove the link between
+        the first image view and the first histogram view:
+
+            i = v.getImageViews()
+            h = v.getHistogramViews()
+            i[0].removeLink(h[0])
 
         Parameters
         ----------
-        dest: Carta object
+        dest: CartaView object
             The object to remove the link from.
 
         Returns
@@ -512,11 +534,23 @@ class Image(CartaView):
 
     def centerOnCoordinate(self, skyCoord):
         """
-        Centers the image on an astropy Sky Coordinate object.
+        Centers the image on an Astropy SkyCoord object.
+        
+        Astropy needs to be installed for this command to work. See
+        http://www.astropy.org for more information about Astropy and
+        how to install it.
+
+        For example, the following sequence of commands will focus the
+        image viewer on the coordinates of M33 (regardless of whether
+        or not M33 is contained within the current image).
+
+            from astropy.coordinates import SkyCoord
+            i = v.getImageViews()
+            i[0].centerOnCoordinate(SkyCoord.from_name("M33"))
 
         Parameters
         ----------
-        skyCoord: astropy Sky Coordinate object
+        skyCoord: Astropy SkyCoord object
             The object to center the image on.
 
         Returns
@@ -627,4 +661,470 @@ class Image(CartaView):
         """
         result = self.con.cmdTagList("closeImage", imageView=self.getId(),
                                      imageName=imageName)
+        return result
+
+    def setGridAxesColor(self, red, green, blue):
+        """
+        Set the color of the grid axes.
+        
+        Parameters
+        ----------
+        red: integer
+            An integer in [0, 255] indicating the amount of red.
+        green: integer
+            An integer in [0, 255] indicating the amount of green.
+        blue: integer
+            An integer in [0, 255] indicating the amount of blue.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setGridAxesColor",
+                                     imageView=self.getId(),
+                                     red=red, green=green, blue=blue)
+        return result
+
+    def setGridAxesThickness(self, thickness):
+        """
+        Set grid axis thickness.
+
+        Parameters
+        ----------
+        thickness: integer
+            A positive integer.
+
+        Returns
+        -------
+        list
+            An error message if the thickness could not be set or an
+            empty string if the thickness was successfully set.
+        """
+        result = self.con.cmdTagList("setGridAxesThickness",
+                                     imageView=self.getId(),
+                                     thickness=thickness)
+        return result
+
+    def setGridAxesTransparency(self, transparency):
+        """
+        Parameters
+        ----------
+        transparency: integer
+            A nonnegative integer between 0 and 255, with 255 opaque.
+
+        Returns
+        -------
+        list
+            An error message if the transparency could not be set or an
+            empty string if it was successfully set.
+        """
+        result = self.con.cmdTagList("setGridAxesTransparency",
+                                     imageView=self.getId(),
+                                     transparency=transparency)
+        return result
+
+    def setGridApplyAll(self, applyAll):
+        """
+        Set whether or not grid control settings should apply to all
+        images on the set.
+
+        Paramters
+        ---------
+        applyAll: boolean
+            True if the settings apply to all images on the stack;
+            False otherwise.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setGridApplyAll",
+                                     imageView=self.getId(),
+                                     applyAll=applyAll)
+        return result
+
+    def setGridCoordinateSystem(self, coordSystem):
+        """
+        Set the grid coordinate system.
+
+        Parameters
+        ---------
+        coordSystem: string
+            An identifier for a grid coordinate system.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            coordinate system; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridCoordinateSystem",
+                                     imageView=self.getId(),
+                                     coordSystem=coordSystem)
+        return result
+
+    def setGridFontFamily(self, fontFamily):
+        """
+        Set the font family used for grid labels.
+
+        Parameters
+        ----------
+        fontFamily: string
+            An identifier for a font family.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the font
+            family; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridFontFamily",
+                                     imageView=self.getId(),
+                                     fontFamily=fontFamily)
+        return result
+
+    def setGridFontSize(self, fontSize):
+        """
+        Set the font size used for grid labels.
+
+        Parameters
+        ----------
+        fontSize: integer
+            An identifier for a font point size.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the font
+            point size; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridFontSize",
+                                     imageView=self.getId(),
+                                     fontSize=fontSize)
+        return result
+
+    def setGridColor(self, redAmount, greenAmount, blueAmount):
+        """
+        Set the grid color.
+
+        Parameters
+        ----------
+        redAmount: integer
+            An integer in [0, 255] indicating the amount of red.
+        greenAmount: integer
+            An integer in [0,255] indicating the amount of green.
+        blueAmount: integer
+            An integer in [0,255] indicating the amount of blue.
+
+        Returns
+        -------
+        list
+            A list of errors or an empty list if the color was
+            successfully set.
+        """
+        result = self.con.cmdTagList("setGridColor",
+                                     imageView=self.getId(),
+                                     redAmount=redAmount,
+                                     greenAmount=greenAmount,
+                                     blueAmount=blueAmount)
+        return result
+
+    def setGridSpacing(self, spacing):
+        """
+        Set the spacing between grid lines.
+
+        Parameters
+        ----------
+        spacing: float
+            The grid spacing in [0,1] with 1 having the least amount of
+            spacing.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the grid
+            spacing; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridSpacing",
+                                     imageView=self.getId(),
+                                     spacing=spacing)
+        return result
+
+    def setGridThickness(self, thickness):
+        """
+        Set the thickness of the grid lines.
+
+        Parameters
+        ----------
+        thickness: integer
+            A positive integer.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the grid
+            line thickness; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridThickness",
+                                     imageView=self.getId(),
+                                     thickness=thickness)
+        return result
+
+    def setGridTransparency(self, transparency):
+        """
+        Set the transparency of the grid.
+
+        Parameters
+        ----------
+        transparency: integer
+            The amount of transparency in [0,255] with 255 completely
+            opaque.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            transparency; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTransparency",
+                                     imageView=self.getId(),
+                                     transparency=transparency)
+        return result
+
+    def setGridLabelColor(self, redAmount, greenAmount, blueAmount):
+        """
+        Set the color of grid labels.
+
+        Parameters
+        ----------
+        redAmount: integer
+            An integer in [0, 255] indicating the amount of red.
+        greenAmount: integer
+            An integer in [0,255] indicating the amount of green.
+        blueAmount: integer
+            An integer in [0,255] indicating the amount of blue.
+
+        Returns
+        -------
+        list
+            A list of errors or an empty list if the color was
+            successfully set.
+        """
+        result = self.con.cmdTagList("setGridLabelColor",
+                                     imageView=self.getId(),
+                                     redAmount=redAmount,
+                                     greenAmount=greenAmount,
+                                     blueAmount=blueAmount)
+        return result
+
+    def setShowGridAxis(self, showAxis):
+        """
+        Set whether or not the grid axes should be shown.
+
+        Parameters
+        ----------
+        showAxis: boolean
+            True if the axes should be shown; False otherwise.
+
+        Returns
+        -------
+        list
+            an error message if there was a problem changing the
+            visibility of the axes; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridAxis",
+                                     imageView=self.getId(),
+                                     showAxis=showAxis)
+        return result
+
+    def setShowGridCoordinateSystem(self, showCoordinateSystem):
+        """
+        Set whether or not the grid coordinate system should be visible.
+
+        Parameters
+        ----------
+        showCoordinateSystem: boolean
+            True if the coordinate system should be shown; False
+            otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            coordinate system; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridCoordinateSystem",
+                                     imageView=self.getId(),
+                                     showCoordinateSystem=showCoordinateSystem)
+        return result
+
+    def setShowGridLines(self, showGridLines=True):
+        """
+        Set whether or not to show grid lines.
+
+        Parameters
+        ----------
+        showGridLines: boolean
+            The default value is True, which caues the grid lines to be
+            shown.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; empty otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridLines",
+                                     imageView=self.getId(),
+                                     showGridLines=showGridLines)
+        return result
+
+    def setShowGridInternalLabels(self, showInternalLabels):
+        """
+        Set whether or not the grid axis should be internal or external.
+
+        Parameters
+        ----------
+        showInternalLabels: boolean
+            True if the axes should be internal; False otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the axes
+            internal/external; false otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridInternalLabels",
+                                     imageView=self.getId(),
+                                     showInternalLabels=showInternalLabels)
+        return result
+
+    def setShowGridStatistics(self,  showStatistics):
+        """
+        Sets whether or not cursor position image statistics should be
+        shown.
+
+        Parameters
+        ----------
+        showStatistics: boolean
+            True if cursor statistics should be shown; False otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem hiding/showing
+            cursor statistics; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridStatistics",
+                                     imageView=self.getId(),
+                                     showStatistics=showStatistics)
+        return result
+
+    def setShowGridTicks(self, showTicks):
+        """
+        Set whether or not to show grid axis ticks.
+
+        Paramters
+        ----------
+            showTicks: boolean
+                True if the grid axis ticks should be shown; False
+                otherwise.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the
+            visibility of grid axis ticks; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setShowGridTicks",
+                                     imageView=self.getId(),
+                                     showTicks=showTicks)
+        return result
+
+    def setGridTickColor(self, redAmount, greenAmount, blueAmount):
+        """
+        Set the color of the grid tick marks.
+
+        Parameters
+        ----------
+        redAmount: integer
+            A nonnegative integer in [0,255].
+        greenAmount: integer
+            A nonnegative integer in [0,255].
+        blueAmount: integer
+            A nonnegative integer in [0,255].
+
+        Returns
+        -------
+        list
+            A list of error message(s) if there was a problem setting
+            the tick color; an empty list otherwise.
+        """
+        result = self.con.cmdTagList("setGridTickColor",
+                                     imageView=self.getId(),
+                                     redAmount=redAmount,
+                                     greenAmount=greenAmount,
+                                     blueAmount=blueAmount)
+        return result
+
+    def setGridTickThickness(self, tickThickness):
+        """
+        Set the length of the grid ticks.
+
+        Parameters
+        ----------
+        tickThickness: integer
+            A positive integer.
+
+        Returns
+        -------
+        list
+            Return an error message if the tick thickness was not
+            successfully set; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTickThickness",
+                                     imageView=self.getId(),
+                                     tickThickness=tickThickness)
+        return result
+
+    def setGridTickTransparency(self, transparency):
+        """
+        Set the transparency of the grid tick marks.
+
+        Parameters
+        ----------
+        transparency: integer
+            A nonnegative integer between 0 and 255 with 255 being
+            opaque.
+
+        Returns
+        -------
+        list
+            An error message if the transparency was not successfully
+            set; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTickTransparency",
+                                     imageView=self.getId(),
+                                     transparency=transparency)
+        return result
+
+    def setGridTheme(self, theme):
+        """
+        Set the canvas theme.
+
+        Parameters
+        ----------
+        theme: string
+            An identifier for a canvas theme.
+
+        Returns
+        -------
+        list
+            An error message if the theme was not successfully set; an
+            empty string otherwise.
+        """
+        result = self.con.cmdTagList("setGridTheme",
+                                     imageView=self.getId(),
+                                     theme=theme)
         return result

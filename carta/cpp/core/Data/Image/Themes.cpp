@@ -46,7 +46,18 @@ QString Themes::getDefaultTheme() const {
     return name;
 }
 
-
+QString Themes::getTheme( const QString& theme ) const {
+    QString actualTheme;
+    int themeCount = m_themes.size();
+    for ( int i = 0; i < themeCount; i++ ){
+        int compareResult = QString::compare( theme, m_themes[i], Qt::CaseInsensitive);
+        if ( compareResult == 0 ){
+            actualTheme = m_themes[i];
+            break;
+        }
+    }
+    return actualTheme;
+}
 
 QStringList Themes::getThemes() const {
     return m_themes;
@@ -75,17 +86,6 @@ void Themes::_initializeDefaultState(){
 
     m_state.flushState();
 }
-
-bool Themes::isTheme( const QString& name ) const {
-    bool validTheme = false;
-    if ( m_themes.contains(name)){
-        validTheme = true;
-    }
-    return validTheme;
-}
-
-
-
 
 Themes::~Themes(){
 

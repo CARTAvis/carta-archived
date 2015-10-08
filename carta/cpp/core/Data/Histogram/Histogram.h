@@ -165,6 +165,12 @@ public:
     QString setClipRange( double minRange, double maxRange );
 
     /**
+     * Get the values of the lower and upper bounds for the histogram horizontal axis.
+     * @return The lower and upper bounds for the histogram horizontal axis.
+     */
+    std::pair<double, double> getClipRange() const;
+
+    /**
      * Set the lower and upper bounds for the histogram as percentages of the entire range.
      * @param minPercent a number in [0,100) representing the amount to leave off on the left.
      * @param maxPercent a number in [0,100) representing the amount to leave off on the right.
@@ -452,7 +458,7 @@ private:
 
     int m_cubeChannel;
     //Data View
-    std::shared_ptr<ImageView> m_view;
+    std::shared_ptr<ImageView> m_view = nullptr;
 
     static Clips*  m_clips;
 
@@ -462,7 +468,7 @@ private:
     //Preferences
     std::unique_ptr<Settings> m_preferences;
 
-    Carta::Histogram::HistogramGenerator* m_histogram;
+    Carta::Histogram::HistogramGenerator* m_histogram = nullptr;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
