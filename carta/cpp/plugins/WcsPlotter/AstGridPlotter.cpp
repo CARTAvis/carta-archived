@@ -33,7 +33,23 @@ AstGridPlotter::getError()
     return m_errorString;
 }
 
-
+AstFrameSet * AstGridPlotter::_make2dFrame( AstFrameSet* wcsinfo ){
+    AstFrameSet * result = nullptr;
+    bool permuteAxes = Carta::Lib::AxisDisplayInfo::isPermuted( m_axisDisplayInfos );
+    if ( permuteAxes ){
+        bool celestialPlane = Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos );
+        if ( celestialPlane ){
+            result = _make2dFrameCelestial( wcsinfo );
+        }
+        else {
+            result = _make2dFrameCelestialExclude( wcsinfo );
+        }
+    }
+    else {
+        result = wcsinfo;
+    }
+    return result;
+}
 
 AstFrameSet * AstGridPlotter::_make2dFrameSet( AstFrameSet *fs,
         int opaxis, int owaxis, int zpaxis, int zwaxis,
@@ -210,58 +226,132 @@ AstFrameSet * AstGridPlotter::_make2dFrameSet( AstFrameSet *fs,
         }
     }
 
-    /* End the AST Object context. This annuls all AST objects created since
-    the earlier astBegin call, except for those that have been exported from
-    the context. */
+    //End the AST Object context. This annuls all AST objects created since
+    //the earlier astBegin call, except for those that have been exported from
+    //the context.
     astEnd;
 
-    /* Return the ponter to the new FrameSet. */
+    //Return the ponter to the new FrameSet.
     return result;
 }
 
 
-AstFrameSet* AstGridPlotter::_permuteAxes2( AstFrameSet* wcsinfo ){
+AstFrameSet* AstGridPlotter::_make2dFrameCelestial( AstFrameSet* wcsinfo ){
+    AstFrameSet* result = nullptr;
+
+    astBegin;
+
     int axesCount = astGetI( wcsinfo, "NAxes" );
-    int permCount = m_axisDisplayInfos.size();
+    int displayInfosSize = m_axisDisplayInfos.size();
+    if ( axesCount == displayInfosSize ){
 
-    if ( axesCount == permCount ){
-        bool actualPerm = Carta::Lib::AxisDisplayInfo::isPermuted( m_axisDisplayInfos );
+       //Initialize the display axes.
+       int displayAxesCount = 2;
+       int axes[displayAxesCount];
+       int displayIndex = 0;
+       for ( int j = 0; j < displayInfosSize; j++ ){
+          //Display axis.
+          if ( m_axisDisplayInfos[j].getFrame() == -1 ){
+              axes[displayIndex] = j+1;
+              displayIndex++;
+              if ( displayIndex == displayAxesCount ){
+                  break;
+              }
+          }
+       }
 
-        //Okay, there was an actual change is axis order.
-        if ( actualPerm ){
+       //Create the lutmap for each display axis.
+       std::vector<AstLutMap* > lutMaps(displayAxesCount);
+       for ( int k = 0; k < displayAxesCount; k++ ){
+         lutMaps[k] = nullptr;
+       }
+       for ( int k= 0; k < displayAxesCount; k++ ){
+           int targetAxis = axes[k] -1;
+           int nsamp = m_axisDisplayInfos[targetAxis].getFrameCount();
+           if ( targetAxis >= 0 ){
+               double *work1 = static_cast<double*>( astMalloc( axesCount*nsamp*sizeof( double ) ) );
+               if( work1 ) {
+                   // Fill the above array with the pixel positions. The values for the
+                   // celestial pixel axis not being mapped are set to 1.
+                   // The values for fixed axes are set to their current frames. The values for
+                   // the celestial pixel axis targeted for the map are set to [1,2,3,...,naxisn].
+                   for( int i = 0; i < nsamp; i++ ) {
+                       for ( int j = 0; j < axesCount; j++ ){
+                           int workIndex = j * nsamp + i;
+                           if ( j== targetAxis ){
+                               work1[ workIndex ] = i + 1;
+                           }
+                           else if ( j== axes[0] - 1 || j == axes[1] - 1 ) {
+                               work1[ workIndex ] = 1;
+                           }
+                           else {
+                               work1[workIndex] = m_axisDisplayInfos[j].getFrame();
+                           }
+                       }
+                   }
 
-            qDebug() << "Actual perm";
-            AstMapping* map1 = static_cast<AstMapping*> astGetMapping( wcsinfo, AST__CURRENT, AST__BASE );
+                   // Allocate memory to hold the world positions corresponding to the
+                   //above pixel positions.
+                   double* work2 = static_cast<double*>( astMalloc( axesCount*nsamp*sizeof( double ) ) );
+                   if( work2 ) {
+                       // Transform the pixel positions into world coordinates.
+                       //astSetI( wcsinfo, "Report", 1 );
+                       astTranN( wcsinfo, nsamp, axesCount, nsamp, work1, 1, axesCount, nsamp, work2 );
+                       //astSetI( wcsinfo, "Report", 0 );
 
-            qDebug() << "First mapping";
-            astShow( map1 );
-            //Pixels -> world
-            //astInvert( map1 );
-            //Permute the axes
+                       // 1-d Mapping from pixel to celestial axis.
+                       lutMaps[k] = astLutMap( nsamp, work2+targetAxis*nsamp, 1.0, 1.0, " " );
+                       //Free work space.
+                       work2 = static_cast<double*>(astFree( work2 ));
+                   }
+                   else {
+                       break;
+                   }
+                   //Free work space.
+                   work1 = static_cast<double*>(astFree( work1 ));
+               }
+               else {
+                  break;
+              }
+           }
 
-            int axes[2];
-            axes[ 0 ] = 2;
-            axes[ 1 ] = 1;
-            qDebug() << "Second mapping";
-            int axisPerms[ permCount ];
-            for ( int i = 0; i < permCount; i++ ){
-                axisPerms[i] = m_axisDisplayInfos[i].getPermuteIndex();
-            }
-            AstCmpMap*  map2 = astCmpMap( map1, astPermMap( axesCount, axisPerms, 2, axes, NULL, " " ), 1, " " );
-            astShow( map2 );
-            qDebug() << "2DFrame hi";
-            //AstFrameSet* wcsinfoCopy = (AstFrameSet*) astCopy( wcsinfo );
-            //astPermAxes( wcsinfoCopy, perm );
-            AstFrame* twoDFrame = (AstFrame*)astPickAxes( wcsinfo, 2, axes, NULL );
-            //astPermAxes( twoDFrame, axes );
-            astShow( twoDFrame );
-            astAddFrame( wcsinfo, AST__BASE, map2, twoDFrame );
-        }
+           //Make sure both maps were generated.
+           if ( lutMaps[1] != nullptr && lutMaps[0] != nullptr ){
+
+               //Create a parallel map for each axis.
+               AstCmpMap* cmpMap = astCmpMap( lutMaps[1], lutMaps[0], 0, " ");
+
+               //Switch the two display axes since we are permuting.
+               int tmp = axes[0];
+               axes[0] = axes[1];
+               axes[1] = tmp;
+
+                //Create a 2D frameset in pixel coordinates.
+                result = astFrameSet (astPickAxes(
+                        astGetFrame( wcsinfo, AST__BASE ),
+                        2, axes, NULL ), " " );
+
+                //Add in a frameset in world coordinates using the compound map to convert
+                //between them.
+                astAddFrame( result, AST__BASE, cmpMap,
+                        astPickAxes(astGetFrame(wcsinfo, AST__CURRENT), 2, axes, NULL));
+
+                astExport( result );
+           }
+           else {
+               m_errorString= "Could not generate a mapping for display axes.";
+           }
+       }
     }
-    return wcsinfo;
+    else {
+        m_errorString = "Axes count, "+QString::number(axesCount)+" must match display axis information size, "
+                +QString::number( displayInfosSize );
+    }
+    astEnd;
+    return result;
 }
 
-AstFrameSet* AstGridPlotter::_permuteAxes( AstFrameSet* wcsinfo ){
+AstFrameSet* AstGridPlotter::_make2dFrameCelestialExclude( AstFrameSet* wcsinfo ) {
     AstFrameSet* newFrame = wcsinfo;
     bool actualPerm = Carta::Lib::AxisDisplayInfo::isPermuted( m_axisDisplayInfos );
     if ( actualPerm ){
@@ -384,7 +474,7 @@ AstGridPlotter::plot()
         return false;
     }
 
-    AstFrameSet* newFrame = _permuteAxes( wcsinfo );
+    AstFrameSet* newFrame = _make2dFrame( wcsinfo );
     if ( newFrame == nullptr ){
         return false;
     }

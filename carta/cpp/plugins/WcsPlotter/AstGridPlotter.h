@@ -167,13 +167,34 @@ private:
     *  @param axisCount - the dimensions of the cube and the size of paxisval and naxis.
     *  @param celestialFirst - true if the retained celestial axis should be displayed horizontally; false
     *       otherwise.
-    *  @return - A pointer to the 2-d FrameSet, or NULL if an error occurs.
+    *  @return - a pointer to the 2-d FrameSet, or NULL if an error occurs.
     */
+    //Please note that the code in this method has been adapted from code donated by Dave Berry,
+    //who supports the AST Library.
     AstFrameSet * _make2dFrameSet( AstFrameSet *fs,
             int opaxis, int owaxis, int zpaxis, int zwaxis,
             int* paxisvals, int* naxis, int axisCount, bool celestialFirst);
 
-    AstFrameSet* _permuteAxes( AstFrameSet* frameSet );
-    AstFrameSet* _permuteAxes2( AstFrameSet* wcsinfo );
+    /**
+     * Decides which worker function to call based on the characteristics of the frameset.
+     * @param wcsinfo - the base frameset created from the image.
+     * @return - a pointer to the 2-d display frame set, or NULL if an error occurs.
+     */
+    AstFrameSet * _make2dFrame( AstFrameSet* wcsinfo );
+
+    /**
+     * Entry point for creating a 2-d frameset that consists of one celestial axis and one
+     * non-celestial axis.
+     * @param frameSet - the base frameset created from the image.
+     * @return - a pointer to the 2-d display frameset, or NULL if an error occurs.
+     */
+    AstFrameSet* _make2dFrameCelestialExclude( AstFrameSet* frameSet );
+
+    /**
+     * Creates a display frameset by permuting the celestial axis order.
+     * @param wcsinfo - the base frameset created from the image.
+     * @return - a pointer to the 2-d display frameset, or NULL if an error occurs.
+     */
+    AstFrameSet* _make2dFrameCelestial( AstFrameSet* wcsinfo );
 };
 }
