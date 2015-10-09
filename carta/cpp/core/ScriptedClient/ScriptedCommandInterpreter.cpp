@@ -270,6 +270,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getImageDimensions( imageView );
     }
 
+    else if ( cmd == "getchannelcount" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getChannelCount( imageView );
+    }
+
     else if ( cmd == "getoutputsize" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getOutputSize( imageView );

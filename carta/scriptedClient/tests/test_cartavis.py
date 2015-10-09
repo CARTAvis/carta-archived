@@ -26,6 +26,11 @@ def test_getChannelCount(cartavisInstance, cleanSlate):
     assert i[0].getChannelCount() == 1
     i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
     assert i[0].getChannelCount() == 5
+    # This next image actually has 4 dimensions and getChannelCount()
+    # was previously returning the wrong value for it. This test case
+    # is to ensure that the command has been properly fixed.
+    i[0].loadFile(os.getcwd() + '/data/RaDecVel.fits')
+    assert i[0].getChannelCount() == 7
 
 def test_getPixelUnits(cartavisInstance, cleanSlate):
     """

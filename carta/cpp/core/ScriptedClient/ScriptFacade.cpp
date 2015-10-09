@@ -782,6 +782,24 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     return resultList;
 }
 
+QStringList ScriptFacade::getChannelCount( const QString& controlId ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            resultList = QStringList( QString::number( controller->getChannelUpperBound() ) );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
     QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( controlId );

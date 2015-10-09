@@ -472,13 +472,11 @@ class Image(CartaView):
             Error information if the number of channels could not be
             obtained.
         """
-        result = 1
-        dimensions = self.getImageDimensions()
-        if (dimensions[0] != "error"):
-            if (len(dimensions) == 3):
-                result = dimensions[2]
+        result = self.con.cmdTagList("getChannelCount", imageView=self.getId())
+        if (result[0] != "error"):
+            result = int(result[0])
         else:
-            result = dimensions
+            result = result[1]
         return result
 
     def getOutputSize(self):

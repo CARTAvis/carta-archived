@@ -383,6 +383,14 @@ public:
     QStringList getImageDimensions( const QString& controlId );
 
     /**
+     * Return the channel upper bound.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return the largest channel in the image, or error information if the
+     *      largest channel could not be obtained.
+     */
+    QStringList getChannelCount( const QString& controlId );
+
+    /**
      * Get the dimensions of the image viewer (window size).
      * @param controlId the unique server-side id of an object managing a controller.
      * @return the width and height of the image viewer as a list, or error
