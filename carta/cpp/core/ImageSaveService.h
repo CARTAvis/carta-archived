@@ -28,6 +28,10 @@ namespace Image {
     class ImageInterface;
 }
 
+namespace NdArray {
+    class RawViewInterface;
+}
+
 namespace Carta{
 namespace Core{
 namespace ImageSaveService{
@@ -40,11 +44,11 @@ public:
 
     /// constructor
     /// \param savename the full path of the desired output image.
-    /// \param m_image pointer to image interface.
     /// \param m_pixelPipeline pixel pipeline.
-    /// \param filename the input FITS file
     explicit
-    ImageSaveService( QString savename, std::shared_ptr<Image::ImageInterface> &m_image, std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline, QString filename, QObject * parent = 0 );
+    ImageSaveService( QString savename,
+            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline,
+            QObject * parent = 0 );
 
     ///
     /// \brief set the desired output size of the image
@@ -53,15 +57,19 @@ public:
     void
     setOutputSize( QSize size );
 
-    ///
-    /// \brief set the desired frame index/channel of the image
-    /// \param index the frame index/channel
-    ///
-    void
-    setFrameIndex( int index );
-
     /// set the scaling options if an output size is set.
     void setAspectRatioMode( Qt::AspectRatioMode mode );
+
+    /// Set the number of frames in the horizontal and vertical display axes, respectively.
+    /// \param dimAxis1 - the number of frames in the horizontal display axis.
+    /// \param dimAxis2 - the number of frames in the vertical display axis.
+    void setDisplayShape( int dimAxis1, int dimAxis2 );
+
+    /// Set the data that represent a 2D view of the image along with an identifier for the
+    /// data being displayed.
+    /// \param view - the data
+    /// \param viewId - an identifier for the data being displayed.
+    void setInputView( std::shared_ptr<NdArray::RawViewInterface> view, const QString& viewId );
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
@@ -74,8 +82,9 @@ public:
     /// Prepares the image to be rendered using ImageRenderService. After the rendering
     /// has finished, the image is then saved to the location stored in m_outputFilename.
     /// The return value of the save attempt is passed asynchronously via
-    /// _saveFullImageCB().
-    void saveFullImage();
+    /// _saveFullImageCB() once the image is saved, but this method returns true or false
+    /// depending on whether an attempt is made to save the image.
+    bool saveFullImage();
 
 signals:
 
@@ -95,16 +104,14 @@ private:
 
     /**
      * Prepare the data for rendering.
-     * Most of this code is borrowed from void DataSource::load().
      * It sets the input view, output size, pixel pipeline, and pan.
-     * @param frameIndex the index of the spectral coordinate to load.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
+     * @return true if the input data was successfully set in the renderer; false otherwise.
      */
-    void _prepareData( int frameIndex, double minClipPercentile, double maxClipPercentile );
+    bool _prepareData();
 
-    /// The input FITS file
-    QString m_inputFilename;
+    /// Input data and id.
+    std::shared_ptr<NdArray::RawViewInterface> m_inputView;
+    QString m_inputViewId;
 
     /// Full path of the output image
     QString m_outputFilename;
@@ -112,14 +119,12 @@ private:
     /// The size of the output image
     QSize m_outputSize;
 
-    /// The frame of the output image
-    int m_frameIndex;
+    // Frame counts on the horizontal and vertical display axes.
+    int m_inputXFrames;
+    int m_inputYFrames;
 
     /// Determines how the output image will be scaled if an output size is set.
     Qt::AspectRatioMode m_aspectRatioMode;
-
-    //Pointer to image interface.
-    std::shared_ptr<Image::ImageInterface> m_imageCopy;
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipelineCopy;

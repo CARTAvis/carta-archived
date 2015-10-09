@@ -7,6 +7,8 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/IWcsGridRenderService.h"
+#include "CartaLib/AxisInfo.h"
+#include "CartaLib/AxisLabelInfo.h"
 #include <QColor>
 #include <QObject>
 #include <QTimer>
@@ -29,6 +31,9 @@ public:
     ~AstWcsGridRenderService();
 
     virtual void
+    setAxisPermutations( std::vector<int> perms ) override;
+
+    virtual void
     setInputImage( Image::ImageInterface::SharedPtr image ) override;
 
     virtual void
@@ -42,6 +47,11 @@ public:
 
     virtual JobId
     startRendering( JobId jobId = 0) override;
+
+    virtual void setAxisLabelInfo( int axisIndex, const Carta::Lib::AxisLabelInfo& labelInfo ) override;
+
+    virtual void
+    setAxisLabel( int axisIndex, const QString& axisLabel ) override;
 
     virtual void
     setAxesVisible( bool flag ) override;
@@ -71,6 +81,9 @@ public:
     setEmptyGrid( bool flag) override;
 
     virtual void
+    setTickLength( double tickLength ) override;
+
+    virtual void
     setTicksVisible( bool flag ) override;
 
 private slots:
@@ -86,8 +99,15 @@ private slots:
 //    dbgSlot();
 
 private:
+
+    //Translate an enumerated type and precision to a string the AST library understands.
+    QString _getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat, int decimals ) const;
+    //Translate an enumerated position to a string the AST library understands.
+    QString _getDisplayLocation( const Carta::Lib::AxisLabelInfo::Locations& labelLocation ) const;
     //Don't draw tick marks.
     void _turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp);
+    //Don't label a particular axis
+    void _turnOffLabels( WcsPlotterPluginNS::AstGridPlotter* sgp, int index );
 
     Carta::Lib::VectorGraphics::VGComposer m_vgc;
 //    VGList m_vgList;
@@ -99,6 +119,12 @@ private:
     double m_gridDensity = 0.5;
     bool m_internalLabels = false;
     bool m_emptyGridFlag = true;
+
+    //Main title of the axis labels.
+    QList<QString> m_labels { "","" };
+
+    //Information about the formatting of axis labels.
+    QVector<Carta::Lib::AxisLabelInfo> m_labelInfos;
 
     struct Pimpl;
     std::unique_ptr < Pimpl > m_pimpl; // = nullptr;
@@ -122,7 +148,12 @@ private:
     bool m_axes = true;
     // flag to indicate whether or not to draw tick marks.
     bool m_ticks = true;
+    // how long to make the tick marks.
+    double m_tickLength = .01;
 
+    std::vector<int> m_axisPerms;
+
+    //Whether or not to show axis labels
     bool m_axisLabels = false;
 
     // another debug timer

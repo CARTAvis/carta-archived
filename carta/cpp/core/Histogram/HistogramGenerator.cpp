@@ -61,6 +61,16 @@ HistogramGenerator::HistogramGenerator():
     setLogScale( true );
 }
 
+void HistogramGenerator::clearSelection(){
+    m_range->reset();
+    m_plot->replot();
+}
+
+void HistogramGenerator::clearSelectionColor(){
+    m_rangeColor->reset();
+    m_plot->replot();
+}
+
 std::pair<double,double> HistogramGenerator::getRange(bool* valid ) const {
     std::pair<double,double> result;
     *valid = false;
@@ -148,6 +158,11 @@ void HistogramGenerator::setRangePixels(double min, double max){
     m_plot->replot();
 }
 
+void HistogramGenerator::setAxisXRange( double min, double max ){
+    m_plot->setAxisScale( QwtPlot::xBottom, min, max );
+    m_plot->replot();
+}
+
 void HistogramGenerator::setRangePixelsColor(double min, double max){
     m_rangeColor->setHeight(m_height);
     m_rangeColor->setBoundaryValues(min, max);
@@ -205,7 +220,14 @@ QImage * HistogramGenerator::toImage( ) const {
 
 }
 
-
+HistogramGenerator::~HistogramGenerator(){
+    m_histogram->detach( );
+    m_range->detach();
+    m_rangeColor->detach();
+    delete m_histogram;
+    delete m_range;
+    delete m_rangeColor;
+}
 }
 }
 

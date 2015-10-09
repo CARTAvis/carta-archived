@@ -69,6 +69,12 @@ public:
      */
     QString getDefault() const;
 
+    /**
+     * Return the default enumerated coordinate system type.
+     * @return - the default enumerated coordinate system type.
+     */
+    Carta::Lib::KnownSkyCS  getDefaultType() const;
+
     virtual ~CoordinateSystems();
 
 

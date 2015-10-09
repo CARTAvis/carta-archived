@@ -28,6 +28,9 @@ public:
     DummyGridRenderer();
 
     virtual void
+    setAxisPermutations( std::vector<int> perms ) override;
+
+    virtual void
     setInputImage( Image::ImageInterface::SharedPtr ) override;
 
     virtual void
@@ -52,6 +55,12 @@ public:
     setGridLinesVisible( bool ) override;
 
     virtual void
+    setAxisLabelInfo( int axisIndex, const Carta::Lib::AxisLabelInfo& labelInfo ) override;
+
+    virtual void
+    setAxisLabel( int axisIndex, const QString& axisLabel ) override;
+
+    virtual void
     setAxesVisible( bool ) override;
 
     virtual void
@@ -59,6 +68,9 @@ public:
 
     virtual void
     setSkyCS( Carta::Lib::KnownSkyCS ) override;
+
+    virtual void
+    setTickLength( double ) override;
 
     virtual void
     setTicksVisible( bool ) override;

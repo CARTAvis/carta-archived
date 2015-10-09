@@ -89,9 +89,12 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
 
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
-
+        ActionChains(driver).click( imageWindow).perform()
+        time.sleep( timeout )
+        
         # Store the window count
         windowCount = Util.get_window_count( self, driver )
+        print "Window Count ", windowCount
         
         # Verify that there is just one animator
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
@@ -132,6 +135,9 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
         
+        # There must be an image loaded with more than one channel to see the animator.
+        Util.load_image(self,driver, "TWHydra_CO2_1line.image.fits" )
+        
         # Set the animator to jump
         self._setAnimatorToJump( driver );
         
@@ -147,50 +153,10 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         time.sleep( timeout )
         
         # Verify the animator jump end behavior is checked
-        jumpButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelJumpRadioButton")))
+        jumpButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.RadioButton']/div[text()='Jump']/following-sibling::div")))
         self._verifyChecked( driver, jumpButton )
     
-    # Test that object specific settings can also act globally.
-    # Set the animator to jump. Save the preferences.  Open two animators.  Restore the preferences.
-    # Check the second animator is also set to jump.
-    def test_global_prefs(self):
-        driver = self.driver
-        timeout = selectBrowser._getSleep()
 
-        # Wait for the image window to be present (ensures browser is fully loaded)
-        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
-        
-        # Set the animator to jump
-        self._setAnimatorToJump( driver );
-        
-        # Save the preferences
-        self._savePreferences(driver )
-        
-        # Find an image loader and change it to an animator.
-        imageWindow = driver.find_element_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
-        ActionChains(driver).double_click(imageWindow).perform()
-        # Click on the view menu button, then click on Animator to change plugin
-        viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
-        ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep( timeout )
-
-        # Find the settings button on the animator and click it so jump will be visible
-        settingsButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']//div[text()='Settings...']/..")))
-        ActionChains( driver).click( settingsButton).perform()
-
-        # Restore the preferences
-        self._restorePreferences(driver)
-        time.sleep( timeout )
-        
-        # Check that both animators are now displaying jump
-        # Verify the animator jump end behavior is checked
-        jumpButtons = driver.find_elements_by_xpath( "//div[@qxclass='qx.ui.form.RadioButton']/div[text()='Jump']/following-sibling::div")
-        jumpButtonCount = len( jumpButtons );
-        self.assertEquals( jumpButtonCount, 2, "There were not two jump buttons")
-        for but in jumpButtons :
-            self.assertIsNotNone( but, "Could not find jump button in settings")
-            self._verifyChecked( driver, but )
     
     # Set hide the toolbar from the preferences menu.  Save a preference snapshot.  
     # Show the toolbar.  Restore the preference snapshot.
@@ -201,11 +167,14 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
 
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        ActionChains(driver).click( imageWindow).perform()
         time.sleep( timeout )
 
         # Find the preferences button on the menu bar and click it.
         menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
+        #self.assertIsNotNone( menuBar, "Could not find the menu bar")
         preferencesButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Preferences']/..")))
+        #self.assertIsNotNone( preferencesButton, "Could not find div with text Preferences")
         ActionChains(driver).click(preferencesButton).perform()
         
         # Click the show button on the sub menu.
@@ -215,14 +184,14 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         showToolButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Show Tool Bar']/..")))
         ActionChains(driver).click( showToolButton).perform()
         time.sleep( timeout )
-          
+        
         # Verify the toolbar is NOT visible
         toolVisible = self._isToolbarVisible( driver )
         self.assertFalse( toolVisible, "Tool bar was not hidden")
         
         # Save the preferences
         self._savePreferences( driver )
-        
+
         # Show the toolbar
         # Find the preferences button on the menu bar and click it.
         preferencesButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Preferences']/..")))

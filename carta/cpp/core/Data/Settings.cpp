@@ -9,7 +9,6 @@ namespace Data {
 
 const QString Settings::SETTINGS = "settings";
 const QString Settings::CLASS_NAME = "Settings";
-const QString Settings::VISIBLE = "visible";
 
 
 class Settings::Factory : public Carta::State::CartaObjectFactory {
@@ -64,7 +63,7 @@ void Settings::_initializeCallbacks(){
 
 bool Settings::_processParams( const QString& params, bool* value ) const {
     bool validValue = false;
-    std::set<QString> keys = {VISIBLE};
+    std::set<QString> keys = {Util::VISIBLE};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     *value = Util::toBool( dataValues[*keys.begin()], &validValue );
     return validValue;

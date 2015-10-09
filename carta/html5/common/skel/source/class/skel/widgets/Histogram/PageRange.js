@@ -40,10 +40,6 @@ qx.Class.define("skel.widgets.Histogram.PageRange", {
          * @param hist {Object} - server-side information.
          */
         histUpdate : function( hist ){
-            if ( this.m_clipSettings !== null ){
-                this.m_clipSettings.setCustomClip( hist.customClip );
-            }
-            
             if ( this.m_rangeSettings !== null ){
                 this.m_rangeSettings.setBuffer( hist.useClipBuffer );
             }
@@ -60,7 +56,7 @@ qx.Class.define("skel.widgets.Histogram.PageRange", {
             }
             
             if ( this.m_rangeSettings !== null ){
-                this.m_rangeSettings.setClipBounds( hist.clipMin, hist.clipMax );
+                this.m_rangeSettings.setClipBounds( hist.clipMinClient, hist.clipMaxClient );
                 this.m_rangeSettings.setClipPercents( hist.clipMinPercent, hist.clipMaxPercent);
                 this.m_rangeSettings.setBufferAmount( hist.clipBuffer );
             }

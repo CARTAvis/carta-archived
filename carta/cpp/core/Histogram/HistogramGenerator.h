@@ -35,6 +35,16 @@ public:
   HistogramGenerator();
 
   /**
+   * Clear the histogram range selection.
+   */
+  void clearSelection();
+
+  /**
+   * Clear the histogram clip range selection.
+   */
+  void clearSelectionColor();
+
+  /**
    * Return the minimum and maximum value of the user's zoom selection.
    * @param valid true if there is a zoom selection with a minimum/maximum value; false otherwise.
    * @return the zoom selection range.
@@ -49,9 +59,12 @@ public:
   std::pair<double,double> getRangeColor(bool* valid ) const;
 
   /**
-   * Gets new clips calculated in histogram selection and updates them on the plot
+   * Set the range of values for the x-axis.
+   * @param min - the smallest desired x-axis value.
+   * @param max - the largest desired x-axis value.
    */
-  void updateHistogramClips();
+  void setAxisXRange( double min, double max );
+
   /**
    * Sets the data for the histogram.
    * @param data the histogram (intensity,count) pairs and additional information for plotting.
@@ -134,6 +147,15 @@ public:
    * @return QImage the histogram image.
    */
    QImage * toImage() const;
+
+   /**
+    * Gets new clips calculated in histogram selection and updates them on the plot
+    */
+   void updateHistogramClips();
+
+
+   virtual ~HistogramGenerator();
+
 private:
   void _setVerticalAxisTitle();
   const static double EXTRA_RANGE_PERCENT;

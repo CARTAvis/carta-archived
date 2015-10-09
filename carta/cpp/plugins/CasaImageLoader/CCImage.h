@@ -6,6 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/AxisInfo.h"
 #include "CCRawView.h"
 #include "CCMetaDataInterface.h"
 #include "casacore/images/Images/ImageInterface.h"
@@ -116,6 +117,8 @@ public:
     {
         return m_meta;
     }
+
+
 
     static CCImage::SharedPtr
     create( casa::ImageInterface < PType > * casaImage )

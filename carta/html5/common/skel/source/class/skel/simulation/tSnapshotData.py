@@ -34,9 +34,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
         # Load an image so that there are a non-trivial number of channels.
-        #At some point this test will need to be rewritten to use a
-        #test image available where the tests are running.
-        Util.load_image(self, driver, "Default")
+        Util.load_image(self, driver, "TWHydra_CO2_1line.image.fits")
         
         # Find the last channel by finding the value of the upper bound spin box
         upperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
@@ -46,9 +44,10 @@ class tSnapshotData(tSnapshot.tSnapshot):
         # Set the channel animator to the last channel by typing into the text box.
         indexText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@id='ChannelIndexText']")))
         Util._changeElementText( self, driver, indexText, lastChannel)
-                
+        
         # Find the session button on the menu bar and click it.
-        #self._clickSessionButton( driver )
+        menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
+        self._clickSessionButton( driver )
         
         # Find the save session button in the submenu and click it.
         self._clickSessionSaveButton( driver )
@@ -100,23 +99,22 @@ class tSnapshotData(tSnapshot.tSnapshot):
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
+         # There must be an image loaded with more than one channel to see the channel animator.
+        Util.load_image(self,driver, "TWHydra_CO2_1line.image.fits" )
+
         #Click on the animation window so that its actions will be enabled 
         animationWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
         
         #Make sure the animation window is clicked by clicking an element within the window
         channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
         ActionChains(driver).click( channelText).perform()
+        
+        # Load two images in order for the image animator to be visible
+        Util.load_image(self, driver, "Default")
 
         # Show the image animator
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep( timeout )
         imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", imageUpperSpin ) 
-        
-        # Load an image
-        Util.load_image(self, driver, "Default")
         
         # Find the session button on the menu bar and click it.
         menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
@@ -141,8 +139,8 @@ class tSnapshotData(tSnapshot.tSnapshot):
         # Load another image
         Util.load_image(self, driver, "aH.fits")
         
-        # Verify there are two images loaded (they go from 0 to 1).
-        self._verifyImage( driver, 1)
+        # Verify there are three images loaded (they go from 0 to 2).
+        self._verifyImage( driver, 2)
         
         # Click the restore sessions button
         self._clickSessionButton( driver )
@@ -158,8 +156,8 @@ class tSnapshotData(tSnapshot.tSnapshot):
         self._closeRestore( driver )
         time.sleep( timeout )
         
-        # Verify that only the original image is loaded
-        self._verifyImage( driver, 0 )
+        # Verify that only the original two images are loaded
+        self._verifyImage( driver, 1 )
         
 if __name__ == "__main__":
     unittest.main()   

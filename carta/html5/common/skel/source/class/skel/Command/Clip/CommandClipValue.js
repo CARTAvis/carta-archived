@@ -25,26 +25,35 @@ qx.Class.define("skel.Command.Clip.CommandClipValue", {
     },
     
     members : {
+        
+        /**
+         * Return the value displayed by this command as a number between 0 and 1.
+         * @return {Number} - the amount to clip as a number between 0 and 1.
+         */
+        getClipPercent : function(){
+            var label = this.getLabel();
+            var val = label.substring( 0, label.length - 1 );
+            val = val / 100;
+            return val;
+        },
 
         doAction : function( vals, undoCB ){
-            var path = skel.widgets.Path.getInstance();
-            var label = this.getLabel();
-            //Remove the %
-            label = label.substring( 0, label.length - 1);
-            //Change to a decimal
-            label = label / 100;
-            var params = this.m_params + label;
-            var errMan = skel.widgets.ErrorHandler.getInstance();
-            if ( skel.Command.Command.m_activeWins.length > 0 ){
-                for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
-                    var windowInfo = skel.Command.Command.m_activeWins[i];
-                    var id = windowInfo.getIdentifier();
-                    this.sendCommand( id, params, undoCB );
+            if ( this.m_sendToServer ){
+                var path = skel.widgets.Path.getInstance();
+                var label = this.getClipPercent();
+                var params = this.m_params + label;
+                var errMan = skel.widgets.ErrorHandler.getInstance();
+                if ( skel.Command.Command.m_activeWins.length > 0 ){
+                    for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
+                        var windowInfo = skel.Command.Command.m_activeWins[i];
+                        var id = windowInfo.getIdentifier();
+                        this.sendCommand( id, params, undoCB );
+                    }
+                    errMan.clearErrors();
                 }
-                errMan.clearErrors();
-            }
-            else {
-                errMan.updateErrors( "Selected window does not support clipping.");
+                else {
+                    errMan.updateErrors( "Selected window does not support clipping.");
+                }
             }
         },
         
@@ -52,6 +61,18 @@ qx.Class.define("skel.Command.Clip.CommandClipValue", {
             return skel.Command.Command.TYPE_BOOL;
         },
         
+        /**
+         * Set whether or not the action of this command should send the clip to the server.
+         * @param serverSend {boolean} - true if the sever should be notified when this clip is activated;
+         *      false otherwise.
+         */
+        setServerSend : function( serverSend ){
+            this.m_sendToServer = serverSend;
+        },
+        
+        // Flag was added to prevent sending a clip command to the server when an image loaded
+        // is selected and sets its currently selected clip value.
+        m_sendToServer : true,
         m_params : "clipValue:"
     }
 });

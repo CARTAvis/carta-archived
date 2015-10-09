@@ -26,6 +26,7 @@ class tView(unittest.TestCase):
         # Get the animation window count and make sure it is non-zero
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
         animWindowCount = len( animWindowList )
+        print "Original animation count ", animWindowCount
         self.assertGreater( animWindowCount, 0, "There are not any animators")
         
         # Get the image window count
@@ -41,6 +42,7 @@ class tView(unittest.TestCase):
         # has increased by one.
         animWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")
         newAnimWindowCount = len( animWindowList )
+        print "New Animation Count ", newAnimWindowCount
         self.assertEqual( animWindowCount - 1, newAnimWindowCount, "Animation count did not decrease")
         imageWindowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
         newImageWindowCount = len( imageWindowList )

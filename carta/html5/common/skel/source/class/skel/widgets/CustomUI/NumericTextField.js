@@ -25,12 +25,18 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                 var charKey = evt.getChar();
                 if ( charKey !== '.' || charKey !== '0' || charKey !=='1'||charKey !=='2' || charKey !=='3'|| 
                         charKey !=='4'|| charKey !== '5'|| charKey !== '6' || charKey !== '7' || charKey !== '8'||
-                    charKey !== '9' || charKey != '-'){
-                    var textValue = this.m_text.getValue() + charKey;
-                    var numValue = parseFloat( textValue );
-                    if ( ! this._isValidValue( numValue) ){
-                        evt.preventDefault();
-                    }
+                    charKey !== '9' ){
+                        var tValue = this.m_text.getValue();
+                        var textValue = charKey;
+                        if ( tValue !== null){
+                            textValue = tValue + charKey;
+                        }
+                        if ( textValue !== "-"){
+                            var numValue = parseFloat( textValue );
+                            if ( ! this._isValidValue( numValue) ){
+                                evt.preventDefault();
+                            }
+                        }
                 }
             }, this );
             this.m_text.addListener( "keypress", function( evt){
@@ -193,6 +199,15 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
                 }
                 this.m_warning.setValue( warningStr );
                 this.add( this.m_text);
+            },
+            
+            /**
+             * Set the numeric text field enabled/disabled.
+             * @param enabled {boolean} - true to enable the text field; 
+             *          false to disable it.
+             */
+            setTextEnabled : function( enabled ){
+                this.m_text.setEnabled( enabled );
             },
             
             /**
