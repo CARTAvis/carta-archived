@@ -125,6 +125,7 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
     }
     else {
         m_animators[type]->setVisible( true );
+        m_animators[type]->setRemoved( false );
         _adjustStateAnimatorTypes();
         animatorTypeId= m_animators[type]->getPath();
     }
@@ -156,8 +157,10 @@ void Animator::_axesChanged(){
                 const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
                 QString purpose = AxisMapper::getPurpose( *it, cs );
                 QString animId;
-                addAnimator( purpose, animId );
-                existingAnimators.insert( purpose );
+                if ( purpose.length() > 0 ){
+                    addAnimator( purpose, animId );
+                    existingAnimators.insert( purpose );
+                }
             }
         }
     }
@@ -169,6 +172,7 @@ void Animator::_axesChanged(){
         QString animType = m_animators[keys[i]]->getType();
         bool existing = existingAnimators.contains( animType );
         if ( !existing && animType != Selection::IMAGE ){
+            m_animators[keys[i]]->setRemoved( true );
             removeAnimator( animType );
         }
     }
@@ -350,6 +354,7 @@ QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
 }
 
 void Animator::_initializeCallbacks(){
+
     addCommandCallback( "addAnimator", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"type"};
@@ -359,6 +364,22 @@ void Animator::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return animId;
     });
+
+    addCommandCallback( "registerAnimator", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {"type"};
+            std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
+            QString targetKey = dataValues[*keys.begin()];
+            QString animId = "-1";
+            QMap<QString, AnimatorType*>::const_iterator animIter;
+            for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
+                QString animatorKey = animIter.key();
+                if ( animatorKey == targetKey ){
+                    animId = animIter.value()->getPath();
+                }
+            }
+            return animId;
+        });
 
     addCommandCallback( "removeAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -512,6 +533,9 @@ bool Animator::_updateAnimatorBound( const QString& key ){
     int currentFrame = 0;
     bool visibilityChanged = false;
     AxisInfo::KnownType axisType = AxisMapper::getType( key );
+    if ( axisType == AxisInfo::KnownType::OTHER ){
+        return visibilityChanged;
+    }
     std::vector<AxisInfo::KnownType> animationAxes;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
@@ -577,7 +601,7 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
         it != animAxes.end(); it++ ){
         const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
         QString animName = AxisMapper::getPurpose( *it, cs );
-        if ( !m_animators.contains( animName )){
+        if ( !m_animators.contains( animName ) && animName.length() > 0 ){
             QString animId;
             addAnimator( animName , animId );
         }

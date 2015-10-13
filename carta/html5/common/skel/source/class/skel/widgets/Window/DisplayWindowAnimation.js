@@ -76,7 +76,9 @@ qx.Class.define(
             var supportedAnims = [];
             if ( this.m_animators != null ){
                 for ( var i = 0; i < this.m_animators.length; i++ ){
-                    supportedAnims.push( this.m_animators[i].getTitle() );
+                    if ( this.m_animators[i].isAvailable() ){
+                        supportedAnims.push( this.m_animators[i].getTitle() );
+                    }
                 }
             }
             return supportedAnims;
@@ -93,7 +95,6 @@ qx.Class.define(
                 this.m_supportedCmds.push( animCmd.getLabel() );
                 arguments.callee.base.apply(this, arguments);
             }
-            //this.updateCmds();
         },
         
         /**
@@ -146,25 +147,29 @@ qx.Class.define(
         _removeUnsupportedAnimations : function( animators ){
             if ( this.m_animators !== null ){
                 //Determine if the animator still exists.
+                var foundAnim = false;
                 for ( var i = this.m_animators.length-1; i >= 0; i-- ){
                     var animIndex = -1;
                     for ( var j = 0; j < animators.length; j++ ){
                         if ( animators[j].type == this.m_animators[i].getTitle() ){
-                            if ( !animators[j].visible ){
-                                animIndex = j;
+                            foundAnim = true;
+                            if ( animators[j].visible ){
+                                animIndex = i;
                                 break;
                             }
                         }
                     }
                    
                     //The animator does not still exists
-                    if ( animIndex >= 0 ){
+                    if ( animIndex == -1 ){
                         //Remove the animator from the view
                         if ( this.m_content.indexOf( this.m_animators[i] ) >= 0 ){
                            this.m_content.remove( this.m_animators[i] );
                         }
-                        //Remove it from the list
-                        this.m_animators.splice(i, 1 );
+                        //Remove it from the list of available animators.
+                        if ( !foundAnim ){
+                            this.m_animators[i].setAvailable( false );
+                        }
                     }
                 }
             }
@@ -225,11 +230,12 @@ qx.Class.define(
             animAllCmd.setAnimations( supportedAnims );
             if ( this.m_animators !== null ){
                 for (var i = 0; i < this.m_animators.length; i++) {
-                    var animId = this.m_animators[i].getTitle();
-                    var animCmd = animAllCmd.getCmd( animId );
-                    var visible = this.isVisible( animId );
-                    animCmd.setValue( visible );
-                    supportedAnims.push( animId );
+                    if ( this.m_animators[i].isAvailable() ){
+                        var animId = this.m_animators[i].getTitle();
+                        var animCmd = animAllCmd.getCmd( animId );
+                        var visible = this.isVisible( animId );
+                        animCmd.setValue( visible );
+                    }
                 }
             }
         },

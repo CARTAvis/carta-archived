@@ -90,7 +90,10 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     int axisCount = cf->nAxes();
     for ( int axis = 0 ; axis < axisCount; axis++ ) {
         const AxisInfo & axisInfo = cf-> axisInfo( axis );
-        types.push_back( axisInfo.knownType() );
+        AxisInfo::KnownType axisType = axisInfo.knownType();
+        if ( axisType != AxisInfo::KnownType::OTHER ){
+            types.push_back( axisInfo.knownType() );
+        }
     }
     return types;
 }
@@ -137,7 +140,9 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisZTypes() const {
         for ( int i = 0; i < imageDims; i++ ){
             if ( i != m_axisIndexX && i!= m_axisIndexY ){
                 AxisInfo::KnownType type = _getAxisType( i );
-                zTypes.push_back( type );
+                if ( type != AxisInfo::KnownType::OTHER ){
+                    zTypes.push_back( type );
+                }
             }
         }
     }
@@ -457,15 +462,21 @@ NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd
 
 int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     int cacheIndex = 0;
-    int imageSize = m_image->dims().size();
-    int mult = 1;
-    for ( int i = imageSize-1; i >= 0; i-- ){
-        if ( i != m_axisIndexX && i != m_axisIndexY ){
-            AxisInfo::KnownType axisType = _getAxisType( i );
-            int index = static_cast<int>( axisType );
-            int frame = frames[index];
-            cacheIndex = cacheIndex + mult * frame;
-            mult = mult * m_image->dims()[i];
+    if ( m_image ){
+        int imageSize = m_image->dims().size();
+        int mult = 1;
+        for ( int i = imageSize-1; i >= 0; i-- ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                AxisInfo::KnownType axisType = _getAxisType( i );
+                int frame = 0;
+                if ( AxisInfo::KnownType::OTHER != axisType ){
+                    int index = static_cast<int>( axisType );
+                    frame = frames[index];
+                }
+                cacheIndex = cacheIndex + mult * frame;
+                int frameCount = m_image->dims()[i];
+                mult = mult * frameCount;
+            }
         }
     }
     return cacheIndex;
@@ -480,9 +491,12 @@ NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frame
         SliceND& slice = nextSlice;
         for ( int i = 0; i < imageDim; i++ ){
             if ( i != m_axisIndexX && i != m_axisIndexY ){
+                int frameIndex = 0;
                 AxisInfo::KnownType type = _getAxisType( i );
-                int axisIndex = static_cast<int>( type );
-                int frameIndex = mFrames[axisIndex];
+                if ( AxisInfo::KnownType::OTHER != type ){
+                    int axisIndex = static_cast<int>( type );
+                    frameIndex = mFrames[axisIndex];
+                }
                 slice.start( frameIndex );
                 slice.end( frameIndex + 1);
             }
@@ -718,7 +732,7 @@ void DataSource::setGamma( double gamma ){
 void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    int quantileIndex = this->_getQuantileCacheIndex( mFrames );
+    int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex];
     NdArray::Double doubleView( view.get(), false );
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
