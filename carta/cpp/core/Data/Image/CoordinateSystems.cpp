@@ -54,7 +54,11 @@ CoordinateSystems::CoordinateSystems( const QString& path, const QString& id):
 }
 
 QString CoordinateSystems::getDefault() const {
-    return m_coordSystems[ Carta::Lib::KnownSkyCS::J2000 ];
+    return m_coordSystems[ getDefaultType() ];
+}
+
+Carta::Lib::KnownSkyCS  CoordinateSystems::getDefaultType() const {
+    return Carta::Lib::KnownSkyCS::J2000;
 }
 
 QString CoordinateSystems::getCoordinateSystem( const QString& system ) const {

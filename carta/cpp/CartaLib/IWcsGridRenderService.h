@@ -6,6 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include <memory>
 
@@ -47,6 +48,12 @@ public:
         __count ///< internal, don't use
     };
 
+    /// set the new ordering for the axes in cases where the display axes are not
+    /// the first two axes in the image.  The perm list should match the dimensions
+    /// in the image and containing unique integers ranging from 1 to perms.size().
+    virtual void
+    setAxisPermutations( std::vector<int> perms ) = 0;
+
     /// set the input data, shold have at least 2 dimensions
     /// \note the data is not imporant, only meta data attached to this is important
     virtual void
@@ -67,6 +74,14 @@ public:
     virtual void
     setOutputRect( const QRectF & rect ) = 0;
 
+    //Set the label for an axis.
+    virtual void
+    setAxisLabel( int axisIndex, const QString& axisLabel ) = 0;
+
+    //Set information about the axis labels.
+    virtual void
+    setAxisLabelInfo( int axisIndex, const AxisLabelInfo& labelInfo ) = 0;
+
     //Set whether or not to draw axes/border.
     virtual void
     setAxesVisible( bool flag ) = 0;
@@ -78,6 +93,7 @@ public:
 //    /// get a pen attribute for the given element
 //    virtual const QPen &
 //    pen( Element e ) = 0;
+
 
     /// set the font attribute for the given text element
     /// does nothing for non-text elements, i.e. lines
@@ -99,6 +115,10 @@ public:
     /// which celestial system to draw
     virtual void
     setSkyCS( KnownSkyCS cs ) = 0;
+
+    //Set the length of the ticks
+    virtual void
+    setTickLength( double tickLength ) = 0;
 
     /// set whether or not tick marks should be drawn.
     virtual void

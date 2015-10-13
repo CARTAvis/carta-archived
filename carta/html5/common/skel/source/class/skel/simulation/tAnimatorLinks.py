@@ -15,57 +15,50 @@ class tAnimatorLinks(unittest.TestCase):
     def setUp(self):
         browser = selectBrowser._getBrowser()
         Util.setUp( self, browser )
-
+        
+    def animatorsAtDefault(self):
+        # Make sure that there are no animators visible
+        try :
+            upperBoundTextChannel = driver.find_element_by_xpath( "//div[@id='ChannelUpperBoundSpin']/input")
+            self.assertTrue( false, "Channel animator is still present")
+        except Exception:
+            print "Good - channel animator disappeared"
+        try :
+            upperBoundTextAnimator = driver.find_element_by_xpath( "//div[@id='ImageUpperBoundSpin']/input")
+            self.assertTrue( false, "Image animator is still present")
+        except Exception:
+            print "Good - image animator disappeared"
+            
     # Test that the Animator will revert to default values after an image is removed
     def test_animatorRemoveImage(self):
         driver = self.driver 
         timeout = selectBrowser._getSleep()
 
-        # Load an image
+        # Load two image
         Util.load_image( self, driver, "Default")
+        Util.load_image( self, driver, "aH.fits")
 
         # Click on the Data->Close->Image button to close the image.
         imageWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
-        ActionChains(driver).double_click( imageWindow ).perform()
+        ActionChains(driver).click( imageWindow ).perform()
         dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
-        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform() 
+        time.sleep(2)
+        dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
+        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
 
-        # Get the channel upper spin value 
-        upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
-        upperBound = upperBoundText.get_attribute("value")
-
-        # Make sure the Animation window is enabled by clicking an element within the window
-        channelText = driver.find_element_by_id( "ChannelIndexText")
-        ActionChains(driver).click( channelText ).perform()
-
-        # Show the Image Animator
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep(timeout)
-
-        # Find and click the upper spin box 
-        imageUpperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", imageUpperBoundText)
-
-        # Get the image upper spin value 
-        imageCount = imageUpperBoundText.get_attribute("value")
-        print "Image count=", imageCount
-
-        # Check that the Animator is reset to default settings
-        self.assertEqual( int(imageCount), 0, "Image Animator did not reset after the image was removed")
-        self.assertEqual( int(upperBound), 0, "Channel Animator did not reset after the image was removed")
-
-
+        
+        self.animatorsAtDefault()
+        
     # Test that the Animator will update after an image is loaded in the image window
     # Removal of the image should restore Animator to its default values
     def test_animatorAddImage(self):
         driver = self.driver
 
         # Load an image
-        Util.load_image( self, driver, "Default")
+        Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
 
         # Record the upper bound spin box value of the first image
         upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
@@ -74,9 +67,8 @@ class tAnimatorLinks(unittest.TestCase):
         print "Upper bound", upperBound
 
         # In the same window, load a different image
-        # The image should have a different number of channels
-        Util.load_image( self, driver, "aH.fits")
-        #Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        # The image should have more channels than the first image in order to see an update
+        Util.load_image( self, driver, "Default")
 
         # Check that the Animator upper bound spin box value is updated
         newUpperBound = upperBoundText.get_attribute("value")
@@ -89,11 +81,14 @@ class tAnimatorLinks(unittest.TestCase):
         browser = selectBrowser._getBrowser()
         timeout = selectBrowser._getSleep()
 
+        #Load an image with more than one channel so the channel
+        #animator will appear
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        Util.load_image( self, driver, "Default")
 
-        # Enable the animation window by clicking an element within the window
-        channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
-        ActionChains(driver).click( channelText ).perform()
+        # Enable the animation window
+        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']"))) 
+        ActionChains(driver).click( animWindow ).perform()
 
         # Remove Animator link to the image window
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
@@ -101,14 +96,15 @@ class tAnimatorLinks(unittest.TestCase):
         Util.remove_main_link( self, driver, imageWindow)
 
         # Load an image in a different window
-        imageWindow2 = Util.load_image_different_window( self, driver, "N15693D.fits")
+        imageWindow2 = Util.load_image_different_window( self, driver, "Orion.methanol.cbc.contsub.image.fits")
 
         # Change link to second image
-        ActionChains(driver).click( channelText ).perform()
+        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']"))) 
+        ActionChains(driver).click( animWindow ).perform()
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
         ActionChains(driver).click( linkMenuButton ).perform()
         Util.link_second_image( self, driver, imageWindow2)
-
+        
         # Find and click the upper spin box
         upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
@@ -117,11 +113,8 @@ class tAnimatorLinks(unittest.TestCase):
         upperBound = upperBoundText.get_attribute("value")
         self.assertNotEqual( int(upperBound), 0, "Channel animator did not update to second image values")
 
-        # Show the Image Animator
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep(timeout)
+        # Show the image animator by loading a second image in the second window
+        Util.load_image_windowIndex( self, driver, "aH.fits", 2)
 
         # Find and click the upper spin box 
         imageUpperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
@@ -129,9 +122,10 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Get the image upper spin value 
         imageCount = imageUpperBoundText.get_attribute("value")
+        print "Animator image count ", imageCount
 
         # Check that the Image Animator updates
-        self.assertEqual( int(imageCount), 0, "Image Animator did not update after image was linked")
+        self.assertEqual( int(imageCount), 1, "Image Animator did not update after image was linked")
 
     # Test that we can remove a linked image from the Animator
     def test_animatorRemoveLink(self):
@@ -142,6 +136,9 @@ class tAnimatorLinks(unittest.TestCase):
         # Locate the image window on the page; ensures browser is fully loaded
         imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
+        # Load an image with multiple channels so that the channel animator will show.
+        Util.load_image( self, driver, "Default")
+        
         # Make sure the animation window is enabled by clicking an element within the window
         channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
         ActionChains(driver).click( channelText ).perform()
@@ -151,32 +148,11 @@ class tAnimatorLinks(unittest.TestCase):
         ActionChains(driver).click( linkMenuButton ).perform()
         Util.remove_main_link( self, driver, imageWindow)
 
-        # Load an image
-        Util.load_image(self, driver, "Default")
+        # Load another image
+        Util.load_image(self, driver, "aH.fits")
+        
+        self.animatorsAtDefault()
 
-        # Find and click the upper spin box
-        upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
-
-        # Check that the Channel Animator values remained at default values
-        upperBound = upperBoundText.get_attribute("value")
-        self.assertEqual( int(upperBound), 0, "Channel Animator is still linked to image after link was removed")
-
-       # Show the Image Animator
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep(timeout)
-
-        # Find and click the upper spin box 
-        imageUpperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", imageUpperBoundText)
-
-        # Get the image upper spin value 
-        imageCount = imageUpperBoundText.get_attribute("value")
-
-        # Check that the Image Animator is at default values
-        self.assertEqual( int(imageCount), 0, "Image Animator is still linked to image after the link was removed")
 
     # Test that we can add an Animator link to an image
     def test_animatorAddLink(self):
@@ -184,12 +160,13 @@ class tAnimatorLinks(unittest.TestCase):
         timeout = selectBrowser._getSleep()
         browser = selectBrowser._getBrowser()
 
-        # Load image in a separate window
-        imageWindow2 = Util.load_image_different_window( self, driver, "N15693D.fits")
+        # Load image in a separate window, but make sure it has at least
+        # one channel.
+        imageWindow2 = Util.load_image_different_window( self, driver, "TWHydra_CO2_1line.image.fits")
 
         # Make sure the animation window is enabled by clicking an element within the window
-        channelText = driver.find_element_by_id("ChannelIndexText")
-        ActionChains(driver).click( channelText ).perform()
+        animWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']" )
+        ActionChains(driver).click( animWindow ).perform()
 
         # Navigate to view links from the Animator settings        
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
@@ -197,20 +174,18 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Add link from the Animator to the image
         Util.link_second_image( self, driver, imageWindow2)
-
+        ActionChains(driver).send_keys( Keys.ESCAPE).perform()
         # Find and click the upper spin box
         upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
 
         # Check that the animator updates 
         upperBound = upperBoundText.get_attribute("value")
+        print "Upper bound ", upperBound
         self.assertNotEqual( int(upperBound), 0, "Channel animator did not update to linked image")
 
-        # Show the Image Animator
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep(timeout)
+        # Show the Image Animator by loading a second image.
+        Util.load_image_windowIndex( self, driver, "aH.fits", 2)
 
         # Find and click the upper spin box 
         imageUpperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
@@ -220,7 +195,7 @@ class tAnimatorLinks(unittest.TestCase):
         imageCount = imageUpperBoundText.get_attribute("value")
 
         # Check that the Image Animator updates
-        self.assertEqual( int(imageCount), 0, "Image Animator did not update after image was linked")
+        self.assertEqual( int(imageCount), 1, "Image Animator did not update after image was linked")
 
     def tearDown(self):
         # Close the browser

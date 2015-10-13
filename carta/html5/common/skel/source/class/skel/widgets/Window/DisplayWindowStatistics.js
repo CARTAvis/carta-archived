@@ -28,6 +28,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics",
 
             members : {
                 
+                /**
+                 * Initialize the list of commands supported by a generic window.
+                 */
+                _initSupportedCommands : function(){
+                    if ( this.m_supportedCmds.length == 0 ){
+                        var linksCmd = skel.Command.Link.CommandLink.getInstance();
+                        this.m_supportedCmds.push( linksCmd.getLabel() );
+                        arguments.callee.base.apply(this, arguments);
+                    }
+                },
                 
                 /**
                  * Remove a link.

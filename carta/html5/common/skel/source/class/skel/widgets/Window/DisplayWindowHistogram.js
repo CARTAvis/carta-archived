@@ -40,18 +40,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              * Initialize the list of commands this window supports.
              */
             _initSupportedCommands : function(){
-                arguments.callee.base.apply(this, arguments);
-                var clipCmd = skel.Command.Clip.CommandClip.getInstance();
-                this.m_supportedCmds.push( clipCmd.getLabel() );
-               
-                var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
-                this.m_supportedCmds.push( histCmd.getLabel() );
-                var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
-                if ( saveCmd.isSaveAvailable() ){
-                    this.m_supportedCmds.push( saveCmd.getLabel() );
+                if ( this.m_supportedCmds.length == 0 ){
+                    var linksCmd = skel.Command.Link.CommandLink.getInstance();
+                    this.m_supportedCmds.push( linksCmd.getLabel() );
+                    
+                    var clipCmd = skel.Command.Clip.CommandClip.getInstance();
+                    this.m_supportedCmds.push( clipCmd.getLabel() );
+                   
+                    var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
+                    this.m_supportedCmds.push( histCmd.getLabel() );
+                    var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
+                    if ( saveCmd.isSaveAvailable() ){
+                        this.m_supportedCmds.push( saveCmd.getLabel() );
+                    }
+                    var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+                    this.m_supportedCmds.push( popupCmd.getLabel() );
+                    
+                    arguments.callee.base.apply(this, arguments);
                 }
-                var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
-                this.m_supportedCmds.push( popupCmd.getLabel() );
                
             },
            

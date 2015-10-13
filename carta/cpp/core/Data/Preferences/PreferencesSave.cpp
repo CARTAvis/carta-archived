@@ -72,7 +72,6 @@ void PreferencesSave::_initializeDefaultState(){
     m_state.insertValue<QString>( ASPECT_RATIO_MODE, ASPECT_KEEP );
     m_state.insertValue<int>( WIDTH, 400 );
     m_state.insertValue<int>( HEIGHT, 500 );
-    qDebug() << "Preferences save state="<<m_state.toString();
     m_state.flushState();
 }
 

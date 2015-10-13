@@ -48,6 +48,13 @@ public:
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
+     * Change the frame of the animator for the indicated axis.
+     * @param axisName - an identifier for the axis.
+     * @param index - the index of the new axis frame.
+     */
+    void changeFrame( int index, const QString& axisName );
+
+    /**
      * Clear current state..
      */
     void clear();
@@ -86,9 +93,6 @@ public:
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
 
-    void changeChannelIndex( int index );
-
-    void changeImageIndex( int selectedImage );
 
     /**
      * Force a state refresh.
@@ -128,6 +132,7 @@ public:
     int getMaxImageCount() const;
 
     static const QString CLASS_NAME;
+    static const QString TYPE;
 
     virtual ~Animator();
 protected:
@@ -136,8 +141,8 @@ protected:
 private slots:
     //Adjusts internal state based on the state in the child controllers.
     void _adjustStateController( Controller* controller);
-    void _imageIndexChanged( int index );
-    void _channelIndexChanged( int index );
+    void _axesChanged();
+    void _frameChanged( int index, const QString& axisName );
 
 private:
     /**
@@ -148,8 +153,12 @@ private:
 
     class Factory;
 
+    bool _addAnimatorType( const QString& type, QString& animatorTypeId );
     void _adjustStateAnimatorTypes();
+    void _addRemoveImageAnimator();
+    Controller* _getControllerSelected() const;
     int _getMaxImageCount() const;
+    int _getAnimatorTypeVisibleCount() const;
     void _initializeState();
     void _initializeAnimators();
     void _initializeCallbacks();
@@ -159,6 +168,12 @@ private:
 
     //Reset the state of an individual animator.
     void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
+
+    bool _setAnimatorVisibility( const QString& key, bool visible );
+
+    bool _updateAnimatorBound( const QString& key );
+    void _updateAnimatorBounds();
+    void _updateSupportedZAxes( Controller* controller );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;

@@ -48,9 +48,6 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             this.base(arguments);
             ctx.clearRect( 0, 0, width, height);
             this._drawGradient( width, height, ctx );
-            if ( ! this.m_gradientOnly ){
-                this._drawColorGraph( width, height, ctx );
-            }
         },
         
         /**
@@ -72,61 +69,9 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
                 }
             }
             ctx.fillStyle = grd;
-            if ( this.m_gradientOnly ){
-                ctx.fillRect( 0, 0, width, height );
-            }
-            else {
-                ctx.fillRect( 0, height/2, width, height/2 );
-            }
+            ctx.fillRect( 0, 0, width, height );
         },
         
-        /**
-         * Draws a colored line indicating the amount of that color in the map.
-         * @param width {Integer} New canvas width
-         * @param height {Integer} New canvas height
-         * @param ctx {CanvasRenderingContext2D} The rendering ctx to draw to.
-         * @param colorStr {String} a string naming a color.
-         * @param hexIndex {Number} the location in the hex representation where the color can be found.
-         * @param scaleFactor {Number} a multiplier to adjust the color strength.
-         */
-        _drawColor : function( width, height, ctx, colorStr, hexIndex, scaleFactor ){
-            if ( this.m_stops !== null ){
-                ctx.beginPath();
-                var drawHeight = height / 2;
-                var drawStart = 0;
-               
-                for ( var i = 0; i < this.m_stops.length; i++ ){
-                    var colorIndex = i;
-                    if ( this.m_reverse ){
-                        colorIndex = this.m_stops.length - i - 1;
-                    }
-                    var hexColor = this.m_stops[colorIndex].substring( hexIndex, hexIndex + 2);
-                    var intColor = parseInt( hexColor, 16 );
-                    if ( this.m_invert ){
-                        intColor = 255 - intColor;
-                    }
-                    var percentColor = intColor / 255;
-                    var lineY = drawHeight - drawHeight * percentColor * scaleFactor;
-                    var lineX = i / this.m_stops.length * width;
-                    ctx.lineTo( lineX, lineY );
-                }
-                ctx.strokeStyle = colorStr;
-                ctx.lineWidth = 5;
-                ctx.stroke();
-            }
-        },
-        
-        /**
-         * Draws three colored lines indicating the amount of blue, red, and green in the map.
-         * @param width {Integer} New canvas width
-         * @param height {Integer} New canvas height
-         * @param ctx {CanvasRenderingContext2D} The rendering ctx to draw to.
-         */
-        _drawColorGraph : function( width, height, ctx ){
-            this._drawColor( width, height, ctx, "red", 1, this.m_scaleRed);
-            this._drawColor( width, height, ctx, "green", 3, this.m_scaleGreen );
-            this._drawColor( width, height, ctx, "blue", 5, this.m_scaleBlue );
-        },
         
         /**
          * Initializes the UI.
@@ -135,6 +80,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             this.setAllowGrowX( true );
             this.setAllowGrowY( true );
             this.setMinWidth( 100 );
+            this.setMinHeight( 25 );
             this.m_connector = mImport("connector");
         },
         
@@ -188,17 +134,6 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             }
         },
         
-        /**
-         * Set whether or not to display both the color gradient and color mix or just
-         * the gradient.
-         * @param gradientOnly {bool} true to draw only the gradient; false othewise.
-         */
-        setGradientOnly : function( gradientOnly ){
-            if ( this.m_gradientOnly !== gradientOnly ){
-                this.m_gradientOnly = gradientOnly;
-                this.update();
-            }
-        },
         
         /**
          * Set whether or not to invert the color map.
@@ -262,7 +197,6 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
         },
         
         m_connector : null,
-        m_gradientOnly : false,
         m_scaleRed : 1,
         m_scaleBlue : 1,
         m_scaleGreen : 1,

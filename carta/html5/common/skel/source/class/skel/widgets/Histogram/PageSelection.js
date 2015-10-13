@@ -59,6 +59,8 @@ qx.Class.define("skel.widgets.Histogram.PageSelection", {
         histDataUpdate : function( hist ){
             if ( this.m_cubeSettings !== null ){
                 this.m_cubeSettings.setPlaneRangeEnabled( hist.image3D );
+                this.m_cubeSettings.setPlaneChannelMax( hist.planeChannelMax );
+                this.m_cubeSettings.setPlaneChannel( hist.planeChannel );
                 this.m_cubeSettings.setPlaneBounds( hist.planeMin, hist.planeMax );
             }
         },

@@ -1,5 +1,6 @@
 import unittest
 import time
+import math
 import selectBrowser
 import Util
 from selenium import webdriver
@@ -69,7 +70,7 @@ class tHistogram( unittest.TestCase ):
 
         # Find and select the histogram window 
         histWindow = self._getHistogramWindow( driver )
-        ActionChains(driver).double_click( histWindow )
+        ActionChains(driver).click( histWindow ).perform()
         time.sleep( timeout )
 
         # Click the settings button to expose the settings
@@ -87,9 +88,15 @@ class tHistogram( unittest.TestCase ):
         textValue = binCountText.get_attribute("value")
         print "value of text field=", textValue
         
+        #Slider is at the log of the textValue.
+        logTextValue = math.log(float(textValue))
+        print "log text value=",logTextValue
+        
         # Calculate percent difference from center.  Note this will fail if the upper
-        # bound of the slider changes.
-        textScrollPercent = (500 - int(float(textValue))) / 1000.0
+        # bound of the slider changes
+        #9.21034037198 = ln(10000)
+        per = logTextValue / 9.2034037198;
+        textScrollPercent = .5 - per
         print "scrollPercent=",textScrollPercent
        
         # Look for the bin count slider.
@@ -107,7 +114,7 @@ class tHistogram( unittest.TestCase ):
         print 'Scroll width=', scrollSize['width']
         
         # Subtract half the width of the slider scroll.
-        sliderScrollAmount = sliderScrollAmount - scrollSize['width'] / 2
+        sliderScrollAmount = sliderScrollAmount - math.log(scrollSize['width']) / 2
         print 'Slider scroll adjusted=',sliderScrollAmount
         ActionChains( driver ).drag_and_drop_by_offset( sliderScroll, sliderScrollAmount, 0 ).perform()
         time.sleep( timeout )
@@ -115,7 +122,7 @@ class tHistogram( unittest.TestCase ):
         # Check that the value goes to the server and gets set in the text field.
         newText = binCountText.get_attribute( "value")
         print 'Text=',newText
-        self.assertAlmostEqual( int(float(newText)), 5000 ,None,"Failed to scroll halfway",250)
+        self.assertAlmostEqual( int(float(newText)), 100 ,None,"Failed to scroll halfway",20)
 
     
     # Test that the Histogram min and max zoom value 
@@ -219,7 +226,7 @@ class tHistogram( unittest.TestCase ):
 
         # Find and select the Histogram window
         histWindow = self._getHistogramWindow( driver )
-        ActionChains(driver).double_click( histWindow )
+        ActionChains(driver).click( histWindow ).perform()
         time.sleep( timeout )
 
         # Click the settings button to expose the settings
@@ -259,13 +266,8 @@ class tHistogram( unittest.TestCase ):
         ActionChains(driver).click( animWindow ).perform()   
 
         # Make sure the animation window is enabled by clicking an element within the window
-        # From the context menu, uncheck the Channel Animator and check the Image Animator
-        channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
-        ActionChains(driver).click( channelText ).perform()
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep(timeout)
+        imageText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ImageIndexText")))
+        ActionChains(driver).click( imageText ).perform()
 
         # Find the first value button and click the button
         firstValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ImageTapeDeckFirstValue")))

@@ -153,7 +153,10 @@ signals:
     void colorMapChanged( Colormap* map );
 
 public slots:
-        void setColorProperties( Controller* target );
+    void setColorProperties( Controller* target );
+
+private slots:
+    void _updateIntensityBounds( double minIntensity, double maxIntensity );
 
 private:
     QString _commandSetColorMap( const QString& params );
@@ -168,6 +171,7 @@ private:
 
     void _setErrorMargin();
 
+
     static bool m_registered;
     const static QString COLOR_MAP_NAME;
     const static QString REVERSE;
@@ -180,6 +184,8 @@ private:
     const static QString COLOR_MIX_RED;
     const static QString COLOR_MIX_GREEN;
     const static QString COLOR_MIX_BLUE;
+    const static QString INTENSITY_MIN;
+    const static QString INTENSITY_MAX;
     const static QString SCALE_1;
     const static QString SCALE_2;
     const static QString GAMMA;
@@ -202,10 +208,13 @@ private:
     //Supported data transforms
     static TransformsData* m_dataTransforms;
 
+    Carta::State::StateInterface m_stateData;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
+
+
 
     double m_errorMargin;
 

@@ -24,17 +24,19 @@ qx.Mixin.define("skel.Command.Settings.SettingsMixin", {
                     var cmdSupported = activeWins[i].isCmdSupported( this);
                     if ( cmdSupported  ){
                         var prefs = activeWins[i].getPreferences();
-                        var prefId = activeWins[i].getPreferencesId();
-                        try {
-                            var setObj = JSON.parse( prefs );
-                            this.setCmdSettings( prefId, setObj/*, cmds*/ );
+                        if ( prefs != undefined ){
+                            var prefId = activeWins[i].getPreferencesId();
+                            try {
+                                var setObj = JSON.parse( prefs );
+                                this.setCmdSettings( prefId, setObj/*, cmds*/ );
+                            }
+                            catch( err ){
+                                console.log( "Could not parse settings");
+                                console.log( "Error: "+err);
+                            }
+                            enabled = true;
+                            break;
                         }
-                        catch( err ){
-                            console.log( "Could not parse settings");
-                            console.log( "Error: "+err);
-                        }
-                        enabled = true;
-                        break;
                     }
                 }
             }

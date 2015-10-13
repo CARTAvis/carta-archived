@@ -33,6 +33,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
          */
         _init : function( ) {
             this.m_content.setLayout(new qx.ui.layout.VBox());
+            this.m_mapControl = new skel.widgets.Colormap.ColorMapsWidget();
             this._initView();
             this._initSettings( );
             this._layoutContent( false );
@@ -77,14 +78,16 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
          */
         _layoutContent : function( settingsVisible ){
             this.m_content.removeAll();
+            this.m_content.setLayout( new qx.ui.layout.VBox());
             if ( settingsVisible ){
-                this.m_content.setLayout( new qx.ui.layout.VBox());
                 this.m_content.add( this.m_view );
+                this.m_content.add( this.m_mapControl );
                 this.m_content.add( this.m_settings);
             }
             else {
-                this.m_content.setLayout( new qx.ui.layout.Grow());
-                this.m_content.add( this.m_view );
+                //this.m_content.setLayout( new qx.ui.layout.Grow());
+                this.m_content.add( this.m_view, {flex:1} );
+                this.m_content.add( this.m_mapControl );
             }
         },
         
@@ -135,6 +138,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 if (  this.m_id != id ){
                     this.m_id = id;
                     this.m_settings.setId( id );
+                    this.m_mapControl.setId( id );
                     this._registerMapCB();
                 }
             }
@@ -156,8 +160,11 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         //Layout for the permanent parts gradient, lines, etc
         m_content : null,
         
-        //Colormap
+        //Colormap gradient
         m_view : null,
+        
+        //Color map selection
+        m_mapControl : null,
         
         m_connector : null,
         m_sharedVar : null,

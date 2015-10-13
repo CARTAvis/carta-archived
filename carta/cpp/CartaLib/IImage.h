@@ -78,6 +78,8 @@ public:
     virtual const VI &
     dims() = 0;
 
+
+
     /// get the raw data for the given pixel (at coordinates 'pos')
     /// note: this is meant for random access, but is slow
     virtual const char *

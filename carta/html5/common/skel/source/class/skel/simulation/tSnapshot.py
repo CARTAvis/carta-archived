@@ -29,8 +29,7 @@ class tSnapshot(unittest.TestCase):
     def _setChecked(self, driver, checkBox, checked):
         oldChecked = self._isChecked( checkBox )
         if checked != oldChecked :
-            checkParent = checkBox.find_element_by_xpath( '..')
-            ActionChains(driver).click( checkParent ).perform()
+            ActionChains(driver).click( checkBox ).perform()
             
     # Click the Restore... option in the Sessions submenu
     def _clickSessionRestoreButton(self,driver):
@@ -41,10 +40,7 @@ class tSnapshot(unittest.TestCase):
     def _clickSessionSaveButton(self,driver): 
         sessionButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Session']/..")))
         ActionChains( driver ).click( sessionButton );
-        # Find the save session button in the submenu and click it.
-        saveButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Save...']/..")))
-        ActionChains(driver).click( saveButton).perform()
-        #ActionChains( driver).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
+        ActionChains( driver ).send_keys(Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
             
     # Click the "Sessions" menu item
     def _clickSessionButton(self, driver ):
@@ -71,7 +67,6 @@ class tSnapshot(unittest.TestCase):
     # Set the type of state that should be saved
     def _setSaveOptions(self, driver, savePreferences, saveLayout, saveData ):
         # Find preferences div 
-        #prefDiv = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Preferences']/..")))
         prefCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Preferences']/../div[@class='qx-checkbox']")))
         self._setChecked( driver, prefCheck, savePreferences )
         # Find data div
@@ -104,4 +99,4 @@ class tSnapshot(unittest.TestCase):
         #Allow browser to fully close before continuing
         time.sleep(2)
         #Close the session and delete temporary files
-        self.driver.quit()        
+        self.driver.quit()

@@ -28,7 +28,6 @@ HEADERS += \
     ImageView.h \
     Data/Animator/Animator.h \
     Data/Animator/AnimatorType.h \
-    Data/Animator/AnimationTypes.h \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
@@ -43,13 +42,24 @@ HEADERS += \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
+    Data/Image/ControllerData.h \
+    Data/Image/Contour/Contour.h \
+    Data/Image/Contour/ContourControls.h \
+    Data/Image/Contour/ContourGenerateModes.h \
+    Data/Image/Contour/ContourSpacingModes.h \
+    Data/Image/Contour/ContourStyles.h \
+    Data/Image/Contour/DataContours.h \
+    Data/Image/Contour/GeneratorState.h \
     Data/Image/CoordinateSystems.h \
-    Data/Image/DataGrid.h \
     Data/Image/DataSource.h \
-    Data/Image/Fonts.h \
-    Data/Image/GridControls.h \
-    Data/Image/ImageGridServiceSynchronizer.h \
-    Data/Image/Themes.h \
+    Data/Image/DrawSynchronizer.h \
+    Data/Image/Grid/AxisMapper.h \
+    Data/Image/Grid/DataGrid.h \
+    Data/Image/Grid/Fonts.h \
+    Data/Image/Grid/GridControls.h \
+    Data/Image/Grid/Themes.h \
+    Data/Image/Grid/LabelFormats.h \
+    Data/Image/IPercentIntensityMap.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -113,20 +123,29 @@ SOURCES += \
     Data/Settings.cpp \
     Data/Animator/Animator.cpp \
     Data/Animator/AnimatorType.cpp \
-    Data/Animator/AnimationTypes.cpp \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
+    Data/Image/ControllerData.cpp \
+    Data/Image/Contour/Contour.cpp \
+    Data/Image/Contour/ContourControls.cpp \
+    Data/Image/Contour/ContourGenerateModes.cpp \
+    Data/Image/Contour/ContourSpacingModes.cpp \
+    Data/Image/Contour/ContourStyles.cpp \
+    Data/Image/Contour/DataContours.cpp \
+    Data/Image/Contour/GeneratorState.cpp \
     Data/Image/CoordinateSystems.cpp \
-    Data/Image/DataGrid.cpp \
     Data/Image/DataSource.cpp \
-    Data/Image/Fonts.cpp \
-    Data/Image/GridControls.cpp \
-    Data/Image/ImageGridServiceSynchronizer.cpp \
-    Data/Image/Themes.cpp \
+    Data/Image/Grid/AxisMapper.cpp \
+    Data/Image/Grid/DataGrid.cpp \
+    Data/Image/Grid/Fonts.cpp \
+    Data/Image/Grid/GridControls.cpp \
+    Data/Image/Grid/LabelFormats.cpp \
+    Data/Image/Grid/Themes.cpp \
+    Data/Image/DrawSynchronizer.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \

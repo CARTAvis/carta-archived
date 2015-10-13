@@ -112,6 +112,7 @@ getDefaultForSkyCS( const Carta::Lib::KnownSkyCS & skyCS )
 }
 
 CCCoordinateFormatter::CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS )
+    :  m_displayAxes( 2, Carta::Lib::AxisInfo::KnownType::OTHER )
 {
     // remember the pointer to casa coordinate systems
     m_casaCS = casaCS;
@@ -182,6 +183,12 @@ CCCoordinateFormatter::setAxisPrecision( int precision, int axis )
     CARTA_ASSERT( axis >= 0 && axis < nAxes() );
     m_precisions[axis] = precision;
     return * this;
+}
+
+void
+CCCoordinateFormatter::setDisplayAxes( std::vector<Carta::Lib::AxisInfo::KnownType> displayAxes ){
+    CARTA_ASSERT( displayAxes.size() == 2 );
+    m_displayAxes = displayAxes;
 }
 
 bool
@@ -362,6 +369,7 @@ CCCoordinateFormatter::parseCasaCS()
     // default precision is 3
     m_precisions.resize( nAxes(), 3 );
     m_axisInfos.resize( nAxes() );
+
     for ( int i = 0 ; i < nAxes() ; i++ ) {
         parseCasaCSi( i );
     }

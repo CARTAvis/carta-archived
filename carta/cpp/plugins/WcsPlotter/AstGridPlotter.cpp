@@ -19,6 +19,11 @@ AstGridPlotter::~AstGridPlotter()
 //     delete impl_;
 }
 
+void AstGridPlotter::setAxisPermutation( std::vector<int>& perms ){
+    m_axisPerms = perms;
+}
+
+
 bool
 AstGridPlotter::setFitsHeader( const QString & hdr )
 {
@@ -73,6 +78,41 @@ struct AstGuard {
 
     ~AstGuard() { astEnd; }
 };
+
+AstFrame* AstGridPlotter::_permuteAxes( AstFrameSet* wcsinfo ) const {
+    //AstFrameSet* wcsinfoCopy = (AstFrameSet*) astCopy( wcsinfo );
+    AstFrame* newFrame = nullptr;
+
+    int axesCount = astGetI( wcsinfo, "NAxes" );
+    int permCount = m_axisPerms.size();
+    if ( axesCount == permCount ){
+
+        //Decide if we really need to do a permutation based on whether
+        //any of the axes have changed from their nominal position.
+        int perm[axesCount];
+        bool actualPerm = false;
+        for ( int i = 0; i < axesCount; i++ ){
+            perm[i] = m_axisPerms[i];
+            if ( perm[i] != (i+1) ){
+                actualPerm = true;
+            }
+        }
+
+        //Okay, there was an actual change is axis order.
+        if ( actualPerm ){
+
+            //astPermAxes( wcsinfo, perm );
+            //newFrame = (AstFrameSet*) astConvert( wcsinfo, wcsinfoCopy, "" );
+            AstMapping* map = nullptr;
+            newFrame = (AstFrame*)(astPickAxes( wcsinfo, axesCount, perm, map ));
+            if ( !astOK ){
+                qWarning() << "AST error setting permuation axes "<<astStatus;
+                astClearStatus;
+            }
+        }
+    }
+    return newFrame;
+}
 
 bool
 AstGridPlotter::plot()
@@ -131,6 +171,17 @@ AstGridPlotter::plot()
         return false;
     }
 
+
+    AstFrame* newFrame = _permuteAxes( wcsinfo );
+
+    /*if ( newFrame != nullptr ){
+       fflush(stdout);
+       printf("====================== astshow frame begin ======================");
+       astShow( newFrame );
+       printf("======================= astshow frame end =======================");
+       fflush(stdout);
+    }*/
+
     float gbox[] = {
         float ( m_orect.left() ), float ( m_orect.bottom() ),
         float ( m_orect.right() ), float ( m_orect.top() )
@@ -141,11 +192,18 @@ AstGridPlotter::plot()
         m_irect.left() + 1, m_irect.bottom() + 1,
         m_irect.right() + 1, m_irect.top() + 1
     };
+    //qDebug() << "pbox="<<pbox[0]<<","<<pbox[1]<<","<<pbox[2]<<","<<pbox[3];
 
-    qDebug() << "Calling astPlot()";
-    AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
-    qDebug() << "astPlot() returned";
-//    AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "" );
+    AstPlot* plot = nullptr;
+    if ( newFrame ==nullptr ){
+        plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
+    }
+    else {
+        //Seems like the new axes ranges are not being set correctly.
+        //astSetD( newFrame, "Bottom(2)", 0 );
+        //astSetD( newFrame, "Top(2)", 50 );
+        plot = astPlot( newFrame, gbox, pbox, "Grid=1" );
+    }
     if ( ! plot || ! astOK ) {
         m_errorString = "astPlot() failed";
         return false;
@@ -154,7 +212,6 @@ AstGridPlotter::plot()
     double minDim = std::min( m_orect.width(), m_orect.height() );
     double desiredGapInPix = 5;
     double desiredGapInPerc = desiredGapInPix / minDim;
-
     astSetD( plot, "NumLabGap", desiredGapInPerc );
     desiredGapInPix = 3;
     desiredGapInPerc = desiredGapInPix / minDim;
@@ -172,6 +229,10 @@ AstGridPlotter::plot()
 #pragma GCC diagnostic pop
         astClear( plot, "Epoch,Equinox" );
     }
+    if ( !astOK ){
+        qWarning() << "AST error setting system"<<astStatus;
+        astClearStatus;
+    }
 
     for ( int i = 0 ; i < m_plotOptions.length() ; i++ ) {
         std::string stdstr = m_plotOptions[i].toStdString();
@@ -180,21 +241,22 @@ AstGridPlotter::plot()
         astSet( plot, stdstr.c_str() );
 #pragma GCC diagnostic pop
     }
+    if ( !astOK ){
+        qWarning() << "AST error setting plot options"<<astStatus;
+        astClearStatus;
+    }
 
     if ( true ) {
         double g1 = astGetD( plot, "Gap(1)" );
         double g2 = astGetD( plot, "Gap(2)" );
         astSetD( plot, "Gap(1)", g1 * m_densityModifier );
         astSetD( plot, "Gap(2)", g2 * m_densityModifier );
+        if (!astOK ){
+            qWarning() << "Ast error setting gap" << astStatus;
+            astClearStatus;
+        }
     }
 
-    if( false) {
-        fflush(stdout);
-        printf("====================== astshow begin ======================");
-        astShow( plot);
-        printf("======================= astshow end =======================");
-        fflush(stdout);
-    }
 
     if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );
@@ -205,9 +267,7 @@ AstGridPlotter::plot()
     }
 
     // call the actual plotting
-//    qDebug() << "Calling astGrid()";
     astGrid( plot );
-//    qDebug() << "Called astGrid()";
 
     if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );

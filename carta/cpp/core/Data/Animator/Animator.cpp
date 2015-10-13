@@ -1,6 +1,7 @@
 #include "Animator.h"
 #include "Data/Selection.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "CartaLib/CartaLib.h"
@@ -13,6 +14,7 @@ namespace Data {
 
 using Carta::State::StateInterface;
 using Carta::State::UtilState;
+using Carta::Lib::AxisInfo;
 
 class Animator::Factory : public Carta::State::CartaObjectFactory {
 
@@ -25,8 +27,8 @@ public:
 };
 
 
-
 const QString Animator::CLASS_NAME = "Animator";
+const QString Animator::TYPE = "type";
 bool Animator::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Animator::Factory());
@@ -39,7 +41,6 @@ Animator::Animator(const QString& path, const QString& id):
 }
 
 
-
 QString Animator::addLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
     bool linkAdded = false;
@@ -47,7 +48,10 @@ QString Animator::addLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
-            connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_adjustStateController(Controller*)) );
+            connect( controller, SIGNAL(dataChanged(Controller*)),
+                    this, SLOT(_adjustStateController(Controller*)) );
+            connect( controller, SIGNAL(axesChanged()),
+                    this, SLOT(_axesChanged()));
         }
     }
     else {
@@ -61,63 +65,62 @@ QString Animator::addLink( CartaObject* cartaObject ){
     return result;
 }
 
+
+
 void Animator::_adjustStateController( Controller* controller){
     int selectImageIndex = controller->getSelectImageIndex();
+    _updateSupportedZAxes( controller );
     _resetAnimationParameters(selectImageIndex);
 }
 
 void Animator::_adjustStateAnimatorTypes(){
     int animationCount = m_animators.size();
-    m_state.resizeArray( AnimatorType::ANIMATIONS, animationCount );
+    int animVisibleCount = _getAnimatorTypeVisibleCount();
+    m_state.resizeArray( AnimatorType::ANIMATIONS, animVisibleCount, StateInterface::PreserveNone );
     QList<QString> keys = m_animators.keys();
+    int j = 0;
     for ( int i = 0; i < animationCount; i++ ){
         if ( !m_animators[keys[i]]->isRemoved()){
-            QString objPath = UtilState::getLookup(AnimatorType::ANIMATIONS, QString::number(i));
-            m_state.setValue<QString>( objPath, keys[i] );
+            QString arrayPath = UtilState::getLookup(AnimatorType::ANIMATIONS, QString::number(j));
+            QString typePath = UtilState::getLookup( arrayPath, TYPE );
+            m_state.insertValue<QString>( typePath, keys[i] );
+            QString visiblePath = UtilState::getLookup( arrayPath, Util::VISIBLE );
+            m_state.insertValue<bool>( visiblePath, m_animators[keys[i]]->isVisible() );
+            j++;
         }
     }
     m_state.flushState();
 }
 
-void Animator::_channelIndexChanged( int index ){
-    changeChannelIndex( index );
+bool Animator::_addAnimatorType( const QString& type, QString& animatorTypeId ){
+    bool animatorAdded = false;
+    animatorTypeId = _initAnimator( type, &animatorAdded );
+    if ( animatorAdded ){
+        connect( m_animators[type], SIGNAL(indexChanged( int, const QString&)),
+                this, SLOT(_frameChanged(int, const QString&)));
+    }
+    return animatorAdded;
 }
 
-void Animator::clear(){
-    m_linkImpl->clear();
-}
+
 
 QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
     QString result;
     if ( !m_animators.contains( type )){
-        if ( type == Selection::IMAGE ){
-            bool animatorAdded = false;
-            animatorTypeId = _initAnimator( type, &animatorAdded );
-            if ( animatorAdded ){
-                connect( m_animators[Selection::IMAGE], SIGNAL(indexChanged( int)), this, SLOT(_imageIndexChanged(int)));
+        bool animatorAdded = _addAnimatorType( type, animatorTypeId );
+        if ( animatorAdded ){
+            if ( type == Selection::IMAGE ){
                 //Find a controller to use for setting up initial animation
                 //parameters.
-                int linkCount = m_linkImpl->getLinkCount();
-                for ( int i = 0; i < linkCount; i++ ){
-                    CartaObject* obj = m_linkImpl->getLink( i );
-                    Controller* controller = dynamic_cast<Controller*>(obj);
-                    if ( controller != nullptr ){
-                        int selectImage = controller->getSelectImageIndex();
-                        _resetAnimationParameters( selectImage );
-                        break;
-                    }
+                Controller* controller = _getControllerSelected();
+                if ( controller != nullptr ){
+                    int selectImage = controller->getSelectImageIndex();
+                    _resetAnimationParameters( selectImage );
                 }
             }
-        }
-        else if ( type == Selection::CHANNEL ){
-            bool animatorAdded = false;
-            animatorTypeId = _initAnimator( type, &animatorAdded );
-            if ( animatorAdded ){
-                connect( m_animators[Selection::CHANNEL], SIGNAL(indexChanged(int)), this, SLOT(_channelIndexChanged( int)));
+            else {
+                _updateAnimatorBound( type );
             }
-        }
-        else {
-            result = "Unrecognized animation initialization type=" +type;
         }
     }
     else {
@@ -126,6 +129,75 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
         animatorTypeId= m_animators[type]->getPath();
     }
     return result;
+}
+
+void Animator::_addRemoveImageAnimator(){
+    int maxImages = _getMaxImageCount();
+    if ( maxImages > 1 ){
+        QString animId;
+        addAnimator( Selection::IMAGE, animId );
+    }
+    else {
+        removeAnimator( Selection::IMAGE );
+    }
+}
+
+void Animator::_axesChanged(){
+    //Go through the list of controllers and get the list of available animators.
+    //Add any that are not present.
+    int linkCount = m_linkImpl->getLinkCount();
+    QSet<QString> existingAnimators;
+    for( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            std::set<AxisInfo::KnownType> zAxes = controller->_getAxesHidden();
+            for ( std::set<AxisInfo::KnownType>::iterator it = zAxes.begin();
+                    it != zAxes.end(); it++ ){
+                const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+                QString purpose = AxisMapper::getPurpose( *it, cs );
+                QString animId;
+                addAnimator( purpose, animId );
+                existingAnimators.insert( purpose );
+            }
+        }
+    }
+
+    //Remove any existing animators if they are no longer supported.
+    QList<QString> keys = m_animators.keys();
+    int animCount = keys.size();
+    for ( int i = 0; i < animCount; i++ ){
+        QString animType = m_animators[keys[i]]->getType();
+        bool existing = existingAnimators.contains( animType );
+        if ( !existing && animType != Selection::IMAGE ){
+            removeAnimator( animType );
+        }
+    }
+}
+
+void Animator::changeFrame( int index, const QString& animName ){
+    int linkCount = m_linkImpl->getLinkCount();
+    for( int i = 0; i < linkCount; i++ ){
+        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+        if ( controller != nullptr ){
+            if ( animName == Selection::IMAGE ){
+                controller->setFrameImage( index );
+            }
+            else {
+                AxisInfo::KnownType axisType = AxisMapper::getType( animName );
+                if ( axisType != AxisInfo::KnownType::OTHER ){
+                    controller->_setFrameAxis( index, axisType );
+                }
+            }
+        }
+    }
+}
+
+void Animator::clear(){
+    m_linkImpl->clear();
+}
+
+void Animator::_frameChanged( int index, const QString& axisName ){
+    changeFrame( index, axisName );
 }
 
 AnimatorType* Animator::getAnimator( const QString& type ){
@@ -138,6 +210,43 @@ AnimatorType* Animator::getAnimator( const QString& type ){
     }
     return animator;
 }
+
+int Animator::_getAnimatorTypeVisibleCount() const {
+    int count = 0;
+    QList<QString> keys = m_animators.keys();
+    int animationCount = keys.size();
+    for ( int i = 0; i < animationCount; i++ ){
+        if ( !m_animators[keys[i]]->isRemoved() ){
+            count++;
+        }
+    }
+    return count;
+}
+
+Controller* Animator::_getControllerSelected() const {
+    Controller* controller = nullptr;
+    if ( m_animators.contains( Selection::IMAGE ) ){
+        int imageIndex = m_animators[Selection::IMAGE]->getIndex();
+        controller = dynamic_cast<Controller*>(m_linkImpl->getLink( imageIndex));
+    }
+    else {
+        //Find the first controller that has an image.
+        int linkCount = m_linkImpl->getLinkCount();
+        for ( int i = 0; i < linkCount; i++ ){
+            Controller* control = dynamic_cast<Controller*>( m_linkImpl->getLink(i) );
+            if ( control != nullptr ){
+                int imageCount = control->getStackedImageCount();
+                if ( imageCount > 0 ){
+                    controller = control;
+                    break;
+                }
+            }
+        }
+    }
+
+    return controller;
+}
+
 
 int Animator::getLinkCount() const {
     return m_linkImpl->getLinkCount();
@@ -152,27 +261,6 @@ QString Animator::getLinkId( int linkIndex ) const {
     return m_linkImpl->getLinkId( linkIndex );
 }
 
-void Animator::changeChannelIndex( int index ){
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            controller->setFrameChannel( index );
-        }
-    }
-}
-
-void Animator::changeImageIndex( int selectedImage ){
-
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            controller->setFrameImage( selectedImage );
-        }
-    }
-    _resetAnimationParameters(selectedImage);
-}
 
 int Animator::getMaxImageCount() const {
     int linkCount = m_linkImpl->getLinkCount();
@@ -244,16 +332,12 @@ QString Animator::getSnapType(CartaObject::SnapshotType snapType) const {
 }
 
 
-
-void Animator::_imageIndexChanged( int selectedImage){
-    changeImageIndex( selectedImage );
-}
-
 QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
     QString animId;
     if ( !m_animators.contains( type ) ){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         AnimatorType* animObj = objMan->createObject<AnimatorType>();
+        animObj->_setType( type );
         m_animators.insert(type, animObj );
         _adjustStateAnimatorTypes();
         *newAnimator = true;
@@ -288,8 +372,6 @@ void Animator::_initializeCallbacks(){
 
 void Animator::_initializeState(){
     m_state.insertArray( AnimatorType::ANIMATIONS, 0);
-    QString animId;
-    addAnimator( Selection::CHANNEL, animId);
 }
 
 bool Animator::isLinked( const QString& linkId ) const {
@@ -317,7 +399,7 @@ QString Animator::removeAnimator( const QString& type ){
         m_animators[type]->setVisible( false );
         _adjustStateAnimatorTypes();
     }
-    else if ( type != Selection::IMAGE && type != Selection::CHANNEL ){
+    else if ( type != Selection::IMAGE ){
         result= "Error removing animator; unrecognized type="+type;
         Util::commandPostProcess( result);
     }
@@ -342,8 +424,8 @@ QString Animator::removeLink( CartaObject* cartaObject ){
 }
 
 
-
 void Animator::_resetAnimationParameters( int selectedImage ){
+    _addRemoveImageAnimator();
     if ( m_animators.contains( Selection::IMAGE) ){
         int maxImages = _getMaxImageCount();
         if ( maxImages == 0 ){
@@ -362,21 +444,9 @@ void Animator::_resetAnimationParameters( int selectedImage ){
             }
         }
     }
-    if ( m_animators.contains( Selection::CHANNEL)){
-       int maxChannel = 0;
-       int linkCount = m_linkImpl->getLinkCount();
-       for ( int i = 0; i < linkCount; i++ ){
-           Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-           if ( controller != nullptr ){
-               int highKey = controller->getChannelUpperBound();
-               if ( highKey > maxChannel ){
-                  maxChannel = highKey;
-               }
-           }
-       }
-       m_animators[Selection::CHANNEL]->setUpperBound( maxChannel /*+ 1*/);
-   }
+    _updateAnimatorBounds();
 }
+
 
 void Animator::_resetStateAnimator( const Carta::State::StateInterface& state, const QString& key ){
     try {
@@ -425,6 +495,94 @@ void Animator::resetStateData( const QString& state ){
     }
 }
 
+bool Animator::_setAnimatorVisibility( const QString& key, bool visible ){
+    bool visibilityChanged = false;
+    if ( m_animators.contains( key ) ){
+        bool animVisible = m_animators[key]->isVisible();
+        if ( animVisible != visible ){
+           m_animators[key]->setVisible( visible );
+           visibilityChanged = true;
+        }
+    }
+    return visibilityChanged;
+}
+
+bool Animator::_updateAnimatorBound( const QString& key ){
+    int maxFrame = 0;
+    int currentFrame = 0;
+    bool visibilityChanged = false;
+    AxisInfo::KnownType axisType = AxisMapper::getType( key );
+    std::vector<AxisInfo::KnownType> animationAxes;
+    Controller* controller = _getControllerSelected();
+    if ( controller != nullptr ){
+        maxFrame = controller->getFrameUpperBound( axisType );
+        currentFrame = controller->getFrame( axisType );
+        animationAxes = controller->_getAxisZTypes();
+    }
+    m_animators[key]->setUpperBound( maxFrame );
+    m_animators[key]->setFrame( currentFrame );
+
+    //Decide the visibility of the animator based on whether it is an animation axis
+    int animAxisCount = animationAxes.size();
+    if ( animAxisCount > 0 ){
+        bool axisFound = false;
+        if ( controller != nullptr ){
+            for ( int i = 0; i < animAxisCount; i++ ){
+                const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+                QString animPurpose = AxisMapper::getPurpose( animationAxes[i], cs );
+                if ( animPurpose == key ){
+                    axisFound = true;
+                    break;
+                }
+            }
+        }
+
+        //Okay we will set the animator visible if it has at least one
+        //frame.
+        if ( axisFound ){
+            if ( maxFrame > 1 ){
+                visibilityChanged = _setAnimatorVisibility( key, true );
+            }
+            else {
+                visibilityChanged = _setAnimatorVisibility( key, false );
+            }
+        }
+        else {
+            visibilityChanged = _setAnimatorVisibility( key, false );
+        }
+    }
+    return visibilityChanged;
+}
+
+void Animator::_updateAnimatorBounds(){
+    QList<QString> animKeys =m_animators.keys();
+    bool visibilityChanged = false;
+    for ( QString key : animKeys  ){
+        if ( key != Selection::IMAGE ){
+           bool animVisibility = _updateAnimatorBound( key );
+           if ( animVisibility ){
+               visibilityChanged = true;
+           }
+        }
+    }
+    if ( visibilityChanged ){
+        _adjustStateAnimatorTypes();
+    }
+}
+
+
+void Animator::_updateSupportedZAxes( Controller* controller ){
+    std::set<AxisInfo::KnownType> animAxes = controller->_getAxesHidden();
+    for ( std::set<AxisInfo::KnownType>::iterator it = animAxes.begin();
+        it != animAxes.end(); it++ ){
+        const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+        QString animName = AxisMapper::getPurpose( *it, cs );
+        if ( !m_animators.contains( animName )){
+            QString animId;
+            addAnimator( animName , animId );
+        }
+    }
+}
 
 Animator::~Animator(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();

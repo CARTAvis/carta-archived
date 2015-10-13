@@ -80,11 +80,11 @@ class tWindow(unittest.TestCase):
         # Verify that there is single colormap window.
         colorWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")))
         ActionChains(driver).click( colorWindow).perform()
+        ActionChains(driver).click( colorWindow).perform()
         
         # Remove the colormap window 
-        windowButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Window']/..")))
-        ActionChains(driver).click( windowButton).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        ActionChains(driver).context_click(colorWindow).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
+            ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
 
         # Verify that there is one less window than was there originally and the colormap window is not in the list.
@@ -133,7 +133,7 @@ class tWindow(unittest.TestCase):
         self.assertEqual( windowCount, newWindowCount, "Window count has changed")
         colorWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")))
         
-    # Test that we can add a window and change it into a statistics view.
+    # Test that we can add a window and change it into a histogram view.
     def test_add_window(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()

@@ -7,9 +7,16 @@ namespace Carta {
 
 namespace Data {
 
+const QString Util::ALPHA = "alpha";
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
 const QString Util::PREFERENCES = "preferences";
+const QString Util::RED = "red";
+const QString Util::BLUE = "blue";
+const QString Util::GREEN = "green";
+const QString Util::PEN_WIDTH = "width";
+const QString Util::VISIBLE = "visible";
+const int Util::MAX_COLOR = 255;
 
 Util::Util( ) {
 
