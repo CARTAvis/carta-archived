@@ -789,7 +789,7 @@ QStringList ScriptFacade::getChannelCount( const QString& controlId ) {
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = QStringList( QString::number( controller->getChannelUpperBound() ) );
+            resultList = QStringList( QString::number( controller->getFrameUpperBound( Carta::Lib::AxisInfo::KnownType::SPECTRAL ) ) );
         }
         else {
             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
