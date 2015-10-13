@@ -844,7 +844,7 @@ void Controller::_loadView(  bool newClips ) {
         }
     }
     else {
-        qDebug() << "Image index=" << imageIndex << " is out of range";
+        //qDebug() << "Image index=" << imageIndex << " is out of range";
     }
 }
 

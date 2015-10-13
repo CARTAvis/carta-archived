@@ -22,6 +22,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         #Get the upper bound of images from the image animator
         imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
         imageCount = imageUpperSpin.get_attribute( "value")
+        print "Expected count=",count," actualCount=",imageCount
         self.assertEqual( int(imageCount), count, "Incorrect image count")
     
     # Set the channel animator to the last channel.  Save a data snapshot.

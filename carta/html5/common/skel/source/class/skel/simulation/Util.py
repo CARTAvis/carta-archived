@@ -13,7 +13,7 @@ def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
         self.driver = webdriver.Firefox()
-        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        #self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
         self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
@@ -100,7 +100,8 @@ def load_image(unittest, driver, imageName):
     # Test image will ideally have more than 3 channels for a successful test run
     if imageName == "Default":
         #imageName = "N15693D.fits"
-        imageName="TWHydra_CO2_1line.image.fits"
+        #imageName="TWHydra_CO2_1line.image.fits"
+        imageName="Orion.methanol.cbc.contsub.image.fits"
 
     # Wait 30 seconds for the imageWindow to appear on the page
     imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
