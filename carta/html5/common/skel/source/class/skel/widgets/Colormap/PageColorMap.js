@@ -43,14 +43,17 @@ qx.Class.define("skel.widgets.Colormap.PageColorMap", {
          */
         setControls : function( controls ){
             if ( this.m_scaleSettings !== null ){
-                this.m_scaleSettings.setMapName( controls.colorMapName);
+                //this.m_scaleSettings.setMapName( controls.colorMapName);
                 this.m_scaleSettings.setReverse( controls.reverse );
                 this.m_scaleSettings.setInvert( controls.invert );
             }
            
             if ( this.m_colorMixSettings !== null ){
+                this.m_colorMixSettings.setReverse( controls.reverse );
+                this.m_colorMixSettings.setInvert( controls.invert );
                 this.m_colorMixSettings.setMix( controls.colorMix.redPercent, 
                         controls.colorMix.greenPercent, controls.colorMix.bluePercent );
+                this.m_colorMixSettings.setColorMapName( controls.colorMapName );
             }
         },
         

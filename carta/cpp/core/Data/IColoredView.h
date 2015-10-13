@@ -6,6 +6,8 @@
 #ifndef ICOLOREDVIEW_H_
 #define ICOLOREDVIEW_H_
 
+#include <QString>
+
 namespace Image {
 class ImageInterface;
 }

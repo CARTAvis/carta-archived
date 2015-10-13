@@ -56,6 +56,9 @@ public:
     /// enable printing of an axis
     virtual Me & enableAxis(int ind) = 0;
 
+    /// Set the axes the user will see (3 axis: x,y axes plus a hidden axis).
+    virtual void setDisplayAxes( std::vector<Carta::Lib::AxisInfo::KnownType> displayAxes ) = 0;
+
     /// get the sky coordinate system used right now
     virtual KnownSkyCS skyCS() = 0;
 

@@ -13,7 +13,7 @@ def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
         self.driver = webdriver.Firefox()
-        #self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
         self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
@@ -47,8 +47,8 @@ def _changeElementText(self, driver, elementText, inputValue):
 # Change the animation window to an image window
 def animation_to_image_window(unittest, driver):
     # Make sure the animation window is enabled by clicking an element within the window
-    channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
-    ActionChains(driver).click( channelText).perform()
+    animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
+    ActionChains(driver).click( animWindow ).perform();
     # Change the plugin of the animation window to an image loader
     viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
     ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
@@ -99,8 +99,8 @@ def load_image(unittest, driver, imageName):
     # Change this to a test image available where the tests are running
     # Test image will ideally have more than 3 channels for a successful test run
     if imageName == "Default":
-        imageName = "N15693D.fits"
-        #imageName="TWHydra_CO2_1line.image.fits"
+        #imageName = "N15693D.fits"
+        imageName="TWHydra_CO2_1line.image.fits"
 
     # Wait 30 seconds for the imageWindow to appear on the page
     imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
@@ -174,10 +174,13 @@ def load_image_different_window(unittest, driver, imageName):
     # Change the plugin of the empty window to an image loader 
     ActionChains(driver).context_click( emptyWindow ).send_keys(Keys.ARROW_DOWN
         ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+    return load_image_windowIndex( unittest, driver,imageName, 2 )
 
+def load_image_windowIndex( unittest,driver,imageName,windowIndex):
     # Ensure that there is a new image window
-    imageWindow2 = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "CasaImageLoader2")))
-    ActionChains(driver).double_click( imageWindow2 ).perform()
+    windowId = "CasaImageLoader"+str(windowIndex)
+    imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, windowId)))
+    ActionChains(driver).double_click( imageWindow ).perform()
 
     # Click the data button
     dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
@@ -206,7 +209,7 @@ def load_image_different_window(unittest, driver, imageName):
     imageElement = driver.find_element_by_id("pwUID0")
 
     # Return the second image loader window for further linking tests
-    return imageWindow2
+    return imageWindow
 
 # Remove link from main casa image loader 
 def remove_main_link(unittest, driver, imageWindow):
@@ -225,7 +228,7 @@ def remove_main_link(unittest, driver, imageWindow):
     time.sleep(timeout)
 
     # Exit links
-    ActionChains(driver).click().send_keys(Keys.ESCAPE).perform()
+    ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
 # Link second image 
 def link_second_image(unittest, driver, imageWindow2):
@@ -244,4 +247,4 @@ def link_second_image(unittest, driver, imageWindow2):
     time.sleep( timeout )
 
     # Exit links
-    ActionChains(driver).click().send_keys(Keys.ESCAPE).perform()
+    ActionChains(driver).send_keys(Keys.ESCAPE).perform()

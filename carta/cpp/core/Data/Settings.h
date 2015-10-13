@@ -57,8 +57,6 @@ private:
 
     static bool m_registered;
 
-    const static QString VISIBLE;
-
     Settings( const QString& path, const QString& id );
     class Factory;
 

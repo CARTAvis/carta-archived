@@ -18,9 +18,14 @@ class tSnapshotLayout(tSnapshot.tSnapshot):
     def test_analysis_saveRestore(self):    
         driver = self.driver
         timeout = selectBrowser._getSleep()
+        
+         # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        ActionChains(driver).click( imageWindow).perform()
+        time.sleep( timeout )
 
         #For later use, determine the number of DisplayWindows.
-        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayDesktop']")
+        windowList = driver.find_elements_by_xpath("//div[@qxclass='skel.widgets.Window.DisplayWindow']")
         windowCount = len( windowList )
         print "Window Count=", windowCount
 

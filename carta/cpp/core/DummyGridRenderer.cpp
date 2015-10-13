@@ -17,6 +17,10 @@ DummyGridRenderer::DummyGridRenderer()
 }
 
 void
+DummyGridRenderer::setAxisPermutations( std::vector<int> )
+{}
+
+void
 DummyGridRenderer::setInputImage( Image::ImageInterface::SharedPtr )
 { }
 
@@ -48,6 +52,14 @@ void
 DummyGridRenderer::setGridLinesVisible( bool )
 { }
 
+void DummyGridRenderer::setAxisLabelInfo( int, const Carta::Lib::AxisLabelInfo& ){
+
+}
+
+void
+DummyGridRenderer::setAxisLabel( int, const QString& ){
+}
+
 void
 DummyGridRenderer::setAxesVisible( bool )
 { }
@@ -58,6 +70,10 @@ DummyGridRenderer::setInternalLabels( bool )
 
 void
 DummyGridRenderer::setSkyCS( Lib::KnownSkyCS )
+{ }
+
+void
+DummyGridRenderer::setTickLength( double )
 { }
 
 void

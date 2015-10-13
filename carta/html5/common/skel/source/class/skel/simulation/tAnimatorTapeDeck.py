@@ -219,7 +219,9 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         self.assertEqual( int(currChannelValue), int(lastChannelValue), "Channel Animator did not return to last channel value")
 
-        # Change the Channel Animator to an Image Animator
+        # Load another image so the image animator is available.
+        Util.load_image( self, driver, "aJ.fits")
+        
         self.channel_to_image_animator( driver )
 
         # Go to the first image and record the first image value
@@ -279,8 +281,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         self.channel_to_image_animator( driver )
 
         # Record the last image value
-        self._getLastValue( driver )
-        lastImageValue = self._getImageValue( driver )
+        self._getLastValue( driver, "Image" )
+        lastImageValue = self._getCurrentValue( driver, "Image")
 
         # Find and click the lower spin box
         lowerBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageLowerBoundSpin']/input")))

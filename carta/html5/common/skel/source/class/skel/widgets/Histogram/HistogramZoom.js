@@ -29,7 +29,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramZoom", {
             var widgetLayout = new qx.ui.layout.VBox(1);
             this._setLayout(widgetLayout);
             
-            var zoomContainer = new qx.ui.groupbox.GroupBox("Zoom (mouse left drag)", "");
+            var zoomContainer = new qx.ui.groupbox.GroupBox("Zoom (graph mouse left drag)", "");
             zoomContainer.setContentPadding(1,1,1,1);
             zoomContainer.setLayout( new qx.ui.layout.VBox(1));
             this._add( zoomContainer );

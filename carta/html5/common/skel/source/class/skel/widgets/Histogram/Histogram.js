@@ -120,8 +120,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram", {
         m_mainComposite : null,
         m_settingsContainer : null,
         
-        m_MIN_DIM : 150,
-      
+        m_MIN_DIM : 195,
         m_id : null,
         
         m_view : null

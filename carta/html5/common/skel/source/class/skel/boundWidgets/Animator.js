@@ -55,9 +55,11 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     this._endBehaviorCB( animObj.endBehavior );
                     this._frameStepCB( animObj.frameStep );
                     this._frameRateCB( animObj.frameRate );
+                    this._settingsVisibleCB( animObj.showSettings );
                 }
                 catch( err ){
-                    console.log( "Could not parse: "+val );
+                    console.log( "AnimatorCB Could not parse: "+val );
+                    console.log( "AnimatorCB err: "+err );
                 }
             }
         },
@@ -175,9 +177,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( limit != this.m_highBoundsSpinner.getMaximum()){
                 this.m_highBoundsSpinner.setMaximum( limit );
             }
-            //var highSpinValue = this.m_highBoundsSpinner.getValue();
-            //this.m_highBoundsSpinner.setValue( limit );
-            var valStr = this.m_frameHigh + "";
+            var valStr = limit + "";
             if ( this.m_endLabel.getValue() !== valStr ){
                 this.m_endLabel.setValue( valStr);
             }
@@ -221,6 +221,14 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( this.m_frameLow != this.m_slider.getMinimum() ){
                 this.m_slider.setMinimum( this.m_frameLow );
             }
+        },
+        
+        /**
+         * Return the type of the animator.
+         * @return {String} - the type of animator.
+         */
+        getTitle : function(){
+            return this.m_title;
         },
 
         /**
@@ -296,11 +304,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var buttonComposite = this._initToolBar();
             var sliderComposite = this._initSliderControls();
             this._initSettings();
-
-            this._setLayout(new qx.ui.layout.VBox(5));
-            this._add(locationComposite);
-            this._add(sliderComposite);
-            this._add(buttonComposite);
+            
+            this.m_content = new qx.ui.container.Composite();
+            this.m_content.setLayout( new qx.ui.layout.VBox(2));
+            this._setLayout(new qx.ui.layout.VBox(0));
+            this._add( this.m_content );
+            
+            this.m_content.add(locationComposite);
+            this.m_content.add(sliderComposite);
+            this.m_content.add(buttonComposite);
             this.m_timer = new qx.event.Timer(1000);
             this._setTimerSpeed();
         },
@@ -330,7 +342,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }, this);
 
-            var endLabel = new qx.ui.basic.Label("out of ");
+            var endLabel = new qx.ui.basic.Label("<= ");
             this.m_endLabel = new qx.ui.basic.Label("");
             var locationComposite = new qx.ui.container.Composite();
             locationComposite.setLayout(new qx.ui.layout.HBox(5));
@@ -341,14 +353,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
             locationComposite.add(new qx.ui.core.Spacer(10, 10), {
                 flex : 1
             });
-            var settingsCheck = new qx.ui.form.CheckBox("Settings...");
-            settingsCheck.setToolTipText( "Show additional animator settings.");
-            settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, function() {
-                this._minMaxSettings(settingsCheck.getValue());
-            }, this);
-            locationComposite.add(settingsCheck);
+            this.m_settingsCheck = new qx.ui.form.CheckBox("Settings...");
+            skel.widgets.TestID.addTestId( this.m_settingsCheck, this.m_title+"SettingsCheck");
+            this.m_settingsCheck.setToolTipText( "Show additional animator settings.");
+            this.m_settingsListener = this.m_settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, this._sendSettingsCmd, this);
+            locationComposite.add(this.m_settingsCheck);
             return locationComposite;
         },
+        
+        
 
         /**
          * Initialize the additional less-used settings in the UI.
@@ -587,15 +600,19 @@ qx.Class.define("skel.boundWidgets.Animator", {
         /**
          * Show or hide the less-used additional animator settings.
          * 
-         * @param maximize
-         *                {Boolean} true if all the additional settings should
+         * @param maximize {Boolean} true if all the additional settings should
          *                be shown; false otherwise.
          */
         _minMaxSettings : function(maximize) {
+            var index = this.m_content.indexOf( this.m_settingsComposite);
             if (maximize) {
-                this._add(this.m_settingsComposite);
+                if ( index < 0 ){
+                    this.m_content.add(this.m_settingsComposite);
+                }
             } else {
-                this._remove(this.m_settingsComposite);
+                if ( index >= 0 ){
+                    this.m_content.remove(this.m_settingsComposite);
+                }
             }
         },
         
@@ -712,11 +729,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendEndBehavior : function(behavior) {
             if ( this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_animId + path.SEP_COMMAND + "setEndBehavior";
-                var params = "endBehavior:"+behavior;
-                
-                this.m_connector.sendCommand( cmd, params, function(){});
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_animId + path.SEP_COMMAND + "setEndBehavior";
+                    var params = "endBehavior:"+behavior;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
             }
         },
 
@@ -726,10 +744,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendFrame : function(frameIndex) {
             if (this.m_connector !== null) {
-                var paramMap = frameIndex;
-                var path = skel.widgets.Path.getInstance();
-                var setFramePath = this.m_animId  + path.SEP_COMMAND + "setFrame";
-                this.m_connector.sendCommand(setFramePath, paramMap, function(val) {});
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
+                    var paramMap = frameIndex;
+                    var path = skel.widgets.Path.getInstance();
+                    var setFramePath = this.m_animId  + path.SEP_COMMAND + "setFrame";
+                    this.m_connector.sendCommand(setFramePath, paramMap, function(val) {});
+                }
             }
         },
         
@@ -752,10 +772,27 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendFrameStep : function() {
             if ( this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_animId + path.SEP_COMMAND + "setFrameStep";
-                var params = "frameStep:"+this.m_stepSpin.getValue();
-                this.m_connector.sendCommand( cmd, params, function(){});
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_animId + path.SEP_COMMAND + "setFrameStep";
+                    var params = "frameStep:"+this.m_stepSpin.getValue();
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+            }
+        },
+        
+        /**
+         * Send a command to the server to change the visibility of the
+         * animator settings.
+         */
+        _sendSettingsCmd : function(){
+            if ( this.m_connector !== null ){
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
+                    var paramMap = "showSettings:"+this.m_settingsCheck.getValue();
+                    var pathDict = skel.widgets.Path.getInstance();
+                    var cmd = this.m_animId + pathDict.SEP_COMMAND + "setSettingsVisible";
+                    this.m_connector.sendCommand( cmd, paramMap, function(){});
+                }
             }
         },
         
@@ -764,10 +801,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendUserLowerBound : function(){
             if ( this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_animId + path.SEP_COMMAND + "setLowerBoundUser";
-                var params = this.m_lowBoundsSpinner.getValue();
-                this.m_connector.sendCommand( cmd, params, function(){});
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_animId + path.SEP_COMMAND + "setLowerBoundUser";
+                    var params = this.m_lowBoundsSpinner.getValue();
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
             }
         },
         
@@ -776,10 +815,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _sendUserUpperBound : function(){
             if ( this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_animId + path.SEP_COMMAND + "setUpperBoundUser";
-                var params = this.m_highBoundsSpinner.getValue();
-                this.m_connector.sendCommand( cmd, params, function(){});
+                if ( this.m_animId !== null && this.m_animId.length > 0 ){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_animId + path.SEP_COMMAND + "setUpperBoundUser";
+                    var params = this.m_highBoundsSpinner.getValue();
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
             }
         },
 
@@ -800,6 +841,19 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if (this.m_timer !== null ) {
                 this.m_timer.setInterval(interval);
             }
+        },
+        
+        /**
+         * Callback from the server to update the visibility of animator
+         * settings.
+         * @param visible {boolean} - true if animator settings should be visible;
+         *      false otherwise.
+         */
+        _settingsVisibleCB : function( visible ){
+            this.m_settingsCheck.removeListenerById( this.m_settingsListener );
+            this.m_settingsCheck.setValue( visible );
+            this._minMaxSettings( visible );
+            this.m_settingsListener = this.m_settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, this._sendSettingsCmd, this);
         },
         
         /**
@@ -841,7 +895,10 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_animId : "",
 
         //UI Widgets
+        m_content : null,
         m_settingsComposite : null,
+        m_settingsCheck : null,
+        m_settingsListener : null,
         m_endLabel : null,
         m_timer : null,
         m_slider : null,

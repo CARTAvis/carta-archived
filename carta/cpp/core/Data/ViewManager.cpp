@@ -1,12 +1,15 @@
 #include "Data/ViewManager.h"
 #include "Data/Animator/Animator.h"
-#include "Data/Animator/AnimationTypes.h"
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "Data/Colormap/Colormaps.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
-#include "Data/Image/Themes.h"
+#include "Data/Image/Grid/Themes.h"
+#include "Data/Image/Grid/LabelFormats.h"
+#include "Data/Image/Contour/ContourGenerateModes.h"
+#include "Data/Image/Contour/ContourSpacingModes.h"
+#include "Data/Image/Contour/ContourStyles.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
@@ -63,17 +66,20 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     objMan->printObjects();
-    Util::findSingletonObject<AnimationTypes>();
     Util::findSingletonObject<Clips>();
     Util::findSingletonObject<Colormaps>();
     Util::findSingletonObject<TransformsData>();
     Util::findSingletonObject<TransformsImage>();
     Util::findSingletonObject<ErrorManager>();
+    Util::findSingletonObject<LabelFormats>();
     Util::findSingletonObject<Preferences>();
     Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();
     Util::findSingletonObject<CoordinateSystems>();
     Util::findSingletonObject<Themes>();
+    Util::findSingletonObject<ContourGenerateModes>();
+    Util::findSingletonObject<ContourSpacingModes>();
+    Util::findSingletonObject<ContourStyles>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -396,8 +402,10 @@ void ViewManager::_initCallbacks(){
 void ViewManager::_initializeDefaultState(){
     setAnalysisView();
     //Load the default snapshot if one exists.
+    qDebug() << "Loading snapshots";
     _makeSnapshots();
     m_snapshots->initializeDefaultState();
+    qDebug() << "Finished loading snapshots";
     _refreshState();
 }
 
@@ -546,7 +554,7 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
                 m_statistics.insert( newIndex, statistics );
             }
         }*/
-        else {
+        else if ( plugin != NodeFactory::EMPTY ){
             qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
         }
     }
@@ -746,9 +754,7 @@ void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& 
 }
 
 void ViewManager::_refreshStateSingletons(){
-    CartaObject* obj = Util::findSingletonObject<AnimationTypes>();
-    obj->refreshState();
-    obj = Util::findSingletonObject<Clips>();
+    CartaObject* obj = Util::findSingletonObject<Clips>();
     obj->refreshState();
     obj = Util::findSingletonObject<Colormaps>();
     obj->refreshState();
@@ -833,7 +839,8 @@ void ViewManager::_removeView( const QString& plugin, int index ){
         objMan->destroyObject( m_statistics[index]->getId());
         m_statistics.removeAt( index );
     }
-    else {
+
+    else if ( plugin != NodeFactory::EMPTY ){
         qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
     }
 }
@@ -1010,6 +1017,8 @@ ViewManager::~ViewManager(){
         objMan->destroyObject(  m_snapshots->getId() );
         m_snapshots = nullptr;
     }
+
+
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
     _clearHistograms( 0, m_histograms.size() );

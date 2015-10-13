@@ -39,16 +39,9 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
          */
         _errorCB : function( textWidget ){
             return function( msg ){
-                if ( msg !== null && msg.length > 0 ){
-                    textWidget.setError( true );
-                }
-                else {
-                    var oldError = textWidget.isError();
-                    if ( oldError ){
-                        textWidget.setError( false );
-                        var errorMan = skel.widgets.ErrorHandler.getInstance();
-                        errorMan.clearErrors();
-                    }
+                if ( msg === null || msg.length == 0 ){
+                    var errorMan = skel.widgets.ErrorHandler.getInstance();
+                    errorMan.clearErrors();
                 }
             };
         },
@@ -100,7 +93,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramRange", {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
             
-            var overallContainer = new qx.ui.groupbox.GroupBox( "Zoom (mouse left drag)", "");
+            var overallContainer = new qx.ui.groupbox.GroupBox( "Zoom (graph mouse left drag)", "");
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
             overallContainer.setContentPadding(1,1,1,1);
             this._add( overallContainer );

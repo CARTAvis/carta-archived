@@ -28,7 +28,6 @@ ImageHistogram<T>::ImageHistogram( ):
 	m_intensityMin( ALL_INTENSITIES ),
 	m_intensityMax( ALL_INTENSITIES),
 	m_binCount( 25 ){
-	m_specIndex = -1;
 }
 
 template <class T>
@@ -109,6 +108,7 @@ bool ImageHistogram<T>::compute( ){
 		}
 	}
 	else {
+	    qDebug() << "m_histogram maker was null";
 		success = false;
 	}
 	return success;
@@ -125,10 +125,7 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
 			//exists because images can be rotated when they
 			//come into the viewer.  CoordinateSystem does not
 			//take rotation into account.
-			int spectralIndex = m_specIndex;
-			if ( spectralIndex == -1 ){
-				spectralIndex = cSys.findCoordinate(casa::Coordinate::SPECTRAL);
-			}
+			int spectralIndex = cSys.spectralAxisNumber();
 			if ( spectralIndex >= 0 ){
                 casa::IPosition imShape = image->shape();
 
@@ -146,26 +143,22 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
                 endPos[spectralIndex] = endIndex;
 
                 casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
-                casa::SubImage<T> subImage(*image, channelSlicer );
-                imageHistogram = new casa::LatticeHistograms<T>( subImage );
+                m_subImage.reset(new casa::SubImage<T> (*image, channelSlicer ));
+                imageHistogram = new casa::LatticeHistograms<T>( *m_subImage.get() );
 			}
 		}
 	}
 	else {
-		imageHistogram = new casa::LatticeHistograms<T>(*image );
+		imageHistogram = new casa::LatticeHistograms<T>( *m_image );
 	}
 	return imageHistogram;
 }
 
 template <class T>
 void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
-
     if ( val != nullptr ){
-
         m_image = val;
 	    _reset();
-        
-        
 	}
 }
 
@@ -189,9 +182,9 @@ bool ImageHistogram<T>::_reset(){
 			}
 			else {
 				//Make the histogram based on the region
-				subImage.reset(new casa::SubImage<T>( *m_image, *m_region ));
-				if ( subImage.get() != NULL ){
-					m_histogramMaker = _filterByChannels( subImage.get() );
+				m_subImage.reset(new casa::SubImage<T>( *m_image, *m_region ));
+				if ( m_subImage.get() != NULL ){
+					m_histogramMaker = _filterByChannels( m_subImage.get() );
 				}
 				else {
 					success = false;
@@ -383,7 +376,7 @@ void ImageHistogram<T>::toAscii( QTextStream& out ) const {
 template <class T>
 ImageHistogram<T>::~ImageHistogram() {
 	delete m_histogramMaker;
-	//delete subImage;
+	//delete m_subImage;
 }
 
 template class ImageHistogram<float>;

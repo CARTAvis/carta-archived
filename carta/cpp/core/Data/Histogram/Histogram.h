@@ -64,6 +64,11 @@ public:
     void clear();
 
     /**
+     * Clear the histogram zoom selection.
+     */
+    void clearSelection();
+
+    /**
      * Returns the server side id of the histogram user preferences.
      * @return the unique server side id of the user preferences.
      */
@@ -242,13 +247,6 @@ public:
     QString setPlaneRange( double minPlane, double maxPlane);
 
     /**
-     * Set whether or not to use a custom clip or just clip based on zoom.
-     * @param customClip true to use a seperate clip from the zoom; false otherwise.
-     * @return an error message if there was a problem; an empty string otherwise.
-     */
-    QString setCustomClip( bool customClip );
-
-    /**
      * Set the range in intensity units for the custom clip.
      * @param colorMin a lower bound for the custom clip in real units.
      * @param colorMax an upper bound for the dustom clip in real units.
@@ -306,6 +304,14 @@ public:
     QString setColorMinPercent( double colorMinPercent, bool complete );
 
     /**
+     * Set the channel manually that the histogram should display.
+     * @param channel - a channel index.
+     * @return - an error message if there was a problem setting the channel; and empty string
+     *      otherwise.
+     */
+    QString setPlaneChannel( int channel );
+
+    /**
      * Set the number of significant digits to use in calculations.
      * @param digits a positive number indicating the number of significant digits to use in calculations.
      * @return an error message if there was a problem setting the number of significant digits;
@@ -327,6 +333,9 @@ public:
     const static QString GRAPH_STYLE_OUTLINE;
     const static QString GRAPH_STYLE_FILL;
 
+signals:
+    void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
+
 public slots:
     void updateColorMap( Colormap* );
 
@@ -340,7 +349,7 @@ private slots:
 
     void _updateSize( const QSize& size );
     void _updateChannel( Controller* controller );
-    
+    void _updateColorClips( double colorMinPercent, double colorMaxPercent);
 
 private:
 
@@ -349,20 +358,18 @@ private:
 
     double _getBufferedIntensity( const QString& clipKey, const QString& percentKey );
     std::pair<int,int> _getFrameBounds() const;
-    double _getPercentile( const QString& fileName, int frameIndex, double intensity ) const;
-    bool _getIntensity( const QString& fileName, int frameIndex, double percentile, double* intensity ) const;
     Controller* _getControllerSelected() const;
     void _loadData( Controller* controller);
-
+    /**
+     * Set the single plane that should be used for data when the histogram is in single plane mode.
+     * @param channel the single frame to use for histogram data.
+     * @return an error message if there was a problem setting the channel; an empty string otherwise.
+     */
+    QString _setCubeChannel( int channel );
     QString _set2DFootPrint( const QString& params );
     void _setErrorMargin();
 
-    /**
-    * Set the single plane that should be used for data when the histogram is in single plane mode.
-    * @param channel the single frame to use for histogram data.
-    * @return an error message if there was a problem setting the channel; an empty string otherwise.
-    */
-    QString setCubeChannel( int channel );
+
 
     /**
     * Check if the given string represents a valid plane mode by doing a case
@@ -391,6 +398,7 @@ private:
     //User range selection
     void _startSelection(const QString& params );
     void _startSelectionColor( const QString& params );
+
     void _updateSelection(int x );
     void  _updateColorSelection();
     void _endSelection(const QString& params );
@@ -401,10 +409,10 @@ private:
     void _initializeStatics();
 
     void _refreshView();
-    void _resetBinCountBasedOnWidth();
+    bool _resetBinCountBasedOnWidth();
     void _resetDefaultStateData();
 
-    void _zoomToSelection();
+    QString _zoomToSelection();
 
     static bool m_registered;
 
@@ -417,9 +425,12 @@ private:
     const static QString CLIP_BUFFER_SIZE;
     const static QString CLIP_MIN;
     const static QString CLIP_MAX;
+    const static QString CLIP_MIN_CLIENT;
+    const static QString CLIP_MAX_CLIENT;
     const static QString CLIP_APPLY;
-    const static QString CUSTOM_CLIP;
     const static QString BIN_COUNT;
+    const static QString BIN_COUNT_MAX;
+    const static int BIN_COUNT_MAX_VALUE;
     const static QString BIN_WIDTH;
     const static QString COLOR_MIN;
     const static QString COLOR_MAX;
@@ -432,9 +443,12 @@ private:
     const static QString GRAPH_COLORED;
     const static QString PLANE_MODE;
     const static QString PLANE_MODE_SINGLE;
+    const static QString PLANE_MODE_CHANNEL;
     const static QString PLANE_MODE_RANGE;
     const static QString PLANE_MODE_RANGE_VALID;
     const static QString PLANE_MODE_ALL;
+    const static QString PLANE_CHANNEL;
+    const static QString PLANE_CHANNEL_MAX;
     const static QString PLANE_MIN;
     const static QString PLANE_MAX;
     const static QString FOOT_PRINT;

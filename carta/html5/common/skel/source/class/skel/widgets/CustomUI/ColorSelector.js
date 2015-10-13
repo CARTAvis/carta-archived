@@ -2,10 +2,11 @@
  * A custom color chooser.
  */
 /*******************************************************************************
- * @asset(skel/decoration/hue.jpg)
+ * @asset(skel/decoration/*)
+ * @asset(skel/decoration/hue-128.png)
  * @asset(skel/decoration/brightness-field-128.png)
  * @asset(skel/decoration/brightness-handle-128.gif)
- */
+ *******************************************************************************/
 qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
     {
         extend: qx.ui.control.ColorSelector,
@@ -186,7 +187,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     control.add(this.getChildControl("hue-saturation-handle"), {left: 0, top: this.m_JPG_SIZE});
                     break;
                 case "hue-saturation-field":
-                    control = new qx.ui.basic.Image("skel/decoration/hue.jpg");
+                    control = new qx.ui.basic.Image("skel/decoration/hue-128.png");
                     control.addListener("mousedown", this._onHueSaturationFieldMouseDown, this);
                     break;
                     

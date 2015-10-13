@@ -28,6 +28,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
+        # In order to have a channel and image animator available, we need at least two images,
+        # one of which has multiple channels.
+        Util.load_image( self, driver, "Default")
+        Util.load_image( self, driver, "aJ.fits")
+
         # Click on Animator window so its actions will be enabled
         animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
         ActionChains(driver).click( animWindow ).perform()
@@ -53,6 +58,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
             ActionChains(driver).click( animateParent ).perform()
 
         # Verify both the channel and image checkboxes are on the toolbar
+        menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
         channelCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Channel']/following-sibling::div[@class='qx-checkbox']")))
         animateCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Image']/following-sibling::div[@class='qx-checkbox']")))
 
@@ -72,13 +78,13 @@ class tAnimatorSettings(tAnimator.tAnimator):
         
         # Check the image animate button and verify that the image animator shows up
         self._click( driver, animateCheck )
-        imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Image']")))
+        imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Image']")))
         time.sleep( timeout )
         self._verifyAnimationCount( animWindow, 1)
         
         # Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
-        channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div[text()='Channel']")))
+        channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Channel']")))
         time.sleep( timeout )
         self._verifyAnimationCount( animWindow, 2 )
 
@@ -98,14 +104,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # The images have different numbers of channels
         Util.load_image( self, driver, "Default")
         Util.load_image( self, driver, "m31_cropped.fits")
-
-        # Show the Image Animator
-        channelText = driver.find_element_by_id("ChannelIndexText")
-        ActionChains(driver).click( channelText ).perform()
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ENTER).perform()
-        time.sleep( timeout )
 
         # Go to the first image 
         self._getFirstValue( driver, "Image")
@@ -138,6 +136,10 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
+        
+        # Hide the image animator
+        # Click on the animate button on the menu tool bar
+        self.hideImageAnimator( driver )
 
         # Record last channel value of the test image
         self._getLastValue( driver, "Channel" )
@@ -151,7 +153,8 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "First channel value:", firstChannelValue, "Last channel value:", lastChannelValue
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel" )
+        
 
         # In settings, click the Jump radio button. Scroll into view if button is not visible
         jumpButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelJumpRadioButton")))
@@ -177,7 +180,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self.channel_to_image_animator( driver )
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Image" )
 
         # Record the last image value
         self._getLastValue( driver, "Image" )
@@ -222,7 +225,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "Default")
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel" )
 
         # Go to first channel value and record the first channel value of the test image
         self._getFirstValue( driver, "Channel" )
@@ -259,7 +262,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self.channel_to_image_animator( driver )
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Image" )
 
         # Record the first image value
         self._getFirstValue( driver, "Image" )
@@ -301,11 +304,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
-        Util.load_image( self, driver, "aK.fits")
+        Util.load_image( self, driver, "Orion.cont.image.fits")
         Util.load_image( self, driver, "Default")
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel" )
 
         # Go to last channel value and record the last channel value of the test image 
         self._getLastValue( driver, "Channel" )
@@ -354,7 +357,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self.channel_to_image_animator( driver )
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Image" )
 
         # Go to the last image and record the last image value
         self._getLastValue( driver, "Image" )
@@ -387,7 +390,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "Default")
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel" )
 
         # Go to first channel value and record the first channel value of the test image
         self._getFirstValue( driver, "Channel" )
@@ -429,8 +432,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
          # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
+        # Load an image with at least one channel so the channel animator appears
+        Util.load_image( self, driver, "Default")
+        
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel" )
 
         # Find and click on the rate text. Scroll into view if not visible
         rateText = driver.find_element_by_xpath( "//div[@id='ChannelRate']/input")
@@ -445,11 +451,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
         rateValue = Util._changeElementText( self, driver, rateText, 200)
         self.assertEqual(int(rateValue), 100, "Rate value is greater than 100")
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
+        # Load another image so we see the image animator
+        Util.load_image(self, driver, "aJ.fits")
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Image" )
         time.sleep(timeout)
 
         # Find and click on the rate text. Scroll into view if not visible
@@ -472,8 +478,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
          # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
 
+        # Load an image with at least one channel so the channel animator will be visible
+        Util.load_image(self,driver,"Default")
+
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel")
 
         # Find and click the step increment textbox
         stepIncrementText = driver.find_element_by_xpath( "//div[@id='ChannelStepIncrement']/input")
@@ -488,11 +497,12 @@ class tAnimatorSettings(tAnimator.tAnimator):
         stepValue = Util._changeElementText( self, driver, stepIncrementText, 200)
         self.assertEqual( int(stepValue), 100, "Step increment value is greater than 100")
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
+        # Load another image so the image animator will be visible
+        Util.load_image( self, driver, "aJ.fits")
+        
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Image" )
 
         # Find and click the step increment textbox
         stepIncrementText = driver.find_element_by_xpath( "//div[@id='ImageStepIncrement']/input")
@@ -512,12 +522,12 @@ class tAnimatorSettings(tAnimator.tAnimator):
         driver = self.driver 
 
         # Open a test image so we have something to animate
-        Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "aH.fits")
+        Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Channel")
 
         # Find and click the step increment textbox
         stepIncrementText = driver.find_element_by_xpath( "//div[@id='ChannelStepIncrement']/input")
@@ -546,7 +556,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self.channel_to_image_animator( driver )
 
         # Open settings
-        self._openSettings( driver )
+        self._openSettings( driver, "Image")
 
         # Find and click the step increment textbox
         stepIncrementText = driver.find_element_by_xpath( "//div[@id='ImageStepIncrement']/input")

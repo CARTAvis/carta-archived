@@ -59,6 +59,9 @@ public:
     virtual KnownSkyCS
     skyCS() override;
 
+    virtual void
+    setDisplayAxes( std::vector<AxisInfo::KnownType> displayAxes ) override;
+
     virtual Me &
     setSkyCS( const KnownSkyCS & scs ) override;
 
@@ -81,6 +84,9 @@ protected:
 
     /// cached info per axis
     std::vector < AxisInfo > m_axisInfos;
+
+    /// display axes
+    std::vector < AxisInfo::KnownType> m_displayAxes;
 
     /// precisions
     std::vector < int > m_precisions;

@@ -32,6 +32,22 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
     members : {
         
         /**
+         * Set the clip that is selected based on the image loader that is
+         * selected.
+         * @param val {Number} - the clip amount.
+         */
+        setClipValue : function ( val ){
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                var clipValue = this.m_cmds[i].getClipPercent();
+                this.m_cmds[i].setServerSend( false );
+                if ( clipValue == val ){
+                    this.m_cmds[i].setValue( true );
+                }
+                this.m_cmds[i].setServerSend( true );
+            }
+        },
+        
+        /**
          * Callback for a change in the available clip percentages.
          */
         _clipPercentsChangedCB : function() {

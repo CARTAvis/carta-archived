@@ -1,26 +1,19 @@
 #include "DataSource.h"
-#include "DataGrid.h"
 #include "CoordinateSystems.h"
-#include "ImageGridServiceSynchronizer.h"
 #include "Data/Colormap/Colormaps.h"
-#include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
 #include "Data/Util.h"
 #include "Data/Colormap/TransformsData.h"
-#include "CartaLib/Hooks/GetWcsGridRenderer.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../../ImageRenderService.h"
-#include "../../ImageSaveService.h"
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
-#include <QDir>
-#include <QImageWriter>
-#include <QTime>
+
+using Carta::Lib::AxisInfo;
 
 namespace Carta {
 
@@ -32,27 +25,10 @@ const double DataSource::ZOOM_DEFAULT = 1.0;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
-class DataSource::Factory : public Carta::State::CartaObjectFactory {
-
-public:
-
-    Carta::State::CartaObject * create (const QString & path, const QString & id)
-    {
-        return new DataSource (path, id);
-    }
-};
-bool DataSource::m_registered =
-        Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
-                                                   new DataSource::Factory());
-
-
-
-DataSource::DataSource(const QString& path, const QString& id) :
-        CartaObject( CLASS_NAME, path, id),
+DataSource::DataSource() :
     m_image( nullptr ),
-    m_wcsGridRenderer( nullptr ),
-    m_igSync( nullptr )
-    {
+    m_axisIndexX( 0 ),
+    m_axisIndexY( 1 ){
         m_cmapUseCaching = true;
         m_cmapUseInterpolatedCaching = true;
         m_cmapCacheSize = 1000;
@@ -61,21 +37,6 @@ DataSource::DataSource(const QString& path, const QString& id) :
 
         //Initialize the rendering service
         m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
-
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        DataGrid* gridObj = objMan->createObject<DataGrid>();
-        m_dataGrid.reset( gridObj );
-        m_dataGrid->_initializeGridRenderer();
-        _initializeState();
-
-        m_wcsGridRenderer = m_dataGrid->_getRenderer();
-
-        // create the synchronizer
-        m_igSync.reset( new ImageGridServiceSynchronizer( m_renderService, m_wcsGridRenderer, this ) );
-
-        // connect its done() slot to our imageAndGridDoneSlot()
-        connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
-                 this, & DataSource::_imageAndGridDoneSlot );
 
         // assign a default colormap to the view
         auto rawCmap = std::make_shared < Carta::Core::GrayColormap > ();
@@ -91,18 +52,124 @@ DataSource::DataSource(const QString& path, const QString& id) :
 
 bool DataSource::_contains(const QString& fileName) const {
     bool representsData = false;
-    QString imageName = m_state.getValue<QString>(DATA_PATH);
-    if (imageName.endsWith(fileName)) {
+    if ( m_fileName.endsWith(fileName)) {
         representsData = true;
     }
     return representsData;
 }
 
-QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
+std::vector<int> DataSource::_fitFramesToImage( const vector<int>& sourceFrames ) const {
+    int sourceFrameCount = sourceFrames.size();
+    std::vector<int> outputFrames( sourceFrameCount );
+    if ( m_image ){
+        for ( int i = 0; i < sourceFrameCount; i++ ){
+            AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
+            int axisIndex = _getAxisIndex( axisType );
+            //The image doesn't h_ave this particular axis.
+            if ( axisIndex < 0 ) {
+                outputFrames[i] = 0;
+            }
+            //The image has the axis so make the frame bounded by the image size.
+            else {
+                outputFrames[i] = Carta::Lib::clamp( sourceFrames[i], 0, m_image-> dims()[axisIndex] - 1 );
+            }
+        }
+    }
+    return outputFrames;
+}
+
+
+std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
+    std::vector<AxisInfo::KnownType> types;
+    CoordinateFormatterInterface::SharedPtr cf(
+                   m_image-> metaData()-> coordinateFormatter()-> clone() );
+    int axisCount = cf->nAxes();
+    for ( int axis = 0 ; axis < axisCount; axis++ ) {
+        const AxisInfo & axisInfo = cf-> axisInfo( axis );
+        types.push_back( axisInfo.knownType() );
+    }
+    return types;
+}
+
+int DataSource::_getAxisIndex( AxisInfo::KnownType axisType ) const {
+    int index = -1;
+    CoordinateFormatterInterface::SharedPtr cf(
+                           m_image-> metaData()-> coordinateFormatter()-> clone() );
+    int axisCount = cf->nAxes();
+    for ( int i = 0; i < axisCount; i++ ){
+        AxisInfo axisInfo = cf->axisInfo( i );
+        if ( axisInfo.knownType() == axisType ){
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
+    AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
+    CoordinateFormatterInterface::SharedPtr cf(
+                       m_image-> metaData()-> coordinateFormatter()-> clone() );
+    int axisCount = cf->nAxes();
+    if ( index < axisCount && index >= 0 ){
+        AxisInfo axisInfo = cf->axisInfo( index );
+        type = axisInfo.knownType();
+    }
+    return type;
+}
+
+AxisInfo::KnownType DataSource::_getAxisXType() const {
+    return _getAxisType( m_axisIndexX );
+};
+
+AxisInfo::KnownType DataSource::_getAxisYType() const {
+    return _getAxisType( m_axisIndexY );
+}
+
+std::vector<AxisInfo::KnownType> DataSource::_getAxisZTypes() const {
+    std::vector<AxisInfo::KnownType> zTypes;
+    if ( m_image ){
+        int imageDims = m_image->dims().size();
+        for ( int i = 0; i < imageDims; i++ ){
+            if ( i != m_axisIndexX && i!= m_axisIndexY ){
+                AxisInfo::KnownType type = _getAxisType( i );
+                zTypes.push_back( type );
+            }
+        }
+    }
+    return zTypes;
+}
+
+QStringList DataSource::_getCoordinates( double x, double y,
+        Carta::Lib::KnownSkyCS system, const std::vector<int>& frames ) const{
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    cf-> setSkyCS( system );
+    int imageSize = m_image->dims().size();
+    std::vector < double > pixel( imageSize, 0.0 );
+    for ( int i = 0; i < imageSize; i++ ){
+        if ( i == m_axisIndexX ){
+            pixel[i] = x;
+        }
+        else if ( i == m_axisIndexY ){
+            pixel[i] = y;
+        }
+        else {
+            AxisInfo::KnownType axisType = _getAxisType( i );
+            int axisIndex = static_cast<int>( axisType );
+            pixel[i] = mFrames[axisIndex];
+        }
+    }
+    QStringList list = cf-> formatFromPixelCoordinate( pixel );
+    return list;
+}
+
+
+QString DataSource::_getCursorText( int mouseX, int mouseY,
+        Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames ){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
-
     bool valid = false;
     QPointF imgPt = _getImagePt( lastMouse, &valid );
     if ( valid ){
@@ -116,32 +183,24 @@ QString DataSource::_getCursorText( int mouseX, int mouseY, int frameIndex){
         QString coordName = m_coords->getName( cf->skyCS() );
         //out << "Default sky cs:" << coordName << "\n";
 
-        QString pixelValue = _getPixelValue( round(imgX), round(imgY), frameIndex );
+        QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
         out << pixelValue << " " << pixelUnits;
         out <<"Pixel:" << imgX << "," << imgY << "\n";
 
-        Carta::Lib::KnownSkyCS cs = m_dataGrid->getSkyCS();
-        //QList<Carta::Lib::KnownSkyCS> css = m_coords->getIndices();
-        //for ( Carta::Lib::KnownSkyCS cs : css ) {
-            cf-> setSkyCS( cs );
-            out << m_coords->getName( cs ) << ": ";
-            std::vector < Carta::Lib::AxisInfo > ais;
-            for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
-                const Carta::Lib::AxisInfo & ai = cf-> axisInfo( axis );
-                ais.push_back( ai );
-            }
-            std::vector < double > pixel( m_image-> dims().size(), 0.0 );
-            pixel[0] = imgX;
-            pixel[1] = imgY;
-            if( pixel.size() > 2) {
-                pixel[2] = frameIndex;
-            }
-            for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-                out << ais[i].shortLabel().html() << ":" << _getCoordinates( imgX, imgY, cs, i ) << " ";
-            }
-            out << "\n";
-        //}
+        cf-> setSkyCS( cs );
+        out << m_coords->getName( cs ) << ": ";
+        std::vector <AxisInfo> ais;
+        for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
+            const AxisInfo & ai = cf-> axisInfo( axis );
+            ais.push_back( ai );
+        }
+
+        QStringList coordList = _getCoordinates( imgX, imgY, cs, frames);
+        for ( size_t i = 0 ; i < ais.size() ; i++ ) {
+            out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
+        }
+        out << "\n";
 
         str.replace( "\n", "<br />" );
     }
@@ -152,14 +211,27 @@ QPointF DataSource::_getCenter() const{
     return m_renderService->pan();
 }
 
-
-Carta::State::StateInterface DataSource::_getGridState() const {
-    return m_dataGrid->_getState();
+std::vector<int> DataSource::_getAxisPerms() const {
+    std::vector<int> axisPerms;
+    //Note that permutations are 1-based whereas the axis
+    //index is zero-based.
+    if ( m_image ){
+        int imageSize = m_image->dims().size();
+        axisPerms.push_back( m_axisIndexX + 1 );
+        axisPerms.push_back( m_axisIndexY + 1 );
+        for ( int i = 0; i < imageSize; i++ ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                axisPerms.push_back( i + 1 );
+            }
+        }
+    }
+    return axisPerms;
 }
+
 
 QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
     QPointF imagePt;
-    if ( m_image != nullptr ){
+    if ( m_image ){
         imagePt = m_renderService-> screen2img (screenPt);
         *valid = true;
     }
@@ -169,13 +241,16 @@ QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
     return imagePt;
 }
 
-QString DataSource::_getPixelValue( double x, double y, int frameIndex ) const {
+QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
     QString pixelValue = "";
-    if ( x >= 0 && x < m_image->dims()[0] && y >= 0 && y < m_image->dims()[1] ) {
-        NdArray::RawViewInterface* rawData = _getRawData( frameIndex, frameIndex );
+    int valX = (int)(round(x));
+    int valY = (int)(round(y));
+    if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
+        NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
             NdArray::TypedView<double> view( rawData, false );
-            pixelValue = QString::number( view.get( {(int)(round(x)), (int)(round(y)) } ) );
+            double val =  view.get( { valX, valY } );
+            pixelValue = QString::number( val );
         }
     }
     return pixelValue;
@@ -194,12 +269,15 @@ QPointF DataSource::_getScreenPt( QPointF imagePt, bool* valid ) const {
     return screenPt;
 }
 
-int DataSource::_getFrameCount() const {
+int DataSource::_getFrameCount( AxisInfo::KnownType type ) const {
     int frameCount = 1;
     if ( m_image ){
+        int axisIndex = _getAxisIndex( type );
+
         std::vector<int> imageShape  = m_image->dims();
-        if ( imageShape.size() > 2 ){
-            frameCount = imageShape[2];
+        int imageDims = imageShape.size();
+        if ( imageDims > axisIndex && axisIndex >= 0 ){
+            frameCount = imageShape[axisIndex];
         }
     }
     return frameCount;
@@ -224,8 +302,17 @@ int DataSource::_getDimensions() const {
     return imageSize;
 }
 
+std::pair<int,int> DataSource::_getDisplayDims() const {
+    std::pair<int,int> displayDims(0,0);
+    if ( m_image ){
+        displayDims.first = m_image->dims()[m_axisIndexX];
+        displayDims.second = m_image->dims()[m_axisIndexY ];
+    }
+    return displayDims;
+}
+
 QString DataSource::_getFileName() const {
-    return m_state.getValue<QString>(DATA_PATH);
+    return m_fileName;
 }
 
 std::shared_ptr<Image::ImageInterface> DataSource::_getImage(){
@@ -236,19 +323,22 @@ std::shared_ptr<Image::ImageInterface> DataSource::_getImage(){
 
 std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> DataSource::_getPipeline() const {
     return m_pixelPipeline;
+}
 
+std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRenderer() const {
+    return m_renderService;
 }
 
 bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
     bool intensityFound = false;
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
+    int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL );
+    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         NdArray::TypedView<double> view( rawData, false );
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
         std::vector < double > allValues;
-        view.forEach(
-                [& allValues] ( const double  val ) {
+        view.forEach( [& allValues] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
             }
@@ -258,7 +348,6 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
         // indicate bad clip if no finite numbers were found
         if ( allValues.size() > 0 ) {
             int locationIndex = allValues.size() * percentile - 1;
-
             if ( locationIndex < 0 ){
                 locationIndex = 0;
             }
@@ -272,7 +361,8 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
 
 double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh );
+    int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL);
+    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
         u_int64_t countBelow = 0;
@@ -313,26 +403,34 @@ QString DataSource::_getPixelUnits() const {
     return units;
 }
 
-NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int channelEnd ) const {
+NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
     NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
-        auto frameSlice = SliceND().next();
-        for( size_t i=2; i < m_image->dims().size(); i++ ){
-            if ( i == 2 ){
+        int imageDim =m_image->dims().size();
+        SliceND frameSlice = SliceND().next();
+        for ( int i = 0; i < imageDim; i++ ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                int sliceSize = m_image->dims()[i];
                 SliceND& slice = frameSlice.next();
-                if (channelStart>=0 && channelEnd >= 0 ){
-                    slice.start( channelStart );
-                    slice.end( channelEnd + 1);
-                    
-                 }
-                 else {
-                    slice.start( 0 );
-                    slice.end( m_image->dims()[2] );
-                 }
-                 slice.step( 1 );
-            }
-            else {
-                frameSlice.next().index(0);
+                //If it is the target axis,
+                if ( i == axisIndex ){
+                   //Use the passed in frame range
+                   if (0 <= frameStart && frameStart < sliceSize &&
+                        0 <= frameEnd && frameEnd < sliceSize ){
+                        slice.start( frameStart );
+                        slice.end( frameEnd + 1);
+                   }
+                   else {
+                       slice.start(0);
+                       slice.end( sliceSize);
+                   }
+                }
+                //Or the entire range
+                else {
+                   slice.start( 0 );
+                   slice.end( sliceSize );
+                }
+                slice.step( 1 );
             }
         }
         rawData = m_image->getDataSlice( frameSlice );
@@ -340,8 +438,75 @@ NdArray::RawViewInterface * DataSource::_getRawData( int channelStart, int chann
     return rawData;
 }
 
-QString DataSource::_getStateString() const{
-    return m_state.toString();
+
+int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
+    int cacheIndex = 0;
+    int imageSize = m_image->dims().size();
+    int mult = 1;
+    for ( int i = imageSize-1; i >= 0; i-- ){
+        if ( i != m_axisIndexX && i != m_axisIndexY ){
+            AxisInfo::KnownType axisType = _getAxisType( i );
+            int index = static_cast<int>( axisType );
+            int frame = frames[index];
+            cacheIndex = cacheIndex + mult * frame;
+            mult = mult * m_image->dims()[i];
+        }
+    }
+    return cacheIndex;
+}
+
+NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
+    NdArray::RawViewInterface* rawData = nullptr;
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    if ( m_image ){
+        int imageDim =m_image->dims().size();
+        SliceND nextSlice = SliceND();
+        SliceND& slice = nextSlice;
+        for ( int i = 0; i < imageDim; i++ ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                AxisInfo::KnownType type = _getAxisType( i );
+                int axisIndex = static_cast<int>( type );
+                int frameIndex = mFrames[axisIndex];
+                slice.start( frameIndex );
+                slice.end( frameIndex + 1);
+            }
+            if ( i < imageDim - 1 ){
+                slice.next();
+            }
+        }
+        rawData = m_image->getDataSlice( nextSlice );
+    }
+    return rawData;
+}
+
+QString DataSource::_getViewIdCurrent( const std::vector<int>& frames ) const {
+   // We create an identifier consisting of the file name and -1 for the two display axes
+   // and frame indices for the other axes.
+   QString renderId = m_fileName;
+   if ( m_image ){
+       int imageSize = m_image->dims().size();
+       for ( int i = 0; i < imageSize; i++ ){
+           AxisInfo::KnownType axisType = _getAxisType( i );
+           int axisFrame = frames[static_cast<int>(axisType)];
+           QString prefix;
+           //Hidden axis identified with an "f" and the index of the frame.
+           if ( i != m_axisIndexX && i != m_axisIndexY ){
+               prefix = "h";
+           }
+           //Display axis identified by a "d" plus the actual axis in the image.
+           else {
+               if ( i == m_axisIndexX ){
+                   prefix = "dX";
+               }
+               else {
+                   prefix = "dY";
+               }
+               axisFrame = i;
+           }
+           renderId = renderId + "//"+prefix + QString::number(axisFrame );
+       }
+   }
+   return renderId;
 }
 
 double DataSource::_getZoom() const {
@@ -360,38 +525,6 @@ QSize DataSource::_getOutputSize() const {
     return size;
 }
 
-void DataSource::_gridChanged( const Carta::State::StateInterface& state, bool renderImage ){
-    bool stateChanged = m_dataGrid->_resetState( state );
-    if ( stateChanged ){
-        m_state.setObject(DataGrid::GRID, m_dataGrid->_getState().toString());
-        if ( renderImage ){
-            _render();
-        }
-    }
-}
-
-void DataSource::_imageAndGridDoneSlot(
-        QImage image,
-        Carta::Lib::VectorGraphics::VGList vgList,
-        int64_t /*jobId*/){
-    /// \todo we should make sure the jobId matches the last submitted job...
-    //qDebug() << "Image and grid done slot";
-
-    m_qimage = image;
-    // draw the grid over top
-    QTime t;
-    t.restart();
-    QPainter painter( & m_qimage );
-    painter.setRenderHint( QPainter::Antialiasing, true );
-    Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
-    if ( ! vgRenderer.render( vgList, painter ) ) {
-        qWarning() << "could not render grid vector graphics";
-    }
-
-    // schedule a repaint with the connector
-    emit renderingDone( m_qimage );
-
-}
 
 void DataSource::_initializeSingletons( ){
     //Load the available color maps.
@@ -400,75 +533,25 @@ void DataSource::_initializeSingletons( ){
     }
 }
 
-void DataSource::_initializeState(){
-    m_state.insertValue<QString>(DATA_PATH, "");
-    m_state.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString());
-    //Nobody is listening on the client side so we don't need to flush the state.
-}
 
-void DataSource::_load(int frameIndex, bool /*recomputeClipsOnNewFrame*/, double minClipPercentile, double maxClipPercentile){
-
-    if ( frameIndex < 0 ) {
-        frameIndex = 0;
-    }
-    if ( m_image-> dims().size() <= 2 ) {
-        frameIndex = 0;
-    }
-    else {
-        frameIndex = Carta::Lib::clamp( frameIndex, 0, m_image-> dims()[2] - 1 );
-    }
-
-    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
-    auto frameSlice = SliceND().next();
-    for ( size_t i = 2 ; i < m_image->dims().size() ; i++ ) {
-        frameSlice.next().index( i == 2 ? frameIndex : 0 );
-    }
-
-    // get a view of the data using the slice description and make a shared pointer out of it
-    NdArray::RawViewInterface::SharedPtr view( m_image-> getDataSlice( frameSlice ) );
+void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
+        double minClipPercentile, double maxClipPercentile){
+    int frameSize = frames.size();
+    CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( mFrames ) );
 
     //Update the clip values
-    _updateClips( view, frameIndex, minClipPercentile, maxClipPercentile );
+    if ( recomputeClipsOnNewFrame ){
+        _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
+    }
 
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 
-    // tell the render service to render this job
-    QString fileName = m_state.getValue<QString>(DATA_PATH);
-    QString argStr = QString( "%1//%2").arg( fileName ).arg(frameIndex);
-    m_renderService-> setInputView( view, argStr);
-    // if grid is active, request a grid rendering as well
-
-    if ( m_wcsGridRenderer ) {
-        m_wcsGridRenderer-> setInputImage( m_image );
-    }
-    _render();
-
+    QString renderId = _getViewIdCurrent( mFrames );
+    m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
 }
 
-void DataSource::_render(){
-    // erase current grid
-
-    QSize renderSize = m_renderService-> outputSize();
-    m_wcsGridRenderer-> setOutputSize( renderSize );
-
-    int leftMargin = 50;
-    int rightMargin = 10;
-    int bottomMargin = 50;
-    int topMargin = 10;
-
-    QRectF outputRect( leftMargin, topMargin,
-                       renderSize.width() - leftMargin - rightMargin,
-                       renderSize.height() - topMargin - bottomMargin );
-
-    QRectF inputRect(
-        m_renderService-> screen2img( outputRect.topLeft() ),
-        m_renderService-> screen2img( outputRect.bottomRight() ) );
-
-    m_wcsGridRenderer-> setImageRect( inputRect );
-    m_wcsGridRenderer-> setOutputRect( outputRect );
-
-    m_igSync-> start();
-}
 
 void DataSource::_resetZoom(){
     m_renderService-> setZoom( ZOOM_DEFAULT );
@@ -476,43 +559,19 @@ void DataSource::_resetZoom(){
 
 void DataSource::_resetPan(){
     if ( m_image != nullptr ){
-        m_renderService-> setPan(
-                { m_image-> dims()[0] / 2.0, m_image-> dims()[1] / 2.0 }
-        );
+        double xCenter =  m_image-> dims()[m_axisIndexX] / 2.0;
+        double yCenter = m_image-> dims()[m_axisIndexY] / 2.0;
+        m_renderService-> setPan({ xCenter, yCenter });
     }
 }
 
-void DataSource::_saveImage( const QString& saveName, /*int width, int height,*/ double scale,
-        int frameIndex/*, const Qt::AspectRatioMode aspectRatioMode*/ ){
-    QString fileName = _getFileName();
-    m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
-            m_image, m_pixelPipeline, fileName );
-    PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-    int width = prefSave->getWidth();
-    int height = prefSave->getHeight();
-    Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-    m_saveService->setOutputSize( QSize( width, height ) );
-    m_saveService->setAspectRatioMode( aspectRatioMode );
-    m_saveService->setFrameIndex( frameIndex );
 
-    m_saveService->setZoom( scale );
-
-    connect( m_saveService, & Carta::Core::ImageSaveService::ImageSaveService::saveImageResult,
-            this, & DataSource::_saveImageResultCB );
-
-    m_saveService->saveFullImage();
-}
-
-void DataSource::_saveImageResultCB( bool result ){
-    emit saveImageResult( result );
-    m_saveService->deleteLater();
-}
 
 bool DataSource::_setFileName( const QString& fileName ){
     QString file = fileName.trimmed();
     bool successfulLoad = true;
     if (file.length() > 0) {
-        if ( file != m_state.getValue<QString>(DATA_PATH)){
+        if ( file != m_fileName ){
             try {
                 auto res = Globals::instance()-> pluginManager()
                                       -> prepare <Carta::Lib::Hooks::LoadAstroImage>( file )
@@ -525,13 +584,8 @@ bool DataSource::_setFileName( const QString& fileName ){
                     _resetPan();
 
                     // clear quantile cache
-                    m_quantileCache.resize(0);
-                    int nf = 1;
-                    if( m_image-> dims().size() > 2){
-                        nf = m_image-> dims()[2];
-                    }
-                    m_quantileCache.resize( nf);
-                    m_state.setValue<QString>( DATA_PATH, file );
+                    _resizeQuantileCache();
+                    m_fileName = file;
                 }
                 else {
                     qWarning( "Could not find any plugin to load image");
@@ -550,6 +604,19 @@ bool DataSource::_setFileName( const QString& fileName ){
         successfulLoad = false;
     }
     return successfulLoad;
+}
+
+
+void DataSource::_resizeQuantileCache(){
+    m_quantileCache.resize(0);
+    int nf = 1;
+    int imageSize = m_image->dims().size();
+    for ( int i = 0; i < imageSize; i++ ){
+        if ( i != m_axisIndexX && i != m_axisIndexY ){
+            nf = nf * m_image->dims()[i];
+        }
+    }
+    m_quantileCache.resize( nf);
 }
 
 void DataSource::setColorMap( const QString& name ){
@@ -579,6 +646,35 @@ void DataSource::setColorAmounts( double newRed, double newGreen, double newBlue
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
+bool DataSource::_setDisplayAxis( AxisInfo::KnownType axisType, int* axisIndex ){
+    bool displayAxisChanged = false;
+    if ( m_image ){
+        int newXAxisIndex = _getAxisIndex(axisType);
+        int imageSize = m_image->dims().size();
+        if ( newXAxisIndex >= 0 && newXAxisIndex < imageSize ){
+            if ( newXAxisIndex != *axisIndex ){
+                *axisIndex = newXAxisIndex;
+                displayAxisChanged = true;
+            }
+        }
+    }
+    return displayAxisChanged;
+}
+
+void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTypes,
+        const std::vector<int>& frames ){
+    int displayAxisCount = displayAxisTypes.size();
+    CARTA_ASSERT( displayAxisCount == 2 );
+    bool axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
+    bool axisYChanged = _setDisplayAxis( displayAxisTypes[1], &m_axisIndexY );
+    if ( axisXChanged || axisYChanged ){
+        _resetPan();
+        _resizeQuantileCache();
+        std::vector<int> mFrames = _fitFramesToImage( frames );
+        _updateRenderedView( mFrames );
+    }
+}
+
 void DataSource::_setPan( double imgX, double imgY ){
     m_renderService-> setPan( QPointF(imgX,imgY) );
 }
@@ -603,30 +699,44 @@ void DataSource::setGamma( double gamma ){
 }
 
 
-void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view, int frameIndex,
-        double minClipPercentile, double maxClipPercentile ){
-    std::vector<double> clips = m_quantileCache[ frameIndex];
+void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    int quantileIndex = this->_getQuantileCacheIndex( mFrames );
+    std::vector<double> clips = m_quantileCache[ quantileIndex];
     NdArray::Double doubleView( view.get(), false );
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, {minClipPercentile, maxClipPercentile });
     bool clipsChanged = false;
-    if ( newClips.size() >= 2 ){
-        if( clips.size() < 2 ){
-            clipsChanged = true;
-        }
-        else {
+    int clipSize = newClips.size();
+    if ( clipSize >= 2 ){
+        if ( clips.size() >= 2 ){
             double ERROR_MARGIN = 0.000001;
             if ( qAbs( newClips[0] - clips[0]) > ERROR_MARGIN ||
                 qAbs( newClips[1] - clips[1]) > ERROR_MARGIN ){
                 clipsChanged = true;
             }
         }
-    }
-    if ( clipsChanged ){
-        m_quantileCache[ frameIndex ] = newClips;
-        m_pixelPipeline-> setMinMax( newClips[0], newClips[1] );
+        else {
+            clipsChanged = true;
+        }
     }
 
+    if ( clipsChanged ){
+        if ( newClips.size() >= 2 && newClips[0] != newClips[1] ){
+            m_quantileCache[ quantileIndex ] = newClips;
+            m_pixelPipeline-> setMinMax( newClips[0], newClips[1] );
+        }
+    }
+}
+
+std::shared_ptr<NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){
+    // get a view of the data using the slice description and make a shared pointer out of it
+    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( frames ) );
+    // tell the render service to render this job
+    QString renderId = _getViewIdCurrent( frames );
+    m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
+    return view;
 }
 
 void DataSource::_viewResize( const QSize& newSize ){
@@ -634,24 +744,8 @@ void DataSource::_viewResize( const QSize& newSize ){
 }
 
 
-QString DataSource::_getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system, int axis ) const{
-    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
-    cf-> setSkyCS( system );
-    std::vector < double > pixel( m_image-> dims().size(), 0.0 );
-    pixel[0] = x;
-    pixel[1] = y;
-    auto list = cf-> formatFromPixelCoordinate( pixel );
-    QString result = list[axis];
-    return result;
-}
-
-
-
 DataSource::~DataSource() {
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    if ( m_dataGrid != nullptr){
-        objMan->removeObject(m_dataGrid->getId());
-    }
+
 }
 }
 }

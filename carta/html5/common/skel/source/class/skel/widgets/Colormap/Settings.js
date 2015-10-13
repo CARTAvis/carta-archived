@@ -32,6 +32,7 @@ qx.Class.define("skel.widgets.Colormap.Settings", {
 
             this.m_tabView = new qx.ui.tabview.TabView();
             this.m_tabView.setContentPadding( 2, 2, 2, 2 );
+            this.m_tabView.setBarPosition( "left" );
             this._add( this.m_tabView );
             
             this.m_colormapPage = new skel.widgets.Colormap.PageColorMap();

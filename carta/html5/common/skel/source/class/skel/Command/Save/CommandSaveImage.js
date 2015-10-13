@@ -13,12 +13,13 @@ qx.Class.define("skel.Command.Save.CommandSaveImage", {
         this.base( arguments, "Save...", null );
         this.setEnabled( false );
         this.m_global = false;
+        this.m_saveAvailable = false;
         this.setToolTipText( "Save the window image.");
         
         var path = skel.widgets.Path.getInstance();
         var cmd = path.BASE_PATH + path.DATA_LOADER + path.SEP_COMMAND + "isSecurityRestricted";
         var params = "";
-        this.m_connector.sendCommand( cmd, params, this._updateSaveAccess);
+        this.m_connector.sendCommand( cmd, params, this._updateSaveAccess( this));
     },
     
     members : {
@@ -38,6 +39,19 @@ qx.Class.define("skel.Command.Save.CommandSaveImage", {
         },
         
         /**
+         * Returns whether or not save is supported based on both the application security
+         * and the window that is selected.
+         * @return {boolean} - true is save is supported; false otherwise.
+         */
+        _isCmdSupported : function(){
+            var supported = this.m_saveAvailable;
+            if ( supported ){
+                supported = arguments.callee.base.apply( this, arguments );
+            }
+            return supported;
+        },
+        
+        /**
          * Returns whether or not the user is allowed to save images.
          * @return {boolean} - true if images can be saved; false otherwise.
          */
@@ -48,19 +62,24 @@ qx.Class.define("skel.Command.Save.CommandSaveImage", {
         /**
          * Reset whether save functionality should be available to the
          * user based on information from the server.
-         * @param val {String} - a string representation for a boolean; true if
-         *      save is available and false otherwise.
+         * @param anObject {String} - this save command.
          */
-        _updateSaveAccess : function( val ){
-            if ( val === "true"){
-                this.m_saveAvailable = true;
-            }
-            else {
-                this.m_saveAvailable = false;
-            }
+        _updateSaveAccess : function( anObject ){
+            return function( val ){
+                if ( val === "true"){
+                    if ( anObject.m_saveAvailable ){
+                        anObject.m_saveAvailable = false;
+                    }
+                }
+                else {
+                    if ( !anObject.m_saveAvailable ){
+                        anObject.m_saveAvailable = true;
+                    }
+                }
+            };
         },
         
-        m_saveAvailable : false
+        m_saveAvailable : null
     
     }
 });
