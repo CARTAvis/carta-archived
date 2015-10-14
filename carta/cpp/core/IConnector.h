@@ -54,9 +54,6 @@ public:
     /// set state to a new value
     virtual void setState( const QString & path,  const QString & value) = 0;
 
-    //Return a string indicating the location where state is saved/restored.
-    virtual QString getStateLocation( const QString& saveName ) const = 0;
-
     /// read state
     virtual QString getState( const QString & path) = 0;
 
@@ -71,6 +68,12 @@ public:
     /// remove a callback for a state change event
     /// \todo maybe we can have a universal 'removeCallback' for commands/states
     virtual void removeStateCallback( const CallbackID & id ) = 0;
+
+    /// return filename where state is saved/restored.
+    /// \todo this should not be part of connector, as it has nothing to do with communication
+    /// between C++ and JavaScript
+    virtual QString getStateLocation( const QString& saveName ) const = 0;
+
 
     virtual ~IConnector() {}
 };

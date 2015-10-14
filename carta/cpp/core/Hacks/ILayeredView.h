@@ -1,5 +1,5 @@
 /**
- *
+ * Experimental code below. None of it is actually being used anywhere (yet).
  **/
 
 #pragma once
@@ -11,6 +11,14 @@
 #include <QPainter>
 #include <QSize>
 #include <unordered_set>
+
+namespace Carta
+{
+namespace Lib
+{
+
+}
+}
 
 namespace Carta
 {
