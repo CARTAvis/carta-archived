@@ -47,12 +47,6 @@ if [ ! -d $HOME/CARTA ]; then
 	mkdir $HOME/CARTA
 fi
 
-# check that $HOME/CARTA directory exists
-if [ ! -d $HOME/CARTA ]; then
-	echo "creating $HOME/CARTA directory..."
-	mkdir $HOME/CARTA
-fi
-
 # check that $HOME/CARTA/Images directory exists
 if [ ! -d $HOME/CARTA/Images ]; then
 	echo "creating $HOME/CARTA/Images directory..."
