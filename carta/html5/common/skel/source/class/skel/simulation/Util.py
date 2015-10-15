@@ -13,9 +13,9 @@ def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
         self.driver = webdriver.Firefox()
-        #self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
-        self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
+        #self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
 
     # Running on Mac (Chrome)
@@ -58,6 +58,15 @@ def get_window_count(unittest, driver):
      windowList = driver.find_elements_by_xpath("//div[@qxclass='qx.ui.window.Desktop']")
      windowCount = len( windowList )
      return windowCount
+ 
+# Determine whether the check box is checked
+def isChecked(unittest, checkBox):
+    styleAtt = checkBox.get_attribute( "style");
+    #print "Style", styleAtt
+    oldChecked = False
+    if "checked.png" in styleAtt:
+        oldChecked = True
+    return oldChecked
  
 #Set a custom layout with the given number of rows and columns
 def layout_custom(self, driver, rows, cols ):
@@ -212,6 +221,13 @@ def load_image_windowIndex( unittest,driver,imageName,windowIndex):
     # Return the second image loader window for further linking tests
     return imageWindow
 
+# Open image settings by clicking on image settings checkbox located on the menu bar
+def openImageSettings(unittest, driver):
+    imageSettingsCheckbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH,  "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Image Settings']/following-sibling::div[@class='qx-checkbox']")))
+    settingsOpen = isChecked(unittest, imageSettingsCheckbox )
+    if not settingsOpen:
+        ActionChains(driver).click( imageSettingsCheckbox ).perform()
+
 # Remove link from main casa image loader 
 def remove_main_link(unittest, driver, imageWindow):
     timeout = selectBrowser._getSleep()
@@ -249,3 +265,10 @@ def link_second_image(unittest, driver, imageWindow2):
 
     # Exit links
     ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+    
+# Verify that the number of animators that are visible is equal to the expected count
+def verifyAnimationCount(unittest, parentWidget, expectedCount):
+    animatorList = parentWidget.find_elements_by_xpath( ".//div[@qxclass='skel.boundWidgets.Animator']" )
+    animatorCount = len( animatorList )
+    print "Animator list count=", animatorCount
+    unittest.assertEqual( animatorCount, expectedCount, "Animator count does not match expected count")

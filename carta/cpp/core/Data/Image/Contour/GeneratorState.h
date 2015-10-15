@@ -76,6 +76,14 @@ public:
     bool isDashedNegative() const;
 
     /**
+     * Returns true if the method used to generate contour levels is based on a minimum
+     * level; false otherwise.
+     * @return true if the method used to generate contour levels is based on a minimum level;
+     *  false otherwise.
+     */
+    bool isGenerateMethodMinimum() const;
+
+    /**
      * Set whether or not negative contours should be dashed.
      * @param useDash - true if negative contours should be dashed; false if they
      *      should be solid lines.

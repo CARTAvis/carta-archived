@@ -516,25 +516,25 @@ void Animator::resetStateData( const QString& state ){
     }
 }
 
-bool Animator::_setAnimatorVisibility( const QString& key, bool visible ){
-    bool visibilityChanged = false;
+bool Animator::_setAnimatorAvailability( const QString& key, bool available ){
+    bool availableChanged = false;
     if ( m_animators.contains( key ) ){
-        bool animVisible = m_animators[key]->isVisible();
-        if ( animVisible != visible ){
-           m_animators[key]->setVisible( visible );
-           visibilityChanged = true;
+        if ( !available ){
+           m_animators[key]->setVisible( false );
         }
+        m_animators[key]->setRemoved( !available );
+        availableChanged = true;
     }
-    return visibilityChanged;
+    return availableChanged;
 }
 
 bool Animator::_updateAnimatorBound( const QString& key ){
     int maxFrame = 0;
     int currentFrame = 0;
-    bool visibilityChanged = false;
+    bool availableChanged = false;
     AxisInfo::KnownType axisType = AxisMapper::getType( key );
     if ( axisType == AxisInfo::KnownType::OTHER ){
-        return visibilityChanged;
+        return availableChanged;
     }
     std::vector<AxisInfo::KnownType> animationAxes;
     Controller* controller = _getControllerSelected();
@@ -546,7 +546,7 @@ bool Animator::_updateAnimatorBound( const QString& key ){
     m_animators[key]->setUpperBound( maxFrame );
     m_animators[key]->setFrame( currentFrame );
 
-    //Decide the visibility of the animator based on whether it is an animation axis
+    //Decide the availability of the animator based on whether it is an animation axis
     int animAxisCount = animationAxes.size();
     if ( animAxisCount > 0 ){
         bool axisFound = false;
@@ -561,35 +561,35 @@ bool Animator::_updateAnimatorBound( const QString& key ){
             }
         }
 
-        //Okay we will set the animator visible if it has at least one
+        //Okay we will set the animator available if it has at least one
         //frame.
         if ( axisFound ){
             if ( maxFrame > 1 ){
-                visibilityChanged = _setAnimatorVisibility( key, true );
+                availableChanged = _setAnimatorAvailability( key, true );
             }
             else {
-                visibilityChanged = _setAnimatorVisibility( key, false );
+                availableChanged = _setAnimatorAvailability( key, false );
             }
         }
         else {
-            visibilityChanged = _setAnimatorVisibility( key, false );
+            availableChanged = _setAnimatorAvailability( key, false );
         }
     }
-    return visibilityChanged;
+    return availableChanged;
 }
 
 void Animator::_updateAnimatorBounds(){
     QList<QString> animKeys =m_animators.keys();
-    bool visibilityChanged = false;
+    bool availableChanged = false;
     for ( QString key : animKeys  ){
         if ( key != Selection::IMAGE ){
-           bool animVisibility = _updateAnimatorBound( key );
-           if ( animVisibility ){
-               visibilityChanged = true;
+           bool animAvailable = _updateAnimatorBound( key );
+           if ( animAvailable ){
+               availableChanged = true;
            }
         }
     }
-    if ( visibilityChanged ){
+    if ( availableChanged ){
         _adjustStateAnimatorTypes();
     }
 }

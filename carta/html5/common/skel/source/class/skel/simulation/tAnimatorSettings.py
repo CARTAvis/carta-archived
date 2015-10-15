@@ -74,19 +74,19 @@ class tAnimatorSettings(tAnimator.tAnimator):
         time.sleep( timeout )
             
         # Verify that the animation window has no animators.
-        self._verifyAnimationCount( animWindow, 0)
+        Util.verifyAnimationCount( self, animWindow, 0)
         
         # Check the image animate button and verify that the image animator shows up
         self._click( driver, animateCheck )
         imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Image']")))
         time.sleep( timeout )
-        self._verifyAnimationCount( animWindow, 1)
+        Util.verifyAnimationCount( self, animWindow, 1)
         
         # Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
         channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Channel']")))
         time.sleep( timeout )
-        self._verifyAnimationCount( animWindow, 2 )
+        Util.verifyAnimationCount( self, animWindow, 2 )
 
         # Chrome gives an error trying to close the page; therefore, refresh the page before 
         # closing the browser. This is required because otherwise memory is not freed. 

@@ -55,11 +55,13 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.DisplayAxes", {
             var axisXLabel = new qx.ui.basic.Label( "X Axis:");
             this.m_axisXCombo = new skel.widgets.CustomUI.SelectBox( "setAxisX", "xAxis");
             this.m_axisXCombo.setToolTipText( "Set the horizontal display axis of the image(s).");
+            skel.widgets.TestID.addTestId( this.m_axisXCombo, "horizontalDisplayAxis");
             content.add( axisXLabel, {row:1,column:0});
             content.add( this.m_axisXCombo, {row:1,column:1});
             var axisYLabel = new qx.ui.basic.Label( "Y Axis:");
             this.m_axisYCombo = new skel.widgets.CustomUI.SelectBox( "setAxisY", "yAxis");
             this.m_axisYCombo.setToolTipText( "Set the vertical display axis of the image(s).");
+            skel.widgets.TestID.addTestId( this.m_axisYCombo, "verticalDisplayAxis");
             content.add( axisYLabel, {row:2,column:0});
             content.add( this.m_axisYCombo, {row:2,column:1});
             

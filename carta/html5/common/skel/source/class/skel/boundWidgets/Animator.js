@@ -324,7 +324,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
-            
+            skel.widgets.TestID.addTestId( titleLabel, this.m_title+"AnimatorType");
             this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
             this.m_indexText.setIntegerOnly( true );
             this.m_indexText.setToolTipText( "Set the current value.");
