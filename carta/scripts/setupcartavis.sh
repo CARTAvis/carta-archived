@@ -3,7 +3,7 @@
 # Title       :	setupcartavis.sh
 # Author      :	Alex Strilets, strilets@ualberta.ca
 # Date        :	May 19, 2015
-# Descritpion :	this is shell script to setup catsvis envirotnemt before running cartavis.sh 
+# Descritpion :	this is shell script to setup catsvis envirotnemt before running cartavis.sh
 ####################################################################################################
 PN=`basename "$0"`
 
@@ -63,6 +63,24 @@ fi
 if [ ! -d $HOME/CARTA/snapshots ]; then
 	echo "creating $HOME/CARTA/snapshots directory..."
 	mkdir $HOME/CARTA/snapshots
+fi
+
+# check that $HOME/CARTA/snapshots/data directory exists
+if [ ! -d $HOME/CARTA/snapshots/data ]; then
+	echo "creating $HOME/CARTA/snapshots/data directory..."
+	mkdir $HOME/CARTA/snapshots/data
+fi
+
+# check that $HOME/CARTA/snapshots directory exists
+if [ ! -d $HOME/CARTA/snapshots/layout ]; then
+	echo "creating $HOME/CARTA/snapshots/layout directory..."
+	mkdir $HOME/CARTA/snapshots/layout
+fi
+
+# check that $HOME/CARTA/snapshots/preferences directory exists
+if [ ! -d $HOME/CARTA/snapshots/preferences ]; then
+	echo "creating $HOME/CARTA/snapshots directory..."
+	mkdir $HOME/CARTA/snapshots/preferences
 fi
 
 # check that sample files exists
