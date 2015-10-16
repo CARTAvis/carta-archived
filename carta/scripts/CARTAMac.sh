@@ -25,7 +25,7 @@ imagefile=$HOME/CARTA/Images/aH.fits
 
 if [ ! -e $HOME/data/ephemerides -o\
      ! -e $HOME/data/geodetic -o\
-     ! -d $HOME/CARTA/Images -o\
+     ! -d $HOME/CARTA/Images/CubesTest -o\
      ! -d $HOME/.cartavis/log  -o\
      ! -f $HOME/.cartavis/config.json -o\
      ! -d $HOME/CARTA/snapshots/data ]; then

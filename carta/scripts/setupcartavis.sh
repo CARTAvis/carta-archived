@@ -53,6 +53,12 @@ if [ ! -d $HOME/CARTA/Images ]; then
 	mkdir $HOME/CARTA/Images
 fi
 
+# check that sample files exists
+if [ ! -d $HOME/CARTA/Images/CubesTest ]; then
+    echo "copying sample images to $HOME/CARTA/Images directory ..."
+    cp -R $dirname/images/* $HOME/CARTA/Images
+fi
+
 # check that $HOME/CARTA/snapshots directory exists
 if [ ! -d $HOME/CARTA/snapshots ]; then
 	echo "creating $HOME/CARTA/snapshots directory..."
@@ -75,10 +81,4 @@ fi
 if [ ! -d $HOME/CARTA/snapshots/preferences ]; then
 	echo "creating $HOME/CARTA/snapshots directory..."
 	mkdir $HOME/CARTA/snapshots/preferences
-fi
-
-# check that sample files exists
-if [ ! -f $HOME/CARTA/Images/555wmos.fits ]; then
-	echo "copying sample images to $HOME/CARTA/Images directory ..."
-	cp $dirname/images/*.fits $HOME/CARTA/Images
 fi
