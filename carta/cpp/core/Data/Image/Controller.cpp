@@ -1368,16 +1368,11 @@ QStringList Controller::getImageDimensions( ){
     return result;
 }
 
-QStringList Controller::getOutputSize( ){
-    QStringList result;
+QSize Controller::getOutputSize( ){
+    QSize result(-1, -1);
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        QSize outputSize = m_datas[imageIndex]->_getOutputSize();
-        result.append( QString::number( outputSize.width() ) );
-        result.append( QString::number( outputSize.height() ) );
-    }
-    else {
-        result = QStringList("");
+        result = m_datas[imageIndex]->_getOutputSize();
     }
     return result;
 }

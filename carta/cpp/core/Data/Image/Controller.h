@@ -179,7 +179,7 @@ public:
     /**
      * Get the dimensions of the image viewer (window size).
      */
-    QStringList getOutputSize( );
+    QSize getOutputSize( );
 
 
     QString getPreferencesId() const;
