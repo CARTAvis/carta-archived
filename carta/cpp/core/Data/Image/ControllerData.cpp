@@ -410,6 +410,11 @@ void ControllerData::_render( const std::vector<int>& frames, const Carta::Lib::
     QPointF topLeftInput = imageService-> screen2img( topLeft );
     QPointF bottomRightInput = imageService->screen2img( bottomRight );
 
+    QRectF inputRect( topLeftInput, bottomRightInput );
+
+    gridService-> setImageRect( inputRect );
+    gridService-> setOutputRect( outputRect );
+
     std::vector<AxisDisplayInfo> axisInfo = m_dataSource->_getAxisDisplayInfo();
     int axisCount = axisInfo.size();
     for ( int i = 0; i < axisCount; i++ ){
@@ -422,12 +427,6 @@ void ControllerData::_render( const std::vector<int>& frames, const Carta::Lib::
         }
     }
     gridService->setAxisDisplayInfo( axisInfo );
-
-    QRectF inputRect( topLeftInput, bottomRightInput );
-
-    gridService-> setImageRect( inputRect );
-    gridService-> setOutputRect( outputRect );
-
 
     std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
     m_drawSync->setInput( rawData );

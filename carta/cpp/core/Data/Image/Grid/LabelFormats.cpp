@@ -80,6 +80,9 @@ QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType a
         else if ( axis == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
             defaultFormat = FORMAT_DECIMAL;
         }
+        else if ( axis == Carta::Lib::AxisInfo::KnownType::STOKES ){
+            defaultFormat = FORMAT_DECIMAL;
+        }
     }
     return defaultFormat;
 }
@@ -187,6 +190,9 @@ QStringList LabelFormats::getLabelFormats( Carta::Lib::AxisInfo::KnownType direc
         buff.append( FORMAT_DEFAULT );
         buff.append( FORMAT_NONE );
     }
+    else if ( direction == Carta::Lib::AxisInfo::KnownType::STOKES ){
+        buff.append( FORMAT_NONE );
+    }
     else {
         buff.append( FORMAT_DEFAULT );
         buff.append( FORMAT_NONE );
@@ -219,6 +225,9 @@ std::vector<int> LabelFormats::_getFormatIndices( Carta::Lib::AxisInfo::KnownTyp
         indices.push_back( _getIndex( FORMAT_DEG_MIN_SEC ) );
         indices.push_back( _getIndex( FORMAT_DECIMAL_DEG ) );
         indices.push_back( _getIndex( FORMAT_DEFAULT) );
+        indices.push_back( _getIndex( FORMAT_NONE ) );
+    }
+    else if ( axisIndex == Carta::Lib::AxisInfo::KnownType::STOKES ){
         indices.push_back( _getIndex( FORMAT_NONE ) );
     }
     else {
