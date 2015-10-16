@@ -1350,18 +1350,18 @@ QPointF Controller::getCenterPixel() const {
     return center;
 }
 
-QStringList Controller::getImageDimensions( ){
-    QStringList result;
+std::vector<int> Controller::getImageDimensions( ){
+    std::vector<int> result;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         int dimensions = m_datas[imageIndex]->_getDimensions();
         for ( int i = 0; i < dimensions; i++ ) {
             int d = m_datas[imageIndex]->_getDimension( i );
-            result.append( QString::number( d ) );
+            result.push_back( d );
         }
     }
     else {
-        result = QStringList("");
+        result.push_back(0);
     }
     return result;
 }

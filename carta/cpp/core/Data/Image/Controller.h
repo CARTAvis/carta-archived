@@ -174,7 +174,7 @@ public:
     /**
      * Get the image dimensions.
      */
-    QStringList getImageDimensions( );
+    std::vector<int> getImageDimensions( );
 
     /**
      * Get the dimensions of the image viewer (window size).

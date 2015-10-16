@@ -772,9 +772,14 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getImageDimensions( );
-            if ( resultList[0] == "" ) {
+            std::vector<int> dimensions = controller->getImageDimensions();
+            if ( dimensions.size() == 1 && dimensions[0] == 0 ) {
                 resultList = _logErrorMessage( ERROR, "Could not obtain image dimensions." );
+            }
+            else {
+                for ( auto &i: dimensions ) {
+                    resultList.append( QString::number( i ) );
+                }
             }
         }
         else {
