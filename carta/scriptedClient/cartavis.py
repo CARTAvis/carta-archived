@@ -6,7 +6,6 @@ import time
 import json
 
 from tagconnector import TagConnector
-from statistics import Statistics
 from histogram import Histogram
 from animator import Animator
 from colormap import Colormap
@@ -194,24 +193,6 @@ class Cartavis:
                 histogramViews.append(histogramView)
         return histogramViews
 
-    def getStatisticsViews(self):
-        """
-        Return a list of the statistics views defined by the layout.
-
-        Returns
-        -------
-        list
-            A list of Statistics objects.
-        """
-        commandStr = "getStatisticsViews"
-        statisticsViewsList = self.con.cmdTagList(commandStr)
-        statisticsViews = []
-        if (statisticsViewsList[0] != ""):
-            for sv in statisticsViewsList:
-                statisticsView = Statistics(sv, self.con)
-                statisticsViews.append(statisticsView)
-        return statisticsViews
-
     def setAnalysisLayout(self):
         """
         Set the layout to a predefined analysis layout.
@@ -271,7 +252,6 @@ class Cartavis:
             Valid plugin names [NOTE: this list may not be complete]:
                 CasaImageLoader
                 Animator
-                Statistics
                 Colormap
                 Histogram
                 Hidden

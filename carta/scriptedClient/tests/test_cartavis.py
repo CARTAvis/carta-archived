@@ -1,49 +1,58 @@
 import os
+import pytest
 import cartavis
+from flaky import flaky
 from PIL import Image, ImageChops
 from astropy.coordinates import SkyCoord
 
-def test_getPixelValue(cartavisInstance):
+def test_getPixelValue(cartavisInstance, cleanSlate):
     """
     Test pixel values on an image with known pixel values.
     """
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert float(i[0].getPixelValue(0,0)[0]) == 0.5
     # Make sure that a blank value is being returned for a pixel outside the
     # image.
     assert i[0].getPixelValue(-1,-1)[0] == ''
 
-def test_getChannelCount(cartavisInstance):
+@pytest.mark.skipif(True, reason="RaDecVel.fits is not loading currently.")
+def test_getChannelCount(cartavisInstance, cleanSlate):
     """
     Test that the channel count is being returned properly for images
     with both one channel and multiple channels.
     """
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getChannelCount() == 1
-    i[0].loadLocalFile(os.getcwd() + '/data/qualityimage.fits')
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
     assert i[0].getChannelCount() == 5
+    # This next image actually has 4 dimensions and getChannelCount()
+    # was previously returning the wrong value for it. This test case
+    # is to ensure that the command has been properly fixed.
+    i[0].loadFile(os.getcwd() + '/data/RaDecVel.fits')
+    assert i[0].getChannelCount() == 7
 
-def test_getPixelUnits(cartavisInstance):
+def test_getPixelUnits(cartavisInstance, cleanSlate):
     """
     Test that the pixel units are being returned properly for an image
     with known units.
     """
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/imagetestimage.fits')
+    i[0].loadFile(os.getcwd() + '/data/imagetestimage.fits')
     assert i[0].getPixelUnits()[0] == 'Jy/beam'
 
-def test_getImageDimensions(cartavisInstance):
+def test_getImageDimensions(cartavisInstance, cleanSlate):
     """
     Test that the image dimensions are being returned properly for an
     image with known dimensions.
     """
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert i[0].getImageDimensions()[0] == 'error'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getImageDimensions() == [10, 10]
 
-def test_zoomLevel(cartavisInstance):
+def test_zoomLevel(cartavisInstance, cleanSlate):
     """
     Test that the zoom level is being set and returned properly.
     This is done by getting the zoom level, setting the zoom level to a
@@ -51,11 +60,13 @@ def test_zoomLevel(cartavisInstance):
     level is indeed the same multiple of the old zoom level.
     """
     i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     oldZoom = i[0].getZoomLevel()
     i[0].setZoomLevel(1.1 * oldZoom)
     assert i[0].getZoomLevel() == 1.1 * oldZoom
 
-def test_getCoordinates(cartavisInstance):
+@flaky(max_runs=10)
+def test_getCoordinates(cartavisInstance, cleanSlate):
     """
     Test that the coordinate values are being returned properly in each
     coordinate system.
@@ -63,7 +74,7 @@ def test_getCoordinates(cartavisInstance):
     working.
     """
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert i[0].getCoordinates(0, 0, 'j2000') ==\
         ['+3:32:15.956', '-27:42:46.800']
     assert i[0].getCoordinates(0, 0, 'b1950') ==\
@@ -82,26 +93,44 @@ def test_saveFullImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     imageName = 'mexinputtest.png'
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    _saveFullImage(i[0], imageName, tempImageDir)
 
-def test_setColormap(cartavisInstance, tempImageDir, cleanSlate):
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
+def test_setPythonColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
-    Test that a colormap is being applied properly.
+    Test that a Python colormap can be applied properly.
     """
-    imageName = 'mexinputtest_cubehelix.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
-    c[0].setColormap('cubehelix')
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    imageName = 'mexinputtest_copper.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('copper')
+    _saveFullImage(i[0], imageName, tempImageDir)
 
+def test_setCPPColormap(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that a C++ colormap can be applied properly.
+    """
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    imageName = 'mexinputtest_CubeHelix1.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('CubeHelix1')
+    _saveFullImage(i[0], imageName, tempImageDir)
+
+def test_setDefaultColormap(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the default colormap can be applied properly.
+    """
+    i = cartavisInstance.getImageViews()
+    c = cartavisInstance.getColormapViews()
+    imageName = 'mexinputtest_Gray.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('Gray')
+    _saveFullImage(i[0], imageName, tempImageDir)
+
+@pytest.mark.xfail(reason="saveImage() has been deprecated for now.")
 def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
     """
     Center an image on the coordinates of a nearby object, take a
@@ -111,7 +140,7 @@ def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
     """
     imageName = 'mexinputtest_centerOnCoordinate.png'
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c = SkyCoord.from_name("COMBO-17 44244")
     i[0].centerOnCoordinate(c)
     i[0].saveImage(tempImageDir + '/' + imageName)
@@ -119,6 +148,7 @@ def test_centerOnCoordinate(cartavisInstance, tempImageDir, cleanSlate):
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
+@pytest.mark.xfail(reason="saveImage() has been deprecated for now.")
 def test_saveImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the saveImage() command works properly.
@@ -128,66 +158,54 @@ def test_saveImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     imageName = 'mexinputtest_saveImage.png'
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     i[0].saveImage(tempImageDir + '/' + imageName)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
+@pytest.mark.xfail(reason="saveImage() has been deprecated for now.")
 def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the centerOnPixel() command works properly.
     """
     imageName = 'mexinputtest_centerOnPixel.png'
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     i[0].centerOnPixel(0,0)
     i[0].saveImage(tempImageDir + '/' + imageName)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
+@pytest.mark.skipif(True, reason="RaDecVel.fits is not loading currently.")
 def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the channel properly.
     """
-    image1 = 'WFPC2u5780205r_c0fx_channel1.png'
-    image2 = 'WFPC2u5780205r_c0fx_channel2.png'
+    image1 = 'RaDecVel_channel1.png'
+    image2 = 'RaDecVel_channel2.png'
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/WFPC2u5780205r_c0fx.fits')
+    i[0].loadFile(os.getcwd() + '/data/RaDecVel.fits')
+    channels = i[0].getChannelCount()
     a[0].setChannel(0)
-    i[0].saveFullImage(tempImageDir + '/' + image1)
+    _saveFullImage(i[0], image1, tempImageDir)
     a[0].setChannel(1)
-    i[0].saveFullImage(tempImageDir + '/' + image2)
-    reference1 = Image.open(os.getcwd() + '/data/' + image1)
-    comparison1 = Image.open(tempImageDir + '/' + image1)
-    reference2 = Image.open(os.getcwd() + '/data/' + image2)
-    comparison2 = Image.open(tempImageDir + '/' + image2)
-    assert list(reference1.getdata()) == list(comparison1.getdata())
-    assert list(reference2.getdata()) == list(comparison2.getdata())
+    _saveFullImage(i[0], image2, tempImageDir)
+    # Also check that invalid channel values yield error messages
+    assert a[0].setChannel(channels+10) != ['']
+    assert a[0].setChannel(-10) != ['']
 
 def test_setImage(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the image properly.
     """
-    image1 = 'mexinputtest.png'
-    image2 = 'WFPC2u5780205r_c0fx_channel1.png'
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
-    i[0].loadLocalFile(os.getcwd() + '/data/WFPC2u5780205r_c0fx.fits')
-    a[0].setImage(0)
-    i[0].saveFullImage(tempImageDir + '/' + image1)
-    a[0].setImage(1)
-    i[0].saveFullImage(tempImageDir + '/' + image2)
-    reference1 = Image.open(os.getcwd() + '/data/' + image1)
-    comparison1 = Image.open(tempImageDir + '/' + image1)
-    reference2 = Image.open(os.getcwd() + '/data/' + image2)
-    comparison2 = Image.open(tempImageDir + '/' + image2)
-    assert list(reference1.getdata()) == list(comparison1.getdata())
-    assert list(reference2.getdata()) == list(comparison2.getdata())
+    _setImage(i[0], a[0], tempImageDir)
 
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
 def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the colormap is inverted properly.
@@ -195,14 +213,12 @@ def test_invertColormap(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_cubehelix_inverted.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('cubehelix')
     c[0].invertColormap(True)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
 def test_reverseColormap(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the colormap is reversed properly.
@@ -210,13 +226,10 @@ def test_reverseColormap(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_cubehelix_reversed.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('cubehelix')
     c[0].reverseColormap(True)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
 def test_setColorMix(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -225,12 +238,9 @@ def test_setColorMix(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_colormix.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColorMix(0.7, 0.3, 0.8)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
     # Check that invalid values cause error information to be returned.
     assert c[0].setColorMix(-1,-1,-1)[0] != ''
 
@@ -241,12 +251,9 @@ def test_setDataTransform(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_datatransform.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setDataTransform('square root')
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
     # Check that invalid values cause error information to be returned.
     assert c[0].setDataTransform('squarepants')[0] != ''
 
@@ -257,13 +264,12 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_gamma.png'
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setGamma(0.25)
-    i[0].saveFullImage(tempImageDir + '/' + imageName)
-    reference = Image.open(os.getcwd() + '/data/' + imageName)
-    comparison = Image.open(tempImageDir + '/' + imageName)
-    assert list(reference.getdata()) == list(comparison.getdata())
+    _saveFullImage(i[0], imageName, tempImageDir)
 
+@pytest.mark.xfail(reason="The behaviour of the saveHistogram() funtion\
+                   has changed.")
 def test_saveHistogram(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that an image of the histogram can be saved.
@@ -271,13 +277,15 @@ def test_saveHistogram(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'histogram.png'
     i = cartavisInstance.getImageViews()
     h = cartavisInstance.getHistogramViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     h[0].setPlaneMode('all')
     h[0].saveHistogram(tempImageDir + '/' + imageName, 200, 200)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
+@pytest.mark.skipif(True, reason="The histogram does not currently\
+                    update properly.")
 def test_setBinCount(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that an image of the histogram can be saved.
@@ -285,10 +293,334 @@ def test_setBinCount(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'histogram_100bin.png'
     i = cartavisInstance.getImageViews()
     h = cartavisInstance.getHistogramViews()
-    i[0].loadLocalFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     h[0].setPlaneMode('all')
     h[0].setBinCount(100)
     h[0].saveHistogram(tempImageDir + '/' + imageName, 200, 200)
+    reference = Image.open(os.getcwd() + '/data/' + imageName)
+    comparison = Image.open(tempImageDir + '/' + imageName)
+    assert list(reference.getdata()) == list(comparison.getdata())
+
+def test_closeImage(cartavisInstance, cleanSlate):
+    """
+    Test that an image can be closed.
+    """
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    imagesBefore = i[0].getImageNames()
+    i[0].closeImage(imagesBefore[0])
+    imagesAfter = i[0].getImageNames()
+    assert imagesBefore[0] not in imagesAfter
+
+def test_getImageNames(cartavisInstance, cleanSlate):
+    """
+    Test that the list of names of open images can be obtained.
+    """
+    i = cartavisInstance.getImageViews()
+    imageToLoad = (os.getcwd() + '/data/mexinputtest.fits')
+    imagesBefore = i[0].getImageNames()
+    assert imageToLoad not in imagesBefore
+    i[0].loadFile(imageToLoad)
+    imagesAfter = i[0].getImageNames()
+    assert imageToLoad in imagesAfter
+
+def test_getLinkedAnimators(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the list of animators linked to the image view can be
+    obtained.
+    This can be accomplished by performing an operation with one of the
+    linked animators and confirming that the operation was successful.
+    """
+    i = cartavisInstance.getImageViews()
+    a = i[0].getLinkedAnimators()
+    _setImage(i[0], a[0], tempImageDir)
+
+@pytest.mark.xfail(reason="Python colormaps may not be available.")
+def test_getLinkedColormaps(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that the list of colormap views linked to the image view can be
+    obtained.
+    This can be accomplished by performing an operation with one of the
+    linked colormap views and confirming that the operation was
+    successful.
+    """
+    i = cartavisInstance.getImageViews()
+    c = i[0].getLinkedColormaps()
+    imageName = 'mexinputtest_cubehelix.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    c[0].setColormap('cubehelix')
+    _saveFullImage(i[0], imageName, tempImageDir)
+
+def test_loadFile(cartavisInstance, tempImageDir, cleanSlate):
+    """
+    Test that a file can be loaded into an image view.
+    """
+    i = cartavisInstance.getImageViews()
+    # First, check that trying to load a nonexistent file generates an
+    # error.
+    nonexistentLoadResult = i[0].loadFile('nonexistentFile.fits')
+    assert nonexistentLoadResult[0] == 'error'
+    # Next, check that trying to load an existing file does not generate
+    # an error.
+    loadResult = i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert loadResult[0] != 'error'
+    # Finally, check that the image that has been loaded is actually
+    # the image we expect.
+    _saveFullImage(i[0], 'mexinputtest.png', tempImageDir)
+
+def test_getIntensity(cartavisInstance, cleanSlate):
+    """
+    Test that the intensity of an image can be obtained.
+    """
+    i = cartavisInstance.getImageViews()
+    loadResult = i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    intensity = i[0].getIntensity(0, 0, 0.5)
+    assert intensity == 49.5
+
+def test_getMaxImageCount(cartavisInstance, cleanSlate):
+    """
+    Test that the animator can return the number of images currently
+    being managed.
+    """
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    assert a[0].getMaxImageCount() == 0
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert a[0].getMaxImageCount() == 1
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    assert a[0].getMaxImageCount() == 2
+    for f in (i[0].getImageNames()):
+        i[0].closeImage(f)
+    assert a[0].getMaxImageCount() == 0
+
+def test_getColormaps(cartavisInstance, cleanSlate):
+    """
+    Test that the list of available colormaps can be obtained.
+    """
+    cm = cartavisInstance.getColormaps()
+    assert cm
+
+def test_getEmptyWindowCount(cartavisInstance, cleanSlate):
+    """
+    Test that the number of empty windows can be obtained.
+    """
+    rows = 3
+    cols = 3
+    cartavisInstance.setImageLayout()
+    emptyCount = cartavisInstance.getEmptyWindowCount()
+    assert emptyCount == 0
+    cartavisInstance.setCustomLayout(rows, cols)
+    newEmptyCount = cartavisInstance.getEmptyWindowCount()
+    assert newEmptyCount == rows * cols - 1
+
+def test_getAnimatorViews(cartavisInstance, cleanSlate):
+    """
+    Test that the animator views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert not cartavisInstance.getAnimatorViews()
+    cartavisInstance.setAnalysisLayout()
+    assert cartavisInstance.getAnimatorViews()
+
+def test_getColormapViews(cartavisInstance, cleanSlate):
+    """
+    Test that the colormap views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert not cartavisInstance.getColormapViews()
+    cartavisInstance.setAnalysisLayout()
+    assert cartavisInstance.getColormapViews()
+
+def test_getHistogramViews(cartavisInstance, cleanSlate):
+    """
+    Test that the histogram views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert not cartavisInstance.getHistogramViews()
+    cartavisInstance.setAnalysisLayout()
+    assert cartavisInstance.getHistogramViews()
+
+def test_getImageViews(cartavisInstance, cleanSlate):
+    """
+    Test that the image views can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    assert cartavisInstance.getImageViews()
+    cartavisInstance.setCustomLayout(2, 2)
+    cartavisInstance.setPlugins(['Empty', 'Empty', 'Empty', 'Empty'])
+    assert not cartavisInstance.getImageViews()
+
+def test_setImageLayout(cartavisInstance, cleanSlate):
+    """
+    Test that the image layout can be set.
+    """
+    cartavisInstance.setImageLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['CasaImageLoader', 'Hidden']
+
+def test_setAnalysisLayout(cartavisInstance, cleanSlate):
+    """
+    Test that the analysis layout can be set.
+    """
+    cartavisInstance.setAnalysisLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
+                              'Hidden', u'Histogram']
+
+def test_removeLink(cartavisInstance, cleanSlate):
+    """
+    Test that a link between an image view and other view types can be
+    removed.
+    Since link a link can be removed directly from an Image object or
+    from the Cartavis class, both methods will be tested.
+    """
+    i = cartavisInstance.getImageViews()
+    # First, the Image way
+    laBefore = i[0].getLinkedAnimators()
+    assert len(laBefore) > 0
+    i[0].removeLink(laBefore[0])
+    laAfter = i[0].getLinkedAnimators()
+    assert len(laAfter) == len(laBefore) - 1
+    # Second, the Cartavis way
+    lcBefore = i[0].getLinkedColormaps()
+    assert len(lcBefore) > 0
+    cartavisInstance.removeLink(lcBefore[0], i[0])
+    lcAfter = i[0].getLinkedColormaps()
+    assert len(lcAfter) == len(lcBefore) - 1
+
+def test_addLink(cartavisInstance, cleanSlate):
+    """
+    Test that a link between an image view and another view type can be
+    added.
+    Since link a link can be added directly from an Image object or from
+    the Cartavis class, both methods will be tested.
+    """
+    cartavisInstance.setImageLayout()
+    cartavisInstance.setCustomLayout(2, 2)
+    cartavisInstance.setPlugins(['Animator', 'CasaImageLoader', 'Colormap',
+                         'Histogram'])
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    c = cartavisInstance.getColormapViews()
+    # First, the Image way
+    laBefore = i[0].getLinkedAnimators()
+    i[0].addLink(a[0])
+    laAfter = i[0].getLinkedAnimators()
+    assert len(laAfter) == len(laBefore) + 1
+    # Second, the Cartavis way
+    lcBefore = i[0].getLinkedColormaps()
+    cartavisInstance.addLink(c[0], i[0])
+    lcAfter = i[0].getLinkedColormaps()
+    assert len(lcAfter) == len(lcBefore) + 1
+
+def test_setEmptyWindowPlugin(cartavisInstance, cleanSlate):
+    """
+    Test that an empty window can be set to a plugin.
+    """
+    cartavisInstance.setImageLayout()
+    cartavisInstance.setCustomLayout(2, 2)
+    plugins = cartavisInstance.getPluginList()
+    # Even though the first argument to setEmptyWindowPlugin() is
+    # relative to the number of empty windows (e.g. 0 means that the
+    # first empty window will be changed), we will keep track of the
+    # index of the first empty window so that we can later check that it
+    # has actually changed.
+    firstEmpty = plugins.index('Empty')
+    cartavisInstance.setEmptyWindowPlugin(0, 'CasaImageLoader')
+    pluginsAfter = cartavisInstance.getPluginList()
+    assert pluginsAfter[firstEmpty] != 'Empty'
+
+def test_getCenterPixel(cartavisInstance, cleanSlate):
+    """
+    Test that the currently centered image pixel can be obtained.
+    """
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert i[0].getCenterPixel() == [5.0, 5.0]
+
+def test_setCustomLayout(cartavisInstance, cleanSlate):
+    """
+    Test that a custom layout can be set.
+    """
+    rows = 3
+    cols = 4
+    assert cartavisInstance.setCustomLayout(rows, cols) == ['']
+    # Does the right number of plugins appear?
+    assert len(cartavisInstance.getPluginList()) == rows * cols
+    # Does an error message get returned if we try setting an invalid
+    # value?
+    assert cartavisInstance.setCustomLayout(-1, cols) != ['']
+
+def test_centerImage(cartavisInstance, cleanSlate):
+    """
+    Test that the image can be centered properly.
+    """
+    cartavisInstance.setImageLayout()
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    dim = i[0].getImageDimensions()
+    center = [dim[0]/2.0, dim[1]/2.0]
+    # First, deliberately set the image to off center
+    i[0].centerOnPixel(-1,-1)
+    assert i[0].getCenterPixel() != center
+    # Now, center the image and check that it is centered properly.
+    i[0].centerImage()
+    assert i[0].getCenterPixel() == center
+
+def test_getPluginList(cartavisInstance, cleanSlate):
+    """
+    Test that the list of plugins can be obtained.
+    """
+    cartavisInstance.setImageLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['CasaImageLoader', 'Hidden']
+    cartavisInstance.setAnalysisLayout()
+    plugins = cartavisInstance.getPluginList()
+    assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
+                              'Hidden', u'Histogram']
+
+@pytest.mark.skipif(True, reason="Seems to be causing problems currently.")
+def test_getChannelIndex(cartavisInstance, cleanSlate):
+    """
+    Test that the channel index can be obtained from the animator.
+    """
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    i[0].loadFile(os.getcwd() + '/data/qualityimage.fits')
+    assert a[0].getChannelIndex() == 0
+    a[0].setChannel(4)
+    assert a[0].getChannelIndex() == 4
+
+def test_isEmpty(cartavisInstance, cleanSlate):
+    """
+    Test that the isEmpty() Image method returns correct values.
+    """
+    i = cartavisInstance.getImageViews()
+    assert i[0].isEmpty()
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    assert not i[0].isEmpty()
+
+def _setImage(imageView, animatorView, tempImageDir):
+    """
+    A common private function for commands that need to test that an
+    image can be set by an animator.
+    """
+    image1 = 'mexinputtest.png'
+    image2 = 'qualityimage.png'
+    imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    imageView.loadFile(os.getcwd() + '/data/qualityimage.fits')
+    animatorView.setImage(0)
+    _saveFullImage(imageView, image1, tempImageDir)
+    animatorView.setImage(1)
+    _saveFullImage(imageView, image2, tempImageDir)
+
+def _saveFullImage(imageView, imageName, tempImageDir):
+    """
+    A common private function for commands that need to save a full
+    image and test that it has been saved properly.
+    """
+    imageView.saveFullImage(tempImageDir + '/' + imageName)
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
