@@ -1,4 +1,5 @@
 import os
+import time
 import pytest
 import cartavis
 from flaky import flaky
@@ -684,6 +685,22 @@ def test_loadFile_AstrometryTest(cartavisInstance, cleanSlate):
     _loadFilesFromDirectory(i[0],
         os.path.expanduser( '~/CARTA/Images/CARTAImages/AstrometryTest'))
 
+def test_loadMultipleFilesRapidly(cartavisInstance, cleanSlate):
+    """
+    Tests that multiple images can be loaded rapidly without problems.
+    This is a regression test to ensure that issue #92 has been dealt
+    with properly.
+    """
+    i = cartavisInstance.getImageViews()
+    a = cartavisInstance.getAnimatorViews()
+    #directory = os.getcwd() + '/data/'
+    directory = '/home/jeff/CARTA/Images/'
+    for filename in os.listdir(directory):
+        if (os.path.isfile(directory + filename)
+            and filename.lower().endswith('.fits')):
+            i[0].loadFile(directory + filename)
+    test_setImageLayout(cartavisInstance, cleanSlate)
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
@@ -710,7 +727,10 @@ def _saveFullImage(imageView, imageName, tempImageDir):
 
 def _loadFilesFromDirectory(imageView, directory):
     """
-    Attempts to lead each of the files in a directory.
+    Attempts to load each of the files in a directory.
+    The sleep statement is here for now to avoid the bug that occurs
+    when trying to load too many images too rapidly (issue #92).
     """
-    for fileName in os.listdir(directory):
-        assert imageView.loadFile(directory + '/' + fileName) == ['']
+    for filename in os.listdir(directory):
+        assert imageView.loadFile(directory + '/' + filename) == ['']
+        time.sleep(1)
