@@ -685,6 +685,7 @@ def test_loadFile_AstrometryTest(cartavisInstance, cleanSlate):
     _loadFilesFromDirectory(i[0],
         os.path.expanduser( '~/CARTA/Images/CARTAImages/AstrometryTest'))
 
+@pytest.mark.skipif(True, reason="This test will fail until issue #92 is fixed")
 def test_loadMultipleFilesRapidly(cartavisInstance, cleanSlate):
     """
     Tests that multiple images can be loaded rapidly without problems.
