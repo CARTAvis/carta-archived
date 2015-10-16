@@ -742,14 +742,18 @@ QStringList ScriptFacade::centerImage( const QString& controlId ) {
 }
 
 QStringList ScriptFacade::getCenterPixel( const QString& controlId ) {
-    QStringList resultList("");
+    QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getCenterPixel();
-            if ( resultList[0] == "null" ) {
+            QPointF center = controller->getCenterPixel();
+            if ( center.x() == -0.0 && center.y() == -0.0 ) {
                 resultList = _logErrorMessage( ERROR, "The center pixel could not be obtained." );
+            }
+            else {
+                resultList.append( QString::number( center.x() ) );
+                resultList.append( QString::number( center.y() ) );
             }
         }
         else {

@@ -1341,15 +1341,13 @@ void Controller::updatePan( double centerX , double centerY){
     }
 }
 
-QStringList Controller::getCenterPixel() {
+QPointF Controller::getCenterPixel() const {
     int imageIndex = m_selectImage->getIndex();
-    QStringList returnValue = QStringList( "null" );
+    QPointF center = QPointF(-0.0, -0.0);
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
-        QPointF center = m_datas[imageIndex]->_getCenter();
-        returnValue = QStringList( QString::number( center.x() ) );
-        returnValue.append( QString::number( center.y() ) );
+        center = m_datas[imageIndex]->_getCenter();
     }
-    return returnValue;
+    return center;
 }
 
 QStringList Controller::getImageDimensions( ){
@@ -1368,7 +1366,7 @@ QStringList Controller::getImageDimensions( ){
     return result;
 }
 
-QSize Controller::getOutputSize( ){
+QSize Controller::getOutputSize() const {
     QSize result(-1, -1);
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){

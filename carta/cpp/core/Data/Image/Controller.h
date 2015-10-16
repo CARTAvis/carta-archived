@@ -179,7 +179,7 @@ public:
     /**
      * Get the dimensions of the image viewer (window size).
      */
-    QSize getOutputSize( );
+    QSize getOutputSize() const;
 
 
     QString getPreferencesId() const;
@@ -270,10 +270,11 @@ public:
 
     /**
      * Get the image pixel that is currently centered.
-     * @return a list of the x- and y-coordinates of the center pixel,
-     * or error information if the center pixel could not be obtained.
+     * @return a QPointF value consisting of the x- and y-coordinates of
+     * the center pixel, or a special value of (-0.0, -0.0) if the
+     * center pixel could not be obtained.
     */
-    QStringList getCenterPixel();
+    QPointF getCenterPixel() const;
 
     /**
      * Save a copy of the full image in the current image view.
