@@ -52,12 +52,6 @@ public:
     QStringList getHistogramViews();
 
     /**
-     * Return a list of the statistics views defined by the layout.
-     * @return a QStringList containing the id values of statistics views.
-     */
-    QStringList getStatisticsViews();
-
-    /**
      * Return a list of the names of colormaps available on the server.
      * @return a QStringList containing the names of available color maps.
      */
@@ -335,14 +329,6 @@ public:
     QStringList getLinkedHistograms( const QString& controlId );
 
     /**
-     * Get the statistics views that are linked to the given image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @return a list of ID values for the linked statistics, or a list of a single
-     *      empty string if no linked statistics were found.
-     */
-    QStringList getLinkedStatistics( const QString& controlId );
-
-    /**
      * Center the image on the pixel with coordinates (x, y).
      * @param controlId the unique server-side id of an object managing a controller.
      * @param x the x-coordinate for the center of the pan.
@@ -381,12 +367,28 @@ public:
     QStringList centerImage( const QString& controlId );
 
     /**
+     * Get the image pixel that is currently centered.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return a list of the x- and y-coordinates of the center pixel,
+     * or error information if the center pixel could not be obtained.
+    */
+    QStringList getCenterPixel( const QString& controlId );
+
+    /**
      * Get the image dimensions.
      * @param controlId the unique server-side id of an object managing a controller.
      * @return a list of the image dimensions, or error information if the
      *      dimensions could not be obtained.
      */
     QStringList getImageDimensions( const QString& controlId );
+
+    /**
+     * Return the channel upper bound.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @return the largest channel in the image, or error information if the
+     *      largest channel could not be obtained.
+     */
+    QStringList getChannelCount( const QString& controlId );
 
     /**
      * Get the dimensions of the image viewer (window size).
@@ -851,20 +853,16 @@ private:
      */
     QString getHistogramViewId( int index = -1 ) const;
 
-    /**
-     * Return the unique server side id of the object responsible for managing a statistics view.
-     * @param index an index identifying the statistics view in the case that more than one
-     *      statistics view is being displayed; an index of -1 indicates a new statistics view should
-     *      be created whereas nonnegative indices refer to existing statistics views.
-     * @return the unique server side id of the object managing the statistics view.
-     */
-    QString getStatisticsViewId( int index = -1 ) const;
-
     Carta::State::CartaObject* _getObject( const QString& id );
     QStringList _logErrorMessage( const QString& key, const QString& value );
 
     const static QString TOGGLE;
     const static QString ERROR;
     const static QString UNKNOWN_ERROR;
+    const static QString NO_IMAGE;
+    const static QString IMAGE_VIEW_NOT_FOUND;
+    const static QString COLORMAP_VIEW_NOT_FOUND;
+    const static QString HISTOGRAM_NOT_FOUND;
+    const static QString ANIMATOR_NOT_FOUND;
 };
 

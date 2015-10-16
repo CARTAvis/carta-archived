@@ -78,10 +78,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getHistogramViews();
     }
 
-    else if ( cmd == "getstatisticsviews" ) {
-        result = m_scriptFacade->getStatisticsViews();
-    }
-
     else if ( cmd == "setanalysislayout" ) {
         result = m_scriptFacade->setAnalysisLayout();
     }
@@ -224,11 +220,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getLinkedHistograms( imageView );
     }
 
-    else if ( cmd == "getlinkedstatistics" ) {
-        QString imageView = args["imageView"].toString();
-        result = m_scriptFacade->getLinkedStatistics( imageView );
-    }
-
     else if ( cmd == "setclipvalue" ) {
         QString imageView = args["imageView"].toString();
         double clipValue = args["clipValue"].toDouble();
@@ -269,9 +260,19 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->centerImage( imageView );
     }
 
+    else if ( cmd == "getcenterpixel" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getCenterPixel( imageView );
+    }
+
     else if ( cmd == "getimagedimensions" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getImageDimensions( imageView );
+    }
+
+    else if ( cmd == "getchannelcount" ) {
+        QString imageView = args["imageView"].toString();
+        result = m_scriptFacade->getChannelCount( imageView );
     }
 
     else if ( cmd == "getoutputsize" ) {
@@ -521,6 +522,11 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     else if ( cmd == "getmaximagecount" ) {
         QString animatorView = args["animatorView"].toString();
         result = m_scriptFacade->getMaxImageCount( animatorView );
+    }
+
+    else if ( cmd == "getchannelindex" ) {
+        QString animatorView = args["animatorView"].toString();
+        result = m_scriptFacade->getChannelIndex( animatorView );
     }
 
     /// Section: Histogram Commands
