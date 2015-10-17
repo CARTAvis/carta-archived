@@ -59,9 +59,6 @@ public:
     virtual KnownSkyCS
     skyCS() override;
 
-    virtual void
-    setDisplayAxes( std::vector<AxisInfo::KnownType> displayAxes ) override;
-
     virtual Me &
     setSkyCS( const KnownSkyCS & scs ) override;
 

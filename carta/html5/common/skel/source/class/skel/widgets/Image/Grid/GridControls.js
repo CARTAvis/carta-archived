@@ -98,7 +98,7 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
         
         /**
          * Callback for when the registration is complete and an id is available.
-         * @param anObject {skel.widgets.Grid.GridControls}.
+         * @param anObject {skel.widgets.Image.Grid.GridControls}.
          */
         _registrationCallback : function( anObject ){
             return function( id ){

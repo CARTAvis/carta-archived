@@ -1089,6 +1089,8 @@ void Histogram::_resetDefaultStateData(){
    m_stateData.setValue<int>(CLIP_BUFFER_SIZE, 10 );
    m_stateData.setValue<double>(COLOR_MIN, 0 );
    m_stateData.setValue<double>(COLOR_MAX, 1 );
+   m_stateData.setValue<double>(CLIP_MIN_CLIENT, 0 );
+   m_stateData.setValue<double>(CLIP_MAX_CLIENT, 1 );
    m_stateData.setValue<int>(COLOR_MIN_PERCENT, 0 );
    m_stateData.setValue<int>(COLOR_MAX_PERCENT, 100 );
    m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0);

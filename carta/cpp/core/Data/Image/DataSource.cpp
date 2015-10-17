@@ -14,6 +14,7 @@
 #include <QDebug>
 
 using Carta::Lib::AxisInfo;
+using Carta::Lib::AxisDisplayInfo;
 
 namespace Carta {
 
@@ -58,22 +59,25 @@ bool DataSource::_contains(const QString& fileName) const {
     return representsData;
 }
 
+int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceFrames ) const {
+    int frameIndex = 0;
+    if (m_image ){
+        AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( sourceFrameIndex );
+        int axisIndex = _getAxisIndex( axisType );
+        //The image doesn't have this particular axis.
+        if ( axisIndex >=  0 ) {
+            //The image has the axis so make the frame bounded by the image size.
+            frameIndex = Carta::Lib::clamp( sourceFrames[sourceFrameIndex], 0, m_image-> dims()[axisIndex] - 1 );
+        }
+    }
+    return frameIndex;
+}
+
 std::vector<int> DataSource::_fitFramesToImage( const vector<int>& sourceFrames ) const {
     int sourceFrameCount = sourceFrames.size();
     std::vector<int> outputFrames( sourceFrameCount );
-    if ( m_image ){
-        for ( int i = 0; i < sourceFrameCount; i++ ){
-            AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-            int axisIndex = _getAxisIndex( axisType );
-            //The image doesn't h_ave this particular axis.
-            if ( axisIndex < 0 ) {
-                outputFrames[i] = 0;
-            }
-            //The image has the axis so make the frame bounded by the image size.
-            else {
-                outputFrames[i] = Carta::Lib::clamp( sourceFrames[i], 0, m_image-> dims()[axisIndex] - 1 );
-            }
-        }
+    for ( int i = 0; i < sourceFrameCount; i++ ){
+        outputFrames[i] = _getFrameIndex( i, sourceFrames );
     }
     return outputFrames;
 }
@@ -86,7 +90,10 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     int axisCount = cf->nAxes();
     for ( int axis = 0 ; axis < axisCount; axis++ ) {
         const AxisInfo & axisInfo = cf-> axisInfo( axis );
-        types.push_back( axisInfo.knownType() );
+        AxisInfo::KnownType axisType = axisInfo.knownType();
+        if ( axisType != AxisInfo::KnownType::OTHER ){
+            types.push_back( axisInfo.knownType() );
+        }
     }
     return types;
 }
@@ -133,7 +140,9 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisZTypes() const {
         for ( int i = 0; i < imageDims; i++ ){
             if ( i != m_axisIndexX && i!= m_axisIndexY ){
                 AxisInfo::KnownType type = _getAxisType( i );
-                zTypes.push_back( type );
+                if ( type != AxisInfo::KnownType::OTHER ){
+                    zTypes.push_back( type );
+                }
             }
         }
     }
@@ -211,21 +220,33 @@ QPointF DataSource::_getCenter() const{
     return m_renderService->pan();
 }
 
-std::vector<int> DataSource::_getAxisPerms() const {
-    std::vector<int> axisPerms;
+std::vector<AxisDisplayInfo> DataSource::_getAxisDisplayInfo() const {
+    std::vector<AxisDisplayInfo> axisInfo;
     //Note that permutations are 1-based whereas the axis
     //index is zero-based.
     if ( m_image ){
         int imageSize = m_image->dims().size();
-        axisPerms.push_back( m_axisIndexX + 1 );
-        axisPerms.push_back( m_axisIndexY + 1 );
+        axisInfo.resize( imageSize );
+
+        //Indicate the display axes by  putting -1 in for the display frames.
+        //We will later fill in fixed frames for the other axes.
+        axisInfo[m_axisIndexX].setFrame( -1 );
+        axisInfo[m_axisIndexY].setFrame( -1 );
+
+        //Indicate the new axis order.
+        axisInfo[m_axisIndexX].setPermuteIndex( 0 );
+        axisInfo[m_axisIndexY].setPermuteIndex( 1 );
+        int availableIndex = 2;
         for ( int i = 0; i < imageSize; i++ ){
+            axisInfo[i].setFrameCount( m_image->dims()[i] );
+            axisInfo[i].setAxisType( _getAxisType( i ) );
             if ( i != m_axisIndexX && i != m_axisIndexY ){
-                axisPerms.push_back( i + 1 );
+                axisInfo[i].setPermuteIndex( availableIndex );
+                availableIndex++;
             }
         }
     }
-    return axisPerms;
+    return axisInfo;
 }
 
 
@@ -441,15 +462,21 @@ NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd
 
 int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     int cacheIndex = 0;
-    int imageSize = m_image->dims().size();
-    int mult = 1;
-    for ( int i = imageSize-1; i >= 0; i-- ){
-        if ( i != m_axisIndexX && i != m_axisIndexY ){
-            AxisInfo::KnownType axisType = _getAxisType( i );
-            int index = static_cast<int>( axisType );
-            int frame = frames[index];
-            cacheIndex = cacheIndex + mult * frame;
-            mult = mult * m_image->dims()[i];
+    if ( m_image ){
+        int imageSize = m_image->dims().size();
+        int mult = 1;
+        for ( int i = imageSize-1; i >= 0; i-- ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                AxisInfo::KnownType axisType = _getAxisType( i );
+                int frame = 0;
+                if ( AxisInfo::KnownType::OTHER != axisType ){
+                    int index = static_cast<int>( axisType );
+                    frame = frames[index];
+                }
+                cacheIndex = cacheIndex + mult * frame;
+                int frameCount = m_image->dims()[i];
+                mult = mult * frameCount;
+            }
         }
     }
     return cacheIndex;
@@ -464,9 +491,12 @@ NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frame
         SliceND& slice = nextSlice;
         for ( int i = 0; i < imageDim; i++ ){
             if ( i != m_axisIndexX && i != m_axisIndexY ){
+                int frameIndex = 0;
                 AxisInfo::KnownType type = _getAxisType( i );
-                int axisIndex = static_cast<int>( type );
-                int frameIndex = mFrames[axisIndex];
+                if ( AxisInfo::KnownType::OTHER != type ){
+                    int axisIndex = static_cast<int>( type );
+                    frameIndex = mFrames[axisIndex];
+                }
                 slice.start( frameIndex );
                 slice.end( frameIndex + 1);
             }
@@ -702,7 +732,7 @@ void DataSource::setGamma( double gamma ){
 void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    int quantileIndex = this->_getQuantileCacheIndex( mFrames );
+    int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex];
     NdArray::Double doubleView( view.get(), false );
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(

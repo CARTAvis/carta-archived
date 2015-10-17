@@ -17,7 +17,7 @@ DummyGridRenderer::DummyGridRenderer()
 }
 
 void
-DummyGridRenderer::setAxisPermutations( std::vector<int> )
+DummyGridRenderer::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> )
 {}
 
 void

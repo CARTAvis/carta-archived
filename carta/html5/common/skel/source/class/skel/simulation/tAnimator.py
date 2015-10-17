@@ -13,12 +13,7 @@ from selenium.webdriver.common.by import By
 # Animator functions
 class tAnimator(unittest.TestCase):
 
-    # Verify that the number of animators that are visible is equal to the expected count
-    def _verifyAnimationCount(self, parentWidget, expectedCount):
-        animatorList = parentWidget.find_elements_by_xpath( ".//div[@qxclass='skel.boundWidgets.Animator']" )
-        animatorCount = len( animatorList )
-        print "Animator list count=", animatorCount
-        self.assertEqual( animatorCount, expectedCount, "Animator count does not match expected count")
+    
         
     # Return whether or not a radio button is checked
     def _isChecked(self, checkButton ):

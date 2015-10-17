@@ -109,6 +109,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourSetPage", {
             this.m_contours = controls.contours;
             this.setLabel( controls.name );
             this.m_contourWidget.setContourSetName( this.getLabel() );
+            this.m_levelsList.setName( this.getLabel());
             this._updateLevels();
             if ( this.m_contours.length > 0 ){
                 var selectIndex = this.m_levelsList.getSelectedIndex();

@@ -16,6 +16,7 @@ const QString LabelFormats::FORMAT = "format";
 const QString LabelFormats::FORMAT_DEFAULT = "Default";
 const QString LabelFormats::FORMAT_NONE = "No Label";
 const QString LabelFormats::FORMAT_DEG_MIN_SEC = "Deg:Min:Sec";
+const QString LabelFormats::FORMAT_DECIMAL = "Decimals";
 const QString LabelFormats::FORMAT_DECIMAL_DEG = "Decimal Degrees";
 const QString LabelFormats::FORMAT_HR_MIN_SEC = "Hr:Min:Sec";
 const QString LabelFormats::EAST = "left";
@@ -46,12 +47,13 @@ bool LabelFormats::m_registered =
 LabelFormats::LabelFormats( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
 
-    m_labelFormats.resize( 5 );
+    m_labelFormats.resize( 6 );
     m_labelFormats[0] = FORMAT_NONE;
     m_labelFormats[1] = FORMAT_DEFAULT;
     m_labelFormats[2] = FORMAT_DEG_MIN_SEC;
     m_labelFormats[3] = FORMAT_HR_MIN_SEC;
     m_labelFormats[4] = FORMAT_DECIMAL_DEG;
+    m_labelFormats[5] = FORMAT_DECIMAL;
 
     _initializeDefaultState();
 }
@@ -74,6 +76,12 @@ QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType a
         }
         else if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
             defaultFormat = FORMAT_DEG_MIN_SEC;
+        }
+        else if ( axis == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
+            defaultFormat = FORMAT_DECIMAL;
+        }
+        else if ( axis == Carta::Lib::AxisInfo::KnownType::STOKES ){
+            defaultFormat = FORMAT_DECIMAL;
         }
     }
     return defaultFormat;
@@ -137,6 +145,9 @@ Carta::Lib::AxisLabelInfo::Formats LabelFormats::getAxisLabelFormat( const QStri
     else if ( actualFormat == FORMAT_DECIMAL_DEG ){
         target = Carta::Lib::AxisLabelInfo::Formats::DECIMAL_DEG;
     }
+    else if ( actualFormat == FORMAT_DECIMAL ){
+        target = Carta::Lib::AxisLabelInfo::Formats::DECIMAL;
+    }
     else if ( actualFormat == FORMAT_HR_MIN_SEC ){
         target = Carta::Lib::AxisLabelInfo::Formats::HR_MIN_SEC;
     }
@@ -179,6 +190,9 @@ QStringList LabelFormats::getLabelFormats( Carta::Lib::AxisInfo::KnownType direc
         buff.append( FORMAT_DEFAULT );
         buff.append( FORMAT_NONE );
     }
+    else if ( direction == Carta::Lib::AxisInfo::KnownType::STOKES ){
+        buff.append( FORMAT_NONE );
+    }
     else {
         buff.append( FORMAT_DEFAULT );
         buff.append( FORMAT_NONE );
@@ -211,6 +225,9 @@ std::vector<int> LabelFormats::_getFormatIndices( Carta::Lib::AxisInfo::KnownTyp
         indices.push_back( _getIndex( FORMAT_DEG_MIN_SEC ) );
         indices.push_back( _getIndex( FORMAT_DECIMAL_DEG ) );
         indices.push_back( _getIndex( FORMAT_DEFAULT) );
+        indices.push_back( _getIndex( FORMAT_NONE ) );
+    }
+    else if ( axisIndex == Carta::Lib::AxisInfo::KnownType::STOKES ){
         indices.push_back( _getIndex( FORMAT_NONE ) );
     }
     else {

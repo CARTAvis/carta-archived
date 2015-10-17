@@ -6,8 +6,10 @@
 
 #include "CartaLib/Nullable.h"
 #include "Data/IColoredView.h"
+#include "CartaLib/AxisDisplayInfo.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
+
 
 #include <QImage>
 #include <memory>
@@ -113,10 +115,11 @@ private:
     int _getAxisIndex( Carta::Lib::AxisInfo::KnownType axisType ) const;
 
     /**
-     * Return a list of the current axis permutations.
-     * @return a list showing the current axis permutations.
+     * Return a list of information about the axes to display.
+     * @return a list showing information about which axes should be displayed and how
+     *  they should be displayed.
      */
-    std::vector<int> _getAxisPerms() const;
+    std::vector<Carta::Lib::AxisDisplayInfo> _getAxisDisplayInfo() const;
 
     /**
      * Return a list of axes in the image.
@@ -222,6 +225,14 @@ private:
      * @return - a pair consisting of frame counts on the horizontal and vertical axis.
      */
     std::pair<int,int> _getDisplayDims() const;
+
+    /**
+     * Get the index of the current frame of the axis specified by the sourceFrameIndex.
+     * @param sourceFrameIndex - an index referring to a specific element in sourceFrames.
+     * @param sourceFrames - a list for each axis type, indicating the current frame of the axis.
+     * @return - the current frame for the axis.
+     */
+    int _getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const;
 
     /**
      * Return the percentile corresponding to the given intensity.

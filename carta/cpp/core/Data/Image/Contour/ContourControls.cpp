@@ -177,8 +177,11 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
         maxLevel = minLevel + qPow( step, (count-1) );
     }
     std::vector<double> levels = _getLevelsMinMax( maxLevel, result );
-    if ( result.isEmpty() ){
+    if ( result.isEmpty() && levels.size() > 0 ){
         _addContourSet( levels, contourSetName );
+    }
+    else if ( levels.size() == 0 ){
+        result = "A contour set with the given input parameters could not be generated.";
     }
     return result;
 }
@@ -223,7 +226,11 @@ std::vector<double> ContourControls::_getLevels( double minLevel, double maxLeve
     }
     QString spacingMode = m_generatorState->getSpacingMethod();
     std::vector<double> levels;
-    if ( ( step > 0 && step != 1 ) || count == 1 ){
+    bool logAvailable = false;
+    if (  step > 0 && step != 1 ){
+        logAvailable = false;
+    }
+    if ( spacingMode != ContourSpacingModes::MODE_LOGARITHM || logAvailable ){
         for ( int i = 0; i < count; i++ ){
             double increment = i * step;
             double level = minLevel + increment;
@@ -329,12 +336,14 @@ void ContourControls::_initializeCallbacks(){
                     result = setLevelMin( levelMin );
                     if ( result.isEmpty() ){
                         double levelMax = dataValues[GeneratorState::LEVEL_MAX].toDouble(&validDouble);
-                        if ( validDouble ){
+                        //Note the maximum level only needs to be specified if we are NOT using minimum
+                        bool minMethod = m_generatorState->isGenerateMethodMinimum();
+                        if ( validDouble && !minMethod ){
                             result = setLevelMax( levelMax );
-                            if ( result.isEmpty() ){
-                                //If the are all valid, generate the contour set.
-                                result = generateContourSet( contourSetName );
-                            }
+                        }
+                        if ( result.isEmpty() ){
+                            //If the are all valid, generate the contour set.
+                            result = generateContourSet( contourSetName );
                         }
                     }
                 }

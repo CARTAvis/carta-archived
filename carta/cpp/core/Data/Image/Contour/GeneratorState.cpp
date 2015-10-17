@@ -105,6 +105,15 @@ bool GeneratorState::isDashedNegative() const {
     return negsDashed;
 }
 
+bool GeneratorState::isGenerateMethodMinimum() const {
+    QString method = m_state.getValue<QString>(GENERATE_MODE );
+    bool minMethod = false;
+    if ( method == ContourGenerateModes::MODE_MINIMUM ){
+        minMethod = true;
+    }
+    return minMethod;
+}
+
 void GeneratorState::setDashedNegative( bool useDash ){
     int oldDashed = m_state.getValue<bool>( DASHED_NEGATIVE );
     if ( oldDashed != useDash ){
