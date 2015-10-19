@@ -125,6 +125,7 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
     }
     else {
         m_animators[type]->setVisible( true );
+        m_animators[type]->setRemoved( false );
         _adjustStateAnimatorTypes();
         animatorTypeId= m_animators[type]->getPath();
     }
@@ -156,8 +157,10 @@ void Animator::_axesChanged(){
                 const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
                 QString purpose = AxisMapper::getPurpose( *it, cs );
                 QString animId;
-                addAnimator( purpose, animId );
-                existingAnimators.insert( purpose );
+                if ( purpose.length() > 0 ){
+                    addAnimator( purpose, animId );
+                    existingAnimators.insert( purpose );
+                }
             }
         }
     }
@@ -169,6 +172,7 @@ void Animator::_axesChanged(){
         QString animType = m_animators[keys[i]]->getType();
         bool existing = existingAnimators.contains( animType );
         if ( !existing && animType != Selection::IMAGE ){
+            m_animators[keys[i]]->setRemoved( true );
             removeAnimator( animType );
         }
     }
@@ -350,6 +354,7 @@ QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
 }
 
 void Animator::_initializeCallbacks(){
+
     addCommandCallback( "addAnimator", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {"type"};
@@ -359,6 +364,22 @@ void Animator::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return animId;
     });
+
+    addCommandCallback( "registerAnimator", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {"type"};
+            std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
+            QString targetKey = dataValues[*keys.begin()];
+            QString animId = "-1";
+            QMap<QString, AnimatorType*>::const_iterator animIter;
+            for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
+                QString animatorKey = animIter.key();
+                if ( animatorKey == targetKey ){
+                    animId = animIter.value()->getPath();
+                }
+            }
+            return animId;
+        });
 
     addCommandCallback( "removeAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -495,23 +516,26 @@ void Animator::resetStateData( const QString& state ){
     }
 }
 
-bool Animator::_setAnimatorVisibility( const QString& key, bool visible ){
-    bool visibilityChanged = false;
+bool Animator::_setAnimatorAvailability( const QString& key, bool available ){
+    bool availableChanged = false;
     if ( m_animators.contains( key ) ){
-        bool animVisible = m_animators[key]->isVisible();
-        if ( animVisible != visible ){
-           m_animators[key]->setVisible( visible );
-           visibilityChanged = true;
+        if ( !available ){
+           m_animators[key]->setVisible( false );
         }
+        m_animators[key]->setRemoved( !available );
+        availableChanged = true;
     }
-    return visibilityChanged;
+    return availableChanged;
 }
 
 bool Animator::_updateAnimatorBound( const QString& key ){
     int maxFrame = 0;
     int currentFrame = 0;
-    bool visibilityChanged = false;
+    bool availableChanged = false;
     AxisInfo::KnownType axisType = AxisMapper::getType( key );
+    if ( axisType == AxisInfo::KnownType::OTHER ){
+        return availableChanged;
+    }
     std::vector<AxisInfo::KnownType> animationAxes;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
@@ -522,7 +546,7 @@ bool Animator::_updateAnimatorBound( const QString& key ){
     m_animators[key]->setUpperBound( maxFrame );
     m_animators[key]->setFrame( currentFrame );
 
-    //Decide the visibility of the animator based on whether it is an animation axis
+    //Decide the availability of the animator based on whether it is an animation axis
     int animAxisCount = animationAxes.size();
     if ( animAxisCount > 0 ){
         bool axisFound = false;
@@ -537,35 +561,35 @@ bool Animator::_updateAnimatorBound( const QString& key ){
             }
         }
 
-        //Okay we will set the animator visible if it has at least one
+        //Okay we will set the animator available if it has at least one
         //frame.
         if ( axisFound ){
             if ( maxFrame > 1 ){
-                visibilityChanged = _setAnimatorVisibility( key, true );
+                availableChanged = _setAnimatorAvailability( key, true );
             }
             else {
-                visibilityChanged = _setAnimatorVisibility( key, false );
+                availableChanged = _setAnimatorAvailability( key, false );
             }
         }
         else {
-            visibilityChanged = _setAnimatorVisibility( key, false );
+            availableChanged = _setAnimatorAvailability( key, false );
         }
     }
-    return visibilityChanged;
+    return availableChanged;
 }
 
 void Animator::_updateAnimatorBounds(){
     QList<QString> animKeys =m_animators.keys();
-    bool visibilityChanged = false;
+    bool availableChanged = false;
     for ( QString key : animKeys  ){
         if ( key != Selection::IMAGE ){
-           bool animVisibility = _updateAnimatorBound( key );
-           if ( animVisibility ){
-               visibilityChanged = true;
+           bool animAvailable = _updateAnimatorBound( key );
+           if ( animAvailable ){
+               availableChanged = true;
            }
         }
     }
-    if ( visibilityChanged ){
+    if ( availableChanged ){
         _adjustStateAnimatorTypes();
     }
 }
@@ -577,7 +601,7 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
         it != animAxes.end(); it++ ){
         const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
         QString animName = AxisMapper::getPurpose( *it, cs );
-        if ( !m_animators.contains( animName )){
+        if ( !m_animators.contains( animName ) && animName.length() > 0 ){
             QString animId;
             addAnimator( animName , animId );
         }

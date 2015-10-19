@@ -74,19 +74,19 @@ class tAnimatorSettings(tAnimator.tAnimator):
         time.sleep( timeout )
             
         # Verify that the animation window has no animators.
-        self._verifyAnimationCount( animWindow, 0)
+        Util.verifyAnimationCount( self, animWindow, 0)
         
         # Check the image animate button and verify that the image animator shows up
         self._click( driver, animateCheck )
         imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Image']")))
         time.sleep( timeout )
-        self._verifyAnimationCount( animWindow, 1)
+        Util.verifyAnimationCount( self, animWindow, 1)
         
         # Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
         channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Channel']")))
         time.sleep( timeout )
-        self._verifyAnimationCount( animWindow, 2 )
+        Util.verifyAnimationCount( self, animWindow, 2 )
 
         # Chrome gives an error trying to close the page; therefore, refresh the page before 
         # closing the browser. This is required because otherwise memory is not freed. 
@@ -103,7 +103,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Load two images
         # The images have different numbers of channels
         Util.load_image( self, driver, "Default")
-        Util.load_image( self, driver, "m31_cropped.fits")
+        Util.load_image( self, driver, "aH.fits")
 
         # Go to the first image 
         self._getFirstValue( driver, "Image")
@@ -113,10 +113,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Get the last channel value of the first image
         firstImageChannelValue = self._getCurrentValue( driver, "Channel" )
-
+        print "firstImageChannelValue=",firstImageChannelValue
+    
         # Go to the next image
         self._getNextValue( driver, "Image" )
-
+    
         # Go to the last channel of the image
         self._getLastValue( driver, "Channel")
 
@@ -124,6 +125,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Check that the upper spin box value updated
         # Get the channel upper spin box value of the first image
         secondImageChannelValue = self._getCurrentValue( driver, "Channel" )
+        print "First image channel ", firstImageChannelValue," second image channel ",secondImageChannelValue
         self.assertNotEqual( int(secondImageChannelValue), int(firstImageChannelValue), "Channel value did not update after changing image in window")
 
     # Test that the Animator jump setting animates the first and last channel values
@@ -332,12 +334,10 @@ class tAnimatorSettings(tAnimator.tAnimator):
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         print "Current channel", currChannelValue
         self.assertGreater( int(lastChannelValue), int(currChannelValue), "Channel Animator did not reverse direction after animating last channel value")
-
-        # Stop animation. Scroll into view if stop button cannot be seen
-        stopButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelTapeDeckStopAnimation")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", stopButton)
-        ActionChains(driver).click( stopButton ).perform()
-
+        
+        # Stop animation.
+        self._stopAnimation( driver, "Channel")
+       
         # Go to first channel value and record the first channel value of the test image
         self._getFirstValue( driver, "Channel" )
         firstChannelValue = self._getCurrentValue( driver, "Channel" )
@@ -347,6 +347,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Allow image to animate for 2 seconds
         self._animateForward( driver, "Channel")
         time.sleep(2)
+        self._stopAnimation( driver, "Channel")
 
         # Check that the channel value is at a higher value than the first channel value
         currChannelValue = self._getCurrentValue( driver, "Channel" )
@@ -372,9 +373,9 @@ class tAnimatorSettings(tAnimator.tAnimator):
         ActionChains(driver).click( reverseButton ).perform()
 
          # Click the forward animate button
-        # Allow the image to animate for 4 seconds (takes 4 seconds to reverse direction)
+        # Allow the image to animate for 2 seconds (takes 4 seconds to reverse direction)
         self._animateForward( driver, "Image" )
-        time.sleep(4)
+        time.sleep(5)
 
         # Check that the current image value is less than the last image value
         currImageValue = self._getCurrentValue( driver, "Image" )
@@ -398,7 +399,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         print "Testing Channel Animator Rate Setting..."
         print "First channel value:", firstChannelValue
-        print "Default Rate = 20, New Rate = 50"
+        print "Default Rate = 100, New Rate = 50"
 
         # Allow image to animate for 2 seconds
         self._animateForward( driver, "Channel" )
@@ -419,10 +420,10 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._animateForward( driver, "Channel" )
         time.sleep(3)
 
-        # The channel should be at a higher channel value than the default rate value 
+        # The channel rate should be lower than the default rate value 
         newRateValue = self._getCurrentValue( driver, "Channel" )
         print "newRateValue", newRateValue
-        self.assertGreater( int(newRateValue), int(defaultRateValue), "Rate value did not increase speed of channel animation")
+        self.assertGreater(  int(defaultRateValue), int(newRateValue), "Rate value did not increase speed of channel animation")
 
     # Test that the Channel Animator Rate does not exceed boundary values 
     def test_animatorRateBoundary(self):

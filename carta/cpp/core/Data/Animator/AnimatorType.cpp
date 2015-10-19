@@ -321,11 +321,6 @@ void AnimatorType::setRemoved( bool removed ){
 }
 
 void AnimatorType::setVisible( bool visible ){
-    /*bool oldVisible = m_state.getValue<bool>(VISIBLE);
-    if ( oldVisible != visible ){
-        m_state.setValue<bool>(VISIBLE, visible );
-        m_state.flushState();
-    }*/
     m_visible = visible;
 }
 

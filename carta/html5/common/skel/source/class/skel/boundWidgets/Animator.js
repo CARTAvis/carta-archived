@@ -324,7 +324,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _initLocation : function() {
             var titleLabel = new qx.ui.basic.Label(this.m_title);
-            
+            skel.widgets.TestID.addTestId( titleLabel, this.m_title+"AnimatorType");
             this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
             this.m_indexText.setIntegerOnly( true );
             this.m_indexText.setToolTipText( "Set the current value.");
@@ -450,23 +450,20 @@ qx.Class.define("skel.boundWidgets.Animator", {
             //Kick off a commad to get step size, wrap, etc (that change less frequently).
             var paramMap = "type:"+this.m_title;
             var pathDict = skel.widgets.Path.getInstance();
-            var regCmd = this.m_winId + pathDict.SEP_COMMAND + "addAnimator";
+            var regCmd = this.m_winId + pathDict.SEP_COMMAND + "registerAnimator";
             this.m_connector.sendCommand( regCmd, paramMap, this._registrationCB(this));
         },
+        
         
         /**
          * Initialize the shared variable for the selection.
          */
         _initSharedVarsSelection : function(){
-             
             //Kick off a command to get frame index, lower bound, and upper bound.
             var pathDict = skel.widgets.Path.getInstance();
-           
             var regCmd = this.m_animId +pathDict.SEP_COMMAND + "getSelection";
             this.m_connector.sendCommand( regCmd, "", this._selectionCB(this));
         },
-        
- 
         
 
         /**
@@ -596,6 +593,14 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         },
 
+        /**
+         * Returns true if the animator can be displayed to the user; false otherwise.
+         * @return {boolean} - true if the animator can be displayed to the user; false,
+         *      otherwise.
+         */
+        isAvailable : function(){
+            return this.m_available;
+        },
 
         /**
          * Show or hide the less-used additional animator settings.
@@ -823,6 +828,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
+        
+        /**
+         * Set the animator available/unavailable for display to the user.
+         * @param available {boolean} - true if the animator is available for display to
+         *      the user; false otherwise.
+         */
+        setAvailable : function( available ){
+            this.m_available = available;
+        },
 
         /**
          * Adjust the speed of the animation.
@@ -926,6 +940,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_identifier : null,
         m_inUpdateState : false,
         
+        m_available : true,
         m_frame : null,
         m_frameLow : null,
         m_frameHigh : null

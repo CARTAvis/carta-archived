@@ -17,6 +17,7 @@ public:
         DEG_MIN_SEC,
         DECIMAL_DEG,
         HR_MIN_SEC,
+        DECIMAL,
         OTHER
     };
 
@@ -90,6 +91,11 @@ public:
      */
     bool operator!=( const AxisLabelInfo& other ) const;
 
+    /**
+     * Return a string representation of the axis label information (for debugging).
+     * @return - a string representation of the axis label information.
+     */
+    QString toString() const;
 
 private:
     Formats m_format;

@@ -16,18 +16,11 @@ class tSnapshot(unittest.TestCase):
         browser = selectBrowser._getBrowser()
         Util.setUp(self, browser)
         
-    # Determine whether the check box is checked
-    def _isChecked(self, checkBox):
-        styleAtt = checkBox.get_attribute( "style");
-        #print "Style", styleAtt
-        oldChecked = False
-        if "checked.png" in styleAtt:
-            oldChecked = True
-        return oldChecked
+    
     
     # Set the checked status of the checkbox.
     def _setChecked(self, driver, checkBox, checked):
-        oldChecked = self._isChecked( checkBox )
+        oldChecked = Util.isChecked( self, checkBox )
         if checked != oldChecked :
             ActionChains(driver).click( checkBox ).perform()
             
