@@ -601,6 +601,26 @@ def test_isEmpty(cartavisInstance, cleanSlate):
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     assert not i[0].isEmpty()
 
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/BigImageTest')),
+                    reason="Directory does not exist.")
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/TransposeTest')),
+                    reason="Directory does not exist.")
+def test_saveImageWithoutCrashing(cartavisInstance, cleanSlate, tempImageDir):
+    """
+    Tests that images can be saved without the application crashing.
+    This is a regression test to ensure that issue #94 has been dealt
+    with properly.
+    """
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.path.expanduser(
+        '~/CARTA/Images/CARTAImages/TransposeTest/RaDecVel.fits'))
+    i[0].saveFullImage(tempImageDir + '/' + 'RaDecVel.png')
+    i[0].loadFile(os.path.expanduser(
+        '~/CARTA/Images/CARTAImages/BigImageTest/h_m51_b_s05_drz_sci.fits'))
+    i[0].saveFullImage(tempImageDir + '/' + 'BigImageTest.png')
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
