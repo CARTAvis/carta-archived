@@ -583,10 +583,13 @@ public:
      * @param filename the full path where the file is to be saved.
      * @param width the width, in pixels, of the saved image.
      * @param height the height, in pixels, of the saved image.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further
+            information.
      * @return an error message if there was a problem saving the histogram;
      *      an empty string otherwise.
      */
-    QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
+    QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height, const QString& aspectRatioMode );
 
     /**
      * Set the grid axes color.
