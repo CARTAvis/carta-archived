@@ -117,7 +117,11 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     if( ! res) res = tryCast<u_int8_t>(lat);
     if( ! res) res = tryCast<int16_t>(lat);
     if( ! res) res = tryCast<int32_t>(lat);
-    if( ! res) res = tryCast<int64_t>(lat);
+    if( ! res) res = tryCast<casa::Int>(lat);
+    //Certain image related functions are defined only for Int, there is no
+    //long long in the image class right now.  TempImage<int32_t> fails to
+    //compile, for example.
+    //if( ! res) res = tryCast<int64_t>(lat);
 
     // if dynamic casting fails, try static cast since we know what type lat
 	if(!res) {

@@ -370,7 +370,6 @@ AstFrameSet* AstGridPlotter::_make2dFrameCelestialExclude( AstFrameSet* wcsinfo 
            }
        }
 
-
        int firstPermuteIndex = m_axisDisplayInfos[displayAxes[0] - 1 ].getPermuteIndex();
        int secondPermuteIndex = m_axisDisplayInfos[displayAxes[1] - 1 ].getPermuteIndex();
 
@@ -490,16 +489,7 @@ AstGridPlotter::plot()
         m_irect.right() + 1, m_irect.top() + 1
     };
 
-    AstPlot* plot = nullptr;
-    if ( newFrame ==nullptr ){
-        plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
-    }
-    else {
-        //Seems like the new axes ranges are not being set correctly.
-        //astSetD( newFrame, "Bottom(2)", 0 );
-        //astSetD( newFrame, "Top(2)", 50 );
-        plot = astPlot( newFrame, gbox, pbox, "Grid=1" );
-    }
+    AstPlot* plot = astPlot( newFrame, gbox, pbox, "Grid=1" );
     if ( ! plot || ! astOK ) {
         m_errorString = "astPlot() failed";
         return false;
