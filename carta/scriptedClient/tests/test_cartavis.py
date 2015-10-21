@@ -16,7 +16,6 @@ def test_getPixelValue(cartavisInstance, cleanSlate):
     # image.
     assert i[0].getPixelValue(-1,-1)[0] == ''
 
-@pytest.mark.skipif(True, reason="RaDecVel.fits is not loading currently.")
 def test_getChannelCount(cartavisInstance, cleanSlate):
     """
     Test that the channel count is being returned properly for images
@@ -178,7 +177,6 @@ def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
-@pytest.mark.skipif(True, reason="RaDecVel.fits is not loading currently.")
 def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the channel properly.
@@ -268,8 +266,6 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     c[0].setGamma(0.25)
     _saveFullImage(i[0], imageName, tempImageDir)
 
-@pytest.mark.xfail(reason="The behaviour of the saveHistogram() funtion\
-                   has changed.")
 def test_saveHistogram(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that an image of the histogram can be saved.
