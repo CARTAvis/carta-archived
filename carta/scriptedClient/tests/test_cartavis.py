@@ -592,6 +592,25 @@ def test_getChannelIndex(cartavisInstance, cleanSlate):
     a[0].setChannel(4)
     assert a[0].getChannelIndex() == 4
 
+def test_saveHistogramConsistency(cartavisInstance, cleanSlate, tempImageDir):
+    """
+    Test that saved histogram images are of consistent size and content
+    regardless of what is currently shown in the GUI.
+    This is a regression test to ensure that issue #96 has been dealt
+    with properly.
+    """
+    i = cartavisInstance.getImageViews()
+    h = cartavisInstance.getHistogramViews()
+    file1 = tempImageDir + '/' + 'hist1.png'
+    file2 = tempImageDir + '/' + 'hist2.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    h[0].saveHistogram(file1, 200, 200)
+    cartavisInstance.setCustomLayout(3,3)
+    h[0].saveHistogram(file2, 200, 200)
+    image1 = Image.open(file1)
+    image2 = Image.open(file2)
+    assert list(image1.getdata()) == list(image2.getdata())
+
 def test_isEmpty(cartavisInstance, cleanSlate):
     """
     Test that the isEmpty() Image method returns correct values.
