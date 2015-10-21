@@ -266,6 +266,8 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     c[0].setGamma(0.25)
     _saveFullImage(i[0], imageName, tempImageDir)
 
+@pytest.mark.xfail(reason="The behaviour of the saveHistogram() function\
+                   has changed.")
 def test_saveHistogram(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that an image of the histogram can be saved.
