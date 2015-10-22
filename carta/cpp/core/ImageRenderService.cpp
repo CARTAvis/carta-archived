@@ -28,6 +28,10 @@ template < class Pipeline >
 static void
 iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage, int displayAxisX, int displayAxisY )
 {
+    if( displayAxisX != 0 || displayAxisY != 1) {
+        qFatal( "iView2qImage cannot handle axis permutations of any kind.");
+    }
+
     //qDebug() << "rv2qi2" << rawView-> dims();
     typedef double Scalar;
 
@@ -50,6 +54,14 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     // bottom-up)
     QRgb * outPtr = reinterpret_cast < QRgb * > (
         qImage.bits() + size.width() * ( size.height() - 1 ) * 4 );
+
+    if( 0) {
+        CARTA_ASSERT( qImage.bits() + size.width() * (size.height() - 1) * 4 == qImage.scanLine( size.height() - 1));
+        // sanity check
+        for( int y = 0 ; y < size.height() ; y ++ ) {
+            CARTA_ASSERT( qImage.bits() + size.width() * 4 * y == qImage.scanLine(y) );
+        }
+    }
 
     // make a double view
     NdArray::TypedView < Scalar > typedView( rawView, false );
@@ -75,6 +87,9 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
         }
     };
     typedView.forEach( lambda );
+
+    CARTA_ASSERT( counter == size.width() * size.height());
+
 } // rawView2QImage
 
 namespace Carta
@@ -388,7 +403,7 @@ Service::internalRenderSlot()
     }
 
     // report result
-    emit done( QImage( img ), m_lastSubmittedJobId );
+    emit done( img, m_lastSubmittedJobId );
 
     // debuggin: put a yellow stamp on the image, so that next time it's recalled
     // it'll have 'cached' stamped on it
