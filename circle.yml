@@ -13,19 +13,32 @@ dependencies:
     - sudo pip install selenium
 
   cache_directories:
+    # automatically cache build docker image between builds
     - "~/docker"
 
   override:
     - docker info
     - mkdir -p ~/docker
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/astrilet/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image.tar; fi
+
+    # Restore docker build image and configure Dockerfile
+    - if [[ -e ~/docker/image.tar ]]; then \
+          docker load -i ~/docker/image.tar \
+      else
+          docker pull docker.io/astrilet/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image.tar\
+      fi
     - cat ~/CARTAvis/Dockerfile | envsubst  > ~/CARTAvis/Dockerfile.new
     - mv ~/CARTAvis/Dockerfile.new ~/CARTAvis/Dockerfile
+
+    # build CARTAvis
     - docker build -t astrilet/circlecibuild .
 
 test:
   override:
+    # Run scripted client tests
     - docker run astrilet/circlecibuild /home/developer/runtests.sh
+
+    # Start CARTAvis server int the docker container
     - docker run -d -name cartaserver -p 8080:8080 astrilet/circlecibuild /home/developer/serverup.sh && sleep 60
-    - cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | python ./tWindow.py
-    - echo $PWD
+
+    # Run Selenium Tests
+    - cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ciSeleniumTests.py
