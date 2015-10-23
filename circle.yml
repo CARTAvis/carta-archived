@@ -26,6 +26,6 @@ dependencies:
 test:
   override:
     - docker run astrilet/circlecibuild /home/developer/runtests.sh
-    - docker run -d -name cartaserver -p 8080:8080 astrilet/circlecibuild /home/developer/serverup.sh
+    - docker run -d -name cartaserver -p 8080:8080 astrilet/circlecibuild /home/developer/serverup.sh && sleep 60
     - cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | python ./tWindow.py
-    - $PWD
+    - echo $PWD
