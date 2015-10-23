@@ -37,4 +37,4 @@ test:
     - docker run -d -name cartaserver -p 8080:8080 astrilet/circlecibuild /home/developer/serverup.sh && sleep 60
 
     # Run Selenium Tests
-    - cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ciSeleniumTests.py
+    - cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
