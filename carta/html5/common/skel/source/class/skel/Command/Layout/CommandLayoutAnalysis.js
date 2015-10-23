@@ -21,14 +21,15 @@ qx.Class.define("skel.Command.Layout.CommandLayoutAnalysis", {
     members : {
         
         doAction : function( vals, undoCB ){
-            if ( vals && this.m_active){
+            if ( this.m_active){
                 var path = skel.widgets.Path.getInstance();
                 this.sendCommand( path.BASE_PATH + path.VIEW_MANAGER, "", undoCB );
             }
+           
         },
         
         getType : function(){
-            return skel.Command.Command.TYPE_BOOL;
+            return skel.Command.Command.TYPE_BUTTON;
         },
         
         /**

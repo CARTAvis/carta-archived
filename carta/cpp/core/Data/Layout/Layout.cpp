@@ -523,12 +523,18 @@ QString Layout::setLayoutSize( int rows, int cols, const QString& layoutType ){
                 oldNames[i] = NodeFactory::EMPTY;
             }
         }
-        _makeRoot();
+        bool horizontal = true;
+        if ( cols == 1 ){
+            horizontal = false;
+        }
+        _makeRoot( horizontal );
         LayoutNode* currNode = m_layoutRoot.get();
         _initLayout( currNode, rows, cols );
         _setPlugin( oldNames, false );
         m_state.setValue<QString>(TYPE_SELECTED, layoutType );
         m_state.flushState();
+        QStringList newNames = getPluginList();
+        emit pluginListChanged( newNames, oldNames );
     }
     else {
         errorMsg = "Invalid layout rows ="+QString::number(rows)+" and/or cols="+QString::number(cols);

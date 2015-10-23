@@ -29,19 +29,16 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         
         this.base( arguments );
         this.m_viewName = viewName;
- 
-
+        
         var setZeroTimeout = mImport( "setZeroTimeout" );
 
-        var appearListenerId = this.addListener( "appear", function( e )
+        this.m_appearListenerId = this.addListener( "appear", function( e )
                 {
                     this.m_iview = this.m_connector.registerViewElement( this
                         .getContentElement().getDomElement(), this.m_viewName );
-                    this.removeListenerById( appearListenerId );
-
+                    this.removeListenerById( this.m_appearListenerId );
                     this.m_iview.updateSize();
                 }, this );
-       
         this.addListener( "resize", function( /*e*/ )
         {
             // only continue if the dom element has been created
@@ -99,7 +96,13 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         /**
          * @type {Connector} cached instance of the connector
          */
-        m_connector: null
+        m_connector: null,
+        
+        /**
+         * Prevent re-registration when we are adding removing views.
+         * @type {String} - identifier for the appear listener.
+         */
+        m_appearListenerId : null
     },
 
     destruct: function()
