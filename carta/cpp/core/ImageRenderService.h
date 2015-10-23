@@ -153,7 +153,7 @@ public:
     /// caching will not be used)
     ///
     void
-    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString(), int displayAxisX = 0, int displayAxisY= 0 );
+    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString(), int displayAxisX = 0, int displayAxisY= 1 );
 
     ///
     /// \brief set the desired output size of the image
@@ -264,7 +264,7 @@ private:
     QSize m_outputSize = QSize( 10, 10 );
 
     /// instance of the pixel pipeline (very likely slow)
-    IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw;
+    IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw = nullptr;
 
     /// current zoom
     double m_zoom = 1.0;
