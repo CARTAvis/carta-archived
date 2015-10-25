@@ -78,9 +78,9 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getHistogramViews();
     }
 
-    else if ( cmd == "getstatisticsviews" ) {
+    /*else if ( cmd == "getstatisticsviews" ) {
         result = m_scriptFacade->getStatisticsViews();
-    }
+    }*/
 
     else if ( cmd == "setanalysislayout" ) {
         result = m_scriptFacade->setAnalysisLayout();
@@ -224,10 +224,10 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->getLinkedHistograms( imageView );
     }
 
-    else if ( cmd == "getlinkedstatistics" ) {
+    /*else if ( cmd == "getlinkedstatistics" ) {
         QString imageView = args["imageView"].toString();
         result = m_scriptFacade->getLinkedStatistics( imageView );
-    }
+    }*/
 
     else if ( cmd == "setclipvalue" ) {
         QString imageView = args["imageView"].toString();

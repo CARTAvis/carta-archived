@@ -11,7 +11,7 @@
 #include "Data/Histogram/Histogram.h"
 #include "Data/Layout/Layout.h"
 #include "Data/Preferences/PreferencesSave.h"
-#include "Data/Statistics.h"
+//#include "Data/Statistics.h"
 #include "Data/Image/Grid/GridControls.h"
 
 #include <QDebug>
@@ -66,9 +66,9 @@ QString ScriptFacade::getHistogramViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Histogram::CLASS_NAME, index );
 }
 
-QString ScriptFacade::getStatisticsViewId( int index ) const {
+/*QString ScriptFacade::getStatisticsViewId( int index ) const {
     return m_viewManager->getObjectId( Carta::Data::Statistics::CLASS_NAME, index );
-}
+}*/
 
 QStringList ScriptFacade::getImageViews() {
     QStringList imageViewList;
@@ -122,7 +122,7 @@ QStringList ScriptFacade::getHistogramViews() {
     return histogramViewList;
 }
 
-QStringList ScriptFacade::getStatisticsViews() {
+/*QStringList ScriptFacade::getStatisticsViews() {
     QStringList statisticsViewList;
     int numStatistics = m_viewManager->getStatisticsCount();
     for (int i = 0; i < numStatistics; i++) {
@@ -133,7 +133,7 @@ QStringList ScriptFacade::getStatisticsViews() {
         statisticsViewList = QStringList("");
     }
     return statisticsViewList;
-}
+}*/
 
 QStringList ScriptFacade::addLink( const QString& sourceId, const QString& destId ){
     QStringList resultList("");
@@ -658,7 +658,7 @@ QStringList ScriptFacade::getLinkedHistograms( const QString& controlId ) {
     return resultList;
 }
 
-QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
+/*QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
     QStringList resultList;
     ObjectManager* objMan = ObjectManager::objectManager();
     for ( int i = 0; i < m_viewManager->getStatisticsCount(); i++ ){
@@ -680,7 +680,7 @@ QStringList ScriptFacade::getLinkedStatistics( const QString& controlId ) {
         resultList = QStringList("");
     }
     return resultList;
-}
+}*/
 
 QStringList ScriptFacade::centerOnPixel( const QString& controlId, double x, double y ) {
     QStringList resultList("");

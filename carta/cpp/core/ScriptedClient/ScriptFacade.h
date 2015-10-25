@@ -55,7 +55,7 @@ public:
      * Return a list of the statistics views defined by the layout.
      * @return a QStringList containing the id values of statistics views.
      */
-    QStringList getStatisticsViews();
+    //QStringList getStatisticsViews();
 
     /**
      * Return a list of the names of colormaps available on the server.
@@ -340,7 +340,7 @@ public:
      * @return a list of ID values for the linked statistics, or a list of a single
      *      empty string if no linked statistics were found.
      */
-    QStringList getLinkedStatistics( const QString& controlId );
+    //QStringList getLinkedStatistics( const QString& controlId );
 
     /**
      * Center the image on the pixel with coordinates (x, y).
@@ -858,7 +858,7 @@ private:
      *      be created whereas nonnegative indices refer to existing statistics views.
      * @return the unique server side id of the object managing the statistics view.
      */
-    QString getStatisticsViewId( int index = -1 ) const;
+    //QString getStatisticsViewId( int index = -1 ) const;
 
     Carta::State::CartaObject* _getObject( const QString& id );
     QStringList _logErrorMessage( const QString& key, const QString& value );

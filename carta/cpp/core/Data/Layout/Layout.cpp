@@ -8,7 +8,6 @@
 #include "State/StateInterface.h"
 #include "Data/Image/Controller.h"
 #include "Data/Histogram/Histogram.h"
-#include "Data/Statistics.h"
 #include "Data/Util.h"
 #include <QtCore/qmath.h>
 #include <QDebug>
