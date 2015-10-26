@@ -16,7 +16,6 @@ def test_getPixelValue(cartavisInstance, cleanSlate):
     # image.
     assert i[0].getPixelValue(-1,-1)[0] == ''
 
-@pytest.mark.skipif(True, reason="RaDecVel.fits is not loading currently.")
 def test_getChannelCount(cartavisInstance, cleanSlate):
     """
     Test that the channel count is being returned properly for images
@@ -178,7 +177,6 @@ def test_centerOnPixel(cartavisInstance, tempImageDir, cleanSlate):
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
 
-@pytest.mark.skipif(True, reason="RaDecVel.fits is not loading currently.")
 def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     """
     Test that the animator is setting the channel properly.
@@ -268,7 +266,7 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     c[0].setGamma(0.25)
     _saveFullImage(i[0], imageName, tempImageDir)
 
-@pytest.mark.xfail(reason="The behaviour of the saveHistogram() funtion\
+@pytest.mark.xfail(reason="The behaviour of the saveHistogram() function\
                    has changed.")
 def test_saveHistogram(cartavisInstance, tempImageDir, cleanSlate):
     """
@@ -592,6 +590,25 @@ def test_getChannelIndex(cartavisInstance, cleanSlate):
     a[0].setChannel(4)
     assert a[0].getChannelIndex() == 4
 
+def test_saveHistogramConsistency(cartavisInstance, cleanSlate, tempImageDir):
+    """
+    Test that saved histogram images are of consistent size and content
+    regardless of what is currently shown in the GUI.
+    This is a regression test to ensure that issue #96 has been dealt
+    with properly.
+    """
+    i = cartavisInstance.getImageViews()
+    h = cartavisInstance.getHistogramViews()
+    file1 = tempImageDir + '/' + 'hist1.png'
+    file2 = tempImageDir + '/' + 'hist2.png'
+    i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
+    h[0].saveHistogram(file1, 200, 200)
+    cartavisInstance.setCustomLayout(3,3)
+    h[0].saveHistogram(file2, 200, 200)
+    image1 = Image.open(file1)
+    image2 = Image.open(file2)
+    assert list(image1.getdata()) == list(image2.getdata())
+
 def test_isEmpty(cartavisInstance, cleanSlate):
     """
     Test that the isEmpty() Image method returns correct values.
@@ -621,6 +638,86 @@ def test_saveImageWithoutCrashing(cartavisInstance, cleanSlate, tempImageDir):
         '~/CARTA/Images/CARTAImages/BigImageTest/h_m51_b_s05_drz_sci.fits'))
     i[0].saveFullImage(tempImageDir + '/' + 'BigImageTest.png')
 
+@pytest.mark.skipif(True, reason="At least one image in this directory does not\
+                    currently load")
+def test_loadFile_BigImageTest(cartavisInstance, cleanSlate):
+    """
+    Test that the image(s) in CARTAImages/BigImageTest can be loaded.
+    """
+    i = cartavisInstance.getImageViews()
+    _loadFilesFromDirectory(i[0],
+        os.path.expanduser( '~/CARTA/Images/CARTAImages/BigImageTest'))
+
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/SmallMultiplesTest')),
+                    reason="Directory does not exist.")
+def test_loadFile_SmallMultiplesTest(cartavisInstance, cleanSlate):
+    """
+    Test that the image(s) in CARTAImages/SmallMultiplesTest can be
+    loaded.
+    Note that this test will be skipped if the directory does not exist.
+    If it is being skipped and you would like it to run, just make sure
+    that the CARTA/Images/CARTAImages/SmallMultiplesTest directory
+    exists under your home directory and that it is populated with the
+    appropriate images from the CARTAImages repository.
+    """
+    i = cartavisInstance.getImageViews()
+    _loadFilesFromDirectory(i[0],
+        os.path.expanduser( '~/CARTA/Images/CARTAImages/SmallMultiplesTest'))
+
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/TransposeTest')),
+                    reason="Directory does not exist.")
+@pytest.mark.skipif(True, reason="At least one image in this directory does not\
+                    currently load")
+def test_loadFile_TransposeTest(cartavisInstance, cleanSlate):
+    """
+    Test that the image(s) in CARTAImages/CARTAImages/TransposeTest can
+    be loaded.
+    Note that this test will be skipped if the directory does not exist.
+    If it is being skipped and you would like it to run, just make sure
+    that the CARTA/Images/CARTAImages/TransposeTest directory exists
+    under your home directory and that it is populated with the
+    appropriate images from the CARTAImages repository.
+    """
+    i = cartavisInstance.getImageViews()
+    _loadFilesFromDirectory(i[0],
+        os.path.expanduser( '~/CARTA/Images/CARTAImages/TransposeTest'))
+
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/CubesTest')),
+                    reason="Directory does not exist.")
+@pytest.mark.skipif(True, reason="At least one image in this directory does not\
+                    currently load")
+def test_loadFile_CubesTest(cartavisInstance, cleanSlate):
+    """
+    Test that the image(s) in CARTAImages/CARTAImages/CubesTest can be
+    loaded.  Note that this test will be skipped if the directory does
+    not exist.  If it is being skipped and you would like it to run,
+    just make sure that the CARTA/Images/CARTAImages/CubesTest directory
+    exists under your home directory and that it is populated with the
+    appropriate images from the CARTAImages repository.
+    """
+    i = cartavisInstance.getImageViews()
+    _loadFilesFromDirectory(i[0],
+        os.path.expanduser( '~/CARTA/Images/CARTAImages/CubesTest'))
+
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/AstrometryTest')),
+                    reason="Directory does not exist.")
+def test_loadFile_AstrometryTest(cartavisInstance, cleanSlate):
+    """
+    Test that the image(s) in CARTAImages/CARTAImages/AstrometryTest can
+    be loaded.  Note that this test will be skipped if the directory
+    does not exist.  If it is being skipped and you would like it to
+    run, just make sure that the CARTA/Images/CARTAImages/AstrometryTest
+    directory exists under your home directory and that it is populated
+    with the appropriate images from the CARTAImages repository.
+    """
+    i = cartavisInstance.getImageViews()
+    _loadFilesFromDirectory(i[0],
+        os.path.expanduser( '~/CARTA/Images/CARTAImages/AstrometryTest'))
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
@@ -644,3 +741,10 @@ def _saveFullImage(imageView, imageName, tempImageDir):
     reference = Image.open(os.getcwd() + '/data/' + imageName)
     comparison = Image.open(tempImageDir + '/' + imageName)
     assert list(reference.getdata()) == list(comparison.getdata())
+
+def _loadFilesFromDirectory(imageView, directory):
+    """
+    Attempts to lead each of the files in a directory.
+    """
+    for fileName in os.listdir(directory):
+        assert imageView.loadFile(directory + '/' + fileName) == ['']
