@@ -269,6 +269,13 @@ public:
     void resetZoom();
 
     /**
+     * Get the image pixel that is currently centered.
+     * @return a list of the x- and y-coordinates of the center pixel,
+     * or error information if the center pixel could not be obtained.
+    */
+    QStringList getCenterPixel();
+
+    /**
      * Save a copy of the full image in the current image view.
      * @param filename the full path where the file is to be saved.
      * @param scale the scale (zoom level) of the saved image.

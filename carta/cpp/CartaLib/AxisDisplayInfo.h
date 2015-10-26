@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include "CartaLib/AxisInfo.h"
 
 namespace Carta {

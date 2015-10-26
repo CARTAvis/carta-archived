@@ -1,4 +1,5 @@
 import os
+import time
 import pytest
 import cartavis
 
@@ -33,6 +34,7 @@ def cartavisInstance(request):
     os.chdir(directory)
     v = cartavis.Cartavis(directory + '/' + executable, configFile, int(port),
                           htmlFile, imageFile)
+    time.sleep(5)
     os.chdir(currentDir)
     def fin():
         v.quit()
@@ -49,16 +51,12 @@ def tempImageDir(request):
     """
     imageDir = '/tmp/cartavis-test'
     if not os.path.isdir(imageDir):
-        print "Making tempImageDir"
         os.makedirs(imageDir)
     def fin():
-        print "fin()"
-        print "imageDir = " + imageDir
         for file in os.listdir(imageDir):
-            print "deleting " + imageDir + '/' + file
             os.remove(imageDir + '/' + file)
         os.rmdir(imageDir)
-    #request.addfinalizer(fin)
+    request.addfinalizer(fin)
     return imageDir
 
 @pytest.fixture(scope="function")
@@ -70,14 +68,15 @@ def cleanSlate(request, cartavisInstance):
     that depends on the colormap being Gray, the second test may fail
     if the colormap is not reset first.
     """
+    # Reset the layout to the default analysis layout
+    # Set it back to image layout first; otherwise, resetting may not
+    # work
+    cartavisInstance.setImageLayout() 
+    cartavisInstance.setAnalysisLayout()
     i = cartavisInstance.getImageViews()
     c = cartavisInstance.getColormapViews()
     #h = cartavisInstance.getHistogramViews()
     a = cartavisInstance.getAnimatorViews()
-    # Reset the layout to the default analysis layout
-    # Set it back to image layout first, otherwise, resetting may not work
-    cartavisInstance.setImageLayout() 
-    cartavisInstance.setAnalysisLayout()
     # Reset the colormap
     c[0].setColormap('Gray')
     c[0].invertColormap(False)
@@ -90,5 +89,6 @@ def cleanSlate(request, cartavisInstance):
     # Reset the histogram
     #h[0].setPlaneMode('all')
     # Close all open images
-    for imageName in i[0].getImageNames():
-        i[0].closeImage(imageName)
+    for imageView in i:
+        for imageName in imageView.getImageNames():
+            imageView.closeImage(imageName)

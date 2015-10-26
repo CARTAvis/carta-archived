@@ -15,7 +15,7 @@ isEmpty(NOSERVER) {
 }
 
 # explicit dependencies, to make sure parallel make works (i.e. make -j4...)
-common.depends = CartaLib
+core.depends = CartaLib
 desktop.depends = core
 server.depends = core
 plugins.depends = core

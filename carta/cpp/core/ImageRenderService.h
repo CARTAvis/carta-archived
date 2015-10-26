@@ -262,7 +262,7 @@ private:
     QSize m_outputSize = QSize( 10, 10 );
 
     /// instance of the pixel pipeline (very likely slow)
-    IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw;
+    IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw = nullptr;
 
     /// current zoom
     double m_zoom = 1.0;
