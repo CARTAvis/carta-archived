@@ -28,10 +28,6 @@ template < class Pipeline >
 static void
 iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
-    if( displayAxisX != 0 || displayAxisY != 1) {
-        qFatal( "iView2qImage cannot handle axis permutations of any kind.");
-    }
-
     //qDebug() << "rv2qi2" << rawView-> dims();
     typedef double Scalar;
 
