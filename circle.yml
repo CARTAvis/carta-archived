@@ -15,15 +15,20 @@ dependencies:
   cache_directories:
     # automatically cache build docker image between builds
     - "~/docker"
+    - "~/images"
 
   override:
     - docker info
     - mkdir -p ~/docker
+    - mkdir -p ~/images
 
     # Restore docker build image and configure Dockerfile
     - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/astrilet/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image.tar; fi
     - cat ~/CARTAvis/Dockerfile | envsubst  > ~/CARTAvis/Dockerfile.new
     - mv ~/CARTAvis/Dockerfile.new ~/CARTAvis/Dockerfile
+
+    # Get Selenium test images if they are not cached yet
+    - if [[ ! -e ~/images/images.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/images.tgz; fi
 
     # build CARTAvis
     - docker build -t astrilet/circlecibuild .
