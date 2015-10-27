@@ -5,6 +5,7 @@
 #include "DesktopConnector.h"
 #include "CartaLib/LinearMap.h"
 #include "core/MyQApp.h"
+#include "core/SimpleRemoteVGView.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -182,6 +183,12 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
     qFatal( "not implemented");
 }
 
+
+Carta::Lib::IRemoteVGView * DesktopConnector::makeRemoteVGView(QString viewName)
+{
+    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
+}
+
 void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
     // it's ok to call setState directly, because callbacks will be invoked
     // from there asynchronously
@@ -209,7 +216,7 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
         emit jsCommandResultsSignal( results.join("|"));
 
         if( allCallbacks.size() == 0) {
-            qWarning() << "JS command has no server listener:" << cmd;
+            qWarning() << "JS command has no server listener:" << cmd << parameter;
         }
     });
 }

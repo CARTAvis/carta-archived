@@ -2,12 +2,14 @@
 #include "core/MyQApp.h"
 #include "core/Globals.h"
 #include "CartaLib/Hooks/GetInitialFileList.h"
+#include "core/SimpleRemoteVGView.h"
 
 #include <QTimer>
 #include <QImage>
 #include <QXmlInputSource>
 #include <QDebug>
 #include <functional>
+
 
 ServerConnector::ServerConnector()
     : QObject( nullptr)
@@ -314,16 +316,10 @@ void ServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 const QStringList & ServerConnector::initialFileList()
 {
     return m_initialFileList;
+}
 
-//    m_initialFileList.clear();
-//    auto it = m_urlParams.find( "file");
-//    if( it != m_urlParams.end()) {
-//        m_initialFileList << ( * it).second;
-//    }
-
-
-
-//    m_initialFileList = { "/scratch/Images/sky.jpg" };
-//    return m_initialFileList;
+Carta::Lib::IRemoteVGView * ServerConnector::makeRemoteVGView(QString viewName)
+{
+    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CartaLib/IRemoteVGView.h"
 #include "core/IConnector.h"
 #include "CSI/Standard/CsiStandard.h"
 #include "CSI/Standard/CsiThreading.h"
@@ -10,7 +11,6 @@
 #include <iostream>
 #include <unordered_set>
 #include <map>
-
 
 class QtMessageTickler
         : public QObject
@@ -109,6 +109,8 @@ public:
     /// this only works after initialize() was called
 //    const std::map< QString, QString> & urlParams();
 
+    virtual Carta::Lib::IRemoteVGView *
+    makeRemoteVGView( QString viewName) override;
 
 protected:
 
@@ -132,7 +134,6 @@ protected:
     std::map<QString,  CommandCallbackList> m_commandCallbackMap;
     typedef std::vector<StateChangedCallback> StateCBList;
     std::map<QString, StateCBList> m_stateCallbackList;
-//    bool m_startServer;
 
     // set to tell us whether a pureweb statechange callback is registered or not
     std::unordered_set< std::string > m_pwStateCBset;

@@ -2,6 +2,7 @@
 #define ICONNECTOR_H
 
 #include "IView.h"
+//#include "CartaLib/IRemoteVGView.h"
 
 #include <memory>
 #include <functional>
@@ -9,6 +10,12 @@
 #include <QString>
 #include <QMouseEvent>
 #include <QKeyEvent>
+
+namespace Carta {
+namespace Lib {
+class IRemoteVGView;
+}
+}
 
 /**
  * @brief The IConnector interface offers common API that the C++ code uses
@@ -74,6 +81,10 @@ public:
     /// between C++ and JavaScript
     virtual QString getStateLocation( const QString& saveName ) const = 0;
 
+    /// create a vector graphics view
+//    virtual Carta::Lib::IRemoteVGView::SharedPtr
+    virtual Carta::Lib::IRemoteVGView *
+    makeRemoteVGView( QString viewName) = 0;
 
     virtual ~IConnector() {}
 };

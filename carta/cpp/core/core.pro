@@ -95,7 +95,9 @@ HEADERS += \
     Hacks/ContourEditorController.h \
     VGView.h \
     DummyGridRenderer.h \
-    coreMain.h
+    coreMain.h \
+    SimpleRemoteVGView.h \
+    Hacks/ManagedLayerView.h
 
 SOURCES += \
     Viewer.cpp \
@@ -175,7 +177,9 @@ SOURCES += \
     Hacks/ContourEditorController.cpp \
     VGView.cpp \
     DummyGridRenderer.cpp \
-    coreMain.cpp
+    coreMain.cpp \
+    SimpleRemoteVGView.cpp \
+    Hacks/ManagedLayerView.cpp
 
 
 #message( "common            PWD=$$PWD")

@@ -9,6 +9,7 @@
 #include <QObject>
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
+#include "CartaLib/IRemoteVGView.h"
 
 class MainWindow;
 class IView;
@@ -35,6 +36,8 @@ public:
     void unregisterView( const QString& viewName ) override;
     virtual void refreshView(IView *view) override;
     virtual void removeStateCallback( const CallbackID & id) override;
+    virtual Carta::Lib::IRemoteVGView *
+    makeRemoteVGView( QString viewName) override;
 
     /// Return the location where the state is saved.
     virtual QString getStateLocation( const QString& saveName ) const;

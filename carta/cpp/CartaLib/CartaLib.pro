@@ -31,7 +31,8 @@ SOURCES += \
     IWcsGridRenderService.cpp \
     ContourSet.cpp \
     Algorithms/LineCombiner.cpp \
-    IImageRenderService.cpp
+    IImageRenderService.cpp \
+    IRemoteVGView.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -67,7 +68,8 @@ HEADERS += \
     Hooks/GetInitialFileList.h \
     Hooks/Initialize.h \
     IImageRenderService.h \
-    Hooks/GetImageRenderService.h
+    Hooks/GetImageRenderService.h \
+    IRemoteVGView.h
 
 unix {
     target.path = /usr/lib
