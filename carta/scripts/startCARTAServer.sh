@@ -3,7 +3,7 @@
 ln -s ./src/build/ ./carta_latest
 
 # copy server to local directory
-scp ubuntu@199.116.235.163:/cartasrc/cartaserver.tgz .
+scp ubuntu@carta-develop.ddns.net:/cartasrc/cartaserver.tgz .
 tar xzf cartaserver.tgz
 rm cartaserver.tgz
 
@@ -13,11 +13,16 @@ cd VFS/PureWebDevel
 ln -s /home/developer/src/CARTAvis/carta/html5/common ./common
 ln -s /home/developer/src/CARTAvis/carta/html5/server ./server
 ln -s /home/developer/src/CARTAvis/carta/html5/common/skel/source/resource/skel ./skel
-scp ubuntu@199.116.235.163:/cartasrc/serverIndex.html .
+scp ubuntu@carta-develop.ddns.net:/cartasrc/serverIndex.html .
 sudo cp serverIndex.html ./server
 
 cd /scratch/Images
-scp ubuntu@199.116.235.163:/cartasrc/testimages/*.fits .
+tar xzf images.tgz
+
+mikdir -p /scratch/snapshots
+mikdir -p /scratch/snapshots/data
+mikdir -p /scratch/snapshots/layout
+mikdir -p /scratch/snapshots/preferences
 
 cd ~/cartaserver
 ./runserver.sh

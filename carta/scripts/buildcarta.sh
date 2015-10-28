@@ -3,6 +3,10 @@
 HOME=/home/developer
 export PATH=$PATH:$HOME/Qt/5.3/gcc_64/bin
 
+
+cp $HOME/src/CARTAvis/carta/scripts/runScriptedClientTests.sh /home/ubuntu
+cp $HOME/src/CARTAvis/carta/scripts/startCARTAServer.sh /home/ubuntu
+
 cd $HOME/src/CARTAvis
 sudo chmod -R a+w carta
 

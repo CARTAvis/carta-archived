@@ -1,8 +1,7 @@
 FROM astrilet/cartabuild:latest
-COPY . /home/developer/src/CARTAvis
-COPY ./carta/scripts/buildcarta.sh /home/developer
-COPY ./carta/scripts/runScriptedClientTests.sh  /home/developer
-COPY ./carta/scripts/startCARTAServer.sh /home/developer
+ADD . /home/developer/src/CARTAvis
+ADD ./carta/scripts/buildcarta.sh /home/developer
+ADD ~/images/images.tgz /scratch/Images
 WORKDIR /home/developer/
 USER 1000
 ENV CIRUN $CIRCLECI
