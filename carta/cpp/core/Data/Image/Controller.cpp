@@ -1017,7 +1017,7 @@ void Controller::saveState() {
 
 
 QString Controller::saveImage( const QString& fileName ){
-    int zoomLevel = getZoomLevel();
+    double zoomLevel = getZoomLevel();
     return saveImage( fileName, zoomLevel );
 }
 
