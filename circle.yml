@@ -36,10 +36,10 @@ dependencies:
 test:
   override:
     # Run scripted client tests
-    - docker run astrilet/circlecibuild /home/developer/runtests.sh
+    - docker run astrilet/circlecibuild /home/developer/runScriptedClientTests.sh
 
     # Start CARTAvis server int the docker container
-    - docker run -d -name cartaserver -p 8080:8080 astrilet/circlecibuild /home/developer/serverup.sh && sleep 60
+    - docker run -d -p 8080:8080 astrilet/circlecibuild /home/developer/startCARTAServer.sh && sleep 60
 
     # Run Selenium Tests
     - cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
