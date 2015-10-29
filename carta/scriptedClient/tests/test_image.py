@@ -38,7 +38,7 @@ def _saveImage(imageWindow):
     Parameters
     ----------
     imageWindow:
-        The image window which as already been located.
+        The image window which has already been located.
     """
     pyautogui.rightClick(x=imageWindow[0], y=imageWindow[1])
     pyautogui.press('down')
