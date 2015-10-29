@@ -535,11 +535,13 @@ ImageViewController::imageAndGridDoneSlot(
     }
     qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
 
+    // insert a matrix transform at the beginning
+    Carta::Lib::VectorGraphics::VGComposer composer;
     t.restart();
     {
-        QPen lineColor( QColor( "red" ), 1 );
-        lineColor.setCosmetic( true );
-        painter.setPen( lineColor );
+//        QPen lineColor( QColor( "red" ), 1 );
+//        lineColor.setCosmetic( true );
+//        painter.setPen( lineColor );
 
         // where does 0.5, 0.5 map to?
         QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
@@ -559,7 +561,10 @@ ImageViewController::imageAndGridDoneSlot(
         double m31 = p1.x() - m11 * 0.5;
         double m32 = p1.y() - m22 * 0.5;
         tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-        painter.setTransform( tf );
+//        painter.setTransform( tf );
+        composer.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf);
+        composer.appendList( contourVG);
+        contourVG = composer.vgList();
     }
     if ( ! vgRenderer.render( contourVG, painter ) ) {
         qWarning() << "could not render contour vector graphics";
