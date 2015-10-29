@@ -180,7 +180,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Change the Channel Animator to an Image Animator
         self.channel_to_image_animator( driver )
-
+    
         # Open settings
         self._openSettings( driver, "Image" )
 
@@ -297,8 +297,9 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self.assertGreater( int(currImageValue), int(firstImageValue), "Image value did not increase after animating first image")
     
     # Test that the Animator reverse setting animates in the reverse direction after 
-    # reaching the last channel value. Under default settings, it takes roughly 4 seconds 
-    # for the channel to reverse direction from the last channel
+    # reaching the last channel value. 
+    # Note:  this test is dependent on the animator speed and may fail because of changes
+    # in speed.
     def test_channelAnimatorReverse(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()
@@ -354,9 +355,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "Current channel", currChannelValue
         self.assertGreater( int(currChannelValue), int(firstChannelValue), "Channel Animator did not increase channel after animating first channel value")
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
         # Open settings
         self._openSettings( driver, "Image" )
 
@@ -373,9 +371,10 @@ class tAnimatorSettings(tAnimator.tAnimator):
         ActionChains(driver).click( reverseButton ).perform()
 
          # Click the forward animate button
-        # Allow the image to animate for 2 seconds (takes 4 seconds to reverse direction)
+        # Allow the image to animate
         self._animateForward( driver, "Image" )
-        time.sleep(5)
+        time.sleep(.1)
+        self._stopAnimation( driver, "Image")
 
         # Check that the current image value is less than the last image value
         currImageValue = self._getCurrentValue( driver, "Image" )

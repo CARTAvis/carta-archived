@@ -84,16 +84,14 @@ class tAnimator(unittest.TestCase):
     def channel_to_image_animator(self, driver):
         timeout = selectBrowser._getSleep()
         
-        # Make sure the animation window is enabled by clicking an element within the window
-        # From the context menu, uncheck the Channel Animator and check the Image Animator
-        channelText = driver.find_element_by_id( "ChannelIndexText")
-        driver.execute_script( "arguments[0].scrollIntoView(true);", channelText)
-        ActionChains(driver).click( channelText ).perform()
-        # Click on the animate button on the menu tool bar
-        animateToolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Animate']")))
-        ActionChains(driver).click( animateToolBar ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.SPACE).send_keys(
-            ).send_keys(Keys.ENTER).perform()
-        time.sleep(timeout)
+        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
+        ActionChains(driver).context_click( animWindow ).perform()
+        ActionChains(driver).send_keys(Keys.ARROW_DOWN).send_keys(
+            ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
+            ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN
+            ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+        time.sleep( timeout)
+        
         
     def hideImageAnimator(self, driver):
         animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))

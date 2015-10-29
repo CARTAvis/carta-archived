@@ -76,7 +76,6 @@ HEADERS += \
     Data/Snapshot/Snapshots.h \
     Data/Snapshot/Snapshot.h \
     Data/Snapshot/SnapshotsFile.h \
-    Data/Statistics.h \
     Data/Util.h \
     GrayColormap.h \
     Data/ViewManager.h \
@@ -165,7 +164,6 @@ SOURCES += \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
-    Data/Statistics.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

@@ -10,8 +10,12 @@
 #include "CCRawView.h"
 #include "CCMetaDataInterface.h"
 #include "casacore/images/Images/ImageInterface.h"
+#include "casacore/images/Images/ImageUtilities.h"
+#include "casacore/images/Images/TempImage.h"
+
 #include <QDebug>
 #include <memory>
+#include <set>
 
 /// helper base class so that we can easily determine if this is a an image
 /// interface created by this plugin if we ever want to down-cast it...
@@ -56,6 +60,53 @@ public:
     getPixelUnit() const override
     {
         return m_unit;
+    }
+
+    virtual std::shared_ptr<Image::ImageInterface>
+    getPermuted(const std::vector<int> & indices ) override{
+
+        //Make sure the passed in indices make sense for this image.
+        std::vector<int> imageVect = dims();
+        int axisCount = imageVect.size();
+        int indexCount = indices.size();
+        CARTA_ASSERT( axisCount == indexCount );
+        std::set<int> usedIndices;
+        for ( int i = 0; i < indexCount; i++ ){
+            if ( 0 <= indices[i] && indices[i] < indexCount ){
+                int usedCount = usedIndices.count( indices[i] );
+                CARTA_ASSERT( usedCount == 0 );
+                usedIndices.insert( indices[i]);
+            }
+        }
+
+        //Convert to a CASA data type.
+        casa::Vector<int> newOrder( indexCount );
+        for ( int i = 0; i < indexCount; i++ ){
+            newOrder[i] = indices[i];
+        }
+        //Change the order of the axes in the coordinate system
+        casa::CoordinateSystem coordSys = m_casaII->coordinates();
+        coordSys.transpose( newOrder, newOrder );
+        casa::IPosition oldShape = m_casaII->shape();
+        casa::IPosition newShape( indexCount );
+        for ( int i = 0; i < indexCount; i++ ){
+            newShape[i] = oldShape[newOrder[i]];
+        }
+
+        //Make a new image and copy the data into it.
+        casa::ImageInterface<PType>* newImage = new casa::TempImage<PType>(casa::TiledShape( newShape), coordSys);
+        casa::Array<PType> dataCopy = m_casaII->get();
+        newImage->put( reorderArray( dataCopy, newOrder ));
+        if ( m_casaII->hasPixelMask()){
+            std::unique_ptr<casa::Lattice<casa::Bool> > maskLattice( m_casaII->pixelMask().clone());
+            casa::Array<casa::Bool> maskCopy = maskLattice->get();
+            dynamic_cast< casa::TempImage<PType> *>(newImage)->attachMask( casa::ArrayLattice<casa::Bool>(reorderArray( maskCopy, newOrder )));
+        }
+
+        //Finish the copy and create a CARTA image with permuted axes.
+        casa::ImageUtilities::copyMiscellaneous( *newImage, *m_casaII );
+        std::shared_ptr<Image::ImageInterface> permuteImage =  create( newImage);
+        return permuteImage;
     }
 
     virtual const std::vector < int > &

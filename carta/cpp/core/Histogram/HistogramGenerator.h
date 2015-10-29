@@ -59,6 +59,15 @@ public:
   std::pair<double,double> getRangeColor(bool* valid ) const;
 
   /**
+   * Return true if the parameter is on the canvas itself rather than in the
+   * margin of the canvas.
+   * @param xPos - a pixel position in the horizontal direction.
+   * @return - true if the position is actually on the plot canvas itself; false,
+   *    otherwise.
+   */
+  bool isSelectionOnCanvas( int xPos ) const;
+
+  /**
    * Set the range of values for the x-axis.
    * @param min - the smallest desired x-axis value.
    * @param max - the largest desired x-axis value.
@@ -75,8 +84,9 @@ public:
    * Set the size of the image that will be generated.
    * @param width the width of the generated image.
    * @param height the height of the generated image.
+   * @return true if there is a resize; false if the size remains the same.
    */
-  void setSize( int width, int height );
+  bool setSize( int width, int height );
 
   /**
    * Set the drawing style for the histogram.

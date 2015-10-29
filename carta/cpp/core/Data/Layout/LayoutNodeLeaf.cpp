@@ -36,8 +36,8 @@ bool LayoutNodeLeaf::getIndex( const QString& plugin, const QString& locationId,
     bool targetFound = false;
     QString leafPlugin= m_state.getValue<QString>(PLUGIN);
     if ( leafPlugin == plugin ){
-        *index = *index + 1;
         if ( locationId == getPath()){
+            *index = m_state.getValue<int>( Carta::State::StateInterface::INDEX );
             targetFound = true;
         }
     }

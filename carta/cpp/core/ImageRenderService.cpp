@@ -26,16 +26,12 @@ static constexpr bool QtPremultipliedBugStillExists = true;
 /// \param m_qImage
 template < class Pipeline >
 static void
-iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage, int displayAxisX, int displayAxisY )
+iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
 {
-    if( displayAxisX != 0 || displayAxisY != 1) {
-        qFatal( "iView2qImage cannot handle axis permutations of any kind.");
-    }
-
     //qDebug() << "rv2qi2" << rawView-> dims();
     typedef double Scalar;
 
-    QSize size( rawView->dims()[displayAxisX], rawView->dims()[displayAxisY] );
+    QSize size( rawView->dims()[0], rawView->dims()[1] );
 
     QImage::Format desiredFormat = OptimalQImageFormat;
     if ( QtPremultipliedBugStillExists ) {
@@ -99,16 +95,10 @@ namespace Core
 namespace ImageRenderService
 {
 void
-Service::setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId, int displayAxisX, int displayAxisY )
+Service::setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId )
 {
-    CARTA_ASSERT( displayAxisX >= 0 );
-    CARTA_ASSERT( displayAxisY >= 0 );
-    int viewSize = view->dims().size();
-    CARTA_ASSERT( displayAxisX < viewSize && displayAxisY < viewSize);
     m_inputView = view;
 
-    m_displayAxisX = displayAxisX;
-    m_displayAxisY = displayAxisY;
     m_inputViewCacheId = cacheId;
     m_frameImage = QImage(); // indicate a need to recompute
 }
@@ -245,6 +235,7 @@ Service::screen2img( const QPointF & p )
     double scy = m_outputSize.height() / 2.0;
 
     /// \todo cache xmap/ymap, update with zoom/pan/resize
+
     Carta::Lib::LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
     Carta::Lib::LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
     QPointF res;
@@ -330,7 +321,7 @@ Service::internalRenderSlot()
                     m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
                                               pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage, m_displayAxisX, m_displayAxisY );
+                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
             }
             else {
                 if ( ! m_cachedPP ) {
@@ -338,11 +329,11 @@ Service::internalRenderSlot()
                     m_cachedPP-> cache( * m_pixelPipelineRaw,
                                         pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage, m_displayAxisX, m_displayAxisY );
+                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage );
             }
         }
         else {
-            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage, m_displayAxisX, m_displayAxisY );
+            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
         }
     }
 

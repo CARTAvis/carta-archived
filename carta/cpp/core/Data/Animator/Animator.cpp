@@ -605,6 +605,17 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
             QString animId;
             addAnimator( animName , animId );
         }
+        else {
+            if ( m_animators.contains( animName ) ){
+                if ( m_animators[animName]->isRemoved( ) ){
+                    m_animators[animName]->setRemoved( false );
+                    if ( controller->getFrameUpperBound(*it) > 0 ){
+                        m_animators[animName]->setVisible( true );
+                    }
+                    _adjustStateAnimatorTypes();
+                }
+            }
+        }
     }
 }
 

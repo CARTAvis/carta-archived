@@ -329,6 +329,8 @@ private:
      */
     NdArray::RawViewInterface* _getRawData( const std::vector<int> frames ) const;
 
+    std::shared_ptr<Image::ImageInterface> _getPermutedImage() const;
+
     //Returns an identifier for the current image slice being rendered.
     QString _getViewIdCurrent( const std::vector<int>& frames ) const;
     int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
@@ -434,6 +436,7 @@ private:
 
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_image;
+    std::shared_ptr<Image::ImageInterface> m_permuteImage;
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
