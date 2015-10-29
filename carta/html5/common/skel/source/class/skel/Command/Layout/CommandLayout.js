@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 qx.Class.define("skel.Command.Layout.CommandLayout", {
-    extend : skel.Command.CommandGroup,
+    extend : skel.Command.CommandComposite,
     type : "singleton",
 
     /**
@@ -59,7 +59,7 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
          * @param active {boolean} true if the command should be active; false otherwise.
          */
         //Written so that when a window is added or removed, the server-side update of
-        //the value will not trigger a relayout.
+        //the value will not trigger a re-layout.
         setActive : function( active ){
             for ( var i = 0; i < this.m_cmds.length; i++ ){
                 this.m_cmds[i].setActive( active );
@@ -67,12 +67,14 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
         },
         
         setValues : function( image, analysis, custom ){
+            this.setActive( false );
             var imageCmd = skel.Command.Layout.CommandLayoutImage.getInstance();
             imageCmd.setValue( image );
             var analysisCmd = skel.Command.Layout.CommandLayoutAnalysis.getInstance();
             analysisCmd.setValue( analysis );
             var customCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
             customCmd.setValue( custom );
+            this.setActive( true );
         },
         
         m_sharedVar : null

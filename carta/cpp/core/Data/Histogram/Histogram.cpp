@@ -1790,8 +1790,8 @@ QString Histogram::saveHistogram( const QString& fileName ){
         Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
         QImage* histogramImage = m_histogram->toImage();
         QSize outputSize( width, height );
-        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode );
-        bool saveSuccessful = imgScaled.save( fileName );
+        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
+        bool saveSuccessful = imgScaled.save( fileName, 0, 100 );
         if ( !saveSuccessful ){
             result = "The image could not be saved; please check the path: "+fileName+" is valid.";
         }
@@ -1951,9 +1951,13 @@ void Histogram::_startSelection(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString xstr = dataValues[X_COORDINATE];
-    m_selectionEnabled = true;
-    m_selectionStart = xstr.toDouble();
-    m_histogram->setSelectionMode( true );
+    double proposedStart = xstr.toDouble();
+    bool onTarget = m_histogram->isSelectionOnCanvas( proposedStart );
+    if ( onTarget ){
+        m_selectionEnabled = true;
+        m_selectionStart = proposedStart;
+        m_histogram->setSelectionMode( true );
+    }
 }
 
 void Histogram::_startSelectionColor(const QString& params ){
@@ -2017,8 +2021,10 @@ void Histogram::updateColorMap( Colormap* map ){
 
 
 void Histogram::_updateSize( const QSize& size ){
-    m_histogram->setSize( size.width(), size.height());
-    _generateHistogram( false );
+    bool newSize = m_histogram->setSize( size.width(), size.height());
+    if ( newSize ){
+        _generateHistogram( false );
+    }
 }
 
 void Histogram::_updateColorClips( double colorMinPercent, double colorMaxPercent ){

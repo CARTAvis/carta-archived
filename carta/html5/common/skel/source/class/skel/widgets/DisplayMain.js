@@ -200,6 +200,10 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
             var displayArea = this.m_pane.getDisplayArea();
             this.add(displayArea);
+            //Store the windows that were created so if the layout changes on the
+            //server, we can reuse existing windows.
+            var windows = this.m_pane.getWindows();
+            skel.widgets.Window.WindowFactory.setExistingWindows( windows );
         },
 
         /**

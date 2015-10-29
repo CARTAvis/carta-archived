@@ -27,19 +27,22 @@ qx.Class.define("skel.Command.View.CommandView", {
             if ( skel.Command.Command.m_activeWins.length > 0 ){
                 //For now use the first active window.
                 var winInfo = skel.Command.Command.m_activeWins[0];
-                var data = {
-                    location : winInfo.getLocation(),
-                    plugin : pluginName
-                };
-                //Changing the view will change to a custom layout, but we don't want to show
-                //the custom layout dialog in such a case.
-                var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
-                layoutCmd.setActive( false );
-                var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
-                customLayoutCmd.setValue( true );
-                skel.widgets.Window.WindowFactory.setExistingWindows( []);
-                qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
-                layoutCmd.setActive( true );
+                var windowPlugin = winInfo.getPlugin();
+                if ( windowPlugin != this.getLabel() ){
+                    var data = {
+                        location : winInfo.getLocation(),
+                        plugin : pluginName
+                    };
+                    //Changing the view will change to a custom layout, but we don't want to show
+                    //the custom layout dialog in such a case.
+                    var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
+                    layoutCmd.setActive( false );
+                    var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
+                    customLayoutCmd.setValue( true );
+                    skel.widgets.Window.WindowFactory.setExistingWindows( []);
+                    qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
+                    layoutCmd.setActive( true );
+                }
             }
         }
     }
