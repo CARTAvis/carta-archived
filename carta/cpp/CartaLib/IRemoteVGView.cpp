@@ -104,17 +104,19 @@ LayeredRemoteVGView::LayeredRemoteVGView( IConnector * connector,
     m_vgView.reset( connector-> makeRemoteVGView( viewName ));
 
     /// forward signals directly
-    connect( m_vgView.get(), SIGNAL( sizeChanged() ), this, SIGNAL( sizeChanged() ) );
     connect( m_vgView.get(), SIGNAL( repainted() ), this, SIGNAL( repainted() ) );
+    //    connect( m_vgView.get(), SIGNAL( sizeChanged() ), this, SIGNAL( sizeChanged() ) );
+    connect( m_vgView.get(), & IRemoteVGView::sizeChanged, this, & Me::p_sizeChangedCB);
+
 
     m_timer = new QTimer( this );
     m_timer-> setSingleShot( true );
     m_timer-> setInterval( 1 );
-    connect( m_timer, & QTimer::timeout, this, & Me::timerCB );
+    connect( m_timer, & QTimer::timeout, this, & Me::p_timerCB );
 }
 
 void
-LayeredRemoteVGView::timerCB()
+LayeredRemoteVGView::p_timerCB()
 {
     // figure out the size of the buffer (max of the raster sizes)
     QSize size( 1, 1);
@@ -125,29 +127,14 @@ LayeredRemoteVGView::timerCB()
     QImage buff( size, QImage::Format_ARGB32_Premultiplied );
     buff.fill( QColor( 0, 0, 0, 255 ) );
 
-    // combine all raster layers into buff using their respective compositors
-//    if ( m_rasterLayers.size() > 0 ) {
-//        // the background will be the same size as the first layer, but filled with black
-//        buff = m_rasterLayers[0].qimg;
-//        buff.fill( QColor( 0, 0, 0, 255 ) );
-
-        // now go through the layers and paint them on top of the last result
-        for ( auto & layer : m_rasterLayers ) {
-            IQImageCombiner::SharedPtr combiner = layer.combiner;
-            if ( ! combiner ) {
-                combiner = std::make_shared < DefaultCombiner > ();
-            }
-            combiner->combine( buff, layer.qimg );
+    // now go through the layers and paint them on top of the last result
+    for ( auto & layer : m_rasterLayers ) {
+        IQImageCombiner::SharedPtr combiner = layer.combiner;
+        if ( ! combiner ) {
+            combiner = std::make_shared < DefaultCombiner > ();
         }
-
-//        for ( size_t i = 0 ; i < m_rasterLayers.size() ; ++i ) {
-//            IQImageCombiner::SharedPtr combiner = m_rasterLayers[i].combiner;
-//            if ( ! combiner ) {
-//                combiner = std::make_shared < DefaultCombiner > ();
-//            }
-//            combiner->combine( buff, m_rasterLayers[i].qimg );
-//        }
-//    }
+        combiner->combine( buff, layer.qimg );
+    }
 
     m_vgView-> setRaster( buff );
 
@@ -158,23 +145,16 @@ LayeredRemoteVGView::timerCB()
         composer.appendList( vglayer.vglist );
     }
 
+    // render the combined vector graphics list
     m_vgView-> setVG( composer.vgList());
-
-    // now we render all VG layers on top of buff
-//    for ( auto & vglayer : m_vgLayers ) {
-//        VectorGraphics::VGListQPainterRenderer renderer;
-//        QPainter painter( & buff );
-//        renderer.render( vglayer.vglist, painter );
-//    }
-
-    // render all layers on top of each other
-//    QColor color( qrand() % 255, qrand() % 255, qrand() % 255 );
-//    QImage img( 100, 100, QImage::Format_ARGB32_Premultiplied);
-//    img.fill( color);
-//    m_vgView-> setRaster( buff );
 
     // schedule repaint
     (void) m_vgView-> scheduleRepaint( m_repaintId );
+}
+
+void LayeredRemoteVGView::p_sizeChangedCB()
+{
+    emit sizeChanged();
 } // timerCB
 }
 }

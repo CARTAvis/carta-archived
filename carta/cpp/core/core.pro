@@ -93,7 +93,6 @@ HEADERS += \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
-    VGView.h \
     DummyGridRenderer.h \
     coreMain.h \
     SimpleRemoteVGView.h \
@@ -175,7 +174,6 @@ SOURCES += \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
-    VGView.cpp \
     DummyGridRenderer.cpp \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \

@@ -194,6 +194,11 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 void
 ImageViewController::playMovieToggleCB()
 {
+    if( m_playToggle-> get()) {
+        loadNextFrame();
+    }
+    return;
+
     if ( m_playToggle-> get() ) {
         m_movieTimer.start( 1000 / 60 );
     }
@@ -363,10 +368,17 @@ ImageViewController::handleResizeRequest( const QSize & size )
     requestImageAndGridUpdate();
 }
 
+void ImageViewController::viewRefreshed(qint64 id) {
+    qDebug() << "ImageViewController view" << name() << "refreshed" << id;
+    if( m_playToggle-> get()) {
+        loadNextFrame();
+    }
+}
+
 void
 ImageViewController::loadImage( QString fname )
 {
-//    qDebug() << "xyz ImageViewController::loadImage" << fname;
+    //    qDebug() << "xyz ImageViewController::loadImage" << fname;
     m_fileName = fname;
 
     qDebug() << "loadImage() Trying to load astroImage...";
@@ -399,7 +411,7 @@ ImageViewController::loadImage( QString fname )
 void
 ImageViewController::frameVarCB()
 {
-//    qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
+    qDebug() << "frameVar" << m_frameVar-> get();
     if ( m_astroImage-> dims().size() < 2 ) {
         return;
     }
@@ -415,6 +427,7 @@ ImageViewController::frameVarCB()
     // make sure frame integer is valid
     frame = Carta::Lib::clamp < int > ( frame, 0, nf - 1 );
 
+    qDebug() << "current frame" << m_currentFrame << " frame=" << frame;
     // load the actual frame
     if ( frame != m_currentFrame ) {
         loadFrame( frame );
@@ -494,7 +507,8 @@ ImageViewController::loadNextFrame()
     int currFrame = std::round( m_frameVar-> get() * nf / 1e6 );
     int nextFrame = ( currFrame + 1 ) % nf;
 
-    m_frameVar-> set( nextFrame * 1e6 / nf );
+    qDebug() << "Setting next frame to" << nextFrame;
+    m_frameVar-> set( (nextFrame+ 0.1) * 1e6 / nf );
 } // loadFrame
 
 void

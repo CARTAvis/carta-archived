@@ -23,7 +23,8 @@
 struct DesktopConnector::ViewInfo
 {
 
-    /// the implemented IView
+    /// pointer to user supplied IView
+    /// this is a NON-OWNING pointer
     IView * view;
 
     /// last received client size
@@ -34,6 +35,9 @@ struct DesktopConnector::ViewInfo
 
     /// refresh timer for this object
     QTimer refreshTimer;
+
+    /// refresh ID
+    qint64 refreshId = -1;
 
     ViewInfo( IView * pview )
     {
@@ -141,6 +145,7 @@ void DesktopConnector::registerView(IView * view)
 
     // connect the view's refresh timer to a lambda, which will in turn call
     // refreshViewNow()
+    // this is instead of using std::bind...
     connect( & viewInfo->refreshTimer, & QTimer::timeout,
             [=] () {
                      refreshViewNow( view);
@@ -159,14 +164,14 @@ void DesktopConnector::unregisterView( const QString& viewName ){
 //    static QTime st;
 
 // schedule a view refresh
-void DesktopConnector::refreshView(IView * view)
+qint64 DesktopConnector::refreshView(IView * view)
 {
     // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
         qCritical() << "refreshView cannot find this view: " << view-> name();
-        return;
+        return -1;
     }
 
     // start the timer for this view if it's not already started
@@ -176,6 +181,9 @@ void DesktopConnector::refreshView(IView * view)
     else {
 //        qDebug() << "########### saved refresh for " << view->name();
     }
+
+    viewInfo-> refreshId ++;
+    return viewInfo-> refreshId;
 }
 
 void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
@@ -279,13 +287,13 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
-        emit jsViewUpdatedSignal( view-> name(), pix);
+        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
     }
     else {
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
-        emit jsViewUpdatedSignal( view-> name(), origImage);
+        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
     }
 }
 
@@ -304,6 +312,18 @@ void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int
         view-> handleResizeRequest( viewInfo-> clientSize);
         refreshView( view);
     });
+}
+
+void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
+{
+    qDebug() << "jsViewRefreshedSlot()" << viewName << id;
+    ViewInfo * viewInfo = findViewInfo( viewName);
+    if( ! viewInfo) {
+        qCritical() << "Received refresh view signal for unknown view" << viewName;
+        return;
+    }
+    CARTA_ASSERT( viewInfo-> view);
+    viewInfo-> view-> viewRefreshed( id);
 }
 
 void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)

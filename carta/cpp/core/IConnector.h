@@ -2,7 +2,6 @@
 #define ICONNECTOR_H
 
 #include "IView.h"
-//#include "CartaLib/IRemoteVGView.h"
 
 #include <memory>
 #include <functional>
@@ -53,7 +52,9 @@ public:
     virtual void registerView( IView * view) = 0;
 
     /// asks the connector to schedule a redraw of the view
-    virtual void refreshView( IView * view) = 0;
+    /// \param view which view to refresh
+    /// \return the id for the refresh (always increasing)
+    virtual qint64 refreshView( IView * view) = 0;
 
     /// unregister a view with the connector
     virtual void unregisterView( const QString& viewName ) = 0;

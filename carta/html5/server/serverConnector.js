@@ -77,7 +77,9 @@
             function( e )
             {
                 var params = e.args.getEncodingParameters();
-//                console.log( "View '" + this.m_pwview.getViewName() + "' updated, params=", params );
+                console.log( "View '" + this.m_pwview.getViewName() + "' updated, params=", params );
+                pureweb.getClient().queueCommand( "viewrefreshed",
+                    { viewName: viewName, id: params.refreshId }, null, this );
             }, false, this );
         pureweb.listen( this.m_pwview, pureweb.client.View.EventType.TRANSFORMS_CHANGED,
             function( )

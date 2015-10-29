@@ -112,5 +112,10 @@ SimpleRemoteVGView::handleMouseEvent( const QMouseEvent & /*event*/ )
 void
 SimpleRemoteVGView::handleKeyEvent( const QKeyEvent & /*event*/ )
 { }
+
+void SimpleRemoteVGView::viewRefreshed(qint64 id)
+{
+    Q_UNUSED( id);
+}
 }
 }

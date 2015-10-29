@@ -11,19 +11,127 @@
 #include <functional>
 
 
+
+static
+void OnPWStateInitialized(CSI::PureWeb::Server::StateManager &, CSI::EmptyEventArgs &)
+{
+    qDebug() << "PureWeb StateManager is now initialized";
+}
+
+
+/// internal class used by ServerConnector to bridge between PureWeb's view and Carta's
+/// connector view
+class PWIViewConverter : public CSI::PureWeb::Server::IRenderedView
+{
+public:
+    PWIViewConverter( IView * iview,  CSI::CountedPtr<CSI::PureWeb::Server::StateManager> sm) {
+        m_iview = iview;
+        m_sm = sm;
+    }
+
+    virtual void SetClientSize(CSI::PureWeb::Size clientSize) Q_DECL_OVERRIDE
+    {
+        m_iview->handleResizeRequest( QSize( clientSize.Width, clientSize.Height));
+    }
+    virtual CSI::PureWeb::Size GetActualSize() Q_DECL_OVERRIDE
+    {
+        auto qtsize = m_iview->size();
+        return CSI::PureWeb::Size( qtsize.width(), qtsize.height());
+    }
+    virtual void RenderView(CSI::PureWeb::Server::RenderTarget target) Q_DECL_OVERRIDE
+    {
+        CSI::ByteArray bits = target.RenderTargetImage().ImageBytes();
+
+        const QImage & qimage = m_iview->getBuffer();
+        if( qimage.format() != QImage::Format_ARGB32_Premultiplied) {
+            // @todo could we do SSSE3 byte shuffle here as we are copying?
+            // e.g. __m128i _mm_shuffle_epi8
+            QImage tmpImage = qimage.convertToFormat( QImage::Format_ARGB32_Premultiplied);
+            CSI::ByteArray::Copy(tmpImage.scanLine(0), bits, 0, bits.Count());
+        }
+        else {
+            CSI::ByteArray::Copy(qimage.scanLine(0), bits, 0, bits.Count());
+        }
+
+        // tell the clients the ID of this refresh
+        auto map = target.Parameters();
+//        qint64 id = refreshId();
+        map["refreshId"] = QString::number( m_refreshId).toStdString().c_str();
+    }
+    virtual void PostKeyEvent(const CSI::PureWeb::Ui::PureWebKeyboardEventArgs & /*keyEvent*/) Q_DECL_OVERRIDE
+    {}
+    virtual void PostMouseEvent(const CSI::PureWeb::Ui::PureWebMouseEventArgs & mouseEvent) Q_DECL_OVERRIDE
+    {
+        QEvent::Type action = QEvent::None;
+        Qt::MouseButton button;
+        Qt::MouseButtons buttons;
+        Qt::KeyboardModifiers keys = 0;
+
+        switch(mouseEvent.EventType)
+        {
+        case CSI::PureWeb::Ui::MouseEventType::MouseDown:
+            action = QEvent::MouseButtonPress;
+            break;
+        case CSI::PureWeb::Ui::MouseEventType::MouseUp:
+            action = QEvent::MouseButtonRelease;
+            break;
+        case CSI::PureWeb::Ui::MouseEventType::MouseMove:
+            action = QEvent::MouseMove;
+            break;
+        default:
+            return;
+            break;
+        }
+
+        switch (mouseEvent.ChangedButton)
+        {
+        case CSI::PureWeb::Ui::MouseButtons::Left:
+            button = Qt::LeftButton;
+            break;
+        case CSI::PureWeb::Ui::MouseButtons::Right:
+            button = Qt::RightButton;
+            break;
+        default:
+            button = Qt::NoButton;
+            break;
+        }
+
+        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Shift)) {keys |= Qt::ShiftModifier; }
+        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Control)) {keys |= Qt::ControlModifier; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Left)) {buttons |= Qt::LeftButton; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Right)) {buttons |= Qt::RightButton; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Middle)) {buttons |= Qt::MidButton; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton1)) {buttons |= Qt::XButton1; }
+        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton2)) {buttons |= Qt::XButton2; }
+
+        QMouseEvent * m = new QMouseEvent(action, QPoint(mouseEvent.X,mouseEvent.Y), button, buttons, keys);
+        m_iview->handleMouseEvent( *m );
+        delete m;
+    } // PostMouseEvent
+
+    /// schedule refresh and return ID of this refresh
+    qint64 refresh() {
+        m_refreshId ++;
+        m_sm->ViewManager().RenderViewDeferred( m_iview->name().toStdString());
+        return m_refreshId;
+    }
+
+    void viewRefreshed( qint64 id) {
+        CARTA_ASSERT( m_iview);
+        m_iview-> viewRefreshed( id);
+    }
+
+    IView * m_iview = nullptr;
+    qint64 m_refreshId = -1;
+    CSI::CountedPtr<CSI::PureWeb::Server::StateManager> m_sm;
+};
+
 ServerConnector::ServerConnector()
     : QObject( nullptr)
 {
     m_callbackNextId = 0;
     m_initialized = false;
 }
-
-static
-void OnPWStateInitialized(CSI::PureWeb::Server::StateManager &, CSI::EmptyEventArgs &)
-{
-    qDebug() << "State manager is now initialized";
-}
-
 
 void ServerConnector::initialize(const InitializeCallback & cb)
 {
@@ -50,6 +158,10 @@ void ServerConnector::initialize(const InitializeCallback & cb)
         // register generic command listener
         CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
                 "generic", CSI::Bind( this, &ServerConnector::genericCommandListener));
+
+        // register view refresh command listener
+        CSI::PureWeb::Server::StateManager::Instance()->CommandManager().AddUiHandler(
+                "viewrefreshed", CSI::Bind( this, &ServerConnector::viewRefreshedCommandCB));
 
         // extract URL encoded arguments
         for( auto kv : m_server-> StartupParameters()) {
@@ -141,6 +253,34 @@ void ServerConnector::genericCommandListener(CSI::Guid sessionid, const CSI::Typ
     responses["result"] = results.join("|").toStdString();
 }
 
+void
+ServerConnector::viewRefreshedCommandCB(
+        CSI::Guid sessionid,
+        const CSI::Typeless & command,
+        CSI::Typeless & /*responses*/)
+{
+
+    QString viewName = command["viewName"].ValueOr("").ToAscii().begin();
+    QString sid = sessionid.ToString().ToAscii().begin();
+    QString idStr = command["id"].ValueOr("").ToAscii().begin();
+    bool ok;
+    qint64 id = idStr.toInt( & ok);
+    if( ! ok) {
+        qCritical() << "Invalid refresh ID" << idStr << "for view" << viewName;
+    }
+
+    qDebug() << "viewRefreshedCommandCB" << sid << viewName << id;
+
+    auto pwview = m_pwviews.find( viewName);
+    if( pwview == m_pwviews.end()) {
+        qCritical() << "Got refresh for view that does not exist" << viewName;
+        return;
+    }
+    CARTA_ASSERT( pwview-> second);
+    pwview-> second-> viewRefreshed( id);
+
+}
+
 IConnector::CallbackID ServerConnector::addStateCallback(IConnector::CSR path, const IConnector::StateChangedCallback &cb)
 {
     // do we have a pureweb callback with this path registered already?
@@ -190,97 +330,17 @@ void ServerConnector::pureWebValueChangedCB(const CSI::ValueChangedEventArgs &va
     });
 }
 
-/// internal class used by ServerConnector to bridge between PureWeb's view and Carta's
-/// connector view
-class PWIViewConverter : public CSI::PureWeb::Server::IRenderedView
-{
-public:
-    PWIViewConverter( IView * iview) {
-        m_iview = iview;
-    }
-
-    virtual void SetClientSize(CSI::PureWeb::Size clientSize) Q_DECL_OVERRIDE
-    {
-        m_iview->handleResizeRequest( QSize( clientSize.Width, clientSize.Height));
-    }
-    virtual CSI::PureWeb::Size GetActualSize() Q_DECL_OVERRIDE
-    {
-        auto qtsize = m_iview->size();
-        return CSI::PureWeb::Size( qtsize.width(), qtsize.height());
-    }
-    virtual void RenderView(CSI::PureWeb::Server::RenderTarget target) Q_DECL_OVERRIDE
-    {
-        CSI::ByteArray bits = target.RenderTargetImage().ImageBytes();
-
-        const QImage & qimage = m_iview->getBuffer();
-        if( qimage.format() != QImage::Format_ARGB32_Premultiplied) {
-            // @todo could we do SSSE3 byte shuffle here as we are copying?
-            // e.g. __m128i _mm_shuffle_epi8
-            QImage tmpImage = qimage.convertToFormat( QImage::Format_ARGB32_Premultiplied);
-            CSI::ByteArray::Copy(tmpImage.scanLine(0), bits, 0, bits.Count());
-        }
-        else {
-            CSI::ByteArray::Copy(qimage.scanLine(0), bits, 0, bits.Count());
-        }
-    }
-    virtual void PostKeyEvent(const CSI::PureWeb::Ui::PureWebKeyboardEventArgs & /*keyEvent*/) Q_DECL_OVERRIDE
-    {}
-    virtual void PostMouseEvent(const CSI::PureWeb::Ui::PureWebMouseEventArgs & mouseEvent) Q_DECL_OVERRIDE
-    {
-        QEvent::Type action = QEvent::None;
-        Qt::MouseButton button;
-        Qt::MouseButtons buttons;
-        Qt::KeyboardModifiers keys = 0;
-
-        switch(mouseEvent.EventType)
-        {
-        case CSI::PureWeb::Ui::MouseEventType::MouseDown:
-            action = QEvent::MouseButtonPress;
-            break;
-        case CSI::PureWeb::Ui::MouseEventType::MouseUp:
-            action = QEvent::MouseButtonRelease;
-            break;
-        case CSI::PureWeb::Ui::MouseEventType::MouseMove:
-            action = QEvent::MouseMove;
-            break;
-        default:
-            return;
-            break;
-        }
-
-        switch (mouseEvent.ChangedButton)
-        {
-        case CSI::PureWeb::Ui::MouseButtons::Left:
-            button = Qt::LeftButton;
-            break;
-        case CSI::PureWeb::Ui::MouseButtons::Right:
-            button = Qt::RightButton;
-            break;
-        default:
-            button = Qt::NoButton;
-            break;
-        }
-
-        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Shift)) {keys |= Qt::ShiftModifier; }
-        if (0 != (mouseEvent.Modifiers & CSI::PureWeb::Ui::Modifiers::Control)) {keys |= Qt::ControlModifier; }
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Left)) {buttons |= Qt::LeftButton; }
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Right)) {buttons |= Qt::RightButton; }
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::Middle)) {buttons |= Qt::MidButton; }
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton1)) {buttons |= Qt::XButton1; }
-        if (0 != (mouseEvent.Buttons & CSI::PureWeb::Ui::MouseButtons::XButton2)) {buttons |= Qt::XButton2; }
-
-        QMouseEvent * m = new QMouseEvent(action, QPoint(mouseEvent.X,mouseEvent.Y), button, buttons, keys);
-        m_iview->handleMouseEvent( *m );
-        delete m;
-    } // PostMouseEvent
-
-    IView * m_iview;
-};
-
 // unregister the view
-void ServerConnector::unregisterView( const QString& viewName ){
-    std::string vn = viewName.toStdString();
-    m_stateManager->ViewManager().UnregisterView( vn );
+void ServerConnector::unregisterView( const QString & viewName )
+{
+    m_stateManager->ViewManager().UnregisterView( viewName.toStdString() );
+    auto pwview = m_pwviews.find( viewName);
+    if( pwview != m_pwviews.end()) {
+        if( pwview-> second) {
+            delete pwview-> second;
+        }
+        m_pwviews.erase( pwview);
+    }
 }
 
 // registerView
@@ -294,7 +354,10 @@ void ServerConnector::registerView(IView *view)
     std::string vn = view->name().toStdString();
     /// \bug resource leak
     /// \todo this should be cleaned up when we (a) destory connector (b) unregister view
-    PWIViewConverter * cvt = new PWIViewConverter( view);
+    /// \note these should now be resolved
+    PWIViewConverter * cvt = new PWIViewConverter( view, m_stateManager);
+    // store this in our map so we can look it up later
+    m_pwviews[ view-> name()] = cvt;
 
     m_stateManager->ViewManager().RegisterView( view->name().toStdString(), cvt);
     m_stateManager->ViewManager().SetViewImageFormat( view->name().toStdString(), viewImageFormat);
@@ -303,9 +366,18 @@ void ServerConnector::registerView(IView *view)
     view->registration( this);
 }
 
-void ServerConnector::refreshView(IView *view)
+qint64 ServerConnector::refreshView(IView *view)
 {
-    m_stateManager->ViewManager().RenderViewDeferred( view->name().toStdString());
+    auto pwview = m_pwviews.find( view-> name());
+    if( pwview == m_pwviews.end()) {
+        qCritical() << "ServerConnector::refreshView::could not find this view";
+        m_stateManager->ViewManager().RenderViewDeferred( view->name().toStdString());
+        return -1;
+    }
+//    qint64 id = pwview-> second-> refreshId() + 1;
+//    pwview-> second-> setRefreshId( id);
+    auto id = pwview-> second-> refresh();
+    return id;
 }
 
 void ServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
@@ -321,5 +393,14 @@ const QStringList & ServerConnector::initialFileList()
 Carta::Lib::IRemoteVGView * ServerConnector::makeRemoteVGView(QString viewName)
 {
     return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
+}
+
+ServerConnector::~ServerConnector()
+{
+    for( auto & pwview : m_pwviews) {
+        if( pwview.second) {
+            delete pwview.second;
+        }
+    }
 }
 

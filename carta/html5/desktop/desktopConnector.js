@@ -91,13 +91,14 @@
     });
 
     // listen for jsViewUpdatedSignal to render the image
-    QtConnector.jsViewUpdatedSignal.connect(function(viewName, buffer) {
+    QtConnector.jsViewUpdatedSignal.connect(function(viewName, buffer, refreshId) {
         var view = m_views[viewName];
         if (view == null) {
             console.warn("Ignoring update for unconnected view '" + viewName + "'");
             return;
         } 
         buffer.assignToHTMLImageElement(view.m_imgTag);
+        QtConnector.jsViewRefreshedSlot( view.getName(), refreshId);
     });
 
     // convenience function to create & get or just get a state

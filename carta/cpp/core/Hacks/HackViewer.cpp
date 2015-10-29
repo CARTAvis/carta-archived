@@ -166,7 +166,7 @@ HackViewer::start()
     prefixedSetState( "knownSkyCS/count", "5" );
 
     // layered view stuff
-    static Carta::Lib::IRemoteVGView::SharedPtr vgview( m_connector-> makeRemoteVGView( "vgview1" ));
+    static Carta::Lib::IRemoteVGView::SharedPtr vgview( m_connector-> makeRemoteVGView( "vgview1" ) );
     QImage img( 200, 100, QImage::Format_ARGB32_Premultiplied );
     img.fill( 0xff000000 );
     {
@@ -196,17 +196,18 @@ HackViewer::start()
                  if ( xxx > 1 ) {
                      xxx = 0.0;
                  }
-                 comp.append < Carta::Lib::VectorGraphics::Entries::FillRect > ( QRectF( xxx * 10 +
-                                                                                         50, 55, 70,
-                                                                                         40 ),
-                                                                                 QColor( 0, 0, 255,
-                                                                                         128 ) );
+                 using Carta::Lib::VectorGraphics::Entries::FillRect;
+                 comp.append < FillRect > ( QRectF( xxx * 10 +
+                                                    50, 55, 70,
+                                                    40 ),
+                                            QColor( 0, 0, 255,
+                                                    128 ) );
                  vgview-> setVG( comp.vgList() );
                  vgview-> scheduleRepaint();
              }
              );
     timer->setInterval( 100 );
-    timer->start();
+//    timer->start();
 
     // layered view 2 stuff
     auto ccl = [] ( int x, int y, int r, QColor color ) -> QImage {
@@ -248,7 +249,7 @@ HackViewer::start()
     // 0 alpha 0.5
     // 0 mask 0xff0000 0.5
     auto cmdCB =
-        [&] ( const QString & cmd, const QString & params, const QString & sid ) -> QString {
+    [&] ( const QString & cmd, const QString & params, const QString & sid ) -> QString {
         qDebug() << "cmd" << cmd << params << sid;
         QStringList list = params.split( ' ', QString::SkipEmptyParts );
         if ( list.size() < 2 ) {
@@ -269,12 +270,12 @@ HackViewer::start()
                 return "What do you want to load?";
             }
             QString load = list[2];
-            if ( load.startsWith( '/') && QFileInfo(load).exists() ) {
+            if ( load.startsWith( '/' ) && QFileInfo( load ).exists() ) {
                 QImage img;
-                if( !img.load( load)) {
+                if ( ! img.load( load ) ) {
                     return "Could not load image";
                 }
-                vgview2-> setRasterLayer( layer, img);
+                vgview2-> setRasterLayer( layer, img );
             }
             else if ( load == "c1" ) {
                 vgview2-> setRasterLayer( layer, ccl( 50, 50, 45, "white" ) );
@@ -290,32 +291,33 @@ HackViewer::start()
             if ( list.size() < 3 ) {
                 return "No alpha value?";
             }
-            double alpha = list[2].toDouble( & ok);
-            if( ! ok || ! (alpha >= 0 && alpha <= 1)) {
+            double alpha = list[2].toDouble( & ok );
+            if ( ! ok || ! ( alpha >= 0 && alpha <= 1 ) ) {
                 return "Bad alpha";
             }
-            auto comp = std::make_shared<Carta::Lib::AlphaCombiner>();
-            comp-> setAlpha( alpha);
-            vgview2-> setRasterLayerCombiner( layer, comp);
+            auto comp = std::make_shared < Carta::Lib::AlphaCombiner > ();
+            comp-> setAlpha( alpha );
+            vgview2-> setRasterLayerCombiner( layer, comp );
         }
         else if ( opcmd == "mask" ) {
             if ( list.size() < 4 ) {
                 return "No mask and/or alpha value?";
             }
-            quint32 mask = list[2].toInt( & ok, 16);
-            if( ! ok ) {
+            quint32 mask = list[2].toInt( & ok, 16 );
+            if ( ! ok ) {
                 return "Bad mask";
             }
             mask |= 0xff000000;
-            double alpha = list[3].toDouble( & ok);
-            if( ! ok || ! (alpha >= 0 && alpha <= 1)) {
+            double alpha = list[3].toDouble( & ok );
+            if ( ! ok || ! ( alpha >= 0 && alpha <= 1 ) ) {
                 return "Bad alpha";
             }
-            auto comp = std::make_shared<Carta::Lib::PixelMaskCombiner>();
-            comp-> setAlpha( alpha);
-            comp-> setMask( mask);
-            vgview2-> setRasterLayerCombiner( layer, comp);
+            auto comp = std::make_shared < Carta::Lib::PixelMaskCombiner > ();
+            comp-> setAlpha( alpha );
+            comp-> setMask( mask );
+            vgview2-> setRasterLayerCombiner( layer, comp );
         }
+        else if ( opcmd == "time" ) {}
         else {
             qWarning() << "Bad layer operation" << params;
             return "Bad layer operation";

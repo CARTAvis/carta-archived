@@ -226,6 +226,10 @@ public:
     virtual void
     handleKeyEvent( const QKeyEvent & ) override { }
 
+    /// IView interface
+    virtual void
+    viewRefreshed( qint64 id);
+
     void setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr );
     void
     setPPCsettings( PPCsettings settings );

@@ -11,6 +11,8 @@ class QKeyEvent;
 class QString;
 class QSize;
 
+#include <QtGlobal>
+
 /**
  * @brief The IView interface defines the necessary functionality that a server side view
  * has to implement to create an object that can interact with the client side view.
@@ -73,6 +75,9 @@ public:
     /// \deprecated this may be removed altogether, or become optional
     virtual void
     handleKeyEvent( const QKeyEvent & event ) = 0;
+
+    /// this is called when a view is refreshed in the GUI
+    virtual void viewRefreshed( qint64 id) = 0;
 
     virtual
     ~IView() { }

@@ -59,6 +59,7 @@ private:
     int m_eventCounter;
 };
 
+class PWIViewConverter;
 
 class ServerConnector : public QObject, public IConnector
 {
@@ -97,7 +98,7 @@ public:
     virtual void unregisterView( const QString& viewName ) Q_DECL_OVERRIDE;
 
     /// refresh view implementation
-    virtual void refreshView(IView *view) Q_DECL_OVERRIDE;
+    virtual qint64 refreshView( IView * view) override;
 
     /// remove state callback implementation
     virtual void removeStateCallback( const CallbackID & id) Q_DECL_OVERRIDE;
@@ -112,7 +113,9 @@ public:
     virtual Carta::Lib::IRemoteVGView *
     makeRemoteVGView( QString viewName) override;
 
-protected:
+    virtual ~ServerConnector();
+
+private:
 
     /// this gets called when pureweb server is shutting down
     static void OnPureWebShutdown(CSI::PureWeb::Server::StateManagerServer&,
@@ -120,6 +123,9 @@ protected:
 
     /// internal true pureweb command listener, our command callback piggyback to this one
     void genericCommandListener(CSI::Guid sessionid, CSI::Typeless const& command, CSI::Typeless& responses);
+
+    /// internal listener for view refresh commands from the clients
+    void viewRefreshedCommandCB(CSI::Guid sessionid, CSI::Typeless const& command, CSI::Typeless& responses);
 
     /// pointer to the server
     CSI::CountedPtr<CSI::PureWeb::Server::StateManagerServer> m_server;
@@ -150,9 +156,8 @@ protected:
     // whether initialize was called
     bool m_initialized;
 
-private:
-
     void print( CSI::Typeless treeRoot ) const;
-//    QString toQString( const CSI::String source) const;
+
+    std::map< QString, PWIViewConverter *> m_pwviews;
 };
 

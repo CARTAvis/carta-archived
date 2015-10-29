@@ -34,7 +34,7 @@ public:
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) override;
     virtual void registerView(IView * view) override;
     void unregisterView( const QString& viewName ) override;
-    virtual void refreshView(IView *view) override;
+    virtual qint64 refreshView( IView * view) override;
     virtual void removeStateCallback( const CallbackID & id) override;
     virtual Carta::Lib::IRemoteVGView *
     makeRemoteVGView( QString viewName) override;
@@ -52,6 +52,8 @@ public slots:
     void jsConnectorReadySlot();
     /// javascript calls this when view is resized
     void jsUpdateViewSlot( const QString & viewName, int width, int height);
+    /// javascript calls this when the view is refreshed
+    void jsViewRefreshedSlot( const QString & viewName, qint64 id);
     /// javascript calls this on mouse move inside a view
     /// \deprecated
     void jsMouseMoveSlot( const QString & viewName, int x, int y);
@@ -70,7 +72,7 @@ signals:
     /// javascript listens to it
     void jsCommandResultsSignal( const QString & results);
     /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal( const QString & viewName, const QImage & img);
+    void jsViewUpdatedSignal( const QString & viewName, const QImage & img, qint64 id);
 
 public:
 

@@ -184,10 +184,14 @@ private:
     qint64 m_repaintId = - 1;
     QTimer * m_timer = nullptr;
 
+
 private slots:
 
     void
-    timerCB();
+    p_timerCB();
+
+    void p_sizeChangedCB();
+
 };
 
 /// paints one raster over the other one, overwriting the bottom one

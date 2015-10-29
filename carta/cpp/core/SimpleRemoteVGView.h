@@ -86,6 +86,10 @@ private:
 
     virtual void
     handleKeyEvent( const QKeyEvent & event ) override;
+
+    virtual void
+    viewRefreshed( qint64 id) override ;
+
 };
 }
 }
