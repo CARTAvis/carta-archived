@@ -4,8 +4,8 @@ HOME=/home/developer
 export PATH=$PATH:$HOME/Qt/5.3/gcc_64/bin
 
 
-cp $HOME/src/CARTAvis/carta/scripts/runScriptedClientTests.sh /home/ubuntu
-cp $HOME/src/CARTAvis/carta/scripts/startCARTAServer.sh /home/ubuntu
+cp $HOME/src/CARTAvis/carta/scripts/runScriptedClientTests.sh $HOME
+cp $HOME/src/CARTAvis/carta/scripts/startCARTAServer.sh $HOME
 
 cd $HOME/src/CARTAvis
 sudo chmod -R a+w carta
@@ -17,7 +17,7 @@ cd $HOME/src/CARTAvis/carta/html5/common/skel
 mkdir $HOME/src/build
 cd $HOME/src/build
 qmake  CARTA_BUILD_TYPE=dev $HOME/src/CARTAvis/carta -r
-make
+make -j 4
 find . -name "*.o" -exec rm -f {} \;
 find . -name "Makefile" -exec rm -f {} \;
 find . -name "*.h" -exec rm -f {} \;

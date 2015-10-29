@@ -17,7 +17,8 @@ scp ubuntu@carta-develop.ddns.net:/cartasrc/serverIndex.html .
 sudo cp serverIndex.html ./server
 
 cd /scratch/Images
-tar xzf images.tgz
+wget https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz
+tar xzf SeleniumTestImages.tgz
 
 mikdir -p /scratch/snapshots
 mikdir -p /scratch/snapshots/data
