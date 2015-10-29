@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import unittest
 import tHistogram
 import tLayout
@@ -27,12 +28,12 @@ def ciSuite():
     test_suite.addTest( unittest.makeSuite(tAxis.tAxis))
     test_suite.addTest( unittest.makeSuite(tHistogram.tHistogram))
     test_suite.addTest( unittest.makeSuite(tContour.tContour))
+    test_suite.addTest( unittest.makeSuite(tSnapshotData.tSnapshotData))
 
     # tests that fail
     #timeout messages
     #test_suite.addTest( unittest.makeSuite(tAnimatorSettings.tAnimatorSettings))
     #test_suite.addTest( unittest.makeSuite(tAnimatorTapeDeck.tAnimatorTapeDeck))
-    #test_suite.addTest( unittest.makeSuite(tSnapshotData.tSnapshotData))
     #test_suite.addTest( unittest.makeSuite(tSnapshotLayout.tSnapshotLayout))
     #test_suite.addTest( unittest.makeSuite(tSnapshotPreferences.tSnapshotPreferences))
     #test_suite.addTest( unittest.makeSuite(tAnimatorLinks.tAnimatorLinks))
@@ -42,4 +43,6 @@ def ciSuite():
 testSuite = ciSuite()
 
 runner = unittest.TextTestRunner()
-runner.run( testSuite )
+
+ret = not runner.run(testSuite).wasSuccessful()
+sys.exit(ret)
