@@ -20,10 +20,14 @@ cd /scratch/Images
 wget https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz
 tar xzf SeleniumTestImages.tgz
 
-mikdir -p /scratch/snapshots
-mikdir -p /scratch/snapshots/data
-mikdir -p /scratch/snapshots/layout
-mikdir -p /scratch/snapshots/preferences
+sudo mkdir -p snapshots
+sudo chmod a+w snapshots
+sudo mkdir -p ./snapshots/data
+sudo chmod a+w ./snapshots/data
+sudo mkdir -p ./snapshots/layout
+sudo chmod a+w ./snapshots/layout
+sudo mkdir -p ./snapshots/preferences
+sudo chmod a+w ./snapshots/preferences
 
 cd ~/cartaserver
 ./runserver.sh

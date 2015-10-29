@@ -17,7 +17,7 @@ cd $HOME/src/CARTAvis/carta/html5/common/skel
 mkdir $HOME/src/build
 cd $HOME/src/build
 qmake  CARTA_BUILD_TYPE=dev $HOME/src/CARTAvis/carta -r
-make -j 4
+make -j 8
 find . -name "*.o" -exec rm -f {} \;
 find . -name "Makefile" -exec rm -f {} \;
 find . -name "*.h" -exec rm -f {} \;
