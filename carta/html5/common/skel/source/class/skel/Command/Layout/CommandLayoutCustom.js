@@ -19,13 +19,14 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
     members : {
         
         doAction : function( vals ){
-            if ( vals && this.m_active ){
+            if ( this.m_active ){
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "showLayoutPopup", vals));
             }
+
         },
         
         getType : function(){
-            return skel.Command.Command.TYPE_BOOL;
+            return skel.Command.Command.TYPE_BUTTON;
         },
         
         /**

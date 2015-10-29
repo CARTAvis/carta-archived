@@ -185,12 +185,6 @@ CCCoordinateFormatter::setAxisPrecision( int precision, int axis )
     return * this;
 }
 
-void
-CCCoordinateFormatter::setDisplayAxes( std::vector<Carta::Lib::AxisInfo::KnownType> displayAxes ){
-    CARTA_ASSERT( displayAxes.size() == 2 );
-    m_displayAxes = displayAxes;
-}
-
 bool
 CCCoordinateFormatter::toWorld( const CoordinateFormatterInterface::VD & pixel,
                                 CoordinateFormatterInterface::VD & world ) const

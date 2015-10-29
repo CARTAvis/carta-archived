@@ -40,24 +40,23 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
              * Initialize the list of commands this window supports.
              */
             _initSupportedCommands : function(){
-                if ( this.m_supportedCmds.length == 0 ){
-                    var linksCmd = skel.Command.Link.CommandLink.getInstance();
-                    this.m_supportedCmds.push( linksCmd.getLabel() );
-                    
-                    var clipCmd = skel.Command.Clip.CommandClip.getInstance();
-                    this.m_supportedCmds.push( clipCmd.getLabel() );
-                   
-                    var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
-                    this.m_supportedCmds.push( histCmd.getLabel() );
-                    var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
-                    if ( saveCmd.isSaveAvailable() ){
-                        this.m_supportedCmds.push( saveCmd.getLabel() );
-                    }
-                    var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
-                    this.m_supportedCmds.push( popupCmd.getLabel() );
-                    
-                    arguments.callee.base.apply(this, arguments);
+                this.m_supportedCmds = [];
+                var linksCmd = skel.Command.Link.CommandLink.getInstance();
+                this.m_supportedCmds.push( linksCmd.getLabel() );
+                
+                var clipCmd = skel.Command.Clip.CommandClip.getInstance();
+                this.m_supportedCmds.push( clipCmd.getLabel() );
+               
+                var histCmd = skel.Command.Settings.SettingsHistogram.getInstance();
+                this.m_supportedCmds.push( histCmd.getLabel() );
+                var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
+                if ( saveCmd.isSaveAvailable() ){
+                    this.m_supportedCmds.push( saveCmd.getLabel() );
                 }
+                var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+                this.m_supportedCmds.push( popupCmd.getLabel() );
+                
+                arguments.callee.base.apply(this, arguments);
                
             },
            
@@ -101,6 +100,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowHistogram", {
                         }
                     }
                 }
+            },
+            
+            /**
+             * Called when the histogram is selected.
+             * @param selected {boolean} - true if the window is selected; false otherwise.
+             * @param multiple {boolean} - true if there are multiple window problems selected.
+             */
+            setSelected : function(selected, multiple) {
+                this._initSupportedCommands();
+                arguments.callee.base.apply(this, arguments, selected, multiple );
             },
             
             /**

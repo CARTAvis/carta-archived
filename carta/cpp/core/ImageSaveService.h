@@ -6,6 +6,8 @@
 #ifndef IMAGESAVESERVICE_H
 #define IMAGESAVESERVICE_H
 
+#include "ImageRenderService.h"
+
 #include <QObject>
 #include <QSize>
 #include <QImage>
@@ -13,11 +15,6 @@
 #include <memory>
 
 namespace Carta {
-    namespace Core {
-        namespace ImageRenderService {
-            class Service;
-        }
-    }
     namespace Lib {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
@@ -47,7 +44,7 @@ public:
     /// \param m_pixelPipeline pixel pipeline.
     explicit
     ImageSaveService( QString savename,
-            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> &m_pixelPipeline,
+            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline,
             QObject * parent = 0 );
 
     ///
@@ -100,7 +97,7 @@ private slots:
 
 private:
 
-    Carta::Core::ImageRenderService::Service *m_renderService; 
+    Carta::Core::ImageRenderService::Service::UniquePtr m_renderService = nullptr; 
 
     /**
      * Prepare the data for rendering.

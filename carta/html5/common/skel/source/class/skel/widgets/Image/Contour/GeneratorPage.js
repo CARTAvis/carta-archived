@@ -89,6 +89,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             this.m_levelCountSpin.setEditable( false );
             this.m_levelCountSpin.setToolTipText( "Specify the number of contour levels to generate.");
             this.m_levelCountSpin.addListener( "changeValue", this._sendLevelCountCmd, this );
+            skel.widgets.TestID.addTestId( this.m_levelCountSpin, "imageContourLevelCount" );
             limitCountContainer.add( countLabel );
             limitCountContainer.add( this.m_levelCountSpin );
             limitCountContainer.add( new qx.ui.core.Spacer(), {flex:1});
@@ -116,11 +117,13 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             this.m_limitMinText.setToolTipText( "Specify the smallest contour level.");
             this.m_limitMinText.setIntegerOnly( false );
             this.m_limitMinText.addListener( "textChanged", this._sendLimitMinCmd, this );
+            skel.widgets.TestID.addTestId( this.m_limitMinText, "imageContourLevelMin" );
             var maxLabel = new qx.ui.basic.Label( "Max Level:");
             this.m_limitMaxText = new skel.widgets.CustomUI.NumericTextField(null,null);
             this.m_limitMaxText.setToolTipText( "Specify the largest contour level.");
             this.m_limitMaxText.setIntegerOnly( false );
             this.m_limitMaxText.addListener( "textChanged", this._sendLimitMaxCmd, this );
+            skel.widgets.TestID.addTestId( this.m_limitMaxText, "imageContourLevelMax" );
             minMaxContainer.add( new qx.ui.core.Spacer(), {row:0,column:0, rowSpan:2});
             minMaxContainer.add( minLabel, {row:0,column:1});
             minMaxContainer.add( this.m_limitMinText, {row:0,column:2});
@@ -145,6 +148,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             intervalContainer.add( new qx.ui.core.Spacer(), {flex:1});
             var intervalLabel = new qx.ui.basic.Label( "Interval:");
             this.m_intervalWidget = new skel.widgets.CustomUI.NumericTextField(0.0001,null);
+            skel.widgets.TestID.addTestId( this.m_intervalWidget, "contourSpacingInterval" );
             this.m_intervalWidget.setIntegerOnly( false );
             this.m_intervalWidget.setEnabled( false );
             this.m_intervalWidget.setToolTipText( "Set the initial contour spacing amount.");
@@ -164,6 +168,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             limitContainer.setLayout( new qx.ui.layout.HBox(2));
             var limitsLabel = new qx.ui.basic.Label( "Method:");
             this.m_limitCombo = new skel.widgets.CustomUI.SelectBox("setGenerateMethod", "method");
+            skel.widgets.TestID.addTestId( this.m_limitCombo, "contourGenerateMethod" );
             this.m_limitCombo.addListener( "selectChanged", this._generateMethodChanged, this );
             limitContainer.add( limitsLabel );
             limitContainer.add( this.m_limitCombo );
@@ -177,9 +182,11 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             this.m_generateButton = new qx.ui.form.Button( "Add/Update Contour Set");
             this.m_generateButton.setToolTipText( "Generate a contour set or update the levels in an existing contour set.");
             this.m_generateButton.addListener( "execute", this._sendGenerateCmd, this );
+            skel.widgets.TestID.addTestId( this.m_generateButton, "ImageContourGenerateAddButton" );
             this.m_deleteButton = new qx.ui.form.Button( "Delete Contour Set");
             this.m_deleteButton.setToolTipText( "Delete a contour set.");
             this.m_deleteButton.addListener( "execute", this._sendDeleteCmd, this );
+            skel.widgets.TestID.addTestId( this.m_deleteButton, "ImageContourGenerateDeleteButton" );
             butContainer.add( this.m_generateButton );
             butContainer.add( this.m_deleteButton );
             butContainer.add( new qx.ui.core.Spacer(), {flex:1});

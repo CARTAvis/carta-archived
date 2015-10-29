@@ -145,7 +145,7 @@ QString SnapshotsFile::save( const QString& sessionId, const QString& snapshotTy
     filePath = filePath + fullName;
     bool saved = _save( filePath, saveStr );
     if ( !saved ){
-        result = "There was a problem saving the "+snapshotType+" snapshot "+snapName;
+        result = "There was a problem saving the "+snapshotType+" snapshot "+snapName+"\n.  Please check the path: "+filePath+".";
     }
     return result;
 }

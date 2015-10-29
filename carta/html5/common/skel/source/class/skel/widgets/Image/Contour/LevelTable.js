@@ -137,7 +137,6 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
         },
         
         
-        
         /**
          * Notify listeners that the list of levels in the set has changed.
          */
@@ -179,7 +178,16 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
                 selectModel.setSelectionInterval( 0, 0 );
             }
         },
-
+        
+        /**
+         * Set a test name for the level table based on the name of the parent contour set.
+         * @param name {String} - the name of the parent contour set.
+         */
+        setName : function( name ){
+            var testName = "contourLevelList"+name;
+            skel.widgets.TestID.addTestId( this.m_table, testName );
+        },
+        
         m_levels : null,
         m_table : null,
         m_tableModel : null

@@ -412,25 +412,12 @@ int Controller::getSelectImageIndex() const {
     return selectImageIndex;
 }
 
-
-
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
         name = m_datas[index]->_getFileName();
     }
     return name;
-}
-
-QStringList Controller::getOutputSize( ){
-    QStringList result;
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        QSize outputSize = m_datas[imageIndex]->_getOutputSize();
-        result.append( QString::number( outputSize.width() ) );
-        result.append( QString::number( outputSize.height() ) );
-    }
-    return result;
 }
 
 std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller::getPipeline() const {
@@ -495,21 +482,6 @@ std::vector<int> Controller::_getFrameIndices( int imageIndex ) const {
     }
     return frames;
 }
-
-QStringList Controller::getImageDimensions( ){
-    QStringList result;
-    int imageIndex = m_selectImage->getIndex();
-    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        int dimensions = m_datas[imageIndex]->_getDimensions();
-        for ( int i = 0; i < dimensions; i++ ) {
-            int d = m_datas[imageIndex]->_getDimension( i );
-            result.append( QString::number( d ) );
-        }
-    }
-    return result;
-}
-
-
 
 QString Controller::getPreferencesId() const {
     QString id;
@@ -844,7 +816,7 @@ void Controller::_loadView(  bool newClips ) {
         }
     }
     else {
-        qDebug() << "Image index=" << imageIndex << " is out of range";
+        //qDebug() << "Image index=" << imageIndex << " is out of range";
     }
 }
 
@@ -1367,6 +1339,47 @@ void Controller::updatePan( double centerX , double centerY){
             _updateCursorText( true );
         }
     }
+}
+
+QStringList Controller::getCenterPixel() {
+    int imageIndex = m_selectImage->getIndex();
+    QStringList returnValue = QStringList( "null" );
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
+        QPointF center = m_datas[imageIndex]->_getCenter();
+        returnValue = QStringList( QString::number( center.x() ) );
+        returnValue.append( QString::number( center.y() ) );
+    }
+    return returnValue;
+}
+
+QStringList Controller::getImageDimensions( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
+        int dimensions = m_datas[imageIndex]->_getDimensions();
+        for ( int i = 0; i < dimensions; i++ ) {
+            int d = m_datas[imageIndex]->_getDimension( i );
+            result.append( QString::number( d ) );
+        }
+    }
+    else {
+        result = QStringList("");
+    }
+    return result;
+}
+
+QStringList Controller::getOutputSize( ){
+    QStringList result;
+    int imageIndex = m_selectImage->getIndex();
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
+        QSize outputSize = m_datas[imageIndex]->_getOutputSize();
+        result.append( QString::number( outputSize.width() ) );
+        result.append( QString::number( outputSize.height() ) );
+    }
+    else {
+        result = QStringList("");
+    }
+    return result;
 }
 
 void Controller::_viewResize( const QSize& newSize ){

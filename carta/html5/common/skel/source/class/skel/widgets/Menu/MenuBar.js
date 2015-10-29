@@ -128,62 +128,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             }, this );
         },
 
-        /**
-         * Returns whether or not the menu bar is currently
-         * positioned at the top of the display area.
-         */
-        /*isTop : function() {
-            var topPosition = true;
-            // User has the option of changing it to top, which
-            // means it is not currently top.
-            if (this.m_menuPositionButton.getLabel() == "Top") {
-                topPosition = false;
-            }
-            return topPosition;
-        },*/
-        
-    
-        
-
-        /**
-         * Change from a top menu to a left menu or vice versa.
-         */
-        /*reposition : function() {
-            if (this.isTop()) {
-                this.setHeight(30);
-                this.setWidth(null);
-                this.setMinWidth(null);
-                this.setMaxWidth(null);
-                /*this.setLayoutProperties({
-                    left : "0%",
-                    right : "0%",
-                    top : "0%",
-                    bottom : "100%"
-                });
-            } else {
-                var menuWidth = 120;
-                this.setWidth(menuWidth);
-                this.setMinWidth(menuWidth);
-                this.setMaxWidth(menuWidth);
-                this.setHeight(null);
-                this.setLayoutProperties({
-                    left : "0%",
-                    bottom : "0%",
-                    top : "0%",
-                    right : "90%"
-                });
-            }
-        },*/
-
-
-        /**
-         * Removes widgets from the menu bar in preparation for hiding.
-         */
-        /*removeWidgets : function() {
-            if (this.indexOf(this.m_menuPart) >= 0) {
-                this.remove(this.m_menuPart);
-            }
-        },*/
         
         /**
          * Reset the menu after erasing the old one.
@@ -194,14 +138,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this._buildMenu( cmds );
         },
 
-        /**
-         * Adds widgets to the menu bar in preparation for showing.
-         */
-        /*addWidgets : function() {
-            if (this.indexOf(this.m_menuPart) == -1) {
-                this.add(this.m_menuPart);
-            }
-        },*/
+
  
         /*
          * Hides or shows the status bar based on the location of the mouse.
@@ -217,28 +154,6 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.showHide(this, mouseLoc, widgetLoc);*/
         },
         
-
-
-        /*_reposition : function() {
-            var sideMenu = false;
-            if (this.m_menuPositionButton.getLabel() == "Side") {
-                this.m_menuPositionButton.setLabel("Top");
-                sideMenu = true;
-            } else {
-                this.m_menuPositionButton.setLabel("Side");
-            }
-            this.removeWidgets();
-            if (sideMenu) {
-                this._setLayout(new qx.ui.layout.VBox(5));
-            } else {
-                this._setLayout(new qx.ui.layout.HBox(5));
-            }
-            this.m_menuPart.setLayoutHorizontal(!sideMenu);
-            this.addWidgets();
-            this.reposition();
-            this.fireDataEvent("menuMoved");
-            this._setAnimationSize();
-        },*/
 
         m_contextMenu : null,
         m_menuPart : null

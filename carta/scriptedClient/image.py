@@ -3,7 +3,6 @@
 
 from astropy.coordinates import SkyCoord
 
-from statistics import Statistics
 from cartaview import CartaView
 from histogram import Histogram
 from animator import Animator
@@ -87,24 +86,6 @@ class Image(CartaView):
                 linkedHistogramViews.append(linkedHistogramView)
         return linkedHistogramViews
 
-    def getLinkedStatistics(self):
-        """
-        Get the statistics that are linked to this image view.
-
-        Returns
-        -------
-        list
-            A list of Statistics objects.
-        """
-        resultList = self.con.cmdTagList("getLinkedStatistics",
-                                         imageView=self.getId())
-        linkedStatisticsViews = []
-        if (resultList[0] != ""):
-            for statistics in resultList:
-                linkedStatisticsView = Statistics(statistics, self.con)
-                linkedStatisticsViews.append(linkedStatisticsView)
-        return linkedStatisticsViews
-
     def setClipValue(self, index):
         """
         Set the histogram to show the specified percentage of the data.
@@ -181,8 +162,7 @@ class Image(CartaView):
             Error message if an error occurred; nothing otherwise.
         """
         viewerDim = self.getOutputSize()
-        if (len(viewerDim) != 2):
-            #return "Could not center the image."
+        if (viewerDim[0] == "error"):
             return viewerDim
         self.centerOnPixel(x, y)
         if dim == 'width':
@@ -317,6 +297,23 @@ class Image(CartaView):
             Error message if an error occurred; nothing otherwise.
         """
         result = self.con.cmdTagList("centerImage", imageView=self.getId())
+        return result
+
+    def getCenterPixel(self):
+        """
+        Get the image pixel that is currently centered.
+
+        Returns
+        -------
+        list
+            Two floating point values representing the currently
+            centered x- and y-values, respectively, of the image.
+            Error information if the center pixel could not be obtained
+            (e.g. if there is no image currently loaded).
+        """
+        result = self.con.cmdTagList("getCenterPixel", imageView=self.getId())
+        if (result[0] != "error"):
+            result = [float(x) for x in result]
         return result
 
     def addLink(self, dest):
@@ -475,13 +472,11 @@ class Image(CartaView):
             Error information if the number of channels could not be
             obtained.
         """
-        result = 1
-        dimensions = self.getImageDimensions()
-        if (dimensions[0] != "error"):
-            if (len(dimensions) == 3):
-                result = dimensions[2]
+        result = self.con.cmdTagList("getChannelCount", imageView=self.getId())
+        if (result[0] != "error"):
+            result = int(result[0])
         else:
-            result = dimensions
+            result = result[1]
         return result
 
     def getOutputSize(self):
@@ -499,8 +494,6 @@ class Image(CartaView):
         result = self.con.cmdTagList("getOutputSize", imageView=self.getId())
         if (result[0] != "error"):
             result = [int(i) for i in result]
-        else:
-            result = result[1]
         return result
 
     def getIntensity(self, frameLow, frameHigh, percentile):
@@ -562,7 +555,10 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      ra=skyCoord.ra.radian,
                                      dec=skyCoord.dec.radian)
-        self.centerOnPixel(float(result[0]), float(result[1]))
+        if (result[0] == "error" or result[0] == ''):
+            result = ["Could not obtain pixel coordinates for " + str(skyCoord)]
+        else:
+            self.centerOnPixel(float(result[0]), float(result[1]))
         return result
 
     def getPixelValue(self, x, y):
@@ -1128,3 +1124,20 @@ class Image(CartaView):
                                      imageView=self.getId(),
                                      theme=theme)
         return result
+
+    def isEmpty(self):
+        """
+        Checks whether or not the image view is empty.
+
+        Returns
+        -------
+        boolean
+            True if the image view is empty.
+            False if there is at least one image loaded in the image
+            view.
+        """
+        images = self.getImageNames()
+        if (images):
+            return False
+        else:
+            return True

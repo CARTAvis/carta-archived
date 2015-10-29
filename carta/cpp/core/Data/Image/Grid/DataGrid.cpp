@@ -472,7 +472,7 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
                     for ( int i = 0; i < purposeCount; i++ ){
                         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
                         QString axisPurpose = m_state.getValue<QString>( lookup );
-                        if ( !usedPurposes.contains( axisPurpose ) ){
+                        if ( !usedPurposes.contains( axisPurpose ) && axisPurpose.length() > 0 ){
                             m_state.setValue<QString>(duplicateAxisPurposeKey, axisPurpose );
                             break;
                         }

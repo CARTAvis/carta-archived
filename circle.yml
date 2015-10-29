@@ -1,7 +1,12 @@
+general:
+  branches:
+    ignore:
+      - master 
+      - develop
+
 machine:
   services:
     - docker
-
 
 dependencies:
   cache_directories:
@@ -14,3 +19,7 @@ dependencies:
     - cat ~/CARTAvis/Dockerfile | envsubst  > ~/CARTAvis/Dockerfile.new
     - mv ~/CARTAvis/Dockerfile.new ~/CARTAvis/Dockerfile
     - docker build -t astrilet/circlecibuild .
+
+test:
+  override:
+    - docker run astrilet/circlecibuild /home/developer/runtests.sh
