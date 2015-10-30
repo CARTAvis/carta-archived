@@ -164,25 +164,25 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initialize the list of window specific commands this window supports.
          */
         _initSupportedCommands : function(){
-            if ( this.m_supportedCmds.length == 0 ){
-                var clipCmd = skel.Command.Clip.CommandClip.getInstance();
-                this.m_supportedCmds.push( clipCmd.getLabel() );
-                var dataCmd = skel.Command.Data.CommandData.getInstance();
-                this.m_supportedCmds.push( dataCmd.getLabel() );
-                var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
-                if ( saveCmd.isSaveAvailable() ){
-                    this.m_supportedCmds.push( saveCmd.getLabel() );
-                }
-                var settingsCmd = skel.Command.Settings.SettingsImage.getInstance();
-                this.m_supportedCmds.push( settingsCmd.getLabel());
-                var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
-                this.m_supportedCmds.push( popupCmd.getLabel() );
-                var zoomResetCmd = skel.Command.Data.CommandZoomReset.getInstance();
-                this.m_supportedCmds.push( zoomResetCmd.getLabel() );
-                var panResetCmd = skel.Command.Data.CommandPanReset.getInstance();
-                this.m_supportedCmds.push( panResetCmd.getLabel() );
-                arguments.callee.base.apply(this, arguments);
+            this.m_supportedCmds = [];
+            
+            var clipCmd = skel.Command.Clip.CommandClip.getInstance();
+            this.m_supportedCmds.push( clipCmd.getLabel() );
+            var dataCmd = skel.Command.Data.CommandData.getInstance();
+            this.m_supportedCmds.push( dataCmd.getLabel() );
+            var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
+            if ( saveCmd.isSaveAvailable() ){
+                this.m_supportedCmds.push( saveCmd.getLabel() );
             }
+            var settingsCmd = skel.Command.Settings.SettingsImage.getInstance();
+            this.m_supportedCmds.push( settingsCmd.getLabel());
+            var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+            this.m_supportedCmds.push( popupCmd.getLabel() );
+            var zoomResetCmd = skel.Command.Data.CommandZoomReset.getInstance();
+            this.m_supportedCmds.push( zoomResetCmd.getLabel() );
+            var panResetCmd = skel.Command.Data.CommandPanReset.getInstance();
+            this.m_supportedCmds.push( panResetCmd.getLabel() );
+            arguments.callee.base.apply(this, arguments);
         },
         
         /**
@@ -272,6 +272,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param multiple {boolean} true if multiple windows can be selected; false otherwise.
          */
         setSelected : function(selected, multiple) {
+            this._initSupportedCommands();
             this.updateCmds();
             arguments.callee.base.apply(this, arguments, selected, multiple );
         },

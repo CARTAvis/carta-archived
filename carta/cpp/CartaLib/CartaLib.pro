@@ -21,6 +21,7 @@ SOURCES += \
     Slice.cpp \
     AxisInfo.cpp \
     AxisLabelInfo.cpp \
+    AxisDisplayInfo.cpp \
     ICoordinateFormatter.cpp \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
@@ -49,6 +50,7 @@ HEADERS += \
     Slice.h \
     AxisInfo.h \
     AxisLabelInfo.h \
+    AxisDisplayInfo.h \
     ICoordinateFormatter.h \
     IPlotLabelGenerator.h \
     Hooks/LoadAstroImage.h \

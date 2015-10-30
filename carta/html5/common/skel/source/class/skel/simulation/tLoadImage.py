@@ -9,14 +9,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
-# Test that a pre-existing, hard-coded image can be loaded in a display window.
+# Test loading images.
 class tLoadImage(unittest.TestCase):
     def setUp(self):
         browser = selectBrowser._getBrowser()
         Util.setUp(self, browser)
            
     # Test that an image can be loaded and then closed.
-    def test_load_image(self):    
+    def stest_load_image(self):    
         driver = self.driver
         timeout = selectBrowser._getSleep()
         
@@ -29,6 +29,31 @@ class tLoadImage(unittest.TestCase):
         ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
+    
+    # Test that we can load a large number of images, one after another
+    def test_load_images(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+        # Load a specific image.  
+        imageWindow = Util.load_image(self, driver, "aH.fits")
+        Util.load_image( self, driver, "aJ.fits")
+        Util.load_image( self, driver, "N15693D.fits")
+        Util.load_image( self, driver, "Orion.cont.image.fits")
+        Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        Util.load_image( self, driver, "TWHydra_CO2_1line.image.fits")
+        Util.load_image( self, driver, "br1202_wide.image")
+        Util.load_image( self, driver, "TWHydra_CO3_2line.image")
+        Util.load_image( self, driver, "TWHydra_cont1.3mm.image")
+        Util.load_image( self, driver, "v2.0_ds2_l000_13pca_map20.fits")
+        
+        #Find the image animator and verify that there are 9 images loaded
+        upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
+        imageCount = upperBoundText.get_attribute("value")
+        print "Image Count: ", imageCount
+        self.assertEqual( imageCount, str(9), "Wrong number of images were loaded")
+        
         
     def tearDown(self):
         # Close the browser

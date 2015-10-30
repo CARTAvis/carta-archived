@@ -328,7 +328,14 @@ qx.Class.define( "skel.Application",
             }
             //Only show the layout popup if we are not restoring a session.  Restoring might
             //trigger the pop-up to incorrectly show if the layout changes.
-            if ( this.m_sessionRestoreDialog ===null || !this.m_sessionRestoreDialog.isVisible()){
+            var sessionRestoreVisible = false;
+            if ( this.m_sessionRestoreDialog !==null ){
+                var root = this.getRoot();
+                if(  root.indexOf( this.m_sessionRestoreDialog.isVisible() ) >= 0 ) {
+                    sessionRestoreVisible = true;
+                }
+            }
+            if ( !sessionRestoreVisible ){
                 this.m_layoutPopup.setGridSize( this.m_desktop.getRowCount(), this.m_desktop.getColCount());
                 var layoutObj = {
                         left  : "0%",

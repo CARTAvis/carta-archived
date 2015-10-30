@@ -58,7 +58,7 @@ class tAnimatorLinks(unittest.TestCase):
         driver = self.driver
 
         # Load an image
-        Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        Util.load_image( self, driver, "TWHydra_CO2_1line.image.fits")
 
         # Record the upper bound spin box value of the first image
         upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
@@ -72,7 +72,7 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Check that the Animator upper bound spin box value is updated
         newUpperBound = upperBoundText.get_attribute("value")
-        print "newUpperBound", newUpperBound
+        print "newUpperBound=", newUpperBound," old upperBound=",upperBound
         self.assertNotEqual( int(newUpperBound), int(upperBound), "Animator did not update after an image was added")
   
     # Test that the Animator will update when linked to an image in a separate window

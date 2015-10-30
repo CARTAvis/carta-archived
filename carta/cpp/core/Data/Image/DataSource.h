@@ -6,8 +6,10 @@
 
 #include "CartaLib/Nullable.h"
 #include "Data/IColoredView.h"
+#include "CartaLib/AxisDisplayInfo.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
+
 
 #include <QImage>
 #include <memory>
@@ -113,10 +115,11 @@ private:
     int _getAxisIndex( Carta::Lib::AxisInfo::KnownType axisType ) const;
 
     /**
-     * Return a list of the current axis permutations.
-     * @return a list showing the current axis permutations.
+     * Return a list of information about the axes to display.
+     * @return a list showing information about which axes should be displayed and how
+     *  they should be displayed.
      */
-    std::vector<int> _getAxisPerms() const;
+    std::vector<Carta::Lib::AxisDisplayInfo> _getAxisDisplayInfo() const;
 
     /**
      * Return a list of axes in the image.
@@ -224,6 +227,14 @@ private:
     std::pair<int,int> _getDisplayDims() const;
 
     /**
+     * Get the index of the current frame of the axis specified by the sourceFrameIndex.
+     * @param sourceFrameIndex - an index referring to a specific element in sourceFrames.
+     * @param sourceFrames - a list for each axis type, indicating the current frame of the axis.
+     * @return - the current frame for the axis.
+     */
+    int _getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const;
+
+    /**
      * Return the percentile corresponding to the given intensity.
      * @param frameLow a lower bound for the frames or -1 if there is no lower bound.
      * @param frameHigh an upper bound for the frames or -1 if there is no upper bound.
@@ -317,6 +328,8 @@ private:
      * @return the raw data for the current view or nullptr if there is none.
      */
     NdArray::RawViewInterface* _getRawData( const std::vector<int> frames ) const;
+
+    std::shared_ptr<Image::ImageInterface> _getPermutedImage() const;
 
     //Returns an identifier for the current image slice being rendered.
     QString _getViewIdCurrent( const std::vector<int>& frames ) const;
@@ -423,6 +436,7 @@ private:
 
     //Pointer to image interface.
     std::shared_ptr<Image::ImageInterface> m_image;
+    std::shared_ptr<Image::ImageInterface> m_permuteImage;
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;

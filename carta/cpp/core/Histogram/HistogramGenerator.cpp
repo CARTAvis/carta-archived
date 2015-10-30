@@ -94,6 +94,32 @@ std::pair<double,double> HistogramGenerator::getRangeColor(bool* valid ) const {
 }
 
 
+bool HistogramGenerator::isSelectionOnCanvas( int xPos ) const {
+    bool selectionOnCanvas = false;
+    if ( xPos >= 0 ){
+        //Get the ratio of the canvas margin to the plot width;
+        float plotWidth = m_plot->size().width();
+        float canvasWidth = m_plot->canvas()->size().width();
+        float plotMarginWidthRatio = 1;
+        if ( plotWidth > 0 ){
+            plotMarginWidthRatio = (plotWidth - canvasWidth) / plotWidth;
+        }
+
+        //Get the ratio of xPos to QImage width;
+        float posImageWidthRatio = 0;
+        if ( m_width > 0 ){
+            posImageWidthRatio = xPos / m_width;
+        }
+
+        //If the position withen the image ratio is larger than the
+        //canvas margin ratio, the point is in the canvas.
+        if ( posImageWidthRatio >= plotMarginWidthRatio ){
+            selectionOnCanvas = true;
+        }
+    }
+    return selectionOnCanvas;
+}
+
 void HistogramGenerator::setColored( bool colored ){
     m_histogram->setColored( colored );
 }
@@ -193,32 +219,36 @@ void HistogramGenerator::setSelectionModeColor( bool selection ){
     m_rangeColor->setSelectionMode( selection );
 }
 
-void HistogramGenerator::setSize( int width, int height ){
-    int minLength = qMin( width, height );
-    if ( minLength > 0 ){
-        m_width = width;
-        m_height = height;
-        m_range->setHeight( m_height );
-        m_rangeColor->setHeight( m_height );
+bool HistogramGenerator::setSize( int width, int height ){
+    bool newSize = false;
+    if ( width != m_width || height != m_height ){
+        int minLength = qMin( width, height );
+        if ( minLength > 0 ){
+            m_width = width;
+            m_height = height;
+            m_range->setHeight( m_height );
+            m_rangeColor->setHeight( m_height );
+            newSize = true;
+        }
+        else {
+            qWarning() << "Invalid histogram dimensions: "<<width<<" x "<< height;
+        }
     }
-    else {
-        qWarning() << "Invalid histogram dimensions: "<<width<<" x "<< height;
-    }
+    return newSize;
 }
 
 void HistogramGenerator::setStyle( QString style ){
     m_histogram->setDrawStyle( style );
 }
 
-
 QImage * HistogramGenerator::toImage( ) const {
-    QwtPlotRenderer * renderer = new QwtPlotRenderer();
+    QwtPlotRenderer renderer;
     QImage * histogramImage =new QImage(m_width, m_height, QImage::Format_RGB32);
-    renderer->renderTo(m_plot,*histogramImage);
-    delete renderer;
+    renderer.renderTo(m_plot, *histogramImage );
     return histogramImage;
-
 }
+
+
 
 HistogramGenerator::~HistogramGenerator(){
     m_histogram->detach( );

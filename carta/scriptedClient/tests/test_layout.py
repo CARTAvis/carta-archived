@@ -1,4 +1,5 @@
 import os
+import time
 import cartavis
 import pyautogui
 import ImageUtil
@@ -20,7 +21,7 @@ def test_layout_analysis(cartavisInstance, cleanSlate):
     # Expect one more because of 'hidden' plugin in list
     assert len(cartavisInstance.getPluginList()) == 5 
 
-def test_layout_custom(cartavisInstance, cleanSlate):
+def test_layout_image(cartavisInstance, cleanSlate):
     """
     Test that we can switch to an image layout using the 'Layout' menu button
     """
@@ -44,3 +45,16 @@ def test_layout_custom(cartavisInstance, cleanSlate):
     windowCount = len(cartavisInstance.getPluginList()) 
     print 'windowCount=', windowCount
     assert windowCount == 15
+
+def test_noCustomDialog(cartavisInstance, cleanSlate):
+    """
+    Test that the custom layout dialog does not appear when a custom
+    layout is set from the scripted client.
+    This is a regression test for issue #97.
+    """
+    cartavisInstance.setCustomLayout(2,1)
+    time.sleep(1)
+    cartavisInstance.setPlugins(['CasaImageLoader', 'Histogram'])
+    dialog = ImageUtil.locateCenterOnScreen(
+             'test_images/customLayoutDialog.png')
+    assert dialog == None

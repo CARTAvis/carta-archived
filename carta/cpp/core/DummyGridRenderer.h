@@ -28,7 +28,7 @@ public:
     DummyGridRenderer();
 
     virtual void
-    setAxisPermutations( std::vector<int> perms ) override;
+    setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> perms ) override;
 
     virtual void
     setInputImage( Image::ImageInterface::SharedPtr ) override;

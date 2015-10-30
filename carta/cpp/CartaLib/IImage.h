@@ -317,6 +317,16 @@ public:
     virtual const Unit &
     getPixelUnit() const = 0;
 
+    /// Return the image with the axes permuted in the order given by indices.
+    /// Passing in [1,2,0] for an image with 3 axes would result in the axis map
+    /// 0 -> 1
+    /// 1 -> 2
+    /// 2 -> 0
+    /// That is, the second axis in this image would become the first axis in the
+    /// returned image.
+    virtual std::shared_ptr<Image::ImageInterface>
+    getPermuted(const std::vector<int> & indices) = 0;
+
     /// return dimensions of the image
     virtual const VI &
     dims() const = 0;
