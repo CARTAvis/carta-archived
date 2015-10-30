@@ -496,6 +496,41 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridTheme( imageView, theme );
     }
 
+    /// Section: Contour Commands
+    /// ----------------------------------
+    /// These commands also come from the Python Image class. They allow
+    /// contours to be manipulated.
+
+    else if ( cmd == "deletecontourset" ) {
+        QString imageView = args["imageView"].toString();
+        QString name = args["name"].toString();
+        result = m_scriptFacade->deleteContourSet( imageView, name );
+    }
+
+    else if ( cmd == "generatecontourset" ) {
+        QString imageView = args["imageView"].toString();
+        QString name = args["name"].toString();
+        result = m_scriptFacade->generateContourSet( imageView, name );
+    }
+
+    else if ( cmd == "selectcontourset" ) {
+        QString imageView = args["imageView"].toString();
+        QString name = args["name"].toString();
+        result = m_scriptFacade->selectContourSet( imageView, name );
+    }
+
+    else if ( cmd == "setcontourlevelcount" ) {
+        QString imageView = args["imageView"].toString();
+        int count = args["count"].toInt();
+        result = m_scriptFacade->setContourLevelCount( imageView, count );
+    }
+
+    else if ( cmd == "setcontourspacing" ) {
+        QString imageView = args["imageView"].toString();
+        QString method = args["method"].toString();
+        result = m_scriptFacade->setContourSpacing( imageView, method );
+    }
+
     /// Section: Animator Commands
     /// --------------------------
     /// These commands come from the Python Animator class. They allow

@@ -335,6 +335,10 @@ std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
 
+std::shared_ptr<ContourControls> Controller::getContourControls() {
+    return m_contourControls;
+}
+
 int Controller::getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     int upperBound = 0;
     if ( axisType != AxisInfo::KnownType::OTHER ){

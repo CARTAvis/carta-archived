@@ -1120,9 +1120,43 @@ class Image(CartaView):
             An error message if the theme was not successfully set; an
             empty string otherwise.
         """
-        result = self.con.cmdTagList("setGridTheme",
-                                     imageView=self.getId(),
+        result = self.con.cmdTagList("setGridTheme", imageView=self.getId(),
                                      theme=theme)
+        return result
+
+    def deleteContourSet(self, name):
+        """
+        """
+        result = self.con.cmdTagList("deleteContourSet",
+                                     imageView=self.getId(), name=name)
+        return result
+
+    def generateContourSet(self, name):
+        """
+        """
+        result = self.con.cmdTagList("generateContourSet",
+                                     imageView=self.getId(), name=name)
+        return result
+
+    def selectContourSet(self, name):
+        """
+        """
+        result = self.con.cmdTagList("selectContourSet",
+                                     imageView=self.getId(), name=name)
+        return result
+
+    def setContourLevelCount(self, count):
+        """
+        """
+        result = self.con.cmdTagList("setContourLevelCount",
+                                     imageView=self.getId(), count=count)
+        return result
+
+    def setContourSpacing(self, method):
+        """
+        """
+        result = self.con.cmdTagList("setContourSpacing",
+                                     imageView=self.getId(), method=method)
         return result
 
     def isEmpty(self):

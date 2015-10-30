@@ -795,6 +795,48 @@ public:
      */
     QStringList setGridTheme( const QString& controlId, const QString& theme );
 
+    /**
+     * Delete the contour set with the indicated name.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourSetName - a unique identifier for a contour set.
+     * @return an error message if the contour set could not be deleted; an
+     *      empty string otherwise.
+     */
+    QStringList deleteContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Generate a set of contours with the given name.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param name - the name of the contour set to generate.
+     * @return - an error message if there was a problem generating the contour
+     *  set; an empty string otherwise.
+     */
+    QStringList generateContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Select a specific contour set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param name - a name for a contour set.
+     */
+    QStringList selectContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Set the number of contour levels in the set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param count - the number of contour levels.
+     * @return - an error message if the count could not be set; an empty string otherwise.
+     */
+    QStringList setContourLevelCount( const QString& controlId, int count );
+
+    /**
+     * Set the type of spacing to use between contour levels (linear, logarithmic, etc).
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param method - an identifier for the spacing to use between contour levels.
+     * @return - an error message if there was a problem setting the spacing; an empty
+     *  string otherwise.
+     */
+    QStringList setContourSpacing( const QString& controlId, const QString& method );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.
