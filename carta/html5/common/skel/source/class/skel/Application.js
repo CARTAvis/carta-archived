@@ -234,10 +234,10 @@ qx.Class.define( "skel.Application",
                 this._showSaveBrowser(message);
             }, this );
             qx.event.message.Bus.subscribe( "cancelSaveBrowser", function( message ){
-                this._hideWidget( this.m_saveBrowser );
+                this._hideWidget( this.m_saveBrowser ); 
             }, this );
             qx.event.message.Bus.subscribe( "shareSession", function( ev ){
-                this.m_statusBar.updateSessionSharing( ev.getData() );
+                this.m_statusBar.updateSessionSharing( ev );
             }, this );
             qx.event.message.Bus.subscribe( "showSessionRestoreDialog", function(message){
                 this._showSessionRestore( message );

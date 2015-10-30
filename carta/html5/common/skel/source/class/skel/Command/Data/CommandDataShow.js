@@ -1,12 +1,12 @@
 /**
- * Container for commands to close specific images.
+ * Container for commands to show specific images that have been hidden.
  */
 /*global mImport */
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.Command.Data.CommandDataClose", {
+qx.Class.define("skel.Command.Data.CommandDataShow", {
     extend : skel.Command.CommandComposite,
     type : "singleton",
 
@@ -14,17 +14,17 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
      * Constructor.
      */
     construct : function( ) {
-        this.base( arguments, "Close" );
+        this.base( arguments, "Show" );
         this.m_cmds = [];
         this.setEnabled( false );
         this.m_global = false;
-        this.setToolTipText("Close data...");
+        this.setToolTipText("Show data...");
         this.setValue( this.m_cmds );
     },
     
     members : {
         /**
-         * The commands to close individual images have changed.
+         * The commands to show individual images have changed.
          */
         // Needed so that if data is added to an image that is already selected, i.e.,
         // enabled status has not changed, but data count has, the close image commands
@@ -46,8 +46,10 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                     if ( activeWins[i].isCmdSupported( dataCmd ) ){
                         var closes = activeWins[i].getDatas();
                         for ( var j = 0; j < closes.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j].layer );
-                            k++;
+                            if ( !closes[j].visible ){
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataShowImage( closes[j].layer);
+                                k++;
+                            }
                         }
                     }
                 }

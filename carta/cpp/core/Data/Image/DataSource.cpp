@@ -52,13 +52,6 @@ DataSource::DataSource() :
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-bool DataSource::_contains(const QString& fileName) const {
-    bool representsData = false;
-    if ( m_fileName.endsWith(fileName)) {
-        representsData = true;
-    }
-    return representsData;
-}
 
 int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceFrames ) const {
     int frameIndex = 0;

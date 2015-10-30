@@ -240,7 +240,8 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
         _shareSessionCB : function(url, error) {
             if (url !== null) {
                 this.setSharedUrl(url);
-            } else if (error) {
+            } 
+            else if (error) {
                 this.showErrors(error);
             }
         },
@@ -249,14 +250,15 @@ qx.Class.define("skel.widgets.Menu.StatusBar", {
          * Initiate or revoke a shared session.
          * @param sessionShared {Boolean} whether the session should be shared or unshared.
          */
-        updateSessionSharing : function(sessionShared) {
+        updateSessionSharing : function(msg) {
             var con = mImport("connector");
             var statusCopy = this;
-            if (sessionShared) {
+            if (msg.getData().share) {
                 con.shareSession(function(url, error) {
                     statusCopy._shareSessionCB(url, error);
                 }, "a", null, 60*60*1000000000);
-            } else {
+            } 
+            else {
                 con.unShareSession(function(error) {
                     statusCopy.showErrors(error);
                 });

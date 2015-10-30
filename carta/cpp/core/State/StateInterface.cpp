@@ -92,9 +92,12 @@ const QString StateInterface::INDEX = "index";
 StateInterface::StateInterface (const QString & path, const QString& type, const QString& initialState )
 : impl_p (new StateInterfaceImpl (path) )
 {
-    insertValue<QString>( OBJECT_TYPE, type );
-    insertValue<int>(INDEX, 0 );
-    insertValue<bool>(FLUSH_STATE, false );
+    if ( path.length() > 0 || type.length() > 0 ){
+        insertValue<QString>( OBJECT_TYPE, type );
+        insertValue<bool>(FLUSH_STATE, false );
+        insertValue<int>(INDEX, 0 );
+    }
+
 
     if ( initialState.trimmed().size() > 0 ){
         flushStateImpl( initialState );

@@ -82,11 +82,21 @@ public:
      */
     void centerOnPixel( double imgX , double imgY);
 
+
+
     /**
      * Close the given image.
      * @param name an identifier for the image to close.
      */
     QString closeImage( const QString& name );
+
+
+    /**
+      * Get the image pixel that is currently centered.
+      * @return a list of the x- and y-coordinates of the center pixel,
+      * or error information if the center pixel could not be obtained.
+      */
+    QStringList getCenterPixel();
 
     /**
      * Return the coordinate system in use.
@@ -153,10 +163,6 @@ public:
      */
     bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
 
-
-
-
-
     std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
 
     /**
@@ -184,12 +190,20 @@ public:
 
     QString getPreferencesId() const;
 
+    /**
+     * Return a count of the number of image layers in the stack.
+     * @return the number of image layers in the stack.
+     */
+    //Note:  this will include image layers that the user may not see because they
+    //are hidden.
+    int getStackedImageCount() const;
 
     /**
-     * Return a count of the number of images in the stack.
-     * @return the number of images in the stack.
+     * Returns the number of visibile image layers in the stack.
+     * @return a count of the number of image layers that have not been hidden
+     *      and are available for the user to see.
      */
-    int getStackedImageCount() const;
+    int getStackedImageCountVisible() const;
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -252,6 +266,7 @@ public:
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
 
+
     /**
      * Center the image.
      */
@@ -264,16 +279,18 @@ public:
     void resetState( const QString& state );
 
     /**
+     * Reset the images that are loaded and other data associated state.
+     * @param state - the data state.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+
+    /**
      * Reset the zoom to its original value.
      */
     void resetZoom();
 
-    /**
-     * Get the image pixel that is currently centered.
-     * @return a list of the x- and y-coordinates of the center pixel,
-     * or error information if the center pixel could not be obtained.
-    */
-    QStringList getCenterPixel();
+
 
     /**
      * Save a copy of the full image in the current image view.
@@ -333,11 +350,6 @@ public:
      */
     void setZoomLevel( double zoomLevel );
 
-    /**
-     * Reset the images that are loaded and other data associated state.
-     * @param state - the data state.
-     */
-    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
 
 
     /**
@@ -348,12 +360,27 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * Specify a new image order.
+     * @param imageNames - a list specifying a new order for the images in
+     *      a layer.
+     * @return an error message if the new image order could not be set;
+     *      otherwise, an empty string.
+     */
+    QString setImageOrder( const QStringList& imageNames );
+
+    /**
+     * Show/hide a particular layer in the stack.
+     * @param name - an identifier for a layer in the stack.
+     * @param visible - true if the layer should be visible; false otherwise.
+     */
+    QString setImageVisibility( const QString& name, bool visible );
+
+    /**
      * Change the pan of the current image.
      * @param imgX the x-coordinate for the center of the pan.
      * @param imgY the y-coordinate for the center of the pan.
      */
     void updatePan( double imgX , double imgY);
-
 
 
     /**
@@ -379,6 +406,13 @@ signals:
     void axesChanged();
 
     /**
+      * Notification that the channel/selection managed by this controller has
+      * changed.
+      * @param controller this Controller.
+      */
+    void channelChanged( Controller* controller );
+
+    /**
      * Notification that the image clip values have changed.
      * @param minPercentile - the new minimum clip percentile.
      * @param maxPercentile - the new maximum clip percentile.
@@ -392,12 +426,7 @@ signals:
      */
     void dataChanged(Controller* controller );
 
-    /**
-     * Notification that the channel/selection managed by this controller has
-     * changed.
-     * @param controller this Controller.
-     */
-    void channelChanged( Controller* controller );
+
 
 
 
@@ -453,9 +482,16 @@ private:
 
     class Factory;
 
+    //Clear image statistics.
+    void _clearStatistics();
+
     std::vector<int> _getFrameIndices( int imageIndex ) const;
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
+    //Get the actual data index of the selection with the given index.  This method
+    //takes into account that some images may be hidden, i.e., temporarily not seen
+    //on the stack.
+    int _getDataIndex( ) const;
 
     //Provide default values for state.
     void _initializeState();
@@ -490,6 +526,7 @@ private:
     static const QString AUTO_CLIP;
     static const QString DATA;
     static const QString DATA_PATH;
+    static const QString IMAGE;
     static const QString REGIONS;
     static const QString CENTER;
     static const QString POINTER_MOVE;

@@ -157,7 +157,7 @@ private:
     void _adjustStateAnimatorTypes();
     void _addRemoveImageAnimator();
     Controller* _getControllerSelected() const;
-    int _getMaxImageCount() const;
+
     int _getAnimatorTypeVisibleCount() const;
     void _initializeState();
     void _initializeAnimators();

@@ -88,7 +88,7 @@ public:
        virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
        static const QString CLASS_NAME;
-
+       static const QString LAYER;
 
     virtual ~ControllerData();
 
@@ -116,12 +116,7 @@ private slots:
 
 private:
     void _clearData();
-    /**
-     * Returns true if this data source manages the data corresponding
-     * to the fileName; false, otherwise.
-     * @param fileName a locator for data.
-     */
-    bool _contains(const QString& fileName) const;
+
     Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
     Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
@@ -220,7 +215,7 @@ private:
      * @return true if the computed intensity is valid; otherwise false.
      */
     bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
-    
+    QString _getLayerString() const;
     /**
      * Returns the pipeline responsible for rendering the image.
      * @retun the pipeline responsible for rendering the image.
@@ -298,6 +293,18 @@ private:
     void _initializeSingletons( );
 
     /**
+     * Returns true if this layer is not hidden; false otherwise.
+     * @return true if the layer is visible; false otherwise.
+     */
+    bool _isVisible() const;
+
+    /**
+     * Returns true if the name identifies this layer; false otherwise.
+     * @return true if the name identifies this layer; false otherwise.
+     */
+    bool _isMatch( const QString& name ) const;
+
+    /**
      * Loads the data source as a QImage.
      * @param frames - list of frames to load, one for each of the known axis types.
      * @param true to force a recompute of the image clip.
@@ -349,6 +356,12 @@ private:
     void _setContours( std::shared_ptr<DataContours> contours );
 
     /**
+     * Show/hide this layer.
+     * @param visible - true to show the layer; false to hide it.
+     */
+    void _setVisible( bool visible );
+
+    /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
      * @param imgY the y-coordinate of the center.
@@ -390,6 +403,7 @@ private:
 
     class Factory;
     static bool m_registered;
+
 
 
     std::unique_ptr<DataGrid> m_dataGrid;

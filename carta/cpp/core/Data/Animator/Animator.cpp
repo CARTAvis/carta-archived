@@ -133,7 +133,7 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
 }
 
 void Animator::_addRemoveImageAnimator(){
-    int maxImages = _getMaxImageCount();
+    int maxImages = getMaxImageCount();
     if ( maxImages > 1 ){
         QString animId;
         addAnimator( Selection::IMAGE, animId );
@@ -272,17 +272,12 @@ int Animator::getMaxImageCount() const {
     for ( int i = 0; i < linkCount; i++ ){
         Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
         if ( controller != nullptr ){
-            int imageCount = controller->getStackedImageCount();
+            int imageCount = controller->getStackedImageCountVisible();
             if ( maxImages < imageCount ){
                 maxImages = imageCount;
             }
         }
     }
-    return maxImages;
-}
-
-int Animator::_getMaxImageCount() const {
-    int maxImages = getMaxImageCount();
     return maxImages;
 }
 
@@ -448,7 +443,7 @@ QString Animator::removeLink( CartaObject* cartaObject ){
 void Animator::_resetAnimationParameters( int selectedImage ){
     _addRemoveImageAnimator();
     if ( m_animators.contains( Selection::IMAGE) ){
-        int maxImages = _getMaxImageCount();
+        int maxImages = getMaxImageCount();
         if ( maxImages == 0 ){
             m_animators[Selection::IMAGE]->setUpperBound( 1 );
         }

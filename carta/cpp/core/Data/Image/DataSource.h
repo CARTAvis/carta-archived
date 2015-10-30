@@ -93,13 +93,6 @@ public:
 private:
 
     /**
-     * Returns true if this data source manages the data corresponding
-     * to the fileName; false, otherwise.
-     * @param fileName a locator for data.
-     */
-    bool _contains(const QString& fileName) const;
-
-    /**
      * Resizes the frame indices to fit the current image.
      * @param sourceFrames - a list of current image frames.
      * @return a list of frames that will fit the current image.

@@ -1007,7 +1007,7 @@ void Histogram::_loadData( Controller* controller ){
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
     std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
     if ( controller != nullptr ){
-        int stackedImageCount = controller->getStackedImageCount();
+        int stackedImageCount = controller->getStackedImageCountVisible();
         if ( stackedImageCount > 0 ){
             dataSources = _generateData( controller );
             auto result = Globals::instance()-> pluginManager()
@@ -1770,7 +1770,6 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
 }
 
 
-
 QString Histogram::saveHistogram( const QString& fileName ){
     QString result = "";
     //Check and make sure the directory exists.
@@ -1788,9 +1787,17 @@ QString Histogram::saveHistogram( const QString& fileName ){
         int width = prefSave->getWidth();
         int height = prefSave->getHeight();
         Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-        QImage* histogramImage = m_histogram->toImage();
-        QSize outputSize( width, height );
-        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
+        QImage imgScaled;
+        QImage* histogramImage = nullptr;
+        if ( aspectRatioMode == Qt::IgnoreAspectRatio ){
+            histogramImage = m_histogram->toImage( width, height );
+            imgScaled = *histogramImage;
+        }
+        else {
+            histogramImage = m_histogram->toImage();
+            QSize outputSize( width, height );
+            imgScaled = histogramImage->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
+        }
         bool saveSuccessful = imgScaled.save( fileName, 0, 100 );
         if ( !saveSuccessful ){
             result = "The image could not be saved; please check the path: "+fileName+" is valid.";

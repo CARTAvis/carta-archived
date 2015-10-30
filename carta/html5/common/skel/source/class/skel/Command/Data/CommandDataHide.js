@@ -1,12 +1,12 @@
 /**
- * Container for commands to close specific images.
+ * Container for commands to hide specific images.
  */
 /*global mImport */
 /*******************************************************************************
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.Command.Data.CommandDataClose", {
+qx.Class.define("skel.Command.Data.CommandDataHide", {
     extend : skel.Command.CommandComposite,
     type : "singleton",
 
@@ -14,20 +14,20 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
      * Constructor.
      */
     construct : function( ) {
-        this.base( arguments, "Close" );
+        this.base( arguments, "Hide" );
         this.m_cmds = [];
         this.setEnabled( false );
         this.m_global = false;
-        this.setToolTipText("Close data...");
+        this.setToolTipText("Hide data...");
         this.setValue( this.m_cmds );
     },
     
     members : {
         /**
-         * The commands to close individual images have changed.
+         * The commands to hide individual images have changed.
          */
         // Needed so that if data is added to an image that is already selected, i.e.,
-        // enabled status has not changed, but data count has, the close image commands
+        // enabled status has not changed, but data count has, the hide image commands
         // will be updated.
         datasChanged : function(){
             this._resetEnabled();
@@ -35,7 +35,7 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
         
         _resetEnabled : function( ){
             arguments.callee.base.apply( this, arguments );
-            //Dynamically create close image commands based on the active windows.
+            //Dynamically create hide image commands based on the active windows.
             this.m_cmds = [];
             var activeWins = skel.Command.Command.m_activeWins;
             if ( activeWins !== null && activeWins.length > 0 ){
@@ -46,8 +46,10 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                     if ( activeWins[i].isCmdSupported( dataCmd ) ){
                         var closes = activeWins[i].getDatas();
                         for ( var j = 0; j < closes.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j].layer );
-                            k++;
+                            if ( closes[j].visible ){
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataHideImage( closes[j].layer);
+                                k++;
+                            }
                         }
                     }
                 }

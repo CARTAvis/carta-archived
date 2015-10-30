@@ -4,6 +4,7 @@
 #include "DataSource.h"
 #include "DrawSynchronizer.h"
 #include "Data/Preferences/PreferencesSave.h"
+#include "Data/DataLoader.h"
 #include "Data/Util.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
@@ -26,6 +27,8 @@ namespace Carta {
 namespace Data {
 
 const QString ControllerData::CLASS_NAME = "ControllerData";
+const QString ControllerData::LAYER = "layer";
+
 class ControllerData::Factory : public Carta::State::CartaObjectFactory {
 
 public:
@@ -64,13 +67,6 @@ void ControllerData::_clearData(){
     }
 }
 
-bool ControllerData::_contains(const QString& fileName) const {
-    bool representsData = false;
-    if ( m_dataSource ){
-        representsData = m_dataSource->_contains( fileName );
-    }
-    return representsData;
-}
 
 void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
         const std::vector<int>& frames ){
@@ -301,10 +297,41 @@ void ControllerData::_gridChanged( const Carta::State::StateInterface& state, bo
     }
 }
 
+QString ControllerData::_getLayerString() const {
+    QStringList longNames;
+    longNames.append( _getFileName() );
+
+    DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
+    QStringList shortNames = dataLoader->getShortNames( longNames );
+
+    Carta::State::StateInterface layerState( "");
+    layerState.insertValue<QString>( LAYER, shortNames[0] );
+    layerState.insertValue<bool>( Util::VISIBLE, m_state.getValue<bool>(Util::VISIBLE) );
+    return layerState.toString();
+}
+
 void ControllerData::_initializeState(){
     m_state.insertValue<QString>(DataSource::DATA_PATH, "");
+    m_state.insertValue<bool>(Util::VISIBLE, true );
     QString gridState = _getGridState().toString();
     m_state.insertObject(DataGrid::GRID, gridState );
+}
+
+bool ControllerData::_isVisible() const {
+    return m_state.getValue<bool>(Util::VISIBLE);
+}
+
+bool ControllerData::_isMatch( const QString& name ) const {
+    QStringList longNames;
+    longNames.append( _getFileName() );
+
+    DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
+    QStringList shortNames = dataLoader->getShortNames( longNames );
+    bool matched = false;
+    if ( shortNames[0] == name ){
+        matched = true;
+    }
+    return matched;
 }
 
 void ControllerData::_renderingDone(
@@ -558,6 +585,13 @@ void ControllerData::setColorReversed( bool reversed ){
 void ControllerData::setColorAmounts( double newRed, double newGreen, double newBlue ){
     if ( m_dataSource ){
         m_dataSource->setColorAmounts( newRed, newGreen, newBlue );
+    }
+}
+
+void ControllerData::_setVisible( bool visible ){
+    bool oldVisible = m_state.getValue<bool>(Util::VISIBLE);
+    if ( visible != oldVisible ){
+        m_state.setValue<bool>( Util::VISIBLE, visible );
     }
 }
 

@@ -258,8 +258,12 @@
                     callback( getUrl );
                 }
                 else {
-                    window.alert( 'An error occurred creating the share URL: ' + exception.description );
-                    callback( null, exception.description );
+                    var msg="An error occurred creating the share URL";
+                    if ( exception !== null ){
+                        msg = msg + ": "+exception.description;
+                    }
+                    window.alert( msg );
+                    callback( null, msg );
                 }
             } );
         m_lastShareUrl = "";
