@@ -748,7 +748,7 @@ QStringList ScriptFacade::getCenterPixel( const QString& controlId ) {
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             QPointF center = controller->getCenterPixel();
-            if ( center.x() == -0.0 && center.y() == -0.0 ) {
+            if ( std::isnan( center.x() ) && std::isnan( center.y() ) ) {
                 resultList = _logErrorMessage( ERROR, "The center pixel could not be obtained." );
             }
             else {
