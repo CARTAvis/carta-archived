@@ -6,7 +6,6 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include "Data/IColoredView.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
@@ -40,12 +39,14 @@ namespace Core {
 
 namespace Data {
 
+class ColorState;
 class DrawSynchronizer;
 class DataContours;
 class DataGrid;
 class DataSource;
 
-class ControllerData : public QObject, public Carta::State::CartaObject, public IColoredView {
+
+class ControllerData : public QObject, public Carta::State::CartaObject {
 
 friend class Controller;
 
@@ -53,42 +54,9 @@ Q_OBJECT
 
 public:
 
-       /**
-        * Sets a new color map.
-        * @param name the identifier for the color map.
-        */
-       virtual void setColorMap( const QString& name ) Q_DECL_OVERRIDE;
 
-       /**
-        * Sets whether the colors in the map are inverted.
-        * @param inverted true if the colors in the map are inverted; false
-        *        otherwise.
-        */
-       virtual void setColorInverted( bool inverted )  Q_DECL_OVERRIDE;
+    static const QString CLASS_NAME;
 
-       /**
-        * Sets whether the colors in the map are reversed.
-        * @param reversed true if the colors in the map are reversed; false
-        *        otherwise.
-        */
-       virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
-
-       /**
-        * Set the amount of red, green, and blue in the color scale.
-        * @param newRed the amount of red; should be in the range [0,1].
-        * @param newGreen the amount of green; should be in the range [0,1].
-        * @param newBlue the amount of blue; should be in the range[0,1].
-        */
-       virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
-
-       /**
-        * Set the gamma color map parameter.
-        * @param gamma a color map parameter.
-        */
-       virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
-
-       static const QString CLASS_NAME;
-       static const QString LAYER;
 
     virtual ~ControllerData();
 
@@ -100,6 +68,8 @@ signals:
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
     void saveImageResult( bool result );
+
+    void colorStateChanged();
 
 private slots:
 
@@ -113,6 +83,8 @@ private slots:
 
     // Asynchronous result from saveFullImage().
     void _saveImageResultCB( bool result );
+
+    void _colorChanged();
 
 private:
     void _clearData();
@@ -129,6 +101,7 @@ private:
      * @return - information about how the axis labels should be formatted.
      */
     Carta::Lib::AxisLabelInfo _getAxisLabelInfo( int axisIndex, Carta::Lib::AxisInfo::KnownType axisType ) const;
+
     /**
      * Return the number of frames for the given axis in the image.
      * @param type  - the axis for which a frame count is needed.
@@ -215,7 +188,13 @@ private:
      * @return true if the computed intensity is valid; otherwise false.
      */
     bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
+
+    /**
+     * Returns information about this layer in the stack.
+     * @return - a string representation of layer specific information.
+     */
     QString _getLayerString() const;
+
     /**
      * Returns the pipeline responsible for rendering the image.
      * @retun the pipeline responsible for rendering the image.
@@ -262,6 +241,12 @@ private:
     QString _getPixelUnits() const;
 
     /**
+     * Return stored information about the color map.
+     * @return - information about the color map.
+     */
+    std::shared_ptr<ColorState> _getColorState();
+
+    /**
      * Return the coordinates at pixel (x, y) in the given coordinate system.
      * @param x the x-coordinate of the desired pixel.
      * @param y the y-coordinate of the desired pixel.
@@ -291,6 +276,12 @@ private:
             const std::vector<int>& frames );
     void _initializeState();
     void _initializeSingletons( );
+
+    /**
+     * Returns true if this data is selected; false otherwise.
+     * @return true if this data is selected; false otherwise.
+     */
+    bool _isSelected() const;
 
     /**
      * Returns true if this layer is not hidden; false otherwise.
@@ -356,6 +347,12 @@ private:
     void _setContours( std::shared_ptr<DataContours> contours );
 
     /**
+     * Reset the color map information for this data.
+     * @param colorState - stored information about the color map.
+     */
+    void _setGlobalColor( std::shared_ptr<ColorState> colorState );
+
+    /**
      * Show/hide this layer.
      * @param visible - true to show the layer; false to hide it.
      */
@@ -382,12 +379,12 @@ private:
      */
     bool _setFileName( const QString& fileName );
 
-
     /**
-     * Set the data transform.
-     * @param name QString a unique identifier for a data transform.
+     * Set this data source selected.
+     * @param selected - true if the data source is selected; false otherwise.
      */
-    void _setTransformData( const QString& name );
+    void _setSelected( bool selected );
+
     /**
      * Resize the view of the image.
      */
@@ -404,7 +401,10 @@ private:
     class Factory;
     static bool m_registered;
 
+    static const QString LAYER;
+    static const QString SELECTED;
 
+    std::shared_ptr<ColorState> m_stateColor;
 
     std::unique_ptr<DataGrid> m_dataGrid;
 

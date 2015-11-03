@@ -40,7 +40,7 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
             this.add( this.m_contourControls );
             
             this.m_stackControls = new skel.widgets.Image.Stack.StackControls();
-            //this.add( this.m_stackControls );
+            this.add( this.m_stackControls );
             
         },
         

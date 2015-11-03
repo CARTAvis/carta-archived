@@ -51,8 +51,8 @@ qx.Class.define("skel.widgets.Colormap.PageColorMap", {
             if ( this.m_colorMixSettings !== null ){
                 this.m_colorMixSettings.setReverse( controls.reverse );
                 this.m_colorMixSettings.setInvert( controls.invert );
-                this.m_colorMixSettings.setMix( controls.colorMix.redPercent, 
-                        controls.colorMix.greenPercent, controls.colorMix.bluePercent );
+                this.m_colorMixSettings.setMix( controls.colorMix.red, 
+                        controls.colorMix.green, controls.colorMix.blue );
                 this.m_colorMixSettings.setColorMapName( controls.colorMapName );
             }
         },

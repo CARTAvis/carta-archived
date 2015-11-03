@@ -34,6 +34,7 @@
 #include "CartaLib/Nullable.h"
 #include <QImage>
 #include <QObject>
+#include <QColor>
 #include <QStringList>
 #include <QCache>
 #include <QTimer>
@@ -166,6 +167,20 @@ public:
     ///
     QSize outputSize() const;
 
+    //Set the color to use for nan values.
+    //Note: this color will be ignored if we are using a default nan value from
+    //the bottom of the color map.
+    void
+    setNanColor( QColor color );
+
+    //Return the color that will be used to draw nan values.
+    QColor
+    getNanColor() const;
+
+    //Set whether or not to use the default nan value (bottom of the color map).
+    void
+    setDefaultNan( bool useDefaultNan );
+
     /// set coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
     /// (0,0), while (1,1) is it's right-top corner, and (1/2,1/2) is it's center
@@ -284,6 +299,11 @@ private:
 
     /// last requested job id
     JobId m_lastSubmittedJobId = -1;
+
+    /// Whether or not to use the default nan value (bottom of color map).
+    bool m_defaultNan;
+    /// User-settable color for nan values when the default nan value is not used.
+    QColor m_nanColor;
 
     /// timer to make sure we only fire one render signal even if multiple requests
     /// are submitted

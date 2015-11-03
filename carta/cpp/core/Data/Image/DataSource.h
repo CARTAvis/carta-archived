@@ -5,7 +5,6 @@
 #pragma once
 
 #include "CartaLib/Nullable.h"
-#include "Data/IColoredView.h"
 #include "CartaLib/AxisDisplayInfo.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
@@ -41,7 +40,7 @@ namespace Data {
 
 class CoordinateSystems;
 
-class DataSource : public QObject, public IColoredView {
+class DataSource : public QObject {
 
 friend class ControllerData;
 
@@ -49,39 +48,6 @@ Q_OBJECT
 
 public:
 
-       /**
-        * Sets a new color map.
-        * @param name the identifier for the color map.
-        */
-       virtual void setColorMap( const QString& name ) Q_DECL_OVERRIDE;
-
-       /**
-        * Sets whether the colors in the map are inverted.
-        * @param inverted true if the colors in the map are inverted; false
-        *        otherwise.
-        */
-       virtual void setColorInverted( bool inverted )  Q_DECL_OVERRIDE;
-
-       /**
-        * Sets whether the colors in the map are reversed.
-        * @param reversed true if the colors in the map are reversed; false
-        *        otherwise.
-        */
-       virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
-
-       /**
-        * Set the amount of red, green, and blue in the color scale.
-        * @param newRed the amount of red; should be in the range [0,1].
-        * @param newGreen the amount of green; should be in the range [0,1].
-        * @param newBlue the amount of blue; should be in the range[0,1].
-        */
-       virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
-
-       /**
-        * Set the gamma color map parameter.
-        * @param gamma a color map parameter.
-        */
-       virtual void setGamma( double gamma )  Q_DECL_OVERRIDE;
 
        static const QString CLASS_NAME;
        static const double ZOOM_DEFAULT;
@@ -247,6 +213,12 @@ private:
     bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
     
     /**
+     * Returns the color used to draw nan pixels.
+     * @return - the color used to draw nan pixels.
+     */
+    QColor _getNanColor() const;
+
+    /**
      * Returns the pipeline responsible for rendering the image.
      * @retun the pipeline responsible for rendering the image.
      */
@@ -355,6 +327,42 @@ private:
     void _resizeQuantileCache();
 
     /**
+    * Sets a new color map.
+    * @param name the identifier for the color map.
+    */
+    void _setColorMap( const QString& name );
+
+   /**
+    * Sets whether the colors in the map are inverted.
+    * @param inverted true if the colors in the map are inverted; false
+    *        otherwise.
+    */
+    void _setColorInverted( bool inverted );
+
+   /**
+    * Sets whether the colors in the map are reversed.
+    * @param reversed true if the colors in the map are reversed; false
+    *        otherwise.
+    */
+    void _setColorReversed( bool reversed );
+
+   /**
+    * Set the amount of red, green, and blue in the color scale.
+    * @param newRed the amount of red; should be in the range [0,1].
+    * @param newGreen the amount of green; should be in the range [0,1].
+    * @param newBlue the amount of blue; should be in the range[0,1].
+    */
+    void _setColorAmounts( double newRed, double newGreen, double newBlue );
+
+    /**
+     * Set the color used to draw nan pixels.
+     * @param red - the amount of red in [0,255].
+     * @param green - the amount of green in [0,255].
+     * @param blue - the amount of blue in [0,255].
+     */
+    void _setColorNan( double red, double green, double blue );
+
+    /**
      * Set the x-, y-, and z- axes that are to be displayed.
      * @param displayAxisTypes - the list of display axes.
      * @param frames - a list of current image frames.
@@ -369,6 +377,20 @@ private:
      * @return true if the specified display axis changes; false otherwise.
      */
     bool _setDisplayAxis( Carta::Lib::AxisInfo::KnownType axisType, int* axisIndex );
+
+    /**
+     * Set the gamma color map parameter.
+     * @param gamma a color map parameter.
+     */
+    void _setGamma( double gamma );
+
+    /**
+     * Set whether or not to use the default nan color (bottom of the color map).
+     * @param nanDefault - true if the default nan color should be used; false if
+     *      a user set nan color should be used.
+     */
+    void _setNanDefault( bool nanDefault );
+
 
     /**
      * Set the center for this image's display.

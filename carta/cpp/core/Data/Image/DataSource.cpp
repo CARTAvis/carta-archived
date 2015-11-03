@@ -374,6 +374,11 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
     return intensityFound;
 }
 
+QColor DataSource::_getNanColor() const {
+    QColor nanColor = m_renderService->getNanColor();
+    return nanColor;
+}
+
 double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
     int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL);
@@ -614,7 +619,17 @@ void DataSource::_resetPan(){
     }
 }
 
-
+void DataSource::_resizeQuantileCache(){
+    m_quantileCache.resize(0);
+    int nf = 1;
+    int imageSize = m_image->dims().size();
+    for ( int i = 0; i < imageSize; i++ ){
+        if ( i != m_axisIndexX && i != m_axisIndexY ){
+            nf = nf * m_image->dims()[i];
+        }
+    }
+    m_quantileCache.resize( nf);
+}
 
 bool DataSource::_setFileName( const QString& fileName ){
     QString file = fileName.trimmed();
@@ -656,19 +671,7 @@ bool DataSource::_setFileName( const QString& fileName ){
 }
 
 
-void DataSource::_resizeQuantileCache(){
-    m_quantileCache.resize(0);
-    int nf = 1;
-    int imageSize = m_image->dims().size();
-    for ( int i = 0; i < imageSize; i++ ){
-        if ( i != m_axisIndexX && i != m_axisIndexY ){
-            nf = nf * m_image->dims()[i];
-        }
-    }
-    m_quantileCache.resize( nf);
-}
-
-void DataSource::setColorMap( const QString& name ){
+void DataSource::_setColorMap( const QString& name ){
     Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     Carta::State::CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
@@ -676,23 +679,28 @@ void DataSource::setColorMap( const QString& name ){
     m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
-void DataSource::setColorInverted( bool inverted ){
+void DataSource::_setColorInverted( bool inverted ){
     m_pixelPipeline-> setInvert( inverted );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-void DataSource::setColorReversed( bool reversed ){
+void DataSource::_setColorReversed( bool reversed ){
     m_pixelPipeline-> setReverse( reversed );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-void DataSource::setColorAmounts( double newRed, double newGreen, double newBlue ){
+void DataSource::_setColorAmounts( double newRed, double newGreen, double newBlue ){
     std::array<double,3> colorArray;
     colorArray[0] = newRed;
     colorArray[1] = newGreen;
     colorArray[2] = newBlue;
     m_pixelPipeline->setRgbMax( colorArray );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
+}
+
+void DataSource::_setColorNan( double red, double green, double blue ){
+    QColor nanColor( red, green, blue );
+    m_renderService->setNanColor( nanColor );
 }
 
 bool DataSource::_setDisplayAxis( AxisInfo::KnownType axisType, int* axisIndex ){
@@ -725,6 +733,10 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
     }
 }
 
+void DataSource::_setNanDefault( bool nanDefault ){
+    m_renderService->setDefaultNan( nanDefault );
+}
+
 void DataSource::_setPan( double imgX, double imgY ){
     m_renderService-> setPan( QPointF(imgX,imgY) );
 }
@@ -743,7 +755,7 @@ void DataSource::_setZoom( double zoomAmount){
 
 
 
-void DataSource::setGamma( double gamma ){
+void DataSource::_setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }

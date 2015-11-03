@@ -433,7 +433,7 @@ QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
     return result;
 }
 
-QString Histogram::getPreferencesId() const {
+QString Histogram::_getPreferencesId() const {
     return m_preferences->getPath();
 }
 
@@ -555,7 +555,7 @@ void Histogram::_initializeCallbacks(){
 
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                QString result = getPreferencesId();
+                QString result = _getPreferencesId();
                 return result;
             });
 
@@ -2014,17 +2014,17 @@ void Histogram::_updateSelection(int x){
 }
 
 
-void Histogram::updateColorMap( Colormap* map ){
+/*void Histogram::updateColorMap( Colormap* map ){
     if ( map != nullptr ){
         Controller* controller = _getControllerSelected();
         if ( controller != nullptr ){
-            map->setColorProperties( controller );
+            //map->setColorProperties( controller );
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
             m_histogram->setPipeline( pipeline );
         }
     }
     _generateHistogram( false );
-}
+}*/
 
 
 void Histogram::_updateSize( const QSize& size ){

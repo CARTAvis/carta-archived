@@ -6,7 +6,6 @@
 
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
-#include <Data/IColoredView.h>
 #include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
@@ -35,6 +34,7 @@ namespace Carta {
 
 namespace Carta {
 namespace Data {
+class ColorState;
 class ControllerData;
 class DisplayControls;
 class GridControls;
@@ -45,7 +45,7 @@ class RegionRectangle;
 class Selection;
 
 class Controller: public QObject, public Carta::State::CartaObject,
-    public IColoredView, public IPercentIntensityMap {
+    public IPercentIntensityMap {
 
     friend class Animator;
 
@@ -188,7 +188,15 @@ public:
     QStringList getOutputSize( );
 
 
-    QString getPreferencesId() const;
+    QString _getPreferencesId() const;
+
+    /**
+     * Get the color map information for the data sources that have been
+     * selected.
+     * @return - a list containing color map information for the data sources
+     *      that have been selected.
+     */
+    std::vector< std::shared_ptr<ColorState> > getSelectedColorStates();
 
     /**
      * Return a count of the number of image layers in the stack.
@@ -309,6 +317,12 @@ public:
      */
     QString saveImage( const QString& filename );
 
+
+    /**
+     * Save the state of this controller.
+     */
+    void saveState();
+
     /**
      * Set whether or not clip values should be recomputed when the frame changes.
      * @param autoClip - whether or not clips should be recomputed when the frame
@@ -322,35 +336,11 @@ public:
      */
     void setFrameImage(int imageIndex);
 
-
-    /**
-     * Set the data transform.
-     * @param name QString a unique identifier for a data transform.
-     */
-    void setTransformData( const QString& name );
-
-    //IColoredView interface.
-    virtual void setColorMap( const QString& colorMapName ) Q_DECL_OVERRIDE;
-    virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
-    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
-    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
-    virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
-
-
-    /**
-     * Save the state of this controller.
-     */
-    void saveState();
-
-
-
     /**
      * Set the zoom level
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
      */
     void setZoomLevel( double zoomLevel );
-
-
 
     /**
      * Set the overall clip amount for the data.
@@ -360,20 +350,32 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * Set a new color map state.
+     * @param colorState - the new color map information.
+     */
+    void setGlobalColor( std::shared_ptr<ColorState> colorState );
+
+    /**
      * Specify a new image order.
-     * @param imageNames - a list specifying a new order for the images in
+     * @param imageIndices - a list specifying a new order for the images in
      *      a layer.
      * @return an error message if the new image order could not be set;
      *      otherwise, an empty string.
      */
-    QString setImageOrder( const QStringList& imageNames );
+    QString setImageOrder( const std::vector<int>& imageIndices );
 
     /**
      * Show/hide a particular layer in the stack.
-     * @param name - an identifier for a layer in the stack.
+     * @param dataIndex - the index of a layer in the stack.
      * @param visible - true if the layer should be visible; false otherwise.
      */
-    QString setImageVisibility( const QString& name, bool visible );
+    QString setImageVisibility( int dataIndex, bool visible );
+
+    /**
+     * Set the indices of the selected data sources.
+     * @param indices - a list of indices of selected data sources.
+     */
+    QString setLayersSelected( const std::vector<int> indices );
 
     /**
      * Change the pan of the current image.
@@ -420,6 +422,11 @@ signals:
     void clipsChanged( double minPercentile, double maxPercentile );
 
     /**
+     * Notification that one or more color map(s) have changed.
+     */
+    void colorChanged( Controller* controller );
+
+    /**
      *  Notification that the image/selection managed by this controller has
      *  changed.
      *  @param controller this Controller.
@@ -427,12 +434,11 @@ signals:
     void dataChanged(Controller* controller );
 
 
-
-
-
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
     void saveImageResult( bool result );
+
+
 
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
@@ -440,6 +446,8 @@ protected:
 private slots:
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
+
+    void _colorMapChanged();
 
     void _contoursChanged();
 
@@ -548,6 +556,8 @@ private:
 
     //Data available to and managed by this controller.
     QList<shared_ptr<ControllerData> > m_datas;
+
+    std::shared_ptr<ColorState> m_stateColor;
 
 
     QList<Region* > m_regions;

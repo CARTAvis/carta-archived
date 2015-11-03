@@ -93,11 +93,12 @@ StateInterface::StateInterface (const QString & path, const QString& type, const
 : impl_p (new StateInterfaceImpl (path) )
 {
     if ( path.length() > 0 || type.length() > 0 ){
-        insertValue<QString>( OBJECT_TYPE, type );
-        insertValue<bool>(FLUSH_STATE, false );
-        insertValue<int>(INDEX, 0 );
-    }
 
+        insertValue<bool>(FLUSH_STATE, false );
+
+    }
+    insertValue<QString>( OBJECT_TYPE, type );
+    insertValue<int>(INDEX, 0 );
 
     if ( initialState.trimmed().size() > 0 ){
         flushStateImpl( initialState );

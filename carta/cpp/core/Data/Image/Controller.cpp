@@ -135,6 +135,9 @@ bool Controller::addData(const QString& fileName) {
         m_datas.append(std::shared_ptr<ControllerData>(targetSource));
         targetSource->_viewResize( m_viewSize );
 
+        targetSource->_setGlobalColor( m_stateColor );
+        connect( targetSource, SIGNAL(colorStateChanged()), this, SLOT( _colorMapChanged() ));
+
         //Update the data selectors upper bound based on the data.
         int visibleCount = getStackedImageCountVisible();
         m_selectImage->setUpperBound( visibleCount );
@@ -248,6 +251,10 @@ QString Controller::closeImage( const QString& name ){
         result = "Could not find data to remove for name="+name;
     }
     return result;
+}
+
+void Controller::_colorMapChanged(){
+    _render();
 }
 
 int Controller::_getDataIndex( ) const {
@@ -548,12 +555,23 @@ std::vector<int> Controller::_getFrameIndices( int imageIndex ) const {
     return frames;
 }
 
-QString Controller::getPreferencesId() const {
+QString Controller::_getPreferencesId() const {
     QString id;
     if ( m_settings.get() != nullptr ){
         id = m_settings->getPath();
     }
     return id;
+}
+
+std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates(){
+    std::vector< std::shared_ptr<ColorState> > colorStates;
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->_isSelected() ){
+            colorStates.push_back( m_datas[i]->_getColorState() );
+        }
+    }
+    return colorStates;
 }
 
 int Controller::getStackedImageCount() const {
@@ -658,30 +676,51 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
 void Controller::_initializeCallbacks(){
     addCommandCallback( "hideImage", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {IMAGE};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString imageIndexStr = dataValues[*keys.begin()];
+            bool validInt = false;
+            int imageIndex = imageIndexStr.toInt( &validInt );
+            QString result;
+            if ( validInt ){
+                result = setImageVisibility( imageIndex, false );
+            }
+            else {
+                result = "Invalid image hide index: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "showImage", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
                 std::set<QString> keys = {IMAGE};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString imageName = dataValues[*keys.begin()];
-                QString result = setImageVisibility( imageName, false );
+                QString imageIndexStr = dataValues[*keys.begin()];
+                bool validInt = false;
+                int imageIndex = imageIndexStr.toInt( &validInt );
+                QString result;
+                if ( validInt ){
+                    result = setImageVisibility( imageIndex, true );
+                }
+                else {
+                    result = "Invalid image show index: "+params;
+                }
                 Util::commandPostProcess( result );
                 return result;
             });
 
-    addCommandCallback( "showImage", [=] (const QString & /*cmd*/,
-                            const QString & params, const QString & /*sessionId*/) -> QString {
-                    std::set<QString> keys = {IMAGE};
-                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                    QString imageName = dataValues[*keys.begin()];
-                    QString result = setImageVisibility( imageName, true );
-                    Util::commandPostProcess( result );
-                    return result;
-                });
-
     addCommandCallback( "setImageOrder", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {"images"};
-            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QStringList images = dataValues[*keys.begin()].split(";");
-            QString result = setImageOrder( images );
+            bool parseError = false;
+            std::vector<int> vals = Util::string2VectorInt( params, &parseError );
+            QString result;
+            if ( !parseError ){
+                result = setImageOrder( vals );
+            }
+            else {
+                result = "Image order must be expressed as nonnegative integers: "+params;
+            }
             Util::commandPostProcess( result );
             return result;
         });
@@ -751,17 +790,24 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) ->QString {
-            auto vals = Util::string2VectorDouble( params );
+            bool parseError = false;
+            QString result;
+            auto vals = Util::string2VectorDouble( params, &parseError );
             int count = vals.size();
             if ( count > 1 ) {
                 updatePan( vals[0], vals[1]);
             }
-            return "";
+            else {
+                result = "Center command must include doubles specifying the point to center: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
         });
 
     addCommandCallback( ZOOM, [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
-        auto vals = Util::string2VectorDouble( params );
+        bool error = false;
+        auto vals = Util::string2VectorDouble( params, &error );
         if ( vals.size() > 2 ) {
             double centerX = vals[0];
             double centerY = vals[1];
@@ -791,7 +837,7 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                        QString result = getPreferencesId();
+                        QString result = _getPreferencesId();
                         return result;
         });
 
@@ -835,6 +881,21 @@ void Controller::_initializeCallbacks(){
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
             QString result;
             resetZoom();
+            return result;
+        });
+
+    addCommandCallback( "setLayersSelected", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            bool error = false;
+            std::vector<int> vals = Util::string2VectorInt( params, &error );
+            if ( error ){
+                result = "Please specify the layers to select as nonnegative integers";
+            }
+            else {
+                result = setLayersSelected( vals );
+            }
+            Util::commandPostProcess( result );
             return result;
         });
 
@@ -994,34 +1055,26 @@ void Controller::_renderingDone( QImage img){
     _scheduleFrameRepaint( img );
 }
 
-QString Controller::setImageOrder( const QStringList& imageNames ){
+QString Controller::setImageOrder( const std::vector<int>& indices ){
     QString result;
     bool imageReordered = false;
     int selectedIndex = _getDataIndex();
     int dataCount = m_datas.size();
-    int nameCount = imageNames.size();
-    if ( nameCount != dataCount ){
+    int indexCount = indices.size();
+    if ( indexCount != dataCount ){
         result = "Reorder image size must match the stack count: "+QString::number(dataCount);
     }
     else {
-        DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
-        QString rootDir = dataLoader->getRootDir( "" );
-        for ( int i = 0; i < nameCount; i++ ){
-            QString targetName = rootDir +QDir::separator()+imageNames[i];
-            int targetIndex = -1;
-            for ( int j = i; j < dataCount; j++ ){
-                QString imageName = m_datas[j]->_getFileName();
-                if ( targetName == imageName ){
-                    targetIndex = j;
-                    break;
-                }
-            }
-            if ( targetIndex < 0 ){
-                result = "Reorder failed: unknown image: "+targetName;
+
+        for ( int i = 0; i < indexCount; i++ ){
+            int targetIndex = indices[i];
+
+            if ( targetIndex < 0  || targetIndex >= dataCount ){
+                result = "Reorder failed: unknown image index: "+targetIndex;
                 break;
             }
             //Insert the image at the target index at position i.
-            else if ( targetIndex > i ){
+            else {
                 std::shared_ptr<ControllerData> item = m_datas.takeAt( targetIndex );
                 m_datas.insert(i, item );
 
@@ -1060,8 +1113,6 @@ void Controller::resetStateData( const QString& state ){
     m_datas.clear();
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
-
-
 
     //Reset the image select state.
     QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
@@ -1125,6 +1176,7 @@ void Controller::resetZoom(){
         _render();
     }
 }
+
 
 void Controller::saveState() {
     int dataCount = m_datas.size();
@@ -1262,36 +1314,6 @@ QString Controller::setClipValue( double clipVal  ) {
 }
 
 
-void Controller::setColorInverted( bool inverted ){
-    for ( std::shared_ptr<ControllerData> data : m_datas ){
-        data->setColorInverted( inverted );
-    }
-    _render();
-}
-
-void Controller::setColorMap( const QString& name ){
-    for ( std::shared_ptr<ControllerData> data : m_datas ){
-        data->setColorMap( name );
-    }
-    _render();
-}
-
-void Controller::setColorReversed( bool reversed ){
-    for ( std::shared_ptr<ControllerData> data : m_datas ){
-        data->setColorReversed( reversed );
-    }
-    _render();
-}
-
-void Controller::setColorAmounts( double newRed, double newGreen, double newBlue ){
-    for ( std::shared_ptr<ControllerData> data : m_datas ){
-        data->setColorAmounts( newRed, newGreen, newBlue );
-    }
-    _render();
-}
-
-
-
 void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
     int axisIndex = static_cast<int>( axisType );
     int selectCount = m_selects.size();
@@ -1339,56 +1361,89 @@ void Controller::setFrameImage( int val) {
     }
 }
 
-void Controller::setGamma( double gamma ){
-    for ( std::shared_ptr<ControllerData> data : m_datas ){
-        data->setGamma( gamma );
-    }
-    _render();
+
+void Controller::setGlobalColor( std::shared_ptr<ColorState> colorState ){
+    m_stateColor = colorState;
 }
 
-QString Controller::setImageVisibility( const QString& name, bool visible ){
+QString Controller::setImageVisibility( int dataIndex, bool visible ){
     QString result;
-    bool visibilitySet = false;
     int dataCount = m_datas.size();
-    int dataIndex = -1;
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isMatch( name ) ){
-            bool oldVisible = m_datas[i]->_isVisible();
-            if ( oldVisible != visible ){
-                m_datas[i]->_setVisible( visible );
-                visibilitySet = true;
+    if ( dataIndex >= 0 && dataIndex < dataCount ){
+        bool oldVisible = m_datas[dataIndex]->_isVisible();
+        if ( oldVisible != visible ){
+            m_datas[dataIndex]->_setVisible( visible );
+
+            int selectedImageIndex = _getDataIndex();
+            //Update the upper bound on the number of images available.
+            int visibleCount = getStackedImageCountVisible();
+            m_selectImage->setUpperBound( visibleCount );
+            emit dataChanged( this );
+            //Render the image if it is the one currently being viewed.
+            if ( selectedImageIndex == dataIndex  ){
+                _loadView();
             }
-            dataIndex = i;
-            break;
+            if ( visibleCount == 0 ){
+                _clearStatistics();
+            }
+            saveState();
         }
-    }
-    if ( !visibilitySet ){
-        result = "Could not reset the visibility of "+name;
     }
     else {
-        int selectedImageIndex = _getDataIndex();
-        //Update the upper bound on the number of images available.
-        int visibleCount = getStackedImageCountVisible();
-        m_selectImage->setUpperBound( visibleCount );
-        emit dataChanged( this );
-        //Render the image if it is the one currently being viewed.
-        if ( selectedImageIndex == dataIndex  ){
-            _loadView();
-        }
-        if ( visibleCount == 0 ){
-            _clearStatistics();
-        }
-        saveState();
+        result = "Could not set image visibility; invalid index: "+ QString::number( dataIndex );
     }
     return result;
 }
 
-void Controller::setTransformData( const QString& name ){
-    for ( std::shared_ptr<ControllerData> data : m_datas ){
-        data->_setTransformData( name );
+QString Controller::setLayersSelected( const std::vector<int> indices ){
+    int dataCount = m_datas.size();
+    //Note: we could to a careful check of the indices here to make sure
+    //the are all nonnegative, and not outside of the required bounds, but
+    //that would be slower so we just do a rudimentary check that the size
+    //is okay.
+    QString result;
+    std::vector<int> sortedLayers = indices;
+    std::sort( sortedLayers.begin(), sortedLayers.end());
+    int selectIndex = 0;
+    int indexCount = indices.size();
+    int selectedIndex = dataCount;
+    if ( indexCount > 0 ){
+        selectedIndex = indices[0];
     }
-    _render();
+    std::vector<int> oldSelects;
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->_isSelected() ){
+            oldSelects.push_back( i );
+        }
+        if ( i < selectedIndex ){
+            m_datas[i]->_setSelected( false );
+        }
+        else if ( i == selectedIndex ){
+            m_datas[i]->_setSelected( true );
+            selectIndex++;
+            if ( selectIndex < indexCount ){
+                selectedIndex = indices[selectIndex];
+            }
+        }
+        else {
+            result = "Invalid selection index: "+ QString::number( selectedIndex );
+            break;
+        }
+    }
+    if ( selectIndex != indexCount){
+        result = "Invalid selection indices";
+    }
+    if ( !result.isEmpty( )){
+        //Set the selections back the way they were
+        setLayersSelected( oldSelects );
+    }
+    else {
+        emit colorChanged( this );
+    }
+    return result;
 }
+
+
 
 void Controller::setZoomLevel( double zoomFactor ){
     int dataIndex = _getDataIndex();

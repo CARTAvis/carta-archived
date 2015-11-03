@@ -79,13 +79,32 @@ double Util::roundToDigits(double value, int digits)
 }
 
 /// convert string to array of doubles
-std::vector < double > Util::string2VectorDouble( QString s, QString sep){
+std::vector < double > Util::string2VectorDouble( QString s, bool* error, QString sep ){
     QStringList lst = s.split( sep );
     std::vector < double > res;
+    *error = false;
     for ( auto v : lst ) {
         bool ok;
         double val = v.toDouble( & ok );
         if ( ! ok ) {
+            *error = true;
+            return res;
+        }
+        res.push_back( val );
+    }
+    return res;
+}
+
+/// convert string to array of doubles
+std::vector < int > Util::string2VectorInt( QString s, bool* error, QString sep ){
+    QStringList lst = s.split( sep );
+    std::vector < int > res;
+    *error = false;
+    for ( auto v : lst ) {
+        bool ok;
+        int val = v.toInt( & ok );
+        if ( ! ok ) {
+            *error = true;
             return res;
         }
         res.push_back( val );

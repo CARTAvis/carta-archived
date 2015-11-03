@@ -6,8 +6,10 @@
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/DataLoader.h"
 #include "Data/Util.h"
+#include "Data/Colormap/ColorState.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
+#include "State/UtilState.h"
 
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IWcsGridRenderService.h"
@@ -28,6 +30,7 @@ namespace Data {
 
 const QString ControllerData::CLASS_NAME = "ControllerData";
 const QString ControllerData::LAYER = "layer";
+const QString ControllerData::SELECTED = "selected";
 
 class ControllerData::Factory : public Carta::State::CartaObjectFactory {
 
@@ -144,6 +147,9 @@ QPointF ControllerData::_getCenter() const{
     return center;;
 }
 
+std::shared_ptr<ColorState> ControllerData::_getColorState(){
+    return m_stateColor;
+}
 
 Carta::State::StateInterface ControllerData::_getGridState() const {
     return m_dataGrid->_getState();
@@ -313,8 +319,18 @@ QString ControllerData::_getLayerString() const {
 void ControllerData::_initializeState(){
     m_state.insertValue<QString>(DataSource::DATA_PATH, "");
     m_state.insertValue<bool>(Util::VISIBLE, true );
+    m_state.insertValue<bool>(SELECTED, false );
+
     QString gridState = _getGridState().toString();
     m_state.insertObject(DataGrid::GRID, gridState );
+}
+
+/*bool ControllerData::_isGlobalColorMap() const {
+    return m_stateColor->_isGlobal();
+}*/
+
+bool ControllerData::_isSelected() const {
+    return m_state.getValue<bool>( SELECTED );
 }
 
 bool ControllerData::_isVisible() const {
@@ -409,6 +425,7 @@ void ControllerData::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
                 gridService->setInputImage( m_dataSource->_getImage() );
             }
         }
+
         _render( frames, cs );
     }
 }
@@ -564,28 +581,53 @@ bool ControllerData::_setFileName( const QString& fileName ){
     return successfulLoad;
 }
 
-void ControllerData::setColorMap( const QString& name ){
+
+void ControllerData::_setGlobalColor( std::shared_ptr<ColorState> colorState ){
+    if ( m_stateColor ){
+        disconnect( m_stateColor.get() );
+    }
+    m_stateColor = colorState;
+    _colorChanged( );
+    connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
+}
+
+
+void ControllerData::_colorChanged(){
     if ( m_dataSource ){
-        m_dataSource->setColorMap( name );
+
+        QString mapName = m_stateColor->_getColorMap();
+        qDebug() << "ControllerData color changed "<<mapName;
+        m_dataSource->_setColorMap( mapName );
+        m_dataSource->_setTransformData( m_stateColor->_getDataTransform() );
+        m_dataSource->_setGamma( m_stateColor->_getGamma() );
+        m_dataSource->_setColorReversed( m_stateColor->_isReversed() );
+        m_dataSource->_setColorInverted( m_stateColor->_isInverted() );
+        double redAmount = m_stateColor->_getMixRed();
+        double greenAmount = m_stateColor->_getMixGreen();
+        double blueAmount = m_stateColor->_getMixBlue();
+        m_dataSource->_setColorAmounts( redAmount, greenAmount, blueAmount );
+        bool defaultNan = m_stateColor->_isNanDefault();
+        m_dataSource->_setNanDefault( defaultNan );
+        qDebug() << "Controller data defaultNan="<<defaultNan;
+        //If we aren't using a default nan color, tell the dataSource to use
+        //the custom color.
+        if ( !defaultNan ){
+            int redAmount = m_stateColor->_getNanRed();
+            int greenAmount = m_stateColor->_getNanGreen();
+            int blueAmount = m_stateColor->_getNanBlue();
+            m_dataSource->_setColorNan( redAmount, greenAmount, blueAmount );
+        }
+        //We are using  the default nan color.  Update the state to the default color.
+        else {
+            QColor nanColor = m_dataSource->_getNanColor();
+            m_stateColor->_setNanColor( nanColor.red(), nanColor.green(), nanColor.blue() );
+        }
+        emit colorStateChanged();
     }
 }
 
-void ControllerData::setColorInverted( bool inverted ){
-    if ( m_dataSource ){
-        m_dataSource->setColorInverted( inverted );
-    }
-}
-
-void ControllerData::setColorReversed( bool reversed ){
-    if ( m_dataSource ){
-        m_dataSource->setColorReversed( reversed );
-    }
-}
-
-void ControllerData::setColorAmounts( double newRed, double newGreen, double newBlue ){
-    if ( m_dataSource ){
-        m_dataSource->setColorAmounts( newRed, newGreen, newBlue );
-    }
+void ControllerData::_setSelected( bool selected ){
+    m_state.setValue<bool>( SELECTED, selected );
 }
 
 void ControllerData::_setVisible( bool visible ){
@@ -601,11 +643,6 @@ void ControllerData::_setPan( double imgX, double imgY ){
     }
 }
 
-void ControllerData::_setTransformData( const QString& name ){
-    if ( m_dataSource ){
-        m_dataSource->_setTransformData( name );
-    }
-}
 
 void ControllerData::_setZoom( double zoomAmount){
     if ( m_dataSource ){
@@ -614,12 +651,6 @@ void ControllerData::_setZoom( double zoomAmount){
 }
 
 
-
-void ControllerData::setGamma( double gamma ){
-    if ( m_dataSource ){
-        m_dataSource->setGamma( gamma );
-    }
-}
 
 void ControllerData::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){

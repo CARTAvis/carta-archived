@@ -69,12 +69,6 @@ public:
     void clearSelection();
 
     /**
-     * Returns the server side id of the histogram user preferences.
-     * @return the unique server side id of the user preferences.
-     */
-    QString getPreferencesId() const;
-
-    /**
      * Return a string representing the histogram state of a particular type.
      * @param type - the type of state needed.
      * @param sessionId - an identifier for a user's session.
@@ -337,7 +331,7 @@ signals:
     void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
 
 public slots:
-    void updateColorMap( Colormap* );
+    //void updateColorMap( Colormap* );
 
 
 protected:
@@ -391,6 +385,12 @@ private:
 
     std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
     
+    /**
+     * Returns the server side id of the histogram user preferences.
+     * @return the unique server side id of the user preferences.
+     */
+    QString _getPreferencesId() const;
+
     //Bin count <-> Bin width conversion.
     double _toBinWidth( int count ) const;
     int _toBinCount( double width ) const;

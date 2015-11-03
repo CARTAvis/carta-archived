@@ -31,6 +31,7 @@ HEADERS += \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
+    Data/Colormap/ColorState.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
     Data/DataLoader.h \
@@ -38,7 +39,6 @@ HEADERS += \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
-    Data/IColoredView.h \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
@@ -125,6 +125,7 @@ SOURCES += \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
+    Data/Colormap/ColorState.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
