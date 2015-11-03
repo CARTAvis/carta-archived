@@ -1343,7 +1343,7 @@ void Controller::updatePan( double centerX , double centerY){
 
 QPointF Controller::getCenterPixel() const {
     int imageIndex = m_selectImage->getIndex();
-    QPointF center = QPointF(-0.0, -0.0);
+    QPointF center = QPointF( nan(""), nan("") );
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
         center = m_datas[imageIndex]->_getCenter();
     }
