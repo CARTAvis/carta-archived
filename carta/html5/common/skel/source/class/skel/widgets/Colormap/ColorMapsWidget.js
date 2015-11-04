@@ -83,6 +83,19 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             },this);
             this._add( this.m_mapCombo );
             
+            this.m_globalCheck = new qx.ui.form.CheckBox( "Global");
+            this.m_globalCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
+                if ( this.m_id !== null ){
+                    var global = this.m_globalCheck.getValue();
+                    //Send a command to the server to let them know the map changed.
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + "setGlobal";
+                    var params = "global:"+global;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+            },this);
+            this._add( this.m_globalCheck );
+            
             this._add( new qx.ui.core.Spacer(), {flex:1});
             this.m_intensityHighLabel = new qx.ui.basic.Label("");
             this._add( this.m_intensityHighLabel );
@@ -168,10 +181,20 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this._colormapDataCB();
         },
         
+        /**
+         * Server update as to whether this is a global colormap.
+         * @param globalMap {boolean} - true if this is a global color map;
+         *      false otherwise.
+         */
+        setGlobal : function( globalMap ){
+            this.m_globalCheck.setValue( globalMap );
+        },
+        
         m_intensityLowLabel : null,
         m_intensityHighLabel : null,
        
         m_mapCombo : null,
+        m_globalCheck : null,
         
         m_id : null,
         m_connector : null,

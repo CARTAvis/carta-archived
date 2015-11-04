@@ -172,6 +172,11 @@ bool ColorState::_isInverted() const {
     return m_state.getValue<bool>( INVERT );
 }
 
+void ColorState::_replicateTo( ColorState* otherState ){
+    if ( otherState != nullptr ){
+        _replicateTo( otherState->m_state );
+    }
+}
 
 void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     QString colorMapName = m_state.getValue<QString>(COLOR_MAP_NAME );
@@ -241,6 +246,68 @@ bool ColorState::_setColorMix( const QString& key, double colorPercent, QString&
     return colorChanged;
 }
 
+QString ColorState::_setColorMap( const QString& colorMapStr ){
+    QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
+    QString result;
+    if ( m_colors != nullptr ){
+       if( m_colors->isMap( colorMapStr ) ){
+           if ( colorMapStr != mapName ){
+              m_state.setValue<QString>(COLOR_MAP_NAME, colorMapStr );
+              m_state.flushState();
+              emit colorStateChanged();
+           }
+        }
+       else {
+           result = "Invalid ColorState: " + colorMapStr;
+       }
+    }
+    return result;
+}
+
+QString ColorState::_setDataTransform( const QString& transformString ){
+    QString result("");
+    QString transformName = m_state.getValue<QString>(TRANSFORM_DATA);
+    if ( m_dataTransforms != nullptr ){
+        QString actualTransform;
+        bool recognizedTransform = m_dataTransforms->isTransform( transformString, actualTransform );
+        if( recognizedTransform ){
+            if ( actualTransform != transformName ){
+                m_state.setValue<QString>(TRANSFORM_DATA, actualTransform );
+                m_state.flushState();
+                emit colorStateChanged();
+            }
+        }
+        else {
+           result = "Invalid data transform: " + transformString;
+        }
+    }
+    return result;
+}
+
+void ColorState::_setErrorMargin(){
+    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
+    m_errorMargin = 1.0/qPow(10,significantDigits);
+}
+
+
+QString ColorState::_setGamma( double gamma ){
+    QString result;
+    double oldGamma = m_state.getValue<double>( GAMMA );
+
+    if ( qAbs( gamma - oldGamma) > m_errorMargin ){
+        int digits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, digits ));
+        emit colorStateChanged();
+    }
+    return result;
+}
+
+void ColorState::_setGlobal( bool global ){
+    bool oldGlobal = m_state.getValue<bool>(GLOBAL);
+    if ( global != oldGlobal ){
+        m_state.setValue<bool>(GLOBAL, global);
+    }
+}
 
 void ColorState::_setInvert( bool invert ){
     bool oldInvert = m_state.getValue<bool>(INVERT );
@@ -296,57 +363,6 @@ void ColorState::_setReverse( bool reverse ){
 }
 
 
-QString ColorState::_setColorMap( const QString& colorMapStr ){
-    QString mapName = m_state.getValue<QString>(COLOR_MAP_NAME);
-    QString result;
-    if ( m_colors != nullptr ){
-       if( m_colors->isMap( colorMapStr ) ){
-           if ( colorMapStr != mapName ){
-              m_state.setValue<QString>(COLOR_MAP_NAME, colorMapStr );
-              m_state.flushState();
-              emit colorStateChanged();
-           }
-        }
-       else {
-           result = "Invalid ColorState: " + colorMapStr;
-       }
-    }
-    return result;
-}
-
-QString ColorState::_setGamma( double gamma ){
-    QString result;
-    double oldGamma = m_state.getValue<double>( GAMMA );
-
-    if ( qAbs( gamma - oldGamma) > m_errorMargin ){
-        int digits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
-        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, digits ));
-        emit colorStateChanged();
-    }
-    return result;
-}
-
-QString ColorState::_setDataTransform( const QString& transformString ){
-    QString result("");
-    QString transformName = m_state.getValue<QString>(TRANSFORM_DATA);
-    if ( m_dataTransforms != nullptr ){
-        QString actualTransform;
-        bool recognizedTransform = m_dataTransforms->isTransform( transformString, actualTransform );
-        if( recognizedTransform ){
-            if ( actualTransform != transformName ){
-                m_state.setValue<QString>(TRANSFORM_DATA, actualTransform );
-                m_state.flushState();
-                emit colorStateChanged();
-            }
-        }
-        else {
-           result = "Invalid data transform: " + transformString;
-        }
-    }
-    return result;
-}
-
-
 QString ColorState::_setSignificantDigits( int digits ){
     QString result;
     if ( digits <= 0 ){
@@ -360,11 +376,6 @@ QString ColorState::_setSignificantDigits( int digits ){
         }
     }
     return result;
-}
-
-void ColorState::_setErrorMargin(){
-    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
-    m_errorMargin = 1.0/qPow(10,significantDigits);
 }
 
 

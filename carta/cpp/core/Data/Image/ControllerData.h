@@ -87,6 +87,7 @@ private slots:
     void _colorChanged();
 
 private:
+    void _clearColorMap();
     void _clearData();
 
     Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
@@ -350,7 +351,8 @@ private:
      * Reset the color map information for this data.
      * @param colorState - stored information about the color map.
      */
-    void _setGlobalColor( std::shared_ptr<ColorState> colorState );
+    void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
+
 
     /**
      * Show/hide this layer.
@@ -382,8 +384,9 @@ private:
     /**
      * Set this data source selected.
      * @param selected - true if the data source is selected; false otherwise.
+     * @return -true if the selected state changed; false otherwise.
      */
-    void _setSelected( bool selected );
+    bool _setSelected( bool selected );
 
     /**
      * Resize the view of the image.

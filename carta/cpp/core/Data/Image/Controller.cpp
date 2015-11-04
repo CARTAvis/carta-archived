@@ -55,6 +55,7 @@ const QString Controller::POINTER_MOVE = "pointer-move";
 const QString Controller::ZOOM = "zoom";
 const QString Controller::REGIONS = "regions";
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
+const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
 const QString Controller::CLASS_NAME = "Controller";
 bool Controller::m_registered =
@@ -133,9 +134,16 @@ bool Controller::addData(const QString& fileName) {
         connect( targetSource, SIGNAL(renderingDone(QImage)), this, SLOT(_renderingDone(QImage)));
         connect( targetSource, & ControllerData::saveImageResult, this, & Controller::saveImageResultCB );
         m_datas.append(std::shared_ptr<ControllerData>(targetSource));
+
         targetSource->_viewResize( m_viewSize );
 
-        targetSource->_setGlobalColor( m_stateColor );
+        targetSource->_setColorMapGlobal( m_stateColor );
+        //If it is the only image, set it selected.
+        if ( m_datas.size() == 1 ){
+            std::vector<int> indices(1);
+            indices[0] = 0;
+            setLayersSelected( indices );
+        }
         connect( targetSource, SIGNAL(colorStateChanged()), this, SLOT( _colorMapChanged() ));
 
         //Update the data selectors upper bound based on the data.
@@ -713,7 +721,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "setImageOrder", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
             bool parseError = false;
-            std::vector<int> vals = Util::string2VectorInt( params, &parseError );
+            std::vector<int> vals = Util::string2VectorInt( params, &parseError, ";" );
             QString result;
             if ( !parseError ){
                 result = setImageOrder( vals );
@@ -888,7 +896,7 @@ void Controller::_initializeCallbacks(){
                         const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
             bool error = false;
-            std::vector<int> vals = Util::string2VectorInt( params, &error );
+            std::vector<int> vals = Util::string2VectorInt( params, &error, ";" );
             if ( error ){
                 result = "Please specify the layers to select as nonnegative integers";
             }
@@ -907,6 +915,24 @@ void Controller::_initializeCallbacks(){
             Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "setStackSelectAuto", [=] (const QString & /*cmd*/,
+                       const QString & params, const QString & /*sessionId*/) -> QString {
+               std::set<QString> keys = {STACK_SELECT_AUTO};
+               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+               QString autoModeStr = dataValues[STACK_SELECT_AUTO];
+               bool validBool = false;
+               bool autoSelect = Util::toBool( autoModeStr, &validBool );
+               QString result;
+               if ( validBool ){
+                   setStackSelectAuto( autoSelect );
+               }
+               else {
+                   result = "Please specify true/false when setting whether stack selection should be automatic: "+autoModeStr;
+               }
+               Util::commandPostProcess( result );
+               return result;
+           });
 }
 
 
@@ -928,6 +954,7 @@ void Controller::_initializeState(){
     //Set whether or not to auto clip
     //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
+    m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
     m_state.flushState();
@@ -950,7 +977,9 @@ void Controller::_initializeState(){
     m_stateMouse.flushState();
 }
 
-
+bool Controller::isStackSelectAuto() const {
+    return m_state.getValue<bool>( STACK_SELECT_AUTO );
+}
 
 void Controller::_loadView(  bool newClips ) {
     m_reloadFrameQueued = false;
@@ -1194,7 +1223,6 @@ void Controller::saveState() {
     /*int regionCount = m_regions.size();
     m_state.resizeArray( REGIONS, regionCount );
     _saveRegions();*/
-
     m_stateData.flushState();
 }
 
@@ -1337,6 +1365,11 @@ void Controller::setFrameImage( int val) {
         int oldIndex = m_selectImage->getIndex();
         if ( oldIndex != val ){
             m_selectImage->setIndex(val);
+            if ( isStackSelectAuto() ){
+                std::vector<int> indices(1);
+                indices[0] = val;
+                _setLayersSelected( indices );
+            }
             int dataIndex = _getDataIndex();
             if ( 0 <= dataIndex ){
                 int selectCount = m_selects.size();
@@ -1362,8 +1395,24 @@ void Controller::setFrameImage( int val) {
 }
 
 
-void Controller::setGlobalColor( std::shared_ptr<ColorState> colorState ){
+void Controller::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
     m_stateColor = colorState;
+}
+
+void Controller::_setColorMapUseGlobal( bool global ) {
+    //Loop through the data and reset the color maps.
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->_isSelected() ){
+            if ( global ){
+                m_datas[i]->_setColorMapGlobal( m_stateColor );
+            }
+            else {
+                m_datas[i]->_setColorMapGlobal( nullptr );
+            }
+        }
+    }
+    emit colorChanged( this );
 }
 
 QString Controller::setImageVisibility( int dataIndex, bool visible ){
@@ -1396,6 +1445,18 @@ QString Controller::setImageVisibility( int dataIndex, bool visible ){
 }
 
 QString Controller::setLayersSelected( const std::vector<int> indices ){
+    QString result;
+    bool selectModeAuto = isStackSelectAuto();
+    if ( !selectModeAuto ){
+        result = _setLayersSelected( indices );
+    }
+    else {
+        result = "Enable manual layer selection mode before setting layers.";
+    }
+    return result;
+}
+
+QString Controller::_setLayersSelected( const std::vector<int> indices ){
     int dataCount = m_datas.size();
     //Note: we could to a careful check of the indices here to make sure
     //the are all nonnegative, and not outside of the required bounds, but
@@ -1406,28 +1467,31 @@ QString Controller::setLayersSelected( const std::vector<int> indices ){
     std::sort( sortedLayers.begin(), sortedLayers.end());
     int selectIndex = 0;
     int indexCount = indices.size();
-    int selectedIndex = dataCount;
+    int selectedIndex = indexCount;
     if ( indexCount > 0 ){
-        selectedIndex = indices[0];
+        selectedIndex = sortedLayers[0];
     }
     std::vector<int> oldSelects;
+    bool selectStateChanged = false;
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_isSelected() ){
             oldSelects.push_back( i );
         }
-        if ( i < selectedIndex ){
-            m_datas[i]->_setSelected( false );
-        }
-        else if ( i == selectedIndex ){
-            m_datas[i]->_setSelected( true );
-            selectIndex++;
-            if ( selectIndex < indexCount ){
-                selectedIndex = indices[selectIndex];
+        if ( i != selectedIndex ){
+            bool stateChange = m_datas[i]->_setSelected( false );
+            if ( stateChange ){
+                selectStateChanged = true;
             }
         }
         else {
-            result = "Invalid selection index: "+ QString::number( selectedIndex );
-            break;
+            bool stateChange = m_datas[i]->_setSelected( true );
+            if ( stateChange ){
+                selectStateChanged = true;
+            }
+            selectIndex++;
+            if ( selectIndex < indexCount ){
+                selectedIndex = sortedLayers[selectIndex];
+            }
         }
     }
     if ( selectIndex != indexCount){
@@ -1437,13 +1501,20 @@ QString Controller::setLayersSelected( const std::vector<int> indices ){
         //Set the selections back the way they were
         setLayersSelected( oldSelects );
     }
-    else {
+    else if ( selectStateChanged ){
+        saveState();
         emit colorChanged( this );
     }
     return result;
 }
 
-
+void Controller::setStackSelectAuto( bool automatic ){
+    bool oldStackSelectAuto = m_state.getValue<bool>(STACK_SELECT_AUTO );
+    if ( oldStackSelectAuto != automatic ){
+        m_state.setValue<bool>( STACK_SELECT_AUTO, automatic );
+        m_state.flushState();
+    }
+}
 
 void Controller::setZoomLevel( double zoomFactor ){
     int dataIndex = _getDataIndex();

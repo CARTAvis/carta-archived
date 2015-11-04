@@ -124,6 +124,12 @@ public:
     QString setGamma( double gamma );
 
     /**
+     * Set whether or not the color map is global.
+     * @param global - true if the colormap is global; false otherwise.
+     */
+    void setGlobal( bool global );
+
+    /**
      * Invert the current colormap.
      * @param invert - true if the color map should be inverted; false otherwise..
      * @return error information if the color map was not successfully inverted.

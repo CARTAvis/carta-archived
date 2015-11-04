@@ -48,8 +48,8 @@ bool ControllerData::m_registered =
 
 ControllerData::ControllerData(const QString& path, const QString& id) :
     CartaObject( CLASS_NAME, path, id),
+    m_stateColor( nullptr ),
     m_dataSource( new DataSource() ),
-
     m_drawSync( nullptr ){
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -59,6 +59,13 @@ ControllerData::ControllerData(const QString& path, const QString& id) :
         _initializeState();
 }
 
+void ControllerData::_clearColorMap(){
+    if ( m_stateColor ){
+       disconnect( m_stateColor.get() );
+       Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+       objMan->removeObject( m_stateColor->getId() );
+    }
+}
 
 void ControllerData::_clearData(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -313,6 +320,7 @@ QString ControllerData::_getLayerString() const {
     Carta::State::StateInterface layerState( "");
     layerState.insertValue<QString>( LAYER, shortNames[0] );
     layerState.insertValue<bool>( Util::VISIBLE, m_state.getValue<bool>(Util::VISIBLE) );
+    layerState.insertValue<bool>( SELECTED, m_state.getValue<bool>(SELECTED ) );
     return layerState.toString();
 }
 
@@ -582,21 +590,44 @@ bool ControllerData::_setFileName( const QString& fileName ){
 }
 
 
-void ControllerData::_setGlobalColor( std::shared_ptr<ColorState> colorState ){
-    if ( m_stateColor ){
-        disconnect( m_stateColor.get() );
+void ControllerData::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
+
+    //Decide if we are going to use our own separate map that is a copy of our current
+    //one or reset to a shared global color map based on whether the passed in map
+    //is null
+    bool colorReset = false;
+    if ( colorState ){
+        if ( m_stateColor.get() == nullptr || !m_stateColor->_isGlobal() ){
+            //Use a common global map
+            _clearColorMap();
+            m_stateColor = colorState;
+            colorReset = true;
+        }
     }
-    m_stateColor = colorState;
-    _colorChanged( );
-    connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
+    else {
+        //We are going to use our own color map
+        if ( m_stateColor->_isGlobal() ){
+            if ( m_stateColor ){
+               disconnect( m_stateColor.get() );
+            }
+            Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+            ColorState* cObject = objMan->createObject<ColorState>();
+            m_stateColor->_replicateTo( cObject );
+            cObject->_setGlobal( false );
+            m_stateColor.reset (cObject);
+            colorReset = true;
+        }
+    }
+    if ( colorReset ){
+        _colorChanged( );
+        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
+    }
 }
 
 
 void ControllerData::_colorChanged(){
     if ( m_dataSource ){
-
         QString mapName = m_stateColor->_getColorMap();
-        qDebug() << "ControllerData color changed "<<mapName;
         m_dataSource->_setColorMap( mapName );
         m_dataSource->_setTransformData( m_stateColor->_getDataTransform() );
         m_dataSource->_setGamma( m_stateColor->_getGamma() );
@@ -608,7 +639,7 @@ void ControllerData::_colorChanged(){
         m_dataSource->_setColorAmounts( redAmount, greenAmount, blueAmount );
         bool defaultNan = m_stateColor->_isNanDefault();
         m_dataSource->_setNanDefault( defaultNan );
-        qDebug() << "Controller data defaultNan="<<defaultNan;
+
         //If we aren't using a default nan color, tell the dataSource to use
         //the custom color.
         if ( !defaultNan ){
@@ -626,8 +657,14 @@ void ControllerData::_colorChanged(){
     }
 }
 
-void ControllerData::_setSelected( bool selected ){
-    m_state.setValue<bool>( SELECTED, selected );
+bool ControllerData::_setSelected( bool selected ){
+    bool stateChanged = false;
+    bool oldSelected = m_state.getValue<bool>(SELECTED );
+    if ( oldSelected != selected ){
+        m_state.setValue<bool>( SELECTED, selected );
+        stateChanged = true;
+    }
+    return stateChanged;
 }
 
 void ControllerData::_setVisible( bool visible ){

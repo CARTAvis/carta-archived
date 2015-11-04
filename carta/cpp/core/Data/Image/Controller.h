@@ -48,6 +48,7 @@ class Controller: public QObject, public Carta::State::CartaObject,
     public IPercentIntensityMap {
 
     friend class Animator;
+    friend class Colormap;
 
     Q_OBJECT
 
@@ -81,8 +82,6 @@ public:
      * @param imgY the y-coordinate for the center of the pan.
      */
     void centerOnPixel( double imgX , double imgY);
-
-
 
     /**
      * Close the given image.
@@ -273,7 +272,13 @@ public:
      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
-
+    /**
+     * Returns whether or not the image stack layers are selected based on the
+     * animator (auto) or whether the user has indicated a manual selection.
+     * @return - true if the stack layers are selected based on the current layer; false
+     *      if the user has specified manual selection.
+     */
+    bool isStackSelectAuto() const;
 
     /**
      * Center the image.
@@ -350,12 +355,6 @@ public:
     QString setClipValue( double clipValue );
 
     /**
-     * Set a new color map state.
-     * @param colorState - the new color map information.
-     */
-    void setGlobalColor( std::shared_ptr<ColorState> colorState );
-
-    /**
      * Specify a new image order.
      * @param imageIndices - a list specifying a new order for the images in
      *      a layer.
@@ -376,6 +375,13 @@ public:
      * @param indices - a list of indices of selected data sources.
      */
     QString setLayersSelected( const std::vector<int> indices );
+
+    /**
+     * Set whether or not selection of layers in the stack should be based on the
+     * current layer or whether the user wants to make a manual selection.
+     * @param automatic - true for automatic selection; false for manual selection.
+     */
+    void setStackSelectAuto( bool automatic );
 
     /**
      * Change the pan of the current image.
@@ -490,6 +496,10 @@ private:
 
     class Factory;
 
+    //Clear the color map.
+    void _clearColorMap();
+    //Clear data sources
+    void _clearData();
     //Clear image statistics.
     void _clearStatistics();
 
@@ -506,13 +516,28 @@ private:
     void _initializeCallbacks();
     void _initializeSelections();
 
-    void _clearData();
+
     QString _makeRegion( const QString& regionType );
+
     void _removeData( int index );
     void _render();
+
     void _saveRegions();
     void _scheduleFrameRepaint( const QImage& img );
 
+    /**
+     * Set whether or not the selected layers should be using the global
+     * colormap.
+     * @param global - true if selected layers should use the global color map;
+     *      false, otherwise.
+     */
+    void _setColorMapUseGlobal( bool global );
+
+    /**
+     * Set the global color map..
+     * @param colorState - the global color map information.
+     */
+    void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
 
     /**
      * Make a frame selection.
@@ -520,6 +545,7 @@ private:
      * @param val  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+    QString _setLayersSelected( const std::vector<int> indices );
 
 
     void _updateCursor( int mouseX, int mouseY );
@@ -538,6 +564,7 @@ private:
     static const QString REGIONS;
     static const QString CENTER;
     static const QString POINTER_MOVE;
+    static const QString STACK_SELECT_AUTO;
     static const QString ZOOM;
 
     //Data Selections

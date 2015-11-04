@@ -15,12 +15,28 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
     },
     
     events : {
-        "listReordered" : "qx.event.type.Data"
+        "listReordered" : "qx.event.type.Data",
+        "listSelection" : "qx.event.type.Data"
     },
 
     members : {
         
         /**
+         * Return a list of the indices of selected list items.
+         * @return {Array} - a list of indices of list items that have
+         *      been selected.
+         */
+        getSelectedIndices : function(){
+            var indices = [];
+            var children = this.m_list.getChildren();
+            for ( var i = 0; i < children.length; i++ ){
+                if ( this.m_list.isSelected( children[i] ) ){
+                    indices.push( i );
+                }
+            }
+            return indices;
+        },
+        /*
          * Initializes the UI.
          */
         _init : function( width ) {
@@ -68,7 +84,10 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
             this.m_list.setDraggable(true);
             this.m_list.setDroppable( true );
             this.m_listContainer.add( this.m_list, {left:0,top:0});
-
+            this.m_list.addListener( "changeSelection", function(){
+                var data = {};
+                this.fireDataEvent( "listSelection", data );
+            }, this );
             //Support moves.
             this.m_list.addListener("dragstart", function(e) {
                 e.addAction("move");
@@ -140,6 +159,82 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 this.m_dragMarker.setLayoutProperties( {left:0, top:origTop} );
             }
         },
+        
+        /**
+         * Return the index of the item in the list.
+         * @param item {qx.ui.core.Widget} - a list item.
+         * @return {Number} - the index of the item in the list.
+         */
+        _getIndex : function( item ){
+            var children = this.m_list.getChildren();
+            var index = -1;
+            for ( var i = 0; i < children.length; i++ ){
+                if ( children[i] == item ){
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        },
+        
+        /**
+         * Returns the permuted order of the list indices after an insertion at the
+         * end of the list.
+         * @param insertIndices {Array} - a list of the indices of list items that
+         *      were inserted.
+         * @return {Array} - a list of permuted indices.
+         */
+        _getListIndicesAfter : function( insertIndices ){
+            //Go through the list and add any index that is not being
+            //inserter.
+            var indices = [];
+            var listCount = this.m_list.getChildren().length;
+            for ( var j = 0; j < listCount; j++ ){
+                if ( insertIndices.indexOf( j) < 0 ){
+                    indices.push( j );
+                }
+            }
+            //Now go through and add the insert indices
+            for ( j = 0; j < insertIndices.length; j++ ){
+                indices.push( insertIndices[j] );
+            }
+            return indices;
+        },
+        
+        /**
+         * Returns the permuted order of the list indices after an insertion before an
+         * item in the list.
+         * @param insertIndices {Array} - a list of the indices of list items that
+         *      were inserted.
+         * @param origIndex {Number} - the index of the list item just after where
+         *      the insertion took place.
+         * @return {Array} - a list of permuted indices.
+         */
+        _getListIndicesBefore : function( insertIndices, origIndex ){
+            //First add in all the non-selected items, up to
+            //the origIndex.
+            var indices = [];
+            for ( var j = 0; j < origIndex; j++ ){
+                var insertIndex = insertIndices.indexOf( j );
+                if ( insertIndices.indexOf(j) < 0 ){
+                    indices.push( j );
+                }
+            }
+            //Now add in all the selectedItems
+            for ( j = 0; j < insertIndices.length; j++ ){
+                indices.push( insertIndices[j]);
+            }
+            //Finally add in from the original index to the end,
+            //leaving off the insert indices.
+            var listCount = this.m_list.getChildren().length;
+            for ( j = origIndex; j < listCount; j++ ){
+                var insertIndex = insertIndices.indexOf( j );
+                if ( insertIndex < 0 ){
+                    indices.push( j );
+                }
+            }
+            return indices;
+        },
 
         /**
          * Reorder the list.
@@ -149,7 +244,9 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
         _reorderList : function( orig ){
             // Only continue if the target is a list item.
             var listItem = false;
+            var origIndex = -1;
             if (orig instanceof qx.ui.form.ListItem) {
+                origIndex = this._getIndex( orig );
                 listItem = true;
             }
            
@@ -160,30 +257,41 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
             if ( !listItem ){
                 var children = this.m_list.getChildren();
                 if ( children.length > 0 ){
-                    lastChild = children[children.length - 1];
+                    origIndex = children.length - 1;
+                    lastChild = children[ origIndex ];
                 }
             }
+            
+            var insertIndices = [];
             for (var i = 0; i < sel.length; i++) {
                 if ( listItem ){
                     //At a list item.
+                    var beforeIndex = this._getIndex( sel[i] );
+                    insertIndices.push( beforeIndex );
                     this.m_list.addBefore(sel[i], orig);
                 }
                 else {
                     //Add at the end of the list
+                    var afterIndex = this._getIndex( sel[i] );
+                    insertIndices.push( afterIndex );
                     this.m_list.addAfter( sel[i], lastChild );
                 }
             }
             
-            var names = [];
-            var children = this.m_list.getChildren();
-            for ( var j = 0; j < children.length; j++ ){
-                names[j] = children[j].getLabel();
+            var indices = [];
+            if ( listItem ){
+                indices = this._getListIndicesBefore( insertIndices, origIndex );
             }
+            else {
+                indices = this._getListIndicesAfter( insertIndices );
+            }
+            
             var data = {
-                "listItems" : names
+                "listItems" : indices
             };
             this.fireDataEvent( "listReordered", data );
         },
+       
         
         /**
          * Update the items in the list.
@@ -192,10 +300,14 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
         setListItems : function( items ){
             this.m_list.removeAll();
             var dataCount = items.length;
+            var selectedItems = [];
             for ( var i = 0; i < dataCount; i++ ){
                 var listItem = new qx.ui.form.ListItem( items[i].layer );
                 this.m_list.add( listItem );
                 var visible = items[i].visible;
+                if ( items[i].selected ){
+                    selectedItems.push( i );
+                }
                 var contextMenu = new qx.ui.menu.Menu();
                 
                 //Close button
@@ -226,6 +338,12 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 }
                 listItem.setContextMenu(contextMenu);
             }
+            var children = this.m_list.getChildren();
+            var selectedChildren = [];
+            for ( var i = 0; i < selectedItems.length; i++ ){
+                selectedChildren.push( children[selectedItems[i]] );
+            }
+            this.m_list.setSelection( selectedChildren );
         },
 
         m_list : null,

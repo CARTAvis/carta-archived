@@ -93,9 +93,16 @@ private:
 
     /**
      * Copy the state of this ColorState into the other state.
-     * @param other - the StateInterface that should bee a copy of this one.
+     * @param other - the StateInterface that should be a copy of this one.
      */
     void _replicateTo( Carta::State::StateInterface& other );
+
+
+    /**
+     * Copy the state of this ColorState into the other state.
+     * @param other - the ColorState that should be a copy of this one.
+     */
+    void _replicateTo( ColorState* cState );
 
 
     /**
@@ -142,6 +149,13 @@ private:
      * @return error information if gamma could not be set.
      */
     QString _setGamma( double gamma );
+
+    /**
+     * Set whether or not this is the global color state.
+     * @param global - true if it is the global color state; false, if it just applies
+     *      to a single layer on the stack.
+     */
+    void _setGlobal( bool global );
 
     /**
      * Invert the current colormap.

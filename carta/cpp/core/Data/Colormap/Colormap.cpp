@@ -63,7 +63,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
 
         objAdded = m_linkImpl->addLink( target );
         if ( objAdded ){
-            target->setGlobalColor( m_stateColorGlobal );
+            target->_setColorMapGlobal( m_stateColorGlobal );
             connect( target, SIGNAL(colorChanged(Controller*)), this, SLOT(_setColorStates(Controller*)));
         }
     }
@@ -357,6 +357,23 @@ void Colormap::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setGlobal", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {ColorState::GLOBAL};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString globalStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool global = Util::toBool( globalStr, &validBool );
+            QString result;
+            if ( validBool ){
+                setGlobal( global );
+            }
+            else {
+                result = "Please specify true/false when setting whether or not the color map is global: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 }
 
 
@@ -527,18 +544,27 @@ QString Colormap::setDataTransform( const QString& transformString){
 
 
 void Colormap::_setColorStates( Controller* controller ){
-
     std::vector< std::shared_ptr<ColorState> > selectedColorStates = controller->getSelectedColorStates();
     m_stateColors.clear();
     int stateColorCount = selectedColorStates.size();
-
-    /**
-     * Note:  could be complication if one is a global map and
-     * the others are not.
-     */
-
     for ( int i = 0; i < stateColorCount; i++ ){
         m_stateColors.push_back( selectedColorStates[i] );
+    }
+
+    //Update the state the client is listening to.
+    _colorStateChanged();
+}
+
+void Colormap::setGlobal( bool global ){
+    //Notify all the controllers to replace their global color maps with
+    //individual ones or vice versa.
+    int linkCount = m_linkImpl->getLinkCount();
+    for ( int i = 0; i < linkCount; i++ ){
+        CartaObject* obj = m_linkImpl->getLink( i );
+        Controller* controller = dynamic_cast<Controller*>(obj);
+        if ( controller != nullptr ){
+           controller->_setColorMapUseGlobal( global );
+        }
     }
 }
 
