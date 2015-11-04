@@ -742,14 +742,18 @@ QStringList ScriptFacade::centerImage( const QString& controlId ) {
 }
 
 QStringList ScriptFacade::getCenterPixel( const QString& controlId ) {
-    QStringList resultList("");
+    QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getCenterPixel();
-            if ( resultList[0] == "null" ) {
+            QPointF center = controller->getCenterPixel();
+            if ( std::isnan( center.x() ) && std::isnan( center.y() ) ) {
                 resultList = _logErrorMessage( ERROR, "The center pixel could not be obtained." );
+            }
+            else {
+                resultList.append( QString::number( center.x() ) );
+                resultList.append( QString::number( center.y() ) );
             }
         }
         else {
@@ -768,9 +772,14 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getImageDimensions( );
-            if ( resultList[0] == "" ) {
+            std::vector<int> dimensions = controller->getImageDimensions();
+            if ( dimensions.size() == 1 && dimensions[0] == 0 ) {
                 resultList = _logErrorMessage( ERROR, "Could not obtain image dimensions." );
+            }
+            else {
+                for ( auto &i: dimensions ) {
+                    resultList.append( QString::number( i ) );
+                }
             }
         }
         else {
@@ -807,9 +816,13 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getOutputSize( );
-            if ( resultList[0] == "" ) {
+            QSize size = controller->getOutputSize( );
+            if ( size.isEmpty() ) {
                 resultList = _logErrorMessage( ERROR, "Could not obtain output size." );
+            }
+            else {
+                resultList.append( QString::number( size.width() ));
+                resultList.append( QString::number( size.height() ));
             }
         }
         else {
@@ -1266,7 +1279,7 @@ QStringList ScriptFacade::setColored( const QString& histogramId, const QString&
     return resultList;
 }
 
-QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height ) {
+QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QString& filename, int width, int height, const QString& aspectModeStr ) {
     QStringList resultList("");
     Carta::State::CartaObject* obj = _getObject( histogramId );
     if ( obj != nullptr ){
@@ -1274,10 +1287,12 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
         if ( histogram != nullptr ){
             QString widthError;
             QString heightError;
+            QString aspectModeError;
             //Only set the width and height if the user intends to use
             //the non-default save sizes.
             if ( width > 0 || height > 0 ){
                 Carta::Data::PreferencesSave* prefSave = Carta::Data::Util::findSingletonObject<Carta::Data::PreferencesSave>();
+                aspectModeError = prefSave->setAspectRatioMode( aspectModeStr );
                 if ( width > 0 ){
                     widthError = prefSave->setWidth( width );
                 }
@@ -1285,7 +1300,7 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
                     heightError = prefSave->setHeight( height );
                 }
             }
-            if ( widthError.isEmpty() && heightError.isEmpty()){
+            if ( widthError.isEmpty() && heightError.isEmpty() && aspectModeError.isEmpty() ){
                 QString result = histogram->saveHistogram( filename );
                 if ( !result.isEmpty() ){
                     resultList = _logErrorMessage( ERROR, result );
@@ -1297,6 +1312,9 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
                 }
                 if ( !heightError.isEmpty() ){
                     resultList = _logErrorMessage( ERROR, heightError );
+                }
+                if ( !aspectModeError.isEmpty() ){
+                    resultList = _logErrorMessage( ERROR, aspectModeError );
                 }
             }
         }

@@ -625,7 +625,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString filename = args["filename"].toString();
         int width = args["width"].toInt();
         int height = args["height"].toInt();
-        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
+        QString aspectStr = args["aspectRatioMode"].toString().toLower();
+        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height, aspectStr );
     }
 
     else {

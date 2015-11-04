@@ -1017,7 +1017,7 @@ void Controller::saveState() {
 
 
 QString Controller::saveImage( const QString& fileName ){
-    int zoomLevel = getZoomLevel();
+    double zoomLevel = getZoomLevel();
     return saveImage( fileName, zoomLevel );
 }
 
@@ -1341,43 +1341,36 @@ void Controller::updatePan( double centerX , double centerY){
     }
 }
 
-QStringList Controller::getCenterPixel() {
+QPointF Controller::getCenterPixel() const {
     int imageIndex = m_selectImage->getIndex();
-    QStringList returnValue = QStringList( "null" );
+    QPointF center = QPointF( nan(""), nan("") );
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
-        QPointF center = m_datas[imageIndex]->_getCenter();
-        returnValue = QStringList( QString::number( center.x() ) );
-        returnValue.append( QString::number( center.y() ) );
+        center = m_datas[imageIndex]->_getCenter();
     }
-    return returnValue;
+    return center;
 }
 
-QStringList Controller::getImageDimensions( ){
-    QStringList result;
+std::vector<int> Controller::getImageDimensions( ){
+    std::vector<int> result;
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
         int dimensions = m_datas[imageIndex]->_getDimensions();
         for ( int i = 0; i < dimensions; i++ ) {
             int d = m_datas[imageIndex]->_getDimension( i );
-            result.append( QString::number( d ) );
+            result.push_back( d );
         }
     }
     else {
-        result = QStringList("");
+        result.push_back(0);
     }
     return result;
 }
 
-QStringList Controller::getOutputSize( ){
-    QStringList result;
+QSize Controller::getOutputSize() const {
+    QSize result(-1, -1);
     int imageIndex = m_selectImage->getIndex();
     if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        QSize outputSize = m_datas[imageIndex]->_getOutputSize();
-        result.append( QString::number( outputSize.width() ) );
-        result.append( QString::number( outputSize.height() ) );
-    }
-    else {
-        result = QStringList("");
+        result = m_datas[imageIndex]->_getOutputSize();
     }
     return result;
 }
