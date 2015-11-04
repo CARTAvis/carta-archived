@@ -28,6 +28,7 @@ CoordinateSystems* DataSource::m_coords = nullptr;
 
 DataSource::DataSource() :
     m_image( nullptr ),
+    m_permuteImage( nullptr),
     m_axisIndexX( 0 ),
     m_axisIndexY( 1 ){
         m_cmapUseCaching = true;
@@ -482,15 +483,39 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     return cacheIndex;
 }
 
+std::shared_ptr<Image::ImageInterface> DataSource::_getPermutedImage() const {
+    std::shared_ptr<Image::ImageInterface> permuteImage(nullptr);
+    if ( m_image ){
+        //Build a vector showing the permute order.
+        int imageDim = m_image->dims().size();
+        std::vector<int> indices( imageDim );
+        indices[0] = m_axisIndexX;
+        indices[1] = m_axisIndexY;
+        int vectorIndex = 2;
+        for ( int i = 0; i < imageDim; i++ ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                indices[vectorIndex] = i;
+                vectorIndex++;
+            }
+        }
+        permuteImage = m_image->getPermuted( indices );
+    }
+    return permuteImage;
+}
+
+
 NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
     NdArray::RawViewInterface* rawData = nullptr;
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    if ( m_image ){
-        int imageDim =m_image->dims().size();
+    if ( m_permuteImage ){
+        int imageDim =m_permuteImage->dims().size();
         SliceND nextSlice = SliceND();
         SliceND& slice = nextSlice;
         for ( int i = 0; i < imageDim; i++ ){
-            if ( i != m_axisIndexX && i != m_axisIndexY ){
+            //Since the image has been permuted the first two indices represent
+            //the display axes.
+            if ( i != 0 && i != 1 ){
+                //Take a slice at the indicated frame.
                 int frameIndex = 0;
                 AxisInfo::KnownType type = _getAxisType( i );
                 if ( AxisInfo::KnownType::OTHER != type ){
@@ -504,10 +529,11 @@ NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frame
                 slice.next();
             }
         }
-        rawData = m_image->getDataSlice( nextSlice );
+        rawData = m_permuteImage->getDataSlice( nextSlice );
     }
     return rawData;
 }
+
 
 QString DataSource::_getViewIdCurrent( const std::vector<int>& frames ) const {
    // We create an identifier consisting of the file name and -1 for the two display axes
@@ -569,8 +595,8 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
     int frameSize = frames.size();
     CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( mFrames ) );
-
+    std::shared_ptr<NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+    std::vector<int> dimVector = view->dims();
     //Update the clip values
     if ( recomputeClipsOnNewFrame ){
         _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
@@ -579,7 +605,7 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 
     QString renderId = _getViewIdCurrent( mFrames );
-    m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
+    m_renderService-> setInputView( view, renderId );
 }
 
 
@@ -588,9 +614,9 @@ void DataSource::_resetZoom(){
 }
 
 void DataSource::_resetPan(){
-    if ( m_image != nullptr ){
-        double xCenter =  m_image-> dims()[m_axisIndexX] / 2.0;
-        double yCenter = m_image-> dims()[m_axisIndexY] / 2.0;
+    if ( m_permuteImage != nullptr ){
+        double xCenter =  m_permuteImage-> dims()[0] / 2.0;
+        double yCenter = m_permuteImage-> dims()[1] / 2.0;
         m_renderService-> setPan({ xCenter, yCenter });
     }
 }
@@ -608,7 +634,7 @@ bool DataSource::_setFileName( const QString& fileName ){
                                       .first();
                 if (!res.isNull()){
                     m_image = res.val();
-
+                    m_permuteImage = m_image;
                     // reset zoom/pan
                     _resetZoom();
                     _resetPan();
@@ -698,6 +724,7 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
     bool axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
     bool axisYChanged = _setDisplayAxis( displayAxisTypes[1], &m_axisIndexY );
     if ( axisXChanged || axisYChanged ){
+        m_permuteImage = _getPermutedImage();
         _resetPan();
         _resizeQuantileCache();
         std::vector<int> mFrames = _fitFramesToImage( frames );
@@ -765,7 +792,7 @@ std::shared_ptr<NdArray::RawViewInterface> DataSource::_updateRenderedView( cons
     std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( frames ) );
     // tell the render service to render this job
     QString renderId = _getViewIdCurrent( frames );
-    m_renderService-> setInputView( view, renderId, m_axisIndexX, m_axisIndexY );
+    m_renderService-> setInputView( view, renderId/*, m_axisIndexX, m_axisIndexY*/ );
     return view;
 }
 

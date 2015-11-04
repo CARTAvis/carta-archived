@@ -147,13 +147,11 @@ public:
     /// \brief sets the input data (view) for rendering
     /// \param view pointer to the view
     /// \param cacheId unique id for this view, used for caching some information
-    /// \param displayAxisX index of the horizontal display axis in the image.
-    /// \param displayAxisY index of the vertical display axis in the image.
     /// if not supplied, it will be assumed it's different from any views seen before (i.e.
     /// caching will not be used)
     ///
     void
-    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString(), int displayAxisX = 0, int displayAxisY= 0 );
+    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString() );
 
     ///
     /// \brief set the desired output size of the image
@@ -264,7 +262,7 @@ private:
     QSize m_outputSize = QSize( 10, 10 );
 
     /// instance of the pixel pipeline (very likely slow)
-    IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw;
+    IClippedPixelPipeline::SharedPtr m_pixelPipelineRaw = nullptr;
 
     /// current zoom
     double m_zoom = 1.0;
@@ -291,8 +289,6 @@ private:
     /// are submitted
     QTimer m_renderTimer;
 
-    int m_displayAxisX = 0;
-    int m_displayAxisY = 1;
 };
 }
 }

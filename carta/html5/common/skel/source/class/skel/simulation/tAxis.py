@@ -58,8 +58,7 @@ class tAxis(unittest.TestCase):
         # NOT any other animators
         animWindow = self._getAnimationWindow( driver )
         Util.verifyAnimationCount( self, animWindow, 1 )
-        animatorType = self._getAnimatorType(driver, "TabularAnimatorType" )
-
+        animatorType = self._getAnimatorType( driver,"TabularAnimatorType" )
     # Take a traditional 4D cube and test that the axes can be permuted.
     def test_permuteAxes(self):
         driver = self.driver

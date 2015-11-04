@@ -69,17 +69,32 @@ def isChecked(unittest, checkBox):
     return oldChecked
  
 #Set a custom layout with the given number of rows and columns
-def layout_custom(self, driver, rows, cols ):
+def layout_custom(unittest, driver, rows, cols ):
     timeout = selectBrowser._getSleep()
 
-    # Wait for the image window to be present (ensures browser is fully loaded)
-    imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
-    ActionChains(driver).click( imageWindow )
+     # Now right click the toolbar
+    toolBar = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Menu.ToolBar']")
+    actionChains = ActionChains(driver)
+    actionChains.context_click(toolBar).perform()
 
-    # Find the layout button on the menu bar and click it.
-    self._clickLayoutButton( driver )
+    # Find and click the customize button
+    customizeButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Customize...']/..")))
+    ActionChains(driver).click( customizeButton).perform()
     
-    # Find the layout custom button in the submenu and click it.
+    # Uncheck clipping
+    layoutButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Layout']/preceding-sibling::div/div")))
+    styleAtt = layoutButton.get_attribute( "style");
+    print "Style", styleAtt
+    if not "checked.png" in styleAtt:
+        print "Clipping checked"
+        layoutParent = layoutButton.find_element_by_xpath( '..')
+        ActionChains(driver).click( layoutParent ).perform()
+        
+    # Close the toolbar
+    closeButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Close']/..")))
+    ActionChains(driver).click( closeButton).perform()
+    
+    # Click the customize button on the toolbar
     customLayoutButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Custom Layout']")))
     ActionChains(driver).click( customLayoutButton ).perform()
 
