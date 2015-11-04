@@ -23,7 +23,7 @@ def ciSuite():
     test_suite.addTest( unittest.makeSuite(tLoadImage.tLoadImage))
     test_suite.addTest( unittest.makeSuite(tWindow.tWindow))
     test_suite.addTest( unittest.makeSuite(tLayout.tLayout))
-    test_suite.addTest( unittest.makeSuite(tView.tView))
+    #test_suite.addTest( unittest.makeSuite(tView.tView))
     test_suite.addTest( unittest.makeSuite(tMenuToolVisibility.tMenuToolVisibility))
     test_suite.addTest( unittest.makeSuite(tAxis.tAxis))
     test_suite.addTest( unittest.makeSuite(tHistogram.tHistogram))
