@@ -1126,6 +1126,18 @@ class Image(CartaView):
 
     def deleteContourSet(self, name):
         """
+        Delete the contour set with the indicated name.
+
+        Parameters
+        ----------
+        name: string
+            A unique identifier for a contour set.
+
+        Returns
+        -------
+        list
+            An error message if the contour set could not be deleted; an
+            empty string otherwise.
         """
         result = self.con.cmdTagList("deleteContourSet",
                                      imageView=self.getId(), name=name)
@@ -1133,6 +1145,18 @@ class Image(CartaView):
 
     def generateContourSet(self, name):
         """
+        Generate a set of contours with the given name.
+
+        Parameters
+        ----------
+        name: string
+            The name of the contour set to generate.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem generating the
+            contour set; an empty string otherwise.
         """
         result = self.con.cmdTagList("generateContourSet",
                                      imageView=self.getId(), name=name)
@@ -1140,23 +1164,193 @@ class Image(CartaView):
 
     def selectContourSet(self, name):
         """
+        Select a specific contour set.
+
+        Parameters
+        ----------
+        name: string
+            A name for a contour set.
+
+        Returns
+        -------
+        list
+            An error message if the contour set could not be selected;
+            an empty string otherwise.
         """
         result = self.con.cmdTagList("selectContourSet",
                                      imageView=self.getId(), name=name)
         return result
 
+    def setContourAlpha(self, contourName, levels, transparency):
+        """
+        Set the transparency level of the contours within the specified
+        set.
+
+        Parameters
+        ----------
+        contourName: string
+            An identifier for a contour set.
+        levels: list of floats
+            The contours levels within the set whose transparency should
+            be changed.
+        transparency: integer
+            The transparency between 0 and 255.
+
+        Returns
+        -------
+        list
+            An error message if the transparency could not be set;
+            otherwise, an empty string.
+        """
+        result = self.con.cmdTagList("setContourAlpha",
+                                     imageView=self.getId(),
+                                     contourName=contourName, levels=levels,
+                                     transparency=transparency)
+        return result
+
+    def setContourColors(self, contourName, levels, red, green, blue):
+        """
+        Set the color of the contours within the specified set.
+
+        Parameters
+        ----------
+        contourName: string
+            An identifier for a contour set.
+        levels: list of floats
+            The contours levels within the set affected by the change.
+        red: int
+            The amount of red between 0 and 255.
+        green: int
+            The amount of green between 0 and 255.
+        blue: int
+            The amount of blue between 0 and 255.
+
+        Returns
+        -------
+        list
+            A list of errors if the color could not be set; otherwise,
+            an empty list.
+        """
+        result = self.con.cmdTagList("setContourColors",
+                                     imageView=self.getId(),
+                                     contourName=contourName, levels=levels,
+                                     red=red, green=green, blue=blue)
+        return result
+
+    def setContourDashedNegative(self, useDash):
+        """
+        Set whether or not negative contours should be dashed.
+
+        Parameters
+        ----------
+        useDash: boolean
+            True if negative contours should be dashed; false if they
+            should be solid lines.
+
+        Returns
+        -------
+        list
+            An error message if the dashed negative status could not be
+            set; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setContourDashedNegative",
+                                     imageView=self.getId(), useDash=useDash)
+        return result
+
+    def setContourGenerateMethod(self, method):
+        """
+        Set the method used to generate contour levels within the set.
+
+        Parameters
+        ----------
+        method: string
+            An identifier for a method used to generate contour levels.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the method
+            used to generate contour levels; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setContourGenerateMethod",
+                                     imageView=self.getId(), method=method)
+        return result
+
+    def setContourSpacing(self, method):
+        """
+        Set the type of spacing to use between contour levels
+        (linear, logarithmic, etc).
+
+        Parameters
+        ----------
+        method: string
+            An identifier for the spacing to use between contour levels.
+
+        Returns
+        -------
+        list
+            An error message if there was a problem setting the spacing;
+            an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setContourSpacing",
+                                     imageView=self.getId(), method=method)
+        return result
+
     def setContourLevelCount(self, count):
         """
+        Set the number of contour levels in the set.
+
+        Parameters
+        ----------
+        count: int
+            The number of contour levels.
+
+        Returns
+        -------
+        list
+            An error message if the count could not be set; an empty
+            string otherwise.
         """
         result = self.con.cmdTagList("setContourLevelCount",
                                      imageView=self.getId(), count=count)
         return result
 
-    def setContourSpacing(self, method):
+    def setContourLevelMax(self, value):
         """
+        Set the largest contour level.
+
+        Parameters
+        ----------
+        value: double
+            The intensity or percentage of the largest contour level.
+
+        Returns
+        -------
+        list
+            An error message if the largest contour level could not be
+            set; an empty string otherwise.
         """
-        result = self.con.cmdTagList("setContourSpacing",
-                                     imageView=self.getId(), method=method)
+        result = self.con.cmdTagList("setContourLevelMax",
+                                     imageView=self.getId(), value=value)
+        return result
+
+    def setContourLevelMin(self, value):
+        """
+        Set the smallest contour level.
+
+        Parameters
+        ----------
+        value: double
+            The intensity or percentage of the smallest contour level.
+
+        Returns
+        -------
+        list
+            An error message if the smallest contour level could not be
+            set; an empty string otherwise.
+        """
+        result = self.con.cmdTagList("setContourLevelMin",
+                                     imageView=self.getId(), value=value)
         return result
 
     def isEmpty(self):

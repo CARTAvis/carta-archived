@@ -519,16 +519,40 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->selectContourSet( imageView, name );
     }
 
-    else if ( cmd == "setcontourlevelcount" ) {
+    else if ( cmd == "setcontourdashednegative" ) {
         QString imageView = args["imageView"].toString();
-        int count = args["count"].toInt();
-        result = m_scriptFacade->setContourLevelCount( imageView, count );
+        bool useDash = args["useDash"].toBool();
+        result = m_scriptFacade->setContourDashedNegative( imageView, useDash );
+    }
+
+    else if ( cmd == "setcontourgeneratemethod" ) {
+        QString imageView = args["imageView"].toString();
+        QString method = args["method"].toString();
+        result = m_scriptFacade->setContourGenerateMethod( imageView, method );
     }
 
     else if ( cmd == "setcontourspacing" ) {
         QString imageView = args["imageView"].toString();
         QString method = args["method"].toString();
         result = m_scriptFacade->setContourSpacing( imageView, method );
+    }
+
+    else if ( cmd == "setcontourlevelcount" ) {
+        QString imageView = args["imageView"].toString();
+        int count = args["count"].toInt();
+        result = m_scriptFacade->setContourLevelCount( imageView, count );
+    }
+
+    else if ( cmd == "setcontourlevelmax" ) {
+        QString imageView = args["imageView"].toString();
+        double value = args["value"].toDouble();
+        result = m_scriptFacade->setContourLevelMax( imageView, value );
+    }
+
+    else if ( cmd == "setcontourlevelmin" ) {
+        QString imageView = args["imageView"].toString();
+        double value = args["value"].toDouble();
+        result = m_scriptFacade->setContourLevelMin( imageView, value );
     }
 
     /// Section: Animator Commands

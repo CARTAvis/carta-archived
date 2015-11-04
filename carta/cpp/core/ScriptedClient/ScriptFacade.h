@@ -817,8 +817,38 @@ public:
      * Select a specific contour set.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param name - a name for a contour set.
+     * @return - an error message if there was a problem selecting the contour
+     *  set; an empty string otherwise.
      */
     QStringList selectContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Set whether or not negative contours should be dashed.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param useDash - true if negative contours should be dashed; false if they
+     *      should be solid lines.
+     * @return - an error message if there was a problem setting the dashed
+     *  negative status; an empty string otherwise.
+     */
+    QStringList setContourDashedNegative( const QString& controlId, bool useDash );
+
+    /**
+     * Set the method used to generate contour levels within the set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param method - an identifier for a method used to generate contour levels.
+     * @return - an error message if there was a problem setting the method used to
+     *      generate contour levels; an empty string otherwise.
+     */
+    QStringList setContourGenerateMethod( const QString& controlId, const QString& method );
+
+    /**
+     * Set the type of spacing to use between contour levels (linear, logarithmic, etc).
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param method - an identifier for the spacing to use between contour levels.
+     * @return - an error message if there was a problem setting the spacing; an empty
+     *  string otherwise.
+     */
+    QStringList setContourSpacing( const QString& controlId, const QString& method );
 
     /**
      * Set the number of contour levels in the set.
@@ -829,13 +859,20 @@ public:
     QStringList setContourLevelCount( const QString& controlId, int count );
 
     /**
-     * Set the type of spacing to use between contour levels (linear, logarithmic, etc).
+     * Set the largest contour level.
      * @param controlId the unique server-side id of an object managing a controller.
-     * @param method - an identifier for the spacing to use between contour levels.
-     * @return - an error message if there was a problem setting the spacing; an empty
-     *  string otherwise.
+     * @param value - the intensity or percentage of the largest contour level.
+     * @return - an error message if the largest contour level could not be set; an empty string otherwise.
      */
-    QStringList setContourSpacing( const QString& controlId, const QString& method );
+    QStringList setContourLevelMax( const QString& controlId, double value );
+
+    /**
+     * Set the smallest contour level.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param value - the intensity or percentage of the smallest contour level.
+     * @return - an error message if the smallest contour level could not be set; an empty string otherwise.
+     */
+    QStringList setContourLevelMin( const QString& controlId, double value );
 
     /*
      * Singleton accessor.

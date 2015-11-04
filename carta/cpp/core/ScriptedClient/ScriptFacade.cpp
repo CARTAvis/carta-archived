@@ -1979,14 +1979,41 @@ QStringList ScriptFacade::selectContourSet( const QString& controlId, const QStr
     return resultList;
 }
 
-QStringList ScriptFacade::setContourLevelCount( const QString& controlId, int count ) {
+QStringList ScriptFacade::setContourDashedNegative( const QString& controlId, bool useDash ) {
     QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getContourControls()->setLevelCount( count );
+                controller->getContourControls()->setDashedNegative( useDash );
+                resultList = QStringList("");
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, NO_IMAGE );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setContourGenerateMethod( const QString& controlId, const QString& method ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            if ( controller->getStackedImageCount() > 0 ) {
+                QString result = controller->getContourControls()->setGenerateMethod( method );
                 resultList = QStringList( result );
             }
             else {
@@ -2014,6 +2041,87 @@ QStringList ScriptFacade::setContourSpacing( const QString& controlId, const QSt
         if ( controller != nullptr ){
             if ( controller->getStackedImageCount() > 0 ) {
                 QString result = controller->getContourControls()->setSpacing( method );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, NO_IMAGE );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setContourLevelCount( const QString& controlId, int count ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            if ( controller->getStackedImageCount() > 0 ) {
+                QString result = controller->getContourControls()->setLevelCount( count );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, NO_IMAGE );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setContourLevelMax( const QString& controlId, double value ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            if ( controller->getStackedImageCount() > 0 ) {
+                QString result = controller->getContourControls()->setLevelMax( value );
+                resultList = QStringList( result );
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, NO_IMAGE );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setContourLevelMin( const QString& controlId, double value ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            if ( controller->getStackedImageCount() > 0 ) {
+                QString result = controller->getContourControls()->setLevelMin( value );
                 resultList = QStringList( result );
             }
             else {
