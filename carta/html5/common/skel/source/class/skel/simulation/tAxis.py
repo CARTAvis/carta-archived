@@ -3,6 +3,7 @@ import Util
 import time
 import selectBrowser
 from selenium import webdriver
+from flaky import flaky
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -10,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 #Test that we can successfully load images with various axis permutations.
+@flaky(max_runs=3)
 class tAxis(unittest.TestCase):
     def setUp(self):
         browser = selectBrowser._getBrowser()
