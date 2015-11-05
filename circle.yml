@@ -12,6 +12,7 @@ dependencies:
   pre:
     - sudo pip install selenium
     - sudo pip install pytest
+    - sudo pip install flaky
 
   cache_directories:
     # automatically cache build docker image between builds
