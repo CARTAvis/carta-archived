@@ -11,6 +11,7 @@ machine:
 dependencies:
   pre:
     - sudo pip install selenium
+    - sudo pip install pytest
 
   cache_directories:
     # automatically cache build docker image between builds
