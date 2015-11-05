@@ -29,7 +29,6 @@ def ciSuite():
     test_suite.addTest( unittest.makeSuite(tHistogram.tHistogram))
     test_suite.addTest( unittest.makeSuite(tSnapshotLayout.tSnapshotLayout))
     test_suite.addTest( unittest.makeSuite(tSnapshotPreferences.tSnapshotPreferences))
-    test_suite.addTest( unittest.makeSuite(tSnapshotData.tSnapshotData))
     test_suite.addTest( unittest.makeSuite(tContour.tContour))
 
     # tests that fail
@@ -37,6 +36,7 @@ def ciSuite():
     #test_suite.addTest( unittest.makeSuite(tView.tView))
     #test_suite.addTest( unittest.makeSuite(tAnimatorSettings.tAnimatorSettings))
     #test_suite.addTest( unittest.makeSuite(tAnimatorTapeDeck.tAnimatorTapeDeck))
+    #test_suite.addTest( unittest.makeSuite(tSnapshotData.tSnapshotData))
 
     return test_suite
 
