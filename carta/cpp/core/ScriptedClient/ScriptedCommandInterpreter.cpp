@@ -555,6 +555,17 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setContourLevelMin( imageView, value );
     }
 
+    else if ( cmd == "setcontourlevels" ) {
+        QString imageView = args["imageView"].toString();
+        QString contourName = args["contourName"].toString();
+        std::vector<double> levels;
+        QJsonArray levelsArray = args["levels"].toArray();
+        for ( auto level : levelsArray ) {
+            levels.push_back( level.toDouble() );
+        }
+        result = m_scriptFacade->setContourLevels( imageView, contourName, levels );
+    }
+
     /// Section: Animator Commands
     /// --------------------------
     /// These commands come from the Python Animator class. They allow

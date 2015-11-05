@@ -874,6 +874,16 @@ public:
      */
     QStringList setContourLevelMin( const QString& controlId, double value );
 
+    /**
+     * Update the contour levels within the given contour set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourName - the name of a contour set.
+     * @param levels - an updated list of contour levels.
+     * @return an error message if the contour levels could not be updated; otherwise,
+     *      an empty string.
+     */
+    QStringList setContourLevels( const QString& controlId, const QString& contourName, std::vector<double>& levels );
+
     /*
      * Singleton accessor.
      * @return the unique instance of this object.

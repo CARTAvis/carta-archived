@@ -1353,6 +1353,28 @@ class Image(CartaView):
                                      imageView=self.getId(), value=value)
         return result
 
+    def setContourLevels(self, contourName, levels):
+        """
+        Update the contour levels within the given contour set.
+
+        Parameters
+        ----------
+        contourName: string
+            The name of a contour set.
+        levels: list
+            An updated list of contour levels.
+
+        Returns
+        -------
+        list
+            An error message if the contour levels could not be updated;
+            otherwise, an empty string.
+        """
+        result = self.con.cmdTagList("setContourLevels",
+                                     imageView=self.getId(),
+                                     contourName=contourName, levels=levels)
+        return result
+
     def isEmpty(self):
         """
         Checks whether or not the image view is empty.
