@@ -20,6 +20,7 @@ cd /scratch/Images
 wget https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz
 tar xzf SeleniumTestImages.tgz
 
+cd /scratch
 sudo mkdir -p snapshots
 sudo chmod a+w snapshots
 sudo mkdir -p ./snapshots/data
