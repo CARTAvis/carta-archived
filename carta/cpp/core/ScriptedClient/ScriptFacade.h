@@ -823,6 +823,28 @@ public:
     QStringList selectContourSet( const QString& controlId, const QString& name );
 
     /**
+     * Set the transparency level of the contours within the specified set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the contours levels within the set whose transparency should be changed.
+     * @param transparency - the transparency between 0 and 255.
+     * @return an error message if the transparency could not be set; otherwise, an empty string.
+     */
+    QStringList setContourAlpha( const QString& controlId, const QString& contourName, std::vector<double>& levels, int transparency );
+
+    /**
+     * Set the color of the contours within the specified set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the contours levels within the set affected by the change.
+     * @param red - the amount of red between 0 and 255.
+     * @param green - the amount of green between 0 and 255.
+     * @param blue - the amount of blue between 0 and 255.
+     * @return a list of errors if the color could not be set; otherwise, an empty list.
+     */
+    QStringList setContourColor( const QString& controlId, const QString& contourName, std::vector<double>& levels, int red, int green, int blue );
+
+    /**
      * Set whether or not negative contours should be dashed.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param useDash - true if negative contours should be dashed; false if they

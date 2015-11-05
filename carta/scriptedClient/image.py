@@ -1208,7 +1208,7 @@ class Image(CartaView):
                                      transparency=transparency)
         return result
 
-    def setContourColors(self, contourName, levels, red, green, blue):
+    def setContourColor(self, contourName, levels, red, green, blue):
         """
         Set the color of the contours within the specified set.
 

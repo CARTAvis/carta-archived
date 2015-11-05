@@ -519,6 +519,32 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->selectContourSet( imageView, name );
     }
 
+    else if ( cmd == "setcontouralpha" ) {
+        QString imageView = args["imageView"].toString();
+        QString contourName = args["contourName"].toString();
+        QJsonArray levelsArray = args["levels"].toArray();
+        int transparency = args["transparency"].toInt();
+        std::vector<double> levels;
+        for ( auto level : levelsArray ) {
+            levels.push_back( level.toDouble() );
+        }
+        result = m_scriptFacade->setContourAlpha( imageView, contourName, levels, transparency );
+    }
+
+    else if ( cmd == "setcontourcolor" ) {
+        QString imageView = args["imageView"].toString();
+        QString contourName = args["contourName"].toString();
+        QJsonArray levelsArray = args["levels"].toArray();
+        int red = args["red"].toInt();
+        int green = args["green"].toInt();
+        int blue = args["blue"].toInt();
+        std::vector<double> levels;
+        for ( auto level : levelsArray ) {
+            levels.push_back( level.toDouble() );
+        }
+        result = m_scriptFacade->setContourColor( imageView, contourName, levels, red, green, blue );
+    }
+
     else if ( cmd == "setcontourdashednegative" ) {
         QString imageView = args["imageView"].toString();
         bool useDash = args["useDash"].toBool();
@@ -558,8 +584,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     else if ( cmd == "setcontourlevels" ) {
         QString imageView = args["imageView"].toString();
         QString contourName = args["contourName"].toString();
-        std::vector<double> levels;
         QJsonArray levelsArray = args["levels"].toArray();
+        std::vector<double> levels;
         for ( auto level : levelsArray ) {
             levels.push_back( level.toDouble() );
         }
