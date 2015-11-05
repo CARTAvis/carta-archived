@@ -15,7 +15,7 @@ def _getBrowser():
 
 def _getSleep():
 	if sleep == 1:
-		timeout = 5
+		timeout = 6
 	else:
 		timeout = 0
 	return timeout
