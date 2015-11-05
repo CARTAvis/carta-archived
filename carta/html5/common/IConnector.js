@@ -6,6 +6,9 @@
  *
  * The design of the connector is limited by the functionality offered by PureWeb, since
  * we are using PureWeb to implements the client/server communication.
+ *
+ * Note: this is not actual code. It is not used anywhere. It is just a place to document
+ * the APIs of the real connectors: desktop & server at the moment.
  */
 
 var IConnector;
@@ -190,13 +193,27 @@ IConnector.registerViewElement = function( divElement, viewName) {};
 var IView = {};
 
 /**
+ * returns bool whether the view supports quality control (i.e. true for server, false
+ * for desktop).
+ */
+IView.supportsQuality = function() { return false; };
+
+/**
  * Set the quality of the view.
  * Setting to 100 will attempt loss-less compression, all other levels are lossy.
  * For example quality=100 could be PNG.
  *
- * @param quality {int} 0 = lowest, 100 = highest quality
+ * This has no effect for desktop connector. There the quality is always 100%.
+ *
+ * @param quality {int} 0 = lowest, 100 = highest quality jpeg, 101 = png, 102 = mpeg?
  */
 IView.setQuality = function( quality) {};
+
+/**
+ * Returns the current quality (integer 0..102).
+ *
+ */
+IView.getQuality = function() {};
 
 /**
  * This needs to be called when the container of the view was resized.

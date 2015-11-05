@@ -61,7 +61,8 @@ qx.Class.define("skel.hacks.Hacks", {
             win2.setUseResizeFrame( false);
             win2.setContentPadding( 5, 5, 5, 5 );
             win2.setLayout( new qx.ui.layout.VBox(5) );
-            win2.add( new skel.hacks.HackView( newViewName), { flex: 1 });
+            var newView = new skel.hacks.HackView( newViewName);
+            win2.add( newView, { flex: 1 });
             // add mini movie player
             var mp = {};
             mp.prefix = "/hacks/views/" + newViewName;
@@ -81,9 +82,29 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.container.add( mp.delayTF);
             mp.container.add( new skel.boundWidgets.Label( "Frame:", "", mp.prefix + "/frame"));
             //mp.container.add( (new qx.ui.core.Spacer()).set({ allowStretchX: true }));
+            mp.fps = new qx.ui.basic.Label( "FPS");
+            mp.container.add( mp.fps);
             mp.container.add( new qx.ui.core.Spacer(), { flex: 1 });
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);
+            var intervalId = setInterval( function() {
+                if( ! newView.viewWidget().getIView()) {
+                    console.log( "trying later for view", newView.viewWidget().getName());
+                }
+                clearInterval( intervalId);
+                mp.fps.setValue( "OK fps");
+                var accum_fps = 0;
+                var lastRefresh = window.performance.now();
+                //newView.viewWidget().getIView().addViewCallback( function() {
+                newView.viewWidget().addListener( "viewRefreshed", function() {
+                    console.log( "in viewcallback of IVC7");
+                    var currRefresh = window.performance.now();
+                    var fps = 1000 / (currRefresh - lastRefresh);
+                    lastRefresh = currRefresh;
+                    accum_fps = 0.9 * accum_fps + 0.1 * fps;
+                    mp.fps.setValue(""+ accum_fps + "(" + fps + ")");
+                });
+            }, 500);
             win2.add( mp.container);
             this.m_app.getRoot().add( win2, {left: 100, top: 100} );
             win2.open();

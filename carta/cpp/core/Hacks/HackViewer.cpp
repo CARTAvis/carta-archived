@@ -206,8 +206,8 @@ HackViewer::start()
                  vgview-> scheduleRepaint();
              }
              );
-    timer->setInterval( 100 );
-//    timer->start();
+    timer->setInterval( 200 );
+    timer->start();
 
     // layered view 2 stuff
     auto ccl = [] ( int x, int y, int r, QColor color ) -> QImage {
@@ -246,6 +246,7 @@ HackViewer::start()
     // <layer> <cmd> [args]
     // 0 load c1
     // 0 load v1
+    // 0 load /scratch/Images/tree.jpg
     // 0 alpha 0.5
     // 0 mask 0xff0000 0.5
     auto cmdCB =

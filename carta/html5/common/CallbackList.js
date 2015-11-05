@@ -8,7 +8,7 @@
  *  CallbackID add( callback)
  *  bool remove( CallbackID)
  *  void callEveryone()
- *  destory
+ *  destroy
  *
  *  What is special about this data structure? The fact that all of the methods that
  *  modify the list (add, remove, destructor) can be called within callEveryone(), which
@@ -37,13 +37,13 @@
         return idCounter ++;
     }
 
-    var CallbackList = function CallbackList()
+    /*var CallbackList = */function CallbackList()
     {
         this.m_insideLoop = false;
         this.m_pendingCleanup = false;
         this.m_cbList = {};
         this.m_destroyed = false;
-    };
+    }
 
 
     /**
@@ -105,21 +105,47 @@
     /**
      * Calls every callback with the given parameters
      */
+
     CallbackList.prototype.callEveryone = function callEveryone( /* args ... */)
     {
+        console.log( "callEveryone enter", this.m_insideLoop);
+
+        var res = this.callEveryoneW.apply( this, arguments);
+        if( this.m_insideLoop) {
+            console.error( "big problem");
+            throw "BIG PROBLEM";
+            debugger;
+        }
+        console.log( "callEveryone exit", this.m_insideLoop);
+        return res;
+    };
+
+    CallbackList.prototype.callEveryoneW = function callEveryone( /* args ... */)
+    {
+        console.log( "callEveryoneW", this.m_insideLoop);
+        if( this.m_insideLoop) {
+            console.warn( "insideLoop");
+            //throw "fit";
+            //debugger;
+            return;
+        }
 
         assert( ! this.m_insideLoop, "You are calling callEveryone recursively");
 
         // indicate we are inside the callback loop
         this.m_insideLoop = true;
+        console.log( "callEveryone2");
 
         // iterate through all callbacks
         for (var key in this.m_cbList) {
+            console.log( "key", key);
             if (! this.m_cbList.hasOwnProperty(key)) {
+                console.log( "early exit");
                 continue;
             }
             var info = this.m_cbList[key];
             // only call active callbacks
+            console.log( "info.status", info.status, info);
             if( info.status === "active") {
                 info.cb.apply( this, arguments);
             }
@@ -156,6 +182,8 @@
 
         // we are not inside the loop anymore
         this.m_insideLoop = false;
+
+        console.log( "reset insideLoop", this.m_insideLoop );
     };
 
     /**

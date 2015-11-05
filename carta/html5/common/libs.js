@@ -114,7 +114,9 @@
 
     function assert(condition, message) {
         if (!condition) {
-            throw message || "Assertion failed";
+            console.error( "Assertion failed:", message);
+            console.trace();
+            throw (message || "Assertion failed");
         }
     }
 
