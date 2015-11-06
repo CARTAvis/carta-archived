@@ -14,7 +14,7 @@ public:
 
 protected:
 
-    void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID);
+    void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID) override;
 
 signals:
 

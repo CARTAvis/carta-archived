@@ -93,7 +93,6 @@ qx.Class.define( "skel.boundWidgets.View.View", {
 
         // callback for iView refresh
         _iviewRefreshCB : function() {
-            console.log( "firing viewRefreshed", this.m_viewName);
             this.fireDataEvent( "viewRefreshed");
         },
 

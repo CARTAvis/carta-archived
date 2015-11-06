@@ -87,7 +87,7 @@
 
         // if the callback could not be found, log the problem
         if( iter === undefined) {
-            console.log( "invalid callback id to remove: ", id);
+            console.error( "invalid callback id to remove: ", id);
             return;
         }
 
@@ -105,28 +105,10 @@
     /**
      * Calls every callback with the given parameters
      */
-
     CallbackList.prototype.callEveryone = function callEveryone( /* args ... */)
     {
-        console.log( "callEveryone enter", this.m_insideLoop);
-
-        var res = this.callEveryoneW.apply( this, arguments);
         if( this.m_insideLoop) {
-            console.error( "big problem");
-            throw "BIG PROBLEM";
-            debugger;
-        }
-        console.log( "callEveryone exit", this.m_insideLoop);
-        return res;
-    };
-
-    CallbackList.prototype.callEveryoneW = function callEveryone( /* args ... */)
-    {
-        console.log( "callEveryoneW", this.m_insideLoop);
-        if( this.m_insideLoop) {
-            console.warn( "insideLoop");
-            //throw "fit";
-            //debugger;
+            console.error( "recursive call of CallbackList.callEveryone()");
             return;
         }
 
@@ -134,18 +116,15 @@
 
         // indicate we are inside the callback loop
         this.m_insideLoop = true;
-        console.log( "callEveryone2");
 
         // iterate through all callbacks
         for (var key in this.m_cbList) {
-            console.log( "key", key);
             if (! this.m_cbList.hasOwnProperty(key)) {
                 console.log( "early exit");
                 continue;
             }
             var info = this.m_cbList[key];
             // only call active callbacks
-            console.log( "info.status", info.status, info);
             if( info.status === "active") {
                 info.cb.apply( this, arguments);
             }
@@ -162,8 +141,6 @@
         // if we had insertions/deletions while inside one of the callbacks
         // clean up the deletions and update insertions to active status
         if( this.m_pendingCleanup) {
-            console.log( "  cleaning up callback list");
-
             for (var key in this.m_cbList) {
                 if (! this.m_cbList.hasOwnProperty(key)) {
                     continue;
@@ -182,8 +159,6 @@
 
         // we are not inside the loop anymore
         this.m_insideLoop = false;
-
-        console.log( "reset insideLoop", this.m_insideLoop );
     };
 
     /**
@@ -205,6 +180,8 @@
     mExport( "CallbackList", CallbackList);
 
 })();
+
+/*
 
 (function(){
 
@@ -232,6 +209,7 @@
 })();
 
 
+*/
 
 
 
