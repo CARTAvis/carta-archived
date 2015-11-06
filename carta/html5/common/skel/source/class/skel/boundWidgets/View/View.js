@@ -23,7 +23,7 @@ qx.Class.define( "skel.boundWidgets.View.View", {
     events:
     {
         // fired when the view is updated
-        "viewRefreshed" : "qx.event.type.Data",
+        "viewRefreshed" : "qx.event.type.Data"
     },
 
     /**
@@ -55,8 +55,6 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         }, this );
 
     },
-
-    events: {},
 
     properties: {},
 
