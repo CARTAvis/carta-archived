@@ -81,9 +81,6 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.delayTF = new skel.boundWidgets.TextField( mp.prefix + "/delay");
             mp.container.add( mp.delayTF);
             mp.container.add( new skel.boundWidgets.Label( "Frame:", "", mp.prefix + "/frame"));
-            //mp.container.add( (new qx.ui.core.Spacer()).set({ allowStretchX: true }));
-            //mp.fps = new qx.ui.basic.Label( "FPS");
-            //mp.container.add( mp.fps);
             mp.container.add( new qx.ui.core.Spacer(), { flex: 1 });
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);

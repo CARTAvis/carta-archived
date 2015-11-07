@@ -197,9 +197,6 @@
                 this.m_mousePos.y);
     };
 
-    View.prototype.supportsQuality = function() {
-        return false;
-    };
     View.prototype.setQuality = function setQuality() {
         // desktop only supports quality 101
     };
@@ -235,6 +232,11 @@
     };
     View.prototype._callViewCallbacks = function () {
         this.m_viewCallbacks.callEveryone();
+    };
+
+    connector.supportsRasterViewQuality = function()
+    {
+        return false;
     };
 
     connector.registerViewElement = function( divElement, viewName )

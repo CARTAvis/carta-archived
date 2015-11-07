@@ -93,9 +93,7 @@
                 console.log( "View '" + this.m_pwview.getViewName() + "' txupdate");
             }, false, this );
     };
-    View.prototype.supportsQuality = function() {
-        return true;
-    };
+
     View.prototype.setQuality = function setQuality( quality )
     {
         if( quality < 1) {
@@ -152,6 +150,11 @@
     };
     View.prototype._callViewCallbacks = function () {
         this.m_viewCallbacks.callEveryone();
+    };
+
+    connector.supportsRasterViewQuality = function()
+    {
+        return true;
     };
 
     connector.registerViewElement = function( divElement, viewName) {

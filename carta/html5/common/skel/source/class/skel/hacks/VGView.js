@@ -19,6 +19,7 @@ qx.Class.define( "skel.hacks.VGView", {
     construct: function( viewName )
     {
         this.base( arguments );
+        this.m_connector = mImport( "connector" );
         this.setLayout( new qx.ui.layout.Canvas() );
         // create a basic view widget as the bottom layer
         this.m_viewWidget = new skel.boundWidgets.View.View( viewName );
@@ -53,6 +54,8 @@ qx.Class.define( "skel.hacks.VGView", {
             console.log( "keypress", arguments );
         } );
 
+        this.m_qualityValue = this.m_connector.supportsRasterViewQuality() ? 90 : 101;
+
         // once the View widget is up, we can finally
         //this.m_viewWidget.addListener( "appear", function(){
         //    this.setQuality( this.m_qualityValue);
@@ -74,6 +77,7 @@ qx.Class.define( "skel.hacks.VGView", {
         m_qualityValue: 90,
         m_fpsAvg: 0,
         m_lastRefresh: null,
+        m_connector: null,
 
         /**
          * Get the overlay widget
@@ -156,6 +160,11 @@ qx.Class.define( "skel.hacks.VGView", {
 
             // hook up quality slider callback
             this.m_qualitySlider.addListener( "changeValue", this._qualitySliderCB.bind(this));
+
+            // disable quality slider if view does not support it
+            if( ! this.m_connector.supportsRasterViewQuality()) {
+                this.m_qualitySlider.setEnabled( false);
+            }
 
             return settings;
         },

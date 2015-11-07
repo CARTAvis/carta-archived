@@ -188,15 +188,16 @@ IConnector.sendCommand = function( cmd, params, callback) {};
 IConnector.registerViewElement = function( divElement, viewName) {};
 
 /**
+ * returns true if the raster views support quality control (i.e. true for server, false
+ * for desktop).
+ */
+IConnector.supportsRasterViewQuality = function() {};
+
+
+/**
  * View interface. Instance returned by IConnector.registerViewElement
  */
 var IView = {};
-
-/**
- * returns bool whether the view supports quality control (i.e. true for server, false
- * for desktop).
- */
-IView.supportsQuality = function() { return false; };
 
 /**
  * Set the quality of the view.
