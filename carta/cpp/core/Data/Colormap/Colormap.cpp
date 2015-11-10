@@ -50,6 +50,7 @@ Colormap::Colormap( const QString& path, const QString& id):
     connect( colorStateObj, SIGNAL( colorStateChanged()), this, SLOT( _colorStateChanged()));
     m_stateColorGlobal->_initializeDefaultState( m_state );
     m_stateColors.push_back( m_stateColorGlobal);
+    _colorStateChanged();
 
     _initializeDefaultState();
     _initializeCallbacks();
@@ -60,11 +61,11 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
     bool objAdded = false;
     QString result;
     if ( target != nullptr ){
-
         objAdded = m_linkImpl->addLink( target );
         if ( objAdded ){
             target->_setColorMapGlobal( m_stateColorGlobal );
             connect( target, SIGNAL(colorChanged(Controller*)), this, SLOT(_setColorStates(Controller*)));
+            _setColorStates( target );
         }
     }
     else {
@@ -191,8 +192,6 @@ QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) 
 
 
 void Colormap::_initializeDefaultState(){
-    //Color state
-    m_state.flushState();
 
     //Image dependent intensity bounds
     m_stateData.insertValue<double>( INTENSITY_MIN, 0 );

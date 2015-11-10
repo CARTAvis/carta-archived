@@ -103,7 +103,7 @@ class tContour(unittest.TestCase):
         Util.load_image( self, driver, "aH.fits")
         
         #Show the image settings
-        Util.openImageSettings( self, driver )
+        Util.openSettings( self, driver, "Image" )
         
         # Navigate to Contour tab of the Histogram Settings
         self._clickContourTab( driver )
@@ -139,7 +139,7 @@ class tContour(unittest.TestCase):
         Util.load_image( self, driver, "aH.fits")
         
         #Show the image settings
-        Util.openImageSettings( self, driver )
+        Util.openSettings( self, driver, "Image" )
         
         # Navigate to Contour tab of the Histogram Settings
         self._clickContourTab( driver )

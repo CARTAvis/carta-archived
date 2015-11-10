@@ -69,21 +69,13 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this._add( this.m_intensityLowLabel );
             this._add( new qx.ui.core.Spacer(), {flex:1});
             
-            this.m_mapCombo = new qx.ui.form.ComboBox();
+            this.m_mapCombo = new skel.widgets.CustomUI.SelectBox( skel.widgets.Colormap.ColorMapsWidget.CMD_SET_MAP, "name");
+            skel.widgets.TestID.addTestId( this.m_mapCombo, "colorMapName" ); 
             this.m_mapCombo.setToolTipText( "Select a color map.");
-            this.m_mapCombo.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
-                if ( this.m_id !== null ){
-                    var mapName = e.getData();
-                    //Send a command to the server to let them know the map changed.
-                    var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorMapsWidget.CMD_SET_MAP;
-                    var params = "name:"+mapName;
-                    this.m_connector.sendCommand( cmd, params, this._errorMapIndexCB( this ));
-                }
-            },this);
             this._add( this.m_mapCombo );
             
             this.m_globalCheck = new qx.ui.form.CheckBox( "Global");
+            skel.widgets.TestID.addTestId( this.m_globalCheck, "colorMapGlobal");
             this.m_globalCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 if ( this.m_id !== null ){
                     var global = this.m_globalCheck.getValue();
@@ -111,23 +103,11 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                     try {
                         var oldName = this.m_mapCombo.getValue();
                         var colorMaps = JSON.parse( val );
-                        var mapCount = colorMaps.colorMapCount;
-                        this.m_mapCombo.removeAll();
-                        for ( var i = 0; i < mapCount; i++ ){
-                            var colorMapName = colorMaps.maps[i];
-                            var tempItem = new qx.ui.form.ListItem( colorMapName );
-                            this.m_mapCombo.add( tempItem );
-                        }
+                        this.m_mapCombo.setSelectItems( colorMaps.maps );
+                       
                         //Try to reset the old selection
                         if ( oldName !== null ){
-                            this.m_mapCombo.setValue( oldName );
-                        }
-                        //Select the first item
-                        else if ( mapCount > 0 ){
-                            var selectables = this.m_mapCombo.getChildrenContainer().getSelectables(true);
-                            if ( selectables.length > 0 ){
-                                this.m_mapCombo.setValue( selectables[0].getLabel());
-                            }
+                            this.m_mapCombo.setSelectValue( oldName );
                         }
                     }
                     catch( err ){
@@ -154,18 +134,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
          * @param mapName {String} the name of the selected color map.
          */
         setMapName : function( mapName ){
-            var selectables = this.m_mapCombo.getChildrenContainer().getSelectables();
-            var currValue = this.m_mapCombo.getValue();
-            for ( var i = 0; i < selectables.length; i++ ){
-                var mapItem = selectables[i];
-                var newValue = selectables[i].getLabel();
-                if ( newValue == mapName ){
-                    if ( currValue != newValue ){
-                        this.m_mapCombo.setValue( newValue );
-                    }
-                    break;
-                }
-            }
+            var selectables = this.m_mapCombo.setSelectValue( mapName );
         },
         
         /**
@@ -174,6 +143,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
          */
         setId : function( id ){
             this.m_id = id;
+            this.m_mapCombo.setId( id );
             var path = skel.widgets.Path.getInstance();
             var dataPath = this.m_id + path.SEP + "data";
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );

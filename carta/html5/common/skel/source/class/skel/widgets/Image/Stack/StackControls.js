@@ -79,6 +79,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             selectContainer.setLayout( new qx.ui.layout.HBox(1) );
             selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
             this.m_autoSelectCheck = new qx.ui.form.CheckBox( "Auto Select");
+            skel.widgets.TestID.addTestId( this.m_autoSelectCheck, "autoSelectImages" ); 
             this.m_autoSelectCheck.setToolTipText( "Auto selection based on animator or manual selection of layer(s).");
             this.m_autoSelectCheck.addListener( "changeValue", this._autoSelectChanged, this );
             selectContainer.add( this.m_autoSelectCheck );

@@ -366,7 +366,7 @@ void ViewManager::_initCallbacks(){
     addStateCallback( Layout::CLASS_NAME, [=] ( const QString& /*path*/, const QString& /*value*/ ) {
         _makeLayout();
         QStringList pluginList = m_layout->getPluginList();
-        this->setPlugins( pluginList );
+        setPlugins( pluginList );
     });
 
 }
@@ -694,7 +694,6 @@ void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& 
     for ( QString key : keys ){
         _adjustSize( pluginMap[key], key, insertionIndices[key]);
     }
-
 }
 
 void ViewManager::_refreshStateSingletons(){
@@ -912,10 +911,7 @@ bool ViewManager::setPlugins( const QStringList& names ){
     if ( m_layout ){
         QStringList oldNames = m_layout->getPluginList();
         bool valid = m_layout->_setPlugin( names, true);
-        if ( !valid ){
-            qDebug() << "Invalid plugins: "<<names;
-        }
-        else {
+        if ( valid ){
             _pluginsChanged( names, oldNames );
             pluginsSet = true;
         }

@@ -79,6 +79,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
          */
         _initList : function( width ){
             this.m_list = new qx.ui.form.List();
+            skel.widgets.TestID.addTestId( this.m_list, "imageStackList" ); 
             this.m_list.setMinWidth( width );
             this.m_list.setSelectionMode("multi");
             this.m_list.setDraggable(true);
@@ -320,7 +321,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 
                 if ( visible ){
                     //Hide button
-                    var hideCmd = new skel.Command.Data.CommandDataHideImage( items[i].layer );
+                    var hideCmd = new skel.Command.Data.CommandDataHideImage( items[i].layer, i );
                     var hideButton = new qx.ui.menu.Button( "Hide");
                     hideButton.addListener( "execute", function(){
                         this.doAction( true, function(){});
@@ -329,7 +330,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 }
                 else {
                     //Show button
-                    var showCmd = new skel.Command.Data.CommandDataShowImage( items[i].layer );
+                    var showCmd = new skel.Command.Data.CommandDataShowImage( items[i].layer, i );
                     var showButton = new qx.ui.menu.Button( "Show");
                     showButton.addListener( "execute", function(){
                         this.doAction( true, function(){});

@@ -344,6 +344,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             var endLabel = new qx.ui.basic.Label("<= ");
             this.m_endLabel = new qx.ui.basic.Label("");
+            skel.widgets.TestID.addTestId( this.m_endLabel, this.m_title+"AnimatorUpperBound");
             var locationComposite = new qx.ui.container.Composite();
             locationComposite.setLayout(new qx.ui.layout.HBox(5));
             locationComposite.add(titleLabel);

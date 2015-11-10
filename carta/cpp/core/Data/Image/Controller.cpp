@@ -128,6 +128,7 @@ bool Controller::addData(const QString& fileName) {
         std::shared_ptr<DataContours> contourPtr( contourObj );
         //Controller Data is in charge of drawing the contours.
         targetSource->_setContours( contourPtr );
+
         //Contour controls is in charge of setting the UI for the contours.
         m_contourControls->_setDrawContours( contourPtr );
         targetIndex = m_datas.size();
@@ -137,13 +138,8 @@ bool Controller::addData(const QString& fileName) {
 
         targetSource->_viewResize( m_viewSize );
 
+        //Colormap
         targetSource->_setColorMapGlobal( m_stateColor );
-        //If it is the only image, set it selected.
-        if ( m_datas.size() == 1 ){
-            std::vector<int> indices(1);
-            indices[0] = 0;
-            setLayersSelected( indices );
-        }
         connect( targetSource, SIGNAL(colorStateChanged()), this, SLOT( _colorMapChanged() ));
 
         //Update the data selectors upper bound based on the data.
@@ -160,6 +156,11 @@ bool Controller::addData(const QString& fileName) {
             m_selects[i]->setUpperBound( frameCount );
         }
         m_selectImage->setIndex(targetIndex);
+        if ( isStackSelectAuto() ){
+            std::vector<int> selectedLayers(1);
+            selectedLayers[0] = targetIndex;
+            _setLayersSelected( selectedLayers );
+        }
 
         saveState();
 
@@ -502,7 +503,15 @@ QString Controller::getImageName(int index) const{
 
 std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller::getPipeline() const {
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline(nullptr);
+    //Color map should be based on the selected image rather than the current image.
     int dataIndex = _getDataIndex();
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->_isSelected() ){
+            dataIndex = i;
+            break;
+        }
+    }
     if ( 0 <= dataIndex ){
         pipeline = m_datas[dataIndex]->_getPipeline();
     }
@@ -1087,33 +1096,30 @@ void Controller::_renderingDone( QImage img){
 QString Controller::setImageOrder( const std::vector<int>& indices ){
     QString result;
     bool imageReordered = false;
-    int selectedIndex = _getDataIndex();
     int dataCount = m_datas.size();
     int indexCount = indices.size();
+    QList<std::shared_ptr<ControllerData> > reorderedList;
     if ( indexCount != dataCount ){
         result = "Reorder image size must match the stack count: "+QString::number(dataCount);
     }
     else {
-
         for ( int i = 0; i < indexCount; i++ ){
             int targetIndex = indices[i];
-
             if ( targetIndex < 0  || targetIndex >= dataCount ){
                 result = "Reorder failed: unknown image index: "+targetIndex;
                 break;
             }
             //Insert the image at the target index at position i.
             else {
-                std::shared_ptr<ControllerData> item = m_datas.takeAt( targetIndex );
-                m_datas.insert(i, item );
-
-                if ( targetIndex == selectedIndex || i == selectedIndex ){
+                reorderedList.append( m_datas[targetIndex] );
+                if ( targetIndex != i ){
                     imageReordered = true;
                 }
             }
         }
     }
     if ( imageReordered ){
+        m_datas = reorderedList;
         _render();
     }
     return result;
@@ -1403,7 +1409,8 @@ void Controller::_setColorMapUseGlobal( bool global ) {
     //Loop through the data and reset the color maps.
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isSelected() ){
+        bool selected = m_datas[i]->_isSelected();
+        if ( selected ){
             if ( global ){
                 m_datas[i]->_setColorMapGlobal( m_stateColor );
             }

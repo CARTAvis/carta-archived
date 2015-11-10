@@ -243,7 +243,7 @@ public:
     /**
      * Set the range in intensity units for the custom clip.
      * @param colorMin a lower bound for the custom clip in real units.
-     * @param colorMax an upper bound for the dustom clip in real units.
+     * @param colorMax an upper bound for the custom clip in real units.
      * @return an error message if there was a problem setting the custom clip range;
      *      false otherwise.
      */
@@ -329,9 +329,6 @@ public:
 
 signals:
     void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
-
-public slots:
-    //void updateColorMap( Colormap* );
 
 
 protected:

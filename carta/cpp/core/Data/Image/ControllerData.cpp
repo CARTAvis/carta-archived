@@ -333,9 +333,7 @@ void ControllerData::_initializeState(){
     m_state.insertObject(DataGrid::GRID, gridState );
 }
 
-/*bool ControllerData::_isGlobalColorMap() const {
-    return m_stateColor->_isGlobal();
-}*/
+
 
 bool ControllerData::_isSelected() const {
     return m_state.getValue<bool>( SELECTED );
@@ -606,13 +604,15 @@ void ControllerData::_setColorMapGlobal( std::shared_ptr<ColorState> colorState 
     }
     else {
         //We are going to use our own color map
-        if ( m_stateColor->_isGlobal() ){
+        if ( m_stateColor.get() == nullptr || m_stateColor->_isGlobal() ){
             if ( m_stateColor ){
                disconnect( m_stateColor.get() );
             }
             Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
             ColorState* cObject = objMan->createObject<ColorState>();
-            m_stateColor->_replicateTo( cObject );
+            if ( m_stateColor.get() != nullptr ){
+                m_stateColor->_replicateTo( cObject );
+            }
             cObject->_setGlobal( false );
             m_stateColor.reset (cObject);
             colorReset = true;

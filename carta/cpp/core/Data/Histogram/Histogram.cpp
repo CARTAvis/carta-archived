@@ -2014,19 +2014,6 @@ void Histogram::_updateSelection(int x){
 }
 
 
-/*void Histogram::updateColorMap( Colormap* map ){
-    if ( map != nullptr ){
-        Controller* controller = _getControllerSelected();
-        if ( controller != nullptr ){
-            //map->setColorProperties( controller );
-            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
-            m_histogram->setPipeline( pipeline );
-        }
-    }
-    _generateHistogram( false );
-}*/
-
-
 void Histogram::_updateSize( const QSize& size ){
     bool newSize = m_histogram->setSize( size.width(), size.height());
     if ( newSize ){
