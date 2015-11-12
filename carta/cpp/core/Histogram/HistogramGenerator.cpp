@@ -255,7 +255,6 @@ QImage * HistogramGenerator::toImage( int width, int height ) const {
 }
 
 
-
 HistogramGenerator::~HistogramGenerator(){
     m_histogram->detach( );
     m_range->detach();

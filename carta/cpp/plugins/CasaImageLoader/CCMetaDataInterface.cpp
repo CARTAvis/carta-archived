@@ -13,7 +13,7 @@ CCMetaDataInterface::CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa
 }
 
 
-Image::MetaDataInterface *CCMetaDataInterface::clone()
+Carta::Lib::Image::MetaDataInterface *CCMetaDataInterface::clone()
 {
     qFatal( "not implemented");
 }
@@ -21,13 +21,7 @@ Image::MetaDataInterface *CCMetaDataInterface::clone()
 CoordinateFormatterInterface::SharedPtr CCMetaDataInterface::coordinateFormatter()
 {
     return std::make_shared<CCCoordinateFormatter>( m_casaCS);
-//    qFatal( "not implemented");
 }
-
-//CoordinateGridPlotterInterface::SharedPtr CCMetaDataInterface::coordinateGridPlotter()
-//{
-//    qFatal( "not implemented");
-//}
 
 PlotLabelGeneratorInterface::SharedPtr CCMetaDataInterface::plotLabelGenerator()
 {

@@ -18,7 +18,7 @@ namespace Hooks
 {
 class ColormapsScalarHook : public BaseHook
 {
-    CARTA_HOOK_BOILER1( ColormapsScalarHook )
+    CARTA_HOOK_BOILER1( ColormapsScalarHook );
 
 public:
 
@@ -33,8 +33,8 @@ public:
     struct Params { };
 
     /**
-     * @brief PreRender
-     * @param pptr
+     * @brief constructor
+     * @param pptr pointer to the input parameters
      *
      * @todo make hook constructors protected, so that only hook helper can create them
      */

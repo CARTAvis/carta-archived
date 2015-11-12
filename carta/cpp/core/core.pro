@@ -18,7 +18,6 @@ HEADERS += \
     PluginManager.h \
     Globals.h \
     Algorithms/Graphs/TopoSort.h \
-    Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
     MainConfig.h \
@@ -103,8 +102,10 @@ HEADERS += \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
-    VGView.h \
-    DummyGridRenderer.h
+    DummyGridRenderer.h \
+    coreMain.h \
+    SimpleRemoteVGView.h \
+    Hacks/ManagedLayerView.h
 
 SOURCES += \
     Viewer.cpp \
@@ -169,7 +170,6 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    Algorithms/RawView2QImageConverter.cpp \
     Histogram/HistogramGenerator.cpp \
     Histogram/HistogramSelection.cpp \
     Histogram/HistogramPlot.cpp \
@@ -192,8 +192,10 @@ SOURCES += \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
-    VGView.cpp \
-    DummyGridRenderer.cpp
+    DummyGridRenderer.cpp \
+    coreMain.cpp \
+    SimpleRemoteVGView.cpp \
+    Hacks/ManagedLayerView.cpp
 
 
 #message( "common            PWD=$$PWD")
@@ -216,7 +218,7 @@ unix:macx {
 	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
 	LIBS +=-L../CartaLib -lCartaLib -framework qwt
 }
-else{
+else {
 	QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
 	LIBS +=-L../CartaLib -lCartaLib -L$$QWT_ROOT/lib -lqwt
 }

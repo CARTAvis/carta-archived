@@ -7,6 +7,7 @@
 #include <QImage>
 #include <QObject>
 #include <QDebug>
+#include <QJsonObject>
 #include <cstdint>
 
 /// Every hook as a unique ID and we are using 64bit integers for hook IDs
@@ -21,6 +22,7 @@ class BaseHook // : public QObject
 //    Q_OBJECT
 
 public:
+
     /// TODO: I have not yet figured out how to specialize some of the templates for
     /// void return type... hence the FakeVoid aliased to char
     typedef char FakeVoid;
@@ -44,7 +46,7 @@ public:
     static bool
     isHook( const BaseHook & hook )
     {
-          return hook.hookId() == HookType::staticId;
+        return hook.hookId() == HookType::staticId;
     }
 
     /// returns treu if this hook is an instace of HookType
@@ -55,13 +57,11 @@ public:
         return hookId() == HookType::staticId;
     }
 
-
 protected:
 
     /// dynamic hook ID
     HookId m_hookId;
 };
-
 
 /// parsed plugin.json information
 struct PluginJson {
@@ -92,18 +92,23 @@ struct PluginJson {
 class IPlugin
 {
 public:
+
     /// information passed to plugins during initialize()
     struct InitInfo {
         /// full path to the directory from where the plugin was loaded
         QString pluginPath;
 
         /// parsed json
+        QJsonObject json;
     };
 
     /// called immediately after the plugin was loaded
-    /// TODO: should be pure virtual
+    /// TODO: should be pure virtual, don't be lazy!
     virtual void
-    initialize( const InitInfo & /*initInfo*/ ) { }
+    initialize( const InitInfo & initInfo )
+    {
+        Q_UNUSED( initInfo );
+    }
 
     /// at startup plugins will be asked to return a list of hook ids they are
     /// interested in listening to
@@ -119,39 +124,28 @@ public:
     ~IPlugin() { }
 };
 
-#define CARTA_HOOK_BOILER1(name) \
-    CLASS_BOILERPLATE(name) ;\
-    enum { staticId = static_cast<HookId>( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID) };
-
-/// initialize hook is called once at the beginning of the application
-class Initialize : public BaseHook
-{
-    CARTA_HOOK_BOILER1(Initialize)
-
-public:
-    typedef FakeVoid   ResultType;
-    typedef struct { } Params;
-    Initialize( Params * ) : BaseHook( staticId ) { }
-
-    ResultType result;
-};
+#define CARTA_HOOK_BOILER1( name ) \
+    CLASS_BOILERPLATE( name ); \
+    enum { staticId = static_cast < HookId > ( Carta::Lib::Hooks::UniqueHookIDs::name ## _ID ) }
 
 /// just before rendering a view, plugins are given a chance to modify the rendered image
+/// \todo remove this, it was only a proof of concept hook
 class PreRender : public BaseHook
 {
-    CARTA_HOOK_BOILER1(PreRender)
+    CARTA_HOOK_BOILER1( PreRender );
 
 public:
+
     typedef FakeVoid ResultType;
     struct Params {
         Params( QString p_viewName, QImage * p_imgPtr )
         {
-            imgPtr   = p_imgPtr;
+            imgPtr = p_imgPtr;
             viewName = p_viewName;
         }
 
         QImage * imgPtr;
-        QString  viewName;
+        QString viewName;
     };
     PreRender( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }
 
@@ -159,29 +153,6 @@ public:
     Params * paramsPtr;
 };
 
-/// load image and convert it to QImage
-class LoadImage : public BaseHook
-{
-    CARTA_HOOK_BOILER1(LoadImage)
-
-public:
-    typedef QImage ResultType;
-    struct Params {
-        Params( QString p_fileName, int p_channel )
-        {
-            fileName = p_fileName;
-            frame    = p_channel;
-        }
-
-        QString fileName;
-        int     frame;
-    };
-    LoadImage( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }
-
-    ResultType result;
-    Params * paramsPtr;
-};
-
-// this is needed to setup the Qt metatype system to enable qobject_cast<> downcasting
-// must be outside of any namespace
+// This is needed to setup the Qt metatype system to enable qobject_cast<> downcasting.
+// It must be outside of any namespace!!!
 Q_DECLARE_INTERFACE( IPlugin, "org.cartaviewer.IPlugin" )

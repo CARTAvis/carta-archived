@@ -277,8 +277,8 @@ void Histogram::_finishColor(){
     m_stateData.flushState();
 }
 
-std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(Controller* controller){
-    std::vector<std::shared_ptr<Image::ImageInterface>> result;
+std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Histogram::_generateData(Controller* controller){
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> result;
     if ( controller != nullptr ){
         result = controller->getDataSources();
     }
@@ -983,7 +983,12 @@ bool Histogram::isLinked( const QString& linkId ) const {
 }
 
 
-void Histogram::_loadData( Controller* controller ){
+void Histogram::_loadData( Controller* controller )
+{
+
+    if( ! controller) {
+        return;
+    }
 
     int binCount = m_state.getValue<int>(BIN_COUNT)+1;
     double minFrequency = -1;
@@ -1005,11 +1010,14 @@ void Histogram::_loadData( Controller* controller ){
     }
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
-    std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
-    if ( controller != nullptr ){
-        int stackedImageCount = controller->getStackedImageCountVisible();
-        if ( stackedImageCount > 0 ){
-            dataSources = _generateData( controller );
+
+//    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> dataSources;
+//    if ( controller != nullptr ) {
+        auto dataSources = controller-> getDataSources();
+//        int stackedImageCount = controller->getStackedImageCount();
+//        if ( stackedImageCount > 0 ){
+        if ( dataSources.size() > 0 ) {
+//            dataSources = _generateData( controller );
             auto result = Globals::instance()-> pluginManager()
                                       -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
                                               minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
@@ -1029,12 +1037,13 @@ void Histogram::_loadData( Controller* controller ){
                 hr->registerError( errorStr );
             }
         }
-        else if ( stackedImageCount == 0 ){
+//        else if ( stackedImageCount == 0 ){
+        else {
             _resetDefaultStateData();
             const Carta::Lib::Hooks::HistogramResult data;
             m_histogram->setData( data );
         }
-    }
+//    }
 }
 
 void Histogram::refreshState() {
@@ -1045,8 +1054,9 @@ void Histogram::refreshState() {
 }
 
 void Histogram::_refreshView(){
-    QImage * histogramImage = m_histogram->toImage();
-    m_view->resetImage( *histogramImage );
+//    QImage * histogramImage = m_histogram->toImage();
+//    m_view->resetImage( *histogramImage );
+    m_view->resetImage( m_histogram->toImage() );
     m_view->scheduleRedraw();
 }
 
@@ -1802,6 +1812,7 @@ QString Histogram::saveHistogram( const QString& fileName ){
         if ( !saveSuccessful ){
             result = "The image could not be saved; please check the path: "+fileName+" is valid.";
         }
+//        delete histogramImage;
         delete histogramImage;
     }
     return result;

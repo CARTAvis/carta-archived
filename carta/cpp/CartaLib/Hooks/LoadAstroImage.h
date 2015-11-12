@@ -18,7 +18,7 @@ namespace Hooks
 /// load an (astronomical) image and convert to an instance of Image::ImageInterface
 class LoadAstroImage : public BaseHook
 {
-    CARTA_HOOK_BOILER1( LoadAstroImage )
+    CARTA_HOOK_BOILER1( LoadAstroImage );
 
 public:
 

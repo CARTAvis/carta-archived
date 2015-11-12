@@ -181,7 +181,7 @@ LineCombiner::add( QPointF p1, QPointF p2 )
     CARTA_ASSERT( ok );
     ok = findCell( ip2c.poly->back() )-> pts.removeAll( { ip2c.poly, true }
                                                         );
-    CARTA_ASSERT( ok );
+    CARTA_ASSERT( ok ); Q_UNUSED(ok);
 
     // we need to handle 4 cases for merging... in any case, we'll be re-using poly1 and
     // appending/prepending to it all elements from poly2

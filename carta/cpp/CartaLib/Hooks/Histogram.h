@@ -10,18 +10,18 @@
 #include <vector>
 #include "CartaLib/Hooks/HistogramResult.h"
 
-namespace Image {
-class ImageInterface;
-}
 namespace Carta
 {
 namespace Lib
 {
+namespace Image {
+class ImageInterface;
+}
 namespace Hooks
 {
 class HistogramHook : public BaseHook
 {
-    CARTA_HOOK_BOILER1( HistogramHook )
+    CARTA_HOOK_BOILER1( HistogramHook );
 
 public:
 

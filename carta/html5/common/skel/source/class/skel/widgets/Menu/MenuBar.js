@@ -18,7 +18,8 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         this.base(arguments);
         this.m_connector = mImport("connector");
 
-        this.m_menuPart = new skel.widgets.Menu.MenuBarPart();
+        //this.m_menuPart = new skel.widgets.Menu.MenuBarPart();
+        this.m_menuPart = new qx.ui.toolbar.Part();
         this.add(this.m_menuPart);
         this._initMenu();
         this.addSpacer();

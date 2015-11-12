@@ -26,7 +26,7 @@ namespace Hooks
 class GetWcsGridRendererHook : public BaseHook
 {
     // all hooks should have this:
-    CARTA_HOOK_BOILER1( GetWcsGridRendererHook )
+    CARTA_HOOK_BOILER1( GetWcsGridRendererHook );
 
 public:
 

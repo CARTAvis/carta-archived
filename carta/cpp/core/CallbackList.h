@@ -72,7 +72,7 @@ public:
     CallbackList()
     {
         m_pimpl = new PIMPL;
-        qDebug() << "constructor this=" << this << " m_pimpl=" << m_pimpl;
+//        qDebug() << "constructor this=" << this << " m_pimpl=" << m_pimpl;
     }
 
     /// adds a callback

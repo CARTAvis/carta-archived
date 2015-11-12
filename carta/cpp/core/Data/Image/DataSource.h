@@ -13,14 +13,6 @@
 #include <QImage>
 #include <memory>
 
-namespace NdArray {
-    class RawViewInterface;
-}
-
-namespace Image {
-    class ImageInterface;
-}
-
 class CoordinateFormatterInterface;
 class SliceND;
 
@@ -28,6 +20,13 @@ namespace Carta {
 namespace Lib {
     namespace PixelPipeline {
         class CustomizablePixelPipeline;
+    }
+    namespace NdArray {
+        class RawViewInterface;
+    }
+
+    namespace Image {
+        class ImageInterface;
     }
 }
 namespace Core {
@@ -161,7 +160,7 @@ private:
     /**
      * Returns the underlying image.
      */
-    std::shared_ptr<Image::ImageInterface> _getImage();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
 
     /**
      * Returns the image's file name.
@@ -450,7 +449,7 @@ private:
     static CoordinateSystems* m_coords;
 
     //Pointer to image interface.
-    std::shared_ptr<Image::ImageInterface> m_image;
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;
     std::shared_ptr<Image::ImageInterface> m_permuteImage;
 
     /// coordinate formatter

@@ -30,12 +30,12 @@ public:
 
     class FontInfo
     {
-public:
+    public:
 
         QString
         name() { return "some font"; }
 
-private:
+    private:
 
         QString m_name;
         friend class BetterQPainter;
@@ -44,6 +44,21 @@ private:
     BetterQPainter( QPainter & qPainter )
         : m_qPainter( qPainter )
     {
+        reset();
+    }
+
+    void reset() {
+        /// @todo is this the best way to reset QPainter to defaults?
+        /// a documented way (and presumably preferred way) to do this would be via
+        /// save/restore mechanism, could we do that?
+        auto device = m_qPainter.device();
+        m_qPainter.end();
+        m_qPainter.begin(device);
+
+        m_fonts.clear();
+        m_indexedPens.clear();
+        m_indexedBrushes.clear();
+
         // setup default fonts
         m_fonts.push_back( QFont( "Helvetica", 10 ) ); // <-- default
         m_fonts.push_back( QFont( "Monospace", 10 ) );

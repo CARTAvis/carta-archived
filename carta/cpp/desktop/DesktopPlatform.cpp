@@ -76,31 +76,34 @@ DesktopPlatform::DesktopPlatform()
     QUrl url;
     auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
     if( cmdLineInfo.htmlPath().isEmpty()) {
-        url = QUrl("qrc:///html5/desktop/desktopIndex.html");
+        // check if we have index in qrc
+        if( QFileInfo(":/html/desktopIndexRelease.html").exists()) {
+            url = "qrc:///html/desktopIndexRelease.html";
+        } else {
+            url = "http://www.google.com";
+        }
     } else {
         url = QUrl::fromUserInput( cmdLineInfo.htmlPath());
     }
 
     // get the filename sfrom the command line
     m_initialFileList = cmdLineInfo.fileList();
-    if( m_initialFileList.isEmpty()) {
-        //qFatal( "No input files to open...");
-    }
 
     // create the connector
     m_connector = new DesktopConnector();
 
     // enable web inspector
+    QWebSettings::enablePersistentStorage( "/tmp/xyz");
     QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
-//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, false);
+//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
 
     // create main window
     m_mainWindow = new MainWindow();
     m_mainWindow-> resize( 1000, 700);
 
     // add platform and connector to JS exports
-    m_mainWindow->exportToJs( "QtPlatform", this);
-    m_mainWindow->exportToJs( "QtConnector", m_connector);
+    m_mainWindow->addJSExport( "QtPlatform", this);
+    m_mainWindow->addJSExport( "QtConnector", m_connector);
 
     // load the url
     m_mainWindow->loadUrl( url);

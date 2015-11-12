@@ -23,6 +23,8 @@ enum class UniqueHookIDs {
     ColormapsScalarHook_ID,
     LoadPlugin_ID,
     GetWcsGridRendererHook_ID,
+    GetInitialFileList_ID,
+    GetImageRenderService_ID,
 
     /// experimental, soon to be removed:
     PreRender_ID,

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <QJsonObject>
 #include <QStringList>
 class QString;
 
@@ -47,6 +48,9 @@ public:
      * active development shown.
      */
     bool isDeveloperLayout() const;
+
+    /// the whole config file as json
+    const QJsonObject & json() const;
 
 protected:
 

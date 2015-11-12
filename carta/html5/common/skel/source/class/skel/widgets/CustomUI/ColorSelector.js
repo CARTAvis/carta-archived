@@ -205,7 +205,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     break;
                     
                 case "input-field-set":
-                    control = new qx.ui.container.Composite();
+                    //control = new qx.ui.container.Composite();
+                    control = new qx.ui.groupbox.GroupBox("Details");
                     var controlLayout = new qx.ui.layout.VBox();
                     controlLayout.setSpacing(2);
                     control.setLayout(controlLayout);
@@ -233,7 +234,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     control.add( this.getChildControl( "rgb-spinner-blue"), {row:2, column:1});
                     break;
                 case "preset-field-set":
-                    control = new qx.ui.container.Composite();
+                    //control = new qx.ui.container.Composite();
+                    control = new qx.ui.groupbox.GroupBox( "Presets");
                     control.setLayout(new qx.ui.layout.Grow());
                     control.add(this.getChildControl("preset-grid"));
                     break;
@@ -261,7 +263,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     break;
                 
                     case "visual-pane":
-                        control = new qx.ui.container.Composite();
+                        //control = new qx.ui.container.Composite();
+                        control = new qx.ui.groupbox.GroupBox("Visual");
                         control.setLayout(new qx.ui.layout.HBox(2));
                         control.add(this.getChildControl("hue-saturation-pane"));
                         control.add(this.getChildControl("brightness-pane"));

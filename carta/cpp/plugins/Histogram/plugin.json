@@ -8,5 +8,5 @@
         planes."
     ],
     "about"      : "Histogram functionality for casa images",
-    "depends"    : [ "casaCore-2.0.1"]
+    "depends"    : [ "casaCore-2.0.1", "CasaImageLoader"]
 }

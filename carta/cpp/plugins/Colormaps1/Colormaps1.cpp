@@ -1,8 +1,11 @@
 #include "Colormaps1.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/PWLinear.h"
 #include <QDebug>
 #include <cstdint>
+
+typedef Carta::Lib::Hooks::Initialize Initialize;
 
 Colormap1::Colormap1( QObject * parent ) :
     QObject( parent )
@@ -11,7 +14,7 @@ Colormap1::Colormap1( QObject * parent ) :
 bool
 Colormap1::handleHook( BaseHook & hookData )
 {
-    if ( hookData.is < Initialize > () ) {
+    if ( hookData.is < Carta::Lib::Hooks::Initialize > () ) {
         return true;
     }
     else if ( hookData.is < Carta::Lib::Hooks::ColormapsScalarHook > () ) {

@@ -141,6 +141,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          * @param val {String} - layout information from the server.
          */
         _layoutChangedCB : function( val ){
+            console.log( "_layoutChangedCB", val);
             if ( val ){
                 try {
                     var layoutObj = JSON.parse( val );

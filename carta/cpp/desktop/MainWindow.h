@@ -10,9 +10,9 @@ class QWebInspector;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-//    Q_PROPERTY(QImage img READ getImg)
 
 public:
+
     /// constructor initializes the GUI
     MainWindow();
 
@@ -22,19 +22,13 @@ public:
     /// adds the given QObject to javascript exports
     /// these will be exported automatically on page reload
     /// so call this before calling loadUrl()
-    void exportToJs( const QString & name, QObject * objPtr);
-
-//    const QImage & getImg() const;
+    void addJSExport( const QString & name, QObject * objPtr);
 
 signals:
 
 public slots:
 
 protected:
-
-//    Q_INVOKABLE QString getState( const QString & key) {
-//        return QString( "ok " + key + ".");
-//    }
 
 protected slots:
 
@@ -47,11 +41,10 @@ protected slots:
     void addToJavaScript();
 
 private:
-    QWebView * m_view;
-    QLineEdit * m_locationEdit;
+    QWebView * m_view = nullptr;
+    QLineEdit * m_locationEdit = nullptr;
     int m_progress;
-//    QImage m_img;
-    QWebInspector * m_inspector; // = nullptr;
+    QWebInspector * m_inspector = nullptr; // = nullptr;
     std::vector< std::pair< QString, QObject *> > m_jsExports;
 };
 

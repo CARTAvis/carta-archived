@@ -75,11 +75,13 @@ public:
 
     /**
      * Return the type of the object.
+     *
+     * Normally the type of an object will be the class name, but for snapshots such as session snapshots
+     * this method may be overriden to append an additional identifier such as 'data' after the class name.
+     *
      * @param snapType the type of Snapshot.
      * @return an identifier for the type of the object.
      */
-    //Normally the type of an object will be the class name, but for snapshots such as session snapshots
-    //this method may be overriden to append an additional identifier such as 'data' after the class name.
     virtual QString getSnapType(CartaObject::SnapshotType snapType= CartaObject::SnapshotType::SNAPSHOT_INFO) const;
 
     QString getType() const;
@@ -127,6 +129,9 @@ protected:
             Object * m_object;
     };
 
+    /// helper to get connector
+    static IConnector * conn();
+
 protected:
     StateInterface m_state;
 
@@ -136,7 +141,7 @@ private:
     QString m_id;
     QString m_path;
 
-    static const char m_Delimiter = ':';
+    static const char CommandDelimiter = ':';
 
 };
 

@@ -19,10 +19,10 @@ namespace Carta {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
         }
+        namespace Image {
+            class ImageInterface;
+        }
     }
-}
-namespace Image {
-    class ImageInterface;
 }
 
 namespace NdArray {

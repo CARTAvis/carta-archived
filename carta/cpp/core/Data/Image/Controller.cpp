@@ -471,9 +471,9 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
 }
 
 
-std::vector<std::shared_ptr<Image::ImageInterface>> Controller::getDataSources(){
+std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Controller::getDataSources(){
     //For right now, we are only going to do a histogram of a single image.
-    std::vector<std::shared_ptr<Image::ImageInterface>> images;
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
     int dataCount = m_datas.size();
     if ( dataCount > 0 ){
         int dataIndex = _getDataIndex();
@@ -573,11 +573,12 @@ std::vector<int> Controller::_getFrameIndices( int imageIndex ) const {
 }
 
 QString Controller::_getPreferencesId() const {
-    QString id;
-    if ( m_settings.get() != nullptr ){
-        id = m_settings->getPath();
-    }
-    return id;
+    return m_settings ? m_settings-> getPath() : QString();
+//    QString id;
+//    if ( m_settings.get() != nullptr ){
+//        id = m_settings->getPath();
+//    }
+//    return id;
 }
 
 std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates(){
@@ -592,8 +593,7 @@ std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates()
 }
 
 int Controller::getStackedImageCount() const {
-    int count = m_datas.size();
-    return count;
+    return m_datas.size();
 }
 
 int Controller::getStackedImageCountVisible() const {

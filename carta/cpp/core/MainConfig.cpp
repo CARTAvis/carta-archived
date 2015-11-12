@@ -41,6 +41,7 @@ ParsedInfo parse(const QString & filePath)
         return info;
     }
     QJsonObject json = jsonDoc.object();
+    info.m_json = json;
 
     // extract plugin directories
     auto pluginDirs = json[ "pluginDirs"].toArray().toVariantList();
@@ -56,9 +57,12 @@ ParsedInfo parse(const QString & filePath)
     // hacks enabled flag
     {
         auto raw = json[ "hacksEnabled"].toString().toLower();
+        qDebug() << "Raw hacks" << raw;
         info.m_hacksEnabled = ( raw == "yes" || raw == "true" || raw == "1" || raw == "y"
                                 || raw == "t");
         qDebug() << "Hacks enabled:" << info.m_hacksEnabled << raw;
+
+        info.m_hacksEnabled = json[ "hacksEnabled"].toBool();
     }
 
     // developer layout

@@ -90,7 +90,7 @@ DummyGridRenderer::startRendering( Lib::IWcsGridRenderService::JobId jobId )
         m_jobId = jobId;
     }
     if ( ! m_timer.isActive() ) {
-        m_timer.start( 1 );
+        m_timer.start( 0 );
     }
     return m_jobId;
 }

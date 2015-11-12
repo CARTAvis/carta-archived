@@ -263,7 +263,7 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
         NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
-            NdArray::TypedView<double> view( rawData, false );
+            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
             double val =  view.get( { valX, valY } );
             pixelValue = QString::number( val );
         }
@@ -330,7 +330,7 @@ QString DataSource::_getFileName() const {
     return m_fileName;
 }
 
-std::shared_ptr<Image::ImageInterface> DataSource::_getImage(){
+std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getImage(){
     return m_image;
 }
 
@@ -349,7 +349,7 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
     int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL );
     NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
-        NdArray::TypedView<double> view( rawData, false );
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
         std::vector < double > allValues;
@@ -386,7 +386,7 @@ double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
         u_int64_t countBelow = 0;
-        NdArray::TypedView<double> view( rawData, false );
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         view.forEach([&](const double& val) {
             if( Q_UNLIKELY( std::isnan(val))){
                 return;
@@ -424,7 +424,7 @@ QString DataSource::_getPixelUnits() const {
 }
 
 NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
-    NdArray::RawViewInterface* rawData = nullptr;
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         int imageDim =m_image->dims().size();
         SliceND frameSlice = SliceND().next();

@@ -7,6 +7,8 @@
 #include <QColor>
 #include <QPainter>
 
+namespace NdArray = Carta::Lib::NdArray;
+
 // most optimal Qt format seems to be Format_ARGB32_Premultiplied
 static constexpr QImage::Format OptimalQImageFormat = QImage::Format_ARGB32_Premultiplied;
 
@@ -46,6 +48,7 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     }
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
+    Q_UNUSED( bytesPerLine );
 
     // start with a pointer to the beginning of last row (we are constructing image
     // bottom-up)
@@ -192,7 +195,7 @@ Service::setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & param
     m_cachedPPinterp = nullptr;
 }
 
-const PixelPipelineCacheSettings &
+const Service::PixelPipelineCacheSettings &
 Service::pixelPipelineCacheSettings() const
 {
     return m_pixelPipelineCacheSettings;
@@ -440,6 +443,7 @@ Service::internalRenderSlot()
     // insert this image into frame cache
     m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
 } // internalRenderSlot
+
 }
 }
 }

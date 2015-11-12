@@ -17,13 +17,12 @@ namespace Lib {
 namespace PixelPipeline {
 class IColormapNamed;
 }
-}
-}
-
 namespace Image {
 class ImageInterface;
-
 }
+}
+}
+
 
 class ImageView;
 
@@ -380,7 +379,7 @@ private:
     */
     QString _getActualGraphStyle( const QString& styleStr );
 
-    std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> _generateData(Controller* controller);
     
     /**
      * Returns the server side id of the histogram user preferences.
@@ -470,7 +469,7 @@ private:
 
     int m_cubeChannel;
     //Data View
-    std::shared_ptr<ImageView> m_view;
+    std::shared_ptr<ImageView> m_view = nullptr;
 
     static Clips*  m_clips;
 
@@ -480,7 +479,7 @@ private:
     //Preferences
     std::unique_ptr<Settings> m_preferences;
 
-    Carta::Histogram::HistogramGenerator* m_histogram;
+    Carta::Histogram::HistogramGenerator* m_histogram = nullptr;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;

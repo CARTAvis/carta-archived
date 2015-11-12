@@ -9,6 +9,13 @@ import importlib
 import imp
 import os
 
+basename = "pluginBridge.pyx"
+oldprint = print
+
+def print(*args, **kwargs):
+    global basename, oldprint
+    return oldprint( basename, ':', *args, **kwargs)
+
 #the following will tell cython to generate #include "pragmaHacks.h"
 cdef extern from "pragmaHack.h":
     int pragma_hack_i_dont_exist
@@ -27,9 +34,7 @@ class Modd(object):
     def __init__(self, modName, fname):
         global moddId
         try:
-            print("here1")
             self.id = -1
-            print("here2")
             dir = os.path.dirname(os.path.realpath( fname))
             print("dir=", dir)
 
@@ -44,7 +49,6 @@ class Modd(object):
             # info = imp.find_module( modName, [dir])
             # print("info=", info)
             # self.loadedMod = imp.load_source( modName, fname)
-            print("here3")
             self.modName = modName
             self.fname = fname
             self.id = moddId

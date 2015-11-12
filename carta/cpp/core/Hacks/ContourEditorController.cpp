@@ -93,7 +93,7 @@ ContourEditorController::startRendering( ContourEditorController::JobId jobId )
 }
 
 void
-ContourEditorController::setInput( NdArray::RawViewInterface::SharedPtr rawView )
+ContourEditorController::setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView )
 {
     m_contourSvc-> setInput( rawView );
 }
