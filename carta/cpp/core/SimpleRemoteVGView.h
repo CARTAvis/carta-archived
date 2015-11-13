@@ -20,6 +20,10 @@ namespace Carta
 {
 namespace Core
 {
+
+/// Basic implementation of IRemoteVGView api. We'll most likely replace this with
+/// specialized desktop/server versions.
+
 class SimpleRemoteVGView
     : public Carta::Lib::IRemoteVGView
       , public IView
@@ -35,14 +39,23 @@ public:
     virtual const QString &
     getRVGViewName() override;
 
-//    virtual void
-//    setRaster( const QColor & color ) override;
-
     virtual void
     setRaster( const QImage & image ) override;
 
     virtual void
     setVG( const VGList & vglist ) override;
+
+    virtual void
+    setRasterAndVG( const QImage & image, const VGList & vglist ) override;
+
+    virtual void
+    setVGrenderedOnServer( bool flag) override;
+
+    virtual bool
+    isVGrenderedOnServer() override;
+
+    virtual void
+    enableInputEvent( Carta::Lib::InputEvent::Type type, QString name = QString()) override;
 
 public slots:
 

@@ -2,6 +2,11 @@
  * Created by pfederl on 04/01/15.
  *
  * Widget capable of displaying raster images overlayed with vector graphics.
+ *
+ * Note: we may need different implementation for desktop/server environments to get
+ * the most performance, e.g. for rendering VG.
+ *
+ * @ignore( mImport)
  */
 
 qx.Class.define( "skel.hacks.VGView", {
@@ -23,19 +28,29 @@ qx.Class.define( "skel.hacks.VGView", {
         this.setLayout( new qx.ui.layout.Canvas() );
         // create a basic view widget as the bottom layer
         this.m_viewWidget = new skel.boundWidgets.View.View( viewName );
-        this.add( this.m_viewWidget, { edge: 0 } );
+        this.add( this.m_viewWidget, {edge: 0} );
         // create an input overlay widget (transparent, used only to capture
         // input events)
         this.m_overlayWidget = new qx.ui.core.Widget();
-        this.add( this.m_overlayWidget, { edge: 0 } );
+        this.add( this.m_overlayWidget, {edge: 0} );
 
-        this.m_overlayWidget.addListener( "click", function() {
-            console.log( "Click");
-        });
+        this.m_overlayWidget.addListener( "click", function()
+        {
+            console.log( "Click" );
+        } );
 
         // create a settings UI layer
         this.m_settingsLayer = this._createSettingsUI();
-        this.add( this.m_settingsLayer, { top: 10, right: 10 } );
+        this.add( this.m_settingsLayer, {top: 10, right: 10} );
+
+        this.m_layerManager = new skel.hacks.LayeredViewManager( viewName );
+        this.m_layerManager.setVisibility( "excluded" );
+        this.m_layerManager.set( {
+            visibility     : "excluded",
+            backgroundColor: "white",
+            padding: 5
+        } );
+        this.add( this.m_layerManager, { bottom: 10, right: 10 });
 
         this.m_overlayWidget.addListener( "keydown", function( e )
         {
@@ -48,7 +63,14 @@ qx.Class.define( "skel.hacks.VGView", {
                     this.m_settingsLayer.setVisibility( "visible");
                 }
             }
-        }.bind(this) );
+            if( e.isCtrlPressed() && e.isShiftPressed() && e.getKeyIdentifier() === 'L') {
+                if( this.m_layerManager.getVisibility() == "visible") {
+                    this.m_layerManager.setVisibility( "excluded");
+                } else {
+                    this.m_layerManager.setVisibility( "visible");
+                }
+            }
+            }.bind(this) );
         this.m_overlayWidget.addListener( "keypress", function()
         {
             console.log( "keypress", arguments );

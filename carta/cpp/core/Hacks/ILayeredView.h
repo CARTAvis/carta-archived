@@ -25,11 +25,17 @@ enum class LayerType
 
 enum class InputMaskBits : std::uint64_t
 {
+    /// keyboard events
     Key = 0b0000001,
+    /// active mouse events: click, down, up, drag
     MouseActive = 0b0000010,
+    /// passive mouse events: hover, enter, leave
     MousePassive = 0b0000100,
+    /// just about all pointer events
     PointerActive = 0b1000,
+    /// are there any passive pointer events really?
     PointerPassive = 0b1000,
+    /// all events
     ALL = 0xffffffff
 };
 
@@ -58,6 +64,7 @@ public:
     buttons();
 };
 
+/*
 class ManagedLayerView : public QObject
 {
     Q_OBJECT
@@ -77,6 +84,7 @@ public:
     virtual
     ~ManagedLayerView() { }
 };
+*/
 
 class LayerHandle : public QObject
 {

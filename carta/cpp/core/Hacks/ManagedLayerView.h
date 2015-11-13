@@ -17,20 +17,38 @@ namespace Hacks
 {
 class ManagedLayerViewInh;
 
+/// derive from this class to create custom managed layers
 class ManagedLayer : public QObject
 {
     Q_OBJECT
 
 public:
 
-    ManagedLayer( ManagedLayerViewInh * );
+    typedef int ID;
+
+    ManagedLayer( ManagedLayerViewInh *, QString name );
+
+    virtual QString
+    layerName() { return m_layerName; }
+
+    /// reimplement this to react to view resizes
+    virtual void
+    onResize( const QSize & size ) { Q_UNUSED( size ); }
+
+    /// call this to update the rendering of raster
+    void setRaster( const QImage & image);
+
+    /// this returns a unique ID of the layer (wrt. to the manager)
+    ID layerID() { return m_id; }
+
     virtual
     ~ManagedLayer() { }
 
-private:
+protected:
 
     ManagedLayerViewInh * m_mlv = nullptr;
-
+    QString m_layerName;
+    ID m_id = -1;
 };
 
 class ManagedLayerViewInh : public QObject
@@ -39,8 +57,7 @@ class ManagedLayerViewInh : public QObject
 
 public:
 
-    ManagedLayerViewInh( QString viewName, IConnector * connector, QObject * parent = nullptr);
-
+    ManagedLayerViewInh( QString viewName, IConnector * connector, QObject * parent = nullptr );
 
 //    template < class ILayer, typename ... Args >
 //    std::shared_ptr < ILayer >
@@ -54,27 +71,44 @@ public:
     virtual
     ~ManagedLayerViewInh() { }
 
-    IConnector * connector();
+    IConnector *
+    connector();
 
 private:
 
-    virtual void p_addLayer( ManagedLayer * layer);
+    virtual ManagedLayer::ID
+    p_addLayer( ManagedLayer * layer );
 
     friend class ManagedLayer;
 
-    std::vector< ManagedLayer * > m_layers;
+    std::vector < ManagedLayer * > m_layers;
     IConnector * m_connector = nullptr;
+    ManagedLayer::ID m_nextId = 0;
 
     Carta::Lib::IRemoteVGView::UniquePtr m_rvgv = nullptr;
-
 };
 
 class EyesLayer : public ManagedLayer
 {
     Q_OBJECT
+
 public:
 
-    EyesLayer( ManagedLayerViewInh * mlv );
+    EyesLayer( ManagedLayerViewInh * mlv, QString layerName )
+        : ManagedLayer( mlv, layerName )
+    { }
+
+private:
+};
+
+class BouncyLayer : public ManagedLayer
+{
+    Q_OBJECT
+
+public:
+
+    BouncyLayer( ManagedLayerViewInh * mlv, QString layerName )
+        : ManagedLayer( mlv, layerName ) { }
 };
 
 //std::shared_ptr < ManagedLayerViewInh >
@@ -104,5 +138,21 @@ static auto foo = apiTest();
 
 */
 
+static int
+apiTest()
+{
+    // create a new managed layer view
+    IConnector * connector = nullptr;
+    auto mlv = new ManagedLayerViewInh( "mlv1", connector, nullptr );
+
+    // add some layers to the view
+    auto eyesLayer1 = new EyesLayer( mlv, "eyes1" );
+    auto eyesLayer2 = new EyesLayer( mlv, "eyes two" );
+    auto bouncyBallLayer1 = new BouncyLayer( mlv, "Bouncy" );
+
+    return 7;
+}
+
+//static int test = apiTest();
 }
 }
