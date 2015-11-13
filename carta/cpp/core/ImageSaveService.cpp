@@ -38,7 +38,8 @@ void ImageSaveService::setOutputSize( QSize size ){
 }
 
 
-void ImageSaveService::setInputView( std::shared_ptr<NdArray::RawViewInterface> view, const QString& viewId ){
+void ImageSaveService::setInputView( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view,
+        const QString& viewId ){
     m_inputView = view;
     m_inputViewId = viewId;
 }

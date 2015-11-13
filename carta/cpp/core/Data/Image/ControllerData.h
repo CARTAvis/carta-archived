@@ -14,9 +14,7 @@
 #include <memory>
 
 
-namespace Image {
-    class ImageInterface;
-}
+
 
 class CoordinateFormatterInterface;
 
@@ -27,6 +25,9 @@ namespace Lib {
     namespace PixelPipeline {
         class CustomizablePixelPipeline;
     }
+    namespace NdArray {
+        class RawViewInterface;
+    }
 }
 namespace Core {
     namespace ImageRenderService {
@@ -36,6 +37,8 @@ namespace Core {
         class ImageSaveService;
     }
 }
+
+
 
 namespace Data {
 
@@ -154,7 +157,7 @@ private:
     /**
      * Returns the underlying image.
      */
-    std::shared_ptr<Image::ImageInterface> _getImage();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
 
     /**
      * Returns the image's file name.
@@ -393,7 +396,7 @@ private:
      */
     void _viewResize( const QSize& newSize );
 
-    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
+    void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
     /**

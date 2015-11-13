@@ -62,7 +62,8 @@ ParsedInfo parse(const QString & filePath)
                                 || raw == "t");
         qDebug() << "Hacks enabled:" << info.m_hacksEnabled << raw;
 
-        info.m_hacksEnabled = json[ "hacksEnabled"].toBool();
+        //info.m_hacksEnabled = json[ "hacksEnabled"].toBool();
+        //qDebug() << "Hacks enabled="<<info.m_hacksEnabled;
     }
 
     // developer layout
@@ -112,6 +113,7 @@ const QStringList & ParsedInfo::pluginDirectories() const
 
 bool ParsedInfo::hacksEnabled() const
 {
+    qDebug() << "Hacks enabled retuning "<<m_hacksEnabled;
     return m_hacksEnabled;
 }
 
@@ -125,6 +127,11 @@ int ParsedInfo::getContourLevelCountMax() const {
 
 int ParsedInfo::getHistogramBinCountMax() const {
     return m_histogramBinCountMax;
+}
+
+const QJsonObject &ParsedInfo::json() const
+{
+    return m_json;
 }
 
 } // namespace MainConfig

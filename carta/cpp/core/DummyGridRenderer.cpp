@@ -21,7 +21,7 @@ DummyGridRenderer::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> 
 {}
 
 void
-DummyGridRenderer::setInputImage( Image::ImageInterface::SharedPtr )
+DummyGridRenderer::setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr )
 { }
 
 void

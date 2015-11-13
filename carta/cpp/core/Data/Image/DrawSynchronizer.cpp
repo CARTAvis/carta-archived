@@ -83,7 +83,7 @@ void DrawSynchronizer::_irsDone( QImage img, int64_t jobId ){
     }
 }
 
-void DrawSynchronizer::setInput( std::shared_ptr<NdArray::RawViewInterface> rawView ){
+void DrawSynchronizer::setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawView ){
     m_cec->setInput( rawView );
 }
 

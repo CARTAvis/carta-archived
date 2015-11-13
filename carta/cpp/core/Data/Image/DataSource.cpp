@@ -261,7 +261,7 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
     int valX = (int)(round(x));
     int valY = (int)(round(y));
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
-        NdArray::RawViewInterface* rawData = _getRawData( frames );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
             Carta::Lib::NdArray::TypedView<double> view( rawData, false );
             double val =  view.get( { valX, valY } );
@@ -347,7 +347,7 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
     bool intensityFound = false;
     int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL );
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         // read in all values from the view into an array
@@ -382,7 +382,7 @@ QColor DataSource::_getNanColor() const {
 double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
     int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL);
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
         u_int64_t countBelow = 0;
@@ -423,7 +423,7 @@ QString DataSource::_getPixelUnits() const {
     return units;
 }
 
-NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         int imageDim =m_image->dims().size();
@@ -481,8 +481,8 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     return cacheIndex;
 }
 
-std::shared_ptr<Image::ImageInterface> DataSource::_getPermutedImage() const {
-    std::shared_ptr<Image::ImageInterface> permuteImage(nullptr);
+std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermutedImage() const {
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> permuteImage(nullptr);
     if ( m_image ){
         //Build a vector showing the permute order.
         int imageDim = m_image->dims().size();
@@ -501,9 +501,8 @@ std::shared_ptr<Image::ImageInterface> DataSource::_getPermutedImage() const {
     return permuteImage;
 }
 
-
-NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
-    NdArray::RawViewInterface* rawData = nullptr;
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     std::vector<int> mFrames = _fitFramesToImage( frames );
     if ( m_permuteImage ){
         int imageDim =m_permuteImage->dims().size();
@@ -593,7 +592,7 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
     int frameSize = frames.size();
     CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    std::shared_ptr<NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
     std::vector<int> dimVector = view->dims();
     //Update the clip values
     if ( recomputeClipsOnNewFrame ){
@@ -761,12 +760,12 @@ void DataSource::_setGamma( double gamma ){
 }
 
 
-void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
+void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex];
-    NdArray::Double doubleView( view.get(), false );
+    Carta::Lib::NdArray::Double doubleView( view.get(), false );
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, {minClipPercentile, maxClipPercentile });
     bool clipsChanged = false;
@@ -792,9 +791,9 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
     }
 }
 
-std::shared_ptr<NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){
+std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){
     // get a view of the data using the slice description and make a shared pointer out of it
-    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( frames ) );
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view( _getRawData( frames ) );
     // tell the render service to render this job
     QString renderId = _getViewIdCurrent( frames );
     m_renderService-> setInputView( view, renderId/*, m_axisIndexX, m_axisIndexY*/ );

@@ -21,14 +21,16 @@ namespace Lib {
     namespace PixelPipeline {
         class CustomizablePixelPipeline;
     }
-    namespace NdArray {
-        class RawViewInterface;
-    }
-
     namespace Image {
         class ImageInterface;
     }
+    namespace NdArray {
+        class RawViewInterface;
+    }
 }
+
+
+
 namespace Core {
     namespace ImageRenderService {
         class Service;
@@ -284,16 +286,16 @@ private:
      * @param axisIndex - the axis for the frames or -1 for all axes.
      * @return the raw data or nullptr if there is none.
      */
-    NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
+    Carta::Lib::NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
 
     /**
      * Returns the raw data for the current view.
      * @param frames - a list of current image frames.
      * @return the raw data for the current view or nullptr if there is none.
      */
-    NdArray::RawViewInterface* _getRawData( const std::vector<int> frames ) const;
+    Carta::Lib::NdArray::RawViewInterface* _getRawData( const std::vector<int> frames ) const;
 
-    std::shared_ptr<Image::ImageInterface> _getPermutedImage() const;
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getPermutedImage() const;
 
     //Returns an identifier for the current image slice being rendered.
     QString _getViewIdCurrent( const std::vector<int>& frames ) const;
@@ -424,7 +426,7 @@ private:
      * such as when different display axes have been selected.
      * @param frames - a list of current image frames.
      */
-    std::shared_ptr<NdArray::RawViewInterface> _updateRenderedView( const std::vector<int>& frames );
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> _updateRenderedView( const std::vector<int>& frames );
 
     /**
      * Resize the view of the image.
@@ -432,7 +434,7 @@ private:
     void _viewResize( const QSize& newSize );
 
 
-    void _updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
+    void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
     /**
@@ -450,7 +452,7 @@ private:
 
     //Pointer to image interface.
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;
-    std::shared_ptr<Image::ImageInterface> m_permuteImage;
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> m_permuteImage;
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;

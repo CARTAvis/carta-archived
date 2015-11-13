@@ -37,7 +37,7 @@ Histogram1::_getChannelBounds( double freqMin, double freqMax, const QString & u
 {
     std::pair < int, int > bounds( - 1, - 1 );
     if ( ! m_cartaImage ) {
-        qWarning() << "No image available for channel bounds.";
+        //qWarning() << "No image available for channel bounds.";
         return bounds;
     }
 
@@ -117,7 +117,7 @@ Histogram1::_getFrequencyBounds( int channelMin, int channelMax, const QString &
 {
     std::pair < double, double > bounds( - 1, - 1 );
     if( ! m_cartaImage) {
-        qWarning() << "No image available for channel bounds.";
+        //qWarning() << "No image available for channel bounds.";
         return bounds;
     }
 
@@ -173,7 +173,6 @@ Histogram1::handleHook( BaseHook & hookData )
             = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
 
         const auto & images = hook.paramsPtr-> dataSource;
-        qWarning() << "images[0]" << images[0].get();
         if ( images.size() == 0 ) {
             return false;
         }

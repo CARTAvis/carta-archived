@@ -16,7 +16,7 @@ ManagedLayer::ManagedLayer(ManagedLayerViewInh * mlv)
     m_mlv-> p_addLayer( this);
 }
 
-ManagedLayerViewInh::ManagedLayerViewInh(QString viewName, IConnector * connector, QObject * parent)
+ManagedLayerViewInh::ManagedLayerViewInh(QString viewName, IConnector * connector, QObject * /*parent*/)
 {
     m_connector = connector;
 

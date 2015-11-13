@@ -437,6 +437,11 @@ public:
         return m_dims;
     }
 
+    virtual std::shared_ptr<Carta::Lib::Image::ImageInterface>
+            getPermuted(const std::vector<int> & /*indices*/){
+            qFatal( "Not implemented");
+        }
+
     virtual bool
     hasMask() const override
     {

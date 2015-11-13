@@ -143,13 +143,14 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
                 endPos[spectralIndex] = endIndex;
 
                 casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
-                m_subImage.reset(new casa::SubImage<T> (*image, channelSlicer ));
-                imageHistogram = new casa::LatticeHistograms<T>( *m_subImage.get() );
+                casa::ImageInterface<T>* img = new casa::SubImage<T>(*image, channelSlicer );
+                imageHistogram = new casa::LatticeHistograms<T>( *img );
 			}
 		}
 	}
 	else {
-		imageHistogram = new casa::LatticeHistograms<T>( *m_image );
+	    casa::ImageInterface<T>* img = new casa::SubImage<T>(*image );
+		imageHistogram = new casa::LatticeHistograms<T>( *img );
 	}
 	return imageHistogram;
 }
@@ -182,13 +183,11 @@ bool ImageHistogram<T>::_reset(){
 			}
 			else {
 				//Make the histogram based on the region
-				m_subImage.reset(new casa::SubImage<T>( *m_image, *m_region ));
-				if ( m_subImage.get() != NULL ){
-					m_histogramMaker = _filterByChannels( m_subImage.get() );
-				}
-				else {
-					success = false;
-				}
+				casa::SubImage<T>* subImage = new casa::SubImage<T>( *m_image, *m_region );
+				m_histogramMaker = _filterByChannels( subImage );
+				//Filter will make a new image based on this one so we can delete this sub
+				//image once filter is done.
+				delete subImage;
 			}
 			if ( success ){
 				success = compute();

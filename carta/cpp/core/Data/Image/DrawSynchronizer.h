@@ -5,9 +5,7 @@
 #pragma once
 #include <CartaLib/VectorGraphics/VGList.h>
 
-namespace NdArray {
-    class RawViewInterface;
-}
+
 
 namespace Carta {
 namespace Lib {
@@ -16,6 +14,9 @@ namespace Lib {
     class ContourSet;
     namespace VectorGraphics {
         class VGList;
+    }
+    namespace NdArray {
+        class RawViewInterface;
     }
 }
 
@@ -42,7 +43,7 @@ public:
      * Sets the data to be used in calculating contours.
      * @param rawView - the data for calculating contours.
      */
-    void setInput( std::shared_ptr<NdArray::RawViewInterface> rawView );
+    void setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawView );
 
     /**
      * Sets the contour set to be drawn.

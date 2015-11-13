@@ -1054,9 +1054,8 @@ void Histogram::refreshState() {
 }
 
 void Histogram::_refreshView(){
-//    QImage * histogramImage = m_histogram->toImage();
-//    m_view->resetImage( *histogramImage );
-    m_view->resetImage( m_histogram->toImage() );
+    QImage * histogramImage = m_histogram->toImage();
+    m_view->resetImage( *histogramImage );
     m_view->scheduleRedraw();
 }
 

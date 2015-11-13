@@ -34,7 +34,7 @@ public:
     setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> displayInfo ) override;
 
     virtual void
-    setInputImage( Image::ImageInterface::SharedPtr image ) override;
+    setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr image ) override;
 
     virtual void
     setOutputSize( const QSize & size ) override;

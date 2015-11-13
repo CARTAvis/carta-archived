@@ -65,7 +65,7 @@ public:
         return m_unit;
     }
 
-    virtual std::shared_ptr<Image::ImageInterface>
+    virtual std::shared_ptr<Carta::Lib::Image::ImageInterface>
     getPermuted(const std::vector<int> & indices ) override{
 
         //Make sure the passed in indices make sense for this image.
@@ -108,7 +108,7 @@ public:
 
         //Finish the copy and create a CARTA image with permuted axes.
         casa::ImageUtilities::copyMiscellaneous( *newImage, *m_casaII );
-        std::shared_ptr<Image::ImageInterface> permuteImage =  create( newImage);
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> permuteImage =  create( newImage);
         return permuteImage;
     }
 

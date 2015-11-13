@@ -7,9 +7,7 @@
 
 #include <QString>
 
-namespace Image {
-class ImageInterface;
-}
+
 
 namespace Carta {
 

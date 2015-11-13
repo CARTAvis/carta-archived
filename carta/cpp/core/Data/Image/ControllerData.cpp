@@ -228,8 +228,8 @@ QString ControllerData::_getFileName() const {
     return fileName;
 }
 
-std::shared_ptr<Image::ImageInterface> ControllerData::_getImage(){
-    std::shared_ptr<Image::ImageInterface> image;
+std::shared_ptr<Carta::Lib::Image::ImageInterface> ControllerData::_getImage(){
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
     if ( m_dataSource ){
         image = m_dataSource->_getImage();
     }
@@ -478,7 +478,7 @@ void ControllerData::_render( const std::vector<int>& frames, const Carta::Lib::
     }
     gridService->setAxisDisplayInfo( axisInfo );
 
-    std::shared_ptr<NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
     m_drawSync->setInput( rawData );
     m_drawSync->setContours( m_dataContours );
 
@@ -527,7 +527,7 @@ QString ControllerData::_saveImage( const QString& saveName, double scale,
         m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
                pipeline );
 
-        std::shared_ptr<NdArray::RawViewInterface> view( m_dataSource->_getRawData( frames ));
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view( m_dataSource->_getRawData( frames ));
         if ( view != nullptr ){
             QString viewId = m_dataSource->_getViewIdCurrent( frames );
             m_saveService->setInputView( view, viewId );
@@ -689,7 +689,7 @@ void ControllerData::_setZoom( double zoomAmount){
 
 
 
-void ControllerData::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
+void ControllerData::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     if ( m_dataSource ){
         m_dataSource->_updateClips( view,  minClipPercentile, maxClipPercentile, frames );

@@ -20,14 +20,18 @@
 class ImageView;
 class CoordinateFormatterInterface;
 
-namespace NdArray {
-    class RawViewInterface;
-}
+
 
 namespace Carta {
     namespace Lib {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
+        }
+        namespace Image {
+            class ImageInterface;
+        }
+        namespace NdArray {
+            class RawViewInterface;
         }
     }
 }
@@ -162,7 +166,7 @@ public:
      */
     bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
 
-    std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
 
     /**
      * Return the current axis frame.

@@ -1,14 +1,14 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
-#include "Controller.h"
+#include "Data/Image/Controller.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
 #include "Data/Image/Contour/DataContours.h"
+#include "ControllerData.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
-#include "ControllerData.h"
 #include "DataSource.h"
 
 #include "Data/Error/ErrorManager.h"
@@ -470,10 +470,9 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
     return percentile;
 }
 
-
-std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Controller::getDataSources(){
+std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::getDataSources(){
     //For right now, we are only going to do a histogram of a single image.
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_datas.size();
     if ( dataCount > 0 ){
         int dataIndex = _getDataIndex();

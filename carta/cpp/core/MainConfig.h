@@ -60,6 +60,8 @@ protected:
     int m_histogramBinCountMax = -1;
     int m_contourLevelCountMax = -1;
 
+    QJsonObject m_json;
+
     friend ParsedInfo parse( const QString & filePath);
 };
 

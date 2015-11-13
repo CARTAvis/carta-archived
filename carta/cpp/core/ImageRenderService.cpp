@@ -216,7 +216,7 @@ Service::render( JobId jobId )
     return m_lastSubmittedJobId;
 }
 
-Service::Service( QObject * parent ) : QObject( parent ),
+Service::Service( QObject * parent ) : Carta::Lib::IImageRenderService( parent ),
         m_defaultNan( true ),
         m_nanColor( 255, 0, 0 )
 {
