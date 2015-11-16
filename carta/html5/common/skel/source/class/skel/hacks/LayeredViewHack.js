@@ -14,7 +14,9 @@ qx.Class.define( "skel.hacks.LayeredViewHack", {
         this.m_connector = mImport( "connector");
 
         this.setLayout( new qx.ui.layout.VBox( 3));
-        this.m_vgview = new skel.boundWidgets.View.View( this.m_viewName);
+        //this.m_vgview = new skel.boundWidgets.View.View( this.m_viewName);
+        this.m_vgview = new skel.hacks.VGView( this.m_viewName);
+
         this.add( this.m_vgview, { flex: 1 });
 
         this.m_status = new qx.ui.basic.Label( "status...");

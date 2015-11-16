@@ -12,6 +12,87 @@ namespace Carta
 {
 namespace Lib
 {
+
+/// brainstorming:
+/// - right now we really only care about users with a keyboard and mouse, but...
+/// - we want the ability (in the future) to make the viewer work on mobile devices, which
+///   are most likely tablets with touch screens
+/// - we want the ability to make the user interface as intuitive as possible on both
+///   mobile and desktop
+/// - we want to avoid silly emulation of mouse events using touch, because that would not
+///   produce intuitive experience for touch users, consider this as an example:
+///   - on desktop we pan using a single tap
+///   - on desktop we zoom using mouse scroll-wheel
+///   - on touch the accepted zoom is via pinch, and pan is by sliding a single finger,
+///     and you can seemlessly swith from one to the other (try google maps for example)
+///   - how would you emulate the desktop pan/zoom with the touches to produce the
+///     expected behavior?
+/// - some users will want to assign different gestures to different actions, it would be nice
+///   if we could do all of it in javascript on the client side
+/// - the VGView will support some basic events that have easy counterparts on both mouse &
+///   touch devices
+/// - but it'll be easy to extend/override these
+/// - if we do want to react to specific events (like pinch, on keyboard), it should be possible
+///   to do so, but maybe we should refrain from those as much as possible
+///
+/// Data associated with events:
+/// - point P
+/// - scalar S
+/// - integer I (we could cram this into S)
+/// - boolean B
+///
+/// single tap: P
+/// double tap: P
+/// pinch: P,S
+/// two finger tap: P, P
+/// scroll-wheel: P, S
+/// two finger drag: P, P
+/// hover: P
+/// keyboard: P, I
+/// left-click: P, S
+/// middle-click: P, S
+/// right-click: P, S
+/// shift-click: P, S
+/// ctrl-alt-shift-right-click: P,S or P,I or P,I,I, or P,I,B,B,B
+/// swipe: P, S, S (origin, direction angle, speed)
+///
+/// avoiding virtual inheritance... passing pointers in signals can be tricky business,
+/// because who is the owner (consider two receivers in separate threads, connected using
+/// queued connection, who frees up the pointer?). This could probably be resolved using
+/// smart (shared?) pointers, but we need to test it.
+///
+class InputEvent {
+public:
+    enum class Type {
+        Tap, // e.g. click, or one finger tap
+        Press, // e.g. long one finger press, or middle mouse click?
+        DoubleTap, // e.g. double click, or double tap of a single finger
+        Hover, // e.g. mouse move, or long press and drag? or something stateful?
+        Custom
+    };
+
+    InputEvent( Type t, QString ct = QString()) { m_type = t; m_customType = ct; }
+
+    Type type() const { return m_type; }
+    QString custom() const { return m_customType; }
+    const std::vector<QPointF> & points() const { return m_points; }
+    const std::vector<float> & scalars() const { return m_scalars; }
+    const std::vector<int64_t> & integers() const { return m_integers; }
+    const std::vector<bool> & bools() const { return m_bools; }
+
+    /// if we really need to store something else in here?
+    const std::vector<char> & extraBuff() const { return m_extraBuffer; }
+
+private:
+    Type m_type;
+    QString m_customType;
+    std::vector<QPointF> m_points;
+    std::vector<float> m_scalars;
+    std::vector<int64_t> m_integers;
+    std::vector<bool> m_bools;
+    std::vector<char> m_extraBuffer;
+};
+
 ///
 /// \brief An API specification for rendering graphical views to be displayed by clients.
 ///
@@ -32,6 +113,7 @@ public:
 
     typedef Carta::Lib::VectorGraphics::VGList VGList;
 
+    /// constructor
     IRemoteVGView( QObject * parent ) : QObject( parent ) { }
 
     /// returns size of the view in client (the master's UI)
@@ -42,13 +124,31 @@ public:
     virtual const QString &
     getRVGViewName() = 0;
 
-    /// sets the raster to be rendered in the view
+    /// sets the raster to be rendered in the view, as soon as possible,
+    /// without synchronizing with VG
     virtual void
     setRaster( const QImage & image ) = 0;
 
-    /// sets the VG to be rendered on top of the raster
+    /// sets the VG to be rendered on top of the raster, as soon as possible
+    /// without synchronizing with raster
     virtual void
     setVG( const VGList & vglist ) = 0;
+
+    /// sets the raster and VG simultaneously, making sure both appear at the same time
+    virtual void
+    setRasterAndVG( const QImage & image, const VGList & vglist ) = 0;
+
+    /// sets where VG rendered (client vs server)
+    virtual void
+    setVGrenderedOnServer( bool flag) = 0;
+
+    /// returns true if VG is rendered on server, false if on client
+    virtual bool
+    isVGrenderedOnServer() = 0;
+
+    /// tell UI which events we want to receive
+    virtual void
+    enableInputEvent( InputEvent::Type type, QString name = QString()) = 0;
 
 public slots:
 
@@ -66,6 +166,10 @@ signals:
     /// emitted when client repainted the view
     void
     repainted( qint64 id );
+
+    /// emitted when client sends us a gesture
+    void
+    inputEvent( InputEvent e);
 };
 
 class IQImageCombiner
@@ -81,6 +185,7 @@ public:
     ~IQImageCombiner() { }
 };
 
+/*
 class LayeredRemoteVGView;
 
 class LayerHandle
@@ -101,8 +206,15 @@ public:
     virtual
     ~LayerHandle() { }
 };
+*/
 
 /// lowest level functionality for layered views
+/// - allows arbitrary many layers, and ability to associate compositors with each raster
+/// layer, that's about it
+/// - no layer deletion, re-ordering, funnelling input, etc...
+/// this is still in experimental stage actually, we difinitely need input apis for example
+/// maybe we want to implement this on top of an existing instance of IRemoteVGView instead
+/// of creating our own internally?
 class LayeredRemoteVGView
     : public QObject
 {
@@ -184,14 +296,13 @@ private:
     qint64 m_repaintId = - 1;
     QTimer * m_timer = nullptr;
 
-
 private slots:
 
     void
     p_timerCB();
 
-    void p_sizeChangedCB();
-
+    void
+    p_sizeChangedCB();
 };
 
 /// paints one raster over the other one, overwriting the bottom one

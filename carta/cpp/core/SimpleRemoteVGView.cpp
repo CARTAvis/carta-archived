@@ -41,6 +41,31 @@ SimpleRemoteVGView::setVG( const Lib::IRemoteVGView::VGList & vglist )
     m_vgList = vglist;
 }
 
+void SimpleRemoteVGView::setRasterAndVG(const QImage & image, const Lib::IRemoteVGView::VGList & vglist)
+{
+    setRaster( image);
+    setVG( vglist);
+}
+
+void SimpleRemoteVGView::setVGrenderedOnServer(bool flag)
+{
+    /// \todo client side rendering is not implemented yet
+    CARTA_ASSERT( flag == true);
+    Q_UNUSED( flag);
+}
+
+bool SimpleRemoteVGView::isVGrenderedOnServer()
+{
+    /// \todo only server side is supported at the moment
+    return true;
+}
+
+void SimpleRemoteVGView::enableInputEvent( Carta::Lib::InputEvent::Type type, QString name)
+{
+    Q_UNUSED( type);
+    Q_UNUSED( name);
+}
+
 qint64
 SimpleRemoteVGView::scheduleRepaint( qint64 id )
 {
