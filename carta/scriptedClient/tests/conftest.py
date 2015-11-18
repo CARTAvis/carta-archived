@@ -1,7 +1,7 @@
 import os
 import time
 import pytest
-import cartavis
+import carta.cartavis as cartavis
 
 def pytest_addoption(parser):
     parser.addoption("--directory", action="store", help="The directory where\

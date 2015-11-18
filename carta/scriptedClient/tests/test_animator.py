@@ -1,4 +1,4 @@
-import cartavis 
+import carta.cartavis as cartavis
 import os
 import time
 import pyautogui
