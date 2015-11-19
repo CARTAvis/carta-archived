@@ -13,6 +13,14 @@ qx.Class.define( "skel.hacks.VGView", {
 
     extend: qx.ui.container.Composite,
 
+    statics:
+    {
+        INPUT_ALL_BUILTINS: "all",
+        INPUT_TAP: "tap",
+        INPUT_DRAG: "drag",
+        INPUT_HOVER: "hover"
+    },
+
     events:
     {
         "viewRefreshed" : "qx.event.type.Data"
@@ -33,11 +41,6 @@ qx.Class.define( "skel.hacks.VGView", {
         // input events)
         this.m_overlayWidget = new qx.ui.core.Widget();
         this.add( this.m_overlayWidget, {edge: 0} );
-
-        this.m_overlayWidget.addListener( "click", function()
-        {
-            console.log( "Click" );
-        } );
 
         // create a settings UI layer
         this.m_settingsLayer = this._createSettingsUI();
@@ -117,6 +120,65 @@ qx.Class.define( "skel.hacks.VGView", {
             return this.m_viewWidget;
         },
 
+        setQuality: function( quality) {
+            this.m_viewWidget.setQuality( quality);
+            var qtext = "" + quality;
+            if( quality === 0) {
+                qtext += " (lowest JPG)";
+            }
+            if( quality === 100) {
+                qtext += " (highest JPG)";
+            }
+            if( quality === 101) {
+                qtext += " (PNG)";
+            }
+            if( quality === 102) {
+                qtext += " (MPEG*)";
+            }
+            this.m_qualityLabel.setValue( "Quality: " + qtext);
+        },
+
+        /**
+         * Installs built in handler[s].
+         * @param which which handlers to install
+         *
+         * Example for use: installDefaultInputHandler([ INPUT_TAP, INPUT_HOVER ])
+         */
+        installDefaultInputHandler: function( list)
+        {
+            if( ! qx.lang.Type.isArray( which ) ) {
+                list = [list];
+            }
+            for( var which in list ) {
+                which = list[which];
+                var handled = false;
+                if( which === this.INPUT_TAP || which === this.INPUT_ALL_BUILTINS) {
+                    console.log( "Installing tap handler on view", this.m_viewWidget.viewName())
+                    handled = true;
+                    this.overlayWidget().addListener( "click", function( e )
+                    {
+                        var box = this.overlayWidget().getContentLocation();
+                        var mouseX = e.getDocumentLeft() - box.left
+                        var mouseY = e.getDocumentTop() - box.top
+                        this.sendInputEvent( {type: "tap", x: mouseX, y: mouseY} );
+                    }.bind( this ) );
+                }
+                if( ! handled) {
+                    console.warn( "Don't understand built in event", which);
+                }
+            }
+        },
+
+        /**
+         * Send an input event to the server side.
+         * @param e
+         */
+        sendInputEvent: function(e) {
+            console.log( "Sending input event", e);
+            var params = JSON.stringify( e);
+            this.m_connector.sendCommand( "vgview/inputEvent/" + this.m_viewWidget.viewName(), params);
+        },
+
         _rasterViewRefreshCB: function()
         {
 
@@ -189,24 +251,6 @@ qx.Class.define( "skel.hacks.VGView", {
             }
 
             return settings;
-        },
-
-        setQuality: function( quality) {
-            this.m_viewWidget.setQuality( quality);
-            var qtext = "" + quality;
-            if( quality === 0) {
-                qtext += " (lowest JPG)";
-            }
-            if( quality === 100) {
-                qtext += " (highest JPG)";
-            }
-            if( quality === 101) {
-                qtext += " (PNG)";
-            }
-            if( quality === 102) {
-                qtext += " (MPEG*)";
-            }
-            this.m_qualityLabel.setValue( "Quality: " + qtext);
         },
 
         _qualitySliderCB: function(e) {

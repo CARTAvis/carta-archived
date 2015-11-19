@@ -9,10 +9,13 @@
 #include "../IPlatform.h"
 #include "CartaLib/IImage.h"
 #include "ImageViewController.h"
+#include "LayeredViewDemo.h"
 
 #include <QPixmap>
 #include <QObject>
 
+namespace Carta
+{
 namespace Hacks
 {
 
@@ -62,8 +65,12 @@ protected:
     QString m_statePrefix;
 
     // view controller with the new render service
-    Hacks::ImageViewController::UniquePtr m_imageViewController;
+    Carta::Hacks::ImageViewController::UniquePtr m_imageViewController;
     std::vector < Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr > m_allColormaps;
+
+    LayeredViewDemo::UniquePtr m_lvDemo = nullptr;
 
 };
 }
+}
+

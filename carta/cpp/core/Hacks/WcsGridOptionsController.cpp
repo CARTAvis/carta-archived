@@ -6,6 +6,8 @@
 #include "core/Globals.h"
 #include <functional>
 
+namespace Carta
+{
 namespace Hacks
 {
 WcsGridOptionsController::WcsGridOptionsController(
@@ -152,4 +154,5 @@ void WcsGridOptionsController::stdVarCB()
     emit updated();
 }
 
+}
 }

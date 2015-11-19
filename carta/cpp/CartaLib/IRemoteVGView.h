@@ -7,11 +7,113 @@
 #include <QObject>
 #include <QString>
 #include <QImage>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 namespace Carta
 {
 namespace Lib
 {
+namespace InputEvents
+{
+class BaseEvent
+{
+public:
+
+    BaseEvent( const QJsonObject & json )
+    {
+        m_json = json;
+    }
+
+    const QJsonObject &
+    json() const { return m_json; }
+
+private:
+
+    QJsonObject m_json;
+};
+
+class TouchEvent
+{
+public:
+
+    TouchEvent( const BaseEvent & baseEvent )
+    {
+
+        if ( baseEvent.json()["type"] != "tap" ) { return; }
+
+        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+        m_pos.rx() = baseEvent.json()["x"].toDouble();
+        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+        m_valid = true;
+    }
+
+    const QPointF &
+    pos() const { return m_pos; }
+
+    bool
+    valid() const
+    {
+        return m_valid;
+    }
+
+private:
+
+    bool m_valid = false;
+    QPointF m_pos;
+};
+/*
+template < class Type >
+Type *
+convertInputEvent( const BaseEvent & baseEvent )
+{
+    try {
+        return new Type( baseEvent );
+    }
+    catch ( ... ) {
+        return nullptr;
+    }
+}
+*/
+
+static int
+eventApiTest()
+{
+    QString s = "{ 'type': 'tap', 'x': 1, 'y': 2.3 }";
+    qDebug() << "Testing events" << s.toLatin1();
+
+//    QJsonParseError error;
+//    QJsonDocument jdoc = QJsonDocument::fromJson(s.toLatin1(), & error);
+//    if( ! jdoc.isObject()) {
+//        qCritical() << "json error:" << error.errorString();
+//        return 0;
+//    }
+//    QJsonObject jobj = jdoc.object();
+
+    QJsonObject jobj;
+    jobj["type"] = "tap";
+    jobj["x"] = 3.1;
+    jobj["y"] = 7;
+
+//    std::unique_ptr< BaseEvent > be = new BaseEvent( jobj);
+    BaseEvent be( jobj );
+
+    TouchEvent te( be );
+
+//    std::unique_ptr < TouchEvent > te( convertInputEvent < TouchEvent > ( be ) );
+    if ( te.valid() ) {
+        qDebug() << "Touch event good" << te.pos();
+    }
+    else {
+        qDebug() << "Touch event no good";
+    }
+    return 1;
+} // eventApiTest
+
+static auto xxx = eventApiTest();
+}
 
 /// brainstorming:
 /// - right now we really only care about users with a keyboard and mouse, but...
@@ -61,9 +163,12 @@ namespace Lib
 /// queued connection, who frees up the pointer?). This could probably be resolved using
 /// smart (shared?) pointers, but we need to test it.
 ///
-class InputEvent {
+class InputEvent2
+{
 public:
-    enum class Type {
+
+    enum class Type
+    {
         Tap, // e.g. click, or one finger tap
         Press, // e.g. long one finger press, or middle mouse click?
         DoubleTap, // e.g. double click, or double tap of a single finger
@@ -71,27 +176,49 @@ public:
         Custom
     };
 
-    InputEvent( Type t, QString ct = QString()) { m_type = t; m_customType = ct; }
+    InputEvent2( Type t, QString ct = QString(), QJsonObject json = QJsonObject() )
+    {
+        m_type = t;
+        m_customType = ct;
+        m_json = json;
+    }
 
-    Type type() const { return m_type; }
-    QString custom() const { return m_customType; }
-    const std::vector<QPointF> & points() const { return m_points; }
-    const std::vector<float> & scalars() const { return m_scalars; }
-    const std::vector<int64_t> & integers() const { return m_integers; }
-    const std::vector<bool> & bools() const { return m_bools; }
+    Type
+    type() const { return m_type; }
+
+    QString
+    custom() const { return m_customType; }
+
+    const std::vector < QPointF > &
+    points() const { return m_points; }
+
+    const std::vector < float > &
+    scalars() const { return m_scalars; }
+
+    const std::vector < int64_t > &
+    integers() const { return m_integers; }
+
+    const std::vector < bool > &
+    bools() const { return m_bools; }
 
     /// if we really need to store something else in here?
-    const std::vector<char> & extraBuff() const { return m_extraBuffer; }
+    const std::vector < char > &
+    extraBuff() const { return m_extraBuffer; }
 
 private:
+
     Type m_type;
     QString m_customType;
-    std::vector<QPointF> m_points;
-    std::vector<float> m_scalars;
-    std::vector<int64_t> m_integers;
-    std::vector<bool> m_bools;
-    std::vector<char> m_extraBuffer;
+    std::vector < QPointF > m_points;
+    std::vector < float > m_scalars;
+    std::vector < int64_t > m_integers;
+    std::vector < bool > m_bools;
+    std::vector < char > m_extraBuffer;
+
+    QJsonObject m_json;
 };
+
+typedef InputEvents::BaseEvent InputEvent;
 
 ///
 /// \brief An API specification for rendering graphical views to be displayed by clients.
@@ -140,15 +267,15 @@ public:
 
     /// sets where VG rendered (client vs server)
     virtual void
-    setVGrenderedOnServer( bool flag) = 0;
+    setVGrenderedOnServer( bool flag ) = 0;
 
     /// returns true if VG is rendered on server, false if on client
     virtual bool
     isVGrenderedOnServer() = 0;
 
     /// tell UI which events we want to receive
-    virtual void
-    enableInputEvent( InputEvent::Type type, QString name = QString()) = 0;
+//    virtual void
+//    enableInputEvent( InputEvent::Type type, QString name = QString() ) = 0;
 
 public slots:
 
@@ -169,7 +296,7 @@ signals:
 
     /// emitted when client sends us a gesture
     void
-    inputEvent( InputEvent e);
+    inputEvent( InputEvent e );
 };
 
 class IQImageCombiner
@@ -223,9 +350,12 @@ class LayeredRemoteVGView
 
 public:
 
-    static
-    LayeredRemoteVGView::SharedPtr
-    create( IConnector * connector, QString viewName, QObject * parent = nullptr );
+//    static
+//    LayeredRemoteVGView::SharedPtr
+//    create( IConnector * connector, QString viewName, QObject * parent = nullptr );
+
+    /// constructor
+    LayeredRemoteVGView( IConnector * connector, QString viewName, QObject * parent = nullptr );
 
     int
     nRasterLayers();
@@ -254,6 +384,8 @@ public:
 //    LayerHandle
 //    addVGLayer();
 
+    QString viewName();
+
     QSize
     getClientSize();
 
@@ -274,10 +406,11 @@ signals:
     void
     repainted( qint64 id );
 
-private:
+    /// emitted when client sends us a gesture
+    void
+    inputEvent( InputEvent e );
 
-    /// private constructor to make sure we only create shared pointers of this
-    LayeredRemoteVGView( IConnector * connector, QString viewName, QObject * parent = nullptr );
+private:
 
     IRemoteVGView::UniquePtr m_vgView = nullptr;
 

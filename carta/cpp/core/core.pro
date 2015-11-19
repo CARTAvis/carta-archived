@@ -96,7 +96,8 @@ HEADERS += \
     DummyGridRenderer.h \
     coreMain.h \
     SimpleRemoteVGView.h \
-    Hacks/ManagedLayerView.h
+    Hacks/ManagedLayerView.h \
+    Hacks/LayeredViewDemo.h
 
 SOURCES += \
     Viewer.cpp \
@@ -177,7 +178,8 @@ SOURCES += \
     DummyGridRenderer.cpp \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \
-    Hacks/ManagedLayerView.cpp
+    Hacks/ManagedLayerView.cpp \
+    Hacks/LayeredViewDemo.cpp
 
 
 #message( "common            PWD=$$PWD")

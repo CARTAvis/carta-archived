@@ -5,6 +5,7 @@
 #include "SimpleRemoteVGView.h"
 #include "IConnector.h"
 #include <QDebug>
+#include <functional>
 
 namespace Carta
 {
@@ -60,11 +61,11 @@ bool SimpleRemoteVGView::isVGrenderedOnServer()
     return true;
 }
 
-void SimpleRemoteVGView::enableInputEvent( Carta::Lib::InputEvent::Type type, QString name)
-{
-    Q_UNUSED( type);
-    Q_UNUSED( name);
-}
+//void SimpleRemoteVGView::enableInputEvent( Carta::Lib::InputEvent::Type type, QString name)
+//{
+//    Q_UNUSED( type);
+//    Q_UNUSED( name);
+//}
 
 qint64
 SimpleRemoteVGView::scheduleRepaint( qint64 id )
@@ -95,6 +96,12 @@ SimpleRemoteVGView::SimpleRemoteVGView( QObject * parent,
     m_raster.fill( 0xff000000 );
 
     m_connector-> registerView( this );
+
+    using namespace std::placeholders;
+
+    m_connector->addCommandCallback(
+                QString( "vgview/inputEvent/%1").arg(viewName),
+                std::bind(  & Me::inputEventCB, this, _1, _2, _3));
 }
 
 void
@@ -141,6 +148,17 @@ SimpleRemoteVGView::handleKeyEvent( const QKeyEvent & /*event*/ )
 void SimpleRemoteVGView::viewRefreshed(qint64 id)
 {
     Q_UNUSED( id);
+}
+
+QString SimpleRemoteVGView::inputEventCB(const QString & cmd, const QString & params, const QString & sessionId)
+{
+    Q_UNUSED( cmd);
+    Q_UNUSED( sessionId);
+    qDebug() << "Input event[" << this->m_viewName << "]:" << params;
+
+//    emit inputEvent( Carta::Lib::InputEvent( Carta::Lib::InputEvent::Type::Custom, "tap"));
+    emit inputEvent( Carta::Lib::InputEvent( QJsonDocument::fromJson( params.toLatin1()).object()));
+    return QString();
 }
 }
 }

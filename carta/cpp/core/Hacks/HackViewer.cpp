@@ -17,6 +17,8 @@
 #include <QPainter>
 #include <set>
 
+namespace Carta
+{
 namespace Hacks
 {
 HackViewer::HackViewer( QString prefix ) :
@@ -166,6 +168,7 @@ HackViewer::start()
     prefixedSetState( "knownSkyCS/count", "5" );
 
     // layered view stuff
+    /*
     static Carta::Lib::IRemoteVGView::SharedPtr vgview( m_connector-> makeRemoteVGView( "vgview1" ) );
     QImage img( 200, 100, QImage::Format_ARGB32_Premultiplied );
     img.fill( 0xff000000 );
@@ -208,6 +211,9 @@ HackViewer::start()
              );
     timer->setInterval( 200 );
     timer->start();
+*/
+    // managed layer demo
+    m_lvDemo.reset( new LayeredViewDemo( this));
 
     // layered view 2 stuff
     auto ccl = [] ( int x, int y, int r, QColor color ) -> QImage {
@@ -220,8 +226,11 @@ HackViewer::start()
         p.end();
         return img;
     };
-    static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2 =
-        Carta::Lib::LayeredRemoteVGView::create( m_connector, "vgview2", this );
+//    static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2 =
+//        Carta::Lib::LayeredRemoteVGView::create( m_connector, "vgview2", this );
+    static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2(
+        new Carta::Lib::LayeredRemoteVGView( m_connector, "vgview2", this ));
+
     vgview2-> setRasterLayer( 0, ccl( 50, 50, 45, "white" ) );
     auto acombgreen = std::make_shared < Carta::Lib::PixelMaskCombiner > ();
     acombgreen-> setAlpha( 1.0 );
@@ -351,6 +360,8 @@ HackViewer::prefixedAddStateCallback( QString path, IConnector::StateChangedCall
     return m_connector-> addStateCallback( m_statePrefix + "/" + path, cb );
 }
 }
+}
+
 
 /// experiment, currently unused
 ///

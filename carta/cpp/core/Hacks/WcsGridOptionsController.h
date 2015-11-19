@@ -13,6 +13,8 @@
 #include "core/Hacks/SharedState.h"
 #include <QObject>
 
+namespace Carta
+{
 namespace Hacks
 {
 namespace SS = Carta::Lib::SharedState;
@@ -67,4 +69,5 @@ private:
     SS::IntVar::UniquePtr m_currentSkyCS;
 
 };
+}
 }

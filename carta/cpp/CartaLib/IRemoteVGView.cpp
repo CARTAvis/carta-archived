@@ -13,14 +13,14 @@ namespace Carta
 {
 namespace Lib
 {
-LayeredRemoteVGView::SharedPtr
-LayeredRemoteVGView::create( IConnector * connector, QString viewName, QObject * parent )
-{
-    //        return std::make_shared< LayeredRemoteVGView > ( connector, viewName, parent);
-    // we love C++ /sarcasm
-    LayeredRemoteVGView * lv = new LayeredRemoteVGView( connector, viewName, parent );
-    return std::shared_ptr < LayeredRemoteVGView > ( lv );
-}
+//LayeredRemoteVGView::SharedPtr
+//LayeredRemoteVGView::create( IConnector * connector, QString viewName, QObject * parent )
+//{
+//    //        return std::make_shared< LayeredRemoteVGView > ( connector, viewName, parent);
+//    // we love C++ /sarcasm
+//    LayeredRemoteVGView * lv = new LayeredRemoteVGView( connector, viewName, parent );
+//    return std::shared_ptr < LayeredRemoteVGView > ( lv );
+//}
 
 int
 LayeredRemoteVGView::nRasterLayers()
@@ -77,6 +77,12 @@ LayeredRemoteVGView::setVGLayer( int layer, const VectorGraphics::VGList & vglis
     m_vgLayers[layer].vglist = vglist;
 }
 
+QString
+LayeredRemoteVGView::viewName()
+{
+    return m_vgView-> getRVGViewName();
+}
+
 QSize
 LayeredRemoteVGView::getClientSize()
 {
@@ -101,13 +107,17 @@ LayeredRemoteVGView::LayeredRemoteVGView( IConnector * connector,
                                           QObject * parent )
     : QObject( parent )
 {
-    m_vgView.reset( connector-> makeRemoteVGView( viewName ));
+    m_vgView.reset( connector-> makeRemoteVGView( viewName ) );
 
-    /// forward signals directly
-    connect( m_vgView.get(), SIGNAL( repainted() ), this, SIGNAL( repainted() ) );
+    /// forward repainted signals directly
+    connect( m_vgView.get(), SIGNAL( repainted( qint64 ) ), this, SIGNAL( repainted( qint64 ) ) );
+
+    /// forward input signals directly
+    connect( m_vgView.get(), SIGNAL( inputEvent( InputEvent ) ), this,
+             SIGNAL( inputEvent( InputEvent ) ) );
+
     //    connect( m_vgView.get(), SIGNAL( sizeChanged() ), this, SIGNAL( sizeChanged() ) );
-    connect( m_vgView.get(), & IRemoteVGView::sizeChanged, this, & Me::p_sizeChangedCB);
-
+    connect( m_vgView.get(), & IRemoteVGView::sizeChanged, this, & Me::p_sizeChangedCB );
 
     m_timer = new QTimer( this );
     m_timer-> setSingleShot( true );
@@ -119,9 +129,9 @@ void
 LayeredRemoteVGView::p_timerCB()
 {
     // figure out the size of the buffer (max of the raster sizes)
-    QSize size( 1, 1);
+    QSize size( 1, 1 );
     for ( auto & layer : m_rasterLayers ) {
-        size = size.expandedTo( layer.qimg.size());
+        size = size.expandedTo( layer.qimg.size() );
     }
 
     QImage buff( size, QImage::Format_ARGB32_Premultiplied );
@@ -142,17 +152,22 @@ LayeredRemoteVGView::p_timerCB()
     VectorGraphics::VGComposer composer;
     for ( auto & vglayer : m_vgLayers ) {
         composer.append < VectorGraphics::Entries::Reset > ();
+
+//        composer.append < VectorGraphics::Entries::Save > ();
         composer.appendList( vglayer.vglist );
+
+//        composer.append < VectorGraphics::Entries::Restore > ();
     }
 
     // render the combined vector graphics list
-    m_vgView-> setVG( composer.vgList());
+    m_vgView-> setVG( composer.vgList() );
 
     // schedule repaint
     (void) m_vgView-> scheduleRepaint( m_repaintId );
-}
+} // p_timerCB
 
-void LayeredRemoteVGView::p_sizeChangedCB()
+void
+LayeredRemoteVGView::p_sizeChangedCB()
 {
     emit sizeChanged();
 } // timerCB

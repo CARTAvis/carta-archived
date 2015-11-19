@@ -19,6 +19,8 @@
 #include "core/DefaultContourGeneratorService.h"
 #include <QObject>
 
+namespace Carta
+{
 namespace Hacks
 {
 namespace SS = Carta::Lib::SharedState;
@@ -98,4 +100,5 @@ private:
 
     std::vector<QPen> m_pens;
 };
+}
 }

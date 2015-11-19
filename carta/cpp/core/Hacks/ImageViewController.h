@@ -21,6 +21,8 @@
 #include <QTimer>
 #include <QObject>
 
+namespace Carta
+{
 namespace Hacks
 {
 
@@ -350,4 +352,5 @@ private:
     /// image-and-grid-service result synchronizer
     ServiceSync::UniquePtr m_syncSvc = nullptr;
 };
+}
 }

@@ -104,7 +104,7 @@ qx.Class.define("skel.hacks.Hacks", {
             // ==================================================================================
             // VGview hack window
             // ==================================================================================
-            var vgWin = new qx.ui.window.Window( "VGhack" );
+            var vgWin = new qx.ui.window.Window( "Managed layers hack" );
             vgWin.setWidth( 600 );
             vgWin.setHeight( 400 );
             vgWin.setShowMinimize( false );
@@ -113,7 +113,10 @@ qx.Class.define("skel.hacks.Hacks", {
             vgWin.setLayout( new qx.ui.layout.VBox(5) );
             //vgWin.add( new skel.hacks.HackView( "vgview1"), { flex: 1 });
             //vgWin.add( new skel.boundWidgets.View.View( "vgview1"), { flex: 1 });
-            vgWin.add( new skel.hacks.LayeredViewHack( "vgview1"), { flex: 1 });
+            //vgWin.add( new skel.hacks.LayeredViewHack( "vgview1"), { flex: 1 });
+            var vgview =  new skel.hacks.VGView( "mlv1");
+            vgview.installDefaultInputHandler( vgview.INPUT_ALL_BUILTINS);
+            vgWin.add( vgview, { flex: 1 });
             this.m_app.getRoot().add( vgWin, {left: 150, top: 120} );
             vgWin.open();
 
