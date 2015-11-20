@@ -25,13 +25,13 @@ qx.Class.define("skel.widgets.Colormap.PageColorMap", {
         _init : function( ) {
             this.setPadding( 0, 0, 0, 0 );
             this.setMargin( 1, 1, 1, 1 );
-            this._setLayout(new qx.ui.layout.HBox(2));
+            this._setLayout(new qx.ui.layout.VBox(2));
            
             this.m_scaleSettings = new skel.widgets.Colormap.ColorScale();
             this.m_colorMixSettings = new skel.widgets.Colormap.ColorMix();
             
+            this.add( this.m_colorMixSettings);
             this.add( this.m_scaleSettings );
-            this.add( this.m_colorMixSettings, {flex:1} );
         },
         
 

@@ -15,6 +15,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
     construct : function(  ) {
         this.base(arguments, "Stack", "");
         this.m_connector = mImport("connector");
+        this.m_datas = [];
         this._init();
     },
 
@@ -56,6 +57,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             if ( val ){
                 try {
                     var controls = JSON.parse( val );
+                    this.m_datas = controls.data;
                     this.m_imageList.setListItems( controls.data );
                    
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
@@ -72,7 +74,18 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _init : function( ) {
             this.setPadding( 0, 0, 0, 0 );
-            this._setLayout( new qx.ui.layout.VBox(1));
+            this._setLayout( new qx.ui.layout.HBox(1));
+            this._initList();
+            this._initMaskControls();
+            this._add( new qx.ui.core.Spacer(), {flex:1} );
+        },
+        
+        /**
+         * Initialize the list of loaded images.
+         */
+        _initList : function(){
+            var listContainer = new qx.ui.container.Composite();
+            listContainer.setLayout( new qx.ui.layout.VBox(1));
             
             //Auto select check 
             var selectContainer = new qx.ui.container.Composite();
@@ -88,11 +101,33 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             //List
             this.m_imageList = new skel.widgets.Image.Stack.DragDropList( 300 );
             this.m_imageList.addListener( "listReordered", this._sendReorderCmd, this );
-            this.m_imageList.addListener( "listSelection", this._sendSelectionCmd, this );
+            this.m_imageList.addListener( "listSelection", this._listItemSelected, this );
             
             //Add to main container.
-            this._add( selectContainer );
-            this._add( this.m_imageList );
+            listContainer.add( selectContainer );
+            listContainer.add( this.m_imageList );
+            this._add( listContainer );
+        },
+        
+        /**
+         * Initialize the available mask controls for each list item.
+         */
+        _initMaskControls : function(){
+            this.m_maskControls = new skel.widgets.Image.Stack.MaskControls();
+            this._add( this.m_maskControls );
+        },
+        
+        /**
+         * Update the mask controls with the selected item and notify the server
+         * that data was selected.
+         */
+        _listItemSelected : function(){
+            var indices = this.m_imageList.getSelectedIndices();
+            if ( indices.length > 0 && this.m_datas.length > 0 ){
+                var firstIndex = indices[0];
+                this.m_maskControls.setControls( this.m_datas[firstIndex].mask );
+                this._sendSelectionCmd();
+            }
         },
         
         /**
@@ -129,6 +164,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             }
         },
         
+        
         /**
          * Send a command to the server to select particular images in the stack.
          */
@@ -164,15 +200,18 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         setId : function( imageId ){
             this.m_id = imageId;
+            this.m_maskControls.setId( imageId );
             this._registerControls();
             this._registerControlsData();
         },
 
         m_id : null,
         m_connector : null,
+        m_datas : null,
         m_sharedVar : null,
         m_sharedVarData : null,
         m_autoSelectCheck : null,
+        m_maskControls : null,
         m_imageList : null
     }
 });

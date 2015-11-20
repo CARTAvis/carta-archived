@@ -79,16 +79,13 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         // callback for appear event
         _appearCB: function()
         {
-            if ( !this.m_appeared ){ 
-            	this.m_iview = this.m_connector.registerViewElement(
-                	this.getContentElement().getDomElement(), this.m_viewName );
-
-            	this.m_iview.updateSize();
-            	this.m_iview.addViewCallback( this._iviewRefreshCB.bind( this ) );
-            	this.setQuality( this.m_quality);
-		this.m_appeared = true;
-             }
-        }
+            this.m_iview = this.m_connector.registerViewElement(
+            this.getContentElement().getDomElement(), this.m_viewName );
+    
+            this.m_iview.updateSize();
+            this.m_iview.addViewCallback( this._iviewRefreshCB.bind( this ) );
+            this.setQuality( this.m_quality);
+        },
 
         // callback for iView refresh
         _iviewRefreshCB : function() {
@@ -131,12 +128,7 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         /**
          * @type {Connector} cached instance of the connector
          */
-        m_connector: null,
-        
-        /**
-         * Prevent re-registration when we are adding removing views.
-         */
-        m_appeared: false
+        m_connector: null
     },
 
     destruct: function()

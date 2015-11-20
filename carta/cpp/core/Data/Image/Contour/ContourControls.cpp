@@ -392,9 +392,9 @@ void ContourControls::_initializeCallbacks(){
             if ( validRed && validGreen && validBlue ){
                 QString setName = dataValues[CONTOUR_SET_NAME ];
                 QString levelStr = dataValues[LEVEL_LIST];
-                bool validLevels = false;
-                std::vector<double> levels = Util::string2VectorDouble( levelStr, &validLevels, LEVEL_SEPARATOR );
-                if ( validLevels ){
+                bool levelError = false;
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, &levelError, LEVEL_SEPARATOR );
+                if ( !levelError ){
                     QStringList errorList = setColor( setName, levels, red, green, blue );
                     result = errorList.join(",");
                 }

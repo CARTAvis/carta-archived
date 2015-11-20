@@ -15,6 +15,12 @@
 #include "../IConnector.h"
 
 namespace Carta {
+    namespace Lib {
+        class LayeredRemoteVGView;
+    }
+}
+
+namespace Carta {
 
 namespace State {
 
@@ -104,6 +110,12 @@ protected:
 
     /// unregister a view with the connector
     void unregisterView();
+
+    /**
+     * Construct a layered view and return it.
+     * @param path - a unique identifier for the remote view.
+     */
+    std::shared_ptr<Carta::Lib::LayeredRemoteVGView> makeRemoteView( const QString& path );
 
     //Return the full location for the state with the given name.
     QString getStateLocation( const QString& name ) const;

@@ -46,8 +46,8 @@ MainWindow::MainWindow( )
              & QWebFrame::javaScriptWindowObjectCleared,
              this,
              & MainWindow::addToJavaScript );
-
-    if( ! Globals::instance()->mainConfig()->json().value( "qtDecorations").toBool()) {
+    bool qtDecorationsEnabled = Globals::instance()->mainConfig()->isDeveloperDecorations();
+    if( !qtDecorationsEnabled ) {
         menuBar()->setVisible( false);
         toolBar->setVisible( false);
         statusBar()->setVisible( false);

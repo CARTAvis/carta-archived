@@ -66,7 +66,7 @@ public:
 signals:
 
     //Notification that a new image has been produced.
-    void renderingDone( QImage img);
+    void renderingDone();
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
@@ -78,7 +78,7 @@ private slots:
 
     //Notification from the rendering service that a new image and assiciated vector
     //graphics have been produced.
-    void _renderingDone( QImage image,
+    void _renderingDone(  QImage image,
                           Carta::Lib::VectorGraphics::VGList vgList,
                           Carta::Lib::VectorGraphics::VGList contourList,
                           int64_t jobId );
@@ -107,142 +107,10 @@ private:
     Carta::Lib::AxisLabelInfo _getAxisLabelInfo( int axisIndex, Carta::Lib::AxisInfo::KnownType axisType ) const;
 
     /**
-     * Return the number of frames for the given axis in the image.
-     * @param type  - the axis for which a frame count is needed.
-     * @return the number of frames for the given axis in the image.
-     */
-    int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const;
-
-    /**
-     * Return the number of dimensions in the image.
-     * @return the number of image dimensions.
-     */
-    int _getDimensions() const;
-
-    /**
-     * Returns the location on the image corresponding to a screen point in
-     * pixels.
-     * @param screenPt an (x,y) pair of pixel coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding location on the image.
-     */
-    QPointF _getImagePt( QPointF screenPt, bool* valid ) const;
-    
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    QPointF _getScreenPt( QPointF imagePt, bool* valid ) const;
-
-    /**
      * Return the current pan center.
      * @return the centered image location.
      */
     QPointF _getCenter() const;
-    
-
-    /**
-     * Return the image size for the given coordinate index.
-     * @param coordIndex an index of a coordinate of the image.
-     * @return the corresponding dimension for that coordinate or -1 if none exists.
-     */
-    int _getDimension( int coordIndex ) const;
-
-    //Return data source state.
-    Carta::State::StateInterface _getGridState() const;
-    QString _getStateString() const;
-
-    /**
-     * Returns the underlying image.
-     */
-    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
-
-    /**
-     * Returns the image's file name.
-     * @return the path to the image.
-     */
-    QString _getFileName() const;
-    
-    /**
-     * Returns information about the image at the current location of the cursor.
-     * @param mouseX the mouse x-position in screen coordinates.
-     * @param mouseY the mouse y-position in screen coordinates.
-     * @param frames - list of image frames.
-     * @return a QString containing cursor text.
-     */
-    QString _getCursorText( int mouseX, int mouseY, const std::vector<int>& frames );
-
-    /**
-     * Return the percentile corresponding to the given intensity.
-     * @param frameLow a lower bound for the frame index or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the frame index or -1 if there is no upper bound.
-     * @param intensity a value for which a percentile is needed.
-     * @return the percentile corresponding to the intensity.
-     */
-    double _getPercentile( int frameLow, int frameHigh, double intensity ) const;
-    
-    /**
-     * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
-
-    /**
-     * Returns information about this layer in the stack.
-     * @return - a string representation of layer specific information.
-     */
-    QString _getLayerString() const;
-
-    /**
-     * Returns the pipeline responsible for rendering the image.
-     * @retun the pipeline responsible for rendering the image.
-     */
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
-
-    /**
-     * Return the zoom factor for this image.
-     * @return the zoom multiplier.
-     */
-    double _getZoom() const;
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    QSize _getOutputSize() const;
-
-    /**
-     * Return the pixel coordinates corresponding to the given world coordinates.
-     * @param ra the right ascension (in radians) of the world coordinates.
-     * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
-     */
-    QStringList _getPixelCoordinates( double ra, double dec ) const;
-
-    /**
-     * Return the value of the pixel at (x, y).
-     * @param x the x-coordinate of the desired pixel
-     * @param y the y-coordinate of the desired pixel.
-     * @param frames - list of image frames.
-     * @return the value of the pixel at (x, y), or blank if it could not be obtained.
-     *
-     * Note the xy coordinates are expected to be in casa pixel coordinates, i.e.
-     * the CENTER of the left-bottom-most pixel is 0.0,0.0.
-     */
-    QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
-
-    /**
-     * Return the units of the pixels.
-     * @return the units of the pixels, or blank if units could not be obtained.
-     */
-    QString _getPixelUnits() const;
 
     /**
      * Return stored information about the color map.
@@ -268,6 +136,150 @@ private:
      */
     Carta::Lib::KnownSkyCS _getCoordinateSystem() const;
 
+    /**
+     * Returns information about the image at the current location of the cursor.
+     * @param mouseX the mouse x-position in screen coordinates.
+     * @param mouseY the mouse y-position in screen coordinates.
+     * @param frames - list of image frames.
+     * @return a QString containing cursor text.
+     */
+    QString _getCursorText( int mouseX, int mouseY, const std::vector<int>& frames );
+
+
+
+    /**
+     * Return the image size for the given coordinate index.
+     * @param coordIndex an index of a coordinate of the image.
+     * @return the corresponding dimension for that coordinate or -1 if none exists.
+     */
+    int _getDimension( int coordIndex ) const;
+
+    /**
+     * Return the number of dimensions in the image.
+     * @return the number of image dimensions.
+     */
+    int _getDimensions() const;
+
+    /**
+     * Return the number of frames for the given axis in the image.
+     * @param type  - the axis for which a frame count is needed.
+     * @return the number of frames for the given axis in the image.
+     */
+    int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const;
+
+
+    //Return data source state.
+    Carta::State::StateInterface _getGridState() const;
+
+    /**
+     * Returns the image's file name.
+     * @return the path to the image.
+     */
+    QString _getFileName() const;
+
+    /**
+     * Returns the underlying image.
+     */
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
+
+    QImage _getQImage() const;
+
+    /**
+     * Returns the location on the image corresponding to a screen point in
+     * pixels.
+     * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding location on the image.
+     */
+    QPointF _getImagePt( QPointF screenPt, bool* valid ) const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param frameLow a lower bound for the image frames or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the image frames or -1 if there is no upper bound.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
+
+
+    /**
+     * Returns information about this layer in the stack.
+     * @return - a string representation of layer specific information.
+     */
+    QString _getLayerString() const;
+    float _getMaskAlpha() const;
+    quint32 _getMaskColor() const;
+
+    /**
+     * Get the dimensions of the image viewer (window size).
+     * @return the image viewer dimensions.
+     */
+    QSize _getOutputSize() const;
+
+    /**
+     * Return the percentile corresponding to the given intensity.
+     * @param frameLow a lower bound for the frame index or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the frame index or -1 if there is no upper bound.
+     * @param intensity a value for which a percentile is needed.
+     * @return the percentile corresponding to the intensity.
+     */
+    double _getPercentile( int frameLow, int frameHigh, double intensity ) const;
+
+    /**
+     * Returns the pipeline responsible for rendering the image.
+     * @retun the pipeline responsible for rendering the image.
+     */
+    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
+
+
+    /**
+     * Return the pixel coordinates corresponding to the given world coordinates.
+     * @param ra the right ascension (in radians) of the world coordinates.
+     * @param dec the declination (in radians) of the world coordinates.
+     * @return a list consisting of the x- and y-coordinates of the pixel
+     *  corresponding to the given world coordinates.
+     */
+    QStringList _getPixelCoordinates( double ra, double dec ) const;
+
+    /**
+     * Return the units of the pixels.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QString _getPixelUnits() const;
+
+    /**
+     * Return the value of the pixel at (x, y).
+     * @param x the x-coordinate of the desired pixel
+     * @param y the y-coordinate of the desired pixel.
+     * @param frames - list of image frames.
+     * @return the value of the pixel at (x, y), or blank if it could not be obtained.
+     *
+     * Note the xy coordinates are expected to be in casa pixel coordinates, i.e.
+     * the CENTER of the left-bottom-most pixel is 0.0,0.0.
+     */
+    QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
+
+    /**
+     * Returns the location on the screen corresponding to a location in image coordinates.
+     * @param imagePt an (x,y) pair of image coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding pixel coordinates.
+     */
+    QPointF _getScreenPt( QPointF imagePt, bool* valid ) const;
+
+    QString _getStateString() const;
+
+    Carta::Lib::VectorGraphics::VGList _getVectorGraphics();
+
+    /**
+     * Return the zoom factor for this image.
+     * @return the zoom multiplier.
+     */
+    double _getZoom() const;
+
+
     void _gridChanged( const Carta::State::StateInterface& state, bool renderImage,
             const std::vector<int>& frames );
 
@@ -281,23 +293,27 @@ private:
     void _initializeState();
     void _initializeSingletons( );
 
-    /**
-     * Returns true if this data is selected; false otherwise.
-     * @return true if this data is selected; false otherwise.
-     */
-    bool _isSelected() const;
 
-    /**
-     * Returns true if this layer is not hidden; false otherwise.
-     * @return true if the layer is visible; false otherwise.
-     */
-    bool _isVisible() const;
+    bool _isMasked() const;
 
     /**
      * Returns true if the name identifies this layer; false otherwise.
      * @return true if the name identifies this layer; false otherwise.
      */
     bool _isMatch( const QString& name ) const;
+
+    /**
+     * Returns true if this data is selected; false otherwise.
+     * @return true if this data is selected; false otherwise.
+     */
+    bool _isSelected() const;
+
+
+    /**
+     * Returns true if this layer is not hidden; false otherwise.
+     * @return true if the layer is visible; false otherwise.
+     */
+    bool _isVisible() const;
 
     /**
      * Loads the data source as a QImage.
@@ -344,37 +360,17 @@ private:
     QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
 
     /**
-     * Set contour set to be rendered.
-     * @param contours - the rendered contour set.
-     */
-    //Note:  The rendered contour set is an accumulation of all the contour sets.
-    void _setContours( std::shared_ptr<DataContours> contours );
-
-    /**
      * Reset the color map information for this data.
      * @param colorState - stored information about the color map.
      */
     void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
 
-
     /**
-     * Show/hide this layer.
-     * @param visible - true to show the layer; false to hide it.
+     * Set contour set to be rendered.
+     * @param contours - the rendered contour set.
      */
-    void _setVisible( bool visible );
-
-    /**
-     * Set the center for this image's display.
-     * @param imgX the x-coordinate of the center.
-     * @param imgY the y-coordinate of the center.
-     */
-    void _setPan( double imgX, double imgY );
-
-    /**
-     * Set the zoom factor for this image.
-     * @param zoomFactor the zoom multiplier.
-     */
-    void _setZoom( double zoomFactor );
+    //Note:  The rendered contour set is an accumulation of all the contour sets.
+    void _setContours( std::shared_ptr<DataContours> contours );
 
 
     /**
@@ -385,11 +381,58 @@ private:
     bool _setFileName( const QString& fileName );
 
     /**
+     * Set the color to use for the mask.
+     * @param redAmount - the amount of red in [0,255].
+     * @param greenAmount - the amount of green in [0,255].
+     * @param blueAmount - the amount of blue in [0,255].
+     * @param result - a list of errors that might have occurred in setting the
+     *      mask color; an empty string otherwise.
+     * @return - true if the mask color was changed; false otherwise.
+     */
+    bool _setMaskColor( int redAmount,
+            int greenAmount, int blueAmount, QStringList& result );
+
+    /**
+     * Set the opacity of the mask.
+     * @param alphaAmount - the transparency level in [0,255] with 255 being opaque.
+     * @param result - an error message if there was a problem setting the mask opacity or
+     *      an empty string otherwise.
+     * @return - true if the mask opacity was changed; false otherwise.
+     */
+    bool _setMaskOpacity( int alphaAmount, QString& result );
+
+    /**
+     * Set the center for this image's display.
+     * @param imgX the x-coordinate of the center.
+     * @param imgY the y-coordinate of the center.
+     */
+    void _setPan( double imgX, double imgY );
+
+    /**
      * Set this data source selected.
      * @param selected - true if the data source is selected; false otherwise.
      * @return -true if the selected state changed; false otherwise.
      */
     bool _setSelected( bool selected );
+
+    /**
+     * Set whether or not to apply a color mask to the image.
+     * @param useMask - true if a color mask should be applied; false otherwise.
+     * @return - true if the mask status was changed; false otherwise.
+     */
+    bool _setUseMask( bool useMask );
+
+    /**
+     * Show/hide this layer.
+     * @param visible - true to show the layer; false to hide it.
+     */
+    void _setVisible( bool visible );
+
+    /**
+     * Set the zoom factor for this image.
+     * @param zoomFactor the zoom multiplier.
+     */
+    void _setZoom( double zoomFactor );
 
     /**
      * Resize the view of the image.
@@ -407,7 +450,9 @@ private:
     class Factory;
     static bool m_registered;
 
+    static const QString APPLY;
     static const QString LAYER;
+    static const QString MASK;
     static const QString SELECTED;
 
     std::shared_ptr<ColorState> m_stateColor;
@@ -426,6 +471,7 @@ private:
     /// Saves images
     Carta::Core::ImageSaveService::ImageSaveService *m_saveService;
     QImage m_qimage;
+    Carta::Lib::VectorGraphics::VGList m_vectorGraphics;
     ControllerData(const ControllerData& other);
     ControllerData& operator=(const ControllerData& other);
 };

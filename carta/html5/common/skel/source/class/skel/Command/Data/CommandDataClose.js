@@ -46,7 +46,7 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                     if ( activeWins[i].isCmdSupported( dataCmd ) ){
                         var closes = activeWins[i].getDatas();
                         for ( var j = 0; j < closes.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j].layer );
+                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j].file );
                             k++;
                         }
                     }

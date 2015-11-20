@@ -8,6 +8,7 @@
 #include "ObjectManager.h"
 #include "Globals.h"
 #include "UtilState.h"
+#include "CartaLib/IRemoteVGView.h"
 #include <QDebug>
 #include <cassert>
 #include <set>
@@ -136,6 +137,10 @@ void CartaObject::refreshView( IView* view )
 void CartaObject::unregisterView()
 {
     conn()-> unregisterView( m_path +"/view" );
+}
+
+std::shared_ptr<Carta::Lib::LayeredRemoteVGView> CartaObject::makeRemoteView( const QString& path ){
+     return Carta::Lib::LayeredRemoteVGView::create( conn(), path );
 }
 
 QString CartaObject::getStateLocation( const QString& name ) const

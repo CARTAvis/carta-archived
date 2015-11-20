@@ -47,7 +47,7 @@ qx.Class.define("skel.Command.Data.CommandDataShow", {
                         var closes = activeWins[i].getDatas();
                         for ( var j = 0; j < closes.length; j++ ){
                             if ( !closes[j].visible ){
-                                this.m_cmds[k] = new skel.Command.Data.CommandDataShowImage( closes[j].layer, j);
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataShowImage( closes[j].file, j);
                                 k++;
                             }
                         }

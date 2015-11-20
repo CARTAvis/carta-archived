@@ -303,7 +303,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
             var dataCount = items.length;
             var selectedItems = [];
             for ( var i = 0; i < dataCount; i++ ){
-                var listItem = new qx.ui.form.ListItem( items[i].layer );
+                var listItem = new qx.ui.form.ListItem( items[i].file );
                 this.m_list.add( listItem );
                 var visible = items[i].visible;
                 if ( items[i].selected ){
@@ -312,7 +312,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 var contextMenu = new qx.ui.menu.Menu();
                 
                 //Close button
-                var closeCmd = new skel.Command.Data.CommandDataCloseImage( items[i].layer );
+                var closeCmd = new skel.Command.Data.CommandDataCloseImage( items[i].file );
                 var closeButton = new qx.ui.menu.Button( "Close");
                 closeButton.addListener( "execute", function(){
                     this.doAction( true, function(){} );
@@ -321,7 +321,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 
                 if ( visible ){
                     //Hide button
-                    var hideCmd = new skel.Command.Data.CommandDataHideImage( items[i].layer, i );
+                    var hideCmd = new skel.Command.Data.CommandDataHideImage( items[i].file, i );
                     var hideButton = new qx.ui.menu.Button( "Hide");
                     hideButton.addListener( "execute", function(){
                         this.doAction( true, function(){});
@@ -330,7 +330,7 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 }
                 else {
                     //Show button
-                    var showCmd = new skel.Command.Data.CommandDataShowImage( items[i].layer, i );
+                    var showCmd = new skel.Command.Data.CommandDataShowImage( items[i].file, i );
                     var showButton = new qx.ui.menu.Button( "Show");
                     showButton.addListener( "execute", function(){
                         this.doAction( true, function(){});
