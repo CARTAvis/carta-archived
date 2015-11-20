@@ -35,6 +35,8 @@ s2vd( QString s, QString sep = " " )
 }
 }
 
+namespace Carta
+{
 namespace Hacks
 {
 ImageViewController::ImageViewController( QString statePrefix, QString viewName, QObject * parent )
@@ -607,4 +609,5 @@ ImageViewController::imageAndGridDoneSlot(
     // schedule a repaint with the connector
     m_connector-> refreshView( this );
 } // imageAndGridDoneSlot
+}
 }

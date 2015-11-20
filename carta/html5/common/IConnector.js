@@ -169,7 +169,7 @@ SharedVar.destroy = function() {};
 /**
  * Send a command to the application.
  * @param cmd
- * @param params
+ * @param params stringified parameters
  * @param callback (optional)
  *
  * callback has signature:

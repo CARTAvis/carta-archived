@@ -54,8 +54,8 @@ public:
     virtual bool
     isVGrenderedOnServer() override;
 
-    virtual void
-    enableInputEvent( Carta::Lib::InputEvent::Type type, QString name = QString()) override;
+//    virtual void
+//    enableInputEvent( Carta::Lib::InputEvent::Type type, QString name = QString()) override;
 
 public slots:
 
@@ -102,6 +102,9 @@ private:
 
     virtual void
     viewRefreshed( qint64 id) override ;
+
+    // for now this is how we handle input events... same for desktop and server
+    QString inputEventCB( const QString & cmd, const QString & params, const QString & sessionId);
 
 };
 }

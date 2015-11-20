@@ -7,26 +7,30 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "IConnector.h"
 #include "CartaLib/IRemoteVGView.h"
+#include "core/IConnector.h"
 #include <QObject>
 
 namespace Carta
 {
 namespace Hacks
 {
-class ManagedLayerViewInh;
+class ManagedLayerView;
 
-/// derive from this class to create custom managed layers
-class ManagedLayer : public QObject
+/// derive from this class to create custom layers
+class ManagedLayerBase : public QObject
 {
     Q_OBJECT
+    CLASS_BOILERPLATE( ManagedLayerBase );
 
 public:
 
     typedef int ID;
 
-    ManagedLayer( ManagedLayerViewInh *, QString name );
+    ///
+    /// constructor - creates a link between the managed layered view and this layer
+    ///
+    ManagedLayerBase( ManagedLayerView * mlv, QString name );
 
     virtual QString
     layerName() { return m_layerName; }
@@ -35,29 +39,71 @@ public:
     virtual void
     onResize( const QSize & size ) { Q_UNUSED( size ); }
 
-    /// call this to update the rendering of raster
-    void setRaster( const QImage & image);
+    /// reimplement this to react to input events
+    virtual void
+    onInputEvent( const Carta::Lib::InputEvent & event ) { Q_UNUSED( event ); }
 
-    /// this returns a unique ID of the layer (wrt. to the manager)
-    ID layerID() { return m_id; }
+    /// call this to update the rendering of raster
+    void
+    setRaster( const QImage & image );
+
+    /// does the layer have input?
+    bool
+    hasInput()
+    {
+        return m_hasInput;
+    }
+
+    /// returns a unique ID of the layer (wrt. to the manager)
+    ID
+    layerID() { return m_id; }
 
     virtual
-    ~ManagedLayer() { }
+    ~ManagedLayerBase() { }
 
-protected:
+private:
 
-    ManagedLayerViewInh * m_mlv = nullptr;
+    /// pointer to the managed layer view
+    ManagedLayerView * m_mlv = nullptr;
+
+    /// user assigned layer name
     QString m_layerName;
-    ID m_id = -1;
+
+    /// unique id assigned to us by managed layer view
+    ID m_id = - 1;
+
+    // apis used be the manager to keep extra info on layers
+    bool
+    isRaster() { return m_isRaster; }
+
+    bool m_isRaster = true;
+    QImage m_rasterBuff;
+    Carta::Lib::IQImageCombiner::SharedPtr m_rasterCombiner;
+    Carta::Lib::VectorGraphics::VGList m_vgListBuff;
+
+    Carta::Lib::IQImageCombiner::SharedPtr
+    rasterCombiner() { return m_rasterCombiner; }
+
+    const QImage &
+    raster() { return m_rasterBuff; }
+
+    const Carta::Lib::VectorGraphics::VGList &
+    vgList() { return m_vgListBuff; }
+
+    /// does the layer receive input?
+    bool m_hasInput = false;
+
+    friend class ManagedLayerView;
 };
 
-class ManagedLayerViewInh : public QObject
+class ManagedLayerView : public QObject
 {
     Q_OBJECT
+    CLASS_BOILERPLATE( ManagedLayerView );
 
 public:
 
-    ManagedLayerViewInh( QString viewName, IConnector * connector, QObject * parent = nullptr );
+    ManagedLayerView( QString viewName, IConnector * connector, QObject * parent = nullptr );
 
 //    template < class ILayer, typename ... Args >
 //    std::shared_ptr < ILayer >
@@ -68,47 +114,62 @@ public:
 //        return layer;
 //    }
 
+    /// get the list of layers
+    const std::vector < ManagedLayerBase * > &
+    layers() const { return m_layers; }
+
+    /// set which layers are to receive input events
+    void
+    setInputLayers( const std::vector < ManagedLayerBase::ID > & list = { } );
+
     virtual
-    ~ManagedLayerViewInh() { }
+    ~ManagedLayerView() { }
 
-    IConnector *
-    connector();
+    QString viewName() { return m_lrv-> viewName(); }
+
+//    IConnector *
+//    connector();
+
+signals:
+
+    /// emitted when the list of layers has been updated
+    void
+    layersUpdated();
+
+public slots:
+
+    qint64
+    scheduleRepaint();
+
+private slots:
+
+    // callback for client size changes from LayeredRemoteVGView
+    void
+    clientSizeChangedCB();
+
+    // callback for input events
+    void
+    inputEventCB( Carta::Lib::InputEvent e );
 
 private:
 
-    virtual ManagedLayer::ID
-    p_addLayer( ManagedLayer * layer );
+    virtual ManagedLayerBase::ID
+    p_addLayer( ManagedLayerBase * layer );
 
-    friend class ManagedLayer;
+    friend class ManagedLayerBase;
 
-    std::vector < ManagedLayer * > m_layers;
     IConnector * m_connector = nullptr;
-    ManagedLayer::ID m_nextId = 0;
+    ManagedLayerBase::ID m_nextId = 0;
 
-    Carta::Lib::IRemoteVGView::UniquePtr m_rvgv = nullptr;
-};
+    // we use layered remote view to do the rendering
+    Carta::Lib::LayeredRemoteVGView::SharedPtr m_lrv = nullptr;
 
-class EyesLayer : public ManagedLayer
-{
-    Q_OBJECT
+    // here we keep track of all our layers, and since we don't own the layers
+    // we keep raw pointers
+    std::vector < ManagedLayerBase * > m_layers;
 
-public:
-
-    EyesLayer( ManagedLayerViewInh * mlv, QString layerName )
-        : ManagedLayer( mlv, layerName )
-    { }
-
-private:
-};
-
-class BouncyLayer : public ManagedLayer
-{
-    Q_OBJECT
-
-public:
-
-    BouncyLayer( ManagedLayerViewInh * mlv, QString layerName )
-        : ManagedLayer( mlv, layerName ) { }
+    // which layers have input
+//    std::vector < ManagedLayerBase::ID > m_inputLayers;
 };
 
 //std::shared_ptr < ManagedLayerViewInh >
@@ -137,22 +198,5 @@ apiTest()
 static auto foo = apiTest();
 
 */
-
-static int
-apiTest()
-{
-    // create a new managed layer view
-    IConnector * connector = nullptr;
-    auto mlv = new ManagedLayerViewInh( "mlv1", connector, nullptr );
-
-    // add some layers to the view
-    auto eyesLayer1 = new EyesLayer( mlv, "eyes1" );
-    auto eyesLayer2 = new EyesLayer( mlv, "eyes two" );
-    auto bouncyBallLayer1 = new BouncyLayer( mlv, "Bouncy" );
-
-    return 7;
-}
-
-//static int test = apiTest();
 }
 }

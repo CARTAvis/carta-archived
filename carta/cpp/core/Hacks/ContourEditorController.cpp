@@ -25,6 +25,9 @@ s2vd( QString s, QString sep = " " )
 }
 */
 
+namespace Carta
+{
+
 namespace Hacks
 {
 ContourEditorController::ContourEditorController( QObject * parent,
@@ -217,4 +220,6 @@ ContourEditorController::stdVarCB()
 //    // let everyone know something was updated
 //    emit updated();
 }
+}
+
 }

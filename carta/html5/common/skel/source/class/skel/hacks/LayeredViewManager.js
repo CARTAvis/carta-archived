@@ -30,6 +30,20 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         this.setLayout( new qx.ui.layout.VBox( 5 ) );
         // create a list widget
         this.m_listWidget = new qx.ui.form.List();
+        this.m_listWidget.setSelectionMode( "multi");
+
+        //var rawData = [];
+        //for (var i = 0; i < 3; i++) {
+        //    rawData[i] = "Item No " + i;
+        //}
+        //this.m_model = qx.data.marshal.Json.createModel(rawData);
+        //
+        //this.m_listWidget = new qx.ui.list.List(this.m_model);
+
+        for (var i = 0; i < 3; i++) {
+            this.m_listWidget.add( new qx.ui.form.ListItem( "item" + i));
+        }
+
         this.add( this.m_listWidget, {flex: 1} );
 
         // create buttons
@@ -85,6 +99,13 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
 
         // update the slider label
         this._sliderCB();
+
+        // listen for state updates
+        this.m_sharedVar = this.m_connector.getSharedVar( "/hacks/LayeredViewController/" + this.m_viewName);
+        this.m_sharedVar.addCB(this._sharedVarCB.bind(this));
+        this._sharedVarCB(this.m_sharedVar.get());
+
+        this.m_listWidget.addListener( "changeSelection", this._listSelectionCB.bind(this));
     },
 
     members: {
@@ -99,6 +120,46 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         viewName: function()
         {
             return this.m_viewName;
+        },
+
+        _sharedVarCB : function(val)
+        {
+            this.m_insideSharedVar = true;
+            try {
+                console.log( "Layers:", val);
+                var obj = JSON.parse( val);
+                console.log( "Layers obj:", obj);
+
+                // if we didn't receive a valid state, make a default one
+                if( ! obj) obj = { list: []};
+
+                var list = obj.list;
+
+                this.m_listWidget.removeAll();
+                var selectedItems = [];
+                list.forEach( function(entry) {
+                    var item = new qx.ui.form.ListItem( entry.name);
+                    if( entry.input) selectedItems.push( item);
+                    item.setUserData( "layerID", entry.id);
+                    this.m_listWidget.add( item);
+                }.bind(this));
+                this.m_listWidget.setSelection( selectedItems);
+
+                //this.m_model = qx.data.marshal.Json.createModel(names);
+                //this.m_listWidget.setModel( this.m_model);
+                //
+                //this.m_listWidget.resetSelection();
+                //var selection = this.m_listWidget.getSelection();
+                //list.forEach( function(entry, id) {
+                //    if( entry.input) selection.push( this.m_model.getItem(id));
+                //}.bind(this));
+                //
+                //this.m_listWidget.setSelection(selection);
+            } catch(e) {
+
+            }
+            this.m_insideSharedVar = false;
+
         },
 
         _sliderCB: function() {
@@ -125,6 +186,22 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
                 this.m_greenToggle.setValue( false);
                 this.m_blueToggle.setValue( false);
             }
+
+        },
+
+        _listSelectionCB : function ( e)
+        {
+            if( this.m_insideSharedVar) return;
+
+            console.log( "...", this.m_listWidget.getSelection() );
+            var selected = [];
+            this.m_listWidget.getSelection().forEach( function(item){
+                console.log( "Selected:" + item.getUserData("layerID"));
+                selected.push( item.getUserData("layerID"));
+            }.bind(this));
+            console.log( "selected layers:", selected);
+
+            this.m_connector.sendCommand( "/hacks/LayeredViewController/" + this.m_viewName + "/setSelection", JSON.stringify( selected));
 
         }
 
