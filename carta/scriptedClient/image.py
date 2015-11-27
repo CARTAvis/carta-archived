@@ -135,10 +135,12 @@ class Image(CartaView):
     def centerWithRadius(self, x, y, radius, dim='width'):
         """
         A convenience function:
+
             something that takes a centre and a radius and computes a
             ZoomLevel to put the centre at the centre of the viewer
             window and have the distance to the edge of the window be
             the "radius".
+
         Note that this function is defined entirely in terms of other,
         lower level Python functions.
 
@@ -609,11 +611,12 @@ class Image(CartaView):
         system: string
             The desired coordinate system.
             Acceptable systems are:
-                * J2000
-                * B1950
-                * ICRS
-                * Galactic
-                * Ecliptic
+
+                - J2000
+                - B1950
+                - ICRS
+                - Galactic
+                - Ecliptic
 
         Returns
         -------
@@ -725,8 +728,8 @@ class Image(CartaView):
         Set whether or not grid control settings should apply to all
         images on the set.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         applyAll: boolean
             True if the settings apply to all images on the stack;
             False otherwise.
@@ -746,7 +749,7 @@ class Image(CartaView):
         Set the grid coordinate system.
 
         Parameters
-        ---------
+        ----------
         coordSystem: string
             An identifier for a grid coordinate system.
 
@@ -1021,7 +1024,7 @@ class Image(CartaView):
         """
         Set whether or not to show grid axis ticks.
 
-        Paramters
+        Parameters
         ----------
             showTicks: boolean
                 True if the grid axis ticks should be shown; False

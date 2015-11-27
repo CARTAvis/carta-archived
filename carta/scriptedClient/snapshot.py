@@ -6,7 +6,7 @@ class Snapshot:
     Represents a snapshot of a saved application state.
 
     Parameters
-    ---------
+    ----------
     sessionId: string
         An identifier for a user session.
 
