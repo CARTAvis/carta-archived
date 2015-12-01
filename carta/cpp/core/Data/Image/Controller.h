@@ -113,6 +113,12 @@ public:
     std::shared_ptr<GridControls> getGridControls();
 
     /**
+     * Return a shared pointer to the contour controls.
+     * @return - a shared pointer to the contour controls.
+     */
+    std::shared_ptr<ContourControls> getContourControls();
+
+    /**
      * Return the percentile corresponding to the given intensity in the current frame.
      * @param intensity a value for which a percentile is needed.
      * @return the percentile corresponding to the intensity.
