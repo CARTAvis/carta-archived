@@ -52,6 +52,116 @@ ManagedLayerView::setInputLayers( const std::vector < ManagedLayerBase::ID > & l
     emit layersUpdated();
 }
 
+void
+ManagedLayerView::moveLayersUp( const std::vector < ManagedLayerBase::ID > & list )
+{
+    // find the indices of the layers in m_layers
+    std::vector < size_t > indices;
+    for ( auto & id : list ) {
+        bool found = false;
+        for ( size_t ind = 0 ; ind < m_layers.size() ; ind++ ) {
+            ManagedLayerBase * layer = m_layers[ind];
+            if ( layer-> layerID() == id ) {
+                found = true;
+                indices.push_back( ind );
+                break;
+            }
+        }
+        if ( ! found ) {
+            qCritical() << "Could not move up layer" << id << "because it was not found";
+        }
+    }
+
+    // sort the indices
+    std::sort( indices.begin(), indices.end() );
+
+    // remove layers that are already in place
+    size_t ind = 0;
+    while ( indices.size() > 0 && indices[0] == ind ) {
+        indices.erase( indices.begin() );
+        ind++;
+    }
+
+    if ( indices.size() == 0 ) {
+        // nothing to do
+        return;
+    }
+
+    // move the remaining layers one at a time
+    qDebug() << "Moving up layers" << indices;
+    for ( auto ind : indices ) {
+        std::swap( m_layers[ind - 1], m_layers[ind] );
+    }
+
+    scheduleRepaint();
+    emit layersUpdated();
+} // moveLayersUp
+
+void
+ManagedLayerView::moveLayersDown( const std::vector < ManagedLayerBase::ID > & list )
+{
+    // find the indices of the layers in m_layers
+    std::vector < size_t > indices;
+    for ( auto & id : list ) {
+        bool found = false;
+        for ( size_t ind = 0 ; ind < m_layers.size() ; ind++ ) {
+            ManagedLayerBase * layer = m_layers[ind];
+            if ( layer-> layerID() == id ) {
+                found = true;
+                indices.push_back( ind );
+                break;
+            }
+        }
+        if ( ! found ) {
+            qCritical() << "Could not move down layer" << id << "because it was not found";
+        }
+    }
+
+    // sort the indices
+    std::sort( indices.begin(), indices.end(), std::greater < size_t > () );
+
+    // remove layers that are already in place
+    size_t ind = m_layers.size() - 1;
+    while ( indices.size() > 0 && indices[0] == ind ) {
+        indices.erase( indices.begin() );
+        ind--;
+    }
+
+    if ( indices.size() == 0 ) {
+        // nothing to do
+        return;
+    }
+
+    // move the remaining layers one at a time
+    qDebug() << "Moving down layers" << indices;
+    for ( auto ind : indices ) {
+        std::swap( m_layers[ind + 1], m_layers[ind] );
+    }
+
+    scheduleRepaint();
+    emit layersUpdated();
+} // moveLayersDown
+
+void
+ManagedLayerView::removeLayers( const std::vector < ManagedLayerBase::ID > & list )
+{
+    auto oldLayers = m_layers;
+    m_layers.clear();
+    for ( auto layer : oldLayers ) {
+        if ( std::find( list.begin(), list.end(), layer-> layerID() ) != list.end() ) {
+            layer-> onLayerRemoved();
+        }
+        else {
+            m_layers.push_back( layer );
+        }
+    }
+    if ( oldLayers.size() == m_layers.size() ) {
+        return;
+    }
+    scheduleRepaint();
+    emit layersUpdated();
+} // removeLayers
+
 //IConnector *
 //ManagedLayerView::connector()
 //{

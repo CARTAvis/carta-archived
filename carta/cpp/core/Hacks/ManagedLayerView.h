@@ -35,6 +35,12 @@ public:
     virtual QString
     layerName() { return m_layerName; }
 
+    /// reimplement this to react to layer removed, the default is to auto-destruct
+    virtual void
+    onLayerRemoved() {
+        this->deleteLater();
+    }
+
     /// reimplement this to react to view resizes
     virtual void
     onResize( const QSize & size ) { Q_UNUSED( size ); }
@@ -122,6 +128,16 @@ public:
     void
     setInputLayers( const std::vector < ManagedLayerBase::ID > & list = { } );
 
+    /// move the specified layers 'up'
+    void
+    moveLayersUp( const std::vector < ManagedLayerBase::ID > & list);
+
+    void
+    moveLayersDown( const std::vector < ManagedLayerBase::ID > & list);
+
+    void
+    removeLayers( const std::vector < ManagedLayerBase::ID > & list);
+
     virtual
     ~ManagedLayerView() { }
 
@@ -168,8 +184,6 @@ private:
     // we keep raw pointers
     std::vector < ManagedLayerBase * > m_layers;
 
-    // which layers have input
-//    std::vector < ManagedLayerBase::ID > m_inputLayers;
 };
 
 //std::shared_ptr < ManagedLayerViewInh >

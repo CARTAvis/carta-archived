@@ -55,7 +55,7 @@ private:
         p.setBrush( QColor( "red" ) );
         p.setPen( QPen( QColor( "blue" ), 5 ) );
         p.drawEllipse( m_center,
-                       20, 10 );
+                       40, 60 );
         p.end();
         setRaster( img );
     }
@@ -177,10 +177,13 @@ public:
 
         using namespace std::placeholders;
 
-        Globals::instance()->connector()->addCommandCallback(
-                    QString( "/hacks/LayeredViewController/%1/setSelection").arg( m_mlv->viewName()),
-                    std::bind(  & Me::setSelectionCB, this, _1, _2, _3));
+//        Globals::instance()->connector()->addCommandCallback(
+//            QString( "/hacks/LayeredViewController/%1/setSelection" ).arg( m_mlv->viewName() ),
+//            std::bind( & Me::setSelectionCB, this, _1, _2, _3 ) );
 
+        Globals::instance()->connector()->addCommandCallback(
+            QString( "/hacks/LayeredViewController/%1/command" ).arg( m_mlv->viewName() ),
+            std::bind( & Me::commandCB, this, _1, _2, _3 ) );
 
         mlvUpdatedCB();
     }
@@ -190,42 +193,101 @@ public:
 
 private slots:
 
-    void mlvUpdatedCB() {
+    void
+    mlvUpdatedCB()
+    {
         // get the list of layers from the view
         auto & layers = m_mlv-> layers();
         QJsonArray ja;
-        for( auto layer : layers) {
+        for ( auto layer : layers ) {
             QJsonObject jo;
             jo["name"] = layer-> layerName();
             jo["id"] = layer-> layerID();
             jo["input"] = layer-> hasInput();
-            ja.push_back( jo);
+            ja.push_back( jo );
         }
         QJsonObject job;
         job["list"] = ja;
-        QJsonDocument doc(job);
+        QJsonDocument doc( job );
         QByteArray jstring = doc.toJson();
         qDebug() << "================ JSON ================";
         qDebug() << jstring;
         qDebug() << "======================================";
 
-        Globals::instance()->connector()->setState( QString("/hacks/LayeredViewController/%1").arg( m_mlv-> viewName()), jstring);
-
-    }
+        Globals::instance()->connector()->setState(
+            QString(
+                "/hacks/LayeredViewController/%1" ).arg(
+                m_mlv-> viewName() ), jstring );
+    } // mlvUpdatedCB
 
 private:
 
-    QString setSelectionCB( const QString & cmd, const QString & params, const QString & sessionId){
-        QJsonDocument doc =  QJsonDocument::fromJson( params.toLatin1());
-        if( ! doc.isArray()) return "";
-        QJsonArray arr = doc.array();
-        std::vector<Carta::Hacks::ManagedLayerBase::ID> selection;
-        for( auto val : arr){
-            qDebug() << "Selection" << val.toInt();
-            selection.push_back( val.toInt());
+    QString
+    commandCB( const QString & /*cmd*/, const QString & params, const QString & /*sessionId*/ )
+    {
+        QJsonDocument doc = QJsonDocument::fromJson( params.toLatin1() );
+        if ( ! doc.isObject() ) { return ""; }
+        QJsonObject rootObj = doc.object();
+        QString cmd = rootObj["command"].toString();
+        QJsonValue data = rootObj["data"];
+        if ( cmd == "setSelection" ) {
+            if ( ! data.isArray() ) { return ""; }
+            QJsonArray arr = data.toArray();
+            std::vector < Carta::Hacks::ManagedLayerBase::ID > selection;
+            for ( auto val : arr ) {
+                qDebug() << "Selection" << val.toInt();
+                selection.push_back( val.toInt() );
+            }
+
+            m_mlv->setInputLayers( selection );
+        }
+        else if ( cmd == "up" ) {
+            if ( ! data.isArray() ) { return ""; }
+            QJsonArray arr = data.toArray();
+            std::vector < Carta::Hacks::ManagedLayerBase::ID > selection;
+            for ( auto val : arr ) {
+                selection.push_back( val.toInt() );
+            }
+            m_mlv-> moveLayersUp( selection);
+        }
+        else if ( cmd == "down" ) {
+            if ( ! data.isArray() ) { return ""; }
+            QJsonArray arr = data.toArray();
+            std::vector < Carta::Hacks::ManagedLayerBase::ID > selection;
+            for ( auto val : arr ) {
+                selection.push_back( val.toInt() );
+            }
+            m_mlv-> moveLayersDown( selection);
+        }
+        else if ( cmd == "delete" ) {
+            if ( ! data.isArray() ) { return ""; }
+            QJsonArray arr = data.toArray();
+            std::vector < Carta::Hacks::ManagedLayerBase::ID > selection;
+            for ( auto val : arr ) {
+                selection.push_back( val.toInt() );
+            }
+            m_mlv-> removeLayers( selection);
+        }
+        else {
+            qWarning() << "Unknown command" << cmd;
         }
 
-        m_mlv->setInputLayers( selection);
+        return "";
+    } // commandCB
+
+    QString
+    setSelectionCB( const QString & /*cmd*/, const QString & params, const QString & /*sessionId*/ )
+    {
+        QJsonDocument doc = QJsonDocument::fromJson( params.toLatin1() );
+        if ( ! doc.isArray() ) { return ""; }
+        QJsonArray arr = doc.array();
+        std::vector < Carta::Hacks::ManagedLayerBase::ID > selection;
+        for ( auto val : arr ) {
+            qDebug() << "Selection" << val.toInt();
+            selection.push_back( val.toInt() );
+        }
+
+        m_mlv->setInputLayers( selection );
 
         return "";
     }
@@ -257,7 +319,8 @@ LayeredViewDemo::LayeredViewDemo( QObject * parent ) : QObject( parent )
     EyesLayer * eyes2 = new EyesLayer( m_pimpl-> mlv.get(), "ellipse2" );
 
 //    m_mlv-> setInputLayers( { eyes->layerID(), bouncy-> layerID() }
-    m_pimpl-> mlv-> setInputLayers( { eyes2->layerID() });
+    m_pimpl-> mlv-> setInputLayers( { eyes2->layerID() }
+                                    );
 
     m_pimpl-> lvc.reset( new LayeredViewController( m_pimpl-> mlv.get() ) );
 }
