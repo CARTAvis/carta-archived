@@ -40,6 +40,7 @@ namespace Data {
 class ColorState;
 class ControllerData;
 class DisplayControls;
+class DrawStackSynchronizer;
 class GridControls;
 class ContourControls;
 class Settings;
@@ -351,6 +352,14 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * Set whether or not to apply a composition mode to the image.
+     * @param compMode - the type of composition mode to apply.
+     * @return an error message if there was a problem recognizing the composition mode.
+     */
+    QString setCompositionMode( const QString& compMode );
+
+
+    /**
      * Specify a new image order.
      * @param imageIndices - a list specifying a new order for the images in
      *      a layer.
@@ -380,17 +389,27 @@ public:
      * @return - a list containing any errors that may have occurred in setting
      *      the mask color.
      */
-    //Note: Mask color will not take affect unless use mask is also true.
+    //Note: Mask color will not take affect unless a composition mode that supports
+    //a color filter has been set.
     QStringList setMaskColor( int redAmount, int greenAmount, int blueAmount );
 
     /**
-     * Set the opacity of the mask.
+     * Set the transparency of the layer.
      * @param alphaAmount - the transparency level in [0,255] with 255 being opaque.
-     * @return - an error message if there was a problem setting the mask opacity or
+     * @return - an error message if there was a problem setting the layer opacity or
      *      an empty string otherwise.
      */
-    //Note: Mask opacity will not take affect unless use mask is also true.
-    QString setMaskOpacity( int alphaAmount );
+    //Note: Layer transparency will not take affect unless a composition mode which supports
+    //transparency has been set.
+    QString setMaskAlpha( int alphaAmount );
+
+    /**
+     * Set whether or not a pan/zoom operation should affect all layers in the stack
+     * or just the top layer.
+     * @param panZoomAll - true if all layers should be pan/zoomed; false if just the
+     *      top layer should be pan/zoomed.
+     */
+    void setPanZoomAll( bool panZoomAll );
 
     /**
      * Set whether or not selection of layers in the stack should be based on the
@@ -399,13 +418,6 @@ public:
      */
     void setStackSelectAuto( bool automatic );
 
-    /**
-     * Set whether or not to apply a color mask to the image.
-     * @param useMask - true if a color mask should be applied; false otherwise.
-     * @return an error message if there was a problem setting whether or not to
-     *  use a mask; an empty error message otherwise.
-     */
-    QString setUseMask( bool useMask );
 
     /**
      * Change the pan of the current image.
@@ -481,7 +493,6 @@ private slots:
 
     void _contoursChanged();
 
-    QString _getPreferencesId() const;
 
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
@@ -489,11 +500,6 @@ private slots:
     //Refresh the view based on the latest data selection information.
     //The parameter newClips is set if the clip values have changed and need to be recomputed.
     void _loadView( bool newClips = false );
-
-    /**
-     * Notification that a stack layer has changed its image or vector graphics.
-     */
-    void _scheduleFrameRepaint();
 
     /**
      * The view has been resized.
@@ -506,10 +512,6 @@ private slots:
      */
     void _scheduleFrameReload( bool newClips = false );
 
-    /**
-     * Repaint the image.
-     */
-    void _repaintFrameNow();
 
     // Asynchronous result from saveFullImage().
     void saveImageResultCB( bool result );
@@ -530,7 +532,7 @@ private:
     //Clear image statistics.
     void _clearStatistics();
 
-    std::vector<int> _getFrameIndices( int imageIndex ) const;
+    std::vector<int> _getFrameIndices( ) const;
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
     //Get the actual data index of the selection with the given index.  This method
@@ -541,17 +543,23 @@ private:
     //Get the actual index of the passed in data.
     int _getIndexData( ControllerData* cd ) const;
 
+
+    QString _getPreferencesId() const;
+
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
     void _initializeSelections();
-
+    void _loadView( bool newClips, int dataIndex );
 
     QString _makeRegion( const QString& regionType );
 
     void _removeData( int index );
-    void _render();
-
+    /**
+     * Refresh the view of the images.
+     * @param allImages - true if all the images in the stack need a refresh; false otherwise.
+     */
+    void _render( bool allImages );
     void _saveRegions();
 
     /**
@@ -580,6 +588,10 @@ private:
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
     void _updateDisplayAxes( int targetIndex );
+    void _updatePan( double centerX , double centerY,
+            std::shared_ptr<ControllerData> data);
+    void _updateZoom( double centerX, double centerY, double zoomFactor,
+             std::shared_ptr<ControllerData> data );
 
     static bool m_registered;
 
@@ -590,6 +602,7 @@ private:
     static const QString DATA;
     static const QString DATA_PATH;
     static const QString IMAGE;
+    static const QString PAN_ZOOM_ALL;
     static const QString REGIONS;
     static const QString CENTER;
     static const QString POINTER_MOVE;
@@ -601,12 +614,9 @@ private:
     Selection* m_selectImage;
     std::vector<Selection*> m_selects;
 
-    //Data View
-    std::shared_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
-
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;
-
+    std::unique_ptr<DrawStackSynchronizer> m_stackDraw;
 
     std::unique_ptr<Settings> m_settings;
 
@@ -627,7 +637,6 @@ private:
     Carta::State::StateInterface m_stateMouse;
 
     bool m_reloadFrameQueued;
-    bool m_repaintFrameQueued;
 
     Controller(const Controller& other);
     Controller& operator=(const Controller& other);

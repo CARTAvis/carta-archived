@@ -10,6 +10,7 @@
 #include "Data/Image/Contour/ContourGenerateModes.h"
 #include "Data/Image/Contour/ContourSpacingModes.h"
 #include "Data/Image/Contour/ContourStyles.h"
+#include "Data/Image/LayerCompositionModes.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
@@ -79,6 +80,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ContourGenerateModes>();
     Util::findSingletonObject<ContourSpacingModes>();
     Util::findSingletonObject<ContourStyles>();
+    Util::findSingletonObject<LayerCompositionModes>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();

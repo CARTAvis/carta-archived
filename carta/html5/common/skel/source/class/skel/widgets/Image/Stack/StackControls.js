@@ -39,6 +39,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 try {
                     var controls = JSON.parse( val );
                     this.m_autoSelectCheck.setValue( controls.stackAutoSelect );
+                    this.m_panZoomAllCheck.setValue( controls.panZoomAll );
                    
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
@@ -87,10 +88,12 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             var listContainer = new qx.ui.container.Composite();
             listContainer.setLayout( new qx.ui.layout.VBox(1));
             
-            //Auto select check 
+            //Check container 
             var selectContainer = new qx.ui.container.Composite();
             selectContainer.setLayout( new qx.ui.layout.HBox(1) );
             selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            
+            //Auto select check
             this.m_autoSelectCheck = new qx.ui.form.CheckBox( "Auto Select");
             skel.widgets.TestID.addTestId( this.m_autoSelectCheck, "autoSelectImages" ); 
             this.m_autoSelectCheck.setToolTipText( "Auto selection based on animator or manual selection of layer(s).");
@@ -98,8 +101,15 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             selectContainer.add( this.m_autoSelectCheck );
             selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
             
+            //Pan/zoom all check
+            this.m_panZoomAllCheck = new qx.ui.form.CheckBox( "Pan/Zoom All"); 
+            this.m_panZoomAllCheck.setToolTipText( "Pan/Zoom all images in the stack instead of just the top image.");
+            this.m_panZoomAllCheck.addListener( "changeValue", this._sendPanZoomAllCmd, this );
+            selectContainer.add( this.m_panZoomAllCheck );
+            selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
+            
             //List
-            this.m_imageList = new skel.widgets.Image.Stack.DragDropList( 300 );
+            this.m_imageList = new skel.widgets.Image.Stack.DragDropList( 250 );
             this.m_imageList.addListener( "listReordered", this._sendReorderCmd, this );
             this.m_imageList.addListener( "listSelection", this._listItemSelected, this );
             
@@ -130,6 +140,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             }
         },
         
+
         /**
          * Register to get updates on stack settings from the server.
          */
@@ -148,6 +159,18 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB(this._controlsDataChangedCB.bind(this));
             this._controlsDataChangedCB();
+        },
+        
+        /**
+         * Send a command to the server indicating whether to pan/zoom all images
+         * in the stack or only the top one.
+         */
+        _sendPanZoomAllCmd : function(){
+            var panZoomAll = this.m_panZoomAllCheck.getValue();
+            var params = "panZoomAll:"+panZoomAll;
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setPanZoomAll";
+            this.m_connector.sendCommand( cmd, params, function(){});
         },
         
         /**
@@ -182,6 +205,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             }
         },
         
+        
         /**
          * Send a command to the server to reorder the images in the stack.
          * @param msg {Array} - a list specifying the new image order.
@@ -208,6 +232,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
         m_id : null,
         m_connector : null,
         m_datas : null,
+        m_panZoomAllCheck : null,
         m_sharedVar : null,
         m_sharedVarData : null,
         m_autoSelectCheck : null,

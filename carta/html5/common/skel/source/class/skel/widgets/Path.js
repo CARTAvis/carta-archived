@@ -20,6 +20,7 @@ qx.Class.define("skel.widgets.Path", {
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.FONTS = this.BASE_PATH + "Fonts";
         this.LABEL_FORMATS = this.BASE_PATH + "LabelFormats";
+        this.LAYER_COMPOSITION_MODES = this.BASE_PATH + "LayerCompositionModes";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
@@ -68,6 +69,7 @@ qx.Class.define("skel.widgets.Path", {
         HIDE_IMAGE : "hideImage",
         HISTOGRAM_PLUGIN : "Histogram",
         LABEL_FORMATS : "",
+        LAYER_COMPOSITION_MODES : "",
         LAYOUT : "",
         LAYOUT_MANAGER : "Layout",
         LAYOUT_PLUGIN : "",

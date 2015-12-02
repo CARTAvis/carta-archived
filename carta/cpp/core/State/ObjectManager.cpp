@@ -21,7 +21,8 @@ namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
-        "CoordinateSystems","DataLoader","Fonts","LabelFormats","TransformsImage","TransformsData",
+        "CoordinateSystems","DataLoader","Fonts","LabelFormats","LayerCompositionModes",
+        "TransformsImage","TransformsData",
         "ErrorManager","Layout","Preferences", "PreferencesSave", "Themes","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
@@ -139,8 +140,9 @@ void CartaObject::unregisterView()
     conn()-> unregisterView( m_path +"/view" );
 }
 
-std::shared_ptr<Carta::Lib::LayeredRemoteVGView> CartaObject::makeRemoteView( const QString& path ){
-     return Carta::Lib::LayeredRemoteVGView::create( conn(), path );
+Carta::Lib::LayeredRemoteVGView* CartaObject::makeRemoteView( const QString& path ){
+     //return Carta::Lib::LayeredRemoteVGView::create( conn(), path );
+     return new Carta::Lib::LayeredRemoteVGView( conn(), path, NULL );
 }
 
 QString CartaObject::getStateLocation( const QString& name ) const

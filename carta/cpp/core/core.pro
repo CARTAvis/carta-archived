@@ -52,6 +52,7 @@ HEADERS += \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
     Data/Image/DrawSynchronizer.h \
+    Data/Image/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
     Data/Image/Grid/DataGrid.h \
     Data/Image/Grid/Fonts.h \
@@ -59,6 +60,7 @@ HEADERS += \
     Data/Image/Grid/Themes.h \
     Data/Image/Grid/LabelFormats.h \
     Data/Image/IPercentIntensityMap.h \
+    Data/Image/LayerCompositionModes.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -148,6 +150,8 @@ SOURCES += \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
     Data/Image/DrawSynchronizer.cpp \
+    Data/Image/DrawStackSynchronizer.cpp \
+    Data/Image/LayerCompositionModes.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \

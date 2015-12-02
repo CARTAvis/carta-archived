@@ -8,6 +8,7 @@ namespace Carta {
 namespace Data {
 
 const QString Util::ALPHA = "alpha";
+const QString Util::APPLY = "apply";
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
 const QString Util::PREFERENCES = "preferences";

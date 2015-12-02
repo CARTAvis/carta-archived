@@ -213,6 +213,7 @@ private:
     void _updateContourSetState();
 
     static bool m_registered;
+    //Used
     IPercentIntensityMap* m_percentIntensityMap;
 
 

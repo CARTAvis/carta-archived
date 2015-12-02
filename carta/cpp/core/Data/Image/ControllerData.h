@@ -47,11 +47,12 @@ class DrawSynchronizer;
 class DataContours;
 class DataGrid;
 class DataSource;
-
+class LayerCompositionModes;
 
 class ControllerData : public QObject, public Carta::State::CartaObject {
 
 friend class Controller;
+friend class DrawStackSynchronizer;
 
 Q_OBJECT
 
@@ -118,6 +119,8 @@ private:
      */
     std::shared_ptr<ColorState> _getColorState();
 
+    QString _getCompositionMode() const;
+
     /**
      * Return the coordinates at pixel (x, y) in the given coordinate system.
      * @param x the x-coordinate of the desired pixel.
@@ -135,6 +138,8 @@ private:
      * @return - an enumerated coordinate system type.
      */
     Carta::Lib::KnownSkyCS _getCoordinateSystem() const;
+
+    std::shared_ptr<DataContours> _getContours();
 
     /**
      * Returns information about the image at the current location of the cursor.
@@ -280,8 +285,7 @@ private:
     double _getZoom() const;
 
 
-    void _gridChanged( const Carta::State::StateInterface& state, bool renderImage,
-            const std::vector<int>& frames );
+    void _gridChanged( const Carta::State::StateInterface& state);
 
     /**
      * Respond to a change in display axes.
@@ -293,8 +297,6 @@ private:
     void _initializeState();
     void _initializeSingletons( );
 
-
-    bool _isMasked() const;
 
     /**
      * Returns true if the name identifies this layer; false otherwise.
@@ -328,17 +330,16 @@ private:
      * @param autoClip true if clips should be automatically generated; false otherwise.
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
-     * @param cs - an enumerated coordinate system type.
      */
     void _load( vector<int> frames, bool autoClip, double clipMinPercentile,
-            double clipMaxPercentile, const Carta::Lib::KnownSkyCS& cs );
+            double clipMaxPercentile );
 
     /**
      * Generate a new QImage.
      * @param frames - list of image frames.
      * @param cs - an enumerated coordinate system type.
      */
-    void _render( const std::vector<int>& frames, const Carta::Lib::KnownSkyCS& cs );
+    void _render( const std::vector<int>& frames, const Carta::Lib::KnownSkyCS& cs, bool topOfStack );
 
     /**
      * Center the image.
@@ -364,6 +365,9 @@ private:
      * @param colorState - stored information about the color map.
      */
     void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
+
+    bool _setCompositionMode( const QString& compositionMode,
+            QString& errorMsg );
 
     /**
      * Set contour set to be rendered.
@@ -399,7 +403,7 @@ private:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    bool _setMaskOpacity( int alphaAmount, QString& result );
+    bool _setMaskAlpha( int alphaAmount, QString& result );
 
     /**
      * Set the center for this image's display.
@@ -415,12 +419,6 @@ private:
      */
     bool _setSelected( bool selected );
 
-    /**
-     * Set whether or not to apply a color mask to the image.
-     * @param useMask - true if a color mask should be applied; false otherwise.
-     * @return - true if the mask status was changed; false otherwise.
-     */
-    bool _setUseMask( bool useMask );
 
     /**
      * Show/hide this layer.
@@ -450,10 +448,14 @@ private:
     class Factory;
     static bool m_registered;
 
-    static const QString APPLY;
+    static const QString COMPOSITION_MODE;
     static const QString LAYER;
+    static const QString LAYER_COLOR;
+    static const QString LAYER_ALPHA;
     static const QString MASK;
     static const QString SELECTED;
+
+    static LayerCompositionModes* m_compositionModes;
 
     std::shared_ptr<ColorState> m_stateColor;
 

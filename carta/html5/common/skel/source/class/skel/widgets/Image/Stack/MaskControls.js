@@ -22,31 +22,60 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
 
     members : {
         
+        /**
+         * Callback for a change in the available composition modes on the server.
+         */
+        _compModesChangedCB : function(){
+            if ( this.m_sharedVarCompModes ){
+                var val = this.m_sharedVarCompModes.get();
+                if ( val ){
+                    try {
+                        var oldName = this.m_compModeCombo.getValue();
+                        var modeNames = JSON.parse( val );
+                        this.m_compModeCombo.setSelectItems( modeNames.modes );
+                       
+                        //Try to reset the old selection
+                        if ( oldName !== null ){
+                            this.m_compModeCombo.setSelectValue( oldName );
+                        }
+                    }
+                    catch( err ){
+                        console.log( "Could not layer composition modes: "+val );
+                        console.log( "Err="+err );
+                    }
+                }
+            }
+        },
+        
         /*
          * Initializes the UI.
          */
         _init : function( ) {
             this._setLayout( new qx.ui.layout.VBox(1) );
-            this.m_content = new qx.ui.groupbox.GroupBox( /*"Mask"*/);
+            this.m_content = new qx.ui.groupbox.GroupBox( "");
             this.m_content.setLayout( new qx.ui.layout.VBox(1) );
             this._add( this.m_content );
-            this._initCheck();
+            this._initCompositeModes();
             this._initMask();
         },
         
         /**
          * Initialize UI as to whether or not to apply a mask.
          */
-        _initCheck : function(){
-            var checkContainer = new qx.ui.container.Composite();
-            checkContainer.setLayout( new qx.ui.layout.HBox(1) );
-            this.m_applyCheck = new qx.ui.form.CheckBox( "Apply Mask" );
-            this.m_applyCheck.setToolTipText( "Apply a color/transparency mask to the selected layer(s)." );
-            this.m_applyId = this.m_applyCheck.addListener( "changeValue", this._sendApplyCmd, this );
-            checkContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
-            checkContainer.add( this.m_applyCheck );
-            checkContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
-            this.m_content.add( checkContainer );
+        _initCompositeModes : function(){
+            var hContainer = new qx.ui.container.Composite();
+            hContainer.setLayout( new qx.ui.layout.HBox(1) );
+            var label = new qx.ui.basic.Label( "Composer:" );
+            this.m_compModeCombo = new skel.widgets.CustomUI.SelectBox( 
+                    "setCompositionMode", "mode");
+            this.m_compModeCombo.setToolTipText( "Select a layer composition mode.");
+            
+            //this.m_applyId = this.m_applyCheck.addListener( "changeValue", this._sendApplyCmd, this );
+            hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
+            hContainer.add( label );
+            hContainer.add( this.m_compModeCombo );
+            hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
+            this.m_content.add( hContainer );
         },
         
         
@@ -58,31 +87,14 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
             this.m_content.add( this.m_maskColor );
         },
         
-        /**
-         * Notify the server as to whether a mask should be applied to the selected
-         * layers.
-         */
-        _sendApplyCmd : function(){
-            if ( this.m_id !== null ){
-                var apply = this.m_applyCheck.getValue();
-                var params = "apply:"+apply;
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setUseMask";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }
-        },
         
         /**
          * Update the UI with server information.
          * @param mask {Object} - information from server about the mask.
          */
         setControls : function(mask){
-            this.m_applyCheck.removeListenerById( this.m_applyId );
-            this.m_applyCheck.setValue( mask.apply );
-            this.m_applyId = this.m_applyCheck.addListener( "changeValue", this._sendApplyCmd, this );
-            
+            this.m_compModeCombo.setSelectValue( mask.mode );
             this.m_maskColor.setControls( mask );
-            this.m_maskColor.setControlsEnabled( mask.apply );
         },
         
         /**
@@ -93,15 +105,18 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
         setId : function( id ){
             this.m_id = id;
             this.m_maskColor.setId( id );
+            this.m_compModeCombo.setId( id );
+            var path = skel.widgets.Path.getInstance();
+            this.m_sharedVarCompModes = this.m_connector.getSharedVar(path.LAYER_COMPOSITION_MODES);
+            this.m_sharedVarCompModes.addCB( this._compModesChangedCB.bind( this));
+            this._compModesChangedCB();
         },
         
-        m_applyCheck : null,
-        m_applyId : null,
+        m_compModeCombo : null,
         m_connector : null,
         m_content : null,
         m_id : null,
-        
+        m_sharedVarCompModes : null,
         m_maskColor : null
-
     }
 });

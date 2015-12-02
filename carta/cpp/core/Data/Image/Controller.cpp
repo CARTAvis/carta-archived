@@ -1,6 +1,7 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/DrawStackSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Grid/GridControls.h"
@@ -53,6 +54,7 @@ const QString Controller::DATA_PATH = "dataPath";
 const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
+const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
 const QString Controller::POINTER_MOVE = "pointer-move";
 const QString Controller::ZOOM = "zoom";
 const QString Controller::REGIONS = "regions";
@@ -72,20 +74,19 @@ using Carta::Lib::AxisInfo;
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
         m_selectImage(nullptr),
-        m_view(nullptr),
+        m_stackDraw(nullptr),
         m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA )),
         m_stateMouse(UtilState::getLookup(path, VIEW)){
     QString viewName = Carta::State::UtilState::getLookup( path, VIEW);
-    m_view = makeRemoteView( viewName );
+    m_stackDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
     
     m_reloadFrameQueued = false;
-    m_repaintFrameQueued = false;
 
     _initializeSelections();
 
      _initializeState();
 
-     connect( m_view.get(), SIGNAL(sizeChanged()), this, SLOT(_viewResize()) );
+     connect( m_stackDraw.get(), SIGNAL(viewResize()), this, SLOT(_viewResize()));
 
      Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
      GridControls* gridObj = objMan->createObject<GridControls>();
@@ -134,11 +135,11 @@ bool Controller::addData(const QString& fileName) {
         //Contour controls is in charge of setting the UI for the contours.
         m_contourControls->_setDrawContours( contourPtr );
         targetIndex = m_datas.size();
-        connect( targetSource, SIGNAL(renderingDone()), this, SLOT(_scheduleFrameRepaint()));
         connect( targetSource, & ControllerData::saveImageResult, this, & Controller::saveImageResultCB );
         m_datas.append(std::shared_ptr<ControllerData>(targetSource));
+        m_stackDraw->setLayers( m_datas );
 
-        targetSource->_viewResize( m_view->getClientSize() );
+        targetSource->_viewResize( m_stackDraw->getClientSize() );
 
         //Colormap
         targetSource->_setColorMapGlobal( m_stateColor );
@@ -210,12 +211,10 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
 
         if( clipsChangedValue ){
             m_state.flushState();
-            if ( m_view ){
-                _scheduleFrameReload( true );
-                double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
-                double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
-                emit clipsChanged( minPercent, maxPercent );
-            }
+            _scheduleFrameReload( true );
+            double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+            double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+            emit clipsChanged( minPercent, maxPercent );
         }
     }
     else {
@@ -257,6 +256,7 @@ QString Controller::closeImage( const QString& name ){
     }
     if ( targetIndex >= 0 ){
         _removeData( targetIndex );
+        m_stackDraw->setLayers( m_datas );
         emit dataChanged( this );
     }
     else {
@@ -266,27 +266,31 @@ QString Controller::closeImage( const QString& name ){
 }
 
 void Controller::_colorMapChanged(){
-    _render();
+    _render( true );
 }
 
 
 
 void Controller::centerOnPixel( double centerX, double centerY ){
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        m_datas[i]->_setPan( centerX, centerY );
-        _render();
+    bool panZoomAll = m_state.getValue<bool>( PAN_ZOOM_ALL );
+    if ( panZoomAll ){
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->_setPan( centerX, centerY );
+        }
     }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            m_datas[dataIndex]->_setPan( centerX, centerY );
+        }
+    }
+    _render( panZoomAll );
 }
 
 
 void Controller::_contoursChanged(){
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        std::vector<int> frames = _getFrameIndices( dataIndex );
-        const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
-        m_datas[dataIndex]->_render( frames, cs );
-    }
+    _render( false );
 }
 
 void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
@@ -295,7 +299,7 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
         int dataIndex = _getIndexCurrent();
         if (dataIndex >= 0 ) {
             if (m_datas[dataIndex] != nullptr) {
-                std::vector<int> frames = _getFrameIndices( dataIndex );
+                std::vector<int> frames = _getFrameIndices();
                 m_datas[dataIndex]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
@@ -304,13 +308,13 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
         int dataCount = m_datas.size();
         for ( int i = 0; i < dataCount; i++ ){
             if ( m_datas[i] != nullptr ){
-                std::vector<int> frames = _getFrameIndices( i );
+                std::vector<int> frames = _getFrameIndices();
                 m_datas[i]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
     }
     emit axesChanged();
-    this->_loadView();
+    _scheduleFrameReload( false );
     _updateCursorText( true );
 }
 
@@ -372,7 +376,7 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     QStringList result;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        QStringList coordList = m_datas[dataIndex]->_getCoordinates( x, y, system, _getFrameIndices(dataIndex) );
+        QStringList coordList = m_datas[dataIndex]->_getCoordinates( x, y, system, _getFrameIndices() );
         for ( int i = 0; i <= 1; i++ ){
             result.append( coordList[i] );
         }
@@ -419,16 +423,12 @@ int Controller::getFrame( AxisInfo::KnownType axisType ) const {
     return frame;
 }
 
-std::vector<int> Controller::_getFrameIndices( int imageIndex ) const {
+std::vector<int> Controller::_getFrameIndices( ) const {
     int selectCount = m_selects.size();
     std::vector<int> frames( selectCount );
-    if ( imageIndex >= 0 && imageIndex < m_datas.size() ){
-        if ( m_datas[imageIndex] != nullptr ){
-            //Determine the index of the frame to load.
-            for ( int i = 0; i < selectCount; i++ ){
-                frames[i] = m_selects[i]->getIndex();
-            }
-        }
+    //Determine the index of the frame to load.
+    for ( int i = 0; i < selectCount; i++ ){
+        frames[i] = m_selects[i]->getIndex();
     }
     return frames;
 }
@@ -572,7 +572,7 @@ QString Controller::getPixelValue( double x, double y ) const {
     QString result("");
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        std::vector<int> frames = _getFrameIndices( dataIndex );
+        std::vector<int> frames = _getFrameIndices();
         result = m_datas[dataIndex]->_getPixelValue( x, y, frames );
     }
     return result;
@@ -688,7 +688,6 @@ double Controller::getZoomLevel( ){
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         zoom = m_datas[dataIndex]->_getZoom( );
-        _render();
     }
     return zoom;
 }
@@ -696,21 +695,18 @@ double Controller::getZoomLevel( ){
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        std::vector<int> frames = _getFrameIndices( dataIndex );
         if ( !applyAll ){
-            m_datas[dataIndex]->_gridChanged( state, true, frames );
+            m_datas[dataIndex]->_gridChanged( state );
+            _render( false );
         }
         else {
             int dataCount = m_datas.size();
             for ( int i = 0; i < dataCount; i++ ){
-                bool renderedImage = false;
-                if ( i == dataIndex ){
-                    renderedImage = true;
-                }
                 if ( m_datas[i] != nullptr ){
-                    m_datas[i]->_gridChanged( state, renderedImage, frames );
+                    m_datas[i]->_gridChanged( state );
                 }
             }
+            _render( true );
         }
         _updateCursorText( true );
     }
@@ -806,6 +802,24 @@ void Controller::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setPanZoomAll", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {"panZoomAll"};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString panZoomKey = *keys.begin();
+            bool validBool = false;
+            bool panZoomAll = Util::toBool( dataValues[panZoomKey], &validBool );
+            QString result;
+            if ( validBool ){
+                setPanZoomAll( panZoomAll );
+            }
+            else {
+                result = "Pan/Zoom All must be true/false: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( VIEW, POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
@@ -955,7 +969,6 @@ void Controller::_initializeCallbacks(){
                                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-
         QString result;
         QString redStr = dataValues[Util::RED];
         bool validRed = false;
@@ -978,7 +991,7 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( "setMaskOpacity", [=] (const QString & /*cmd*/,
+    addCommandCallback( "setMaskAlpha", [=] (const QString & /*cmd*/,
                                     const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = { Util::ALPHA };
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
@@ -987,7 +1000,7 @@ void Controller::_initializeCallbacks(){
         bool validAlpha = false;
         int alphaAmount = alphaStr.toInt( &validAlpha );
         if ( validAlpha ){
-            result = setMaskOpacity( alphaAmount );
+            result = setMaskAlpha( alphaAmount );
         }
         else {
             result = "Invalid mask opacity: "+params;
@@ -1014,20 +1027,12 @@ void Controller::_initializeCallbacks(){
        return result;
    });
 
-    addCommandCallback( "setUseMask", [=] (const QString & /*cmd*/,
+    addCommandCallback( "setCompositionMode", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {ControllerData::APPLY};
+        std::set<QString> keys = {ControllerData::COMPOSITION_MODE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString result;
-        QString applyStr = dataValues[ControllerData::APPLY];
-        bool validBool = false;
-        bool apply = Util::toBool( applyStr, &validBool );
-        if ( validBool ){
-            result = setUseMask( apply );
-        }
-        else {
-            result = "Use mask must be true/false: "+params;
-        }
+        QString compMode = dataValues[ControllerData::COMPOSITION_MODE];
+        QString result = setCompositionMode( compMode );
         Util::commandPostProcess( result );
         return result;
     });
@@ -1049,10 +1054,9 @@ void Controller::_initializeSelections(){
 
 
 void Controller::_initializeState(){
-
-    //Set whether or not to auto clip
     //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
+    m_state.insertValue<bool>(PAN_ZOOM_ALL, true );
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
@@ -1084,11 +1088,15 @@ void Controller::_loadView(  bool newClips ) {
     m_reloadFrameQueued = false;
     //Determine the index of the data to load.
     int dataIndex = _getIndexCurrent();
+    _loadView( newClips, dataIndex );
+}
+
+void Controller::_loadView( bool newClips, int dataIndex ){
     if ( dataIndex >= 0 ) {
         if (m_datas[dataIndex] != nullptr) {
 
             //Determine the indices of the frames to load.
-            vector<int> frames = _getFrameIndices( dataIndex );
+            vector<int> frames = _getFrameIndices();
 
             //Load the image.
             bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
@@ -1097,8 +1105,8 @@ void Controller::_loadView(  bool newClips ) {
             }
             double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
             double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
-            const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
-            m_datas[dataIndex]->_load(frames, autoClip, clipValueMin, clipValueMax, cs);
+            m_datas[dataIndex]->_load(frames, autoClip, clipValueMin, clipValueMax);
+            _render( false );
         }
         else {
             qDebug() << "Uninitialized image: "<<dataIndex;
@@ -1156,7 +1164,7 @@ void Controller::_removeData( int index ){
         }
         m_selects[i]->setUpperBound( frameCount );
     }
-    this->_loadView();
+    _scheduleFrameReload( false );
 
     //Clear the statistics window if there are no images.
     if ( visibleImageCount == 0 ){
@@ -1167,19 +1175,22 @@ void Controller::_removeData( int index ){
 }
 
 
-void Controller::_render(){
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        std::vector<int> frames = _getFrameIndices( dataIndex );
-        const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
-        m_datas[dataIndex]->_render( frames, cs );
+void Controller::_render( bool allImages ){
+    std::vector<int> frames =_getFrameIndices();
+    const Carta::Lib::KnownSkyCS& cs = getCoordinateSystem();
+    QList<std::shared_ptr<ControllerData> > datas;
+    if ( allImages ){
+        datas = m_datas;
     }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            datas.append( m_datas[dataIndex]);
+        }
+    }
+    m_stackDraw->_render( datas, frames, cs );
 }
 
-void Controller::_repaintFrameNow(){
-    m_view->scheduleRepaint();
-    m_repaintFrameQueued = false;
-}
 
 void Controller::resetState( const QString& state ){
     StateInterface restoredState( "");
@@ -1200,23 +1211,27 @@ void Controller::resetStateData( const QString& state ){
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
 
-    //Reset the image select state.
-    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
-    m_selectImage ->resetState( dataStateStr );
-
+    //Reset the loaded images
     int dataCount = dataState.getArraySize(DATA);
     for ( int i = 0; i < dataCount; i++ ){
         QString dataLookup = Carta::State::UtilState::getLookup( DATA, i );
         QString fileLookup = Carta::State::UtilState::getLookup( dataLookup, DataSource::DATA_PATH);
         QString fileName = dataState.getValue<QString>( fileLookup );
         addData( fileName );
+        _loadView( true, i );
         QString gridLookup = Carta::State::UtilState::getLookup( dataLookup, DataGrid::GRID);
         QString gridStr = dataState.toString( gridLookup );
         StateInterface gridState( "" );
         gridState.setState( gridStr );
-        std::vector<int> frames = _getFrameIndices( i );
-        m_datas[i]->_gridChanged( gridState, false, frames );
+        std::vector<int> frames = _getFrameIndices();
+        m_datas[i]->_gridChanged( gridState );
     }
+    m_stackDraw->setLayers( m_datas );
+
+    //Reset the image select state.
+    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
+    m_selectImage ->resetState( dataStateStr );
+    m_stackDraw->setSelectIndex( m_selectImage->getIndex());
 
     //Now we need to restore the axis states.
     int selectCount = m_selects.size();
@@ -1244,23 +1259,41 @@ void Controller::resetStateData( const QString& state ){
 }
 
 void Controller::resetPan(){
-    int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        for ( int i = 0; i < dataCount; i++ ){
-            m_datas[i]->_resetPan();
+    bool panZoomAll = m_state.getValue<bool>( PAN_ZOOM_ALL );
+    if ( panZoomAll ){
+        int dataCount = m_datas.size();
+        if ( dataCount > 0 ){
+            for ( int i = 0; i < dataCount; i++ ){
+                m_datas[i]->_resetPan();
+            }
         }
-        _render();
     }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            m_datas[dataIndex]->_resetPan();
+        }
+    }
+    _render( panZoomAll );
 }
 
 void Controller::resetZoom(){
-    int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        for ( int i = 0; i < dataCount; i++ ){
-            m_datas[i]->_resetZoom();
+    bool panZoomAll = m_state.getValue<bool>( PAN_ZOOM_ALL );
+    if ( panZoomAll ){
+        int dataCount = m_datas.size();
+        if ( dataCount > 0 ){
+            for ( int i = 0; i < dataCount; i++ ){
+                m_datas[i]->_resetZoom();
+            }
         }
-        _render();
     }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            m_datas[dataIndex]->_resetZoom();
+        }
+    }
+    _render( panZoomAll );
 }
 
 
@@ -1307,7 +1340,7 @@ QString Controller::saveImage( const QString& fileName, double scale ){
                 result = "Please make sure the save path is valid: "+fileName;
             }
             else {
-                std::vector<int> frames = _getFrameIndices( dataIndex );
+                std::vector<int> frames = _getFrameIndices();
                 result = m_datas[dataIndex]->_saveImage( fileName, scale, frames );
             }
         }
@@ -1346,46 +1379,6 @@ void Controller::_saveRegions(){
     }
 }
 
-void Controller::_scheduleFrameRepaint(){
-    int dataCount = m_datas.size();
-    // if reload is already pending, do nothing
-    if ( m_repaintFrameQueued ) {
-        return;
-    }
-    m_view->resetLayers();
-
-    //We want the selected index to be the last one in the stack.
-    int selectIndex = m_selectImage->getIndex();
-    int layerIndex = 0;
-    for ( int i = 0; i < dataCount; i++ ){
-        int dIndex = ( selectIndex + i + 1 ) % dataCount;
-        if ( m_datas[dIndex]->_isVisible() ){
-            QImage image = m_datas[dIndex]->_getQImage();
-            Carta::Lib::VectorGraphics::VGList graphicsList = m_datas[dIndex]->_getVectorGraphics();
-            m_view->setRasterLayer( layerIndex, image );
-            bool masked = m_datas[dIndex]->_isMasked();
-            if ( masked ){
-                std::shared_ptr<Carta::Lib::PixelMaskCombiner> pmc =
-                        std::make_shared < Carta::Lib::PixelMaskCombiner > ();
-                float alphaVal = m_datas[dIndex]->_getMaskAlpha();
-                pmc-> setAlpha( alphaVal );
-                qint32 maskColor = m_datas[dIndex]->_getMaskColor();
-                pmc-> setMask( maskColor );
-                m_view->setRasterLayerCombiner( layerIndex, pmc );
-            }
-            else {
-                std::shared_ptr<Carta::Lib::DefaultCombiner> dc =
-                        std::make_shared < Carta::Lib::DefaultCombiner > ();
-                m_view->setRasterLayerCombiner( layerIndex, dc );
-            }
-            m_view->setVGLayer( layerIndex, graphicsList );
-            layerIndex++;
-        }
-    }
-    m_repaintFrameQueued = true;
-    QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
-}
-
 
 void Controller::_scheduleFrameReload( bool newClips ){
     if ( m_datas.size() > 0  ){
@@ -1393,6 +1386,7 @@ void Controller::_scheduleFrameReload( bool newClips ){
         if ( m_reloadFrameQueued ) {
             return;
         }
+        m_stackDraw->setSelectIndex( m_selectImage->getIndex());
         m_reloadFrameQueued = true;
         QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
     }
@@ -1446,6 +1440,9 @@ void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
 }
 
 void Controller::setFrameImage( int val) {
+    if ( val < 0 ){
+        return;
+    }
     if (m_selectImage != nullptr) {
         int oldIndex = m_selectImage->getIndex();
         if ( oldIndex != val ){
@@ -1528,7 +1525,7 @@ QString Controller::setImageOrder( const std::vector<int>& indices ){
     }
     if ( imageReordered ){
         m_datas = reorderedList;
-        _render();
+        _render( true );
     }
     return result;
 }
@@ -1548,7 +1545,7 @@ QString Controller::setImageVisibility( int dataIndex, bool visible ){
             emit dataChanged( this );
             //Render the image if it is the one currently being viewed.
             if ( selectedImageIndex == dataIndex  ){
-                _loadView();
+                _scheduleFrameReload( false );
             }
             if ( visibleCount == 0 ){
                 _clearStatistics();
@@ -1651,7 +1648,7 @@ QStringList Controller::setMaskColor( int redAmount, int greenAmount, int blueAm
     return result;
 }
 
-QString Controller::setMaskOpacity( int alphaAmount ){
+QString Controller::setMaskAlpha( int alphaAmount ){
     QString result;
     int dataCount = m_datas.size();
     bool dataSelected = false;
@@ -1659,7 +1656,7 @@ QString Controller::setMaskOpacity( int alphaAmount ){
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_isSelected() ){
             dataSelected = true;
-            bool changed = m_datas[i]->_setMaskOpacity( alphaAmount, result );
+            bool changed = m_datas[i]->_setMaskAlpha( alphaAmount, result );
             if ( changed ){
                 dataChanged = true;
             }
@@ -1675,6 +1672,15 @@ QString Controller::setMaskOpacity( int alphaAmount ){
     return result;
 }
 
+void Controller::setPanZoomAll( bool panZoomAll ){
+    bool oldPanZoomAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    if ( panZoomAll != oldPanZoomAll ){
+        m_state.setValue<bool>( PAN_ZOOM_ALL, panZoomAll );
+        m_state.flushState();
+    }
+}
+
+
 void Controller::setStackSelectAuto( bool automatic ){
     bool oldStackSelectAuto = m_state.getValue<bool>(STACK_SELECT_AUTO );
     if ( oldStackSelectAuto != automatic ){
@@ -1683,7 +1689,7 @@ void Controller::setStackSelectAuto( bool automatic ){
     }
 }
 
-QString Controller::setUseMask( bool useMask ){
+QString Controller::setCompositionMode( const QString& compMode ){
     QString result;
     int dataCount = m_datas.size();
     bool dataSelected = false;
@@ -1691,14 +1697,14 @@ QString Controller::setUseMask( bool useMask ){
     for( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->_isSelected() ){
             dataSelected = true;
-            bool stateChanged = m_datas[i]->_setUseMask( useMask );
+            bool stateChanged = m_datas[i]->_setCompositionMode( compMode, result );
             if ( stateChanged ){
                 dataChanged = true;
             }
         }
     }
     if ( !dataSelected ){
-        result = "Data must be selected to apply a mask.";
+        result = "Data must be selected to apply a layer composition mode.";
     }
     if ( dataChanged ){
         saveState();
@@ -1712,8 +1718,9 @@ void Controller::setZoomLevel( double zoomFactor ){
     for ( int i = 0; i < dataCount; i++ ){
         //Set the zoom
         m_datas[i]->_setZoom( zoomFactor );
-        _render();
+
     }
+    _render( true );
 }
 
 
@@ -1734,12 +1741,11 @@ void Controller::_updateCursor( int mouseX, int mouseY ){
 
 void Controller::_updateCursorText(bool notifyClients ){
     QString formattedCursor;
-    int imageIndex = m_selectImage->getIndex();
     int dataIndex = _getIndexCurrent();
     if ( 0 <= dataIndex ){
         int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
         int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-        QString cursorText = m_datas[dataIndex]->_getCursorText( mouseX, mouseY, _getFrameIndices( imageIndex));
+        QString cursorText = m_datas[dataIndex]->_getCursorText( mouseX, mouseY, _getFrameIndices());
         if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
             m_stateMouse.setValue<QString>( CURSOR, cursorText );
             if ( notifyClients ){
@@ -1768,68 +1774,86 @@ void Controller::_updateDisplayAxes( int targetIndex ){
 
 
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        //Remember where the user clicked
-        QPointF clickPtScreen( centerX, centerY);
-        bool validImage = false;
-        QPointF clickPtImageOld = m_datas[dataIndex]->_getImagePt( clickPtScreen, &validImage );
-        if ( validImage ){
-            //Set the zoom
-            double newZoom = 1;
-            double oldZoom = m_datas[dataIndex]->_getZoom();
-            if ( zoomFactor < 0 ) {
-                newZoom = oldZoom / 0.9;
-            }
-            else {
-                newZoom = oldZoom * 0.9;
-            }
-            for (std::shared_ptr<ControllerData> data : m_datas ){
-                data->_setZoom( newZoom );
-            }
-
-            // what is the new image pixel under the mouse cursor?
-            QPointF clickPtImageNew = m_datas[dataIndex]->_getImagePt( clickPtScreen, &validImage );
-
-            // calculate the difference
-            QPointF delta = clickPtImageOld - clickPtImageNew;
-
-            // add the delta to the current center
-            QPointF currCenter = m_datas[dataIndex]->_getCenter();
-            QPointF newCenter = currCenter + delta;
-            for ( std::shared_ptr<ControllerData> data : m_datas ){
-                data->_setPan( newCenter.x(), newCenter.y() );
-            }
-            _render();
+    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    if ( zoomPanAll ){
+        for (std::shared_ptr<ControllerData> data : m_datas ){
+            _updateZoom( centerX, centerY, zoomFactor, data );
         }
+    }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            _updateZoom( centerX, centerY, zoomFactor, m_datas[dataIndex] );
+        }
+    }
+    _render( zoomPanAll );
+}
+
+void Controller::_updateZoom( double centerX, double centerY, double zoomFactor,
+         std::shared_ptr<ControllerData> data ){
+    //Remember where the user clicked
+    QPointF clickPtScreen( centerX, centerY);
+    bool validImage = false;
+    QPointF clickPtImageOld = data->_getImagePt( clickPtScreen, &validImage );
+    if ( validImage ){
+        //Set the zoom
+        double newZoom = 1;
+        double oldZoom = data->_getZoom();
+        if ( zoomFactor < 0 ) {
+            newZoom = oldZoom / 0.9;
+        }
+        else {
+            newZoom = oldZoom * 0.9;
+        }
+        data->_setZoom( newZoom );
+
+        // what is the new image pixel under the mouse cursor?
+        QPointF clickPtImageNew = data ->_getImagePt( clickPtScreen, &validImage );
+
+        // calculate the difference
+        QPointF delta = clickPtImageOld - clickPtImageNew;
+
+        // add the delta to the current center
+        QPointF currCenter = data ->_getCenter();
+        QPointF newCenter = currCenter + delta;
+        data->_setPan( newCenter.x(), newCenter.y() );
     }
 }
 
 void Controller::updatePan( double centerX , double centerY){
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        bool validImage = false;
-        QPointF oldImageCenter = m_datas[dataIndex]-> _getImagePt( { centerX, centerY }, &validImage );
-        if ( validImage ){
-
-            double imageX = oldImageCenter.x();
-            double imageY = oldImageCenter.y();
-            for ( std::shared_ptr<ControllerData> data : m_datas ){
-                data->_setPan( imageX, imageY );
-            }
-            _render();
-            _updateCursorText( true );
+    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    if ( zoomPanAll ){
+        for ( std::shared_ptr<ControllerData> data : m_datas ){
+            _updatePan( centerX, centerY, data );
         }
+    }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            _updatePan( centerX, centerY, m_datas[dataIndex] );
+        }
+    }
+    _render( zoomPanAll );
+    _updateCursorText( true );
+}
+
+void Controller::_updatePan( double centerX , double centerY,
+        std::shared_ptr<ControllerData> data){
+    bool validImage = false;
+    QPointF imagePt = data -> _getImagePt( { centerX, centerY }, &validImage );
+    if ( validImage ){
+        double imageX = imagePt.x();
+        double imageY = imagePt.y();
+        data->_setPan( imageX, imageY );
     }
 }
 
-
 void Controller::_viewResize( ){
-    QSize clientSize = m_view->getClientSize();
+    QSize clientSize = m_stackDraw->getClientSize();
     for ( int i = 0; i < m_datas.size(); i++ ){
         m_datas[i]->_viewResize( clientSize );
     }
-    _render();
+    _render( true );
 }
 
 Controller::~Controller(){

@@ -264,7 +264,8 @@ void DesktopConnector::refreshViewNow(IView *view)
     const QImage & origImage = view-> getBuffer();
 
     QSize clientImageSize = viewInfo->clientSize;
-    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 && clientImageSize.width() > 0 ) {
+    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 &&
+            clientImageSize.width() > 0 && origImage.height() > 0 ) {
         qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
         // scale the image to fit the client size, in case it wasn't scaled alerady
         QImage destImage = origImage.scaled(
@@ -316,7 +317,7 @@ void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int
 
 void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
 {
-    qDebug() << "jsViewRefreshedSlot()" << viewName << id;
+    //qDebug() << "jsViewRefreshedSlot()" << viewName << id;
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
         qCritical() << "Received refresh view signal for unknown view" << viewName;

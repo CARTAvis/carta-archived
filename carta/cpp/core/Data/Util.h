@@ -94,6 +94,7 @@ public:
 
      static const QString PREFERENCES;
      static const QString ALPHA;
+     static const QString APPLY;
      static const QString RED;
      static const QString GREEN;
      static const QString BLUE;

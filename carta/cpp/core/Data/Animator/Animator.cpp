@@ -59,7 +59,6 @@ QString Animator::addLink( CartaObject* cartaObject ){
     }
 
     if ( linkAdded ){
-        //_resetAnimationParameters( -1);
         _adjustStateController( controller );
     }
     return result;
@@ -285,14 +284,7 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
     QString result;
     if ( type == SNAPSHOT_PREFERENCES ){
         //User preferences should include animators visible (m_state)
-        //and individual animator preferences.
-        StateInterface prefState("");
-        prefState.setState( /*getPath(),*/ m_state.toString());
-        QMap<QString, AnimatorType*>::const_iterator animIter;
-        for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
-            prefState.insertObject( animIter.key(), animIter.value()->getStatePreferences());
-        }
-        result = prefState.toString();
+        result = m_state.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
         result = m_linkImpl->getStateString(getIndex(), getSnapType( type ) );
@@ -485,15 +477,12 @@ void Animator::_resetStateAnimator( const Carta::State::StateInterface& state, c
 }
 
 void Animator::resetState( const QString& state ){
-    Carta::State::StateInterface prefState("");
-    prefState.setState( state );
-    _resetStateAnimator( prefState, Selection::CHANNEL);
-    _resetStateAnimator( prefState, Selection::IMAGE );
-    _adjustStateAnimatorTypes();
+    m_state.setState( state );
 }
 
 void Animator::resetStateData( const QString& state ){
     Carta::State::StateInterface dataState("");
+    m_animators.clear();
     dataState.setState( state );
     int animationCount = dataState.getArraySize( AnimatorType::ANIMATIONS );
     for (int i = 0; i < animationCount; i++ ){
@@ -502,12 +491,11 @@ void Animator::resetStateData( const QString& state ){
         QString animName = dataState.getValue<QString>( keyName );
         QString keyValue = UtilState::getLookup(lookup, "value");
         QString stateValue = dataState.getValue<QString>( keyValue );
-        if ( m_animators.contains( animName )){
-            m_animators[animName]->resetStateData( stateValue );
+        if ( !m_animators.contains( animName) ){
+            QString animId;
+            addAnimator( animName, animId );
         }
-        else {
-            qDebug() << "Unrecognized animator state: "<<stateValue;
-        }
+        m_animators[animName]->resetStateData( stateValue );
     }
 }
 
