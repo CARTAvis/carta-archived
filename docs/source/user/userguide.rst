@@ -1,5 +1,5 @@
-Guide for the users
-===================
+CARTA User Guide
+================
 
 
 Guide will be inserted here,
