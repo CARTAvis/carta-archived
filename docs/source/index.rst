@@ -24,7 +24,7 @@ Developer Guide
 .. toctree::
    :maxdepth: 2
 
-   developer/contribute/howtocont.rst
+   developer/contribute/Writinganimageplugin.rst
 
 Python Auto Generated Documentation
 ===================================
