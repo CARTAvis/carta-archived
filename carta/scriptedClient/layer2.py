@@ -8,8 +8,8 @@ class TagMessage:
     """
     TagMessage contains a string tag and string data.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     tag: string
         The type of the message. Currently supported tags are "json" and
         "async".
