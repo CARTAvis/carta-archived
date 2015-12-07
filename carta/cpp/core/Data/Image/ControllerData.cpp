@@ -66,6 +66,26 @@ ControllerData::ControllerData(const QString& path, const QString& id) :
         m_dataGrid->_initializeGridRenderer();
         _initializeSingletons();
         _initializeState();
+
+        std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
+        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+
+        // create the synchronizer
+        m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
+
+        // connect its done() slot to our renderingSlot()
+        connect( m_drawSync.get(), & DrawSynchronizer::done,
+                         this, & ControllerData::_renderingDone );
+}
+
+void ControllerData::_addContourSet( std::shared_ptr<DataContours> contour ){
+    if ( contour ){
+        QString targetName = contour->getName();
+        std::shared_ptr<DataContours> contourSet = _getContour( targetName );
+        if ( !contourSet ){
+            m_dataContours.insert( contour );
+        }
+    }
 }
 
 void ControllerData::_clearColorMap(){
@@ -81,10 +101,46 @@ void ControllerData::_clearData(){
     if ( m_dataGrid != nullptr){
         objMan->removeObject(m_dataGrid->getId());
     }
-    if ( m_dataContours != nullptr){
-        objMan->removeObject(m_dataContours->getId());
+    for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+            it != m_dataContours.end(); it++ ){
+        if ( (*it) ){
+            objMan->removeObject( (*it)->getId() );
+        }
     }
 }
+
+void ControllerData::_colorChanged(){
+    if ( m_dataSource ){
+        QString mapName = m_stateColor->_getColorMap();
+        m_dataSource->_setColorMap( mapName );
+        m_dataSource->_setTransformData( m_stateColor->_getDataTransform() );
+        m_dataSource->_setGamma( m_stateColor->_getGamma() );
+        m_dataSource->_setColorReversed( m_stateColor->_isReversed() );
+        m_dataSource->_setColorInverted( m_stateColor->_isInverted() );
+        double redAmount = m_stateColor->_getMixRed();
+        double greenAmount = m_stateColor->_getMixGreen();
+        double blueAmount = m_stateColor->_getMixBlue();
+        m_dataSource->_setColorAmounts( redAmount, greenAmount, blueAmount );
+        bool defaultNan = m_stateColor->_isNanDefault();
+        m_dataSource->_setNanDefault( defaultNan );
+
+        //If we aren't using a default nan color, tell the dataSource to use
+        //the custom color.
+        if ( !defaultNan ){
+            int redAmount = m_stateColor->_getNanRed();
+            int greenAmount = m_stateColor->_getNanGreen();
+            int blueAmount = m_stateColor->_getNanBlue();
+            m_dataSource->_setColorNan( redAmount, greenAmount, blueAmount );
+        }
+        //We are using  the default nan color.  Update the state to the default color.
+        else {
+            QColor nanColor = m_dataSource->_getNanColor();
+            m_stateColor->_setNanColor( nanColor.red(), nanColor.green(), nanColor.blue() );
+        }
+        emit colorStateChanged();
+    }
+}
+
 
 
 void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
@@ -144,7 +200,19 @@ QString ControllerData::_getCompositionMode() const {
     return m_state.getValue<QString>( maskApplyKey );
 }
 
-std::shared_ptr<DataContours> ControllerData::_getContours() {
+std::shared_ptr<DataContours> ControllerData::_getContour( const QString& name ){
+    std::shared_ptr<DataContours> contourSet;
+    for ( std::set<std::shared_ptr<DataContours> >::iterator it= m_dataContours.begin();
+            it != m_dataContours.end(); it++ ){
+        if ( name == (*it)->getName() ){
+            contourSet = (*it);
+            break;
+        }
+    }
+    return contourSet;
+}
+
+std::set<std::shared_ptr<DataContours>> ControllerData::_getContours() {
     return m_dataContours;
 }
 
@@ -336,6 +404,15 @@ QPointF ControllerData::_getScreenPt( QPointF imagePt, bool* valid ) const {
 QString ControllerData::_getStateString() const{
     Carta::State::StateInterface copyState( m_state );
     copyState.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
+    int contourCount = m_dataContours.size();
+    copyState.insertArray( DataContours::CONTOURS, contourCount );
+    int i = 0;
+    for ( std::set< std::shared_ptr<DataContours> >::iterator iter = m_dataContours.begin();
+            iter != m_dataContours.end(); iter++ ){
+        QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
+        copyState.setObject( lookup, (*iter)->_getState().toString() );
+        i++;
+    }
     QString stateStr = copyState.toString();
     return stateStr;
 }
@@ -392,6 +469,18 @@ void ControllerData::_initializeState(){
     m_state.insertValue<bool>( layerAlphaKey, alphaSupport );
 }
 
+bool ControllerData::_isContourDraw() const {
+    bool contourDraw = false;
+    for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+            it != m_dataContours.end(); it++ ){
+        if ( (*it)->isContourDraw() ){
+            contourDraw = true;
+            break;
+        }
+    }
+    return contourDraw;
+}
+
 bool ControllerData::_isSelected() const {
     return m_state.getValue<bool>( SELECTED );
 }
@@ -419,7 +508,7 @@ void ControllerData::_renderingDone(
     m_qimage = image;
     Carta::Lib::VectorGraphics::VGComposer comp( gridVG );
 
-    if ( m_dataContours->isContourDraw()){
+    if ( _isContourDraw()){
         // where does 0.5, 0.5 map to?
         if ( m_dataSource ){
 
@@ -464,6 +553,20 @@ void ControllerData::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
             if ( m_dataGrid->_isGridVisible() ){
                 std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
                 gridService->setInputImage( m_dataSource->_getImage() );
+            }
+        }
+    }
+}
+
+
+void ControllerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
+    if ( contourSet ){
+        QString targetName = contourSet->getName();
+        for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+                        it != m_dataContours.end(); it++ ){
+            if ( targetName == (*it)->getName() ){
+                m_dataContours.erase(*it);
+                break;
             }
         }
     }
@@ -530,12 +633,86 @@ void ControllerData::_render( const std::vector<int>& frames,
     Carta::Lib::AxisLabelInfo vertAxisInfo = m_dataGrid->_getAxisLabelInfo( 1, vertAxisType, cs );
     gridService->setAxisLabelInfo( 1, vertAxisInfo );
 
-    bool contourDraw = m_dataContours->isContourDraw();
+    bool contourDraw = _isContourDraw();
     bool gridDraw = false;
     if ( topOfStack ){
         gridDraw = m_dataGrid->_isGridVisible();
     }
     m_drawSync-> start( contourDraw, gridDraw );
+}
+
+void ControllerData::_resetState( const QString& stateStr ){
+    Carta::State::StateInterface restoreState("");
+    restoreState.setState( stateStr );
+
+    //Restore the grid
+    QString gridStr = restoreState.toString( DataGrid::GRID );
+    Carta::State::StateInterface gridState( "" );
+    gridState.setState( gridStr );
+    _gridChanged( gridState );
+
+    _resetStateContours( restoreState );
+    _resetState( restoreState );
+}
+
+void ControllerData::_resetStateContours(const Carta::State::StateInterface& restoreState ){
+    int contourCount = restoreState.getArraySize( DataContours::CONTOURS );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QStringList supportedContours;
+
+    //Add any contours not there
+    for ( int i = 0; i < contourCount; i++ ){
+       QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
+       QString nameLookup = Carta::State::UtilState::getLookup( lookup, DataContours::SET_NAME );
+       QString contourStr = restoreState.toString( lookup);
+       QString contourName = restoreState.getValue<QString>( nameLookup );
+       supportedContours.append( contourName );
+       bool newContourSet = false;
+       std::shared_ptr<DataContours> contourSet = _getContour( contourName );
+       if ( !contourSet ){
+           newContourSet = true;
+          contourSet = std::shared_ptr<DataContours>(objMan->createObject<DataContours>());
+          m_dataContours.insert( contourSet );
+       }
+
+       QString contourSetState = restoreState.toString( lookup );
+       contourSet->resetState( contourSetState );
+       if ( newContourSet ){
+           emit contourSetAdded( this, contourName );
+       }
+   }
+
+   //Remove any contours no longer there
+    for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+            it != m_dataContours.end(); it++ ){
+        QString contourSetName = (*it)->getName();
+        if ( !supportedContours.contains( contourSetName )){
+            _removeContourSet( (*it) );
+            emit contourSetRemoved( contourSetName );
+        }
+    }
+}
+
+void ControllerData::_resetState( const Carta::State::StateInterface& restoreState ){
+    //Restore the other state variables
+    m_state.setValue<bool>(Util::VISIBLE, restoreState.getValue<bool>(Util::VISIBLE) );
+    m_state.setValue<bool>(SELECTED, restoreState.getValue<bool>(SELECTED) );
+
+    //Color mix
+    QString compModeKey = Carta::State::UtilState::getLookup( MASK, COMPOSITION_MODE );
+    m_state.setValue<QString>( compModeKey, restoreState.getValue<QString>(compModeKey) );
+    QString redKey = Carta::State::UtilState::getLookup( MASK, Util::RED );
+    m_state.setValue<int>( redKey, restoreState.getValue<int>(redKey) );
+    QString greenKey = Carta::State::UtilState::getLookup( MASK, Util::GREEN );
+    m_state.setValue<int>( greenKey, restoreState.getValue<int>(greenKey) );
+    QString blueKey = Carta::State::UtilState::getLookup( MASK, Util::BLUE );
+    m_state.setValue<int>( blueKey, restoreState.getValue<int>(blueKey) );
+    QString alphaKey = Carta::State::UtilState::getLookup( MASK, Util::ALPHA );
+    m_state.setValue<int>( alphaKey, restoreState.getValue<int>(alphaKey) );
+    QString layerColorKey = Carta::State::UtilState::getLookup( MASK, LAYER_COLOR );
+    m_state.setValue<bool>( layerColorKey, restoreState.getValue<bool>(layerColorKey) );
+    QString layerAlphaKey = Carta::State::UtilState::getLookup( MASK, LAYER_ALPHA );
+    m_state.setValue<bool>( layerAlphaKey, restoreState.getValue<bool>(layerAlphaKey) );
 }
 
 
@@ -603,21 +780,6 @@ void ControllerData::_saveImageResultCB( bool result ){
 }
 
 
-void ControllerData::_setContours( std::shared_ptr<DataContours> contours ){
-    m_dataContours = contours;
-
-    std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
-
-    // create the synchronizer
-    m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
-
-    // connect its done() slot to our renderingSlot()
-    connect( m_drawSync.get(), & DrawSynchronizer::done,
-                     this, & ControllerData::_renderingDone );
-}
-
-
 bool ControllerData::_setFileName( const QString& fileName ){
     bool successfulLoad = m_dataSource->_setFileName( fileName );
     if ( successfulLoad ){
@@ -664,37 +826,6 @@ void ControllerData::_setColorMapGlobal( std::shared_ptr<ColorState> colorState 
 }
 
 
-void ControllerData::_colorChanged(){
-    if ( m_dataSource ){
-        QString mapName = m_stateColor->_getColorMap();
-        m_dataSource->_setColorMap( mapName );
-        m_dataSource->_setTransformData( m_stateColor->_getDataTransform() );
-        m_dataSource->_setGamma( m_stateColor->_getGamma() );
-        m_dataSource->_setColorReversed( m_stateColor->_isReversed() );
-        m_dataSource->_setColorInverted( m_stateColor->_isInverted() );
-        double redAmount = m_stateColor->_getMixRed();
-        double greenAmount = m_stateColor->_getMixGreen();
-        double blueAmount = m_stateColor->_getMixBlue();
-        m_dataSource->_setColorAmounts( redAmount, greenAmount, blueAmount );
-        bool defaultNan = m_stateColor->_isNanDefault();
-        m_dataSource->_setNanDefault( defaultNan );
-
-        //If we aren't using a default nan color, tell the dataSource to use
-        //the custom color.
-        if ( !defaultNan ){
-            int redAmount = m_stateColor->_getNanRed();
-            int greenAmount = m_stateColor->_getNanGreen();
-            int blueAmount = m_stateColor->_getNanBlue();
-            m_dataSource->_setColorNan( redAmount, greenAmount, blueAmount );
-        }
-        //We are using  the default nan color.  Update the state to the default color.
-        else {
-            QColor nanColor = m_dataSource->_getNanColor();
-            m_stateColor->_setNanColor( nanColor.red(), nanColor.green(), nanColor.blue() );
-        }
-        emit colorStateChanged();
-    }
-}
 
 bool ControllerData::_setCompositionMode( const QString& compositionMode,
         QString& errorMsg ){
@@ -709,9 +840,17 @@ bool ControllerData::_setCompositionMode( const QString& compositionMode,
             bool colorSupport = m_compositionModes->isColorSupport( actualCompMode );
             QString colorSupportKey = Carta::State::UtilState::getLookup( MASK, LAYER_COLOR );
             m_state.setValue<bool>( colorSupportKey, colorSupport );
+            if ( !colorSupport ){
+                QStringList result;
+                _setMaskColor( 255, 255, 255, result );
+            }
             bool alphaSupport = m_compositionModes->isAlphaSupport( actualCompMode );
             QString alphaSupportKey = Carta::State::UtilState::getLookup( MASK, LAYER_ALPHA );
             m_state.setValue<bool>( alphaSupportKey, alphaSupport );
+            if ( !alphaSupport ){
+                QString result;
+                _setMaskAlpha( 255, result );
+            }
             stateChanged = true;
         }
     }

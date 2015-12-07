@@ -13,7 +13,7 @@ namespace Data {
 
 DrawStackSynchronizer::DrawStackSynchronizer( Carta::Lib::LayeredRemoteVGView* view ){
     m_repaintFrameQueued = false;
-    m_selectIndex = 0;
+    m_selectIndex = -1;
     m_view.reset( view );
     connect( m_view.get(), SIGNAL(sizeChanged()), this, SIGNAL( viewResize() ) );
 }
@@ -29,8 +29,9 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 }
 
 
+
 void DrawStackSynchronizer::_render( QList<std::shared_ptr<ControllerData> >& datas,
-        std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs ){
+        std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int topIndex ){
     int dataCount = datas.size();
     m_renderCount = 0;
     m_redrawCount = dataCount;
@@ -40,7 +41,7 @@ void DrawStackSynchronizer::_render( QList<std::shared_ptr<ControllerData> >& da
             connect( datas[i].get(), SIGNAL(renderingDone()),
                     this, SLOT(_scheduleFrameRepaint()), Qt::UniqueConnection);
             bool topOfStack = false;
-            if ( stackIndex == m_selectIndex ){
+            if ( i == topIndex ){
                 topOfStack = true;
             }
             datas[i]->_render( frames, cs, topOfStack );

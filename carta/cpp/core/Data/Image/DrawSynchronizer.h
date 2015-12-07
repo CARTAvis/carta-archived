@@ -4,7 +4,7 @@
 
 #pragma once
 #include <CartaLib/VectorGraphics/VGList.h>
-
+#include <set>
 
 
 namespace Carta {
@@ -46,10 +46,10 @@ public:
     void setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawView );
 
     /**
-     * Sets the contour set to be drawn.
-     * @param contours - the contour set to draw.
+     * Sets the contour set(s) to be drawn.
+     * @param contours - a set of contours to be drawn.
      */
-    void setContours( const std::shared_ptr<DataContours> & contours );
+    void setContours( const std::set<std::shared_ptr<DataContours> > & contours );
 
     /**
      * Start a synchronized rendering.

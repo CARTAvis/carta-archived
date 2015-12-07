@@ -197,7 +197,6 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
         setContour : function( contour ){
             this._setVisible( contour.visible );
             this._setWidth( contour.width );
-           
             this._setColor( contour.red, contour.green, contour.blue);
             this._setTransparency( contour.alpha );
             
@@ -221,11 +220,9 @@ qx.Class.define("skel.widgets.Image.Contour.ContourWidget", {
                 this.m_colorSelector.setBlue( blue );
                 this.m_colorId = this.m_colorSelector.addListener( "changeValue", this._sendColorCmd, this );
             }
-            else {
-                this.m_red = red;
-                this.m_green = green;
-                this.m_blue = blue;
-            }
+            this.m_red = red;
+            this.m_green = green;
+            this.m_blue = blue;
         },
         
         /**

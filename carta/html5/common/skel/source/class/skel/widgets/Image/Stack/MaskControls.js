@@ -68,6 +68,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
             var label = new qx.ui.basic.Label( "Composer:" );
             this.m_compModeCombo = new skel.widgets.CustomUI.SelectBox( 
                     "setCompositionMode", "mode");
+            skel.widgets.TestID.addTestId( this.m_compModeCombo, "layerCompositionMode");
             this.m_compModeCombo.setToolTipText( "Select a layer composition mode.");
             
             //this.m_applyId = this.m_applyCheck.addListener( "changeValue", this._sendApplyCmd, this );

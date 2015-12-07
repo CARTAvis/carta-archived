@@ -72,13 +72,13 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
         _initPresets : function(){
             var presetContainer = new qx.ui.container.Composite();
             presetContainer.setLayout( new qx.ui.layout.HBox(1));
-            this.m_presetRed = this._makePreset( "#ff0000" );
+            this.m_presetRed = this._makePreset( "#ff0000", "filterRedBox" );
             this.m_presetRed.setToolTipText( "Apply a red filter to the selected layer(s).");
-            this.m_presetGreen = this._makePreset( "#00ff00");
+            this.m_presetGreen = this._makePreset( "#00ff00", "filterGreenBox");
             this.m_presetGreen.setToolTipText( "Apply a green filter to the selected layer(s).");
-            this.m_presetBlue = this._makePreset( "#0000ff");
+            this.m_presetBlue = this._makePreset( "#0000ff", "filterBlueBox");
             this.m_presetBlue.setToolTipText( "Apply a blue filter to the selected layer(s).");
-            this.m_presetNone = this._makePreset( "#ffffff");
+            this.m_presetNone = this._makePreset( "#ffffff", "filterNoneBox");
             this.m_presetNone.setToolTipText( "No color filter should be applied to the selected layer(s).");
             this.m_presetRed.addListener( "mousedown", this._presetRedSelected, this );
             this.m_presetGreen.addListener( "mousedown", this._presetGreenSelected, this );
@@ -121,12 +121,15 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_spinRed = new qx.ui.form.Spinner( 0, 0, 255 );
             this.m_spinRed.setToolTipText( "Set the red mask color amount in the selected layer(s).");
             this.m_spinRedId = this.m_spinRed.addListener("changeValue", this._primaryColorChanged, this );
+            skel.widgets.TestID.addTestId( this.m_spinRed, "filterRGBSpinRed");
             this.m_spinBlue = new qx.ui.form.Spinner( 0, 0, 255 );
             this.m_spinBlue.setToolTipText( "Set the blue mask color amount in the selected layer(s).");
             this.m_spinBlueId = this.m_spinBlue.addListener( "changeValue", this._primaryColorChanged, this );
+            skel.widgets.TestID.addTestId( this.m_spinBlue, "filterRGBSpinBlue");
             this.m_spinGreen = new qx.ui.form.Spinner( 0, 0, 255 );
             this.m_spinGreen.setToolTipText( "Set the green mask color amount in the selected layer(s).");
             this.m_spinGreenId = this.m_spinGreen.addListener( "changeValue", this._primaryColorChanged, this );
+            skel.widgets.TestID.addTestId( this.m_spinGreen, "filterRGBSpinGreen");
             this._addColorRgb( rgbContainer, this.m_spinRed, "Red:", 0);
             this._addColorRgb( rgbContainer, this.m_spinGreen, "Green:", 1);
             this._addColorRgb( rgbContainer, this.m_spinBlue, "Blue:", 2);
@@ -139,12 +142,14 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
         /**
          * Construct a square for a preset color.
          * @param colorParam {String} - the preset color.
+         * @param testId {String} - unique locator for testing
          */
-        _makePreset : function( colorParam ){
+        _makePreset : function( colorParam, testId ){
             var preset = new qx.ui.core.Widget();
             preset.setBackgroundColor( colorParam );
             preset.setWidth( 15 );
             preset.setHeight( 15 );
+            skel.widgets.TestID.addTestId( preset, testId );
             return preset;
         },
         

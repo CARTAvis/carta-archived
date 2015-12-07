@@ -50,10 +50,11 @@ ContourControls::ContourControls( const QString& path, const QString& id):
     m_percentIntensityMap( nullptr ),
     m_generatorState( new GeneratorState() ),
     m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
-
     _initializeDefaultState();
     _initializeCallbacks();
 }
+
+
 
 void ContourControls::_addContourSet( const std::vector<double>& levels,
         const QString& contourSetName ){
@@ -70,22 +71,17 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
         }
 
         //See if there is an existing contour with that name.
-        std::shared_ptr<DataContours> dataContours( nullptr );
-        for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-                it != m_dataContours.end(); it++ ){
-            QString contourName = (*it)->getName();
-            if ( contourName == contourSetName ){
-                dataContours = (*it);
-                break;
-            }
-        }
+        DataContours* dataContours = _getContour( contourSetName );
 
         //Create a new contour set if there is not an existing one.
         if ( !dataContours ){
             ObjectManager* objMan = ObjectManager::objectManager();
-            dataContours.reset(objMan->createObject<DataContours>());
+            dataContours = objMan->createObject<DataContours>();
             dataContours->setName( contourSetName );
-            m_dataContours.insert( dataContours );
+            std::shared_ptr<DataContours> dContours(dataContours );
+            m_dataContours.insert( dContours );
+            m_percentIntensityMap->addContourSet( dContours );
+
         }
 
         //Reset the contours
@@ -96,30 +92,32 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
     }
 }
 
-void ContourControls::_clearContours(){
-    ObjectManager* objMan = ObjectManager::objectManager();
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-                it != m_dataContours.end(); it++ ){
-        QString contourId = (*it)->getId();
-        objMan->removeObject( contourId );
-    }
-}
 
 QString ContourControls::deleteContourSet( const QString& contourSetName ){
     QString result;
     bool foundSet = false;
     std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
     while ( it != m_dataContours.end() ){
-           if ( (*it)->getName() == contourSetName ){
-               foundSet = true;
-               ObjectManager* objMan = ObjectManager::objectManager();
-               QString id = (*it)->getId();
-               m_dataContours.erase(it);
-               objMan->removeObject( id );
-               _updateContourSetState();
-               break;
+       if ( (*it)->getName() == contourSetName ){
+           foundSet = true;
+           //Reset the draw contour if it is the one we are removing.
+           if ( m_drawContours->getName() == contourSetName ){
+               if ( m_dataContours.size() > 1 ){
+                   m_drawContours = (*m_dataContours.begin());
+               }
+               else {
+                   m_drawContours.reset();
+               }
            }
-           it++;
+           m_percentIntensityMap->removeContourSet( (*it) );
+           ObjectManager* objMan = ObjectManager::objectManager();
+           QString id = (*it)->getId();
+           m_dataContours.erase(it);
+           objMan->removeObject( id );
+           _updateContourSetState();
+           break;
+       }
+       it++;
     }
     if ( !foundSet ){
         result = "Unrecognized contour set to delete: "+contourSetName;
@@ -275,20 +273,6 @@ DataContours* ContourControls::_getContour( const QString& setName ) {
    return target;
 }
 
-QString ContourControls::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
-    QString result("");
-    if ( type == SNAPSHOT_PREFERENCES ){
-        result = m_state.toString();
-    }
-    else if ( type == SNAPSHOT_DATA ){
-        StateInterface dataCopy( m_stateData );
-        dataCopy.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME+StateInterface::STATE_DATA);
-        dataCopy.setValue<int>( StateInterface::INDEX, getIndex());
-        result = dataCopy.toString();
-    }
-    return result;
-}
-
 
 void ContourControls::_initializeDefaultState(){
     QString generateState = m_generatorState->getStateString();
@@ -410,7 +394,7 @@ void ContourControls::_initializeCallbacks(){
             return result;
         });
 
-    //Set the method for generating contour levels.
+    //Set the selected contour set.
     addCommandCallback( "selectContourSet", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {DataContours::SET_NAME};
@@ -636,33 +620,9 @@ bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
 }
 
 
-
-void ContourControls::resetStateData( const QString& state ){
-    StateInterface dataState( "");
-    dataState.setState( state );
-    int contourCount = dataState.getArraySize( CONTOUR_SETS );
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    for ( int i = 0; i < contourCount; i++ ){
-        QString lookup = UtilState::getLookup( CONTOUR_SETS, i );
-        QString contourSetState = dataState.toString( lookup );
-        std::shared_ptr<DataContours> dataContours(objMan->createObject<DataContours>());
-        dataContours->resetState( contourSetState );
-        m_dataContours.insert( dataContours );
-    }
-    _updateContourSetState();
-}
-
 void ContourControls::selectContourSet( const QString& name ){
-   std::shared_ptr<DataContours> dataContours( nullptr );
-   for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-           it != m_dataContours.end(); it++ ){
-       QString contourName = (*it)->getName();
-       if ( contourName == name ){
-           dataContours = (*it);
-           break;
-       }
-   }
-   if ( dataContours ){
+   DataContours* dataContours = _getContour( name );
+   if ( dataContours != nullptr){
        //Existing contour set - use it's method of generating contour levels
        m_generatorState = dataContours->_getGenerator();
    }
@@ -729,14 +689,10 @@ void ContourControls::setDashedNegative( bool useDash ){
 
 void ContourControls::_setDrawContours( std::shared_ptr<DataContours> contours ){
     m_drawContours = contours;
-    std::set<Contour> drawContours;
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-            it != m_dataContours.end(); it++ ){
-        std::set<Contour> setContours = (*it)->_getContours();
-        drawContours.insert( setContours.begin(), setContours.end());
-    }
-    if ( m_drawContours ){
-        m_drawContours->setContours( drawContours );
+    DataContours* existingContour = _getContour( contours->getName());
+    if ( !existingContour ){
+        m_dataContours.insert( contours );
+        _updateContourSetState();
     }
 }
 
@@ -881,26 +837,14 @@ void ContourControls::_updateContourSetState(){
         Carta::State::StateInterface dataState = (*it)->_getState();
         QString contourState = dataState.toString();
         m_stateData.setObject( lookup, contourState);
-        std::set<Contour> setContours = (*it)->_getContours();
-        for ( std::set<Contour>::iterator contourIt = setContours.begin();
-                contourIt != setContours.end(); contourIt++ ){
-            if ( (*contourIt).isVisible() ){
-                drawContours.insert( (*contourIt) );
-            }
-        }
         i++;
     }
-
     m_stateData.flushState();
-    if ( m_drawContours ){
-        m_drawContours->setContours( drawContours );
-        emit drawContoursChanged();
-    }
+    emit drawContoursChanged();
 }
 
 
 ContourControls::~ContourControls(){
-    _clearContours();
 }
 }
 }

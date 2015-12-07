@@ -12,8 +12,7 @@
 #include "CartaLib/VectorGraphics/VGList.h"
 #include <QImage>
 #include <memory>
-
-
+#include <set>
 
 
 class CoordinateFormatterInterface;
@@ -66,6 +65,10 @@ public:
 
 signals:
 
+    void contourSetRemoved( const QString& name );
+    void contourSetAdded(ControllerData* data, const QString& name );
+
+
     //Notification that a new image has been produced.
     void renderingDone();
 
@@ -91,6 +94,13 @@ private slots:
     void _colorChanged();
 
 private:
+
+    /**
+     * Add a contour set.
+     * @param contour - the contour set to add.
+     */
+    void _addContourSet( std::shared_ptr<DataContours> contour );
+
     void _clearColorMap();
     void _clearData();
 
@@ -119,6 +129,10 @@ private:
      */
     std::shared_ptr<ColorState> _getColorState();
 
+    /**
+     * Return the mode used to composed the layer.
+     * @return - a string identifier for the composition mode.
+     */
     QString _getCompositionMode() const;
 
     /**
@@ -139,7 +153,18 @@ private:
      */
     Carta::Lib::KnownSkyCS _getCoordinateSystem() const;
 
-    std::shared_ptr<DataContours> _getContours();
+    /**
+     * Return the contour set with the indicated name.
+     * @return - the corresponding contour set with the designated name or a nullptr
+     *  if no such set exists.
+     */
+    std::shared_ptr<DataContours> _getContour( const QString& name );
+
+    /**
+     * Return all contour sets for this particular layer.
+     * @return - all contour sets in the layer.
+     */
+    std::set< std::shared_ptr<DataContours> > _getContours();
 
     /**
      * Returns information about the image at the current location of the cursor.
@@ -149,7 +174,6 @@ private:
      * @return a QString containing cursor text.
      */
     QString _getCursorText( int mouseX, int mouseY, const std::vector<int>& frames );
-
 
 
     /**
@@ -214,7 +238,17 @@ private:
      * @return - a string representation of layer specific information.
      */
     QString _getLayerString() const;
+
+    /**
+     * Get the transparency for the layer.
+     * @return - a transparency amount for the layer.
+     */
     float _getMaskAlpha() const;
+
+    /**
+     * Return the color filter for the layer.
+     * @return - a color filter for the layer.
+     */
     quint32 _getMaskColor() const;
 
     /**
@@ -274,8 +308,16 @@ private:
      */
     QPointF _getScreenPt( QPointF imagePt, bool* valid ) const;
 
+    /**
+     * Return the state of this layer.
+     * @return - a string representation of the layer state.
+     */
     QString _getStateString() const;
 
+    /**
+     * Return the layer vector graphics.
+     * @return - the layer vector graphics, which can include both the grid and contours.
+     */
     Carta::Lib::VectorGraphics::VGList _getVectorGraphics();
 
     /**
@@ -297,6 +339,11 @@ private:
     void _initializeState();
     void _initializeSingletons( );
 
+    /**
+     * Returns true if at least one contour set should be drawn; false otherwise.
+     * @return - true if there is at least one contour set to draw; false otherwise.
+     */
+    bool _isContourDraw() const;
 
     /**
      * Returns true if the name identifies this layer; false otherwise.
@@ -347,6 +394,18 @@ private:
     void _resetPan();
 
     /**
+     * Reset the prefereence state of this layer.
+     * @param restoreState - the new layer state.
+     */
+    void _resetState( const Carta::State::StateInterface& restoreState );
+
+    /**
+     * Reset the layer contours.
+     * @param restoreeState - the new layer state.
+     */
+    void _resetStateContours(const Carta::State::StateInterface& restoreState );
+
+    /**
      * Reset the zoom to the original value.
      */
     void _resetZoom();
@@ -366,16 +425,25 @@ private:
      */
     void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
 
+    /**
+     * Set the mode used to compose this layer.
+     * @param compositionMode - the mode used to compose this layer.
+     * @param errorMsg - a error message if the composition mode was not successfully set.
+     */
     bool _setCompositionMode( const QString& compositionMode,
             QString& errorMsg );
 
     /**
-     * Set contour set to be rendered.
-     * @param contours - the rendered contour set.
+     * Remove the contour set from this layer.
+     * @param contourSet - the contour set to remove from the layer.
      */
-    //Note:  The rendered contour set is an accumulation of all the contour sets.
-    void _setContours( std::shared_ptr<DataContours> contours );
+    void _removeContourSet( std::shared_ptr<DataContours> contourSet );
 
+    /**
+     * Restore the state of this layer.
+     * @param stateStr - the new layer state.
+     */
+    void _resetState( const QString& stateStr );
 
     /**
      * Returns whether or not the data was successfully loaded.
@@ -461,7 +529,7 @@ private:
 
     std::unique_ptr<DataGrid> m_dataGrid;
 
-    std::shared_ptr<DataContours> m_dataContours;
+    std::set< std::shared_ptr<DataContours> > m_dataContours;
 
     //Pointer to image interface.
     std::unique_ptr<DataSource> m_dataSource;

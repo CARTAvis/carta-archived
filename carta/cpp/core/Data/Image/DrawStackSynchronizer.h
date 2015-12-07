@@ -32,7 +32,7 @@ class DrawStackSynchronizer: public QObject {
     Q_OBJECT
 
 public:
-    
+
     /**
      *  Constructor.
      *  @param view- the stack view.
@@ -81,7 +81,7 @@ private slots:
 private:
 
     void _render( QList<std::shared_ptr<ControllerData> >& datas,
-            std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs );
+            std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int gridIndex );
 
     //Data View
     std::shared_ptr<Carta::Lib::LayeredRemoteVGView> m_view;

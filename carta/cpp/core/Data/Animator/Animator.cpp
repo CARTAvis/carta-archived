@@ -29,6 +29,8 @@ public:
 
 const QString Animator::CLASS_NAME = "Animator";
 const QString Animator::TYPE = "type";
+const QString Animator::NAME = "name";
+const QString Animator::VALUE = "value";
 bool Animator::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
                                                    new Animator::Factory());
@@ -95,6 +97,7 @@ bool Animator::_addAnimatorType( const QString& type, QString& animatorTypeId ){
     bool animatorAdded = false;
     animatorTypeId = _initAnimator( type, &animatorAdded );
     if ( animatorAdded ){
+        //Restore the stored preferences.
         connect( m_animators[type], SIGNAL(indexChanged( int, const QString&)),
                 this, SLOT(_frameChanged(int, const QString&)));
     }
@@ -128,6 +131,8 @@ QString Animator::addAnimator( const QString& type, QString& animatorTypeId ){
         _adjustStateAnimatorTypes();
         animatorTypeId= m_animators[type]->getPath();
     }
+    //Reset the preference state.
+    _resetStateAnimator( /*m_animPrefs[type],*/ type);
     return result;
 }
 
@@ -280,11 +285,34 @@ int Animator::getMaxImageCount() const {
     return maxImages;
 }
 
-QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
+QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType type ) const {
     QString result;
     if ( type == SNAPSHOT_PREFERENCES ){
-        //User preferences should include animators visible (m_state)
-        result = m_state.toString();
+        StateInterface prefState("");
+        prefState.setState(m_state.toString() );
+
+        //Update the preference state strings using existing animators
+        QMap<QString, AnimatorType*>::const_iterator animIter;
+        for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
+            QString key = animIter.key();
+            QString prefState = animIter.value()->getStatePreferences();
+            m_animPrefs[key] = prefState;
+        }
+
+        //Now save the preference states to the state.
+        int animCount = m_animPrefs.size();
+        prefState.insertArray(AnimatorType::CLASS_NAME, animCount);
+        int i = 0;
+        QMap<QString,QString>::const_iterator prefIter;
+        for (prefIter = m_animPrefs.begin(); prefIter != m_animPrefs.end(); ++prefIter){
+            QString animKey = Carta::State::UtilState::getLookup( AnimatorType::CLASS_NAME, i );
+            QString animKeyName = UtilState::getLookup(animKey, NAME );
+            QString animKeyValue = UtilState::getLookup(animKey, VALUE );
+            prefState.insertValue<QString>( animKeyName, prefIter.key() );
+            prefState.insertValue<QString>( animKeyValue, prefIter.value() );
+            i++;
+        }
+        result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
         result = m_linkImpl->getStateString(getIndex(), getSnapType( type ) );
@@ -302,8 +330,8 @@ QString Animator::getStateString( const QString& /*sessionId*/, SnapshotType typ
         for (animIter = m_animators.begin(); animIter != m_animators.end(); ++animIter){
             QString animKey = Carta::State::UtilState::getLookup( AnimatorType::ANIMATIONS, i );
             QString animState = animIter.value()->getStateData();
-            QString animKeyName = UtilState::getLookup(animKey, "name");
-            QString animKeyValue = UtilState::getLookup(animKey, "value");
+            QString animKeyName = UtilState::getLookup(animKey, NAME );
+            QString animKeyValue = UtilState::getLookup(animKey, VALUE );
             dataState.insertValue<QString>( animKeyName, animIter.key() );
             dataState.insertValue<QString>( animKeyValue, animState );
 
@@ -330,6 +358,9 @@ QString Animator::_initAnimator( const QString& type, bool* newAnimator ){
         AnimatorType* animObj = objMan->createObject<AnimatorType>();
         animObj->_setType( type );
         m_animators.insert(type, animObj );
+        if ( m_animPrefs.contains(type) ){
+            m_animators[type]->resetState( m_animPrefs[type], SnapshotType::SNAPSHOT_PREFERENCES);
+        }
         _adjustStateAnimatorTypes();
         *newAnimator = true;
     }
@@ -380,6 +411,7 @@ void Animator::_initializeCallbacks(){
 
 void Animator::_initializeState(){
     m_state.insertArray( AnimatorType::ANIMATIONS, 0);
+    m_state.flushState();
 }
 
 bool Animator::isLinked( const QString& linkId ) const {
@@ -404,6 +436,8 @@ void Animator::refreshState(){
 QString Animator::removeAnimator( const QString& type ){
     QString result;
     if ( m_animators.contains( type )){
+        //Store the prefs
+        m_animPrefs[type]= m_animators[type]->getStatePreferences();
         m_animators[type]->setVisible( false );
         _adjustStateAnimatorTypes();
     }
@@ -447,7 +481,7 @@ void Animator::_resetAnimationParameters( int selectedImage ){
         }
         else {
             int index = m_animators[Selection::IMAGE]->getFrame();
-            if ( index > maxImages ){
+            if ( index > maxImages  ){
                 m_animators[Selection::IMAGE]->setIndex( 0 );
             }
         }
@@ -456,46 +490,61 @@ void Animator::_resetAnimationParameters( int selectedImage ){
 }
 
 
-void Animator::_resetStateAnimator( const Carta::State::StateInterface& state, const QString& key ){
-    try {
-        QString animPrefs = state.toString( key );
-        if ( animPrefs.length() > 0 ){
-            if ( ! m_animators.contains( key )){
-                QString animId;
-                addAnimator( key , animId );
-            }
-            m_animators[key]->resetState( animPrefs, SNAPSHOT_PREFERENCES);
+void Animator::_resetStateAnimator( const QString& key ){
+    if ( m_animPrefs.contains( key ) ){
+        if ( m_animators.contains( key )){
+            m_animators[key]->resetState( m_animPrefs[key], SNAPSHOT_PREFERENCES);
         }
-        else {
-            removeAnimator( key );
-        }
-    }
-    catch( std::invalid_argument& ex ){
-        //State did not contain this animator so we remove it.
-        removeAnimator( key );
     }
 }
 
 void Animator::resetState( const QString& state ){
-    m_state.setState( state );
+    StateInterface stateInterface( "");
+    stateInterface.setState( state );
+
+    //Now store the preference setting for each animator.
+    int prefCount = stateInterface.getArraySize( AnimatorType::CLASS_NAME );
+    for (int i = 0; i < prefCount; i++ ){
+        QString lookup = UtilState::getLookup( AnimatorType::CLASS_NAME, i );
+        QString keyName = UtilState::getLookup(lookup, NAME );
+        QString animName = stateInterface.getValue<QString>( keyName );
+        QString keyValue = UtilState::getLookup(lookup, VALUE );
+
+        QString prefValue = stateInterface.getValue<QString>( keyValue );
+        m_animPrefs[animName] = prefValue;
+        if ( m_animators.contains( animName ) ){
+            this->_resetStateAnimator( animName );
+        }
+    }
 }
 
 void Animator::resetStateData( const QString& state ){
     Carta::State::StateInterface dataState("");
-    m_animators.clear();
     dataState.setState( state );
+
+    //Add the necessary animators based on the data available.
     int animationCount = dataState.getArraySize( AnimatorType::ANIMATIONS );
+    QStringList supportedAnim;
     for (int i = 0; i < animationCount; i++ ){
         QString lookup = UtilState::getLookup( AnimatorType::ANIMATIONS, i );
-        QString keyName = UtilState::getLookup(lookup, "name");
+        QString keyName = UtilState::getLookup(lookup, NAME );
         QString animName = dataState.getValue<QString>( keyName );
-        QString keyValue = UtilState::getLookup(lookup, "value");
+        QString keyValue = UtilState::getLookup(lookup, VALUE );
         QString stateValue = dataState.getValue<QString>( keyValue );
         if ( !m_animators.contains( animName) ){
             QString animId;
             addAnimator( animName, animId );
         }
+        supportedAnim.append( animName );
         m_animators[animName]->resetStateData( stateValue );
+    }
+
+    //Remove any animators not supported.
+    QList<QString> keys = m_animators.keys();
+    for ( QString key : keys ){
+        if ( !supportedAnim.contains(key) ){
+            removeAnimator( key );
+        }
     }
 }
 

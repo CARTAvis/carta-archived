@@ -265,6 +265,7 @@ void Histogram::_endSelectionColor(const QString& params ){
 }
 
 void Histogram::_finishClips (){
+    m_stateData.flushState();
     //When we zoom there should be no clipping selector.
     m_histogram->clearSelectionColor();
     _generateHistogram( true );

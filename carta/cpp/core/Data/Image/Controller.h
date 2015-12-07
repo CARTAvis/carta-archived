@@ -64,6 +64,12 @@ public:
     void clear();
 
     /**
+     * Add a contour set to the selected images.
+     * @param contourSet - the contour set to add.
+     */
+    virtual void addContourSet( std::shared_ptr<DataContours> contourSet) Q_DECL_OVERRIDE;
+
+    /**
      * Add data to this controller.
      * @param fileName the location of the data;
      *        this could represent a url or an absolute path on a local filesystem.
@@ -282,6 +288,12 @@ public:
     bool isStackSelectAuto() const;
 
     /**
+     * Remove a contour set from the images.
+     * @param contourSet - the contour set to remove.
+     */
+     virtual void removeContourSet( std::shared_ptr<DataContours> contourSet ) Q_DECL_OVERRIDE;
+
+    /**
      * Center the image.
      */
     void resetPan();
@@ -491,6 +503,8 @@ private slots:
 
     void _colorMapChanged();
 
+    void _contourSetAdded( ControllerData* cData, const QString& setName );
+    void _contourSetRemoved( const QString setName );
     void _contoursChanged();
 
 
@@ -535,6 +549,10 @@ private:
     std::vector<int> _getFrameIndices( ) const;
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
+
+    //Get the data index
+    int _getIndex( const QString& fileName) const;
+
     //Get the actual data index of the selection with the given index.  This method
     //takes into account that some images may be hidden, i.e., temporarily not seen
     //on the stack.
@@ -555,11 +573,15 @@ private:
     QString _makeRegion( const QString& regionType );
 
     void _removeData( int index );
-    /**
-     * Refresh the view of the images.
-     * @param allImages - true if all the images in the stack need a refresh; false otherwise.
-     */
-    void _render( bool allImages );
+
+    //Render all images in the stack
+    void _renderAll();
+    //Render a single image in the stack at the given index
+    void _renderSingle( int dIndex );
+    //Helper function to render a subset of layers in the stack.  The grid index is
+    //the index of the layer in the subset that should draw the grid or -1 if there
+    //is no such index.
+    void _render( QList<std::shared_ptr<ControllerData> > datas, int gridIndex );
     void _saveRegions();
 
     /**
