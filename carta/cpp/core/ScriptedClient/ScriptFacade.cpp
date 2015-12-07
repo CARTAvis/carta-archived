@@ -16,6 +16,7 @@
 #include "Data/Image/Contour/ContourControls.h"
 
 #include <QDebug>
+#include <cmath>
 
 using Carta::State::ObjectManager;
 //using Carta::State::CartaObject;
@@ -328,7 +329,7 @@ QStringList ScriptFacade::showImageAnimator( const QString& animatorId ){
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
-            QString animId; 
+            QString animId;
             animator->addAnimator( "Image", animId );
         }
         else {
