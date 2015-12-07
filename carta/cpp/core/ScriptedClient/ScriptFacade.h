@@ -583,10 +583,13 @@ public:
      * @param filename the full path where the file is to be saved.
      * @param width the width, in pixels, of the saved image.
      * @param height the height, in pixels, of the saved image.
+     * @param aspectRatioMode can be either "ignore", "keep", or "expand".
+            See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further
+            information.
      * @return an error message if there was a problem saving the histogram;
      *      an empty string otherwise.
      */
-    QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height );
+    QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height, const QString& aspectRatioMode );
 
     /**
      * Set the grid axes color.
@@ -791,6 +794,117 @@ public:
      *      string otherwise.
      */
     QStringList setGridTheme( const QString& controlId, const QString& theme );
+
+    /**
+     * Delete the contour set with the indicated name.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourSetName - a unique identifier for a contour set.
+     * @return an error message if the contour set could not be deleted; an
+     *      empty string otherwise.
+     */
+    QStringList deleteContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Generate a set of contours with the given name.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param name - the name of the contour set to generate.
+     * @return - an error message if there was a problem generating the contour
+     *  set; an empty string otherwise.
+     */
+    QStringList generateContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Select a specific contour set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param name - a name for a contour set.
+     * @return - an error message if there was a problem selecting the contour
+     *  set; an empty string otherwise.
+     */
+    QStringList selectContourSet( const QString& controlId, const QString& name );
+
+    /**
+     * Set the transparency level of the contours within the specified set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the contours levels within the set whose transparency should be changed.
+     * @param transparency - the transparency between 0 and 255.
+     * @return an error message if the transparency could not be set; otherwise, an empty string.
+     */
+    QStringList setContourAlpha( const QString& controlId, const QString& contourName, std::vector<double>& levels, int transparency );
+
+    /**
+     * Set the color of the contours within the specified set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourName - an identifier for a contour set.
+     * @param levels - the contours levels within the set affected by the change.
+     * @param red - the amount of red between 0 and 255.
+     * @param green - the amount of green between 0 and 255.
+     * @param blue - the amount of blue between 0 and 255.
+     * @return a list of errors if the color could not be set; otherwise, an empty list.
+     */
+    QStringList setContourColor( const QString& controlId, const QString& contourName, std::vector<double>& levels, int red, int green, int blue );
+
+    /**
+     * Set whether or not negative contours should be dashed.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param useDash - true if negative contours should be dashed; false if they
+     *      should be solid lines.
+     * @return - an error message if there was a problem setting the dashed
+     *  negative status; an empty string otherwise.
+     */
+    QStringList setContourDashedNegative( const QString& controlId, bool useDash );
+
+    /**
+     * Set the method used to generate contour levels within the set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param method - an identifier for a method used to generate contour levels.
+     * @return - an error message if there was a problem setting the method used to
+     *      generate contour levels; an empty string otherwise.
+     */
+    QStringList setContourGenerateMethod( const QString& controlId, const QString& method );
+
+    /**
+     * Set the type of spacing to use between contour levels (linear, logarithmic, etc).
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param method - an identifier for the spacing to use between contour levels.
+     * @return - an error message if there was a problem setting the spacing; an empty
+     *  string otherwise.
+     */
+    QStringList setContourSpacing( const QString& controlId, const QString& method );
+
+    /**
+     * Set the number of contour levels in the set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param count - the number of contour levels.
+     * @return - an error message if the count could not be set; an empty string otherwise.
+     */
+    QStringList setContourLevelCount( const QString& controlId, int count );
+
+    /**
+     * Set the largest contour level.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param value - the intensity or percentage of the largest contour level.
+     * @return - an error message if the largest contour level could not be set; an empty string otherwise.
+     */
+    QStringList setContourLevelMax( const QString& controlId, double value );
+
+    /**
+     * Set the smallest contour level.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param value - the intensity or percentage of the smallest contour level.
+     * @return - an error message if the smallest contour level could not be set; an empty string otherwise.
+     */
+    QStringList setContourLevelMin( const QString& controlId, double value );
+
+    /**
+     * Update the contour levels within the given contour set.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param contourName - the name of a contour set.
+     * @param levels - an updated list of contour levels.
+     * @return an error message if the contour levels could not be updated; otherwise,
+     *      an empty string.
+     */
+    QStringList setContourLevels( const QString& controlId, const QString& contourName, std::vector<double>& levels );
 
     /*
      * Singleton accessor.

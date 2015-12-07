@@ -422,6 +422,10 @@ std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::g
     return images;
 }
 
+std::shared_ptr<ContourControls> Controller::getContourControls() {
+    return m_contourControls;
+}
+
 int Controller::getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     int upperBound = 0;
     if ( axisType != AxisInfo::KnownType::OTHER ){
@@ -1368,7 +1372,7 @@ void Controller::saveState() {
 
 
 QString Controller::saveImage( const QString& fileName ){
-    int zoomLevel = getZoomLevel();
+    double zoomLevel = getZoomLevel();
     return saveImage( fileName, zoomLevel );
 }
 
@@ -1897,6 +1901,15 @@ void Controller::updatePan( double centerX , double centerY){
             _updatePan( centerX, centerY, data );
         }
         _renderAll();
+QPointF Controller::getCenterPixel() const {
+    int imageIndex = m_selectImage->getIndex();
+    QPointF center = QPointF( nan(""), nan("") );
+    if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
+        center = m_datas[imageIndex]->_getCenter();
+    }
+    return center;
+}
+
     }
     else {
         int dataIndex = _getIndexCurrent();

@@ -29,9 +29,13 @@ class TagConnector:
     def cmdTagList(self, cmd, ** kwargs):
         """
         Send a tag message, return a list.
+
         A command may have no arguments, e.g.:
+
             cmdTagList("commandString").
+
         Arguments, when present, are specified as key-value pairs, e.g.:
+
             cmTagList("commandString", arg1=1, arg2=True, arg3="foo")
 
         Parameters

@@ -137,9 +137,12 @@ public:
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
 
     /**
-     * Return the current axis frame.
-     * @param axisType - the axis for which the frame index is needed.
-     * @return the current frame for the axis.
+     * Return a shared pointer to the contour controls.
+     * @return - a shared pointer to the contour controls.
+     */
+    std::shared_ptr<ContourControls> getContourControls();
+
+    /**
      */
     int getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
 

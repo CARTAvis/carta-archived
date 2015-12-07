@@ -4,6 +4,7 @@ import unittest
 import tAnimator
 import selectBrowser
 from selenium import webdriver
+from flaky import flaky
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,17 +12,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
 # Test the Animator tape deck functionality
+@flaky(max_runs=3)
 class tAnimatorTapeDeck(tAnimator.tAnimator):
 
     def setUp(self):
         browser = selectBrowser._getBrowser()
         Util.setUp(self, browser)
-    
+
 
     
     # Test that the Channel Animator can stop the animation
     def test_channelAnimatorStopAnimation(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "aH.fits")
@@ -36,7 +38,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         self._stopAnimation( driver, "Channel")
         channelValue = self._getCurrentValue( driver, "Channel" )
         print "Channel value ", channelValue
-        # Wait for another 2 seconds. Ensure the channel value did not change 
+        # Wait for another 2 seconds. Ensure the channel value did not change
         time.sleep(2)
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         self.assertEqual( int(currChannelValue), int(channelValue), "Channel animation did not stop" )
@@ -56,9 +58,9 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         currImageValue = self._getCurrentValue( driver, "Image" )
         self.assertEqual( int(currImageValue), int(imageValue), "Image animation did not stop")
 
-    # Test that the Channel Animator can go to the first frame value of the test image 
+    # Test that the Channel Animator can go to the first frame value of the test image
     def test_channelAnimatorFirstValue(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "aH.fits")
@@ -70,7 +72,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         firstChannelValue = self._getCurrentValue( driver, "Channel" )
 
         # Allow the image to animate for 2 seconds
-        # Click the first valid value button 
+        # Click the first valid value button
         # Check that the channel value is the same as the first channel value
         self._animateForward( driver, "Channel" )
         time.sleep(2)
@@ -88,16 +90,16 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         time.sleep(2)
         self._stopAnimation( driver, "Image")
         
-        # Click the first valid value button 
-        # Check that the image value is the same as the first image value       
+        # Click the first valid value button
+        # Check that the image value is the same as the first image value
         self._getFirstValue( driver, "Image" )
         currImageValue = self._getCurrentValue( driver, "Image" )
         print "Current Value=", currImageValue," firstValue=",firstImageValue
         self.assertEqual( int(currImageValue), int(firstImageValue), "Image Animator did not return to first image")
 
-    # Test that the Channel Animator can go to the last frame value of the test image 
+    # Test that the Channel Animator can go to the last frame value of the test image
     def test_channelAnimatorLastValue(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "Default")
@@ -112,7 +114,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         time.sleep(2)
         self._stopAnimation( driver, "Channel")
         
-        # Click the last valid value button 
+        # Click the last valid value button
         # Check that the channel value is the same as the last channel value
         self._getLastValue( driver, "Channel" )
         currChannelValue = self._getCurrentValue( driver, "Channel" )
@@ -130,15 +132,15 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         time.sleep(2)
         self._stopAnimation( driver, "Image")
 
-        # Click the first valid value button 
-        # Check that the image value is the same as the first image value       
+        # Click the first valid value button
+        # Check that the image value is the same as the first image value
         self._getLastValue( driver, "Image" )
         currImageValue = self._getCurrentValue( driver, "Image" )
         self.assertEqual( int(currImageValue), int(lastImageValue), "Image Animator did not return to last image")
 
     # Test that the Channel Animator lower spin box cannot exceed boundary values
     def test_animatorBoundary(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "aH.fits")
@@ -207,7 +209,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
 
     # Test that the Channel Animator upper and lower bound values do not change during animation
     def test_channelAnimatorBoundaryAnimation(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "Default")
@@ -229,7 +231,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         driver.execute_script( "arguments[0].scrollIntoView(true);", upperBoundText)
         upperBoundText.click()
 
-        # Change the upper bound value 
+        # Change the upper bound value
         upperBoundValue = Util._changeElementText( self, driver, upperBoundText, int(lastChannelValue)-1)
 
         # Allow test image to animate for 2 seconds
@@ -241,9 +243,9 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         upperBound = upperBoundText.get_attribute("value")
         self.assertEqual( int(lowerBound), int(lowerBoundValue), "Lower bound channel value changed during animation")
         self.assertEqual( int(upperBound), int(upperBoundValue), "Upper bound channel value changed during animation")
-    
+
     def test_imageAnimatorBoundaryAnimation(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "aH.fits")
@@ -292,5 +294,5 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         self.driver.quit()
 
 if __name__ == "__main__":
-    unittest.main()    
-        
+    unittest.main()
+

@@ -250,11 +250,12 @@ class Cartavis:
         pluginList: list
             A list of strings representing plugin names.
             Valid plugin names [NOTE: this list may not be complete]:
-                CasaImageLoader
-                Animator
-                Colormap
-                Histogram
-                Hidden
+
+                - CasaImageLoader
+                - Animator
+                - Colormap
+                - Histogram
+                - Hidden
 
         Returns
         -------
@@ -399,7 +400,7 @@ class Cartavis:
         Create a new Snapshot object that can be saved.
 
         Parameters
-        ---------
+        ----------
         sessionId: string
             An identifier for a user session.
 

@@ -296,7 +296,8 @@ class Histogram(CartaView):
                                      colored=str(colored))
         return result
 
-    def saveHistogram(self, filename, width=-1, height=-1):
+    def saveHistogram(self, filename, width=-1, height=-1,
+                      aspectRatioMode='ignore'):
         """
         Save a copy of the histogram as an image.
 
@@ -314,6 +315,12 @@ class Histogram(CartaView):
             The default value is -1, which causes the dimension
             parameters to be ignored; in this case, the resulting image
             will be an exact copy of the histogram in the GUI.
+        aspectRatioMode: string
+            Can be one of three possible values: 'ignore', 'keep', or
+            'expand'. See
+            http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for an
+            explanation of these options.
+            The default value is 'ignore'.
 
         Returns
         -------
@@ -323,5 +330,6 @@ class Histogram(CartaView):
         result = self.con.cmdTagList("saveHistogram",
                                      filename=filename,
                                      histogramView=self.getId(),
-                                     width=width, height=height)
+                                     width=width, height=height,
+                                     aspectRatioMode=aspectRatioMode)
         return result

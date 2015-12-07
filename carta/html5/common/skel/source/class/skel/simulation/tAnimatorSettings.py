@@ -4,6 +4,7 @@ import unittest
 import tAnimator
 import selectBrowser
 from selenium import webdriver
+from flaky import flaky
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,17 +12,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
 # Tests of Animator Settings functionality
+@flaky(max_runs=3)
 class tAnimatorSettings(tAnimator.tAnimator):
 
     def setUp(self):
         browser = selectBrowser._getBrowser()
         Util.setUp( self, browser )
-    
-    # Test that we can add the add/remove Animator buttons to the toolbar if they are 
+
+    # Test that we can add the add/remove Animator buttons to the toolbar if they are
     # not already there. Then test that we can check/uncheck them and have the corresponding
     # animator added/removed
     def test_animatorAddRemove(self):
-        driver = self.driver 
+        driver = self.driver
         browser = selectBrowser._getBrowser()
         timeout = selectBrowser._getSleep()
 
@@ -40,7 +42,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
         ActionChains(driver).click( channelText ).perform()
 
-        # Right click the toolbar to bring up the context menu 
+        # Right click the toolbar to bring up the context menu
         toolBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.ToolBar']")))
         ActionChains(driver).context_click(toolBar).perform()
 
@@ -48,7 +50,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         customizeButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Customize...']/..")))
         ActionChains(driver).click( customizeButton ).perform()
 
-        # First make sure animator is checked 
+        # First make sure animator is checked
         animateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Animate']/preceding-sibling::div/div")))
         styleAtt = animateButton.get_attribute( "style");
         if not "checked.png" in styleAtt:
@@ -72,24 +74,24 @@ class tAnimatorSettings(tAnimator.tAnimator):
         if animateChecked:
             self._click( driver, animateCheck )
         time.sleep( timeout )
-            
+
         # Verify that the animation window has only a Stokes animator
         Util.verifyAnimationCount( self, animWindow, 1)
-        
+
         # Check the image animate button and verify that the image animator shows up
         self._click( driver, animateCheck )
         imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Image']")))
         time.sleep( timeout )
         Util.verifyAnimationCount( self, animWindow, 2)
-        
+
         # Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
         channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Channel']")))
         time.sleep( timeout )
         Util.verifyAnimationCount( self, animWindow, 3 )
 
-        # Chrome gives an error trying to close the page; therefore, refresh the page before 
-        # closing the browser. This is required because otherwise memory is not freed. 
+        # Chrome gives an error trying to close the page; therefore, refresh the page before
+        # closing the browser. This is required because otherwise memory is not freed.
         if browser == 2:
             # Refresh browser
             driver.refresh()
@@ -97,7 +99,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
     # Test that the Channel Animator will update when the window image is switched
     def test_channelAnimatorChangeImage(self):
-        driver = self.driver 
+        driver = self.driver
         timeout = selectBrowser._getSleep()
 
         # Load two images
@@ -105,7 +107,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "Default")
         Util.load_image( self, driver, "aH.fits")
 
-        # Go to the first image 
+        # Go to the first image
         self._getFirstValue( driver, "Image")
 
         # Go to the last channel of the image
@@ -114,10 +116,10 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Get the last channel value of the first image
         firstImageChannelValue = self._getCurrentValue( driver, "Channel" )
         print "firstImageChannelValue=",firstImageChannelValue
-    
+
         # Go to the next image
         self._getNextValue( driver, "Image" )
-    
+
         # Go to the last channel of the image
         self._getLastValue( driver, "Channel")
 
@@ -152,7 +154,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Open settings
         self._openSettings( driver, "Channel" )
-        
+
         # In settings, click the Jump radio button. Scroll into view if button is not visible
         jumpButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelJumpRadioButton")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", jumpButton)
@@ -169,7 +171,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Click the channel tape deck increment button
         # Check that the current channel is at the first channel value
         self._getNextValue( driver, "Channel" )
-        currChannelValue = self._getCurrentValue( driver, "Channel" ) 
+        currChannelValue = self._getCurrentValue( driver, "Channel" )
         print "Current channel", currChannelValue
         self.assertEqual( int(firstChannelValue), int(currChannelValue), "Channel Animator did not jump to first channel value")
     
@@ -206,8 +208,8 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "Current image", currImageValue
         self.assertEqual( int(firstImageValue), int(currImageValue), "Image Animator did not jump to first image")
 
-    # Test that the Animator wrap setting returns to the first channel value 
-    # after animating the last channel. Under default settings, it takes roughly 2 
+    # Test that the Animator wrap setting returns to the first channel value
+    # after animating the last channel. Under default settings, it takes roughly 2
     # seconds for the channel to change by 1
     def test_channelAnimatorWrap(self):
         driver = self.driver
@@ -225,7 +227,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._getFirstValue( driver, "Channel" )
         firstChannelValue = self._getCurrentValue( driver, "Channel" )
 
-        # Go to last channel value and record the last channel value of the test image 
+        # Go to last channel value and record the last channel value of the test image
         self._getLastValue( driver, "Channel" )
         lastChannelValue = self._getCurrentValue( driver, "Channel" )
 
@@ -248,7 +250,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Click the channel tape deck increment button
         # Check that the current channel is at the first channel value
         self._getNextValue( driver, "Channel" )
-        currChannelValue = self._getCurrentValue( driver, "Channel" ) 
+        currChannelValue = self._getCurrentValue( driver, "Channel" )
         print "Current channel", currChannelValue
         self.assertGreater( int(currChannelValue), int(firstChannelValue), "Channel did not increase after animating first channel value")
 
@@ -271,7 +273,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         driver.execute_script( "arguments[0].scrollIntoView(true);", wrapButton)
         ActionChains(driver).click( wrapButton ).perform()
 
-        # Click the image increment button 
+        # Click the image increment button
         self._getNextValue( driver, "Image" )
 
         # Check that the animator is at the first image value
@@ -284,13 +286,13 @@ class tAnimatorSettings(tAnimator.tAnimator):
         currImageValue = self._getCurrentValue( driver, "Image" )
         print "Current image", currImageValue
         self.assertGreater( int(currImageValue), int(firstImageValue), "Image value did not increase after animating first image")
-    
+
     
 
     # Test that adjustment of Animator rate will speed up/slow down channel animation
     # Under default settings, it takes roughly 2 seconds for the channel to change by 1
     def test_channelAnimatorChangeRate(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "Default")
@@ -316,7 +318,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._stopAnimation( driver, "Channel")
 
         # Change the rate to 50
-        rateText = driver.find_element_by_xpath("//div[@id='ChannelRate']/input") 
+        rateText = driver.find_element_by_xpath("//div[@id='ChannelRate']/input")
         driver.execute_script( "arguments[0].scrollIntoView(true);", rateText)
         rateValue = Util._changeElementText(self, driver, rateText, 50)
 
@@ -325,14 +327,14 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self._animateForward( driver, "Channel" )
         time.sleep(3)
 
-        # The channel rate should be lower than the default rate value 
+        # The channel rate should be lower than the default rate value
         newRateValue = self._getCurrentValue( driver, "Channel" )
         print "newRateValue", newRateValue
         self.assertGreater(  int(defaultRateValue), int(newRateValue), "Rate value did not increase speed of channel animation")
 
-    # Test that the Channel Animator Rate does not exceed boundary values 
+    # Test that the Channel Animator Rate does not exceed boundary values
     def test_animatorRateBoundary(self):
-        driver = self.driver 
+        driver = self.driver
         timeout = selectBrowser._getSleep()
 
          # Wait for the image window to be present (ensures browser is fully loaded)
@@ -340,7 +342,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Load an image with at least one channel so the channel animator appears
         Util.load_image( self, driver, "Default")
-        
+
         # Open settings
         self._openSettings( driver, "Channel" )
 
@@ -377,9 +379,9 @@ class tAnimatorSettings(tAnimator.tAnimator):
         rateValue = Util._changeElementText( self, driver, rateText, 200)
         self.assertEqual(int(rateValue), 100, "Rate value is greater than 100")
 
-    # Test that the Channel Animator Step Increment does not exceed boundary values 
+    # Test that the Channel Animator Step Increment does not exceed boundary values
     def test_animatorStepBoundary(self):
-        driver = self.driver 
+        driver = self.driver
 
          # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
@@ -398,14 +400,14 @@ class tAnimatorSettings(tAnimator.tAnimator):
         # Test that the input of a negative value is not accepted
         stepValue = Util._changeElementText(self, driver, stepIncrementText, -50)
         self.assertGreaterEqual(int(stepValue), 0, "Step increment value is negative")
- 
+
         # Test that the input of a value over 100 is not accepted
         stepValue = Util._changeElementText( self, driver, stepIncrementText, 200)
         self.assertEqual( int(stepValue), 100, "Step increment value is greater than 100")
 
         # Load another image so the image animator will be visible
         Util.load_image( self, driver, "aJ.fits")
-        
+
 
         # Open settings
         self._openSettings( driver, "Image" )
@@ -425,7 +427,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
     # Test that the Channel Animator can be set to different step increment values
     def test_channelAnimatorStepIncrement(self):
-        driver = self.driver 
+        driver = self.driver
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "aH.fits")
@@ -450,10 +452,10 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "First channel value:", firstChannelValue
         print "Step Increment = 2"
 
-        # Go to the next channel value 
+        # Go to the next channel value
         self._getNextValue( driver, "Channel" )
 
-        # Check that the channel value increases by a step increment of 2 
+        # Check that the channel value increases by a step increment of 2
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         print "Current channel", currChannelValue
         self.assertEqual( int(currChannelValue), 2, "Channel Animator did not increase by a step increment of 2")
@@ -523,7 +525,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
     # Test that the Channel Animator decreases by one frame when the decrease frame button is pressed
     def test_animatorDecreaseFrame(self):
-        driver = self.driver 
+        driver = self.driver
         timeout = selectBrowser._getSleep()
 
         # Open a test image so we have something to animate
@@ -572,5 +574,5 @@ class tAnimatorSettings(tAnimator.tAnimator):
         self.driver.quit()
 
 if __name__ == "__main__":
-    unittest.main()  
-        
+    unittest.main()
+

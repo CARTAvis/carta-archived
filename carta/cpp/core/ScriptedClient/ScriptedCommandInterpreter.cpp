@@ -496,6 +496,102 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setGridTheme( imageView, theme );
     }
 
+    /// Section: Contour Commands
+    /// ----------------------------------
+    /// These commands also come from the Python Image class. They allow
+    /// contours to be manipulated.
+
+    else if ( cmd == "deletecontourset" ) {
+        QString imageView = args["imageView"].toString();
+        QString name = args["name"].toString();
+        result = m_scriptFacade->deleteContourSet( imageView, name );
+    }
+
+    else if ( cmd == "generatecontourset" ) {
+        QString imageView = args["imageView"].toString();
+        QString name = args["name"].toString();
+        result = m_scriptFacade->generateContourSet( imageView, name );
+    }
+
+    else if ( cmd == "selectcontourset" ) {
+        QString imageView = args["imageView"].toString();
+        QString name = args["name"].toString();
+        result = m_scriptFacade->selectContourSet( imageView, name );
+    }
+
+    else if ( cmd == "setcontouralpha" ) {
+        QString imageView = args["imageView"].toString();
+        QString contourName = args["contourName"].toString();
+        QJsonArray levelsArray = args["levels"].toArray();
+        int transparency = args["transparency"].toInt();
+        std::vector<double> levels;
+        for ( auto level : levelsArray ) {
+            levels.push_back( level.toDouble() );
+        }
+        result = m_scriptFacade->setContourAlpha( imageView, contourName, levels, transparency );
+    }
+
+    else if ( cmd == "setcontourcolor" ) {
+        QString imageView = args["imageView"].toString();
+        QString contourName = args["contourName"].toString();
+        QJsonArray levelsArray = args["levels"].toArray();
+        int red = args["red"].toInt();
+        int green = args["green"].toInt();
+        int blue = args["blue"].toInt();
+        std::vector<double> levels;
+        for ( auto level : levelsArray ) {
+            levels.push_back( level.toDouble() );
+        }
+        result = m_scriptFacade->setContourColor( imageView, contourName, levels, red, green, blue );
+    }
+
+    else if ( cmd == "setcontourdashednegative" ) {
+        QString imageView = args["imageView"].toString();
+        bool useDash = args["useDash"].toBool();
+        result = m_scriptFacade->setContourDashedNegative( imageView, useDash );
+    }
+
+    else if ( cmd == "setcontourgeneratemethod" ) {
+        QString imageView = args["imageView"].toString();
+        QString method = args["method"].toString();
+        result = m_scriptFacade->setContourGenerateMethod( imageView, method );
+    }
+
+    else if ( cmd == "setcontourspacing" ) {
+        QString imageView = args["imageView"].toString();
+        QString method = args["method"].toString();
+        result = m_scriptFacade->setContourSpacing( imageView, method );
+    }
+
+    else if ( cmd == "setcontourlevelcount" ) {
+        QString imageView = args["imageView"].toString();
+        int count = args["count"].toInt();
+        result = m_scriptFacade->setContourLevelCount( imageView, count );
+    }
+
+    else if ( cmd == "setcontourlevelmax" ) {
+        QString imageView = args["imageView"].toString();
+        double value = args["value"].toDouble();
+        result = m_scriptFacade->setContourLevelMax( imageView, value );
+    }
+
+    else if ( cmd == "setcontourlevelmin" ) {
+        QString imageView = args["imageView"].toString();
+        double value = args["value"].toDouble();
+        result = m_scriptFacade->setContourLevelMin( imageView, value );
+    }
+
+    else if ( cmd == "setcontourlevels" ) {
+        QString imageView = args["imageView"].toString();
+        QString contourName = args["contourName"].toString();
+        QJsonArray levelsArray = args["levels"].toArray();
+        std::vector<double> levels;
+        for ( auto level : levelsArray ) {
+            levels.push_back( level.toDouble() );
+        }
+        result = m_scriptFacade->setContourLevels( imageView, contourName, levels );
+    }
+
     /// Section: Animator Commands
     /// --------------------------
     /// These commands come from the Python Animator class. They allow
@@ -625,7 +721,8 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString filename = args["filename"].toString();
         int width = args["width"].toInt();
         int height = args["height"].toInt();
-        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height );
+        QString aspectStr = args["aspectRatioMode"].toString().toLower();
+        result = m_scriptFacade->saveHistogram( histogramView, filename, width, height, aspectStr );
     }
 
     else {
