@@ -97,7 +97,8 @@ HEADERS += \
     coreMain.h \
     SimpleRemoteVGView.h \
     Hacks/ManagedLayerView.h \
-    Hacks/LayeredViewDemo.h
+    Hacks/LayeredViewDemo.h \
+    Hacks/ProfileExtractor.h
 
 SOURCES += \
     Viewer.cpp \
@@ -179,7 +180,8 @@ SOURCES += \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \
     Hacks/ManagedLayerView.cpp \
-    Hacks/LayeredViewDemo.cpp
+    Hacks/LayeredViewDemo.cpp \
+    Hacks/ProfileExtractor.cpp
 
 
 #message( "common            PWD=$$PWD")

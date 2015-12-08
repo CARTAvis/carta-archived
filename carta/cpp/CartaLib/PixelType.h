@@ -31,6 +31,9 @@ static_assert( sizeof(double) == 8, "bad double size");
 // convenience function convert pixel type to int
 int pixelType2int( const PixelType & type);
 
+/// \todo rename PixelType2CType struct to PixelTypeInfo, add stringName to it,
+/// and adjust toStr() to take advantage of it
+
 /// convert PixelType to c type
 template <PixelType pt>
 struct PixelType2CType {};
@@ -173,17 +176,6 @@ typename Type2CvtFunc<DstType>::Type getConverter( Carta::Lib::Image::PixelType 
 /// convenience function to convert a type to a string
 QString toStr( Image::PixelType t);
 
-///// size of pixel type in bytes
-///// e.g. pixelTypeSizeInBytes(Image::PixelType::Int16)::value is 2
-//template <typename T>
-//struct pixelTypeSizeInBytes
-//{
-//    static_assert( std::is_same<Image::PixelType,T>::value,
-//                   "pixelTypeSizeInBytes only supports ");
-//    static constexpr size_t value = sizeof( Image::PixelType2CType<T>::type);
-
-////    return sizeof( Image::PixelType2CType<T>::type);
-//}
 
 }
 }

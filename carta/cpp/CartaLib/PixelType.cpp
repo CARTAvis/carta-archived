@@ -15,21 +15,6 @@ Image::pixelType2int( const Image::PixelType & type )
     return static_cast < int > ( type );
 }
 
-//QString Image::pixelType2String(Image::PixelType t)
-//{
-//    switch (t) {
-//    case PixelType::Byte:
-//        return "byte";
-//        break;
-//    case PixelType::Byte:
-//        return "byte";
-//        break;
-//    default:
-//        return QString("unknown(%1 bytes)").arg( sizeof( pixelType2int()));
-//        break;
-//    }
-//}
-
 QString
 toStr( Image::PixelType t )
 {

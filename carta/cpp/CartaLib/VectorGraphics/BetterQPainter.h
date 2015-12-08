@@ -44,7 +44,9 @@ public:
     BetterQPainter( QPainter & qPainter )
         : m_qPainter( qPainter )
     {
+        auto oldHints = qPainter.renderHints();
         reset();
+        qPainter.setRenderHints( oldHints);
     }
 
     void reset() {
