@@ -1,6 +1,6 @@
 # Allow user to select web browser/timeout
-# Create global variables 
-global browser 
+# Create global variables
+global browser
 global sleep
 
 # Allow user selection of global variable
@@ -15,7 +15,7 @@ def _getBrowser():
 
 def _getSleep():
 	if sleep == 1:
-		timeout = 2
+		timeout = 4
 	else:
 		timeout = 0
 	return timeout
