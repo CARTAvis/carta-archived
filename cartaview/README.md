@@ -1,3 +1,9 @@
+# About `cartaview()`
+
+`cartaview()` is a CASA task that launches CARTA on a specified image. It works much like CASA's `imview()` task and shares the `raster` keyword with it.
+
+This file contains information about how to set up and run `cartaview()`.
+
 # Prerequisites
 
 ## Install the CARTA scripted client
