@@ -36,6 +36,23 @@ import carta.cartavis
 
 If this does not generate any error messages, then the CARTA scripted client has been installed properly on your system and can be imported from anywhere.
 
+### Caveat
+
+There is one incompatibility between CARTA and CASA that I have not been able to resolve. The `image.py` class contains the line:
+
+```python
+from astropy.coordinates import SkyCoord
+```
+
+This leads to the following error when I try to run it:
+
+```bash
+RuntimeError: module compiled against API version 9 but this version of numpy is 7
+<type 'exceptions.ImportError'>: numpy.core.multiarray failed to import
+```
+
+My understanding is that this is due to the [version of Numpy that ships with CASA](https://casaguides.nrao.edu/index.php?title=OtherPackages#Packages_Already_Distributed_With_CASA). The bandage solution that I have come up with for now is to simply comment out the line that imports `SkyCoord`, which essentially disables the CARTA `centerOnCoordinate()` command. Do this before installing the scripted client.
+
 ## The scriptedConfig.json file
 
 The `scriptedConfig.json` file contains entries which will point the `cartaview()` to the CARTA installation. These entries are:
