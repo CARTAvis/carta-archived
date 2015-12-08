@@ -1,6 +1,6 @@
 import os
 import pytest
-import cartavis
+import carta.cartavis as cartavis
 from flaky import flaky
 from PIL import Image, ImageChops
 from astropy.coordinates import SkyCoord

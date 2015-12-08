@@ -1,0 +1,12 @@
+The CARTAvis scripted client. To install, perform the following steps:
+
+- from the scriptedClient directory, run python setup.py sdist
+- cd dist
+- run tar -xvf on the tarball in the dist directory
+- change to the resulting directory
+- run sudo python setup.py install
+
+cartavis should now be installed on your system, enabling it to be
+imported from anywhere. To test, run the following in a Python session:
+
+    import carta.cartavis
