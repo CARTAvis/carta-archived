@@ -33,15 +33,9 @@ Histogram1::_computeHistogram()
 } // _computeHistogram
 
 std::pair < int, int >
-Histogram1::_getChannelBounds( double freqMin, double freqMax, const QString & unitStr ) const
-{
+Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
+        double freqMin, double freqMax, const QString & unitStr ) const{
     std::pair < int, int > bounds( - 1, - 1 );
-    if ( ! m_cartaImage ) {
-        //qWarning() << "No image available for channel bounds.";
-        return bounds;
-    }
-
-    casa::ImageInterface < casa::Float > * casaImage = cartaII2casaII_float( m_cartaImage );
     if ( ! casaImage ) {
         qWarning() << "Could not get casacore image <float>.";
         return bounds;
@@ -113,15 +107,9 @@ Histogram1::_getChannelBounds( double freqMin, double freqMax, const QString & u
 } // _getChannelBounds
 
 std::pair < double, double >
-Histogram1::_getFrequencyBounds( int channelMin, int channelMax, const QString & unitStr ) const
-{
+Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
+        int channelMin, int channelMax, const QString & unitStr ) const{
     std::pair < double, double > bounds( - 1, - 1 );
-    if( ! m_cartaImage) {
-        //qWarning() << "No image available for channel bounds.";
-        return bounds;
-    }
-
-    casa::ImageInterface < casa::Float > * casaImage = cartaII2casaII_float( m_cartaImage );
     if ( ! casaImage ) {
         qWarning() << "Could not get casacore image <float>.";
         return bounds;
@@ -177,14 +165,15 @@ Histogram1::handleHook( BaseHook & hookData )
             return false;
         }
 
-        auto casaImage = cartaII2casaII_float( images.front());
+        auto casaImage = cartaII2casaII_float( images.front() );
         if( ! casaImage) {
             qWarning() << "Histogram plugin: not an image created by casaimageloader...";
             return false;
         }
-
-        m_histogram.reset( new ImageHistogram < casa::Float >  );
-        m_histogram-> setImage( casaImage );
+        if ( !m_histogram ){
+            m_histogram.reset(new ImageHistogram < casa::Float >());
+        }
+        m_histogram-> setImage( casaImage->cloneII() );
         m_histogram-> setBinCount( hook.paramsPtr->binCount );
 
         double frequencyMin = hook.paramsPtr->minFrequency;
@@ -193,28 +182,20 @@ Histogram1::handleHook( BaseHook & hookData )
         int minChannel = - 1;
         int maxChannel = - 1;
         if ( frequencyMin < 0 || frequencyMax < 0 ) {
-            if ( casaImage) {
-                casa::CoordinateSystem cSys = casaImage->coordinates();
-                casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
-                if ( specAx >= 0 ) {
-                    minChannel = hook.paramsPtr->minChannel;
-                    maxChannel = hook.paramsPtr->maxChannel;
-                    m_histogram->setChannelRange( minChannel, maxChannel );
-                }
+            casa::CoordinateSystem cSys = casaImage->coordinates();
+            casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
+            if ( specAx >= 0 ) {
+                minChannel = hook.paramsPtr->minChannel;
+                maxChannel = hook.paramsPtr->maxChannel;
+                m_histogram->setChannelRange( minChannel, maxChannel );
             }
-            else {
-                m_histogram->setChannelRange( - 1, - 1 );
-            }
-            auto bounds = _getFrequencyBounds( minChannel,
-                                               maxChannel,
-                                               rangeUnits );
+
+            auto bounds = _getFrequencyBounds( casaImage, minChannel, maxChannel, rangeUnits );
             frequencyMin = bounds.first;
             frequencyMax = bounds.second;
         }
         else {
-            auto bounds = _getChannelBounds( frequencyMin,
-                                             frequencyMax,
-                                             rangeUnits );
+            auto bounds = _getChannelBounds( casaImage, frequencyMin, frequencyMax, rangeUnits );
             m_histogram-> setChannelRange( bounds.first, bounds.second );
         }
         m_histogram->setIntensityRange(
@@ -239,4 +220,6 @@ Histogram1::getInitialHookList()
     };
 }
 
-Histogram1::~Histogram1() { }
+Histogram1::~Histogram1() {
+
+}

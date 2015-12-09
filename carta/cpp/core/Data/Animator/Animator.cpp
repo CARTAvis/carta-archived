@@ -652,12 +652,11 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
 }
 
 Animator::~Animator(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     int animationCount = m_animators.size();
     QList<QString> keys = m_animators.keys();
     for ( int i = 0; i < animationCount; i++ ){
         if ( m_animators[keys[i]] != nullptr ){
-            objMan->destroyObject( m_animators[keys[i]]->getId() );
+            delete m_animators[keys[i]];
             m_animators[keys[i]] = nullptr;
         }
     }

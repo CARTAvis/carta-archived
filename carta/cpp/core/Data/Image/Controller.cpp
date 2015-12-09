@@ -367,15 +367,14 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
     return axes;
 }
 
-QStringList Controller::getCenterPixel() {
+
+QPointF Controller::getCenterPixel() {
     int dataIndex = _getIndexCurrent();
-    QStringList returnValue = QStringList( "null" );
+    QPointF center = QPointF( nan(""), nan("") );
     if ( dataIndex >= 0 ) {
-        QPointF center = m_datas[dataIndex]->_getCenter();
-        returnValue = QStringList( QString::number( center.x() ) );
-        returnValue.append( QString::number( center.y() ) );
+        center = m_datas[dataIndex]->_getCenter();
     }
-    return returnValue;
+    return center;
 }
 
 double Controller::getClipPercentileMax() const {
@@ -467,18 +466,18 @@ std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
 
-QStringList Controller::getImageDimensions( ){
-    QStringList result;
+std::vector<int> Controller::getImageDimensions( ){
+    std::vector<int> result;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         int dimensions = m_datas[dataIndex]->_getDimensions();
         for ( int i = 0; i < dimensions; i++ ) {
             int d = m_datas[dataIndex]->_getDimension( i );
-            result.append( QString::number( d ) );
+            result.push_back( d );
         }
     }
     else {
-        result = QStringList("");
+        result.push_back(0);
     }
     return result;
 }
@@ -546,16 +545,11 @@ bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, d
     return validIntensity;
 }
 
-QStringList Controller::getOutputSize( ){
-    QStringList result;
+QSize Controller::getOutputSize( ){
+    QSize result(-1,-1);
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        QSize outputSize = m_datas[dataIndex]->_getOutputSize();
-        result.append( QString::number( outputSize.width() ) );
-        result.append( QString::number( outputSize.height() ) );
-    }
-    else {
-        result = QStringList("");
+        result = m_datas[dataIndex]->_getOutputSize();
     }
     return result;
 }
@@ -1269,8 +1263,10 @@ void Controller::resetStateData( const QString& state ){
             dataIndex = m_datas.size() - 1;
         }
         loadedFiles.append( fileName );
-        m_datas[dataIndex]->_resetState(dataState.toString(dataLookup));
-        _loadView( true, dataIndex );
+        if ( dataIndex >= 0 ){
+            m_datas[dataIndex]->_resetState(dataState.toString(dataLookup));
+            _loadView( true, dataIndex );
+        }
     }
 
     //Remove any data that should not be there
@@ -1901,15 +1897,6 @@ void Controller::updatePan( double centerX , double centerY){
             _updatePan( centerX, centerY, data );
         }
         _renderAll();
-QPointF Controller::getCenterPixel() const {
-    int imageIndex = m_selectImage->getIndex();
-    QPointF center = QPointF( nan(""), nan("") );
-    if ( imageIndex >= 0 && imageIndex < m_datas.size() ) {
-        center = m_datas[imageIndex]->_getCenter();
-    }
-    return center;
-}
-
     }
     else {
         int dataIndex = _getIndexCurrent();
@@ -1941,6 +1928,7 @@ void Controller::_viewResize( ){
 }
 
 Controller::~Controller(){
+    //unregisterView();
     clear();
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     int selectCount = m_selects.size();

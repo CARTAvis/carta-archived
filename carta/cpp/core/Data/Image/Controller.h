@@ -102,10 +102,11 @@ public:
 
     /**
       * Get the image pixel that is currently centered.
-      * @return a list of the x- and y-coordinates of the center pixel,
-      * or error information if the center pixel could not be obtained.
+      * @return a QPointF value consisting of the x- and y-coordinates of
+      * the center pixel, or a special value of (-0.0, -0.0) if the
+      * center pixel could not be obtained.
       */
-    QStringList getCenterPixel();
+    QPointF getCenterPixel();
 
     /**
      * Return the coordinate system in use.
@@ -162,7 +163,7 @@ public:
     /**
      * Get the image dimensions.
      */
-    QStringList getImageDimensions( );
+    std::vector<int> getImageDimensions( );
 
     /**
      * Returns an identifier for the data source at the given index.
@@ -192,7 +193,7 @@ public:
     /**
      * Get the dimensions of the image viewer (window size).
      */
-    QStringList getOutputSize( );
+    QSize getOutputSize( );
 
     /**
      * Return the percentile corresponding to the given intensity in the current frame.

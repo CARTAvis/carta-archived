@@ -40,18 +40,18 @@ private:
      * Returns channel range for the given frequency bounds.
      */
     std::pair<int,int>
-    _getChannelBounds( double freq1, double freq2,  const QString& unitStr ) const;
+    _getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
+            double freq1, double freq2,
+            const QString& unitStr ) const;
 
     /**
      * Returns frequency bounds corresponding to the given channel range.
      */
     std::pair<double,double>
-    _getFrequencyBounds( int channelMin, int channelMax, const QString& unitStr ) const;
+    _getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
+            int channelMin, int channelMax, const QString& unitStr ) const;
 
     /// Histogram implementation.
     std::unique_ptr<ImageHistogram<casa::Float>> m_histogram = nullptr;
-
-    /// Current histogram image
-    std::shared_ptr<Carta::Lib::Image::ImageInterface> m_cartaImage = nullptr;
 
 };

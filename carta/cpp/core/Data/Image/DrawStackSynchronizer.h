@@ -84,7 +84,7 @@ private:
             std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int gridIndex );
 
     //Data View
-    std::shared_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
+    std::unique_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
     QList< std::shared_ptr<ControllerData> > m_layers;
     bool m_repaintFrameQueued;
 
