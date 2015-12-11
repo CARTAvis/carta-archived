@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" ?>
+<casaxml xmlns="http://casa.nrao.edu/schema/psetTypes.html"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://casa.nrao.edu/schema/casa.xsd
+      file:///opt/casa/code/xmlcasa/xml/casa.xsd">
+
+<task type="function" name="cartaview" category="utility, visualization" async="never">
+    <shortdescription>View an image</shortdescription>
+    <description>
+        The cartaview task will display images in the CARTA viewer.
+
+	Executing the cartaview task will bring up a display panel
+	window, which can be resized.
+	  
+	The state of the cartaview task -- loaded data and related display
+	options -- can be saved in a 'restore' file for later use.
+	You can provide the restore filename on the command line or
+	select it from the Load Data window.
+	
+    </description>
+    <input>
+
+        <param type="string" name="raster" mustexist="true">
+          <description>The full path of a compatible image file to load.</description>
+          <value></value>
+        </param>
+
+        <param type="string" name="configFile" mustexist="true">
+          <description>The full path of the cartavis config.json file.</description>
+          <value></value>
+        </param>
+
+                <constraints>
+                </constraints>
+    </input>
+    <returns type="void"/>
+
+    <example>
+	To simply create a CARTA viewer to set up interactively, you can use:
+
+	    cartaview
+
+	To open a particular image:
+
+	    cartaview "ngc5921.clean.image"
+
+	</example>
+</task>
+</casaxml>
