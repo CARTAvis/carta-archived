@@ -374,8 +374,6 @@ qint64 ServerConnector::refreshView(IView *view)
         m_stateManager->ViewManager().RenderViewDeferred( view->name().toStdString());
         return -1;
     }
-//    qint64 id = pwview-> second-> refreshId() + 1;
-//    pwview-> second-> setRefreshId( id);
     auto id = pwview-> second-> refresh();
     return id;
 }
