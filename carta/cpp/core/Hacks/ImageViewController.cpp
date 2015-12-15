@@ -10,6 +10,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/GetImageRenderService.h"
 #include "GrayColormap.h"
+#include "ProfileExtractor.h"
 #include <QPainter>
 #include <QTime>
 #include <functional>
@@ -408,6 +409,20 @@ ImageViewController::loadImage( QString fname )
 
     // set the frame to first one
     m_frameVar-> set( 0 );
+
+    Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( );
+    SliceND slice;
+    std::vector<int> pos( m_astroImage-> dims().size(), 0);
+    Profiles::PrincipalAxisProfilePath path( 2, pos);
+    Carta::Lib::NdArray::RawViewInterface * rawView = m_astroImage-> getDataSlice(slice);
+    auto profilecb = [=] () {
+        qDebug() << "profilecb"
+                 << extractor-> getRawDataLength()
+                 << extractor-> getTotalProfileLength()
+                    ;
+    };
+    connect( extractor, & Profiles::ProfileExtractor::progress, profilecb);
+    extractor-> start( rawView, path);
 } // loadImage
 
 void

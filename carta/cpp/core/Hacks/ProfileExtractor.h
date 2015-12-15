@@ -27,7 +27,6 @@ enum class ProfilePathType
     Other
 };
 
-
 /// profile along principal axes of an image
 class PrincipalAxisProfilePath
 {
@@ -162,6 +161,7 @@ class IProfileExtractor : public QObject
 public:
 
     IProfileExtractor( QObject * parent = nullptr ) : QObject( parent ) { }
+
     virtual
     ~IProfileExtractor() { }
 
@@ -170,12 +170,12 @@ public:
 //    virtual int priority () = 0;
 
 public slots:
+
     /// start the extraction, if possible the last extraction will be cancelled but
     /// this is not guaranteed
     virtual void
     start( Carta::Lib::NdArray::RawViewInterface * rv, const ProfilePath & profilePath,
            qint64 id ) = 0;
-
 
 signals:
 
@@ -222,12 +222,14 @@ public slots:
     start( Carta::Lib::NdArray::RawViewInterface * rv, const ProfilePath & profilePath,
            qint64 id ) override
     {
+        m_id = id;
+
         CARTA_ASSERT( rv );
         if ( profilePath.type() != ProfilePathType::Principal ) {
             qCritical() << "DefaultPrincipalProfileExtractor can only handle Principal paths";
 
             // report the error but delayed, to make it async
-            emit _delayedProgress( id, - 2, QByteArray() );
+            emit _delayedProgress( m_id, - 2, QByteArray() );
             return;
         }
 
@@ -278,7 +280,7 @@ public slots:
         CARTA_ASSERT( m_pixelSize > 0 );
 
         // immediately report delayed progress (to establish total length of the result)
-        emit _delayedProgress( id, m_rv->dims()[m_axis], QByteArray() );
+        emit _delayedProgress( m_id, m_rv->dims()[m_axis], QByteArray() );
 
         // and start the extraction
         m_workTimer.start();
@@ -295,20 +297,35 @@ private slots:
     void
     workTimerCB()
     {
+        qDebug() << "profile workTimerCB()";
+
         // note that from here we ca safely emit directly, since this is executed
         // as a callback of the work timer...
         QTime t;
         t.restart();
-        while ( t.elapsed() < 100 ) {
+
+//        while ( t.elapsed() < 100 ) {
+        while ( true ) {
             // if we are done, stop timer, report result
+            qDebug() << "profile cmp" << m_currPos[m_axis] << "to" << m_rv->dims()[m_axis];
             if ( m_currPos[m_axis] >= m_rv-> dims()[m_axis] ) {
+                qDebug() << "profile stop timer";
                 m_workTimer.stop();
                 break;
             }
 
+            qDebug() << "profile pos" << m_currPos;
+
             // get the element at the current position
             const char * data = m_rv->get( m_currPos );
             m_buffer.append( data, m_pixelSize );
+
+            m_currPos[m_axis]++;
+
+            // only do little bit of work
+            if ( t.elapsed() >= 10 ) {
+                break;
+            }
         }
 
         // report result
@@ -349,7 +366,7 @@ public:
     qint64
     start( Carta::Lib::NdArray::RawViewInterface * rv,
            const ProfilePath & profilePath,
-           qint64 jobId )
+           qint64 jobId = - 1 )
     {
         // delete the previous algorithm if it's incorrect for this new job
         if ( m_algorithm && ( m_rawView != rv || m_profilePath.type() != profilePath.type() ) ) {
@@ -392,7 +409,7 @@ public:
     /// get the total profile length
     /// if unknown, returns -1
     qint64
-    getTotalProfileLength();
+    getTotalProfileLength() { return m_totalLength; }
 
     /// is the extraction finished?
     bool
@@ -408,7 +425,7 @@ public:
 
     /// get the raw data length (in pixels!, not bytes)
     qint64
-    getRawDataLength();
+    getRawDataLength() { return m_resultBuffer.length(); }
 
     virtual
     ~ProfileExtractor()
@@ -426,8 +443,13 @@ private slots:
     void
     progressCB( qint64 id, qint64 totalLength, QByteArray data )
     {
+        qDebug() << "profile progressCB" << id << totalLength << data.size();
+
         // ignore this signal if it's for an older id
-        if ( id != m_jobId ) { return; }
+        if ( id != m_jobId ) {
+            qDebug() << "profile progressCB old id" << id << "!=" << m_jobId;
+            return;
+        }
 
         m_totalLength = totalLength;
         m_resultBuffer = data;
@@ -447,5 +469,4 @@ private:
     QByteArray m_resultBuffer;
     qint64 m_totalLength = - 1;
 };
-
 }

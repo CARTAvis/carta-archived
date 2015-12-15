@@ -85,18 +85,6 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);
 
-/*
-            var accum_fps = 0;
-            var lastRefresh = window.performance.now();
-            //newView.viewWidget().getIView().addViewCallback( function() {
-            newView.viewWidget().addListener( "viewRefreshed", function() {
-                var currRefresh = window.performance.now();
-                var fps = 1000 / (currRefresh - lastRefresh);
-                lastRefresh = currRefresh;
-                accum_fps = 0.9 * accum_fps + 0.1 * fps;
-                mp.fps.setValue(""+ accum_fps + "(" + fps + ")");
-            });
-*/
             win2.add( mp.container);
             this.m_app.getRoot().add( win2, {left: 100, top: 100} );
             win2.open();
@@ -122,6 +110,7 @@ qx.Class.define("skel.hacks.Hacks", {
             this.m_app.getRoot().add( vgWin, {left: 150, top: 120} );
             vgWin.open();
 
+            /*
             var vgWin2 = new qx.ui.window.Window( "VGhack2" );
             vgWin2.setWidth( 600 );
             vgWin2.setHeight( 400 );
@@ -132,7 +121,7 @@ qx.Class.define("skel.hacks.Hacks", {
             vgWin2.add( new skel.hacks.LayeredViewHack( "vgview2"), { flex: 1 });
             this.m_app.getRoot().add( vgWin2, {left: 170, top: 140} );
             vgWin2.open();
-
+            */
 
             // create cursor window
             this.m_cursorWindow = new skel.boundWidgets.CursorWindow();

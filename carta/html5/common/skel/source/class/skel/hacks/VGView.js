@@ -13,22 +13,8 @@ qx.Class.define( "skel.hacks.VGView", {
 
     extend: qx.ui.container.Composite,
 
-    statics:
-    {
-        /*
-        INPUT_ALL_BUILTINS: "all",
-        // e.g. click
-        INPUT_TAP: "tap",
-        // active pointer move, e.g. mousemove with some buttons down
-        INPUT_DRAG: "drag",
-        // passive pointer move, e.g. mousemove with no buttons
-        INPUT_HOVER: "hover"
-        */
-    },
-
-    events:
-    {
-        "viewRefreshed" : "qx.event.type.Data"
+    events: {
+        "viewRefreshed": "qx.event.type.Data"
     },
 
     /**
@@ -56,44 +42,42 @@ qx.Class.define( "skel.hacks.VGView", {
         this.m_layerManager.set( {
             visibility     : "excluded",
             backgroundColor: "white",
-            padding: 5
+            padding        : 5
         } );
-        this.add( this.m_layerManager, { bottom: 10, right: 10 });
+        this.add( this.m_layerManager, {bottom: 10, right: 10} );
 
         this.m_overlayWidget.addListener( "keydown", function( e )
         {
             console.log( "keydown", e );
             console.log( "keyid", e.getKeyIdentifier(), e.getModifiers() );
-            if( e.isCtrlPressed() && e.isShiftPressed() && e.getKeyIdentifier() === 'S') {
-                if( this.m_settingsLayer.getVisibility() == "visible") {
-                    this.m_settingsLayer.setVisibility( "excluded");
-                } else {
-                    this.m_settingsLayer.setVisibility( "visible");
+            if( e.isCtrlPressed() && e.isShiftPressed() && e.getKeyIdentifier() === 'S' ) {
+                if( this.m_settingsLayer.getVisibility() == "visible" ) {
+                    this.m_settingsLayer.setVisibility( "excluded" );
+                }
+                else {
+                    this.m_settingsLayer.setVisibility( "visible" );
                 }
             }
-            if( e.isCtrlPressed() && e.isShiftPressed() && e.getKeyIdentifier() === 'L') {
-                if( this.m_layerManager.getVisibility() == "visible") {
-                    this.m_layerManager.setVisibility( "excluded");
-                } else {
-                    this.m_layerManager.setVisibility( "visible");
+            if( e.isCtrlPressed() && e.isShiftPressed() && e.getKeyIdentifier() === 'L' ) {
+                if( this.m_layerManager.getVisibility() == "visible" ) {
+                    this.m_layerManager.setVisibility( "excluded" );
+                }
+                else {
+                    this.m_layerManager.setVisibility( "visible" );
                 }
             }
-            }.bind(this) );
+        }.bind( this ) );
         this.m_overlayWidget.addListener( "keypress", function()
         {
             console.log( "keypress", arguments );
         } );
 
+        // set initial quality
         this.m_qualityValue = this.m_connector.supportsRasterViewQuality() ? 90 : 101;
-
-        // once the View widget is up, we can finally
-        //this.m_viewWidget.addListener( "appear", function(){
-        //    this.setQuality( this.m_qualityValue);
-        //}.bind(this));
-        this.setQuality( this.m_qualityValue);
+        this.setQuality( this.m_qualityValue );
 
         // listen for the raster view refreshes
-        this.m_viewWidget.addListener( "viewRefreshed", this._rasterViewRefreshCB.bind(this));
+        this.m_viewWidget.addListener( "viewRefreshed", this._rasterViewRefreshCB.bind( this ) );
     },
 
     members: {
@@ -102,12 +86,12 @@ qx.Class.define( "skel.hacks.VGView", {
         m_viewWidget   : null,
         m_settingsLayer: null,
         m_qualitySlider: null,
-        m_fpsLabel: null,
-        m_qualityLabel: null,
-        m_qualityValue: 90,
-        m_fpsAvg: 0,
-        m_lastRefresh: null,
-        m_connector: null,
+        m_fpsLabel     : null,
+        m_qualityLabel : null,
+        m_qualityValue : 90,
+        m_fpsAvg       : 0,
+        m_lastRefresh  : null,
+        m_connector    : null,
 
         /**
          * Get the overlay widget
@@ -125,82 +109,41 @@ qx.Class.define( "skel.hacks.VGView", {
             return this.m_viewWidget;
         },
 
-        setQuality: function( quality) {
-            this.m_viewWidget.setQuality( quality);
+        setQuality: function( quality )
+        {
+            this.m_viewWidget.setQuality( quality );
             var qtext = "" + quality;
-            if( quality === 0) {
+            if( quality === 0 ) {
                 qtext += " (lowest JPG)";
             }
-            if( quality === 100) {
+            if( quality === 100 ) {
                 qtext += " (highest JPG)";
             }
-            if( quality === 101) {
+            if( quality === 101 ) {
                 qtext += " (PNG)";
             }
-            if( quality === 102) {
+            if( quality === 102 ) {
                 qtext += " (MPEG*)";
             }
-            this.m_qualityLabel.setValue( "Quality: " + qtext);
+            this.m_qualityLabel.setValue( "Quality: " + qtext );
         },
-
-        /**
-         * Installs built in handler[s].
-         * @param which which handlers to install
-         *
-         * Example for use: installDefaultInputHandler([ INPUT_TAP, INPUT_HOVER ])
-         */
-            /*
-        installDefaultInputHandler: function( list)
-        {
-            if( ! qx.lang.Type.isArray( which ) ) {
-                list = [list];
-            }
-            for( var which in list ) {
-                which = list[which];
-                var handled = false;
-                if( which === this.INPUT_TAP || which === this.INPUT_ALL_BUILTINS) {
-                    console.log( "Installing tap handler on view", this.m_viewWidget.viewName())
-                    handled = true;
-                    this.overlayWidget().addListener( "click", function( e )
-                    {
-                        var box = this.overlayWidget().getContentLocation();
-                        var mouseX = e.getDocumentLeft() - box.left
-                        var mouseY = e.getDocumentTop() - box.top
-                        this.sendInputEvent( {type: "tap", x: mouseX, y: mouseY} );
-                    }.bind( this ) );
-                }
-                if( which === this.INPUT_HOVER || which === this.INPUT_ALL_BUILTINS) {
-                    console.log( "Installing hover handler on view", this.m_viewWidget.viewName())
-                    handled = true;
-                    this.overlayWidget().addListener( "mousemove", function( e )
-                    {
-                        console.log( "hover", e.getButton());
-                        var box = this.overlayWidget().getContentLocation();
-                        var mouseX = e.getDocumentLeft() - box.left
-                        var mouseY = e.getDocumentTop() - box.top
-                        this.sendInputEvent( {type: "hover", x: mouseX, y: mouseY} );
-                    }.bind( this ) );
-                }
-                if( ! handled) {
-                    console.warn( "Don't understand built in event", which);
-                }
-            }
-        },
-        */
 
         /**
          * Install an input handler.
          * @param handlerType
+         *
+         * For example: installHandler( skel.hacks.inputHandlers.Tap)
          */
-        installHandler : function( handlerType) {
-            if( ! this.m_inputHandlers) {
+        installHandler: function( handlerType )
+        {
+            if( ! this.m_inputHandlers ) {
                 this.m_inputHandlers = {};
             }
-            if( this.m_inputHandlers[handlerType] !== undefined) {
-                console.warn( "Double install of handler");
+            if( this.m_inputHandlers[handlerType] !== undefined ) {
+                console.warn( "Double install of handler" );
                 return;
             }
-            var handler = new handlerType(this);
+            var handler = new handlerType( this );
             this.m_inputHandlers[handlerType] = handler;
         },
 
@@ -208,27 +151,28 @@ qx.Class.define( "skel.hacks.VGView", {
          * Install an input handler.
          * @param handlerType
          */
-         uninstallHandler : function( handlerType)
+        uninstallHandler: function( handlerType )
         {
-            if( ! this.m_inputHandlers) {
+            if( ! this.m_inputHandlers ) {
                 this.m_inputHandlers = {};
             }
-            if( this.m_inputHandlers[handlerType] === undefined) {
-                console.warn( "Cannot uninstall handler");
+            if( this.m_inputHandlers[handlerType] === undefined ) {
+                console.warn( "Cannot uninstall handler" );
                 return;
             }
             this.m_inputHandlers[handlerType].deactivate();
             delete m_inputHandlers[handlerType];
         },
 
-       /**
+        /**
          * Send an input event to the server side.
          * @param e
          */
-        sendInputEvent: function(e) {
-            console.log( "Sending input event", e);
-            var params = JSON.stringify( e);
-            this.m_connector.sendCommand( "vgview/inputEvent/" + this.m_viewWidget.viewName(), params);
+        sendInputEvent: function( e )
+        {
+            console.log( "Sending input event", e );
+            var params = JSON.stringify( e );
+            this.m_connector.sendCommand( "vgview/inputEvent/" + this.m_viewWidget.viewName(), params );
         },
 
         _rasterViewRefreshCB: function()
@@ -236,17 +180,17 @@ qx.Class.define( "skel.hacks.VGView", {
 
             // update FPS
             var currRefresh = window.performance.now();
-            if( this.m_lastRefresh === null) {
+            if( this.m_lastRefresh === null ) {
                 this.m_lastRefresh = currRefresh - 1000;
             }
             var fps = 1000 / (currRefresh - this.m_lastRefresh);
             this.m_lastRefresh = currRefresh;
             this.m_fpsAvg = 0.9 * this.m_fpsAvg + 0.1 * fps;
 
-            this.m_fpsLabel.setValue("FPS:"+ this.m_fpsAvg.toPrecision(3) + "(" + fps.toPrecision(3) + ")");
+            this.m_fpsLabel.setValue( "FPS:" + this.m_fpsAvg.toPrecision( 3 ) + "(" + fps.toPrecision( 3 ) + ")" );
 
             // also refire the event
-            this.fireDataEvent( "viewRefreshed");
+            this.fireDataEvent( "viewRefreshed" );
         },
 
         _createSettingsUI: function()
@@ -259,17 +203,17 @@ qx.Class.define( "skel.hacks.VGView", {
                 visibility     : "excluded",
                 //keepActive: true,
                 //keepFocus: true,
-                minWidth: 200
+                minWidth       : 200
             } );
             var fpsLabel = new qx.ui.basic.Label( "FPS:" );
             settings.add( fpsLabel );
             var qualityLabel = new qx.ui.basic.Label( "Quality:" );
             settings.add( qualityLabel );
             var qualitySlider = new qx.ui.form.Slider();
-            qualitySlider.set({
+            qualitySlider.set( {
                 maximum: 102,
-                value: this.m_qualityValue
-            });
+                value  : this.m_qualityValue
+            } );
             settings.add( qualitySlider );
             var closeButton = new qx.ui.form.Button( "Close" );
             closeButton.set( {alignX: "right", allowStretchX: false} );
@@ -281,132 +225,35 @@ qx.Class.define( "skel.hacks.VGView", {
             } );
 
             var dec = new qx.ui.decoration.Decorator();
-            dec.set({
-                color: "rgba(0,0,0,0.5)",
+            dec.set( {
+                color     : "rgba(0,0,0,0.5)",
                 startColor: "rgba(255,255,255,0.5)",
-                endColor: "rgba(225,225,255,1)",
-                radius: [10, 0, 10, 10],
-                width: 2
-            });
-            settings.setDecorator( dec);
+                endColor  : "rgba(225,225,255,1)",
+                radius    : [10, 0, 10, 10],
+                width     : 2
+            } );
+            settings.setDecorator( dec );
 
             this.m_qualityLabel = qualityLabel;
             this.m_fpsLabel = fpsLabel;
             this.m_qualitySlider = qualitySlider;
 
             // hook up quality slider callback
-            this.m_qualitySlider.addListener( "changeValue", this._qualitySliderCB.bind(this));
+            this.m_qualitySlider.addListener( "changeValue", this._qualitySliderCB.bind( this ) );
 
             // disable quality slider if view does not support it
-            if( ! this.m_connector.supportsRasterViewQuality()) {
-                this.m_qualitySlider.setEnabled( false);
+            if( ! this.m_connector.supportsRasterViewQuality() ) {
+                this.m_qualitySlider.setEnabled( false );
             }
 
             return settings;
         },
 
-        _qualitySliderCB: function(e) {
-            this.setQuality( e.getData());
+        _qualitySliderCB: function( e )
+        {
+            this.setQuality( e.getData() );
         }
     }
 
-} );
+});
 
-/*
- var row1 = cqoo( {
- type: "hbox",
- id  : "hb1",
- lopt: {
- flex: 1
- },
- lset: {
- spacing: 5
- },
- set: {
- backgroundColor: "#00ff00"
- },
- add : [
- {
- type : "label",
- value: "FPS...:",
- lopt : {flex: 0},
- set  : {background: "#ff0000"}
- },
- {
- type: "label",
- lopt: {flex: 1}
- }
- ]
- } );
- var allRows = cqoo( {
- type: "vbox",
- id  : "vb1",
- add : [row1]
- } );
-
-
-function cqoo_hbox( obj) {
-    return new qx.ui.container.Composite( new qx.ui.layout.HBox());
-}
-
-function cqoo( obj )
-{
-
-    if( obj.$_widget !== undefined ) {
-        return obj;
-    }
-
-    var res = {
-        $_widget: null,
-        $_lopt  : obj.lopt || {},
-        $_id    : null
-    };
-
-    // obj must have type
-    var type = obj.type;
-    if( ! type ) {
-        throw "No type";
-    }
-
-    // construct widget
-    if( type == "hbox" ) {
-        res.$_widget = cqoo_hbox( obj );
-    }
-    else if( type == "vbox" ) {
-        res.$_widget = cqoo_vbox( obj );
-    }
-    else if( type == "label" ) {
-        res.$_widget = cqoo_label( obj );
-    }
-    else {
-        throw "Bad type: " + type;
-    }
-
-    // if we have layout options, apply them
-    if( obj.lset != null && res.$_widget.getLayout && res.$_widget.getLayout()) {
-        res.$_widget.getLayout().set( obj.lset);
-    }
-
-    // apply set
-    if( obj.set != null) {
-        res.$_widget.set( obj.set);
-    }
-
-    // do we have kids?
-    if( obj.add != null ) {
-        for( kidObj in obj.add ) {
-            var kid = cqoo( kidObj );
-            res.$_widget.add( kid.$_widget, kid.$_lopt );
-            if( kid.$_id != null) {
-                res[kid.$_id] = kid;
-            }
-        }
-    }
-
-    // do we have id?
-    var id = obj.id;
-    if( id != null ) {
-        res[id] = widget;
-    }
-}
-*/

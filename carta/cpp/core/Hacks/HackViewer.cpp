@@ -170,6 +170,7 @@ HackViewer::start()
     // managed layer demo
     m_lvDemo.reset( new LayeredViewDemo( this));
 
+#ifdef DONT_COMPILE
     // layered view 2 stuff
     auto ccl = [] ( int x, int y, int r, QColor color ) -> QImage {
         QImage img( 500, 500, QImage::Format_ARGB32_Premultiplied );
@@ -289,6 +290,7 @@ HackViewer::start()
         return "OK";
     };
     m_connector-> addCommandCallback( "lvgview-cmd", cmdCB );
+#endif
 
     qDebug() << "HackViewer has been initialized.";
 } // start
