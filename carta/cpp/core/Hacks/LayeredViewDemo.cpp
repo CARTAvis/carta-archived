@@ -89,8 +89,12 @@ private:
         Carta::Lib::InputEvents::HoverEvent hover( ev );
         double speed = 0.01;
         if ( hover.valid() ) {
-//            m_center = hover.pos();
             m_center = ( 1 - speed ) * m_center + speed * hover.pos();
+            QVector2D dv = QVector2D( m_center) - QVector2D( hover.pos());
+            double dist = dv.length() / 100.0;
+            double dd = 10.0 / (dist + 1) + 10;
+            m_size = QSize( dd, dd);
+
             rerender();
         }
     }
@@ -111,13 +115,14 @@ private:
 
         comp.append < vge::SetPenColor > ( "yellow" );
         comp.append < vge::SetPenWidth > ( 2.0 );
-        QRectF rect( m_center, QSize( 10, 10 ) );
+        QRectF rect( m_center, m_size );
         rect.moveCenter( m_center );
         comp.append < vge::DrawRect > ( rect );
         setVG( comp.vgList() );
     }
 
     QPointF m_center;
+    QSizeF m_size = QSize( 10.0, 10.0);
     QSize m_clientSize = QSize( 100, 100 );
 };
 
