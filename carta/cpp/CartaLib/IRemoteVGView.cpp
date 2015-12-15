@@ -294,13 +294,15 @@ void
 LayeredViewArbitrary::p_timerCB()
 {
     // figure out the size of the buffer (max of the raster sizes)
-    QSize size( 1, 1 );
-    for ( auto & layerInfo : m_layers ) {
-        if ( layerInfo.type != LayerType::Raster ) {
-            continue;
-        }
-        size = size.expandedTo( layerInfo.qimg.size() );
-    }
+//    QSize size( 1, 1 );
+//    for ( auto & layerInfo : m_layers ) {
+//        if ( layerInfo.type != LayerType::Raster ) {
+//            continue;
+//        }
+//        size = size.expandedTo( layerInfo.qimg.size() );
+//    }
+
+    QSize size = getClientSize();
 
     // figure out which layer (from top to bottom) is fully opaque
     // we do this because we don't need to render any layer below it

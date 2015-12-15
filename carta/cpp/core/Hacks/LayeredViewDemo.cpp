@@ -369,9 +369,6 @@ LayeredViewDemo::LayeredViewDemo( QObject * parent ) : QObject( parent )
     ClockLayer * clockLayer = new ClockLayer( m_pimpl-> mlv.get(), "clock" );
     RepelLayer * repel1 = new RepelLayer( m_pimpl->mlv.get(), "Repel1" );
     EyesLayer * eyes2 = new EyesLayer( m_pimpl-> mlv.get(), "ellipse2" );
-
-//    m_mlv-> setInputLayers( { eyes->layerID(), bouncy-> layerID() }
-//    m_pimpl-> mlv-> setInputLayers( { eyes2->layerID() });
     m_pimpl-> mlv-> setInputLayers( { repel1->layerID(), eyes2->layerID() }
                                     );
 
