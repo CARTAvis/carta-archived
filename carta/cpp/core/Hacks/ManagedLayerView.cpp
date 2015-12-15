@@ -41,14 +41,15 @@ ManagedLayerView::ManagedLayerView( QString viewName,
     m_connector = connector;
 
     // make the low level layered view
-    m_lrv.reset( new Carta::Lib::LayeredRemoteVGView( m_connector, viewName, this ) );
+//    m_lrv.reset( new Carta::Lib::LayeredRemoteVGView( m_connector, viewName, this ) );
+    m_lrv.reset( new Carta::Lib::LayeredViewArbitrary( m_connector, viewName, this ) );
 
     // listen for resize events
-    connect( m_lrv.get(), & Carta::Lib::LayeredRemoteVGView::sizeChanged,
+    connect( m_lrv.get(), & Carta::Lib::LayeredViewArbitrary::sizeChanged,
              this, & Me::clientSizeChangedCB );
 
     // listen for input events
-    connect( m_lrv.get(), & Carta::Lib::LayeredRemoteVGView::inputEvent,
+    connect( m_lrv.get(), & Carta::Lib::LayeredViewArbitrary::inputEvent,
              this, & Me::inputEventCB );
 
     // connect the repaint timer
@@ -219,11 +220,13 @@ ManagedLayerView::inputEventCB( Lib::InputEvent e )
             }
         }
     }
+
 //    if( CARTA_RUNTIME_CHECKS && ! e.isConsumed()) {
 //        qWarning() << "Unconsumed event" << e.type();
 //    }
-}
+} // inputEventCB
 
+/*
 void
 ManagedLayerView::repaintTimerCB()
 {
@@ -245,6 +248,35 @@ ManagedLayerView::repaintTimerCB()
         m_lrv-> setVGLayer( vgInd, l-> vgList() );
         vgInd++;
     }
+
+    m_lrv-> scheduleRepaint( m_repaintId );
+} // inputEventCB
+*/
+void
+ManagedLayerView::repaintTimerCB()
+{
+    m_lrv-> removeAllLayers();
+    int layerInd = 0;
+
+//    int vgInd = 0;
+    for ( auto * l : m_layers ) {
+        if ( l-> isRaster() ) {
+            m_lrv-> setLayerRaster( layerInd, l-> raster() );
+            m_lrv-> setLayerCombiner( layerInd, l-> rasterCombiner() );
+        }
+        else {
+            m_lrv-> setLayerVG( layerInd, l-> vgList() );
+        }
+        layerInd++;
+    }
+
+//    for ( auto * l : m_layers ) {
+//        if ( l-> isRaster() ) {
+//            continue;
+//        }
+//        m_lrv-> setVGLayer( vgInd, l-> vgList() );
+//        vgInd++;
+//    }
 
     m_lrv-> scheduleRepaint( m_repaintId );
 } // inputEventCB

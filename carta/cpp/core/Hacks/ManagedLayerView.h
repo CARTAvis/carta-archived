@@ -191,7 +191,8 @@ private:
     ManagedLayerBase::ID m_nextId = 0;
 
     // we use layered remote view to do the rendering
-    Carta::Lib::LayeredRemoteVGView::SharedPtr m_lrv = nullptr;
+//    Carta::Lib::LayeredRemoteVGView::SharedPtr m_lrv = nullptr;
+    Carta::Lib::LayeredViewArbitrary::SharedPtr m_lrv = nullptr;
 
     // here we keep track of all our layers, and since we don't own the layers
     // we keep raw pointers

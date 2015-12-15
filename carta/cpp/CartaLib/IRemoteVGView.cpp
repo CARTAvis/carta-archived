@@ -192,9 +192,17 @@ LayeredViewArbitrary::LayeredViewArbitrary( IConnector * connector,
     connect( m_timer, & QTimer::timeout, this, & Me::p_timerCB );
 }
 
-size_t LayeredViewArbitrary::nLayers() const { return m_layers.size(); }
+size_t
+LayeredViewArbitrary::nLayers() const
+{
+    return m_layers.size();
+}
 
-void LayeredViewArbitrary::removeAllLayers() { m_layers.resize( 0 ); }
+void
+LayeredViewArbitrary::removeAllLayers()
+{
+    m_layers.resize( 0 );
+}
 
 void
 LayeredViewArbitrary::setLayerRaster( int ind, const QImage & img, bool hasTransparentPixels )
@@ -255,6 +263,18 @@ bool
 LayeredViewArbitrary::isVGrenderedOnServer()
 {
     return m_vgView-> isVGrenderedOnServer();
+}
+
+QString
+LayeredViewArbitrary::viewName()
+{
+    return m_vgView-> getRVGViewName();
+}
+
+QSize
+LayeredViewArbitrary::getClientSize()
+{
+    return m_vgView-> getClientSize();
 }
 
 qint64
