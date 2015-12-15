@@ -115,7 +115,9 @@ qx.Class.define("skel.hacks.Hacks", {
             //vgWin.add( new skel.boundWidgets.View.View( "vgview1"), { flex: 1 });
             //vgWin.add( new skel.hacks.LayeredViewHack( "vgview1"), { flex: 1 });
             var vgview =  new skel.hacks.VGView( "mlv1");
-            vgview.installDefaultInputHandler( vgview.INPUT_ALL_BUILTINS);
+            //vgview.installDefaultInputHandler( vgview.INPUT_ALL_BUILTINS);
+            vgview.installHandler( skel.hacks.inputHandler.Hover);
+            vgview.installHandler( skel.hacks.inputHandler.Tap);
             vgWin.add( vgview, { flex: 1 });
             this.m_app.getRoot().add( vgWin, {left: 150, top: 120} );
             vgWin.open();

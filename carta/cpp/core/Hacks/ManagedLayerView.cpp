@@ -18,8 +18,18 @@ ManagedLayerBase::ManagedLayerBase( ManagedLayerView * mlv, QString name )
 void
 ManagedLayerBase::setRaster( const QImage & image )
 {
+    m_vgListBuff = Carta::Lib::VectorGraphics::VGList();
     m_rasterBuff = image;
     m_isRaster = true;
+    m_mlv-> scheduleRepaint();
+}
+
+void
+ManagedLayerBase::setVG( const Lib::VectorGraphics::VGList & vgList )
+{
+    m_rasterBuff = QImage();
+    m_vgListBuff = vgList;
+    m_isRaster = false;
     m_mlv-> scheduleRepaint();
 }
 
@@ -40,6 +50,11 @@ ManagedLayerView::ManagedLayerView( QString viewName,
     // listen for input events
     connect( m_lrv.get(), & Carta::Lib::LayeredRemoteVGView::inputEvent,
              this, & Me::inputEventCB );
+
+    // connect the repaint timer
+    m_repaintTimer.setInterval( 0 );
+    m_repaintTimer.setSingleShot( true );
+    connect( & m_repaintTimer, & QTimer::timeout, this, & Me::repaintTimerCB );
 }
 
 void
@@ -171,26 +186,11 @@ ManagedLayerView::removeLayers( const std::vector < ManagedLayerBase::ID > & lis
 qint64
 ManagedLayerView::scheduleRepaint()
 {
-    m_lrv-> resetLayers();
-    int rasterInd = 0;
-    int vgInd = 0;
-    for ( auto * l : m_layers ) {
-        if ( ! l-> isRaster() ) {
-            continue;
-        }
-        m_lrv-> setRasterLayer( rasterInd, l-> raster() );
-        m_lrv-> setRasterLayerCombiner( rasterInd, l-> rasterCombiner() );
-        rasterInd++;
+    if ( ! m_repaintTimer.isActive() ) {
+        m_repaintTimer.start();
     }
-    for ( auto * l : m_layers ) {
-        if ( l-> isRaster() ) {
-            continue;
-        }
-        m_lrv-> setVGLayer( vgInd, l-> vgList() );
-        vgInd++;
-    }
-
-    return m_lrv-> scheduleRepaint();
+    m_repaintId++;
+    return m_repaintId;
 } // scheduleRepaint
 
 void
@@ -212,8 +212,41 @@ ManagedLayerView::inputEventCB( Lib::InputEvent e )
     for ( auto layer : m_layers ) {
         if ( layer-> hasInput() ) {
             layer-> onInputEvent( e );
+
+            // abort once the event is consumed
+            if ( e.isConsumed() ) {
+                break;
+            }
         }
     }
+//    if( CARTA_RUNTIME_CHECKS && ! e.isConsumed()) {
+//        qWarning() << "Unconsumed event" << e.type();
+//    }
+}
+
+void
+ManagedLayerView::repaintTimerCB()
+{
+    m_lrv-> resetLayers();
+    int rasterInd = 0;
+    int vgInd = 0;
+    for ( auto * l : m_layers ) {
+        if ( ! l-> isRaster() ) {
+            continue;
+        }
+        m_lrv-> setRasterLayer( rasterInd, l-> raster() );
+        m_lrv-> setRasterLayerCombiner( rasterInd, l-> rasterCombiner() );
+        rasterInd++;
+    }
+    for ( auto * l : m_layers ) {
+        if ( l-> isRaster() ) {
+            continue;
+        }
+        m_lrv-> setVGLayer( vgInd, l-> vgList() );
+        vgInd++;
+    }
+
+    m_lrv-> scheduleRepaint( m_repaintId );
 } // inputEventCB
 
 ManagedLayerBase::ID

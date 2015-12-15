@@ -128,11 +128,7 @@ LayeredRemoteVGView::LayeredRemoteVGView( IConnector * connector,
 void
 LayeredRemoteVGView::p_timerCB()
 {
-    // figure out the size of the buffer (max of the raster sizes)
-    QSize size( 1, 1 );
-    for ( auto & layer : m_rasterLayers ) {
-        size = size.expandedTo( layer.qimg.size() );
-    }
+    QSize size = getClientSize();
 
     QImage buff( size, QImage::Format_ARGB32_Premultiplied );
     buff.fill( QColor( 0, 0, 0, 255 ) );
@@ -152,11 +148,7 @@ LayeredRemoteVGView::p_timerCB()
     VectorGraphics::VGComposer composer;
     for ( auto & vglayer : m_vgLayers ) {
         composer.append < VectorGraphics::Entries::Reset > ();
-
-//        composer.append < VectorGraphics::Entries::Save > ();
         composer.appendList( vglayer.vglist );
-
-//        composer.append < VectorGraphics::Entries::Restore > ();
     }
 
     // render the combined vector graphics list

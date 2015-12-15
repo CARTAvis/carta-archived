@@ -4,6 +4,7 @@
 
 #include "LayeredViewDemo.h"
 #include "core/Globals.h"
+#include "CartaLib/VectorGraphics/VGList.h"
 #include <QPainter>
 #include <QImage>
 #include <QTimer>
@@ -27,9 +28,11 @@ public:
 private:
 
     virtual void
-    onInputEvent( const Carta::Lib::InputEvent & ev ) override
+    onInputEvent( Carta::Lib::InputEvent & ev ) override
     {
         qDebug() << "eyes layer received event" << ev.json()["type"];
+
+        // try to convert this to touch event
         Carta::Lib::InputEvents::TouchEvent touch( ev );
         if ( touch.valid() ) {
             qDebug() << "eyes touch:" << touch.pos();
@@ -64,25 +67,79 @@ private:
     QSize m_clientSize = QSize( 100, 100 );
 };
 
-class BouncyLayer : public Carta::Hacks::ManagedLayerBase
+namespace vge = Carta::Lib::VectorGraphics::Entries;
+
+class RepelLayer : public Carta::Hacks::ManagedLayerBase
 {
     Q_OBJECT
 
 public:
 
-    BouncyLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
+    RepelLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
         : Carta::Hacks::ManagedLayerBase( mlv, layerName )
     {
-        m_timer.setInterval( 1000 );
-        m_timer.start();
-        connect( & m_timer, & QTimer::timeout, this, & BouncyLayer::timerCB );
         onResize( { 100, 100 } );
     }
 
 private:
 
     virtual void
-    onInputEvent( const Carta::Lib::InputEvent & ev ) override
+    onInputEvent( Carta::Lib::InputEvent & ev ) override
+    {
+        Carta::Lib::InputEvents::HoverEvent hover( ev );
+        double speed = 0.01;
+        if ( hover.valid() ) {
+//            m_center = hover.pos();
+            m_center = ( 1 - speed ) * m_center + speed * hover.pos();
+            rerender();
+        }
+    }
+
+    virtual void
+    onResize( const QSize & size ) override
+    {
+        m_clientSize = size;
+        m_center = QPointF( size.width() / 2.0, size.height() / 2.0 );
+        rerender();
+    }
+
+    void
+    rerender()
+    {
+//        namespace vge = Carta::Lib::VectorGraphics::Entries;
+        Carta::Lib::VectorGraphics::VGComposer comp;
+
+        comp.append < vge::SetPenColor > ( "yellow" );
+        comp.append < vge::SetPenWidth > ( 2.0 );
+        QRectF rect( m_center, QSize( 10, 10 ) );
+        rect.moveCenter( m_center );
+        comp.append < vge::DrawRect > ( rect );
+        setVG( comp.vgList() );
+    }
+
+    QPointF m_center;
+    QSize m_clientSize = QSize( 100, 100 );
+};
+
+class ClockLayer : public Carta::Hacks::ManagedLayerBase
+{
+    Q_OBJECT
+
+public:
+
+    ClockLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
+        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
+    {
+        m_timer.setInterval( 1000 );
+        m_timer.start();
+        connect( & m_timer, & QTimer::timeout, this, & ClockLayer::timerCB );
+        onResize( { 100, 100 } );
+    }
+
+private:
+
+    virtual void
+    onInputEvent( Carta::Lib::InputEvent & ev ) override
     {
         qDebug() << "Bouncy layer received event" << ev.json()["type"];
         Carta::Lib::InputEvents::TouchEvent touch( ev );
@@ -172,19 +229,17 @@ public:
     {
         m_mlv = mlv;
 
+        // monitor changes to ManagedLayerView so that we can update the UI
         connect( m_mlv, & Carta::Hacks::ManagedLayerView::layersUpdated,
                  this, & Me::mlvUpdatedCB );
 
+        // listen for commands
         using namespace std::placeholders;
-
-//        Globals::instance()->connector()->addCommandCallback(
-//            QString( "/hacks/LayeredViewController/%1/setSelection" ).arg( m_mlv->viewName() ),
-//            std::bind( & Me::setSelectionCB, this, _1, _2, _3 ) );
-
         Globals::instance()->connector()->addCommandCallback(
             QString( "/hacks/LayeredViewController/%1/command" ).arg( m_mlv->viewName() ),
             std::bind( & Me::commandCB, this, _1, _2, _3 ) );
 
+        // manually invoke mlvUpdatedCB to update the UI on the client
         mlvUpdatedCB();
     }
 
@@ -248,7 +303,7 @@ private:
             for ( auto val : arr ) {
                 selection.push_back( val.toInt() );
             }
-            m_mlv-> moveLayersUp( selection);
+            m_mlv-> moveLayersUp( selection );
         }
         else if ( cmd == "down" ) {
             if ( ! data.isArray() ) { return ""; }
@@ -257,7 +312,7 @@ private:
             for ( auto val : arr ) {
                 selection.push_back( val.toInt() );
             }
-            m_mlv-> moveLayersDown( selection);
+            m_mlv-> moveLayersDown( selection );
         }
         else if ( cmd == "delete" ) {
             if ( ! data.isArray() ) { return ""; }
@@ -266,7 +321,7 @@ private:
             for ( auto val : arr ) {
                 selection.push_back( val.toInt() );
             }
-            m_mlv-> removeLayers( selection);
+            m_mlv-> removeLayers( selection );
         }
         else {
             qWarning() << "Unknown command" << cmd;
@@ -295,10 +350,6 @@ private:
     Carta::Hacks::ManagedLayerView * m_mlv = nullptr;
 };
 
-// hack for declaring qobject classes inside .cpp instead of headers. This will force
-// moc to process the .cpp file...
-#include "LayeredViewDemo.moc"
-
 namespace Carta
 {
 namespace Hacks
@@ -315,11 +366,13 @@ LayeredViewDemo::LayeredViewDemo( QObject * parent ) : QObject( parent )
     m_pimpl-> mlv.reset( new ManagedLayerView( "mlv1", Globals::instance()->connector(), this ) );
 
     EyesLayer * eyes1 = new EyesLayer( m_pimpl-> mlv.get(), "ellipse1" );
-    BouncyLayer * bouncy = new BouncyLayer( m_pimpl-> mlv.get(), "clock" );
+    ClockLayer * clockLayer = new ClockLayer( m_pimpl-> mlv.get(), "clock" );
+    RepelLayer * repel1 = new RepelLayer( m_pimpl->mlv.get(), "Repel1" );
     EyesLayer * eyes2 = new EyesLayer( m_pimpl-> mlv.get(), "ellipse2" );
 
 //    m_mlv-> setInputLayers( { eyes->layerID(), bouncy-> layerID() }
-    m_pimpl-> mlv-> setInputLayers( { eyes2->layerID() }
+//    m_pimpl-> mlv-> setInputLayers( { eyes2->layerID() });
+    m_pimpl-> mlv-> setInputLayers( { repel1->layerID(), eyes2->layerID() }
                                     );
 
     m_pimpl-> lvc.reset( new LayeredViewController( m_pimpl-> mlv.get() ) );
@@ -334,3 +387,7 @@ LayeredViewDemo::~LayeredViewDemo()
 }
 }
 }
+
+// hack for declaring qobject classes inside .cpp instead of headers. This will force
+// moc to process the .cpp file...
+#include "LayeredViewDemo.moc"

@@ -15,10 +15,15 @@ qx.Class.define( "skel.hacks.VGView", {
 
     statics:
     {
+        /*
         INPUT_ALL_BUILTINS: "all",
+        // e.g. click
         INPUT_TAP: "tap",
+        // active pointer move, e.g. mousemove with some buttons down
         INPUT_DRAG: "drag",
+        // passive pointer move, e.g. mousemove with no buttons
         INPUT_HOVER: "hover"
+        */
     },
 
     events:
@@ -144,6 +149,7 @@ qx.Class.define( "skel.hacks.VGView", {
          *
          * Example for use: installDefaultInputHandler([ INPUT_TAP, INPUT_HOVER ])
          */
+            /*
         installDefaultInputHandler: function( list)
         {
             if( ! qx.lang.Type.isArray( which ) ) {
@@ -163,13 +169,59 @@ qx.Class.define( "skel.hacks.VGView", {
                         this.sendInputEvent( {type: "tap", x: mouseX, y: mouseY} );
                     }.bind( this ) );
                 }
+                if( which === this.INPUT_HOVER || which === this.INPUT_ALL_BUILTINS) {
+                    console.log( "Installing hover handler on view", this.m_viewWidget.viewName())
+                    handled = true;
+                    this.overlayWidget().addListener( "mousemove", function( e )
+                    {
+                        console.log( "hover", e.getButton());
+                        var box = this.overlayWidget().getContentLocation();
+                        var mouseX = e.getDocumentLeft() - box.left
+                        var mouseY = e.getDocumentTop() - box.top
+                        this.sendInputEvent( {type: "hover", x: mouseX, y: mouseY} );
+                    }.bind( this ) );
+                }
                 if( ! handled) {
                     console.warn( "Don't understand built in event", which);
                 }
             }
         },
+        */
 
         /**
+         * Install an input handler.
+         * @param handlerType
+         */
+        installHandler : function( handlerType) {
+            if( ! this.m_inputHandlers) {
+                this.m_inputHandlers = {};
+            }
+            if( this.m_inputHandlers[handlerType] !== undefined) {
+                console.warn( "Double install of handler");
+                return;
+            }
+            var handler = new handlerType(this);
+            this.m_inputHandlers[handlerType] = handler;
+        },
+
+        /**
+         * Install an input handler.
+         * @param handlerType
+         */
+         uninstallHandler : function( handlerType)
+        {
+            if( ! this.m_inputHandlers) {
+                this.m_inputHandlers = {};
+            }
+            if( this.m_inputHandlers[handlerType] === undefined) {
+                console.warn( "Cannot uninstall handler");
+                return;
+            }
+            this.m_inputHandlers[handlerType].deactivate();
+            delete m_inputHandlers[handlerType];
+        },
+
+       /**
          * Send an input event to the server side.
          * @param e
          */

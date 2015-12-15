@@ -23,14 +23,59 @@ public:
     BaseEvent( const QJsonObject & json )
     {
         m_json = json;
+        auto it = m_json.find( "type" );
+        if ( it == m_json.end() ) {
+            m_valid = false;
+        }
+        else {
+            m_type = it.value().toString();
+            m_valid = ! m_type.isNull();
+        }
     }
 
+    /// return the raw json of this event
     const QJsonObject &
     json() const { return m_json; }
 
+    /// return the type of the event (value of 'type' field)
+    const QString &
+    type() const { return m_type; }
+
+    /// is this event valid? (i.e. does it have 'type' field
+    bool
+    valid() const
+    {
+        return m_valid;
+    }
+
+    /// was this event consumed?
+    bool isConsumed() const {
+        return m_consumed;
+    }
+
+    /// set the consume flag to true
+    void consume() {
+        if( CARTA_RUNTIME_CHECKS) {
+            if( m_consumed) {
+                qWarning() << "Double consume of event" << type();
+            }
+        }
+        m_consumed = true;
+    }
+
 private:
 
+    /// the entire json of the event
     QJsonObject m_json;
+
+    /// the only parsed portion of the json: type
+    QString m_type;
+
+    /// is this valid event
+    bool m_valid = false;
+
+    /// was this event consumed?
+    bool m_consumed = false;
 };
 
 class TouchEvent
@@ -39,7 +84,7 @@ public:
 
     TouchEvent( const BaseEvent & baseEvent )
     {
-        if ( baseEvent.json()["type"] != "tap" ) { return; }
+        if ( baseEvent.type() != "tap" ) { return; }
 
         if ( ! baseEvent.json()["x"].isDouble() ) { return; }
         if ( ! baseEvent.json()["y"].isDouble() ) { return; }
@@ -63,19 +108,37 @@ private:
     bool m_valid = false;
     QPointF m_pos;
 };
-/*
-template < class Type >
-Type *
-convertInputEvent( const BaseEvent & baseEvent )
+
+class HoverEvent
 {
-    try {
-        return new Type( baseEvent );
+public:
+
+    HoverEvent( const BaseEvent & baseEvent )
+    {
+        if ( baseEvent.type() != "hover" ) { return; }
+
+        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+        m_pos.rx() = baseEvent.json()["x"].toDouble();
+        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+        m_valid = true;
     }
-    catch ( ... ) {
-        return nullptr;
+
+    const QPointF &
+    pos() const { return m_pos; }
+
+    bool
+    valid() const
+    {
+        return m_valid;
     }
-}
-*/
+
+private:
+
+    bool m_valid = false;
+    QPointF m_pos;
+};
 
 static int
 eventApiTest()
@@ -162,6 +225,7 @@ static auto xxx = eventApiTest();
 /// queued connection, who frees up the pointer?). This could probably be resolved using
 /// smart (shared?) pointers, but we need to test it.
 ///
+/*
 class InputEvent2
 {
 public:
@@ -216,6 +280,7 @@ private:
 
     QJsonObject m_json;
 };
+*/
 
 typedef InputEvents::BaseEvent InputEvent;
 
@@ -607,7 +672,7 @@ public:
     /// \param hasTransparentPixels whether the image could have alpha pixels
     ///
     void
-    setLayerRaster(int ind, const QImage & img, bool hasTransparentPixels );
+    setLayerRaster( int ind, const QImage & img, bool hasTransparentPixels );
 
     /// use this if you don't know whether the image has transparent pixels
     /// the value will be determined based on format of the image
