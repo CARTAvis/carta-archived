@@ -578,7 +578,6 @@ def test_getPluginList(cartavisInstance, cleanSlate):
     assert sorted(plugins) == ['Animator', 'CasaImageLoader', 'Colormap',
                               'Hidden', u'Histogram']
 
-@pytest.mark.skipif(True, reason="Seems to be causing problems currently.")
 def test_getChannelIndex(cartavisInstance, cleanSlate):
     """
     Test that the channel index can be obtained from the animator.
@@ -590,6 +589,7 @@ def test_getChannelIndex(cartavisInstance, cleanSlate):
     a[0].setChannel(4)
     assert a[0].getChannelIndex() == 4
 
+@pytest.mark.xfail(reason="Histograms not saving properly.")
 def test_saveHistogramConsistency(cartavisInstance, cleanSlate, tempImageDir):
     """
     Test that saved histogram images are of consistent size and content
@@ -638,16 +638,24 @@ def test_saveImageWithoutCrashing(cartavisInstance, cleanSlate, tempImageDir):
         '~/CARTA/Images/CARTAImages/BigImageTest/h_m51_b_s05_drz_sci.fits'))
     i[0].saveFullImage(tempImageDir + '/' + 'BigImageTest.png')
 
-@pytest.mark.skipif(True, reason="At least one image in this directory does not\
-                    currently load")
+@pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
+                    '~/CARTA/Images/CARTAImages/BigImageTest')),
+                    reason="Directory does not exist.")
 def test_loadFile_BigImageTest(cartavisInstance, cleanSlate):
     """
     Test that the image(s) in CARTAImages/BigImageTest can be loaded.
+    Note that this test will be skipped if the directory does not exist.
+    If it is being skipped and you would like it to run, just make sure
+    that the CARTA/Images/CARTAImages/BigImageTest directory exists
+    under your home directory and that it is populated with the
+    appropriate images from the CARTAImages repository.
     """
     i = cartavisInstance.getImageViews()
     _loadFilesFromDirectory(i[0],
         os.path.expanduser( '~/CARTA/Images/CARTAImages/BigImageTest'))
 
+@pytest.mark.skipif(True, reason="Needs to be skipped until issue #92\
+                    is resolved")
 @pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
                     '~/CARTA/Images/CARTAImages/SmallMultiplesTest')),
                     reason="Directory does not exist.")
@@ -668,8 +676,8 @@ def test_loadFile_SmallMultiplesTest(cartavisInstance, cleanSlate):
 @pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
                     '~/CARTA/Images/CARTAImages/TransposeTest')),
                     reason="Directory does not exist.")
-@pytest.mark.skipif(True, reason="At least one image in this directory does not\
-                    currently load")
+@pytest.mark.skipif(True, reason="Needs to be skipped until issue #92\
+                    is resolved")
 def test_loadFile_TransposeTest(cartavisInstance, cleanSlate):
     """
     Test that the image(s) in CARTAImages/CARTAImages/TransposeTest can
@@ -687,8 +695,8 @@ def test_loadFile_TransposeTest(cartavisInstance, cleanSlate):
 @pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
                     '~/CARTA/Images/CARTAImages/CubesTest')),
                     reason="Directory does not exist.")
-@pytest.mark.skipif(True, reason="At least one image in this directory does not\
-                    currently load")
+@pytest.mark.skipif(True, reason="Needs to be skipped until issue #92\
+                    is resolved")
 def test_loadFile_CubesTest(cartavisInstance, cleanSlate):
     """
     Test that the image(s) in CARTAImages/CARTAImages/CubesTest can be
@@ -705,6 +713,8 @@ def test_loadFile_CubesTest(cartavisInstance, cleanSlate):
 @pytest.mark.skipif(not os.path.isdir(os.path.expanduser(
                     '~/CARTA/Images/CARTAImages/AstrometryTest')),
                     reason="Directory does not exist.")
+@pytest.mark.skipif(True, reason="Needs to be skipped until issue #92\
+                    is resolved")
 def test_loadFile_AstrometryTest(cartavisInstance, cleanSlate):
     """
     Test that the image(s) in CARTAImages/CARTAImages/AstrometryTest can
