@@ -248,35 +248,37 @@ public slots:
         m_currPos[m_axis] = 0;
 
         // figure out pixel size
-        switch ( m_rv->pixelType() )
-        {
-        case Carta::Lib::Image::PixelType::Byte :
-            m_pixelSize =
-                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Byte >::size;
-            break;
-        case Carta::Lib::Image::PixelType::Int16 :
-            m_pixelSize =
-                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Int16 >::size;
-            break;
-        case Carta::Lib::Image::PixelType::Int32 :
-            m_pixelSize =
-                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Int32 >::size;
-            break;
-        case Carta::Lib::Image::PixelType::Int64 :
-            m_pixelSize =
-                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Int64 >::size;
-            break;
-        case Carta::Lib::Image::PixelType::Real32 :
-            m_pixelSize =
-                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Real32 >::size;
-            break;
-        case Carta::Lib::Image::PixelType::Real64 :
-            m_pixelSize =
-                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Real64 >::size;
-            break;
-        case Carta::Lib::Image::PixelType::Other :
-            break;
-        } // switch
+        m_pixelSize = Carta::Lib::Image::pixelType2size( m_rv-> pixelType() );
+
+//        switch ( m_rv->pixelType() )
+//        {
+//        case Carta::Lib::Image::PixelType::Byte :
+//            m_pixelSize =
+//                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Byte >::size;
+//            break;
+//        case Carta::Lib::Image::PixelType::Int16 :
+//            m_pixelSize =
+//                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Int16 >::size;
+//            break;
+//        case Carta::Lib::Image::PixelType::Int32 :
+//            m_pixelSize =
+//                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Int32 >::size;
+//            break;
+//        case Carta::Lib::Image::PixelType::Int64 :
+//            m_pixelSize =
+//                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Int64 >::size;
+//            break;
+//        case Carta::Lib::Image::PixelType::Real32 :
+//            m_pixelSize =
+//                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Real32 >::size;
+//            break;
+//        case Carta::Lib::Image::PixelType::Real64 :
+//            m_pixelSize =
+//                Carta::Lib::Image::PixelType2CType < Carta::Lib::Image::PixelType::Real64 >::size;
+//            break;
+//        case Carta::Lib::Image::PixelType::Other :
+//            break;
+//        } // switch
         CARTA_ASSERT( m_pixelSize > 0 );
 
         // immediately report delayed progress (to establish total length of the result)
@@ -359,24 +361,28 @@ class ProfileExtractor : public QObject
 
 public:
 
-    ProfileExtractor( QObject * parent = nullptr ) : QObject( parent ) { }
+    ProfileExtractor( Carta::Lib::NdArray::RawViewInterface * rv, QObject * parent =
+                          nullptr ) : QObject( parent )
+    {
+        m_rawView = rv;
+    }
 
     /// start the extraction, if possible the last extraction will be cancelled but
     /// this is not guaranteed
     qint64
-    start( Carta::Lib::NdArray::RawViewInterface * rv,
-           const ProfilePath & profilePath,
-           qint64 jobId = - 1 )
+    start( /*Carta::Lib::NdArray::RawViewInterface * rv,*/
+        const ProfilePath & profilePath,
+        qint64 jobId = - 1 )
     {
-        // delete the previous algorithm if it's incorrect for this new job
-        if ( m_algorithm && ( m_rawView != rv || m_profilePath.type() != profilePath.type() ) ) {
+        // delete the previous algorithm if the profile path type changed or views have changed
+        if ( m_algorithm && m_profilePath.type() != profilePath.type() ) {
             m_algorithm->deleteLater();
             m_algorithm = nullptr;
         }
 
         // create a new algorithm based on raw view & profile type and connect it
         if ( ! m_algorithm ) {
-            m_algorithm = getBestProfileExtractor( rv, profilePath.type() );
+            m_algorithm = getBestProfileExtractor( m_rawView, profilePath.type() );
             connect( m_algorithm, & IProfileExtractor::progress,
                      this, & ProfileExtractor::progressCB );
         }
@@ -386,8 +392,8 @@ public:
         }
         m_jobId = jobId;
 
+        m_pixelSize = Carta::Lib::Image::pixelType2size( m_rawView->pixelType() );
         m_jobId++;
-        m_rawView = rv;
         m_profilePath = profilePath;
         m_algorithm->start( m_rawView, m_profilePath, m_jobId );
         return m_jobId;
@@ -399,12 +405,9 @@ public:
     qint64
     currentJobID();
 
-    /// get available data as an array of doubles
-    /// \todo the current types we support all convert nicely to doubles without
-    /// loss of precision, so this way of getting the data is OK. It's possible one
-    /// day in the future we'll want to support data types for which this is not the case...
-    const std::vector < double > &
-    getDataD();
+    /// get available data as an array of doubles - this is a convenience function, since
+    /// more likely than not we'll end up casting the data to doubles anyways
+    const std::vector<double> getDataD();
 
     /// get the total profile length
     /// if unknown, returns -1
@@ -425,7 +428,11 @@ public:
 
     /// get the raw data length (in pixels!, not bytes)
     qint64
-    getRawDataLength() { return m_resultBuffer.length(); }
+    getRawDataLength()
+    {
+        CARTA_ASSERT( m_resultBuffer.length() % m_pixelSize == 0 );
+        return m_resultBuffer.length() / m_pixelSize;
+    }
 
     virtual
     ~ProfileExtractor()
@@ -465,6 +472,7 @@ private:
     IProfileExtractor * m_algorithm = nullptr;
 
     qint64 m_jobId = 0;
+    size_t m_pixelSize = 0;
 
     QByteArray m_resultBuffer;
     qint64 m_totalLength = - 1;

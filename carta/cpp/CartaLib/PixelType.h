@@ -28,8 +28,11 @@ enum class PixelType : int {
 static_assert( sizeof(float) == 4, "bad float size");
 static_assert( sizeof(double) == 8, "bad double size");
 
-// convenience function convert pixel type to int
+/// convenience function convert pixel type to int
 int pixelType2int( const PixelType & type);
+
+/// return size of pixel type in bytes
+size_t pixelType2size( const PixelType & type);
 
 /// \todo rename PixelType2CType struct to PixelTypeInfo, add stringName to it,
 /// and adjust toStr() to take advantage of it

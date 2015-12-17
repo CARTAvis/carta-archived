@@ -103,6 +103,11 @@ public:
     virtual const VI &
     currentPos() = 0;
 
+    /// return a unique ID for this instance
+    /// \todo motivation for this is a cheap comparison, but maybe we could implement
+    /// a real comparison as well?
+//    quint64 uniqueId() const;
+
     /// virtual destructor
     virtual
     ~RawViewInterface() { }
