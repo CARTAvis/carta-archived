@@ -170,6 +170,7 @@ private:
     QString _makeHistogram( int index );
     QString _makeColorMap( int index );
     QString _makeSnapshots();
+    QString _makeStatistics( int index );
 
     void _makeDataLoader();
 
@@ -207,7 +208,7 @@ private:
     QList<Histogram* >m_histograms;
 
     //Statistics
-    //QList<Statistics* > m_statistics;
+    QList<Statistics* > m_statistics;
 
     static bool m_registered;
     Layout* m_layout;

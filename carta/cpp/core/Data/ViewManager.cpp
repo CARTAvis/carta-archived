@@ -23,6 +23,7 @@
 #include "Data/Preferences/Preferences.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Snapshot/Snapshots.h"
+#include "Data/Statistics/Statistics.h"
 #include "Data/ViewPlugins.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
@@ -225,6 +226,17 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
     }
     else if ( plugin == Snapshots::CLASS_NAME ){
         viewId = _makeSnapshots();
+    }
+    else if ( plugin == Statistics::CLASS_NAME ){
+        if ( 0 <= index && index < m_histograms.size() && !forceCreate){
+            viewId = m_statistics[index]->getPath();
+        }
+        else {
+            if ( index == -1 ){
+                index = m_statistics.size();
+            }
+            viewId = _makeStatistics( index );
+        }
     }
     else if ( plugin == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
@@ -608,6 +620,18 @@ QString ViewManager::_makeSnapshots(){
     return snapPath;
 }
 
+QString ViewManager::_makeStatistics( int index ){
+    int currentCount = m_statistics.size();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Statistics* statObj = objMan->createObject<Statistics>();
+    m_statistics.insert( index, statObj );
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_statistics[i]->setIndex( i );
+    }
+    return m_statistics[index]->getPath();
+}
+
 
 QString ViewManager::moveWindow( const QString& sourcePlugin, int sourcePluginIndex,
         const QString& destPlugin, int destPluginIndex ){
@@ -845,7 +869,8 @@ void ViewManager::setDeveloperView(){
 
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
-    m_histograms[0]->addLink( m_controllers[0]);
+    //m_histograms[0]->addLink( m_controllers[0]);
+    m_statistics[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
@@ -869,7 +894,9 @@ QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& des
     QString msg;
     if ( destPluginType != Controller::PLUGIN_NAME && destPluginType != Animator::CLASS_NAME &&
             destPluginType != Colormap::CLASS_NAME &&
-            destPluginType != Histogram::CLASS_NAME && destPluginType != ViewPlugins::CLASS_NAME &&
+            destPluginType != Histogram::CLASS_NAME &&
+            destPluginType != Statistics::CLASS_NAME &&
+            destPluginType != ViewPlugins::CLASS_NAME &&
             destPluginType != NodeFactory::HIDDEN ){
         msg = "Unrecognized plugin: "+destPluginType;
     }

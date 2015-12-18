@@ -70,15 +70,15 @@ HEADERS += \
     Data/LinkableImpl.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
-    Data/Region.h \
-    Data/Region.h \
-    Data/RegionRectangle.h \
+    Data/Region/Region.h \
+    Data/Region/RegionEllipse.h \
+    Data/Region/RegionPolygon.h \
     Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
     Data/Snapshot/Snapshot.h \
     Data/Snapshot/SnapshotsFile.h \
+    Data/Statistics/Statistics.h \
     Data/Util.h \
-    GrayColormap.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     GrayColormap.h \
@@ -166,11 +166,13 @@ SOURCES += \
     Data/Layout/NodeFactory.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
-    Data/Region.cpp \
-    Data/RegionRectangle.cpp \
+    Data/Region/Region.cpp \
+    Data/Region/RegionEllipse.cpp \
+    Data/Region/RegionPolygon.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
+    Data/Statistics/Statistics.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

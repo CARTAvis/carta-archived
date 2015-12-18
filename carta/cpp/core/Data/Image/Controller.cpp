@@ -14,8 +14,7 @@
 
 #include "Data/Error/ErrorManager.h"
 #include "Data/Selection.h"
-#include "Data/Region.h"
-#include "Data/RegionRectangle.h"
+#include "Data/Region/Region.h"
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
@@ -119,6 +118,8 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
         }
     }
 }
+
+
 
 bool Controller::addData(const QString& fileName) {
     //Find the location of the data, if it already exists.
@@ -421,6 +422,19 @@ std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::g
     return images;
 }
 
+std::shared_ptr <Carta::Lib::Image::ImageInterface> Controller::getDataSource(){
+    //Return only a single data source
+    std::shared_ptr<Carta::Lib::Image::ImageInterface>  image;
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        int dataIndex = _getIndexCurrent();
+        if ( 0 <= dataIndex ){
+            image =  m_datas[dataIndex]->_getImage();
+        }
+    }
+    return image;
+}
+
 std::shared_ptr<ContourControls> Controller::getContourControls() {
     return m_contourControls;
 }
@@ -620,6 +634,18 @@ QString Controller::_getPreferencesId() const {
         id = m_settings->getPath();
     }
     return id;
+}
+
+std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
+    std::vector<Carta::Lib::RegionInfo> infos;
+    Carta::Lib::RegionInfo info;
+    info.setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
+    std::pair<double,double> firstCorner( 1.46279, -0.0938612 );
+    std::pair<double,double> secondCorner( 1.46271, -0.0937966 );
+    info.addCorner( firstCorner );
+    info.addCorner( secondCorner );
+    infos.push_back( info );
+    return infos;
 }
 
 int Controller::getSelectImageIndex() const {
@@ -1421,10 +1447,10 @@ void Controller::_saveRegions(){
     int regionCount = m_regions.size();
     for ( int i = 0; i < regionCount; i++ ){
         QString arrayStr = UtilState::getLookup( REGIONS, i);
-        QString regionType= m_regions[i]->getType();
+        QString regionTypeStr= m_regions[i]->getTypeString();
         QString regionId = m_regions[i]->getPath();
         m_state.setObject( arrayStr );
-        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionType );
+        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionTypeStr );
         m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "id"), regionId );
     }
 }

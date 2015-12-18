@@ -2,18 +2,11 @@
  *  Functionality expected of a histogram implementation.
  */
 
-#ifndef IIMAGEHISTOGRAM_H_
-#define IIMAGEHISTOGRAM_H_
+#pragma once
 
 #include <vector>
 #include <QString>
 
-// namespace casa {
-//     template <class T> class ImageInterface;
-//     template <class T> class LatticeHistograms;
-//     template <class T> class SubImage;
-//     class ImageRegion;
-// }
 
 /**
  * Generates and Manages the data corresponding to a histogram.
@@ -70,5 +63,3 @@ protected:
     virtual ~IImageHistogram();
     IImageHistogram();
 };
-
-#endif /* IIMAGEHISTOGRAM_H_ */

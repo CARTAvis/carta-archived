@@ -3,6 +3,7 @@
 #include "PluginManager.h"
 #include "Animator/Animator.h"
 #include "Image/Controller.h"
+#include "Statistics/Statistics.h"
 #include "Histogram/Histogram.h"
 #include "Colormap/Colormap.h"
 #include "State/UtilState.h"
@@ -69,14 +70,14 @@ void ViewPlugins::_initializeDefaultState(){
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
     }*/
-    m_state.insertArray( PLUGINS, 4 );
+    m_state.insertArray( PLUGINS, 5 );
     int ind = 0;
     _insertPlugin( ind, Controller::PLUGIN_NAME, "Image display", "", "", "");
     ind++;
     _insertPlugin( ind, Animator::CLASS_NAME, "Animation of data sets", "", "", "");
     ind++;
-    //_insertPlugin( ind, Statistics::CLASS_NAME, "Cursor information", "", "", "");
-    //ind++;
+    _insertPlugin( ind, Statistics::CLASS_NAME, "Image statistics", "", "", "");
+    ind++;
     _insertPlugin( ind, Histogram::CLASS_NAME, "Histogram", "", "", "");
     ind++;
     _insertPlugin( ind, Colormap::CLASS_NAME, "Color map", "", "", "");

@@ -9,6 +9,7 @@
 #include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/RegionInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 
 #include <QString>
@@ -134,6 +135,7 @@ public:
      * @return the coordinates at pixel (x, y).
      */
     QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
+    std::shared_ptr <Carta::Lib::Image::ImageInterface> getDataSource();
 
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
 
@@ -240,6 +242,7 @@ public:
      * @return the units of the pixels, or blank if units could not be obtained.
      */
     QString getPixelUnits() const;
+    std::vector<Carta::Lib::RegionInfo> getRegions() const;
 
     /**
      * Return the index of the image that is currently at the top of the stack.

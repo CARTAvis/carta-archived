@@ -1,6 +1,4 @@
-
-#ifndef IMAGE_HISTOGRAM_H_
-#define IMAGE_HISTOGRAM_H_
+#pragma once
 
 #include <casacore/casa/vector.h>
 #include "IImageHistogram.h"
@@ -78,5 +76,3 @@ private:
 	double m_intensityMax;
 	int m_binCount;
 };
-
-#endif /* IMAGE_HISTOGRAM_H_ */

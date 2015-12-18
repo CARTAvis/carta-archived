@@ -1,5 +1,5 @@
 /***
- * A rectangular region..
+ * A rectangular region.
  */
 
 #pragma once
@@ -10,34 +10,40 @@ namespace Carta {
 
 namespace Data {
 
-class RegionRectangle : public Region {
+class RegionPolygon : public Region {
 
 public:
 
-    virtual ~RegionRectangle();
+    /**
+     * Return the type of region, which corresponds to its shape.
+     * @return - the RegionType.
+     */
+    virtual Carta::Lib::RegionInfo::RegionType getType() const Q_DECL_OVERRIDE;
+
+    /**
+     * Return a string representation of the region shape.
+     * @return - a string representation of the type of region.
+     */
+    virtual QString getTypeString() const Q_DECL_OVERRIDE;
+    virtual ~RegionPolygon();
     const static QString CLASS_NAME;
-protected:
+
+//protected:
     /**
      * Resets the internal state of this rectangle based on the information passed in.
      * @param params a QString describing the internal rectangle state.
      */
-    virtual void resetStateData( const QString & params ) override;
-
-    /**
-     * Returns a string identifying the region type.
-     * @return an identifier for the region type.
-    */
-    //virtual QString getType() const;
+    //virtual void resetStateData( const QString & params ) override;
 
 private:
     void _initializeState();
-    void _resetCoord( const QString& name, const QString& value );
+
     /**
      * Constructor.
      * @param the base path for state identification.
      * @param id the particular id for this object.
      */
-    RegionRectangle(const QString& path, const QString& id );
+    RegionPolygon(const QString& path, const QString& id );
 
     class Factory : public Carta::State::CartaObjectFactory {
 
@@ -45,16 +51,12 @@ private:
 
         Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
-            return new RegionRectangle (path, id);
+            return new RegionPolygon (path, id);
         }
     };
 
     static bool m_registered;
 
-    const QString TOP_LEFT_X;
-    const QString TOP_LEFT_Y;
-    const QString BOTTOM_RIGHT_X;
-    const QString BOTTOM_RIGHT_Y;
 
 };
 }

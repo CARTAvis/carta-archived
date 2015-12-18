@@ -1,38 +1,34 @@
-#include "RegionRectangle.h"
+#include "RegionPolygon.h"
 #include <QDebug>
 
 namespace Carta {
 
 namespace Data {
 
-const QString RegionRectangle::CLASS_NAME = "RegionRectangle";
+const QString RegionPolygon::CLASS_NAME = "RegionPolygon";
 
-bool RegionRectangle::m_registered =
+bool RegionPolygon::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass (CLASS_NAME,
-                                                   new RegionRectangle::Factory());
+                                                   new RegionPolygon::Factory());
 
-RegionRectangle::RegionRectangle(const QString& path, const QString& id ):
-    Region( CLASS_NAME, path, id ),
-    TOP_LEFT_X( "topLeftX"),
-    TOP_LEFT_Y( "topLeftY"),
-    BOTTOM_RIGHT_X( "bottomRightX"),
-    BOTTOM_RIGHT_Y( "bottomRightY"){
+RegionPolygon::RegionPolygon(const QString& path, const QString& id ):
+    Region( CLASS_NAME, path, id ){
     _initializeState();
 }
 
-/*QString RegionRectangle::getType() const {
-    return CLASS_NAME;
-}*/
-
-void RegionRectangle::_initializeState(){
-    m_state.insertValue<int>( TOP_LEFT_X, 0 );
-    m_state.insertValue<int>( TOP_LEFT_Y, 0 );
-    m_state.insertValue<int>( BOTTOM_RIGHT_X, 0 );
-    m_state.insertValue<int>( BOTTOM_RIGHT_Y, 0 );
-    //m_state.flushState();
+Carta::Lib::RegionInfo::RegionType RegionPolygon::getType() const {
+    return Carta::Lib::RegionInfo::RegionType::Polygon;
 }
 
-void RegionRectangle::resetStateData(const QString & params ){
+QString RegionPolygon::getTypeString() const {
+    return Region::POLYGON_REGION;
+}
+
+void RegionPolygon::_initializeState(){
+
+}
+
+/*void RegionPolygon::resetStateData(const QString & params ){
     QStringList coords = params.split( " ");
     int coordCount = coords.size();
     if ( coordCount == 4 ){
@@ -78,10 +74,10 @@ void RegionRectangle::resetStateData(const QString & params ){
     else {
         qDebug() << "Invalid coordinate size for a region rectangle="<<coordCount;
     }
-}
+}*/
 
 
-RegionRectangle::~RegionRectangle(){
+RegionPolygon::~RegionPolygon(){
 
 }
 }

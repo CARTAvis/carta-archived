@@ -8,6 +8,7 @@
 #include "State/StateInterface.h"
 #include "Data/Image/Controller.h"
 #include "Data/Histogram/Histogram.h"
+#include "Data/Statistics/Statistics.h"
 #include "Data/Util.h"
 #include <QtCore/qmath.h>
 #include <QDebug>
@@ -459,9 +460,11 @@ void Layout::setLayoutDeveloper(){
 
     LayoutNode* right = NodeFactory::makeComposite( false );
 
-    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
+    //LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
 
-    right->setChildFirst( histLeaf );
+    //right->setChildFirst( histLeaf );
+    LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
+    right->setChildFirst( statLeaf );
     right->setChildSecond( rightBottom );
 
     m_layoutRoot->setHorizontal( true );

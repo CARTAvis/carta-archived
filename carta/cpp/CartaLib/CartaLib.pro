@@ -16,6 +16,7 @@ SOURCES += \
     Hooks/ColormapsScalar.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
+    Hooks/ImageStatisticsHook.cpp \
     IImage.cpp \
     PixelType.cpp \
     Slice.cpp \
@@ -34,7 +35,8 @@ SOURCES += \
     ContourSet.cpp \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
-    IRemoteVGView.cpp
+    IRemoteVGView.cpp \
+    RegionInfo.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -45,6 +47,7 @@ HEADERS += \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
     Hooks/HookIDs.h \
+    Hooks/ImageStatisticsHook.h \
     IPlugin.h \
     IImage.h \
     PixelType.h \
@@ -73,7 +76,8 @@ HEADERS += \
     Hooks/Initialize.h \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
-    IRemoteVGView.h
+    IRemoteVGView.h \
+    RegionInfo.h
 
 unix {
     target.path = /usr/lib

@@ -5,8 +5,7 @@
  *      Author: jjacobs
  */
 
-#ifndef OBJECTMANAGER_H_
-#define OBJECTMANAGER_H_
+#pragma once
 
 #include <map>
 #include <QString>
@@ -458,6 +457,3 @@ private:
 };
 }
 }
-
-
-#endif /* OBJECTMANAGER_H_ */

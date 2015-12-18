@@ -1012,39 +1012,32 @@ void Histogram::_loadData( Controller* controller )
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
-//    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> dataSources;
-//    if ( controller != nullptr ) {
-        auto dataSources = controller-> getDataSources();
-//        int stackedImageCount = controller->getStackedImageCount();
-//        if ( stackedImageCount > 0 ){
-        if ( dataSources.size() > 0 ) {
-//            dataSources = _generateData( controller );
-            auto result = Globals::instance()-> pluginManager()
-                                      -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
-                                              minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
-                                              minIntensity, maxIntensity);
-            auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-                m_histogram->setData(data);
-                double freqLow = data.getFrequencyMin();
-                double freqHigh = data.getFrequencyMax();
-                setPlaneRange( freqLow, freqHigh);
-            };
-            try {
-                result.forEach( lam );
-            }
-            catch( char*& error ){
-                QString errorStr( error );
-                ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-                hr->registerError( errorStr );
-            }
+    auto dataSources = controller-> getDataSources();
+    if ( dataSources.size() > 0 ) {
+        auto result = Globals::instance()-> pluginManager()
+                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
+                                          minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
+                                          minIntensity, maxIntensity);
+        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
+            m_histogram->setData(data);
+            double freqLow = data.getFrequencyMin();
+            double freqHigh = data.getFrequencyMax();
+            setPlaneRange( freqLow, freqHigh);
+        };
+        try {
+            result.forEach( lam );
         }
-//        else if ( stackedImageCount == 0 ){
-        else {
-            _resetDefaultStateData();
-            const Carta::Lib::Hooks::HistogramResult data;
-            m_histogram->setData( data );
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
         }
-//    }
+    }
+    else {
+        _resetDefaultStateData();
+        const Carta::Lib::Hooks::HistogramResult data;
+        m_histogram->setData( data );
+    }
 }
 
 void Histogram::refreshState() {
