@@ -1,7 +1,7 @@
 import os 
 import time
 import Image
-import cartavis
+import carta.cartavis as cartavis
 import pyautogui
 import ImageUtil
 
