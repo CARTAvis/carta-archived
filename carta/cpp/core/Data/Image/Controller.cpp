@@ -245,11 +245,10 @@ void Controller::_clearStatistics(){
 QString Controller::closeImage( const QString& name ){
     int targetIndex = -1;
     QString result;
-    DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
-    QString longName = dataLoader->getLongName( name, "");
+
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isMatch( longName )){
+        if ( m_datas[i]->_isMatch( name )){
             targetIndex = i;
             break;
         }
@@ -867,7 +866,9 @@ void Controller::_initializeCallbacks(){
         std::set<QString> keys = {"image"};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString imageName = dataValues[*keys.begin()];
-        QString result = closeImage( imageName );
+        DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
+            QString longName = dataLoader->getLongName( imageName, "");
+        QString result = closeImage( longName );
                 return result;
     });
 
