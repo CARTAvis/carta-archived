@@ -735,11 +735,13 @@ def test_loadMultipleFilesRapidly(cartavisInstance, cleanSlate):
     Tests that multiple images can be loaded rapidly without problems.
     This is a regression test to ensure that issue #92 has been dealt
     with properly.
+    It depends on having a large number of files in the ~/CARTA/Images/
+    directory.
     """
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
     #directory = os.getcwd() + '/data/'
-    directory = '/home/jeff/CARTA/Images/'
+    directory = os.path.expanduser('~/CARTA/Images/')
     for filename in os.listdir(directory):
         if (os.path.isfile(directory + filename)
             and filename.lower().endswith('.fits')):

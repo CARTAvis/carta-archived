@@ -13,7 +13,7 @@ def test_animator_channel(cartavisInstance, cleanSlate):
     # At some point, this test will need to be rewritten to use a 
     # test image available where the tests are running.
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
  
     # Find the last channel value 
     lastChannel = i[0].getChannelCount() - 1
@@ -32,12 +32,12 @@ def test_animator_channel(cartavisInstance, cleanSlate):
     a[0].setChannel(0)
 
     # Restore the snapshot
-    s[0].restore()
+    s.restore()
     time.sleep(2)
 
     # Check that the channel value is at the last channel
     assert a[0].getChannelIndex() == lastChannel
-    s[0].delete()
+    s.delete()
 
 def test_image_load(cartavisInstance, cleanSlate):
     """
@@ -54,7 +54,7 @@ def test_image_load(cartavisInstance, cleanSlate):
     upperSpin = len(i[0].getImageNames()) - 1
 
     # Load an image 
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
 
     # Save a snapshot of the application. Make sure data is checked and 
     # layout and preferences are not checked 
@@ -62,17 +62,17 @@ def test_image_load(cartavisInstance, cleanSlate):
     s.save()
 
     # Load another image 
-    i[0].loadLocalFile(os.getcwd + '/data/aH.fits')
+    i[0].loadFile(os.getcwd() + '/data/aH.fits')
 
     # Verify that there are two images loaded 
     assert len(i[0].getImageNames()) == 2
     
     # Select tSnapshotData in the restore combo box
-    s[0].restore()
+    s.restore()
     
     # Verify that only the original image is loaded
-    assert len(i.getImageNames()) == 1
-    s[0].delete()
+    assert len(i[0].getImageNames()) == 1
+    s.delete()
 
 def test_analysis_saveRestore(cartavisInstance, cleanSlate):
     """
@@ -89,7 +89,7 @@ def test_analysis_saveRestore(cartavisInstance, cleanSlate):
     cartavisInstance.setImageLayout()
 
     # Restore the analysis layout 
-    s[0].restore()
+    s.restore()
     time.sleep(2)
 
     assert len(cartavisInstance.getAnimatorViews()) == 1
@@ -127,12 +127,12 @@ def test_restore_missing(cartavisInstance, cleanSlate):
     assert len(cartavisInstance.getAnimatorViews()) == 0
 
     # Restore the preferences
-    s[0].restore()
+    s.restore()
     time.sleep(2)
 
     # No way to check for errors, hence, take a screenshot
     pyautogui.screenshot('layout_check/checkNoErrors.png')
-    s[0].delete()
+    s.delete()
 
 def test_animator_jump(cartavisInstance, cleanSlate):
     """
@@ -163,7 +163,7 @@ def test_animator_jump(cartavisInstance, cleanSlate):
     pyautogui.click( x=wrapButton[0], y=wrapButton[1])
 
     # Restore the preferences
-    s[0].restore()
+    s.restore()
     time.sleep(2)
 
     # Verify the animator jump end behaviour is checked by checking end behaviour
@@ -177,7 +177,7 @@ def test_animator_jump(cartavisInstance, cleanSlate):
     time.sleep(2)
 
     assert a[0].getChannelIndex() == lastChannel
-    s[0].delete()
+    s.delete()
 
 def test_global_prefs(cartavisInstance, cleanSlate):
     """
@@ -216,9 +216,9 @@ def test_global_prefs(cartavisInstance, cleanSlate):
     pyautogui.click( x=settingsButton[0], y=settingsButton[1])
 
     # Restore the preferences
-    s[0].restore()
+    s.restore()
 
     # Check that both animators are not displaying jump
     # Verify that the animator jump end behaviour is checked in the screenshot after the tests have been run
     pyautogui.screenshot('layout_check/bothAnimatorsJump.png')
-    s[0].delete()
+    s.delete()
