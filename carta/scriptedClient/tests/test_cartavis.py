@@ -748,6 +748,18 @@ def test_loadMultipleFilesRapidly(cartavisInstance, cleanSlate):
             i[0].loadFile(directory + filename)
     test_setImageLayout(cartavisInstance, cleanSlate)
 
+@pytest.mark.xfail(reason="Should not work until issue #123 has been\
+                           resolved.")
+def test_loadLinearCube(cartavisInstance, cleanSlate):
+    """
+    Tests that a data cube with a linear axis can be loaded and
+    displayed properly.
+    This is a regression test for issue #123.
+    """
+    i = cartavisInstance.getImageViews()
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
+    assert i[0].getChannelCount() > 1
+
 def _setImage(imageView, animatorView, tempImageDir):
     """
     A common private function for commands that need to test that an
