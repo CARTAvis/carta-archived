@@ -19,6 +19,7 @@ public:
         STOKES,        /// < stokes axis
         TABULAR,       /// < not sure but casacore uses it, maybe it's important?
         QUALITY,       /// < not sure but casacore uses it, maybe it's important?
+        LINEAR,
         OTHER
     };
 

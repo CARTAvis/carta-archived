@@ -18,12 +18,13 @@ const QString AxisMapper::LONGITUDE = "Longitude";
 const QString AxisMapper::DECLINATION = "Declination";
 const QString AxisMapper::LATITUDE = "Latitude";
 const QString AxisMapper::SPECTRAL = "Channel";
+const QString AxisMapper::LINEAR = "Linear";
 const QString AxisMapper::STOKES = "Stokes";
 const QString AxisMapper::TABULAR = "Tabular";
 const QString AxisMapper::QUALITY = "Quality";
 
 const QList<QString> AxisMapper::m_purposes( {RIGHT_ASCENSION, DECLINATION, SPECTRAL,
-    STOKES, TABULAR, QUALITY});
+    STOKES, TABULAR, QUALITY, LINEAR});
 
 AxisMapper::AxisMapper(){
 
