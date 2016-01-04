@@ -15,8 +15,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
      * Constructor.
      */
     construct : function(index, detached) {
-        console.log( "DisplayWindowImage constructed", index, detached);
-        window.imgwin = this;
         this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, index, detached );
         this.m_links = [];
         this.m_viewContent = new qx.ui.container.Composite();
@@ -340,7 +338,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
             var path = skel.widgets.Path.getInstance();
-            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +"data" );
+            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
             this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
             this._sharedVarDataCB();
             this._initStatistics();

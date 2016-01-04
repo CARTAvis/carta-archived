@@ -95,7 +95,7 @@ qx.Class.define("skel.widgets.Histogram.Settings", {
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._histogramChangedCB.bind(this));
-            var dataPath = this.m_id + path.SEP + "data";
+            var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB( this._histogramDataCB.bind( this));
             this._histogramChangedCB();

@@ -22,6 +22,7 @@ enum class UniqueHookIDs {
     HistogramHook_ID,
     ColormapsScalarHook_ID,
     LoadPlugin_ID,
+    LoadRegion_ID,
     GetWcsGridRendererHook_ID,
     GetInitialFileList_ID,
     GetImageRenderService_ID,

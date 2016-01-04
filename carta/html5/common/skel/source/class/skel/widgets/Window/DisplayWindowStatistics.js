@@ -10,7 +10,7 @@
 
 qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
         extend : skel.widgets.Window.DisplayWindow,
-        //include : skel.widgets.Window.PreferencesMixin,
+        include : skel.widgets.Window.PreferencesMixin,
 
         /**
          * Constructor.
@@ -26,14 +26,29 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
         members : {
             
             /**
+             * Add or remove the statistics settings based on whether the user
+             * had configured any of the settings visible.
+             * @param content {boolean} - true if the content should be visible; false otherwise.
+             */
+            _adjustControlVisibility : function(content){
+                this.m_controlsVisible = content;
+                this._layoutControls();
+            },
+            
+            /**
              * Display specific UI initialization.
              */
             _initDisplaySpecific : function() {
                 if (this.m_statistics === null ) {
                     this.m_statistics = new skel.widgets.Statistics.Statistics();
                     this.m_statistics.setId( this.m_identifier);
-                    this.m_content.add( this.m_statistics, {flex:1});
+                    
                 }
+                if ( this.m_statControls === null ){
+                    this.m_statControls = new skel.widgets.Statistics.Settings();
+                    this.m_statControls.setId( this.m_identifier);
+                }
+                this._layoutControls();
             },
             
             /**
@@ -43,7 +58,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
                 this.m_supportedCmds = [];
                 var linksCmd = skel.Command.Link.CommandLink.getInstance();
                 this.m_supportedCmds.push( linksCmd.getLabel() );
-                
+                var settingsCmd = skel.Command.Settings.SettingsStatistics.getInstance();
+                this.m_supportedCmds.push( settingsCmd.getLabel());
                 arguments.callee.base.apply(this, arguments);
                
             },
@@ -63,6 +79,35 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
                 return linkable;
             },
             
+            /**
+             * Add/remove content based on user visibility preferences.
+             */
+            _layoutControls : function(){
+                this.m_content.removeAll();
+                this.m_content.add( this.m_statistics, {flex:1} );
+                if ( this.m_controlsVisible ){
+                    this.m_content.add( this.m_statControls );
+                }
+            },
+            
+            /**
+             * Callback for updating the visibility of the user settings from the server.
+             */
+            _preferencesCB : function(){
+                if ( this.m_sharedVarPrefs !== null ){
+                    var val = this.m_sharedVarPrefs.get();
+                    if ( val !== null ){
+                        try {
+                            var setObj = JSON.parse( val );
+                            this._adjustControlVisibility( setObj.settings );
+                        }
+                        catch( err ){
+                            console.log( "ImageDisplay could not parse settings: "+val);
+                            console.log( "err="+err);
+                        }
+                    }
+                }
+            },
 
             /**
              * Called when the statistics is selected.
@@ -91,10 +136,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
             windowIdInitialized : function() {
                 this._initDisplaySpecific();
                 arguments.callee.base.apply(this, arguments);
-                //this.initializePrefs();
+                this.initializePrefs();
+                this.m_statControls.setId( this.getIdentifier());
             },
             
-            m_statistics : null
+            m_statistics : null,
+            m_controlsVisible : false,
+            m_statControls : null
 
         }
 });

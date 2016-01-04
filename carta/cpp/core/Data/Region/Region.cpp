@@ -18,6 +18,10 @@ Region::Region(const QString& className, const QString& path, const QString& id 
     _initializeCallbacks();
 }
 
+std::shared_ptr<Carta::Lib::RegionInfo> Region::getInfo() const {
+    return m_info;
+}
+
 Carta::Lib::RegionInfo::RegionType Region::getRegionType( const QString& regionTypeStr ){
     Carta::Lib::RegionInfo::RegionType regionType = Carta::Lib::RegionInfo::RegionType::Unknown;
     int result = QString::compare( regionTypeStr, POLYGON_REGION, Qt::CaseInsensitive );
@@ -43,25 +47,10 @@ void Region::_initializeCallbacks(){
     });
 }
 
-QString Region::makeRegion( const QString& type ){
-    QString regionPath;
-    Carta::Lib::RegionInfo::RegionType regionType = getRegionType( type );
-    if ( regionType == Carta::Lib::RegionInfo::RegionType::Polygon ){
-        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-        Region* region = objManager->createObject<RegionPolygon>( );
-        regionPath = region->getId();
-    }
-    else if ( regionType == Carta::Lib::RegionInfo::RegionType::Ellipse ){
-        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-        Region* region = objManager->createObject<RegionEllipse>( );
-        regionPath = region->getId();
-    }
-    else {
-        qDebug() << "Region::makeRegion unsupported region type";
-    }
-    return regionPath;
-}
 
+void Region::setInfo( std::shared_ptr<Carta::Lib::RegionInfo> info ){
+    m_info = info;
+}
 
 Region::~Region(){
 

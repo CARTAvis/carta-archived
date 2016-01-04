@@ -60,6 +60,7 @@ qx.Class.define("skel.widgets.Path", {
         CONTOUR_LINE_STYLES : "",
         CONTOUR_SPACING_MODES : "",
         COORDINATE_SYSTEMS : "",
+        DATA : "data",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         ERROR_HANDLER : "",

@@ -25,26 +25,31 @@ class ImageStatisticsHook : public BaseHook
     CARTA_HOOK_BOILER1( ImageStatisticsHook );
 
 public:
+   //The outer list has statistics for each image that is loaded (a list item
+   //for each image.
 
-   //Each list item consists of a complete set of statistics for an entire
+   //The inner list has statistics for a particular image and regions in that
+   //image.  The first list item is the statistics for the image.
+
+   //Each inner list item consists of a complete set of statistics for an entire
    //image or region.  Statistics for an image/region consist of (key,value)
    //pairs where the key identifies the type of statistics and the value is its
    //numerical value.
-   typedef QList< QMap<QString,QString> > ResultType;
+   typedef QList< QList< QMap<QString,QString> > > ResultType;
 
     /**
      * @brief Params
      */
      struct Params {
 
-            Params( std::shared_ptr<Image::ImageInterface> p_dataSource,
+            Params( std::vector< std::shared_ptr<Image::ImageInterface> > p_dataSources,
                     std::vector<Carta::Lib::RegionInfo> regionInfos
                     ){
-                m_dataSource = p_dataSource;
+                m_dataSources = p_dataSources;
                 m_regionInfos = regionInfos;
             }
 
-            std::shared_ptr<Image::ImageInterface> m_dataSource;
+            std::vector<std::shared_ptr<Image::ImageInterface> > m_dataSources;
             std::vector<Carta::Lib::RegionInfo> m_regionInfos;
         };
 

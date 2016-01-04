@@ -19,6 +19,7 @@ namespace Data {
 
 class Controller;
 class LinkableImpl;
+class Settings;
 
 class Statistics : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -39,9 +40,23 @@ public:
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Set whether or not to show image statistics.
+     * @param showStats - true if image statistics should be shown; false otherwise.
+     */
+    void setShowStatsImage( bool showStats );
+
+    /**
+     * Set whether or not to show region statistics.
+     * @param showStats - true if region statistics should be shown; false otherwise.
+     */
+    void setShowStatsRegion( bool showStats );
 
     virtual ~Statistics();
     const static QString CLASS_NAME;
+    const static QString SELECTED_INDEX;
+    const static QString SHOW_STATS_IMAGE;
+    const static QString SHOW_STATS_REGION;
     const static QString STATS;
 
 private slots:
@@ -49,6 +64,9 @@ private slots:
 
 private:
 
+    QString _getPreferencesId() const;
+
+    void _initializeCallbacks();
     void _initializeDefaultState();
 
 
@@ -64,6 +82,11 @@ private:
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
+    //Preference settings
+    std::unique_ptr<Settings> m_settings;
+
+
+    Carta::State::StateInterface m_stateData;
 
 	Statistics( const Statistics& other);
 	Statistics operator=( const Statistics& other );

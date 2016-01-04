@@ -96,19 +96,6 @@ void ControllerData::_clearColorMap(){
     }
 }
 
-void ControllerData::_clearData(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    if ( m_dataGrid != nullptr){
-        objMan->removeObject(m_dataGrid->getId());
-    }
-    for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-            it != m_dataContours.end(); it++ ){
-        if ( (*it) ){
-            objMan->removeObject( (*it)->getId() );
-        }
-    }
-}
-
 void ControllerData::_colorChanged(){
     if ( m_dataSource ){
         QString mapName = m_stateColor->_getColorMap();
@@ -957,7 +944,6 @@ void ControllerData::_viewResize( const QSize& newSize ){
 
 
 ControllerData::~ControllerData() {
-    _clearData();
 }
 }
 }

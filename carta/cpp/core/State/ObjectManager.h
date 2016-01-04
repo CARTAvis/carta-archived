@@ -27,7 +27,7 @@ class CartaObject {
 
 public:
 
-    virtual ~CartaObject () {};
+    virtual ~CartaObject ();
 
 
     QString addIdToCommand (const QString & commandName) const;

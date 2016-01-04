@@ -23,6 +23,10 @@ CoordinateFormatterInterface::SharedPtr CCMetaDataInterface::coordinateFormatter
     return std::make_shared<CCCoordinateFormatter>( m_casaCS);
 }
 
+std::shared_ptr<casa::CoordinateSystem> CCMetaDataInterface::getCoordinateSystem() const {
+    return m_casaCS;
+}
+
 PlotLabelGeneratorInterface::SharedPtr CCMetaDataInterface::plotLabelGenerator()
 {
     qFatal( "not implemented");

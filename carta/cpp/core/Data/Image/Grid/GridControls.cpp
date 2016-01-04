@@ -790,10 +790,6 @@ void GridControls::_updateGrid(){
 }
 
 GridControls::~GridControls(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    if ( m_dataGrid != nullptr){
-        objMan->removeObject(m_dataGrid->getId());
-    }
 }
 }
 }

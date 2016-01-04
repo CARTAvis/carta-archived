@@ -872,7 +872,7 @@ void ViewManager::setDeveloperView(){
     //m_histograms[0]->addLink( m_controllers[0]);
     m_statistics[0]->addLink( m_controllers[0]);
     m_colormaps[0]->addLink( m_controllers[0]);
-    m_colormaps[0]->addLink( m_histograms[0]);
+    //m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
 }
 
@@ -954,25 +954,10 @@ bool ViewManager::setPlugins( const QStringList& names ){
 
 
 ViewManager::~ViewManager(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    //objMan->printObjects();
-    if ( m_layout != nullptr ){
-        objMan->destroyObject( Layout::CLASS_NAME );
-        m_layout = nullptr;
-    }
-    if ( m_dataLoader != nullptr ){
-        objMan->destroyObject( m_dataLoader->getId() );
-        m_dataLoader = nullptr;
-    }
-    if ( m_pluginsLoaded != nullptr ){
-        objMan->destroyObject( m_pluginsLoaded->getId() );
-        m_pluginsLoaded = nullptr;
-    }
-    if ( m_snapshots != nullptr ){
-        objMan->destroyObject(  m_snapshots->getId() );
-        m_snapshots = nullptr;
-    }
-
+    delete m_layout;
+    delete m_dataLoader;
+    delete m_pluginsLoaded;
+    delete m_snapshots;
 
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );

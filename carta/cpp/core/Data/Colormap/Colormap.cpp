@@ -651,11 +651,6 @@ void Colormap::_updateIntensityBounds( double minIntensity, double maxIntensity 
 }
 
 Colormap::~Colormap(){
-    if ( m_settings != nullptr ){
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString id = m_settings->getId();
-        objMan->removeObject( id );
-    }
 }
 }
 }

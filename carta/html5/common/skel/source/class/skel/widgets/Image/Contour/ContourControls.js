@@ -83,7 +83,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
             this.m_sharedVar.addCB(this._controlsChangedCB.bind(this));
             this._controlsChangedCB();
             var path = skel.widgets.Path.getInstance();
-            var dataId = this.m_id+path.SEP + "data";
+            var dataId = this.m_id+path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataId );
             this.m_sharedVarData.addCB( this._controlsDataChangedCB.bind(this ));
             this._controlsDataChangedCB();

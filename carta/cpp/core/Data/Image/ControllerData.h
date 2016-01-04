@@ -102,7 +102,6 @@ private:
     void _addContourSet( std::shared_ptr<DataContours> contour );
 
     void _clearColorMap();
-    void _clearData();
 
     Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
     Carta::Lib::AxisInfo::KnownType _getAxisYType() const;

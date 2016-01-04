@@ -2079,11 +2079,6 @@ QString Histogram::_zoomToSelection(){
 
 Histogram::~Histogram(){
     unregisterView();
-    if ( m_preferences != nullptr ){
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString id = m_preferences->getId();
-        objMan->removeObject( id );
-    }
     delete m_histogram;
 }
 }

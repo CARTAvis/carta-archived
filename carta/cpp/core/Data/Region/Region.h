@@ -17,18 +17,17 @@ class Region : public Carta::State::CartaObject {
 public:
 
     /**
+     * Return the information associated with this region.
+     * @return - information about the region.
+     */
+    std::shared_ptr<Carta::Lib::RegionInfo> getInfo() const;
+
+    /**
      * Return the RegionType corresponding to the given string representation.
      * @param regionTypeStr - a string representation of a region shape such as "ellipse".
      * @return - the corresponding RegionType.
      */
     static Carta::Lib::RegionInfo::RegionType getRegionType( const QString& regionTypeStr );
-
-    /**
-     * Factory for making regions of various types.
-     * @param regionType the type of region to make.
-     * @return the unique path of the region produced.
-     */
-    static QString makeRegion( const QString& regionType );
 
     /**
      * Return the type of region, which corresponds to its shape.
@@ -41,6 +40,12 @@ public:
      * @return - a string representation of the type of region.
      */
     virtual QString getTypeString() const = 0;
+
+    /**
+     * Set region information (corner points, etc).
+     * @param info - information on how to draw the region.
+     */
+    void setInfo( std::shared_ptr<Carta::Lib::RegionInfo> info );
 
     virtual ~Region();
 
@@ -56,6 +61,7 @@ protected:
 
 private:
     void _initializeCallbacks();
+    std::shared_ptr<Carta::Lib::RegionInfo> m_info;
 
 };
 }

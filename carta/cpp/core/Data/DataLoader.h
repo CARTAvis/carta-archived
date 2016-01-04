@@ -69,6 +69,7 @@ public:
 
     static QString fakeRootDirName;
     const static QString CLASS_NAME;
+    const static QString CRTF;
 
     virtual ~DataLoader();
 

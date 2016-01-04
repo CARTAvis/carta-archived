@@ -1,26 +1,30 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/ControllerData.h"
+#include "Data/Image/DataSource.h"
 #include "Data/Image/DrawStackSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
 #include "Data/Image/Contour/DataContours.h"
-#include "ControllerData.h"
+
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
-#include "DataSource.h"
-
 #include "Data/Error/ErrorManager.h"
-#include "Data/Selection.h"
+
 #include "Data/Region/Region.h"
+#include "Data/Region/RegionFactory.h"
+#include "Data/Selection.h"
+
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/IRemoteVGView.h"
+#include "CartaLib/Hooks/LoadRegion.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
-
+#include "Globals.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QList>
@@ -119,9 +123,20 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
     }
 }
 
-
-
 bool Controller::addData(const QString& fileName) {
+    //Decide on the type of data we are adding based on the file
+    //suffix.
+    bool result = false;
+    if ( fileName.endsWith( DataLoader::CRTF) ){
+        result = _addDataRegion( fileName );
+    }
+    else {
+        result = _addDataImage( fileName );
+    }
+    return result;
+}
+
+bool Controller::_addDataImage(const QString& fileName) {
     //Find the location of the data, if it already exists.
     int targetIndex = _getIndex( fileName );
 
@@ -183,6 +198,35 @@ bool Controller::addData(const QString& fileName) {
     return successfulLoad;
 }
 
+bool Controller::_addDataRegion(const QString& fileName) {
+    int selectIndex = getSelectImageIndex();
+    bool regionLoaded = false;
+    if ( selectIndex >= 0 ){
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_datas[selectIndex]->_getImage();
+        auto result = Globals::instance()-> pluginManager()
+                                -> prepare <Carta::Lib::Hooks::LoadRegion>(fileName, image );
+        auto lam = [=] ( const Carta::Lib::Hooks::LoadRegion::ResultType &data ) {
+            int regionCount = data.size();
+            for ( int i = 0; i < regionCount; i++ ){
+               if ( data[i] ){
+                   std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
+                   m_regions.push_back( regionPtr );
+               }
+            }
+        };
+        try {
+            result.forEach( lam );
+            emit dataChangedRegion( this );
+            regionLoaded = true;
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
+        }
+    }
+    return regionLoaded;
+}
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
@@ -230,13 +274,6 @@ void Controller::clear(){
     unregisterView();
 }
 
-void Controller::_clearData(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    for ( std::shared_ptr<ControllerData> source : m_datas ){
-        QString id = source->getId();
-        objMan->removeObject( id );
-    }
-}
 
 void Controller::_clearStatistics(){
     m_stateMouse.setValue<QString>( CURSOR, "" );
@@ -410,30 +447,16 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
 }
 
 std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::getDataSources(){
-    //For right now, we are only going to do a histogram of a single image.
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        int dataIndex = _getIndexCurrent();
-        if ( 0 <= dataIndex ){
-            images.push_back( m_datas[dataIndex]->_getImage());
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->_isVisible() ){
+            images.push_back( m_datas[i]->_getImage());
         }
     }
     return images;
 }
 
-std::shared_ptr <Carta::Lib::Image::ImageInterface> Controller::getDataSource(){
-    //Return only a single data source
-    std::shared_ptr<Carta::Lib::Image::ImageInterface>  image;
-    int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        int dataIndex = _getIndexCurrent();
-        if ( 0 <= dataIndex ){
-            image =  m_datas[dataIndex]->_getImage();
-        }
-    }
-    return image;
-}
 
 std::shared_ptr<ContourControls> Controller::getContourControls() {
     return m_contourControls;
@@ -637,15 +660,12 @@ QString Controller::_getPreferencesId() const {
 }
 
 std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
-    std::vector<Carta::Lib::RegionInfo> infos;
-    Carta::Lib::RegionInfo info;
-    info.setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
-    std::pair<double,double> firstCorner( 1.46279, -0.0938612 );
-    std::pair<double,double> secondCorner( 1.46271, -0.0937966 );
-    info.addCorner( firstCorner );
-    info.addCorner( secondCorner );
-    infos.push_back( info );
-    return infos;
+    int regionCount = m_regions.size();
+    std::vector<Carta::Lib::RegionInfo> regionInfos( regionCount );
+    for ( int i = 0; i < regionCount; i++ ){
+        regionInfos[i] = (*m_regions[i]->getInfo().get());
+    }
+    return regionInfos;
 }
 
 int Controller::getSelectImageIndex() const {
@@ -966,13 +986,16 @@ void Controller::_initializeCallbacks(){
                 shapePath = m_regions[index]->getPath();
             }
             else {
-                shapePath = _makeRegion( dataValues[TYPE]);
-                if ( shapePath.size() == 0 ){
-                    qDebug()<<"Error registerShape unsupported shape: "<<params;
+                Carta::Lib::RegionInfo::RegionType regionType = Region::getRegionType( dataValues[TYPE] );
+                std::shared_ptr<Region> region = RegionFactory::makeRegion( regionType );
+                if ( region ){
+                    m_regions.append( region );
+                    shapePath = region->getPath();
                 }
                 else {
-                    saveState();
+                    qDebug()<<"Error unsupported region: "<<params;
                 }
+
             }
         }
         return shapePath;
@@ -1166,18 +1189,6 @@ void Controller::_loadView( bool newClips, int dataIndex ){
     }
 }
 
-
-QString Controller::_makeRegion( const QString& regionType ){
-    QString shapePath = Region::makeRegion( regionType );
-    if ( shapePath.size() > 0 ){
-        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-        Carta::State::CartaObject* shapeObj = objManager->getObject( shapePath );
-        shapePath = shapeObj->getPath();
-        m_regions.append(dynamic_cast<Region*>(shapeObj));
-
-     }
-    return shapePath;
-}
 
 void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     int dataCount = m_datas.size();
@@ -1969,25 +1980,6 @@ Controller::~Controller(){
         objMan->destroyObject( m_selectImage->getId());
         m_selectImage = nullptr;
     }
-
-    if ( m_gridControls != nullptr ){
-        objMan->removeObject( m_gridControls->getId());
-    }
-
-    if ( m_contourControls != nullptr ){
-        objMan->removeObject( m_contourControls->getId());
-    }
-
-    if ( m_settings != nullptr ){
-        objMan->removeObject( m_settings->getId());
-    }
-
-    _clearData();
-
-    for ( Region* region : m_regions ){
-        objMan->destroyObject( region->getId());
-    }
-    m_regions.clear();
 }
 
 }

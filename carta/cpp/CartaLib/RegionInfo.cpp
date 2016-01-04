@@ -7,8 +7,8 @@ RegionInfo::RegionInfo(){
     m_regionType = RegionType::Unknown;
 }
 
-void RegionInfo::addCorner( std::pair<double,double> corner ){
-    corners.push_back( corner );
+void RegionInfo::addCorner( double xPixel, double yPixel ){
+    corners.push_back( std::pair<double,double>(xPixel, yPixel) );
 }
 
 void RegionInfo::clearCorners(){

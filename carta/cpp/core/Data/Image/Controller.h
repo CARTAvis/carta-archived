@@ -135,8 +135,12 @@ public:
      * @return the coordinates at pixel (x, y).
      */
     QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
-    std::shared_ptr <Carta::Lib::Image::ImageInterface> getDataSource();
 
+
+    /**
+     * Return a list of images that have been loaded.
+     * @return - a list of loaded images.
+     */
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
 
     /**
@@ -494,6 +498,13 @@ signals:
      */
     void dataChanged(Controller* controller );
 
+    /**
+     *  Notification that the region/selection managed by this controller has
+     *  changed.
+     *  @param controller this Controller.
+     */
+    void dataChangedRegion( Controller* controller );
+
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
@@ -546,10 +557,15 @@ private:
 
     class Factory;
 
+    /// Add a region to the stack from a file.
+    bool _addDataRegion(const QString& fileName );
+
+    /// Add an image to the stack from a file.
+    bool _addDataImage( const QString& fileName );
+
     //Clear the color map.
     void _clearColorMap();
-    //Clear data sources
-    void _clearData();
+
     //Clear image statistics.
     void _clearStatistics();
 
@@ -577,7 +593,7 @@ private:
     void _initializeSelections();
     void _loadView( bool newClips, int dataIndex );
 
-    QString _makeRegion( const QString& regionType );
+    //QString _makeRegion( const QString& regionType );
 
     void _removeData( int index );
 
@@ -656,7 +672,7 @@ private:
     std::shared_ptr<ColorState> m_stateColor;
 
 
-    QList<Region* > m_regions;
+    QList<std::shared_ptr<Region> > m_regions;
 
     //Holds image that are loaded and selections on the data.
     Carta::State::StateInterface m_stateData;

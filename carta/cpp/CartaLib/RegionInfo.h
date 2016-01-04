@@ -24,9 +24,10 @@ public:
      * Add a point to the region.  For a polygonal region, this may be an additional corner
      * point, for an elliptical region, it may be a point that describes the blc or trc of the
      * bounding box.
-     * @corner - an (x,y) pair in radians describing a point in the images.
+     * @param xPixel - the x-coordinate of a corner in pixels.
+     * @param yPixel - the y-coordinate of a corner in pixels.
      */
-    void addCorner( std::pair<double,double> corner );
+    void addCorner( double xPixel,double yPixel );
 
     /**
      * Clear the list of region corners.

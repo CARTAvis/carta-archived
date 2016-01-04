@@ -35,11 +35,6 @@ public:
      */
     virtual LayoutNode* findAncestor( const QStringList& nodeId, QString& childId );
 
-    /**
-     * Reset the state of this node.
-     */
-    void clear();
-
     virtual QString getPlugin( const QString& locationId ) const = 0;
 
     /**

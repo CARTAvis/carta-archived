@@ -166,6 +166,11 @@ CartaObject::conn() {
     return conn;
 }
 
+CartaObject::~CartaObject () {
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    objMan->removeObject( getId() );
+};
+
 const QString ObjectManager::CreateObject = "CreateObject";
 const QString ObjectManager::ClassName = "ClassName";
 const QString ObjectManager::DestroyObject = "DestroyObject";
@@ -280,11 +285,10 @@ void ObjectManager::printObjects(){
 
 CartaObject* ObjectManager::removeObject( const QString& id ){
     CartaObject * object = getObject (id);
-
-        assert (object != 0);
-
+    if ( object ){
         m_objects.erase (id);
-        return object;
+    }
+    return object;
 }
 
 QString
