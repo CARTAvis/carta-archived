@@ -6,6 +6,7 @@ INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
 
 QT       += core gui
+LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
 TARGET = plugin
 TEMPLATE = lib
