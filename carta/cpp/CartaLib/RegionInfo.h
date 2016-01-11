@@ -49,6 +49,20 @@ public:
     RegionType getRegionType() const;
 
     /**
+     * Returns true if the passed in point is an existing corner of this
+     * region; false otherwise.
+     * @param pt - an (x,y)- coordinate in pixels.
+     * @return true - if the pt is a corner pt of the region; false otherwise.
+     */
+    bool isCorner( std::pair<double,double> pt ) const;
+
+    /**
+     * Set region corners.
+     * @param corners - a new list or region corners.
+     */
+    void setCorners( const std::vector< std::pair<double,double> >& corners );
+
+    /**
      * Set the region type.
      * @param type - the region type.
      */
@@ -57,7 +71,7 @@ public:
     virtual ~RegionInfo();
 private:
     RegionType m_regionType;
-    std::vector<std::pair<double,double> > corners;
+    std::vector<std::pair<double,double> > m_corners;
 
 };
 }

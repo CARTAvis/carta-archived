@@ -159,7 +159,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
 }
 
 QString Colormap::_commandSetColorMap( const QString& params ){
-    std::set<QString> keys = {"name"};
+    std::set<QString> keys = {Util::NAME};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString colorMapStr = dataValues[*keys.begin()];
     QString result = setColorMap( colorMapStr );

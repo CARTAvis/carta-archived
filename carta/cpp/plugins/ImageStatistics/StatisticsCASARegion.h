@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QString>
 #include "CartaLib/RegionInfo.h"
+#include "CartaLib/StatInfo.h"
 #include "casacore/images/Images/ImageInterface.h"
 #include "casacore/casa/Containers/Record.h"
 
@@ -22,16 +23,20 @@ public:
      * @return - a map of (key,value) pairs which are the statistics for the region in the
      *      image.
      */
-    static QMap<QString,QString>
+    static QList<Carta::Lib::StatInfo>
     getStats( const casa::ImageInterface<casa::Float>* image, Carta::Lib::RegionInfo& regionInfo );
 private:
     StatisticsCASARegion();
+    static void _getStatsFromCalculator( const casa::ImageInterface<casa::Float>* image,
+           const casa::Record& region, QList<Carta::Lib::StatInfo>& stats );
+
     static void _insertScalar( const casa::Record& result, const casa::String& key,
-            const QString& label, QMap<QString,QString>& stats );
+            Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
     static void _insertList( const casa::Record& result, const casa::String& key,
-            const QString& label, QMap<QString,QString>& stats );
+            Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
     static void _insertString( const casa::Record& result, const casa::String& key,
-            const QString& label, QMap<QString,QString>& stats );
+            Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
+    static QString _vectorToString( const casa::Vector<int>& valArray );
 
     virtual ~StatisticsCASARegion();
 

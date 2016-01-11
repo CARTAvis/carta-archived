@@ -140,7 +140,6 @@ public:
     const static QString CLASS_NAME;
     const static QString CONTOURS;
     const static QString CONTOUR_DRAW;
-    const static QString SET_NAME;
 
 
 private:

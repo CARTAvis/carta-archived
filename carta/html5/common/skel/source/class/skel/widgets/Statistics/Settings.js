@@ -9,7 +9,7 @@
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Statistics.Settings", {
-    extend : qx.ui.core.Widget,
+    extend : qx.ui.tabview.TabView,
 
     /**
      * Constructor.
@@ -26,29 +26,11 @@ qx.Class.define("skel.widgets.Statistics.Settings", {
          * Initializes the UI.
          */
         _init : function( ) {
-            this._setLayout(new qx.ui.layout.HBox(2));
+            this.m_settingsImage = new skel.widgets.Statistics.SettingsPage( "Image", "setShowStatsImage" );
+            this.add( this.m_settingsImage );
             
-            this._add( new qx.ui.core.Spacer(2), {flex:1} );
-            var content = new qx.ui.container.Composite();
-            content.setLayout( new qx.ui.layout.Grid() );
-            this._add( content );
-            this._add( new qx.ui.core.Spacer(2), {flex:1} );
-            
-            //Show Images Checkbox
-            var showImageLabel = new qx.ui.basic.Label( "Image:");
-            this.m_showImageCheck = new qx.ui.form.CheckBox();
-            this.m_showImageId = this.m_showImageCheck.addListener( skel.widgets.Path.CHANGE_VALUE, 
-                    this._sendShowImageStatsCmd, this );
-            content.add( showImageLabel, {row:0, column:0});
-            content.add( this.m_showImageCheck, {row:0, column:1});
-            
-            //Show Region Statistics CheckBox
-            var showRegionLabel = new qx.ui.basic.Label( "Region");
-            this.m_showRegionCheck = new qx.ui.form.CheckBox();
-            this.m_showRegionId = this.m_showRegionCheck.addListener( skel.widgets.Path.CHANGE_VALUE,
-                    this._sendShowRegionStatsCmd, this );
-            content.add( showRegionLabel, {row:1, column:0});
-            content.add( this.m_showRegionCheck, {row:1, column:1});
+            this.m_settingsRegion = new skel.widgets.Statistics.SettingsPage( "Region", "setShowStatsRegion");
+            this.add( this.m_settingsRegion );
         },
         
         /**
@@ -60,37 +42,14 @@ qx.Class.define("skel.widgets.Statistics.Settings", {
             this._settingsChangedCB();
         },
         
-        /**
-         * Send a command to the server to show/hide image statistics.
-         */
-        _sendShowImageStatsCmd : function(){
-            if ( this.m_id !== null ){
-                var showImageStats = this.m_showImageCheck.getValue();
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setShowStatsImage";
-                var params = "visible:"+showImageStats;
-                this.m_connector.sendCommand( cmd, params, null);
-            }
-        },
-        
-        /**
-         * Send a command to the server to show/hide region statistics.
-         */
-        _sendShowRegionStatsCmd : function(){
-            if ( this.m_id !== null ){
-                var showRegionStats = this.m_showRegionCheck.getValue();
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setShowStatsRegion";
-                var params = "visible:"+showRegionStats;
-                this.m_connector.sendCommand( cmd, params, null);
-            }
-        },
         
         /**
          * Set the server-side id for the statistics settings.
          */
         setId : function( id ){
             this.m_id = id;
+            this.m_settingsImage.setId( this.m_id );
+            this.m_settingsRegion.setId( this.m_id );
             this._register();
         },
         
@@ -102,24 +61,10 @@ qx.Class.define("skel.widgets.Statistics.Settings", {
             if ( val ){
                 try {
                     var statPrefs = JSON.parse( val );
-                    
-                    //Update show image stats
-                    var showImageStats = statPrefs.showStatsImage;
-                    if ( this.m_showImageId !== null ){
-                        this.m_showImageCheck.removeListenerById( this.m_showImageId );
-                        this.m_showImageCheck.setValue( showImageStats );
-                        this.m_showImageId = this.m_showImageCheck.addListener( skel.widgets.Path.CHANGE_VALUE, 
-                                this._sendShowImageStatsCmd, this );
-                    }
+                    this.m_settingsImage.setPrefs( statPrefs.showStatsImage, statPrefs.image );
                     
                     //Update show region stats
-                    var showRegionStats = statPrefs.showStatsRegion;
-                    if ( this.m_showRegionId !== null ){
-                        this.m_showRegionCheck.removeListenerById( this.m_showRegionId );
-                        this.m_showRegionCheck.setValue( showRegionStats );
-                        this.m_showRegionId = this.m_showRegionCheck.addListener( skel.widgets.Path.CHANGE_VALUE, 
-                                this._sendShowRegionStatsCmd, this );
-                    }
+                    this.m_settingsRegion.setPrefs( statPrefs.showStatsRegion, statPrefs.region );
                 }
                 catch ( err ){
                     console.log( "Problem updating statistic settings: "+val );
@@ -131,10 +76,8 @@ qx.Class.define("skel.widgets.Statistics.Settings", {
         m_connector : null,
         m_id : null,
         m_sharedVar : null,
-        m_showRegionCheck : null,
-        m_showImageCheck : null,
-        m_showRegionId : null,
-        m_showImageId : null
-
+        
+        m_settingImage : null,
+        m_settingsRegion : null
     }
 });

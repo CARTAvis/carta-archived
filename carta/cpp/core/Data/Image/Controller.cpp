@@ -218,6 +218,7 @@ bool Controller::_addDataRegion(const QString& fileName) {
             result.forEach( lam );
             emit dataChangedRegion( this );
             regionLoaded = true;
+            _saveStateRegions();
         }
         catch( char*& error ){
             QString errorStr( error );
@@ -740,6 +741,16 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
             dataState.insertValue<QString>( axisName, m_selects[i]->getStateString());
         }
         dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+
+        //Regions
+        int regionCount = m_regions.size();
+        dataState.insertArray( REGIONS, regionCount );
+        for ( int i = 0; i < regionCount; i++ ){
+            QString lookup = Carta::State::UtilState::getLookup( REGIONS, i );
+            QString regionStateStr = m_regions[i]->_getStateString();
+            dataState.setObject( lookup, regionStateStr );
+        }
+
         result = dataState.toString();
     }
     return result;
@@ -972,9 +983,8 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString TYPE( "type");
         const QString INDEX( "index");
-        std::set<QString> keys = {TYPE, INDEX};
+        std::set<QString> keys = {Util::TYPE, INDEX};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString shapePath;
         bool validIndex = false;
@@ -986,7 +996,7 @@ void Controller::_initializeCallbacks(){
                 shapePath = m_regions[index]->getPath();
             }
             else {
-                Carta::Lib::RegionInfo::RegionType regionType = Region::getRegionType( dataValues[TYPE] );
+                Carta::Lib::RegionInfo::RegionType regionType = Region::getRegionType( dataValues[Util::TYPE] );
                 std::shared_ptr<Region> region = RegionFactory::makeRegion( regionType );
                 if ( region ){
                     m_regions.append( region );
@@ -1139,12 +1149,8 @@ void Controller::_initializeState(){
 
     //Now the data state.
     m_stateData.insertArray(DATA, 0 );
-
-    //For testing only.
-    //_makeRegion( RegionRectangle::CLASS_NAME );
     int regionCount = m_regions.size();
     m_stateData.insertArray(REGIONS, regionCount );
-    //_saveRegions();
     m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -1332,8 +1338,19 @@ void Controller::resetStateData( const QString& state ){
         m_selects[i]->resetState( axisState );
     }
 
+    //Restore the region State
+    m_regions.clear();
+    int regionCount = dataState.getArraySize(REGIONS);
+    for ( int i = 0; i < regionCount; i++ ){
+        QString regionLookup = Carta::State::UtilState::getLookup( REGIONS, i );
+        QString regionState = dataState.toString( regionLookup );
+        std::shared_ptr<Region> region = RegionFactory::makeRegion( regionState );
+        m_regions.append( region );
+    }
+
     //Notify others there has been a change to the data.
     emit dataChanged( this );
+    emit dataChangedRegion( this );
 
     //Reset the state of the grid controls based on the selected image.
     int dataIndex = _getIndexCurrent();
@@ -1385,10 +1402,10 @@ void Controller::resetZoom(){
 
 
 void Controller::saveState() {
+    //Images
     int dataCount = m_datas.size();
     int oldDataCount = m_stateData.getArraySize(DATA );
     if ( oldDataCount != dataCount ){
-        //Insert the names of the data items for display purposes.
         m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveNone );
     }
     for (int i = 0; i < dataCount; i++) {
@@ -1396,10 +1413,20 @@ void Controller::saveState() {
         QString dataKey = UtilState::getLookup( DATA, i);
         m_stateData.setObject( dataKey, layerString);
     }
+}
 
-    /*int regionCount = m_regions.size();
-    m_state.resizeArray( REGIONS, regionCount );
-    _saveRegions();*/
+void Controller::_saveStateRegions(){
+    //Regions
+    int regionCount = m_regions.size();
+    int oldRegionCount = m_stateData.getArraySize( REGIONS);
+    if ( regionCount != oldRegionCount){
+        m_stateData.resizeArray( REGIONS, regionCount, StateInterface::PreserveNone );
+    }
+    for ( int i = 0; i < regionCount; i++ ){
+        QString regionKey = UtilState::getLookup( REGIONS, i);
+        QString regionTypeStr= m_regions[i]->_getStateString();
+        m_stateData.setObject( regionKey, regionTypeStr );
+    }
     m_stateData.flushState();
 }
 
@@ -1453,19 +1480,6 @@ void Controller::saveImageResultCB( bool result ){
     }
     emit saveImageResult( result );
 }
-
-void Controller::_saveRegions(){
-    int regionCount = m_regions.size();
-    for ( int i = 0; i < regionCount; i++ ){
-        QString arrayStr = UtilState::getLookup( REGIONS, i);
-        QString regionTypeStr= m_regions[i]->getTypeString();
-        QString regionId = m_regions[i]->getPath();
-        m_state.setObject( arrayStr );
-        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionTypeStr );
-        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "id"), regionId );
-    }
-}
-
 
 void Controller::_scheduleFrameReload( bool newClips ){
     if ( m_datas.size() > 0  ){
@@ -1561,6 +1575,7 @@ void Controller::setFrameImage( int val) {
             }
             _updateCursorText( true );
             emit dataChanged( this );
+
         }
     }
 }

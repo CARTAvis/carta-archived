@@ -15,7 +15,9 @@ const QString Util::PREFERENCES = "preferences";
 const QString Util::RED = "red";
 const QString Util::BLUE = "blue";
 const QString Util::GREEN = "green";
+const QString Util::NAME = "name";
 const QString Util::PEN_WIDTH = "width";
+const QString Util::TYPE = "type";
 const QString Util::VISIBLE = "visible";
 const int Util::MAX_COLOR = 255;
 

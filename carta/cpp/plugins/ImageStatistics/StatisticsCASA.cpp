@@ -10,8 +10,6 @@
 #include <QDebug>
 
 
-QString StatisticsCASA::STAT_ID = "name";
-
 StatisticsCASA::StatisticsCASA( QObject * parent ) :
     QObject( parent )
 { }
@@ -32,7 +30,7 @@ StatisticsCASA::handleHook( BaseHook & hookData ){
             return false;
         }
 
-        QList< QList< QMap<QString,QString> > > imageResults;
+        QList< QList< QList<Carta::Lib::StatInfo> > > imageResults;
         for ( int i = 0; i < imageCount; i++ ){
             std::shared_ptr<Carta::Lib::Image::ImageInterface> image = images[i];
             if ( !image.get() ){
@@ -45,17 +43,17 @@ StatisticsCASA::handleHook( BaseHook & hookData ){
                 return false;
             }
 
-            QList< QMap<QString,QString> > statResults;
+            QList< QList< Carta::Lib::StatInfo > > statResults;
 
             //Get the image statistics
-            QMap<QString,QString> statResultImage = StatisticsCASAImage::getStats( casaImage );
+            QList<Carta::Lib::StatInfo> statResultImage = StatisticsCASAImage::getStats( casaImage );
             statResults.append( statResultImage );
 
             //Get the region statistics if there are some
             std::vector<Carta::Lib::RegionInfo> regionInfos = hook.paramsPtr->m_regionInfos;
             int regionCount = regionInfos.size();
             for ( int i = 0; i < regionCount; i++ ){
-                QMap<QString,QString> statResultRegion = StatisticsCASARegion::getStats( casaImage, regionInfos[i] );
+                QList<Carta::Lib::StatInfo> statResultRegion = StatisticsCASARegion::getStats( casaImage, regionInfos[i] );
                 statResults.append( statResultRegion );
             }
             imageResults.append( statResults );

@@ -28,7 +28,6 @@ public:
 
 
 const QString Animator::CLASS_NAME = "Animator";
-const QString Animator::TYPE = "type";
 const QString Animator::NAME = "name";
 const QString Animator::VALUE = "value";
 bool Animator::m_registered =
@@ -83,7 +82,7 @@ void Animator::_adjustStateAnimatorTypes(){
     for ( int i = 0; i < animationCount; i++ ){
         if ( !m_animators[keys[i]]->isRemoved()){
             QString arrayPath = UtilState::getLookup(AnimatorType::ANIMATIONS, QString::number(j));
-            QString typePath = UtilState::getLookup( arrayPath, TYPE );
+            QString typePath = UtilState::getLookup( arrayPath, Util::TYPE );
             m_state.insertValue<QString>( typePath, keys[i] );
             QString visiblePath = UtilState::getLookup( arrayPath, Util::VISIBLE );
             m_state.insertValue<bool>( visiblePath, m_animators[keys[i]]->isVisible() );
@@ -375,7 +374,7 @@ void Animator::_initializeCallbacks(){
 
     addCommandCallback( "addAnimator", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {"type"};
+        std::set<QString> keys = {Util::TYPE};
         std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
         QString animId = "-1";
         QString result = addAnimator( dataValues[*keys.begin()], animId );
@@ -385,7 +384,7 @@ void Animator::_initializeCallbacks(){
 
     addCommandCallback( "registerAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {"type"};
+            std::set<QString> keys = {Util::TYPE};
             std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
             QString targetKey = dataValues[*keys.begin()];
             QString animId = "-1";
@@ -401,7 +400,7 @@ void Animator::_initializeCallbacks(){
 
     addCommandCallback( "removeAnimator", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {"type"};
+            std::set<QString> keys = { Util::TYPE };
             std::map<QString,QString> dataValues = UtilState::parseParamMap( params, keys );
             QString animatorId = removeAnimator( dataValues[*keys.begin()] );
             return animatorId;

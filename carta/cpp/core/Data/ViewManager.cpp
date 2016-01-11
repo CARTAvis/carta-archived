@@ -112,6 +112,7 @@ void ViewManager::_clear(){
     _clearHistograms( 0, m_controllers.size() );
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
+    _clearStatistics( 0, m_statistics.size() );
     _clearControllers( 0, m_controllers.size() );
     if ( m_layout != nullptr ){
         m_layout->clear();
@@ -129,6 +130,9 @@ void ViewManager::_clearControllers( int startIndex, int upperBound ){
         }
         for ( Colormap* map : m_colormaps ){
             map->removeLink( m_controllers[i]);
+        }
+        for ( Statistics* stat : m_statistics ){
+            stat->removeLink( m_controllers[i]);
         }
         objMan->destroyObject( m_controllers[i]->getId() );
         m_controllers.removeAt(i);
@@ -159,6 +163,14 @@ void ViewManager::_clearHistograms( int startIndex, int upperBound ){
         }
         objMan->destroyObject( m_histograms[i]->getId() );
         m_histograms.removeAt(i);
+    }
+}
+
+void ViewManager::_clearStatistics( int startIndex, int upperBound ){
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    for ( int i = upperBound-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_statistics[i]->getId() );
+        m_statistics.removeAt( i );
     }
 }
 
@@ -228,7 +240,7 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
         viewId = _makeSnapshots();
     }
     else if ( plugin == Statistics::CLASS_NAME ){
-        if ( 0 <= index && index < m_histograms.size() && !forceCreate){
+        if ( 0 <= index && index < m_statistics.size() && !forceCreate){
             viewId = m_statistics[index]->getPath();
         }
         else {
@@ -329,7 +341,7 @@ void ViewManager::_initCallbacks(){
         return viewId;
     });
 
-    //Callback for linking an animator with whatever it is going to animate.
+    //Callback for linking a window with another window
     addCommandCallback( "linkAdd", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {SOURCE_ID, DEST_ID};
@@ -339,7 +351,7 @@ void ViewManager::_initCallbacks(){
         return result;
     });
 
-    //Callback for linking an animator with whatever it is going to animate.
+    //Callback for linking a window with another window.
     addCommandCallback( "linkRemove", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {SOURCE_ID, DEST_ID};
@@ -828,6 +840,13 @@ int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex
         }
         _clearAnimators(startIndex, upperBound);
     }
+    else if ( name == Statistics::CLASS_NAME ){
+        existingCount = m_statistics.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearStatistics(startIndex, upperBound);
+    }
     else if ( name == Controller::PLUGIN_NAME ){
         existingCount = m_controllers.size();
         if ( endIndex < 0 ){
@@ -847,6 +866,7 @@ void ViewManager::setAnalysisView(){
         _clearHistograms( 1, m_histograms.size() );
         _clearAnimators( 1, m_animators.size() );
         _clearColormaps( 1, m_colormaps.size() );
+        _clearStatistics( 0, m_statistics.size());
         _clearControllers( 1, m_controllers.size() );
 
         m_layout->setLayoutAnalysis();
@@ -865,8 +885,13 @@ void ViewManager::setDeveloperView(){
         _makeLayout();
     }
 
-    m_layout->setLayoutDeveloper();
+    _clearHistograms( 0, m_histograms.size() );
+    _clearAnimators( 1, m_animators.size() );
+    _clearColormaps( 1, m_colormaps.size() );
+    _clearStatistics( 1, m_statistics.size());
+    _clearControllers( 1, m_controllers.size() );
 
+    m_layout->setLayoutDeveloper();
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
     //m_histograms[0]->addLink( m_controllers[0]);
@@ -884,6 +909,7 @@ void ViewManager::setImageView(){
         _clearHistograms( 0, m_histograms.size() );
         _clearAnimators( 0, m_animators.size() );
         _clearColormaps( 0, m_colormaps.size() );
+        _clearStatistics( 0, m_statistics.size());
         _clearControllers( 1, m_controllers.size() );
 
         m_layout->setLayoutImage();
@@ -962,6 +988,7 @@ ViewManager::~ViewManager(){
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
     _clearHistograms( 0, m_histograms.size() );
+    _clearStatistics( 0, m_statistics.size() );
     _clearControllers( 0, m_controllers.size() );
 
     //objMan->printObjects();

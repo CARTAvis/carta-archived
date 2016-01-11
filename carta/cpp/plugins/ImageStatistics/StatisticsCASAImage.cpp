@@ -34,7 +34,7 @@ bool StatisticsCASAImage::_beamCompare( const casa::GaussianBeam &a, const casa:
 
 
 void StatisticsCASAImage::_computeStats(const casa::ImageInterface<casa::Float>* image,
-        QMap<QString,QString>& stats ){
+        QList<Carta::Lib::StatInfo>& stats ){
     casa::Vector<casa::Int> shapeVector = image->shape().asVector();
     int dimCount = shapeVector.nelements();
     if (dimCount <= 0 ){
@@ -53,13 +53,137 @@ void StatisticsCASAImage::_computeStats(const casa::ImageInterface<casa::Float>*
 }
 
 
-QMap<QString,QString>
+void StatisticsCASAImage::_getStatsPlanar( const casa::ImageInterface<casa::Float>* image,
+        QList<Carta::Lib::StatInfo>& statsMap, int zIndex, int hIndex ) {
+
+    try {
+        const casa::CoordinateSystem& cs = image->coordinates();
+
+        int zAxis = -1;
+        if ( cs.hasSpectralAxis() ){
+            zAxis = cs.spectralAxisNumber();
+        }
+
+        int hAxis = -1;
+        if ( cs.hasPolarizationCoordinate() ){
+            hAxis = cs.polarizationAxisNumber();
+        }
+
+        //Get the axis names
+        casa::Vector<casa::String> axesNames = cs.worldAxisNames();
+
+        casa::String zAxisName = axesNames[zAxis];
+        casa::String hAxisName = axesNames[hAxis ];
+
+        casa::String zUnit, zspKey, zspVal;
+
+        casa::String unit =  image->units().getName();
+
+        //Region Spectral Plane
+        casa::Vector<casa::Double> tWrld;
+        casa::Vector<casa::Double>tPix = cs.referencePixel();
+        casa::String tStr;
+        if (zIndex > -1) {
+            tPix(zAxis) = zIndex;
+            if ( cs.toWorld( tWrld, tPix)){
+                casa::String zLabel = cs.format(tStr, casa::Coordinate::DEFAULT, tWrld(zAxis), zAxis,
+                        true, true, -1, false);
+                casa::String valueStr( zLabel + tStr );
+                Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Frequency );
+                info.setValue( valueStr.c_str() );
+                statsMap.append( info );
+            }
+        }
+
+        //Region Stokes Plane
+        if (hAxis > -1) {
+            tPix(hAxis) = hIndex;
+            if ( cs.toWorld( tWrld, tPix) ){
+                casa::String hLabel = cs.format(tStr, casa::Coordinate::DEFAULT, tWrld(hAxis), hAxis,
+                        true, true, -1, false );
+                if ( hLabel != "" ){
+                    Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Stokes );
+                    info.setValue( hLabel.c_str() );
+                    statsMap.append( info );
+                }
+            }
+        }
+
+        //Frequency & Velocity
+        casa::Int spInd = cs.findCoordinate(casa::Coordinate::SPECTRAL);
+        casa::SpectralCoordinate spCoord;
+        if ( spInd>=0 ) {
+            spCoord=cs.spectralCoordinate(spInd);
+            spCoord.setVelocity();
+            casa::Double vel;
+            casa::Double restFreq = spCoord.restFrequency();
+            if (downcase(zAxisName).contains("freq")) {
+                Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Velocity );
+                if (restFreq >0 && spCoord.pixelToVelocity(vel, zIndex)) {
+                    info.setValue( QString::number( vel )+"km/s" );
+                }
+                else {
+                    info.setValue( zspVal.c_str() );
+                }
+                statsMap.append( info );
+            }
+        }
+
+        // strip out extra quotes, e.g. '"ELECTRONS"'
+        std::string unitval(unit.c_str( ));
+        std::string::size_type p = 0;
+        while( (p = unitval.find('"',p)) != unitval.npos ) {
+            unitval.erase(p, 1);
+        }
+        Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::BrightnessUnit );
+        info.setValue( unitval.c_str() );
+        statsMap.append( info );
+
+        casa::Double beamArea = 0;
+        casa::ImageInfo ii = image->imageInfo();
+        casa::GaussianBeam beam = ii.restoringBeam(zIndex);
+        std::string imageUnits = image->units().getName();
+        std::transform( imageUnits.begin(), imageUnits.end(), imageUnits.begin(), ::toupper );
+
+        casa::Int afterCoord = -1;
+        casa::Int dC = cs.findCoordinate(casa::Coordinate::DIRECTION, afterCoord);
+        // use contains() not == so moment maps are dealt with nicely
+        if ( ! beam.isNull() && dC!=-1 && imageUnits.find("JY/BEAM") != std::string::npos ) {
+            casa::DirectionCoordinate dCoord = cs.directionCoordinate(dC);
+            casa::Vector<casa::String> units(2);
+            units(0) = units(1) = "rad";
+            dCoord.setWorldAxisUnits(units);
+            casa::Vector<casa::Double> deltas = dCoord.increment();
+            beamArea = beam.getArea("rad2") / abs(deltas(0) * deltas(1));
+        }
+
+        if ( beamArea > 0 ){
+            Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::BeamArea );
+            info.setValue( QString::number( beamArea ) );
+            statsMap.append( info );
+        }
+    }
+    catch (const casa::AipsError& err) {
+        std::string errMsg_ = err.getMesg();
+        qDebug() << "Error: "<<errMsg_.c_str();
+    }
+}
+
+QList<Carta::Lib::StatInfo>
 StatisticsCASAImage::getStats( const casa::ImageInterface<casa::Float>* image ){
-    QMap<QString,QString> stats;
+    QList<Carta::Lib::StatInfo> stats;
     if ( image ){
-        stats.insert( StatisticsCASA::STAT_ID, image->name(true).c_str() );
+        Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Name );
+        info.setValue( image->name( true ).c_str() );
+        info.setImageStat( true );
+        stats.append( info );
 
         _computeStats( image, stats );
+
+        //Planar statistics
+        int zIndex = 0;
+        int hIndex = 0;
+        _getStatsPlanar( image, stats, zIndex, hIndex );
     }
     return stats;
 }
@@ -67,7 +191,7 @@ StatisticsCASAImage::getStats( const casa::ImageInterface<casa::Float>* image ){
 
 void StatisticsCASAImage::_insertRaDec( const casa::CoordinateSystem& cs,
         casa::Vector<casa::Int>& shapeVector,
-        QMap<QString,QString> & stats ){
+        QList<Carta::Lib::StatInfo> & stats ){
     if ( cs.hasDirectionCoordinate( ) ) {
         const casa::DirectionCoordinate &direction = cs.directionCoordinate( );
         casa::String directionType = casa::MDirection::showType(direction.directionType( ));
@@ -94,47 +218,50 @@ void StatisticsCASAImage::_insertRaDec( const casa::CoordinateSystem& cs,
             raStr.push_back(direction.format( units, casa::Coordinate::DEFAULT, world[0], 0, true, true ).c_str());
             decStr.push_back(direction.format( units, casa::Coordinate::DEFAULT, world[1], 1, true, true ).c_str());
 
-            QString raKey = QString(directionType.c_str()) + " Right Ascension";
-            QString decKey = QString(directionType.c_str()) + " Declination";
             QString raRange = raStr[0] + ", " + raStr[1];
             QString decRange = decStr[0] + ", " + decStr[1];
-            stats.insert( raKey, raRange);
-            stats.insert( decKey, decRange );
+            Carta::Lib::StatInfo infoRA( Carta::Lib::StatInfo::StatType::RightAscensionRange );
+            infoRA.setValue( raRange );
+            stats.append( infoRA );
+            Carta::Lib::StatInfo infoDEC( Carta::Lib::StatInfo::StatType::DeclinationRange );
+            infoDEC.setValue( decRange );
+            stats.append( infoDEC );
         }
         else {
-            QString key = "Direction Type";
-            stats.insert( key, directionType.c_str() );
+            Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::DirectionType );
+            info.setValue( directionType.c_str() );
+            stats.append( info );
         }
     }
 }
 
 void StatisticsCASAImage::_insertRestoringBeam( const casa::ImageInterface<casa::Float>* image,
-        QMap<QString,QString>& stats ){
+        QList<Carta::Lib::StatInfo>& stats ){
     casa::ImageInfo imageInfo = image->imageInfo();
    std::vector<casa::GaussianBeam> restoringBeams;
-   QString key;
+   Carta::Lib::StatInfo::StatType beamType = Carta::Lib::StatInfo::StatType::MedianRestoringBeam;
    if ( imageInfo.hasBeam( ) ) {
        if ( imageInfo.hasMultipleBeams( ) ) {
            for ( size_t i=0; i < imageInfo.getBeamSet().nchan( ); ++i ){
                restoringBeams.push_back( imageInfo.restoringBeam(i,0) );
            }
-           key = "Median Restoring Beam";
        }
        else {
            restoringBeams.push_back(imageInfo.restoringBeam());
-           key = "Restoring Beam";
+           beamType = Carta::Lib::StatInfo::StatType::RestoringBeam;
        }
        std::vector<QString> beamVector = _medianRestoringBeamAsStr( restoringBeams );
        if ( beamVector.size() == 3 ){
            QString beamValue = beamVector[0]+", "+beamVector[1]+", "+beamVector[2];
-           stats.insert( key, beamValue );
+           Carta::Lib::StatInfo info( beamType );
+           info.setValue( beamValue );
+           stats.append( info );
        }
-
    }
 }
 
 void StatisticsCASAImage::_insertShape( const casa::Vector<casa::Int>& shapeVector,
-        QMap<QString,QString>& stats ){
+        QList<Carta::Lib::StatInfo>& stats ){
     QString shapeStr( "[");
     int dimCount = shapeVector.nelements();
     for ( int i = 0; i < dimCount; i++ ){
@@ -144,13 +271,14 @@ void StatisticsCASAImage::_insertShape( const casa::Vector<casa::Int>& shapeVect
         }
     }
     shapeStr = shapeStr + "]";
-    stats.insert( "Shape", shapeStr );
+    Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Shape );
+    info.setValue( shapeStr );
+    stats.append( info );
 }
 
 void StatisticsCASAImage::_insertSpectral( const casa::CoordinateSystem& cs,
-        casa::Vector<casa::Int>& shapeVector, QMap<QString,QString>& stats ){
+        casa::Vector<casa::Int>& shapeVector, QList<Carta::Lib::StatInfo>& stats ){
     if ( cs.hasSpectralAxis( ) && shapeVector[cs.spectralAxisNumber( )] > 1 ) {
-        //has_spectral_axis = true;
         casa::SpectralCoordinate spec = cs.spectralCoordinate( );
         casa::Vector<casa::String> specUnitVec = spec.worldAxisUnits( );
         if ( specUnitVec(0) == "Hz" ){
@@ -181,18 +309,20 @@ void StatisticsCASAImage::_insertSpectral( const casa::CoordinateSystem& cs,
         }
 
         if ( frequencies.size() > 0 ){
-            QString key = "Frequency Range";
             QString freqRange = QString::number( frequencies.front() ) + ", " +
                     QString::number( frequencies.back() ) + " " + freqUnits;
-            stats.insert( key, freqRange );
+            Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::FrequencyRange );
+            info.setValue( freqRange );
+            stats.append( info );
         }
 
         if ( velocities.size( ) > 0 ) {
-            QString key = "Velocity Range";
             QString veloUnits = "km/s";
             QString velRange = QString::number( velocities.front() ) + ", " +
                     QString::number( velocities.back() ) + " "+veloUnits;
-            stats.insert( key, velRange );
+            Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::VelocityRange );
+            info.setValue( velRange );
+            stats.append( info );
         }
     }
 }

@@ -78,7 +78,7 @@ private:
     static bool m_registered;
 
     class Factory;
-    const static QString ROOT_NAME;
+
     const static QString DIR;
 
     void _initCallbacks();

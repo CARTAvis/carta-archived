@@ -605,7 +605,7 @@ private:
     //the index of the layer in the subset that should draw the grid or -1 if there
     //is no such index.
     void _render( QList<std::shared_ptr<ControllerData> > datas, int gridIndex );
-    void _saveRegions();
+    void _saveStateRegions();
 
     /**
      * Set whether or not the selected layers should be using the global

@@ -29,6 +29,7 @@ SOURCES += \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
     PWLinear.cpp \
+    StatInfo.cpp \
     VectorGraphics/VGList.cpp \
     VectorGraphics/BetterQPainter.cpp \
     Algorithms/ContourConrec.cpp \
@@ -65,6 +66,7 @@ HEADERS += \
     PixelPipeline/IPixelPipeline.h \
     PixelPipeline/CustomizablePixelPipeline.h \
     PWLinear.h \
+    StatInfo.h \
     VectorGraphics/VGList.h \
     Hooks/GetWcsGridRenderer.h \
     Hooks/LoadPlugin.h \

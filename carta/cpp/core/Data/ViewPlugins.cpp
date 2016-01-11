@@ -6,6 +6,7 @@
 #include "Statistics/Statistics.h"
 #include "Histogram/Histogram.h"
 #include "Colormap/Colormap.h"
+#include "Util.h"
 #include "State/UtilState.h"
 
 #include <QDir>
@@ -32,9 +33,7 @@ public:
 
 
 const QString ViewPlugins::PLUGINS = "pluginList";
-const QString ViewPlugins::NAME = "name";
 const QString ViewPlugins::DESCRIPTION = "description";
-const QString ViewPlugins::TYPE = "type";
 const QString ViewPlugins::VERSION = "version";
 const QString ViewPlugins::ERRORS = "loadErrors";
 const QString ViewPlugins::STAMP = "pluginCount";
@@ -52,9 +51,9 @@ void ViewPlugins::_insertPlugin( int ind, const QString& name, const QString& de
         const QString& type, const QString& version, const QString& errors ){
     QString index = QString("%1").arg(ind);
     QString arrayIndex = UtilState::getLookup(PLUGINS, index);
-    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, NAME), name);
+    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, Util::NAME), name);
     m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, DESCRIPTION), description);
-    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, TYPE), type);
+    m_state.insertValue<QString>( UtilState::getLookup( arrayIndex, Util::TYPE), type);
     m_state.insertValue<QString>( UtilState::getLookup(arrayIndex, VERSION), version);
     m_state.insertValue<QString>( UtilState::getLookup(arrayIndex, ERRORS), errors);
 }

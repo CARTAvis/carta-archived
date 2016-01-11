@@ -21,7 +21,6 @@ public:
     virtual std::vector < HookId >
     getInitialHookList() override;
 
-    static QString STAT_ID;
     virtual ~StatisticsCASA();
 
 

@@ -84,8 +84,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
              */
             _layoutControls : function(){
                 this.m_content.removeAll();
-                this.m_content.add( this.m_statistics, {flex:1} );
-                if ( this.m_controlsVisible ){
+                if ( ! this.m_controlsVisible ){
+                    this.m_content.add( this.m_statistics, {flex:1} );
+                }
+                else {
                     this.m_content.add( this.m_statControls );
                 }
             },

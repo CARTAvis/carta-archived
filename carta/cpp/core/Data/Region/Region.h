@@ -13,8 +13,14 @@ namespace Carta {
 namespace Data {
 
 class Region : public Carta::State::CartaObject {
-
+    friend class RegionFactory;
 public:
+
+    /**
+     * Add corners to the region.
+     * @param corners - a list of corners to add to the region.
+     */
+    void addCorners( const std::vector< std::pair<double,double> >& corners );
 
     /**
      * Return the information associated with this region.
@@ -33,35 +39,54 @@ public:
      * Return the type of region, which corresponds to its shape.
      * @return - the RegionType.
      */
-    virtual Carta::Lib::RegionInfo::RegionType getType() const = 0;
+    Carta::Lib::RegionInfo::RegionType getRegionType() const;
+
+    /**
+     * Return the region state as a string.
+     * @return - the region state as a string.
+     */
+    QString _getStateString() const;
 
     /**
      * Return a string representation of the region shape.
      * @return - a string representation of the type of region.
      */
-    virtual QString getTypeString() const = 0;
+    QString getTypeString() const;
 
     /**
-     * Set region information (corner points, etc).
-     * @param info - information on how to draw the region.
+     * Restore the region state.
+     * @param state - a string representation of the state to restore.
      */
-    void setInfo( std::shared_ptr<Carta::Lib::RegionInfo> info );
+    void _restoreState( const QString& state );
+
+    /**
+     * Set the type of region.
+     * @param regionType - an enumerated region type.
+     */
+    void setRegionType( Carta::Lib::RegionInfo::RegionType regionType );
 
     virtual ~Region();
 
-protected:
+    const static QString CLASS_NAME;
 
-    const static QString POLYGON_REGION;
-    const static QString ELLIPSE_REGION;
+private:
+
+    static bool m_registered;
 
     /**
      * Construct a region.
      */
-    Region( const QString& className, const QString& path, const QString& id );
+    Region( const QString& path, const QString& id );
+    class Factory;
 
-private:
+    const static QString REGION_TYPE;
+    const static QString CORNERS;
+    const static QString REGION_POLYGON;
+    const static QString REGION_ELLIPSE;
+    const static QString XCOORD;
+    const static QString YCOORD;
     void _initializeCallbacks();
-    std::shared_ptr<Carta::Lib::RegionInfo> m_info;
+    void _initializeState();
 
 };
 }

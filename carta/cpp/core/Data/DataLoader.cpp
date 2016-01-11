@@ -33,7 +33,6 @@ public:
 
 QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
-const QString DataLoader::ROOT_NAME = "name";
 const QString DataLoader::DIR = "dir";
 const QString DataLoader::CRTF = ".crtf";
 
@@ -71,7 +70,7 @@ QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     if ( securityRestricted ){
         QString baseName = getRootDir( sessionId );
         QString displayName = rootDirName.replace( baseName, DataLoader::fakeRootDirName);
-        rootObj.insert(ROOT_NAME, displayName);
+        rootObj.insert(Util::NAME, displayName);
     }
 
     QJsonDocument document(rootObj);
@@ -148,7 +147,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
     }
 
     QString lastPart = rootDir.absolutePath();
-    rootObj.insert( ROOT_NAME, lastPart );
+    rootObj.insert( Util::NAME, lastPart );
 
     QJsonArray dirArray;
     QDirIterator dit(rootDir.absolutePath(), QDir::NoFilter);
@@ -181,14 +180,14 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
 void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
-    obj.insert(ROOT_NAME, fileValue);
+    obj.insert( Util::NAME, fileValue);
     parentArray.append(obj);
 }
 
 void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
-    obj.insert(ROOT_NAME, fileValue);
+    obj.insert( Util::NAME, fileValue);
     QJsonArray arry;
     obj.insert(DIR, arry);
     parentArray.append(obj);

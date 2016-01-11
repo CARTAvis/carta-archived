@@ -8,21 +8,31 @@ qx.Mixin.define("skel.widgets.Statistics.StatisticsDisplayGenerator", {
     members : {
         
         /**
-         * Set the number of columns (both labels and values) in the display.
-         * @param count {Number} - the number of columns in the layout.
+         * Add a label to the content at the given row and column.
+         * @param label {String} - the text of the label.
+         * @param content {qx.ui.container.Composite} - the container should contain the label.
+         * @param rowIndex {Number} - the row in the grid where the label should be added.
+         * @param colIndex {Number} - the column in the grid where the label should be added.
          */
-        setColumnCount : function( count ){
-            this.m_colCount = count;
+        _addLabel : function( label, content, rowIndex, colIndex ){
+            var label = new qx.ui.basic.Label( label +":");
+            label.setTextAlign( "right");
+            content.add( label, {row:rowIndex, column:colIndex} );
         },
         
         /**
-         * Set the order of the keys in the layout.
-         * @param keys {Array} - an ordered list of statistics keys to be displayed.
+         * Add a text field to the content at the given row and column.
+         * @param value {String} - the text to display in the field.
+         * @param content {qx.ui.container.Composite} - the container should contain the label.
+         * @param rowIndex {Number} - the row in the grid where the label should be added.
+         * @param colIndex {Number} - the column in the grid where the label should be added.
          */
-        setKeyOrder : function( keys ){
-            this.m_keys = keys;
+        _addText : function( value, content, rowIndex, colIndex ){
+            var text = new qx.ui.form.TextField();
+            text.setValue( value );
+            text.setEnabled( false );
+            content.add( text, {row:rowIndex, column:colIndex} );
         },
-        
         
         /**
          * Update the UI based on server image & region statistics.
@@ -40,29 +50,68 @@ qx.Mixin.define("skel.widgets.Statistics.StatisticsDisplayGenerator", {
             }
             content.setLayout( grid );
             
-            var rowIndex = 0;
-            var colIndex = 0;
+            if ( this.m_keys !== null ){
             
-            for ( var key in stats ){
-                if ( stats.hasOwnProperty( key ) ){
-                    if ( key !== "name"){
-                        var label = new qx.ui.basic.Label( key +":");
-                        label.setTextAlign( "right");
-                        var text = new qx.ui.form.TextField();
-                        text.setValue( stats[key]);
-                        text.setEnabled( false );
-                        content.add( label, {row:rowIndex, column:colIndex} );
-                        colIndex++;
-                        content.add( text, {row:rowIndex, column:colIndex} );
-                        colIndex++;
-                        if ( colIndex == this.m_colCount ){
-                            rowIndex++;
-                            colIndex = 0;
+                var rowIndex = 0;
+                var colIndex = 0;
+                //Loop through the keys with specified order.
+                for ( var i = 0; i < this.m_keys.length; i++ ){
+                    var key = this.m_keys[i];
+                    
+                    var statsKey = this._getKey( stats, key.label );
+                    if ( statsKey !== null ){
+                        if ( statsKey !== "Name" && key.visible ){
+                            this._addLabel( statsKey, content, rowIndex, colIndex );
+                            colIndex++;
+                            this._addText( stats[statsKey], content, rowIndex, colIndex );
+                            colIndex++;
+                            if ( colIndex == this.m_colCount ){
+                                rowIndex++;
+                                colIndex = 0;
+                            }
                         }
                     }
                 }
             }
+            
             return content;
+        },
+        
+        /**
+         * Looks for the key as a property of the passed in object.
+         * @param stats {Object} - object containing statistics.
+         * @param target {String} - the property to look for.
+         */
+        _getKey : function( stats, target ){
+            var result = null;
+            if ( stats.hasOwnProperty( target) ){
+                result = target;
+            }
+            else {
+                for ( var stat in stats ){
+                    if ( stat.indexOf( target ) >= 0 ){
+                        result = stat;
+                        break;
+                    }
+                }
+            }
+            return result;
+        },
+        
+        /**
+         * Set the number of columns (both labels and values) in the display.
+         * @param count {Number} - the number of columns in the layout.
+         */
+        setColumnCount : function( count ){
+            this.m_colCount = count;
+        },
+        
+        /**
+         * Set the order of the keys in the layout.
+         * @param keys {Array} - an ordered list of statistics keys to be displayed.
+         */
+        setKeyOrder : function( keys ){
+            this.m_keys = keys;
         },
         
         m_keys : null,

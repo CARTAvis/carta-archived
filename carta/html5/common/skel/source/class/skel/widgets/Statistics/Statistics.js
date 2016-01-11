@@ -20,8 +20,6 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
 
     members : {
         
-
-        
         /**
          * Initializes the UI.
          */
@@ -50,6 +48,25 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             this._add( this.m_statContainer );
         },
        
+        
+        /**
+         * Show image and region statistics based on what is available.
+         */
+        _layout : function(){
+            this.m_statContainer.removeAll();
+            if ( this.m_showImageStats && this.m_stats !== null ){
+                this.m_statContainer.add( this.m_statsImage );
+            }
+            var regionStats = this.m_statsRegions.isStats();
+            if ( regionStats ){
+                if ( this.m_showImageStats && this.m_showRegionStats ){
+                    this.m_statContainer.add( this.m_divWidget );
+                }
+                if ( this.m_showRegionStats ){
+                    this.m_statContainer.add( this.m_statsRegions );
+                }
+            }
+        },
        
         /**
          * Register the shared statistics variable in order to receive updates
@@ -106,24 +123,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             }
         },
         
-        /**
-         * Show image and region statistics based on what is available.
-         */
-        _layout : function(){
-            this.m_statContainer.removeAll();
-            if ( this.m_showImageStats && this.m_stats !== null ){
-                this.m_statContainer.add( this.m_statsImage );
-            }
-            var regionStats = this.m_statsRegions.isStats();
-            if ( regionStats ){
-                if ( this.m_showImageStats && this.m_showRegionStats ){
-                    this.m_statContainer.add( this.m_divWidget );
-                }
-                if ( this.m_showRegionStats ){
-                    this.m_statContainer.add( this.m_statsRegions );
-                }
-            }
-        },
+
         
         /**
          * Callback for a change in statistics on the server.
@@ -135,9 +135,9 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                     var statPrefs = JSON.parse( val );
                     this.m_showImageStats = statPrefs.showStatsImage;
                     this.m_showRegionStats = statPrefs.showStatsRegion;
-                    
+                    this.m_statsImage.setKeys( statPrefs.image );
+                    this.m_statsRegions.setKeys( statPrefs.region );
                     this._layout();
-                   
                 }
                 catch ( err ){
                     console.log( "Problem updating statistics: "+val );

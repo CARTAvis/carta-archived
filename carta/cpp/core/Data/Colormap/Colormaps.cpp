@@ -19,7 +19,6 @@ namespace Data {
 const QString Colormaps::COLOR_LIST = "ColorMaps";
 const QString Colormaps::CLASS_NAME = "Colormaps";
 const QString Colormaps::COLOR_MAPS = "maps";
-const QString Colormaps::COLOR_NAME = "name";
 const QString Colormaps::COLOR_MAP_COUNT = "colorMapCount";
 
 class Colormaps::Factory : public Carta::State::CartaObjectFactory {
@@ -49,7 +48,7 @@ Colormaps::Colormaps( const QString& path, const QString& id):
 
 QString Colormaps::_commandGetColorStops( const QString& params ){
     QString result;
-    std::set<QString> keys = {COLOR_NAME};
+    std::set<QString> keys = {Util::NAME};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString nameStr = dataValues[*keys.begin()];
     std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = getColorMap( nameStr );

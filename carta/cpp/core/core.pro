@@ -71,8 +71,6 @@ HEADERS += \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Region/Region.h \
-    Data/Region/RegionEllipse.h \
-    Data/Region/RegionPolygon.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
@@ -168,8 +166,6 @@ SOURCES += \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Region/Region.cpp \
-    Data/Region/RegionEllipse.cpp \
-    Data/Region/RegionPolygon.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \

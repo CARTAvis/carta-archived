@@ -13,7 +13,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
      */
     construct : function() {
         this.base(arguments);
-        this._init( );
+        this._init();
     },
 
     members : {
@@ -21,7 +21,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
         /**
          * Initializes the UI.
          */
-        _init : function( ) {
+        _init : function( label ) {
             this._setLayout(new qx.ui.layout.VBox(2));
             
             //Regions label
@@ -45,6 +45,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
             this._add( this.m_content );
         },
         
+        
         /**
          * Returns true if there are region statistics available for display;
          * false otherwise.
@@ -60,21 +61,40 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
         },
         
         /**
+         * Store the list of keys that specifies the order for the statistics &
+         * update the display accordingly.
+         * @param keys {Array} - a list of ordered statistic labels.
+         */
+        setKeys : function( keys ){
+            this.setKeyOrder( keys );
+            this._updateStatsDisplay();
+        },
+        
+        /**
          * Update the UI based on stored statistics information.
          */
         _statisticsChanged : function(){
             var statCount = this.m_regionStats.length;
             var regionNames = [];
             for ( var i = 0; i < statCount; i++ ){
-                regionNames[i] = this.m_regionStats[i].name;
+                regionNames[i] = this.m_regionStats[i].Name;
             }
             this.m_regionsCombo.setSelectItems( regionNames );
             if ( this.m_selectIndex >= 0 && this.m_selectIndex < regionNames.length ){
                 this.m_regionsCombo.setSelectValue( regionNames[this.m_selectIndex] );
             }
-            var content = this.generateStatsDisplay( this.m_regionStats[this.m_selectIndex] );
-            this.m_content.removeAll();
-            this.m_content.add( content );
+            this._updateStatsDisplay();
+        },
+        
+        /**
+         * Update the UI with new statistics.
+         */
+        _updateStatsDisplay : function(){
+            if ( this.m_regionStats !== null ){
+                var content = this.generateStatsDisplay( this.m_regionStats[this.m_selectIndex] );
+                this.m_content.removeAll();
+                this.m_content.add( content );
+            }
         },
         
         /**

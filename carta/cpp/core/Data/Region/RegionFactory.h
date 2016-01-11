@@ -27,6 +27,13 @@ public:
     static std::shared_ptr<Region>
     makeRegion( Carta::Lib::RegionInfo::RegionType regionType );
 
+    /**
+     * Make a region based on stored state.
+     * @param regionState - a string representation of region state.
+     */
+    static std::shared_ptr<Region>
+    makeRegion( const QString& regionState );
+
     virtual ~RegionFactory();
 
 private:

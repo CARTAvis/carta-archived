@@ -650,7 +650,7 @@ void ControllerData::_resetStateContours(const Carta::State::StateInterface& res
     //Add any contours not there
     for ( int i = 0; i < contourCount; i++ ){
        QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
-       QString nameLookup = Carta::State::UtilState::getLookup( lookup, DataContours::SET_NAME );
+       QString nameLookup = Carta::State::UtilState::getLookup( lookup, Util::NAME );
        QString contourStr = restoreState.toString( lookup);
        QString contourName = restoreState.getValue<QString>( nameLookup );
        supportedContours.append( contourName );

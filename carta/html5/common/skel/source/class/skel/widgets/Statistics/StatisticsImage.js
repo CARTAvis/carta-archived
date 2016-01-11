@@ -55,6 +55,16 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
         },
         
         /**
+         * Store the list of keys that specifies the order for the statistics &
+         * update the display accordingly.
+         * @param keys {Array} - a list of ordered statistic labels.
+         */
+        setKeys : function( keys ){
+            this.setKeyOrder( keys );
+            this._updateStatsDisplay();
+        },
+        
+        /**
          * Update the list of available images.
          * @param imageArray {Array} - a list of image names where statistics are
          *      available.
@@ -64,7 +74,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
             //Cycle through each image
             for ( var i = 0; i < imageArray.length; i++ ){
                 //The first element in each array is the image stats.
-                var imageName = imageArray[i][0].name;
+                var imageName = imageArray[i][0].Name;
                 imageNames[i] = imageName;
             }
             this.m_imageCombo.setSelectItems( imageNames );
@@ -77,13 +87,24 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
          *      particular region or image.
          */
         updateStats : function( stats ){
-            this.m_imageCombo.setSelectValue( stats.name );
-            var content = this.generateStatsDisplay( stats );
-            this.m_content.removeAll();
-            this.m_content.add( content );
+            this.m_stats = stats;
+            this.m_imageCombo.setSelectValue( stats.Name );
+            this._updateStatsDisplay();
+        },
+        
+        /**
+         * Update the UI with new statistics.
+         */
+        _updateStatsDisplay : function(){
+            if ( this.m_stats !== null ){
+                var content = this.generateStatsDisplay( this.m_stats );
+                this.m_content.removeAll();
+                this.m_content.add( content );
+            }
         },
         
         m_content : null,
-        m_imageCombo : null
+        m_imageCombo : null,
+        m_stats : null
     }
 });

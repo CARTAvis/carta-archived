@@ -8,6 +8,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
 #include "CartaLib/RegionInfo.h"
+#include "CartaLib/StatInfo.h"
 #include <QMap>
 #include <QList>
 
@@ -32,10 +33,9 @@ public:
    //image.  The first list item is the statistics for the image.
 
    //Each inner list item consists of a complete set of statistics for an entire
-   //image or region.  Statistics for an image/region consist of (key,value)
-   //pairs where the key identifies the type of statistics and the value is its
-   //numerical value.
-   typedef QList< QList< QMap<QString,QString> > > ResultType;
+   //image or region.  Statistics for an image/region consist of a type, a label,
+   //and a value.
+   typedef QList< QList< QList<Carta::Lib::StatInfo> > > ResultType;
 
     /**
      * @brief Params

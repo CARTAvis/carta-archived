@@ -1,7 +1,5 @@
 #include "Region.h"
 #include "RegionFactory.h"
-#include "RegionPolygon.h"
-#include "RegionEllipse.h"
 #include "Data/Util.h"
 
 #include <QDebug>
@@ -20,28 +18,26 @@ RegionFactory::makeRegion( std::shared_ptr<Carta::Lib::RegionInfo> regionInfo ){
     Carta::Lib::RegionInfo::RegionType regionType = regionInfo->getRegionType();
     std::shared_ptr<Region> region = makeRegion( regionType );
     if ( region ){
-        region ->setInfo( regionInfo );
+        region ->addCorners( regionInfo->getCorners() );
     }
     return region;
 }
 
 std::shared_ptr<Region>
 RegionFactory::makeRegion( Carta::Lib::RegionInfo::RegionType regionType ){
-    std::shared_ptr<Region> region( nullptr);
-    Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-    if ( regionType == Carta::Lib::RegionInfo::RegionType::Polygon ){
-        region.reset( objManager->createObject<RegionPolygon>( ) );
-    }
-    else if ( regionType == Carta::Lib::RegionInfo::RegionType::Ellipse ){
-        region.reset( objManager->createObject<RegionEllipse>( ) );
-    }
-    else {
-        qDebug() << "RegionFactory::makeRegion unsupported region type";
-    }
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    std::shared_ptr<Region> region( objMan->createObject<Region>() );
+    region->setRegionType( regionType );
     return region;
 }
 
-
+std::shared_ptr<Region>
+RegionFactory::makeRegion( const QString& regionState ){
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    std::shared_ptr<Region> region( objMan->createObject<Region>() );
+    region->_restoreState( regionState );
+    return region;
+}
 RegionFactory::~RegionFactory(){
 
 }

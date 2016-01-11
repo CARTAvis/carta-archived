@@ -132,7 +132,6 @@ public:
     int getMaxImageCount() const;
 
     static const QString CLASS_NAME;
-    static const QString TYPE;
 
     virtual ~Animator();
 protected:

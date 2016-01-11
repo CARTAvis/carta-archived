@@ -142,6 +142,7 @@ private:
     void _clearColormaps( int startIndex, int upperBound );
     void _clearControllers( int startIndex, int upperBound );
     void _clearHistograms( int startIndex, int upperBound );
+    void _clearStatistics( int startIndex, int upperBound );
 
     /**
      * Given the plugin and the index of the plugin among plugins of its type, find the index of the plugin
