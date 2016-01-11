@@ -158,7 +158,7 @@ qx.Class.define("skel.widgets.Statistics.CheckableWidget", {
        
        /**
         * Set the server-side id.
-        * @param id - the server-side id of the statistic object.
+        * @param id {String} - the server-side id of the statistic object.
         */
        setId : function( id ){
            this.m_id = id;
