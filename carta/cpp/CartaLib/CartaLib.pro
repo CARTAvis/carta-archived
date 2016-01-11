@@ -32,7 +32,8 @@ SOURCES += \
     ContourSet.cpp \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
-    IRemoteVGView.cpp
+    IRemoteVGView.cpp \
+    Hooks/GetProfileExtractor.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -69,7 +70,8 @@ HEADERS += \
     Hooks/Initialize.h \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
-    IRemoteVGView.h
+    IRemoteVGView.h \
+    Hooks/GetProfileExtractor.h
 
 unix {
     target.path = /usr/lib

@@ -411,10 +411,11 @@ ImageViewController::loadImage( QString fname )
     // set the frame to first one
     m_frameVar-> set( 0 );
 
+    // hack for profile extraction, printing a profile to stderr
     std::vector < int > pos( m_astroImage-> dims().size(), 0 );
-    Profiles::PrincipalAxisProfilePath path( m_astroImage-> dims().size()-1, pos );
+    Carta::Lib::Profiles::PrincipalAxisProfilePath path( m_astroImage-> dims().size()-1, pos );
     Carta::Lib::NdArray::RawViewInterface * rawView = m_astroImage-> getDataSlice( SliceND() );
-    Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
+    Carta::Lib::Profiles::ProfileExtractor * extractor = new Carta::Lib::Profiles::ProfileExtractor( rawView );
     auto profilecb = [ = ] () {
         auto data = extractor->getDataD();
         qDebug() << "profilecb"
@@ -426,7 +427,7 @@ ImageViewController::loadImage( QString fname )
             qDebug() << "  :" << data[i];
         }
     };
-    connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
+    connect( extractor, & Carta::Lib::Profiles::ProfileExtractor::progress, profilecb );
     extractor-> start( path );
 } // loadImage
 

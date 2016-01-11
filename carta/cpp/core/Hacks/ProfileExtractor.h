@@ -9,6 +9,9 @@
 #include <QTime>
 #include <QTimer>
 
+namespace Carta {
+namespace Lib {
+
 namespace Profiles
 {
 typedef std::vector < int > VI;
@@ -157,6 +160,7 @@ private:
 class IProfileExtractor : public QObject
 {
     Q_OBJECT
+    CLASS_BOILERPLATE(IProfileExtractor);
 
 public:
 
@@ -477,4 +481,6 @@ private:
     QByteArray m_resultBuffer;
     qint64 m_totalLength = - 1;
 };
+}
+}
 }
