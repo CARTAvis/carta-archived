@@ -29,7 +29,6 @@ LIBS += $${casacoreLIBS}
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 LIBS += -L$${WCSLIBDIR}/lib -lwcs
-LIBS += -L$$OUT_PWD/../CasaImageLoader -lplugin
 
 
 INCLUDEPATH += $${CASACOREDIR}/include
@@ -51,6 +50,7 @@ QMAKE_EXTRA_COMPILERS += copy_files
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
     PRE_TARGETDEPS += $$OUT_PWD/../CasaImageLoader/libplugin.dylib
+    LIBS += -L$$OUT_PWD/../CasaImageLoader -lplugin
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
