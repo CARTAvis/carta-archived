@@ -289,9 +289,9 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "deleteLevels", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {DataContours::SET_NAME };
+                std::set<QString> keys = { Util::NAME };
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString contourSetName = dataValues[DataContours::SET_NAME];
+                QString contourSetName = dataValues[Util::NAME];
                 QString result = deleteContourSet( contourSetName );
                 Util::commandPostProcess( result );
                 return result;
@@ -299,10 +299,10 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {DataContours::SET_NAME, GeneratorState::INTERVAL,
+            std::set<QString> keys = {Util::NAME, GeneratorState::INTERVAL,
                     GeneratorState::LEVEL_MIN, GeneratorState::LEVEL_MAX};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString contourSetName = dataValues[DataContours::SET_NAME];
+            QString contourSetName = dataValues[Util::NAME];
 
             //Make sure any new interval, level min and level max value is valid
             //before adding the contour.
@@ -397,9 +397,9 @@ void ContourControls::_initializeCallbacks(){
     //Set the selected contour set.
     addCommandCallback( "selectContourSet", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {DataContours::SET_NAME};
+        std::set<QString> keys = {Util::NAME};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString contourSetName = dataValues[DataContours::SET_NAME];
+        QString contourSetName = dataValues[Util::NAME];
         selectContourSet( contourSetName );
         return "";
     });

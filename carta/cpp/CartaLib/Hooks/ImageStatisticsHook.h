@@ -43,14 +43,17 @@ public:
      struct Params {
 
             Params( std::vector< std::shared_ptr<Image::ImageInterface> > p_dataSources,
-                    std::vector<Carta::Lib::RegionInfo> regionInfos
+                    std::vector<Carta::Lib::RegionInfo> regionInfos,
+                    std::vector<int> slice
                     ){
                 m_dataSources = p_dataSources;
                 m_regionInfos = regionInfos;
+                m_slice = slice;
             }
 
             std::vector<std::shared_ptr<Image::ImageInterface> > m_dataSources;
             std::vector<Carta::Lib::RegionInfo> m_regionInfos;
+            std::vector<int> m_slice;
         };
 
     /**

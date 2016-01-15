@@ -103,6 +103,7 @@ private:
 
     void _clearColorMap();
 
+    Carta::Lib::AxisInfo::KnownType _getAxisType( int index ) const;
     Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
     Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;

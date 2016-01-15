@@ -14,6 +14,9 @@ class StatisticsCASA : public QObject, public IPlugin
 
 public:
 
+    /**
+     * Constructor.
+     */
     StatisticsCASA( QObject * parent = 0 );
     virtual bool
     handleHook( BaseHook & hookData ) override;

@@ -504,7 +504,7 @@ std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
 
-std::vector<int> Controller::getImageDimensions( ){
+std::vector<int> Controller::getImageDimensions( ) const {
     std::vector<int> result;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
@@ -520,6 +520,7 @@ std::vector<int> Controller::getImageDimensions( ){
     return result;
 }
 
+
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
@@ -527,6 +528,29 @@ QString Controller::getImageName(int index) const{
     }
     return name;
 }
+
+
+std::vector<int> Controller::getImageSlice() const {
+    std::vector<int> result;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        int dimensions = m_datas[dataIndex] -> _getDimensions();
+        result.resize( dimensions );
+        Carta::Lib::AxisInfo::KnownType axisXType = m_datas[dataIndex]->_getAxisXType();
+        Carta::Lib::AxisInfo::KnownType axisYType = m_datas[dataIndex]->_getAxisYType();
+        for ( int i = 0; i < dimensions; i++ ){
+            Carta::Lib::AxisInfo::KnownType type  = m_datas[dataIndex]->_getAxisType( i );
+            if ( type == axisXType || type == axisYType ){
+                result[i] = -1;
+            }
+            else {
+                result[i] = getFrame( type );
+            }
+        }
+    }
+    return result;
+}
+
 
 int Controller::_getIndex( const QString& fileName) const{
     int dataCount = m_datas.size();

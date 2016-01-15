@@ -137,6 +137,14 @@ void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displa
     }
 }
 
+Carta::Lib::AxisInfo::KnownType ControllerData::_getAxisType( int index ) const {
+    AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
+    if ( m_dataSource ){
+        type = m_dataSource->_getAxisType( index );
+    }
+    return type;
+}
+
 AxisInfo::KnownType ControllerData::_getAxisXType() const {
     AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
     if ( m_dataSource ){

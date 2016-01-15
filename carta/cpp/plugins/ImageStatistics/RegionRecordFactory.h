@@ -2,7 +2,7 @@
 
 #include "CartaLib/RegionInfo.h"
 #include <casacore/casa/Containers/Record.h>
-#include <casacore/coordinates/Coordinates/CoordinateSystem.h>
+#include <casacore/images/Images/ImageInterface.h>
 #include <vector>
 
 namespace casa {
@@ -19,12 +19,16 @@ public:
      * Returns a Record of a region based on its type, the coordinate system of its containing
      * image, and a list of region corners (in pixels).
      * @param regionType - the type of region such as a Polygon.
-     * @param cSys - the coordinate system of the image containing the regions.
+     * @param casaImage - the image containing the regions.
      * @param corners - a list of region corner points (in pixels).
+     * @param slice - information about the current frames of the image.
+     * @param typeStr - an identifier for the type of region (return value).
+     * @return - a record representation of the region.
      */
 	static casa::Record getRegionRecord( Carta::Lib::RegionInfo::RegionType regionType,
-	        const casa::CoordinateSystem& cSys,
-	        std::vector< std::pair<double,double> >& corners);
+	        casa::ImageInterface<casa::Float>* casaImage,
+	        std::vector< std::pair<double,double> >& corners,
+	        const std::vector<int>& slice, QString& typeStr );
 
 	virtual ~RegionRecordFactory();
 
@@ -33,16 +37,34 @@ private:
 	RegionRecordFactory( const RegionRecordFactory& other );
 	RegionRecordFactory operator=( const RegionRecordFactory& other );
 
-	/**
-	 * Translate a point in pixel coordinates into a point in world
-	 * coordinates of an image.
-	 * @param xPixel - an x-coordinate in pixels.
-	 * @param yPixel - a y-coordinate in pixels.
-	 * @param csys - the image coordinate system.
-	 */
-	static std::pair<casa::Quantity,casa::Quantity>
-	    _getWorldVertex( double xPixel, double yPixel,
-	            const casa::CoordinateSystem& csys);
+	static casa::ImageRegion*
+	_getEllipsoid(const casa::CoordinateSystem& cSys,
+	            const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y);
+
+	static void _getMinMaxCorners( const std::vector<std::pair<double,double> > & corners,
+	        std::pair<double,double>& minCorner, std::pair<double,double>& maxCorner);
+
+	static casa::ImageRegion*
+	_getPolygon( casa::ImageInterface<casa::Float>* casaImage,
+	        const std::vector<std::pair<double,double> >& corners, const std::vector<int>& slice );
+
+	static casa::ImageRegion*
+	_getRectangle( casa::ImageInterface<casa::Float>* casaImage,
+	        const std::vector<std::pair<double,double> >& corners,
+	        const std::vector<int>& slice );
+
+	static casa::Record _getRegionRecordEllipse(
+	        casa::ImageInterface<casa::Float>* casaImage,
+	        std::vector<std::pair<double,double> >& corners,
+	        const std::vector<int>& slice);
+
+	static casa::Record _getRegionRecordPolygon(
+	        casa::ImageInterface<casa::Float>* casaImage,
+	        std::vector<std::pair<double,double> >& corners,
+	        const std::vector<int>& slice, QString& typeStr );
+
+	static bool _getWorldVertex( int pixelX, int pixelY, const casa::CoordinateSystem& cSys,
+	        const std::vector<int>& slice, casa::Vector<casa::Double>& worldVertices );
 
 
 };

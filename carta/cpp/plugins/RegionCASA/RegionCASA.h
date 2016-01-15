@@ -29,8 +29,18 @@ public:
     RegionCASA(QObject *parent = 0);
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
+    virtual ~RegionCASA();
 
 private:
+
+    /**
+     * Add the corners to the region information.
+     * @param rInfo - the region information.
+     * @param corners - the list of region corners to add.
+     */
+    void _addCorners( std::shared_ptr<Carta::Lib::RegionInfo>& rInfo,
+            const std::vector<std::pair<double,double> >& corners );
+
     /**
      * Get a list of the corner points of a region in pixels.
      * @param corners - a list of corner points in world units.

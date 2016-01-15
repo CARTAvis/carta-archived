@@ -37,7 +37,7 @@ StatisticsCASA::handleHook( BaseHook & hookData ){
                 qWarning() << "Missing image for statistics";
                 continue;
             }
-            const casa::ImageInterface<casa::Float>* casaImage = cartaII2casaII_float( image );
+            casa::ImageInterface<casa::Float>* casaImage = cartaII2casaII_float( image );
             if( ! casaImage) {
                 qWarning() << "Image statistics plugin: not an image created by casaimageloader...";
                 return false;
@@ -51,11 +51,14 @@ StatisticsCASA::handleHook( BaseHook & hookData ){
 
             //Get the region statistics if there are some
             std::vector<Carta::Lib::RegionInfo> regionInfos = hook.paramsPtr->m_regionInfos;
+            //Get the vector of current plane information
+            std::vector<int> slice = hook.paramsPtr->m_slice;
             int regionCount = regionInfos.size();
             for ( int i = 0; i < regionCount; i++ ){
-                QList<Carta::Lib::StatInfo> statResultRegion = StatisticsCASARegion::getStats( casaImage, regionInfos[i] );
+                QList<Carta::Lib::StatInfo> statResultRegion = StatisticsCASARegion::getStats( casaImage, regionInfos[i], slice );
                 statResults.append( statResultRegion );
             }
+
             imageResults.append( statResults );
 
         }

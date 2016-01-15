@@ -160,6 +160,8 @@ public:
      */
     int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
 
+
+
     /**
      * Return a shared pointer to the grid controls.
      * @return - a shared pointer to the grid controls.
@@ -169,7 +171,7 @@ public:
     /**
      * Get the image dimensions.
      */
-    std::vector<int> getImageDimensions( );
+    std::vector<int> getImageDimensions( ) const;
 
     /**
      * Returns an identifier for the data source at the given index.
@@ -177,6 +179,13 @@ public:
      * @return an identifier for the image.
      */
     QString getImageName(int index) const;
+
+    /**
+     * Return a list of indices indicating the current frames of the selected
+     * image.
+     * @return - a list consisting of the current frames of the current image.
+     */
+    std::vector<int> getImageSlice() const;
 
     /**
      * Returns the intensity corresponding to a given percentile in the current frame.
@@ -246,6 +255,11 @@ public:
      * @return the units of the pixels, or blank if units could not be obtained.
      */
     QString getPixelUnits() const;
+
+    /**
+     * Return a list of information about loaded regions.
+     * @return - a list of region information.
+     */
     std::vector<Carta::Lib::RegionInfo> getRegions() const;
 
     /**
@@ -569,9 +583,11 @@ private:
     //Clear image statistics.
     void _clearStatistics();
 
-    std::vector<int> _getFrameIndices( ) const;
+
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
+
+    std::vector<int> _getFrameIndices( ) const;
 
     //Get the data index
     int _getIndex( const QString& fileName) const;

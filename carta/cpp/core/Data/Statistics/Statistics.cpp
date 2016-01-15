@@ -81,6 +81,8 @@ QString Statistics::addLink( CartaObject*  target){
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)),
                         this , SLOT(_updateStatistics(Controller*)));
+                connect( controller, SIGNAL( channelChanged(Controller*)),
+                        this, SLOT(_updateStatistics(Controller*)));
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                         this, SLOT( _updateStatistics( Controller*)));
                 m_controllerLinked = true;
@@ -430,10 +432,13 @@ void Statistics::_updateStatistics( Controller* controller ){
 
         std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources = controller->getDataSources();
         std::vector<Carta::Lib::RegionInfo> regions = controller->getRegions();
+
+        std::vector<int> frameIndices = controller->getImageSlice();
+
         int sourceCount = dataSources.size();
         if ( sourceCount > 0 ){
             auto result = Globals::instance()-> pluginManager()
-                         -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(dataSources, regions);
+                         -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(dataSources, regions, frameIndices);
             auto lam = [=] ( const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data ) {
 
                 //An array for each image

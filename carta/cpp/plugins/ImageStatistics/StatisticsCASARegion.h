@@ -20,15 +20,18 @@ public:
      * in the specified image.
      * @param image - a specified image.
      * @param regionInfo - a specified region.
+     * @param slice - information about the frames that are selected on the image.
      * @return - a map of (key,value) pairs which are the statistics for the region in the
      *      image.
      */
     static QList<Carta::Lib::StatInfo>
-    getStats( const casa::ImageInterface<casa::Float>* image, Carta::Lib::RegionInfo& regionInfo );
+    getStats( casa::ImageInterface<casa::Float>* image, Carta::Lib::RegionInfo& regionInfo,
+            const std::vector<int>& slice );
 private:
     StatisticsCASARegion();
-    static void _getStatsFromCalculator( const casa::ImageInterface<casa::Float>* image,
-           const casa::Record& region, QList<Carta::Lib::StatInfo>& stats );
+    static void _getStatsFromCalculator( casa::ImageInterface<casa::Float>* image,
+           const casa::Record& region, const std::vector<int>& slice,
+           QList<Carta::Lib::StatInfo>& stats, const QString& typeStr );
 
     static void _insertScalar( const casa::Record& result, const casa::String& key,
             Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );

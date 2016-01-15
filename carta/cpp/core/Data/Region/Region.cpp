@@ -131,14 +131,15 @@ void Region::setRegionType( Carta::Lib::RegionInfo::RegionType regionType ){
     QString oldRegionTypeStr = m_state.getValue<QString>( REGION_TYPE );
     QString regionTypeStr;
     if ( regionType == Carta::Lib::RegionInfo::RegionType::Polygon ){
-        regionTypeStr == REGION_POLYGON;
+        regionTypeStr = REGION_POLYGON;
     }
     else if ( regionType == Carta::Lib::RegionInfo::RegionType::Ellipse ){
-        regionTypeStr == REGION_ELLIPSE;
+        regionTypeStr = REGION_ELLIPSE;
     }
     else {
         qDebug() << "Unrecognized Region type: "<< (int)(regionType);
     }
+
     if ( !regionTypeStr.isEmpty() && regionTypeStr != oldRegionTypeStr ){
         m_state.setValue<QString>( REGION_TYPE, regionTypeStr );
         m_state.flushState();
