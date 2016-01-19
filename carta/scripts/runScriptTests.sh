@@ -38,3 +38,5 @@ try py.test -v test_cartavis.py::test_setGamma
 try py.test -v test_cartavis.py::test_setImage
 try py.test -v test_cartavis.py::test_setImageLayout
 try py.test -v test_cartavis.py::test_zoomLevel
+try py.test -v test_cartavis.py::test_getChannelCount
+try py.test -v test_cartavis.py::test_setChannel
