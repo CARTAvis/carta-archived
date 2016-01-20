@@ -27,7 +27,7 @@ qx.Class.define("skel.widgets.Path", {
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.PREFERENCES_SAVE = this.BASE_PATH + "PreferencesSave";
-        this.REGION = this.BASE_PATH + "region" + this.SEP;
+        this.REGION = this.BASE_PATH + this.REGION_DATA + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
         this.THEMES = this.BASE_PATH + "Themes";
@@ -54,6 +54,7 @@ qx.Class.define("skel.widgets.Path", {
         CLIP_VALUE : "setClipValue",
         CLIPS : "",
         CLOSE_IMAGE : "closeImage",
+        CLOSE_REGION : "closeRegion",
         COLORMAP_PLUGIN : "Colormap",
         COLORMAPS : "",
         CONTOUR_GENERATE_MODES : "",
@@ -69,6 +70,7 @@ qx.Class.define("skel.widgets.Path", {
         HIDDEN : "Hidden",
         HIDE_IMAGE : "hideImage",
         HISTOGRAM_PLUGIN : "Histogram",
+        IMAGE_DATA : "image",
         LABEL_FORMATS : "",
         LAYER_COMPOSITION_MODES : "",
         LAYOUT : "",
@@ -85,6 +87,7 @@ qx.Class.define("skel.widgets.Path", {
         PREFERENCES : "",
         PREFERENCES_SAVE : "",
         REGION : "",
+        REGION_DATA : "region",
         SEP : "/",
         SEP_COMMAND : ":",
         SETTINGS : "",

@@ -27,8 +27,9 @@ qx.Mixin.define("skel.widgets.Statistics.StatisticsDisplayGenerator", {
          * @param rowIndex {Number} - the row in the grid where the label should be added.
          * @param colIndex {Number} - the column in the grid where the label should be added.
          */
-        _addText : function( value, content, rowIndex, colIndex ){
+        _addText : function( key, value, content, rowIndex, colIndex ){
             var text = new qx.ui.form.TextField();
+            skel.widgets.TestID.addTestId( text, key + "Stat");
             text.setValue( value );
             text.setEnabled( false );
             content.add( text, {row:rowIndex, column:colIndex} );
@@ -44,26 +45,24 @@ qx.Mixin.define("skel.widgets.Statistics.StatisticsDisplayGenerator", {
             content.setPadding( 0, 0, 0, 0 );
             content.setMargin( 1, 1, 1, 1 );
             var grid = new qx.ui.layout.Grid(2, 2);
+            
             for ( var i = 0; i < this.m_colCount; i=i+2 ){
                 grid.setColumnAlign( i, "right", "middle");
                 grid.setColumnFlex(i+1, 1 );
             }
             content.setLayout( grid );
-            
             if ( this.m_keys !== null ){
-            
                 var rowIndex = 0;
                 var colIndex = 0;
                 //Loop through the keys with specified order.
                 for ( var i = 0; i < this.m_keys.length; i++ ){
                     var key = this.m_keys[i];
-                    
                     var statsKey = this._getKey( stats, key.label );
                     if ( statsKey !== null ){
                         if ( statsKey !== "Name" && key.visible ){
                             this._addLabel( statsKey, content, rowIndex, colIndex );
                             colIndex++;
-                            this._addText( stats[statsKey], content, rowIndex, colIndex );
+                            this._addText( statsKey, stats[statsKey], content, rowIndex, colIndex );
                             colIndex++;
                             if ( colIndex == this.m_colCount ){
                                 rowIndex++;
@@ -84,16 +83,21 @@ qx.Mixin.define("skel.widgets.Statistics.StatisticsDisplayGenerator", {
          */
         _getKey : function( stats, target ){
             var result = null;
-            if ( stats.hasOwnProperty( target) ){
-                result = target;
-            }
-            else {
-                for ( var stat in stats ){
-                    if ( stat.indexOf( target ) >= 0 ){
-                        result = stat;
-                        break;
+            if ( typeof stats != 'undefined'){
+                if ( stats.hasOwnProperty( target) ){
+                    result = target;
+                }
+                else {
+                    for ( var stat in stats ){
+                        if ( stat.indexOf( target ) >= 0 ){
+                            result = stat;
+                            break;
+                        }
                     }
                 }
+            }
+            else {
+                console.log( "stats was undefined");
             }
             return result;
         },

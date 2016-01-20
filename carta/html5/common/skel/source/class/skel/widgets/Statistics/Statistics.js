@@ -121,6 +121,10 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                     this._layout();
                 }
             }
+            else {
+                this.m_statsRegions.clear();
+                this.m_statsImage.clear();
+            }
         },
         
 

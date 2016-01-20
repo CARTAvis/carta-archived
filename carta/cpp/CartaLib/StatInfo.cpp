@@ -6,7 +6,6 @@ namespace Carta {
 namespace Lib {
 
 QList<StatInfo::StatType> StatInfo::m_regionStatTypes = {
-        StatInfo::StatType::Name,
         StatInfo::StatType::Sum,
         StatInfo::StatType::FluxDensity,
         StatInfo::StatType::Mean,
@@ -27,7 +26,6 @@ QList<StatInfo::StatType> StatInfo::m_regionStatTypes = {
 
 
 QList<StatInfo::StatType> StatInfo::m_imageStatTypes = {
-        StatInfo::StatType::Name,
         StatInfo::StatType::Shape,
         StatInfo::StatType::RestoringBeam,
         StatInfo::StatType::MedianRestoringBeam,

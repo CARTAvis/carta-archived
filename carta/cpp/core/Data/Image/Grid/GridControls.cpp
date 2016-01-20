@@ -563,8 +563,8 @@ QString GridControls::setAxis( const QString& axisId, const QString& purpose ){
     QString result = m_dataGrid->_setAxis( axisId, purpose, &axisChanged );
     if ( axisChanged ){
         _updateGrid();
-        _notifyAxesChanged();
     }
+    _notifyAxesChanged();
     return result;
 }
 

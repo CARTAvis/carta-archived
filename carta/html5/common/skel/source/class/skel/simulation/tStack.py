@@ -51,12 +51,13 @@ class tStack(unittest.TestCase):
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "aH.fits")
         
+        
         #Verify the image animator sees three images.
         Util.verifyAnimatorUpperBound( self, driver, 2, "Image" )
         
         #Open the image settings
         #Open the stack tab
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Turn off auto select
@@ -69,6 +70,7 @@ class tStack(unittest.TestCase):
         ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
         
         #Verify the animator sees two images
+        time.sleep( 2 )
         Util.verifyAnimatorUpperBound(self, driver, 1, "Image" )
         
         #Show the second image
@@ -77,6 +79,7 @@ class tStack(unittest.TestCase):
         ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
         
         #Verify the animator sees three images
+        time.sleep( 2 )
         Util.verifyAnimatorUpperBound( self, driver, 2, "Image")
         
     # Test that flipping between combine types resets non-supported settings
@@ -87,7 +90,8 @@ class tStack(unittest.TestCase):
         
         #Open image settings and stack.
         Util.load_image( self, driver, "Default")
-        Util.openSettings( self, driver, "Image" )
+        time.sleep( timeout )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Load the plus layer
@@ -97,6 +101,7 @@ class tStack(unittest.TestCase):
         ActionChains(driver).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         
         #Change the transparency to 100
+        time.sleep( timeout )
         transparencyText = driver.find_element_by_xpath( "//input[starts-with(@id,'maskAlphaTextField')]" )
         driver.execute_script( "arguments[0].scrollIntoView(true);", transparencyText)
         Util._changeElementText(self, driver, transparencyText, 100)
@@ -142,7 +147,7 @@ class tStack(unittest.TestCase):
         
         #Open the image settings
         #Open the stack tab
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Turn off auto select
@@ -152,9 +157,6 @@ class tStack(unittest.TestCase):
         #Select the last two images
         secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.ListItem']/div[text()='aJ.fits']/..")))
         ActionChains(driver).key_down( Keys.CONTROL).click(secondItem).perform()
-        #ActionChains(driver).click( firstItem ).perform()
-        #secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.ListItem']/div[text()='aH.fits']/..")))
-        #ActionChains(driver).key_down(Keys.CONTROL).click(secondItem).perform()
         
         #Change these images to plus layer combining
         combineCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "layerCompositionMode")))

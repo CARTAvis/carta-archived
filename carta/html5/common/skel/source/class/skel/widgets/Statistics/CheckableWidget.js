@@ -24,24 +24,36 @@ qx.Class.define("skel.widgets.Statistics.CheckableWidget", {
         this._add( this.m_label );
         this._add( new qx.ui.core.Spacer(2), {flex:1} );
         
-        this.capture( true );
         this.setDraggable( true );
-        this.setDroppable( true );
+        this.setToolTipText( "Drag to reorder statistics." );
+        
         this.addListener( "mousedown", function(){
             this.setSelected( true );
         }, this );
+        
         this.addListener( "mouseup", function(){
             this.setSelected( false );
         }, this );
+        
+        this.addListener( "mouseover", function(){
+            this.m_mouseOver = true;
+        }, this );
+        
+        this.addListener( "mouseout", function(){
+            this.m_mouseOver = false;
+        }, this );
+        
         this.addListener( "dragstart", function(e){
             e.addAction( "move");
-            
-            e.addType( this.m_LOC );
+            //e.addType( this.m_LOC );
             var data = {
-                title : this.getLabel()
+                title : this.getLabel(),
+                row : this.getRow(),
+                col : this.getCol()
             }
             this.fireDataEvent( "dragStart", data );
         }, this);
+        
         this.addListener( "drag", function(e){
             var left = e.getDocumentLeft();
             var top = e.getDocumentTop();
@@ -51,45 +63,16 @@ qx.Class.define("skel.widgets.Statistics.CheckableWidget", {
             }
             this.fireDataEvent( "dragging", data );
         }, this );
-        this.addListener( "droprequest", function(e){
-            var target = e.getTarget();
-            console.log( "droprequest");
-            console.log( target);
-            var type = e.getCurrentType();
-            var sourceRow = target.getRow();
-            var sourceCol = target.getCol();
-            if ( type == this.m_LOC ){
-                var data = {
-                        row: sourceRow,
-                        col: sourceCol
-                }
-                e.addData( this.m_LOC, data);
-            }
-            else {
-                console.log( "Unrecognized type="+type );
-            }
-        }, this );
-        this.addListener( "drop", function(e){
-            var data = e.getData( this.m_LOC );
-            var sRow = data.row;
-            var sCol = data.col;
-            var target =  e.getTarget();
-            var dRow = target.getRow();
-            var dCol = target.getCol();
-            var data = {
-                sourceRow : sRow,
-                sourceCol : sCol,
-                destRow : dRow,
-                destCol : dCol
-            }
-            this.fireDataEvent( "orderChange", data );
+        
+        this.addListener( "dragend", function(e){
+            this.fireDataEvent( "dragEnd", null );
         }, this );
     },
     
     events: {
-        "orderChange" : "qx.event.type.Data",
         "dragStart" : "qx.event.type.Data",
-        "dragging" : "qx.event.type.Data"
+        "dragging" : "qx.event.type.Data",
+        "dragEnd" : "qx.event.type.Data"
     },
     
     properties : {
@@ -119,6 +102,8 @@ qx.Class.define("skel.widgets.Statistics.CheckableWidget", {
          */
        _applyLabel : function(){
            this.m_label.setValue( this.getLabel() );
+           this.m_check.setToolTipText( "Show/hide the "+this.getLabel()+" statistic.");
+           skel.widgets.TestID.addTestId( this.m_check, this.getLabel() + "StatVisible");
        },
        
        /**
@@ -141,6 +126,14 @@ qx.Class.define("skel.widgets.Statistics.CheckableWidget", {
         */
        _applyValue : function(){
            this.m_check.setValue( this.getValue() );
+       },
+       
+       /**
+        * Returns true if the mouse is hovered over this widget; false otherwise.
+        * @return {boolean} - true if the mouse is hovered over this widget; false otherwise.
+        */
+       isMouseOver : function(){
+           return this.m_mouseOver;
        },
        
        /**
@@ -177,7 +170,8 @@ qx.Class.define("skel.widgets.Statistics.CheckableWidget", {
        m_id : null,
        m_label : null,
        m_check : null,
-       m_LOC : "location",
+       //m_LOC : "location",
+       m_mouseOver : false,
        m_statType : null
     }
 });

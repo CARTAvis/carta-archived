@@ -17,6 +17,14 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
     },
 
     members : {
+        /**
+         * Clear the statistics display.
+         */
+        clear : function(){
+            this.m_regionStats = [];
+            this._statisticsChanged();
+        },
+        
         
         /**
          * Initializes the UI.
@@ -27,6 +35,8 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
             //Regions label
             var regionsLabel = new qx.ui.basic.Label( "Region:");
             this.m_regionsCombo = new skel.widgets.CustomUI.SelectBox( "", "");
+            this.m_regionsCombo.setToolTipText( "Select the region used to generate statistics.");
+            skel.widgets.TestID.addTestId( this.m_regionsCombo, "RegionStatsCombo");
             this.m_regionsCombo.addListener( "selectChanged", function(){
                 this.m_selectIndex = this.m_regionsCombo.getIndex();
                 this._statisticsChanged();
@@ -60,6 +70,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
             return regionStats;
         },
         
+        
         /**
          * Store the list of keys that specifies the order for the statistics &
          * update the display accordingly.
@@ -69,6 +80,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
             this.setKeyOrder( keys );
             this._updateStatsDisplay();
         },
+        
         
         /**
          * Update the UI based on stored statistics information.
@@ -86,16 +98,21 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
             this._updateStatsDisplay();
         },
         
+        
         /**
          * Update the UI with new statistics.
          */
         _updateStatsDisplay : function(){
             if ( this.m_regionStats !== null ){
-                var content = this.generateStatsDisplay( this.m_regionStats[this.m_selectIndex] );
                 this.m_content.removeAll();
-                this.m_content.add( content );
+                if ( this.m_regionStats.length > this.m_selectIndex && 
+                        this.m_selectIndex >= 0){
+                    var content = this.generateStatsDisplay( this.m_regionStats[this.m_selectIndex] );
+                    this.m_content.add( content );
+                }
             }
         },
+        
         
         /**
          * Store server statistics.
@@ -105,6 +122,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsRegion", {
             this.m_regionStats = stats;
             this._statisticsChanged();
         },
+        
 
         m_content : null,
         m_regionsCombo : null,

@@ -101,10 +101,12 @@ class tAnimatorLinks(unittest.TestCase):
         imageWindow2 = Util.load_image_different_window( self, driver, "Orion.methanol.cbc.contsub.image.fits")
 
         # Change link to second image
-        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
-        ActionChains(driver).click( animWindow ).perform()
+        animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelAnimatorUpperBound")))
+        ActionChains(driver).double_click( animWindow ).perform()
+        
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
         ActionChains(driver).click( linkMenuButton ).perform()
+        
         Util.link_second_image( self, driver, imageWindow2)
 
         # Find and click the upper spin box

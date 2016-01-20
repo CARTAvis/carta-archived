@@ -1,6 +1,7 @@
 #include "Region.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
+#include "CartaLib/CartaLib.h"
 
 #include <QDebug>
 
@@ -12,6 +13,7 @@ const QString Region::CLASS_NAME = "Region";
 const QString Region::CORNERS = "corners";
 const QString Region::REGION_POLYGON = "Polygon";
 const QString Region::REGION_ELLIPSE = "Ellipse";
+const QString Region::REGION_ID = "id";
 const QString Region::REGION_TYPE = "regionType";
 const QString Region::XCOORD = "x";
 const QString Region::YCOORD = "y";
@@ -34,6 +36,7 @@ Region::Region(const QString& path, const QString& id )
     _initializeCallbacks();
     _initializeState();
 }
+
 
 void Region::addCorners( const std::vector< std::pair<double,double> >& corners ){
     int cornerCount = corners.size();
@@ -103,8 +106,20 @@ void Region::_initializeCallbacks(){
 
 void Region::_initializeState(){
     m_state.insertValue<QString>( REGION_TYPE, REGION_POLYGON );
+    m_state.insertValue<QString>( REGION_ID, "");
     m_state.insertArray( CORNERS, 0 );
     m_state.flushState();
+}
+
+bool Region::_isMatch( const QString& id ) const {
+    bool match = false;
+    if ( !id.isEmpty() && id.trimmed().length() > 0 ){
+        QString regionId = m_state.getValue<QString>( REGION_ID );
+        if ( regionId.startsWith( id ) ){
+            match = true;
+        }
+    }
+    return match;
 }
 
 
@@ -113,6 +128,8 @@ void Region::_restoreState( const QString& stateStr ){
     dataState.setState( stateStr );
     QString regionType = dataState.getValue<QString>(REGION_TYPE);
     m_state.setValue<QString>( REGION_TYPE, regionType);
+    QString regionId = dataState.getValue<QString>(REGION_ID);
+    m_state.setValue<QString>( REGION_ID, regionId );
     int cornerCount = dataState.getArraySize( CORNERS );
     m_state.resizeArray( CORNERS, cornerCount );
     for ( int i = 0; i < cornerCount; i++ ){
@@ -145,6 +162,15 @@ void Region::setRegionType( Carta::Lib::RegionInfo::RegionType regionType ){
         m_state.flushState();
     }
 }
+
+
+void Region::_setUserId( const QString& file, int index ){
+    CARTA_ASSERT( index >= 0 );
+    QString id = file + QString::number( index );
+    m_state.setValue<QString>( REGION_ID, id );
+}
+
+
 
 Region::~Region(){
 

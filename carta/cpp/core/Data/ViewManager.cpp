@@ -641,6 +641,11 @@ QString ViewManager::_makeStatistics( int index ){
     for ( int i = index; i < currentCount + 1; i++ ){
         m_statistics[i]->setIndex( i );
     }
+    //To try to establish reasonable defaults, if there is a single statistics display
+    //and a single controller display, assume the user wants them linked.
+    if ( m_statistics.size() == 1 && m_controllers.size() == 1 ){
+        m_statistics[0]->addLink( m_controllers[0] );
+    }
     return m_statistics[index]->getPath();
 }
 

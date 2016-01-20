@@ -119,10 +119,8 @@ Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
     casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
     if ( specAx < 0 ) {
         qWarning() << "Image did not have a spectral coordinate";
-        /// \todo Does this mean we can only compute histograms on spectral coordinates!?!?!?!
         return bounds;
     }
-
 
     casa::IPosition imgShape = casaImage->shape();
     int chanMin = std::max( 0, channelMin);
@@ -173,7 +171,7 @@ Histogram1::handleHook( BaseHook & hookData )
         if ( !m_histogram ){
             m_histogram.reset(new ImageHistogram < casa::Float >());
         }
-        m_histogram-> setImage( casaImage->cloneII() );
+
         m_histogram-> setBinCount( hook.paramsPtr->binCount );
 
         double frequencyMin = hook.paramsPtr->minFrequency;
@@ -187,20 +185,22 @@ Histogram1::handleHook( BaseHook & hookData )
             if ( specAx >= 0 ) {
                 minChannel = hook.paramsPtr->minChannel;
                 maxChannel = hook.paramsPtr->maxChannel;
-                m_histogram->setChannelRange( minChannel, maxChannel );
-            }
+                //m_histogram->setChannelRange( minChannel, maxChannel );
 
-            auto bounds = _getFrequencyBounds( casaImage, minChannel, maxChannel, rangeUnits );
-            frequencyMin = bounds.first;
-            frequencyMax = bounds.second;
+                std::pair<double,double> bounds = _getFrequencyBounds( casaImage, minChannel, maxChannel, rangeUnits );
+                frequencyMin = bounds.first;
+                frequencyMax = bounds.second;
+            }
+            m_histogram->setChannelRange( minChannel, maxChannel );
         }
         else {
-            auto bounds = _getChannelBounds( casaImage, frequencyMin, frequencyMax, rangeUnits );
+            std::pair<int,int> bounds = _getChannelBounds( casaImage, frequencyMin, frequencyMax, rangeUnits );
             m_histogram-> setChannelRange( bounds.first, bounds.second );
         }
-        m_histogram->setIntensityRange(
-                    hook.paramsPtr->minIntensity,
-                    hook.paramsPtr->maxIntensity );
+        m_histogram-> setImage( casaImage->cloneII() );
+        double minIntensity = hook.paramsPtr->minIntensity;
+        double maxIntensity = hook.paramsPtr->maxIntensity;
+        m_histogram->setIntensityRange( minIntensity, maxIntensity );
 
         hook.result = _computeHistogram();
         hook.result.setFrequencyBounds( frequencyMin, frequencyMax );

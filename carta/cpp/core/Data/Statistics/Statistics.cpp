@@ -244,7 +244,7 @@ void Statistics::_initializeDefaultState(){
     m_stateData.flushState();
 
     //Preference state
-    m_state.insertValue<bool>( SHOW_STATS_IMAGE, false );
+    m_state.insertValue<bool>( SHOW_STATS_IMAGE, true );
     m_state.insertValue<bool>( SHOW_STATS_REGION, true );
 
     //Image labeels
@@ -311,13 +311,13 @@ QString Statistics::moveStat( int fromIndex, int toIndex, const QString& type ){
             result = "Move indices must be less than: "+ QString::number( statCount );
         }
         else if ( fromIndex < 0  || toIndex < 0 ){
-            result = "Move indeics must be nonnegative";
+            result = "Move indices must be nonnegative";
         }
         else {
             QString sourceLookup = Carta::State::UtilState::getLookup( statType, fromIndex );
             QString sourceObject = m_state.toString( sourceLookup );
             if ( fromIndex < toIndex ){
-                //Move i+1 back to i position.
+                //Move i+1 forward to i position.
                for ( int i = fromIndex; i <toIndex; i++ ){
                    QString moveLookup = Carta::State::UtilState::getLookup( statType, i+1 );
                    QString moveObj = m_state.toString( moveLookup );
@@ -422,11 +422,7 @@ QString Statistics::setStatVisible( bool showStat, const QString& statName,
 
 void Statistics::_updateStatistics( Controller* controller ){
     if ( controller != nullptr ){
-        /**
-         * TODO!!!! Eventually need to have a different callback for updating
-         * the data state, which most likely will happen more frequently than
-         * statistics need to be updated.
-         */
+
         int selectedIndex = controller->getSelectImageIndex();
         m_stateData.setValue<int>(SELECTED_INDEX, selectedIndex );
 
@@ -472,9 +468,11 @@ void Statistics::_updateStatistics( Controller* controller ){
                 hr->registerError( errorStr );
             }
         }
-        //m_stateData.setValue<boool>( "flush", false );
+        //No statistics
+        else {
+            m_stateData.resizeArray( STATS, 0 );
+        }
         m_stateData.flushState();
-        //m_stateData.setValue<bool>("flush", false );
     }
 }
 

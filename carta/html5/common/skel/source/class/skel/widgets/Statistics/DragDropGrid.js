@@ -32,7 +32,6 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
          * @param destCol {Number} - column index where the widget should be moved.
          */
         _changeWidgetOrder : function( sourceRow, sourceCol, destRow, destCol ){
-           
             var origIndex = this._getIndex(sourceRow, sourceCol);
             var destIndex = this._getIndex(destRow, destCol );
             var target = this.m_widgets[origIndex];
@@ -40,29 +39,14 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
             
             //Move all the widgets up to the target index up by one.
             if ( origIndex != destIndex ){
-                if ( origIndex < destIndex ){
-                    for ( var i = origIndex; i <destIndex; i++ ){
-                        this.m_widgets[i] = this.m_widgets[i+1];
-                    }
-                }
-                else {
-                    //Move all the widgets back one to make room for the taget.
-                    for ( var i = origIndex; i >= destIndex; i-- ){
-                        this.m_widgets[i] = this.m_widgets[i-1];
-
-                    }
-                }
-                this.m_widgets[destIndex] = target;
-                
-                this._layout();
+                var data = {
+                    type : this.m_type,
+                    originalIndex : origIndex,
+                    moveIndex : destIndex
+                };
+                this.fireDataEvent( "statMoved", data );
             }
-            var data = {
-                type : this.m_type,
-                originalIndex : origIndex,
-                moveIndex : destIndex
-            };
-            
-            this.fireDataEvent( "statMoved", data );
+           
         },
         
         /**
@@ -76,10 +60,38 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
         },
         
         /**
-         * Hide the drag indicator at the end of a drag.
+         * Hide the drag indicator at the end of a drag as well as
+         * deselecting all widgets.
          */
         _dragEnd : function(){
             this.m_dragItem.setDomPosition( -1000, -1000 );
+            this.m_dragItem.setValue( "");
+            var itemCount = this.m_widgets.length;
+            for ( var i = 0; i < itemCount; i++ ){
+                this.m_widgets[i].setSelected( false );
+            }
+        },
+        
+        
+        /**
+         * A drag has finished; collate information to change the widget
+         * order, if appropriate.
+         */
+        _dragFinish : function(){
+            if ( this.m_dragItem.getValue() != ""){
+                for ( var i = 0; i < this.m_widgets.length; i++ ){
+                    var mouseOver= this.m_widgets[i].isMouseOver();
+                    if ( mouseOver ){
+                        var destRow = this.m_widgets[i].getRow();
+                        var destCol = this.m_widgets[i].getCol();
+                        this._changeWidgetOrder( this.m_dragSourceRow, this.m_dragSourceCol,
+                                destRow, destCol);
+                        this._dragEnd();
+                        break;
+                    }
+                    
+                }
+            }
         },
         
         /**
@@ -89,6 +101,8 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
          */
         _dragStart : function( ev ){
             var data = ev.getData();
+            this.m_dragSourceRow = data.row;
+            this.m_dragSourceCol = data.col;
             this.m_dragItem.setValue( data.title);
         },
         
@@ -112,7 +126,7 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
             var gridLayout = new qx.ui.layout.Grid(5,5);
             this._setLayout( gridLayout );
             
-            this.m_dragItem = new qx.ui.basic.Label("Hi/Bye");
+            this.m_dragItem = new qx.ui.basic.Label("");
             this.m_dragItem.setZIndex( 500 );
             this.m_dragItem.setLayoutProperties( {left:-1000, top:-1000});
             qx.core.Init.getApplication().getRoot().add( this.m_dragItem );
@@ -151,21 +165,13 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
             checkWidget.setLabel( label );
             checkWidget.setStatType( this.m_type );
             checkWidget.setValue( visible );
-            checkWidget.addListener( "orderChange", function(e){
-                this._dragEnd();
-                var data = e.getData();
-                var sourceRow = data.sourceRow;
-                var sourceCol = data.sourceCol;
-                var destRow = data.destRow;
-                var destCol = data.destCol;
-                this._changeWidgetOrder( sourceRow, sourceCol, destRow, destCol );
-            }, this );
             checkWidget.addListener( "dragStart", this._dragStart, this );
             checkWidget.addListener( "dragging", this._drag, this );
-           
+            checkWidget.addListener( "dragEnd", this._dragFinish, this );
             checkWidget.setId( this.m_id );
             return checkWidget;
         },
+        
         
         /**
          * Set the number of columns in the grid.
@@ -188,6 +194,21 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
                 }
             }
         },
+        
+        
+        /**
+         * Set the server-side id of the statistics object.
+         * @param id {String} - the id of the server-side id of the statistics object.
+         */
+        setId : function( id ){
+            this.m_id = id;
+            if ( this.m_widgets !== null ){
+                for ( var i = 0; i < this.m_widgets.length; i++ ){
+                    this.m_widgets[i].setId( this.m_id );
+                }
+            }
+        },
+        
         
         /**
          * Update the UI with a new list of labels to display.
@@ -214,36 +235,18 @@ qx.Class.define("skel.widgets.Statistics.DragDropGrid", {
                     var widgetIndex = baseIndex + j;
                     this.m_widgets[widgetIndex] = this._makeCheckableWidget( labels[i].label, labels[i].visible );
                     j++;
-                    
                     this.m_widgets[widgetIndex].setCheckEnabled( this.m_enabled );
-                    this.m_widgets[widgetIndex].addListener( "changeOrder", function(ev){
-                        var data = ev.getData();
-                        this._changeWidgetOrder( data.sourceRow, data.sourceCol, data.destRow, data.destCol );
-                    }, this);
-                    
                 }
             }
             this._layout();
-        },
-        
-        
-        /**
-         * Set the server-side id of the statistics object.
-         * @param id {String} - the id of the server-side id of the statistics object.
-         */
-        setId : function( id ){
-            this.m_id = id;
-            if ( this.m_widgets !== null ){
-                for ( var i = 0; i < this.m_widgets.length; i++ ){
-                    this.m_widgets[i].setId( this.m_id );
-                }
-            }
         },
        
         
         m_colCount : 3,
         m_enabled : true,
         m_dragItem : null,
+        m_dragSourceRow : null,
+        m_dragSourceCol : null,
         m_id : null,
         m_type : null,
         m_widgets : null

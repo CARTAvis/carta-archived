@@ -180,7 +180,7 @@ class tWindow(unittest.TestCase):
         # plugin in the submenu.
         viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
         ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
-            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
 
         #Verify that we have increased the number of histogram windows by one.

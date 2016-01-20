@@ -42,12 +42,10 @@ void StatisticsCASAImage::_computeStats(const casa::ImageInterface<casa::Float>*
     }
     _insertShape( shapeVector, stats );
 
-
     const casa::CoordinateSystem cs = image->coordinates();
     _insertRaDec( cs, shapeVector, stats );
 
     _insertSpectral( cs, shapeVector, stats );
-
 
     _insertRestoringBeam( image, stats );
 }
@@ -57,12 +55,24 @@ void StatisticsCASAImage::_getStatsPlanar( const casa::ImageInterface<casa::Floa
         QList<Carta::Lib::StatInfo>& statsMap, int zIndex, int hIndex ) {
 
     try {
-        const casa::CoordinateSystem& cs = image->coordinates();
+        int dim = image->shape().nelements();
+        if ( dim <= 2 ){
+            return;
+        }
+
+        const casa::CoordinateSystem cs = image->coordinates();
 
         int zAxis = -1;
         if ( cs.hasSpectralAxis() ){
             zAxis = cs.spectralAxisNumber();
         }
+        else {
+            int tabIndex = cs.findCoordinate( casa::Coordinate::TABULAR );
+            if ( tabIndex >= 0 ){
+                zAxis = tabIndex;
+            }
+        }
+
 
         int hAxis = -1;
         if ( cs.hasPolarizationCoordinate() ){
@@ -71,9 +81,15 @@ void StatisticsCASAImage::_getStatsPlanar( const casa::ImageInterface<casa::Floa
 
         //Get the axis names
         casa::Vector<casa::String> axesNames = cs.worldAxisNames();
-
-        casa::String zAxisName = axesNames[zAxis];
-        casa::String hAxisName = axesNames[hAxis ];
+        int nameCount = axesNames.size();
+        casa::String zAxisName("");
+        if ( zAxis >= 0 && zAxis < nameCount ){
+            zAxisName = axesNames[zAxis];
+        }
+        casa::String hAxisName("");
+        if ( hAxis >= 0 && hAxis < nameCount ){
+            hAxisName = axesNames[hAxis ];
+        }
 
         casa::String zUnit, zspKey, zspVal;
 
@@ -81,9 +97,11 @@ void StatisticsCASAImage::_getStatsPlanar( const casa::ImageInterface<casa::Floa
 
         //Region Spectral Plane
         casa::Vector<casa::Double> tWrld;
-        casa::Vector<casa::Double>tPix = cs.referencePixel();
+
         casa::String tStr;
-        if (zIndex > -1) {
+        casa::Vector<casa::Double>tPix = cs.referencePixel();
+        int tPixSize = tPix.nelements();
+        if (zIndex > -1 && zAxis >= 0 && zAxis < tPixSize ) {
             tPix(zAxis) = zIndex;
             if ( cs.toWorld( tWrld, tPix)){
                 casa::String zLabel = cs.format(tStr, casa::Coordinate::DEFAULT, tWrld(zAxis), zAxis,
@@ -147,14 +165,14 @@ void StatisticsCASAImage::_getStatsPlanar( const casa::ImageInterface<casa::Floa
 
         casa::Int afterCoord = -1;
         casa::Int dC = cs.findCoordinate(casa::Coordinate::DIRECTION, afterCoord);
-        // use contains() not == so moment maps are dealt with nicely
         if ( ! beam.isNull() && dC!=-1 && imageUnits.find("JY/BEAM") != std::string::npos ) {
             casa::DirectionCoordinate dCoord = cs.directionCoordinate(dC);
             casa::Vector<casa::String> units(2);
             units(0) = units(1) = "rad";
             dCoord.setWorldAxisUnits(units);
             casa::Vector<casa::Double> deltas = dCoord.increment();
-            beamArea = beam.getArea("rad2") / abs(deltas(0) * deltas(1));
+            double divisor = qAbs( deltas(0)* deltas(1));
+            beamArea = beam.getArea("rad2") / divisor;
         }
 
         if ( beamArea > 0 ){

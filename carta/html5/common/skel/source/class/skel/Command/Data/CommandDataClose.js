@@ -1,5 +1,5 @@
 /**
- * Container for commands to close specific images.
+ * Command to close a specific image that has been loaded.
  */
 /*global mImport */
 /*******************************************************************************
@@ -7,61 +7,48 @@
  ******************************************************************************/
 
 qx.Class.define("skel.Command.Data.CommandDataClose", {
-    extend : skel.Command.CommandComposite,
-    type : "singleton",
+    extend : skel.Command.Command,
 
     /**
      * Constructor.
+     * @param label {String} name of the image to close.
      */
-    construct : function( ) {
-        this.base( arguments, "Close" );
-        this.m_cmds = [];
-        this.setEnabled( false );
+    construct : function( label, typeStr, closeWhat, id ) {
+        var path = skel.widgets.Path.getInstance();
+        var cmd = path.SEP_COMMAND + closeWhat;
+        this.base( arguments, label, cmd);
+        this.m_toolBarVisible = false;
+        this.setEnabled( true );
         this.m_global = false;
-        this.setToolTipText("Close data...");
-        this.setValue( this.m_cmds );
+        this.m_params = typeStr;
+        this.m_paramValue = id;
+        this.setToolTipText("Remove the "+typeStr+ ": " + this.getLabel() + ".");
     },
     
     members : {
-        /**
-         * The commands to close individual images have changed.
-         */
-        // Needed so that if data is added to an image that is already selected, i.e.,
-        // enabled status has not changed, but data count has, the close image commands
-        // will be updated.
-        datasChanged : function(){
-            this._resetEnabled();
-        },
-        
-        _resetEnabled : function( ){
-            arguments.callee.base.apply( this, arguments );
-            //Dynamically create close image commands based on the active windows.
-            this.m_cmds = [];
-            var activeWins = skel.Command.Command.m_activeWins;
-            if ( activeWins !== null && activeWins.length > 0 ){
-                //Use the first one in the list that supports this cmd.
-                var k = 0;
-                var dataCmd = skel.Command.Data.CommandData.getInstance();
-                for ( var i = 0; i < activeWins.length; i++ ){
-                    if ( activeWins[i].isCmdSupported( dataCmd ) ){
-                        var closes = activeWins[i].getDatas();
-                        for ( var j = 0; j < closes.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j].file );
-                            k++;
-                        }
-                    }
-                }
+
+        doAction : function( vals, undoCB ){
+            var path = skel.widgets.Path.getInstance();
+            var label = this.getLabel();
+            if ( this.m_paramValue !== null && typeof this.m_paramValue !== "undefined"){
+                label = this.m_paramValue;
             }
-            if ( this.m_cmds.length > 0 ){
-                this.setEnabled( true );
+            var params = this.m_params + ":" + label;
+            var errMan = skel.widgets.ErrorHandler.getInstance();
+            if ( skel.Command.Command.m_activeWins.length > 0 ){
+                for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
+                    var windowInfo = skel.Command.Command.m_activeWins[i];
+                    var id = windowInfo.getIdentifier();
+                    this.sendCommand( id, params, undoCB );
+                }
+                errMan.clearErrors();
             }
             else {
-                this.setEnabled( false );
+                errMan.updateErrors( "Error closing "+this.m_params +".");
             }
-            this.setValue( this.m_cmds );
-            qx.event.message.Bus.dispatch(new qx.event.message.Message(
-                    "commandsChanged", null));
-        }
+        },
+        
+        m_params : "image",
+        m_paramValue: null
     }
-
 });

@@ -26,6 +26,11 @@ StatisticsCASARegion::getStats(
 void StatisticsCASARegion::_getStatsFromCalculator( casa::ImageInterface<casa::Float>* image,
        const casa::Record& region, const std::vector<int>& slice,
        QList<Carta::Lib::StatInfo>& stats, const QString& regionType ){
+    //If the region record is empty, there are not stats - just return.
+    int fieldCount = region.nfields();
+    if ( fieldCount == 0 ){
+        return;
+    }
     std::shared_ptr<const casa::ImageInterface<casa::Float> > imagePtr( image->cloneII() );
 
     casa::CoordinateSystem cs = image->coordinates();

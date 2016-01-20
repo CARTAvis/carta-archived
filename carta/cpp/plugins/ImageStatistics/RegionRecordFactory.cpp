@@ -181,6 +181,21 @@ casa::Record RegionRecordFactory::getRegionRecord( Carta::Lib::RegionInfo::Regio
     const std::vector<int>& slice,
     QString& typeStr ){
     casa::Record regionRecord;
+    //Do a quick check to make sure the slice is actually in the image.
+    casa::IPosition imageShape = casaImage->shape();
+    if ( imageShape.nelements() != slice.size() ){
+        //Slice does not match image shape.
+        return regionRecord;
+    }
+    else {
+        int dims = imageShape.nelements();
+        for ( int i = 0; i < dims; i++ ){
+            if ( slice[i] >= imageShape[i] ){
+                //Slice is not in image;
+                return regionRecord;
+            }
+        }
+    }
     if ( type == Carta::Lib::RegionInfo::RegionType::Polygon ){
         regionRecord = _getRegionRecordPolygon( casaImage, corners, slice, typeStr );
     }

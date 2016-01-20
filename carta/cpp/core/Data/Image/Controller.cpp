@@ -174,12 +174,15 @@ bool Controller::_addDataImage(const QString& fileName) {
             int frameCount = m_datas[targetIndex]->_getFrameCount( type );
             m_selects[i]->setUpperBound( frameCount );
         }
+
         m_selectImage->setIndex(targetIndex);
         if ( isStackSelectAuto() ){
             std::vector<int> selectedLayers(1);
             selectedLayers[0] = targetIndex;
             _setLayersSelected( selectedLayers );
         }
+
+        _updateDisplayAxes( targetIndex );
 
         saveState();
 
@@ -188,7 +191,7 @@ bool Controller::_addDataImage(const QString& fileName) {
 
         //Notify others there has been a change to the data.
         emit dataChanged( this );
-        _updateDisplayAxes( targetIndex );
+
     }
     else {
         QString error = "Unable to load image: "+fileName+".  Please check the file is a supported image format.";
@@ -210,6 +213,7 @@ bool Controller::_addDataRegion(const QString& fileName) {
             for ( int i = 0; i < regionCount; i++ ){
                if ( data[i] ){
                    std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
+                   regionPtr -> _setUserId( fileName, i );
                    m_regions.push_back( regionPtr );
                }
             }
@@ -304,6 +308,32 @@ QString Controller::closeImage( const QString& name ){
     return result;
 }
 
+QString Controller::closeRegion( const QString& regionId ){
+    bool regionRemoved = false;
+    QString result;
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    //Note that more than one region could be removed, if there are
+    //serveral regions that start with the passed in id.
+    int regionCount = m_regions.size();
+    for ( int i = regionCount - 1; i >= 0; i-- ){
+        bool match = m_regions[i]->_isMatch( regionId );
+        if ( match ){
+            QString id = m_regions[i]->getId();
+            objMan->removeObject( id );
+            m_regions.removeAt( i );
+            regionRemoved = true;
+        }
+    }
+    if ( regionRemoved ){
+        _saveStateRegions();
+        emit dataChanged( this );
+    }
+    else {
+        result = "Could not find region to remove for id="+regionId;
+    }
+    return result;
+}
+
 void Controller::_colorMapChanged(){
     _renderAll();
 }
@@ -370,9 +400,10 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     }
     else {
         int dataCount = m_datas.size();
+        std::vector<int> frames = _getFrameIndices();
         for ( int i = 0; i < dataCount; i++ ){
             if ( m_datas[i] != nullptr ){
-                std::vector<int> frames = _getFrameIndices();
+
                 m_datas[i]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
@@ -450,9 +481,12 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
 std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::getDataSources(){
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_datas.size();
+    //Return the images in stack order.
+    int startIndex = _getIndexCurrent();
     for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isVisible() ){
-            images.push_back( m_datas[i]->_getImage());
+        int dIndex = (startIndex + i) % dataCount;
+        if ( m_datas[dIndex]->_isVisible() ){
+            images.push_back( m_datas[dIndex]->_getImage());
         }
     }
     return images;
@@ -945,11 +979,20 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) ->QString {
-        std::set<QString> keys = {"image"};
+        std::set<QString> keys = {IMAGE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString imageName = dataValues[*keys.begin()];
         QString result = closeImage( imageName );
                 return result;
+    });
+
+    addCommandCallback( "closeRegion", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) ->QString {
+        std::set<QString> keys = {"region"};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString regionId = dataValues[*keys.begin()];
+        QString result = closeRegion( regionId );
+        return result;
     });
 
     addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
@@ -1276,7 +1319,13 @@ void Controller::_removeData( int index ){
 
 void Controller::_renderAll(){
     int gridIndex = _getIndexCurrent();
-    _render( m_datas, gridIndex );
+    QList<std::shared_ptr<ControllerData> > datas;
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        int stackIndex = (gridIndex + i) % dataCount;
+        datas.append( m_datas[stackIndex] );
+    }
+    _render( datas, gridIndex );
 }
 
 void Controller::_renderSingle( int dIndex ){
@@ -1371,17 +1420,18 @@ void Controller::resetStateData( const QString& state ){
         std::shared_ptr<Region> region = RegionFactory::makeRegion( regionState );
         m_regions.append( region );
     }
+    _saveStateRegions();
 
     //Notify others there has been a change to the data.
     emit dataChanged( this );
     emit dataChangedRegion( this );
 
     //Reset the state of the grid controls based on the selected image.
-    int dataIndex = _getIndexCurrent();
+    /*int dataIndex = _getIndexCurrent();
     if ( 0 <= dataIndex ){
         StateInterface controlState = m_datas[dataIndex]->_getGridState();
         this->m_gridControls->_resetState( controlState );
-    }
+    }*/
 }
 
 void Controller::resetPan(){
@@ -1437,6 +1487,7 @@ void Controller::saveState() {
         QString dataKey = UtilState::getLookup( DATA, i);
         m_stateData.setObject( dataKey, layerString);
     }
+    m_stateData.flushState();
 }
 
 void Controller::_saveStateRegions(){
@@ -1509,12 +1560,13 @@ void Controller::_scheduleFrameReload( bool newClips ){
     if ( m_datas.size() > 0  ){
         // if reload is already pending, do nothing
         if ( m_reloadFrameQueued ) {
+            qDebug() << "Doing nothing becaue reload is queued";
             return;
         }
         int selectIndex=m_selectImage->getIndex();
         m_stackDraw->setSelectIndex( selectIndex);
-        _renderAll();
-        m_reloadFrameQueued = true;
+        //_renderAll();
+        //m_reloadFrameQueued = true;
         QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
     }
 }

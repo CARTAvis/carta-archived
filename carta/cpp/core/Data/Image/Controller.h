@@ -97,9 +97,16 @@ public:
     /**
      * Close the given image.
      * @param name an identifier for the image to close.
+     * @return - an error message if the image was not successfully closed.
      */
     QString closeImage( const QString& name );
 
+    /**
+     * Close the given region.
+     * @param regionId - an identifier for a region.
+     * @return - an error message if the region was not successfully closed.
+     */
+    QString closeRegion( const QString& regionId );
 
     /**
       * Get the image pixel that is currently centered.

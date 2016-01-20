@@ -727,9 +727,10 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
         m_permuteImage = _getPermutedImage();
         _resetPan();
         _resizeQuantileCache();
-        std::vector<int> mFrames = _fitFramesToImage( frames );
-        _updateRenderedView( mFrames );
+
     }
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    _updateRenderedView( mFrames );
 }
 
 void DataSource::_setNanDefault( bool nanDefault ){

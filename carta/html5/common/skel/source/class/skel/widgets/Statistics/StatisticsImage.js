@@ -23,6 +23,15 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
     members : {
         
         /**
+         * Clear the statistics display.
+         */
+        clear : function(){
+            this.m_stats = [];
+            this._updateStatsDisplay();
+        },
+        
+        
+        /**
          * Initializes the UI.
          */
         _init : function( ) {
@@ -33,6 +42,8 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
             this._add( imageContainer );
             var imageLabel = new qx.ui.basic.Label( "Image:");
             this.m_imageCombo = new skel.widgets.CustomUI.SelectBox( "", "");
+            this.m_imageCombo.setToolTipText( "Select the image used to generate statistics.");
+            skel.widgets.TestID.addTestId( this.m_imageCombo, "ImageStatsCombo");
             this.m_imageCombo.addListener( "selectChanged", function(){
                 var selectIndex = this.m_imageCombo.getIndex();
                 var data = {
@@ -97,11 +108,15 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
          */
         _updateStatsDisplay : function(){
             if ( this.m_stats !== null ){
-                var content = this.generateStatsDisplay( this.m_stats );
                 this.m_content.removeAll();
-                this.m_content.add( content );
+                if ( this.m_stats !== null ){
+                    var content = this.generateStatsDisplay( this.m_stats );
+                    this.m_content.add( content );
+                }
             }
         },
+        
+        
         
         m_content : null,
         m_imageCombo : null,
