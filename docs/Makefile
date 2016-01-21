@@ -6,6 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = build
+MKDIR_P       = mkdir -p
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -51,10 +52,16 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-html:
+html: doxygenhtml
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+doxygenhtml: outputdir
+	$(MAKE) -C ../carta/cpp/docs all
+
+outputdir:
+	$(MKDIR_P) $(BUILDDIR)
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
