@@ -49,14 +49,18 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
         _sendCmd : function(){
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
-            if ( this.m_id !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
-                var selectValue = this.getValue();
-                var params = this.m_paramId + ":"+selectValue;
-                this.m_connector.sendCommand( cmd, params, function(){});
+            var selectValue = this.getValue();
+            if ( selectValue !== null && selectValue.length > 0 ){
+                if ( this.m_id !== null ){
+                
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
+                
+                    var params = this.m_paramId + ":"+selectValue;
+                    this.m_connector.sendCommand( cmd, params, function(){});
+                }
+                this.fireDataEvent( "selectChanged", null );
             }
-            this.fireDataEvent( "selectChanged", null );
         },
         
         /**

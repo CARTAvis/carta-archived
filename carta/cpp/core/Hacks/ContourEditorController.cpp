@@ -25,6 +25,9 @@ s2vd( QString s, QString sep = " " )
 }
 */
 
+namespace Carta
+{
+
 namespace Hacks
 {
 ContourEditorController::ContourEditorController( QObject * parent,
@@ -93,7 +96,7 @@ ContourEditorController::startRendering( ContourEditorController::JobId jobId )
 }
 
 void
-ContourEditorController::setInput( NdArray::RawViewInterface::SharedPtr rawView )
+ContourEditorController::setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView )
 {
     m_contourSvc-> setInput( rawView );
 }
@@ -217,4 +220,6 @@ ContourEditorController::stdVarCB()
 //    // let everyone know something was updated
 //    emit updated();
 }
+}
+
 }

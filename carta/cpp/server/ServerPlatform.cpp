@@ -50,12 +50,7 @@ IConnector * ServerPlatform::connector()
 
 const QStringList & ServerPlatform::initialFileList()
 {
-    auto params = m_connector-> urlParams();
-    auto it = this-> m_connector-> urlParams().find( "file");
-    if( it != this-> m_connector-> urlParams().end()) {
-        m_initialFileList << ( * it).second;
-    }
-    return m_initialFileList;
+    return m_connector-> initialFileList();
 }
 
 QString ServerPlatform::getCARTADirectory()

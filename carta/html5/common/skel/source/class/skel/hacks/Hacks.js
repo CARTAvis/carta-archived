@@ -61,7 +61,8 @@ qx.Class.define("skel.hacks.Hacks", {
             win2.setUseResizeFrame( false);
             win2.setContentPadding( 5, 5, 5, 5 );
             win2.setLayout( new qx.ui.layout.VBox(5) );
-            win2.add( new skel.hacks.HackView( newViewName), { flex: 1 });
+            var newView = new skel.hacks.HackView( newViewName);
+            win2.add( newView, { flex: 1 });
             // add mini movie player
             var mp = {};
             mp.prefix = "/hacks/views/" + newViewName;
@@ -80,24 +81,56 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.delayTF = new skel.boundWidgets.TextField( mp.prefix + "/delay");
             mp.container.add( mp.delayTF);
             mp.container.add( new skel.boundWidgets.Label( "Frame:", "", mp.prefix + "/frame"));
-            //mp.container.add( (new qx.ui.core.Spacer()).set({ allowStretchX: true }));
             mp.container.add( new qx.ui.core.Spacer(), { flex: 1 });
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);
+
+/*
+            var accum_fps = 0;
+            var lastRefresh = window.performance.now();
+            //newView.viewWidget().getIView().addViewCallback( function() {
+            newView.viewWidget().addListener( "viewRefreshed", function() {
+                var currRefresh = window.performance.now();
+                var fps = 1000 / (currRefresh - lastRefresh);
+                lastRefresh = currRefresh;
+                accum_fps = 0.9 * accum_fps + 0.1 * fps;
+                mp.fps.setValue(""+ accum_fps + "(" + fps + ")");
+            });
+*/
             win2.add( mp.container);
-
-            // add a contour box
-            //var cbox = new qx.ui.container.Composite( new qx.ui.layout.HBox(5));
-            //cbox.getLayout().set({ alignY: "middle"});
-            //cbox.add( new qx.ui.basic.Label( "Contours:"));
-            //var contoursTF = new skel.boundWidgets.TextField( mp.prefix + "/contourLevels");
-            //contoursTF.setToolTipText( "Enter contour levels here, separated by spaces or commas");
-            //cbox.add( contoursTF, { flex: 1});
-            //win2.add(cbox);
-
-            // pop up the window
             this.m_app.getRoot().add( win2, {left: 100, top: 100} );
             win2.open();
+
+            // ==================================================================================
+            // VGview hack window
+            // ==================================================================================
+            var vgWin = new qx.ui.window.Window( "Managed layers hack" );
+            vgWin.setWidth( 600 );
+            vgWin.setHeight( 400 );
+            vgWin.setShowMinimize( false );
+            vgWin.setUseResizeFrame( false);
+            vgWin.setContentPadding( 5, 5, 5, 5 );
+            vgWin.setLayout( new qx.ui.layout.VBox(5) );
+            //vgWin.add( new skel.hacks.HackView( "vgview1"), { flex: 1 });
+            //vgWin.add( new skel.boundWidgets.View.View( "vgview1"), { flex: 1 });
+            //vgWin.add( new skel.hacks.LayeredViewHack( "vgview1"), { flex: 1 });
+            var vgview =  new skel.hacks.VGView( "mlv1");
+            vgview.installDefaultInputHandler( vgview.INPUT_ALL_BUILTINS);
+            vgWin.add( vgview, { flex: 1 });
+            this.m_app.getRoot().add( vgWin, {left: 150, top: 120} );
+            vgWin.open();
+
+            var vgWin2 = new qx.ui.window.Window( "VGhack2" );
+            vgWin2.setWidth( 600 );
+            vgWin2.setHeight( 400 );
+            vgWin2.setShowMinimize( false );
+            vgWin2.setUseResizeFrame( false);
+            vgWin2.setContentPadding( 5, 5, 5, 5 );
+            vgWin2.setLayout( new qx.ui.layout.VBox(5) );
+            vgWin2.add( new skel.hacks.LayeredViewHack( "vgview2"), { flex: 1 });
+            this.m_app.getRoot().add( vgWin2, {left: 170, top: 140} );
+            vgWin2.open();
+
 
             // create cursor window
             this.m_cursorWindow = new skel.boundWidgets.CursorWindow();

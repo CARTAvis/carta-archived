@@ -52,13 +52,6 @@ DataSource::DataSource() :
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-bool DataSource::_contains(const QString& fileName) const {
-    bool representsData = false;
-    if ( m_fileName.endsWith(fileName)) {
-        representsData = true;
-    }
-    return representsData;
-}
 
 int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceFrames ) const {
     int frameIndex = 0;
@@ -268,9 +261,9 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
     int valX = (int)(round(x));
     int valY = (int)(round(y));
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
-        NdArray::RawViewInterface* rawData = _getRawData( frames );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
-            NdArray::TypedView<double> view( rawData, false );
+            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
             double val =  view.get( { valX, valY } );
             pixelValue = QString::number( val );
         }
@@ -337,7 +330,7 @@ QString DataSource::_getFileName() const {
     return m_fileName;
 }
 
-std::shared_ptr<Image::ImageInterface> DataSource::_getImage(){
+std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getImage(){
     return m_image;
 }
 
@@ -354,9 +347,9 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
     bool intensityFound = false;
     int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL );
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
-        NdArray::TypedView<double> view( rawData, false );
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
         std::vector < double > allValues;
@@ -381,14 +374,19 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
     return intensityFound;
 }
 
+QColor DataSource::_getNanColor() const {
+    QColor nanColor = m_renderService->getNanColor();
+    return nanColor;
+}
+
 double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
     int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL);
-    NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
         u_int64_t countBelow = 0;
-        NdArray::TypedView<double> view( rawData, false );
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         view.forEach([&](const double& val) {
             if( Q_UNLIKELY( std::isnan(val))){
                 return;
@@ -425,8 +423,8 @@ QString DataSource::_getPixelUnits() const {
     return units;
 }
 
-NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
-    NdArray::RawViewInterface* rawData = nullptr;
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
         int imageDim =m_image->dims().size();
         SliceND frameSlice = SliceND().next();
@@ -483,8 +481,8 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     return cacheIndex;
 }
 
-std::shared_ptr<Image::ImageInterface> DataSource::_getPermutedImage() const {
-    std::shared_ptr<Image::ImageInterface> permuteImage(nullptr);
+std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermutedImage() const {
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> permuteImage(nullptr);
     if ( m_image ){
         //Build a vector showing the permute order.
         int imageDim = m_image->dims().size();
@@ -503,9 +501,8 @@ std::shared_ptr<Image::ImageInterface> DataSource::_getPermutedImage() const {
     return permuteImage;
 }
 
-
-NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
-    NdArray::RawViewInterface* rawData = nullptr;
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     std::vector<int> mFrames = _fitFramesToImage( frames );
     if ( m_permuteImage ){
         int imageDim =m_permuteImage->dims().size();
@@ -595,7 +592,7 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
     int frameSize = frames.size();
     CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    std::shared_ptr<NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
     std::vector<int> dimVector = view->dims();
     //Update the clip values
     if ( recomputeClipsOnNewFrame ){
@@ -621,7 +618,17 @@ void DataSource::_resetPan(){
     }
 }
 
-
+void DataSource::_resizeQuantileCache(){
+    m_quantileCache.resize(0);
+    int nf = 1;
+    int imageSize = m_image->dims().size();
+    for ( int i = 0; i < imageSize; i++ ){
+        if ( i != m_axisIndexX && i != m_axisIndexY ){
+            nf = nf * m_image->dims()[i];
+        }
+    }
+    m_quantileCache.resize( nf);
+}
 
 bool DataSource::_setFileName( const QString& fileName ){
     QString file = fileName.trimmed();
@@ -663,19 +670,7 @@ bool DataSource::_setFileName( const QString& fileName ){
 }
 
 
-void DataSource::_resizeQuantileCache(){
-    m_quantileCache.resize(0);
-    int nf = 1;
-    int imageSize = m_image->dims().size();
-    for ( int i = 0; i < imageSize; i++ ){
-        if ( i != m_axisIndexX && i != m_axisIndexY ){
-            nf = nf * m_image->dims()[i];
-        }
-    }
-    m_quantileCache.resize( nf);
-}
-
-void DataSource::setColorMap( const QString& name ){
+void DataSource::_setColorMap( const QString& name ){
     Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
     Carta::State::CartaObject* obj = objManager->getObject( Colormaps::CLASS_NAME );
     Colormaps* maps = dynamic_cast<Colormaps*>(obj);
@@ -683,23 +678,28 @@ void DataSource::setColorMap( const QString& name ){
     m_renderService ->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
-void DataSource::setColorInverted( bool inverted ){
+void DataSource::_setColorInverted( bool inverted ){
     m_pixelPipeline-> setInvert( inverted );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-void DataSource::setColorReversed( bool reversed ){
+void DataSource::_setColorReversed( bool reversed ){
     m_pixelPipeline-> setReverse( reversed );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-void DataSource::setColorAmounts( double newRed, double newGreen, double newBlue ){
+void DataSource::_setColorAmounts( double newRed, double newGreen, double newBlue ){
     std::array<double,3> colorArray;
     colorArray[0] = newRed;
     colorArray[1] = newGreen;
     colorArray[2] = newBlue;
     m_pixelPipeline->setRgbMax( colorArray );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
+}
+
+void DataSource::_setColorNan( double red, double green, double blue ){
+    QColor nanColor( red, green, blue );
+    m_renderService->setNanColor( nanColor );
 }
 
 bool DataSource::_setDisplayAxis( AxisInfo::KnownType axisType, int* axisIndex ){
@@ -732,6 +732,10 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
     }
 }
 
+void DataSource::_setNanDefault( bool nanDefault ){
+    m_renderService->setDefaultNan( nanDefault );
+}
+
 void DataSource::_setPan( double imgX, double imgY ){
     m_renderService-> setPan( QPointF(imgX,imgY) );
 }
@@ -750,18 +754,18 @@ void DataSource::_setZoom( double zoomAmount){
 
 
 
-void DataSource::setGamma( double gamma ){
+void DataSource::_setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
 
-void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
+void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex];
-    NdArray::Double doubleView( view.get(), false );
+    Carta::Lib::NdArray::Double doubleView( view.get(), false );
     std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, {minClipPercentile, maxClipPercentile });
     bool clipsChanged = false;
@@ -787,9 +791,9 @@ void DataSource::_updateClips( std::shared_ptr<NdArray::RawViewInterface>& view,
     }
 }
 
-std::shared_ptr<NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){
+std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){
     // get a view of the data using the slice description and make a shared pointer out of it
-    std::shared_ptr<NdArray::RawViewInterface> view( _getRawData( frames ) );
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view( _getRawData( frames ) );
     // tell the render service to render this job
     QString renderId = _getViewIdCurrent( frames );
     m_renderService-> setInputView( view, renderId/*, m_axisIndexX, m_axisIndexY*/ );

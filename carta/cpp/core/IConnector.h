@@ -10,6 +10,12 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
+namespace Carta {
+namespace Lib {
+class IRemoteVGView;
+}
+}
+
 /**
  * @brief The IConnector interface offers common API that the C++ code uses
  * to communicate with the JavaScript side. Different implementations are used
@@ -46,16 +52,15 @@ public:
     virtual void registerView( IView * view) = 0;
 
     /// asks the connector to schedule a redraw of the view
-    virtual void refreshView( IView * view) = 0;
+    /// \param view which view to refresh
+    /// \return the id for the refresh (always increasing)
+    virtual qint64 refreshView( IView * view) = 0;
 
     /// unregister a view with the connector
     virtual void unregisterView( const QString& viewName ) = 0;
 
     /// set state to a new value
     virtual void setState( const QString & path,  const QString & value) = 0;
-
-    //Return a string indicating the location where state is saved/restored.
-    virtual QString getStateLocation( const QString& saveName ) const = 0;
 
     /// read state
     virtual QString getState( const QString & path) = 0;
@@ -71,6 +76,16 @@ public:
     /// remove a callback for a state change event
     /// \todo maybe we can have a universal 'removeCallback' for commands/states
     virtual void removeStateCallback( const CallbackID & id ) = 0;
+
+    /// return filename where state is saved/restored.
+    /// \todo this should not be part of connector, as it has nothing to do with communication
+    /// between C++ and JavaScript
+    virtual QString getStateLocation( const QString& saveName ) const = 0;
+
+    /// create a vector graphics view
+//    virtual Carta::Lib::IRemoteVGView::SharedPtr
+    virtual Carta::Lib::IRemoteVGView *
+    makeRemoteVGView( QString viewName) = 0;
 
     virtual ~IConnector() {}
 };

@@ -126,7 +126,7 @@ class tView(unittest.TestCase):
         # Finally, click on the first image window and verify we can load an image
         # in it
         ActionChains( driver).click( imageWindows[0]).perform()
-        Util.load_image( self, driver, "aJ.fits")
+        Util.load_image( self, driver, "aJ.fits", "img_pwUID2")
 
     def tearDown(self):
         #Close the browser

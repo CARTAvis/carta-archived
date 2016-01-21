@@ -18,7 +18,6 @@ HEADERS += \
     PluginManager.h \
     Globals.h \
     Algorithms/Graphs/TopoSort.h \
-    Algorithms/RawView2QImageConverter.h \
     stable.h \
     CmdLine.h \
     MainConfig.h \
@@ -31,6 +30,7 @@ HEADERS += \
     Data/Clips.h \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
+    Data/Colormap/ColorState.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
     Data/DataLoader.h \
@@ -38,7 +38,6 @@ HEADERS += \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
-    Data/IColoredView.h \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
@@ -53,6 +52,7 @@ HEADERS += \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
     Data/Image/DrawSynchronizer.h \
+    Data/Image/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
     Data/Image/Grid/DataGrid.h \
     Data/Image/Grid/Fonts.h \
@@ -60,6 +60,7 @@ HEADERS += \
     Data/Image/Grid/Themes.h \
     Data/Image/Grid/LabelFormats.h \
     Data/Image/IPercentIntensityMap.h \
+    Data/Image/LayerCompositionModes.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -103,8 +104,11 @@ HEADERS += \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
-    VGView.h \
-    DummyGridRenderer.h
+    DummyGridRenderer.h \
+    coreMain.h \
+    SimpleRemoteVGView.h \
+    Hacks/ManagedLayerView.h \
+    Hacks/LayeredViewDemo.h
 
 SOURCES += \
     Viewer.cpp \
@@ -125,6 +129,7 @@ SOURCES += \
     Data/Clips.cpp \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
+    Data/Colormap/ColorState.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
@@ -145,6 +150,8 @@ SOURCES += \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
     Data/Image/DrawSynchronizer.cpp \
+    Data/Image/DrawStackSynchronizer.cpp \
+    Data/Image/LayerCompositionModes.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \
@@ -168,7 +175,6 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    Algorithms/RawView2QImageConverter.cpp \
     Histogram/HistogramGenerator.cpp \
     Histogram/HistogramSelection.cpp \
     Histogram/HistogramPlot.cpp \
@@ -191,8 +197,11 @@ SOURCES += \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
-    VGView.cpp \
-    DummyGridRenderer.cpp
+    DummyGridRenderer.cpp \
+    coreMain.cpp \
+    SimpleRemoteVGView.cpp \
+    Hacks/ManagedLayerView.cpp \
+    Hacks/LayeredViewDemo.cpp
 
 
 #message( "common            PWD=$$PWD")
@@ -215,7 +224,7 @@ unix:macx {
 	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
 	LIBS +=-L../CartaLib -lCartaLib -framework qwt
 }
-else{
+else {
 	QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
 	LIBS +=-L../CartaLib -lCartaLib -L$$QWT_ROOT/lib -lqwt
 }

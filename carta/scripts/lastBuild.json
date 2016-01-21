@@ -1,0 +1,12 @@
+{
+    "destination": "/tmp/cartaBuild-0.0.0",
+    "makeflags": [
+        "-j12"
+    ],
+    "qmakebin": "/home/pfederl/Software/Qt/5.3/gcc_64/bin/qmake",
+    "qooxdooExtraOptions": [
+        "-m",
+        "OPTIMIZE:['basecalls', 'comments', 'xxxprivates', 'xxxstatics', 'strings', 'variables', 'variants', 'whitespace']"
+    ],
+    "version": "0.0.0"
+}

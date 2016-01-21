@@ -12,10 +12,6 @@
 #include <iostream>
 #include <memory>
 
-#ifndef CARTA_RUNTIME_CHECKS
-#define CARTA_RUNTIME_CHECKS 0
-#endif
-
 /// all carta code lives here (or will eventually)
 namespace Carta
 {
@@ -128,7 +124,7 @@ clamp( const T & v, const T & v1, const T & v2 )
 
 /// assert macro that is compiled out in release, with additional message
 /// \note the CARTA_RUNTIME_CHECKS is defined in common.pri, depending on the type of build
-#ifdef CARTA_RUNTIME_CHECKS
+#if CARTA_RUNTIME_CHECKS > 0
 #define CARTA_ASSERT_X( cond, msg ) CARTA_ASSERT_ALWAYS_X( cond, msg )
 #else
 #define CARTA_ASSERT_X( cond, msg ) qt_noop();

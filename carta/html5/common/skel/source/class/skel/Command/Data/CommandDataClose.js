@@ -29,7 +29,7 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
         // Needed so that if data is added to an image that is already selected, i.e.,
         // enabled status has not changed, but data count has, the close image commands
         // will be updated.
-        closeChanged : function(){
+        datasChanged : function(){
             this._resetEnabled();
         },
         
@@ -44,9 +44,9 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                 var dataCmd = skel.Command.Data.CommandData.getInstance();
                 for ( var i = 0; i < activeWins.length; i++ ){
                     if ( activeWins[i].isCmdSupported( dataCmd ) ){
-                        var closes = activeWins[i].getCloses();
+                        var closes = activeWins[i].getDatas();
                         for ( var j = 0; j < closes.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j]);
+                            this.m_cmds[k] = new skel.Command.Data.CommandDataCloseImage( closes[j].file );
                             k++;
                         }
                     }

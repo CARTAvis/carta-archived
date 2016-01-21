@@ -4,8 +4,8 @@
     "version"    : "1",
     "type"       : "C++",
     "description": [
-        "Set of basic colormaps"
+        "Set of basic colormaps implemented in c++."
     ],
-    "about"      : "Part of carta. Written by Pavol",
+    "about"      : "Part of standard carta plugins. Written by Pavol",
     "depends"    : [ ]
 }

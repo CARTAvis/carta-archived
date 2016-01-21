@@ -1,5 +1,6 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/ColormapsScalar.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include "GrayColormap.h"
 #include "Viewer.h"
 #include "Globals.h"
@@ -29,6 +30,7 @@
 #include <limits>
 
 #include <rapidjson/document.h>
+
 
 using namespace rapidjson;
 
@@ -87,7 +89,7 @@ Viewer::start()
     auto & globals = * Globals::instance();
 
     // tell all plugins that the core has initialized
-    globals.pluginManager()-> prepare < Initialize > ().executeAll();
+    globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
 
 	// ask plugins to load the image
 	qDebug() << "======== trying to load image ========";

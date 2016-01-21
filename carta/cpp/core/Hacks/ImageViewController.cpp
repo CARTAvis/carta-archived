@@ -8,6 +8,7 @@
 #include "../PluginManager.h"
 #include "Algorithms/quantileAlgorithms.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/GetImageRenderService.h"
 #include "GrayColormap.h"
 #include <QPainter>
 #include <QTime>
@@ -34,6 +35,8 @@ s2vd( QString s, QString sep = " " )
 }
 }
 
+namespace Carta
+{
 namespace Hacks
 {
 ImageViewController::ImageViewController( QString statePrefix, QString viewName, QObject * parent )
@@ -47,7 +50,26 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_connector = globals.connector();
 
     // create an image render service and connect it to ourselves
-    m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
+//    m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
+
+    {
+        qDebug() << "Looking for image render service in plugins";
+        auto res = Globals::instance()-> pluginManager()
+                       -> prepare < Carta::Lib::Hooks::GetImageRenderService > ().first();
+        if ( res.isNull() || ! res.val() ) {
+            qWarning( "Could not find image render service in plugins" );
+            m_renderService = nullptr;
+        }
+        else {
+            qWarning( "Obtained image render service from a plugin" );
+            m_renderService = res.val();
+        }
+        if ( ! m_renderService ) {
+            qWarning( "Creating default image render service" );
+            m_renderService.reset( new Carta::Core::ImageRenderService::Service() );
+        }
+    }
+
 
     // create a new wcs grid renderer (take the first one that plugins provide), and
     // connect it
@@ -174,6 +196,11 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 void
 ImageViewController::playMovieToggleCB()
 {
+    if( m_playToggle-> get()) {
+        loadNextFrame();
+    }
+    return;
+
     if ( m_playToggle-> get() ) {
         m_movieTimer.start( 1000 / 60 );
     }
@@ -343,10 +370,17 @@ ImageViewController::handleResizeRequest( const QSize & size )
     requestImageAndGridUpdate();
 }
 
+void ImageViewController::viewRefreshed(qint64 id) {
+    qDebug() << "ImageViewController view" << name() << "refreshed" << id;
+    if( m_playToggle-> get()) {
+        loadNextFrame();
+    }
+}
+
 void
 ImageViewController::loadImage( QString fname )
 {
-//    qDebug() << "xyz ImageViewController::loadImage" << fname;
+    //    qDebug() << "xyz ImageViewController::loadImage" << fname;
     m_fileName = fname;
 
     qDebug() << "loadImage() Trying to load astroImage...";
@@ -379,7 +413,7 @@ ImageViewController::loadImage( QString fname )
 void
 ImageViewController::frameVarCB()
 {
-//    qDebug() << "frameVar" << m_frameVar-> get() << "xyz";
+    qDebug() << "frameVar" << m_frameVar-> get();
     if ( m_astroImage-> dims().size() < 2 ) {
         return;
     }
@@ -395,6 +429,7 @@ ImageViewController::frameVarCB()
     // make sure frame integer is valid
     frame = Carta::Lib::clamp < int > ( frame, 0, nf - 1 );
 
+    qDebug() << "current frame" << m_currentFrame << " frame=" << frame;
     // load the actual frame
     if ( frame != m_currentFrame ) {
         loadFrame( frame );
@@ -429,12 +464,12 @@ ImageViewController::loadFrame( int frame )
     }
 
     // get a view of the data using the slice description and make a shared pointer out of it
-    NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
+    Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
 
     // compute 95% clip values, unless we already have them in the cache
     std::vector < double > clips = m_quantileCache[m_currentFrame];
     if ( clips.size() < 2 ) {
-        NdArray::Double doubleView( view.get(), false );
+        Carta::Lib::NdArray::Double doubleView( view.get(), false );
         clips = Carta::Core::Algorithms::quantiles2pixels(
             doubleView, { 0.025, 0.975 }
             );
@@ -474,7 +509,8 @@ ImageViewController::loadNextFrame()
     int currFrame = std::round( m_frameVar-> get() * nf / 1e6 );
     int nextFrame = ( currFrame + 1 ) % nf;
 
-    m_frameVar-> set( nextFrame * 1e6 / nf );
+    qDebug() << "Setting next frame to" << nextFrame;
+    m_frameVar-> set( (nextFrame+ 0.1) * 1e6 / nf );
 } // loadFrame
 
 void
@@ -501,11 +537,13 @@ ImageViewController::imageAndGridDoneSlot(
     }
     qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
 
+    // insert a matrix transform at the beginning
+    Carta::Lib::VectorGraphics::VGComposer composer;
     t.restart();
     {
-        QPen lineColor( QColor( "red" ), 1 );
-        lineColor.setCosmetic( true );
-        painter.setPen( lineColor );
+//        QPen lineColor( QColor( "red" ), 1 );
+//        lineColor.setCosmetic( true );
+//        painter.setPen( lineColor );
 
         // where does 0.5, 0.5 map to?
         QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
@@ -525,7 +563,10 @@ ImageViewController::imageAndGridDoneSlot(
         double m31 = p1.x() - m11 * 0.5;
         double m32 = p1.y() - m22 * 0.5;
         tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-        painter.setTransform( tf );
+//        painter.setTransform( tf );
+        composer.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf);
+        composer.appendList( contourVG);
+        contourVG = composer.vgList();
     }
     if ( ! vgRenderer.render( contourVG, painter ) ) {
         qWarning() << "could not render contour vector graphics";
@@ -568,4 +609,5 @@ ImageViewController::imageAndGridDoneSlot(
     // schedule a repaint with the connector
     m_connector-> refreshView( this );
 } // imageAndGridDoneSlot
+}
 }

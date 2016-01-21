@@ -15,6 +15,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
      * Constructor.
      */
     construct : function(index, detached) {
+        console.log( "DisplayWindowImage constructed", index, detached);
+        window.imgwin = this;
         this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, index, detached );
         this.m_links = [];
         this.m_viewContent = new qx.ui.container.Composite();
@@ -92,7 +94,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Return the list of data that is currently open and could be closed.
          * @return {Array} a list of images that could be closed.
          */
-        getCloses : function(){
+        getDatas : function(){
             return this.m_datas;
         },
         
@@ -288,20 +290,31 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     var winObj = JSON.parse( val );
                     this.m_datas = [];
                     //Add close menu buttons for all the images that are loaded.
-                    if ( winObj.data && winObj.data.length > 0){
-                        for ( var i = 0; i < winObj.data.length; i++ ){
-                            this.m_datas[i] = winObj.data[i];
+                    var dataObjs = winObj.data;
+                    var visibleData = false;
+                    if ( dataObjs ){
+                        for ( var j = 0; j < dataObjs.length; j++ ){
+                            if ( dataObjs[j].visible ){
+                                visibleData = true;
+                            }
                         }
-                        this._dataLoadedCB();
                     }
-                    else {
+                    if ( dataObjs && dataObjs.length > 0 ){
+                        for ( var i = 0; i < dataObjs.length; i++ ){
+                            this.m_datas[i] = dataObjs[i];
+                        }
+                        if ( visibleData ){
+                            this._dataLoadedCB();
+                        }
+                    }
+                    if ( !visibleData ){
                         //No images to show so set the view hidden.
                         if ( this.m_view !== null ){
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
-                    var closeCmd = skel.Command.Data.CommandDataClose.getInstance();
-                    closeCmd.closeChanged();
+                    var dataCmd = skel.Command.Data.CommandData.getInstance();
+                    dataCmd.datasChanged();
                     this._initContextMenu();
                 }
                 catch( err ){

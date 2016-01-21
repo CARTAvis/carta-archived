@@ -1,12 +1,12 @@
 import os
-import cartavis
+import carta.cartavis as cartavis
 import pyautogui
 import time
 import ImageUtil
 
 # Create a new window, and change its plugin to a CasaImageLoader
 # Return the coordinates of the new image window 
-def new_image_window(self):
+def new_image_window():
     # Click on an existing image window 
     imageWindow = ImageUtil.locateCenterOnScreen('test_images/imageWindow.png') 
     assert imageWindow != None, 'Could not find an image window on the current display'
@@ -39,7 +39,7 @@ def test_zoom(cartavisInstance, cleanSlate):
     h = cartavisInstance.getHistogramViews()
 
     # Load an image
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
 
     # Look for the min and max zoom value and store their values
     clipRange = h[0].getClipRange()
@@ -52,15 +52,15 @@ def test_zoom(cartavisInstance, cleanSlate):
 
     # Get the new min and max zoom values
     clipRange = h[0].getClipRange()
-    minZoomValue = clipRange[0]
-    maxZoomValue = clipRange[1]
+    newMinZoomValue = clipRange[0]
+    newMaxZoomValue = clipRange[1]
 
     # Check that the new min is larger than the old min
-    print "oldMin", minZoomValue," newMin=", newMinZoomPercent
+    print "oldMin", minZoomValue," newMin=", newMinZoomValue
     assert float(newMinZoomValue) > float(minZoomValue)
 
     # Check that the new max is smaller than the old max
-    print "oldMax", maxZoomValue," newMax=", newMaxZoomPercent
+    print "oldMax", maxZoomValue," newMax=", newMaxZoomValue
     assert float(newMaxZoomValue) < float(maxZoomValue)
 
 def test_histogramAddImage(cartavisInstance, cleanSlate):
@@ -72,7 +72,7 @@ def test_histogramAddImage(cartavisInstance, cleanSlate):
     h = cartavisInstance.getHistogramViews()
 
     # Load an image
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
 
     # Get the max zoom value of the first image 
     clipRange = h[0].getClipRange()
@@ -80,7 +80,7 @@ def test_histogramAddImage(cartavisInstance, cleanSlate):
     print "First image maxZoomValue:", maxZoomValue
 
     # Load a different image in the same window 
-    i[0].loadLocalFile(os.getcwd + '/data/aH.fits')
+    i[0].loadFile(os.getcwd() + '/data/aH.fits')
 
     # Check that the new max zoom value updates 
     clipRange = h[0].getClipRange()
@@ -96,7 +96,7 @@ def test_histogramRemoveImage(cartavisInstance, cleanSlate):
     h = cartavisInstance.getHistogramViews()
 
     # Load an image, then close the image
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
     i[0].closeImage('N15693D.fits')
 
     # Check that the histogram values are restored to default values 
@@ -114,8 +114,8 @@ def test_histogramChangeImage(cartavisInstance, cleanSlate):
     h = cartavisInstance.getHistogramViews()
 
     # Load two images in the same image window
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
-    i[0].loadLocalFile(os.getcwd + '/data/aH.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/aH.fits')
 
     # Record the Histogram max zoom value of the second image 
     a[0].setImage(1)
@@ -145,10 +145,10 @@ def test_histogramLinking(cartavisInstance, cleanSlate):
     h = cartavisInstance.getHistogramViews()
 
     # Load an image 
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
 
     # Create a new, empty window and change its plugin to an image window
-    self.new_image_window()
+    new_image_window()
 
     # Record the max zoom value of the first image
     clipRange = h[0].getClipRange()
@@ -181,7 +181,7 @@ def test_histogramLinkRemoval(cartavisInstance, cleanSlate):
 
     # Load an image in the main imagewindow 
     i = cartavisInstance.getImageViews()
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
 
     # Check that the histogram values are default values 
     clipRange = h[0].getClipRange()
@@ -199,7 +199,7 @@ def test_histogramChangeLinks(cartavisInstance, cleanSlate):
     i[0].removeLink(h[0])
 
     # Create a new image window 
-    self.new_image_window()
+    new_image_window()
 
     # Link the Histogram to the second image 
     i[1].addLink(h[0])

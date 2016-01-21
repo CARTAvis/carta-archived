@@ -9,14 +9,15 @@
 #include <memory>
 
 
-class CCMetaDataInterface : public Image::MetaDataInterface
+class CCMetaDataInterface
+        : public Carta::Lib::Image::MetaDataInterface
 {
     CLASS_BOILERPLATE( CCMetaDataInterface);
 
 public:
     CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa::CoordinateSystem> casaCS);
 
-    virtual Image::MetaDataInterface *
+    virtual Carta::Lib::Image::MetaDataInterface *
     clone() override;
 
     virtual CoordinateFormatterInterface::SharedPtr

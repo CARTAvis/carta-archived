@@ -31,7 +31,7 @@ public:
     setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo> perms ) override;
 
     virtual void
-    setInputImage( Image::ImageInterface::SharedPtr ) override;
+    setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr ) override;
 
     virtual void
     setImageRect( const QRectF & ) override;

@@ -50,10 +50,11 @@ ContourControls::ContourControls( const QString& path, const QString& id):
     m_percentIntensityMap( nullptr ),
     m_generatorState( new GeneratorState() ),
     m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
-
     _initializeDefaultState();
     _initializeCallbacks();
 }
+
+
 
 void ContourControls::_addContourSet( const std::vector<double>& levels,
         const QString& contourSetName ){
@@ -70,22 +71,17 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
         }
 
         //See if there is an existing contour with that name.
-        std::shared_ptr<DataContours> dataContours( nullptr );
-        for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-                it != m_dataContours.end(); it++ ){
-            QString contourName = (*it)->getName();
-            if ( contourName == contourSetName ){
-                dataContours = (*it);
-                break;
-            }
-        }
+        DataContours* dataContours = _getContour( contourSetName );
 
         //Create a new contour set if there is not an existing one.
         if ( !dataContours ){
             ObjectManager* objMan = ObjectManager::objectManager();
-            dataContours.reset(objMan->createObject<DataContours>());
+            dataContours = objMan->createObject<DataContours>();
             dataContours->setName( contourSetName );
-            m_dataContours.insert( dataContours );
+            std::shared_ptr<DataContours> dContours(dataContours );
+            m_dataContours.insert( dContours );
+            m_percentIntensityMap->addContourSet( dContours );
+
         }
 
         //Reset the contours
@@ -96,30 +92,32 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
     }
 }
 
-void ContourControls::_clearContours(){
-    ObjectManager* objMan = ObjectManager::objectManager();
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-                it != m_dataContours.end(); it++ ){
-        QString contourId = (*it)->getId();
-        objMan->removeObject( contourId );
-    }
-}
 
 QString ContourControls::deleteContourSet( const QString& contourSetName ){
     QString result;
     bool foundSet = false;
     std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
     while ( it != m_dataContours.end() ){
-           if ( (*it)->getName() == contourSetName ){
-               foundSet = true;
-               ObjectManager* objMan = ObjectManager::objectManager();
-               QString id = (*it)->getId();
-               m_dataContours.erase(it);
-               objMan->removeObject( id );
-               _updateContourSetState();
-               break;
+       if ( (*it)->getName() == contourSetName ){
+           foundSet = true;
+           //Reset the draw contour if it is the one we are removing.
+           if ( m_drawContours->getName() == contourSetName ){
+               if ( m_dataContours.size() > 1 ){
+                   m_drawContours = (*m_dataContours.begin());
+               }
+               else {
+                   m_drawContours.reset();
+               }
            }
-           it++;
+           m_percentIntensityMap->removeContourSet( (*it) );
+           ObjectManager* objMan = ObjectManager::objectManager();
+           QString id = (*it)->getId();
+           m_dataContours.erase(it);
+           objMan->removeObject( id );
+           _updateContourSetState();
+           break;
+       }
+       it++;
     }
     if ( !foundSet ){
         result = "Unrecognized contour set to delete: "+contourSetName;
@@ -275,20 +273,6 @@ DataContours* ContourControls::_getContour( const QString& setName ) {
    return target;
 }
 
-QString ContourControls::getStateString( const QString& /*sessionId*/, SnapshotType type ) const{
-    QString result("");
-    if ( type == SNAPSHOT_PREFERENCES ){
-        result = m_state.toString();
-    }
-    else if ( type == SNAPSHOT_DATA ){
-        StateInterface dataCopy( m_stateData );
-        dataCopy.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME+StateInterface::STATE_DATA);
-        dataCopy.setValue<int>( StateInterface::INDEX, getIndex());
-        result = dataCopy.toString();
-    }
-    return result;
-}
-
 
 void ContourControls::_initializeDefaultState(){
     QString generateState = m_generatorState->getStateString();
@@ -362,11 +346,17 @@ void ContourControls::_initializeCallbacks(){
             if ( validInt ){
                 QString setName = dataValues[CONTOUR_SET_NAME ];
                 QString levelStr = dataValues[LEVEL_LIST];
-                std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
-                result = setAlpha( setName, levels, alpha );
+                bool validDouble = false;
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, &validDouble, LEVEL_SEPARATOR );
+                if ( validDouble ){
+                    result = setAlpha( setName, levels, alpha );
+                }
+                else {
+                    result = "Could not set contour transparency, levels must be numbers: "+params;
+                }
             }
             else {
-                result = "Contour transparency level must be an integer: "+dataValues[Util::ALPHA];
+                result = "Contour transparency must be an integer: "+dataValues[Util::ALPHA];
             }
             Util::commandPostProcess( result );
             return result;
@@ -386,9 +376,15 @@ void ContourControls::_initializeCallbacks(){
             if ( validRed && validGreen && validBlue ){
                 QString setName = dataValues[CONTOUR_SET_NAME ];
                 QString levelStr = dataValues[LEVEL_LIST];
-                std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
-                QStringList errorList = setColor( setName, levels, red, green, blue );
-                result = errorList.join(",");
+                bool levelError = false;
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, &levelError, LEVEL_SEPARATOR );
+                if ( !levelError ){
+                    QStringList errorList = setColor( setName, levels, red, green, blue );
+                    result = errorList.join(",");
+                }
+                else {
+                    result = "Could not set color; contour levels must numbers: "+levelStr;
+                }
             }
             else {
                 result = "Contour colors must be integer(s): "+dataValues[Util::RED]+","+dataValues[Util::GREEN]+
@@ -398,7 +394,7 @@ void ContourControls::_initializeCallbacks(){
             return result;
         });
 
-    //Set the method for generating contour levels.
+    //Set the selected contour set.
     addCommandCallback( "selectContourSet", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {DataContours::SET_NAME};
@@ -471,13 +467,14 @@ void ContourControls::_initializeCallbacks(){
         QString style = dataValues[Contour::STYLE];
         QString setName = dataValues[CONTOUR_SET_NAME];
         QString levelStr = dataValues[LEVEL_LIST];
-        std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
         QString result;
-        if ( levels.size() > 0 ){
+        bool validLevels = false;
+        std::vector<double> levels = Util::string2VectorDouble( levelStr, &validLevels, LEVEL_SEPARATOR );
+        if ( validLevels ){
             result = setLineStyle( setName, levels, style );
         }
         else {
-            result = "Contour level(s) must be numbers:"+levelStr;
+            result = "Style could not be set because contour levels were invalid:"+levelStr;
         }
         Util::commandPostProcess( result );
         return result;
@@ -489,8 +486,15 @@ void ContourControls::_initializeCallbacks(){
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString setName = dataValues[CONTOUR_SET_NAME];
             QString levelStr = dataValues[LEVEL_LIST];
-            std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
-            QString result = setLevels( setName, levels);
+            bool validLevels = false;
+            std::vector<double> levels = Util::string2VectorDouble( levelStr, &validLevels, LEVEL_SEPARATOR );
+            QString result;
+            if ( validLevels ){
+                result = setLevels( setName, levels);
+            }
+            else {
+                result = "Invalid contour levels: "+levelStr;
+            }
             Util::commandPostProcess( result );
             return result;
         });
@@ -556,8 +560,14 @@ void ContourControls::_initializeCallbacks(){
             if ( validDouble ){
                 QString setName = dataValues[CONTOUR_SET_NAME ];
                 QString levelStr = dataValues[LEVEL_LIST];
-                std::vector<double> levels = Util::string2VectorDouble( levelStr, LEVEL_SEPARATOR );
-                result = setThickness( setName, levels, thickness );
+                bool validLevels = false;
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, &validLevels, LEVEL_SEPARATOR );
+                if ( validLevels ){
+                    result = setThickness( setName, levels, thickness );
+                }
+                else {
+                    result = "Could not set thickness; contour levels were invalid: "+levelStr;
+                }
             }
             else {
                 result = "Contour thickness must be an integer: "+dataValues[Util::PEN_WIDTH];
@@ -577,12 +587,13 @@ void ContourControls::_initializeCallbacks(){
             if ( validBool ){
                 QString setName = dataValues[CONTOUR_SET_NAME];
                 QString levelListStr = dataValues[LEVEL_LIST];
-                std::vector<double> levels = Util::string2VectorDouble( levelListStr, LEVEL_SEPARATOR );
-                if ( levels.size() > 0 ){
+                bool validLevels = false;
+                std::vector<double> levels = Util::string2VectorDouble( levelListStr, &validLevels, LEVEL_SEPARATOR );
+                if ( validLevels ){
                     result = setVisibility( setName, levels, visible );
                 }
                 else {
-                    result = "Contour level(s) must be numbers: "+levelListStr;
+                    result = "Could not set visibility; invalid contour levels: "+levelListStr;
                 }
             }
             else {
@@ -609,33 +620,9 @@ bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
 }
 
 
-
-void ContourControls::resetStateData( const QString& state ){
-    StateInterface dataState( "");
-    dataState.setState( state );
-    int contourCount = dataState.getArraySize( CONTOUR_SETS );
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    for ( int i = 0; i < contourCount; i++ ){
-        QString lookup = UtilState::getLookup( CONTOUR_SETS, i );
-        QString contourSetState = dataState.toString( lookup );
-        std::shared_ptr<DataContours> dataContours(objMan->createObject<DataContours>());
-        dataContours->resetState( contourSetState );
-        m_dataContours.insert( dataContours );
-    }
-    _updateContourSetState();
-}
-
 void ContourControls::selectContourSet( const QString& name ){
-   std::shared_ptr<DataContours> dataContours( nullptr );
-   for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-           it != m_dataContours.end(); it++ ){
-       QString contourName = (*it)->getName();
-       if ( contourName == name ){
-           dataContours = (*it);
-           break;
-       }
-   }
-   if ( dataContours ){
+   DataContours* dataContours = _getContour( name );
+   if ( dataContours != nullptr){
        //Existing contour set - use it's method of generating contour levels
        m_generatorState = dataContours->_getGenerator();
    }
@@ -655,15 +642,21 @@ void ContourControls::selectContourSet( const QString& name ){
 QString ContourControls::setAlpha( const QString& contourName,
         std::vector<double>& levels, int transparency ){
     QString result;
-    DataContours* target = _getContour( contourName );
-    if ( target != nullptr ){
-        result = target->setAlpha( levels, transparency );
-        if ( result.isEmpty() ){
-            _updateContourSetState();
+    int levelCount = levels.size();
+    if ( levelCount > 0 ){
+        DataContours* target = _getContour( contourName );
+        if ( target != nullptr ){
+            result = target->setAlpha( levels, transparency );
+            if ( result.isEmpty() ){
+                _updateContourSetState();
+            }
+        }
+        else {
+            result = "Unrecognized contour set: "+ contourName;
         }
     }
     else {
-        result = "Unrecognized contour set: "+ contourName;
+        result = "Please specify one or more levels when setting transparency";
     }
     return result;
 }
@@ -671,15 +664,21 @@ QString ContourControls::setAlpha( const QString& contourName,
 QStringList ContourControls::setColor( const QString& contourName,
         std::vector<double>& levels, int red, int green, int blue ){
     QStringList result;
-    DataContours* target = _getContour( contourName );
-    if ( target != nullptr ){
-        result = target->setColor( levels, red, green, blue );
-        if ( result.isEmpty() ){
-            _updateContourSetState();
+    int levelCount = levels.size();
+    if ( levelCount > 0 ){
+        DataContours* target = _getContour( contourName );
+        if ( target != nullptr ){
+            result = target->setColor( levels, red, green, blue );
+            if ( result.isEmpty() ){
+                _updateContourSetState();
+            }
+        }
+        else {
+            result.append( "Unrecognized contour set: "+ contourName);
         }
     }
     else {
-        result.append( "Unrecognized contour set: "+ contourName);
+        result.append( "Please specify one or more contour levels when specifying the color");
     }
     return result;
 }
@@ -690,14 +689,10 @@ void ContourControls::setDashedNegative( bool useDash ){
 
 void ContourControls::_setDrawContours( std::shared_ptr<DataContours> contours ){
     m_drawContours = contours;
-    std::set<Contour> drawContours;
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-            it != m_dataContours.end(); it++ ){
-        std::set<Contour> setContours = (*it)->_getContours();
-        drawContours.insert( setContours.begin(), setContours.end());
-    }
-    if ( m_drawContours ){
-        m_drawContours->setContours( drawContours );
+    DataContours* existingContour = _getContour( contours->getName());
+    if ( !existingContour ){
+        m_dataContours.insert( contours );
+        _updateContourSetState();
     }
 }
 
@@ -735,22 +730,28 @@ QString ContourControls::setLevelMin( double value ){
 QString ContourControls::setLevels( const QString& contourName, std::vector<double>& levels ){
     QString result;
     DataContours* target = _getContour( contourName );
-    if ( target != nullptr ){
-        bool levelCount = target->getLevelCount();
-        bool levelsChanged = target->setLevels( levels );
-        if ( levelsChanged ){
-            _updateContourSetState();
-            if ( levelCount != levels.size() ){
-                //Note:  A state refresh here is needed because the user could add a duplicate contour level in
-                    //the UI.  The code will refuse to accept it so the state will not officially change and get flushed
-                    //to the UI.  However, the UI needs the old state so it can remove the duplicate the user added.
-                    CartaObject::refreshState();
-                    m_state.flushState();
+    int newLevelCount = levels.size();
+    if ( newLevelCount > 0 ){
+        if ( target != nullptr ){
+            bool levelCount = target->getLevelCount();
+            bool levelsChanged = target->setLevels( levels );
+            if ( levelsChanged ){
+                _updateContourSetState();
+                if ( levelCount != newLevelCount ){
+                    //Note:  A state refresh here is needed because the user could add a duplicate contour level in
+                        //the UI.  The code will refuse to accept it so the state will not officially change and get flushed
+                        //to the UI.  However, the UI needs the old state so it can remove the duplicate the user added.
+                        CartaObject::refreshState();
+                        m_state.flushState();
+                }
             }
+        }
+        else {
+            result = "Unrecognized contour set: "+ contourName;
         }
     }
     else {
-        result = "Unrecognized contour set: "+ contourName;
+        result = "A contour set must have at least one level.";
     }
     return result;
 }
@@ -758,14 +759,20 @@ QString ContourControls::setLevels( const QString& contourName, std::vector<doub
 QString ContourControls::setLineStyle( const QString& contourName, std::vector<double>& levels, const QString& lineStyle ){
     QString result;
     DataContours* target = _getContour( contourName );
-    if ( target != nullptr ){
-        result = target->setLineStyle( levels, lineStyle );
-        if ( result.isEmpty() ){
-            _updateContourSetState();
+    int levelCount = levels.size();
+    if ( levelCount > 0 ){
+        if ( target != nullptr ){
+            result = target->setLineStyle( levels, lineStyle );
+            if ( result.isEmpty() ){
+                _updateContourSetState();
+            }
+        }
+        else {
+            result = "Unrecognized contour set: "+ contourName;
         }
     }
     else {
-        result = "Unrecognized contour set: "+ contourName;
+        result = "Please specify one or more levels when setting the line style.";
     }
     return result;
 }
@@ -778,15 +785,21 @@ QString ContourControls::setSpacingInterval( double interval ){
 QString ContourControls::setThickness( const QString& contourName,
         std::vector<double>& levels, double thickness ){
     QString result;
-    DataContours* target = _getContour( contourName );
-    if ( target != nullptr ){
-        result = target->setThickness( levels, thickness );
-        if ( result.isEmpty() ){
-            _updateContourSetState();
+    int levelCount = levels.size();
+    if ( levelCount > 0 ){
+        DataContours* target = _getContour( contourName );
+        if ( target != nullptr ){
+            result = target->setThickness( levels, thickness );
+            if ( result.isEmpty() ){
+                _updateContourSetState();
+            }
+        }
+        else {
+            result = "Unrecognized contour set: "+ contourName;
         }
     }
     else {
-        result = "Unrecognized contour set: "+ contourName;
+        result = "Please specify one or more contour levels when setting contour level thickness";
     }
     return result;
 }
@@ -794,15 +807,21 @@ QString ContourControls::setThickness( const QString& contourName,
 QString ContourControls::setVisibility( const QString& contourName,
         std::vector<double>& levels, bool visible ){
     QString result;
-    DataContours* target = _getContour( contourName );
-    if ( target != nullptr ){
-        result = target->setVisibility( levels, visible );
-        if ( result.isEmpty() ){
-            _updateContourSetState();
+    int levelCount = levels.size();
+    if ( levelCount > 0 ){
+        DataContours* target = _getContour( contourName );
+        if ( target != nullptr ){
+            result = target->setVisibility( levels, visible );
+            if ( result.isEmpty() ){
+                _updateContourSetState();
+            }
+        }
+        else {
+            result = "Unrecognized contour set: "+ contourName;
         }
     }
     else {
-        result = "Unrecognized contour set: "+ contourName;
+        result = "Please specify one or more contour levels when setting the visibility.";
     }
     return result;
 }
@@ -818,26 +837,14 @@ void ContourControls::_updateContourSetState(){
         Carta::State::StateInterface dataState = (*it)->_getState();
         QString contourState = dataState.toString();
         m_stateData.setObject( lookup, contourState);
-        std::set<Contour> setContours = (*it)->_getContours();
-        for ( std::set<Contour>::iterator contourIt = setContours.begin();
-                contourIt != setContours.end(); contourIt++ ){
-            if ( (*contourIt).isVisible() ){
-                drawContours.insert( (*contourIt) );
-            }
-        }
         i++;
     }
-
     m_stateData.flushState();
-    if ( m_drawContours ){
-        m_drawContours->setContours( drawContours );
-        emit drawContoursChanged();
-    }
+    emit drawContoursChanged();
 }
 
 
 ContourControls::~ContourControls(){
-    _clearContours();
 }
 }
 }

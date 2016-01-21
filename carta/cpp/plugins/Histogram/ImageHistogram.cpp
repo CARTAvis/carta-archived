@@ -8,6 +8,7 @@
 #include <casacore/casa/version.h>
 #ifdef CASACORE_VERSION
 #include <casacore/lattices/LatticeMath/LatticeHistograms.h>
+
 #else
 #include <casacore/lattices/Lattices/LatticeHistograms.h>
 #endif
@@ -115,8 +116,7 @@ bool ImageHistogram<T>::compute( ){
 }
 
 template <class T>
-casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T> * image ){
-	casa::LatticeHistograms<T>* imageHistogram = NULL;
+void ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T>* image ){
 	if ( m_channelMin != ALL_CHANNELS && m_channelMax != ALL_CHANNELS ){
 		//Create a slicer from the image
 		casa::CoordinateSystem cSys = image->coordinates();
@@ -143,64 +143,56 @@ casa::LatticeHistograms<T>* ImageHistogram<T>::_filterByChannels( const casa::Im
                 endPos[spectralIndex] = endIndex;
 
                 casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
-                m_subImage.reset(new casa::SubImage<T> (*image, channelSlicer ));
-                imageHistogram = new casa::LatticeHistograms<T>( *m_subImage.get() );
+                casa::ImageInterface<T>* img = new casa::SubImage<T>( *(image), channelSlicer );
+                m_histogramMaker->setNewLattice( *(img) );
 			}
 		}
 	}
 	else {
-		imageHistogram = new casa::LatticeHistograms<T>( *m_image );
+	    m_histogramMaker->setNewLattice( *(image) );
 	}
-	return imageHistogram;
 }
 
 template <class T>
-void ImageHistogram<T>::setImage( casa::ImageInterface<T> *  val ){
+void ImageHistogram<T>::setImage( const casa::ImageInterface<T>*  val ){
     if ( val != nullptr ){
-        m_image = val;
-	    _reset();
+        if ( m_image == nullptr || m_image->name(true) != val->name(true) ){
+            m_image = val;
+            _reset();
+        }
 	}
 }
 
 template <class T>
 void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){
-	this->m_region = region;
+	m_region = region;
 }
 
 template <class T>
 bool ImageHistogram<T>::_reset(){
 	bool success = true;
 	if ( m_image != nullptr ){
-		if ( m_histogramMaker != NULL ){
-			//delete m_histogramMaker;
-			m_histogramMaker = NULL;
-		}
+	    if ( !m_histogramMaker ){
+	        m_histogramMaker = new casa::LatticeHistograms<T>( *(m_image) );
+	    }
 		try {
 			if ( m_region == NULL ){
 				//Make the histogram based on the image
-				m_histogramMaker = _filterByChannels( m_image );
+				_filterByChannels( m_image );
 			}
 			else {
 				//Make the histogram based on the region
-				m_subImage.reset(new casa::SubImage<T>( *m_image, *m_region ));
-				if ( m_subImage.get() != NULL ){
-					m_histogramMaker = _filterByChannels( m_subImage.get() );
-				}
-				else {
-					success = false;
-				}
+				casa::SubImage<T>* subImage = new casa::SubImage<T>( *m_image, *m_region );
+				 _filterByChannels( subImage );
+				//Filter will make a new image based on this one so we can delete this sub
+				//image once filter is done.
+				delete subImage;
 			}
-			if ( success ){
-				success = compute();
-			}
+			success = compute();
 		}
 		catch( casa::AipsError& error ){
 			success = false;
-			/*if ( heightSource != NULL ){
-				QString msg( "Could not make a histogram of the region: ");
-				msg.append( error.getMesg().c_str() );
-				heightSource->postMessage( msg );
-			}*/
+			qDebug() << "Error making histogram: "<<error.getMesg().c_str();
 		}
 	}
 	else {
@@ -375,8 +367,6 @@ void ImageHistogram<T>::toAscii( QTextStream& out ) const {
 
 template <class T>
 ImageHistogram<T>::~ImageHistogram() {
-	delete m_histogramMaker;
-	//delete m_subImage;
 }
 
 template class ImageHistogram<float>;

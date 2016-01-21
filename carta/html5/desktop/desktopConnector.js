@@ -16,6 +16,7 @@
     var setZeroTimeout = mImport( "setZeroTimeout" );
     var console = mImport( "console" );
     var defer = mImport( "defer" );
+    var assert = mImport( "assert" );
     var CallbackList = mImport( "CallbackList");
 
     /**
@@ -57,51 +58,47 @@
     // listen for command results callbacks and always invoke the top callback
     // in the list
     // the command results always arrive in the same order they were sent
-    /***
-     * Note:  The assumption above is wrong.  Command results arrive back in stack order.
-     */
-    // TODO: this is a bug (https://github.com/Astroua/CARTAvis/issues/4)
-    QtConnector.jsCommandResultsSignal.connect(function(result) {
-        //console.log( "DesktopConnector callback result="+result);
-        if (m_commandCallbacks.length < 1) {
-            console
-                .warn("Received command results but no callbacks for this!!!");
-            console.warn("The result: ", result);
-            return;
-        }
-        /***
-         * Note:  Code below was changed because callbacks do not come back in
-         * the same order they were called, but in stack order.  Code is single-threaded
-         * for the desktop version.
-         * Example:   Cmd ->setPlugin
-         *                  Does a state change on the server.  On the Javascript
-         *                  side we have a state listener.  This state listener triggers:
-         *                  Cmd ->registerView (returns objectId)
-         *                  Cmd ->registerView (returns objectId)
-         *            Finally the command setPlugin returns from the server.
-         */
-        var cb = m_commandCallbacks.shift();
-        //var cb = m_commandCallbacks.pop();
-        if (cb == null) {
-            console.log( "Desktop skipping cb was null");
-            // skip this callback
-            return;
-        }
-        if (typeof cb !== "function") {
-            console.warn("Registered callback for command is not a function!");
-        } else {
+    QtConnector.jsCommandResultsSignal.connect( function( result )
+    {
+        try {
+            if( m_commandCallbacks.length < 1 ) {
+                console.warn( "Received command results but no callbacks for this!!!" );
+                console.warn( "The result: ", result );
+                return;
+            }
+            var cb = m_commandCallbacks.shift();
+            if( cb == null ) {
+                return;
+            }
+            if( typeof cb !== "function" ) {
+                console.warn( "Registered callback for command is not a function!" );
+                return;
+            }
             cb( result );
+        }
+        catch( error ) {
+            window.console.error( "Caught error in command callback ", error );
+            window.console.trace();
         }
     });
 
     // listen for jsViewUpdatedSignal to render the image
-    QtConnector.jsViewUpdatedSignal.connect(function(viewName, buffer) {
-        var view = m_views[viewName];
-        if (view == null) {
-            console.warn("Ignoring update for unconnected view '" + viewName + "'");
-            return;
-        } 
-        buffer.assignToHTMLImageElement(view.m_imgTag);
+    QtConnector.jsViewUpdatedSignal.connect( function(viewName, buffer, refreshId)
+    {
+        try {
+            var view = m_views[viewName];
+            if( view == null ) {
+                console.warn( "Ignoring update for unconnected view '" + viewName + "'" );
+                return;
+            }
+            buffer.assignToHTMLImageElement( view.m_imgTag );
+            QtConnector.jsViewRefreshedSlot( view.getName(), refreshId );
+            view._callViewCallbacks();
+        }
+        catch( error ) {
+            window.console.error( "Caught error in view updated callback ", error );
+            window.console.trace();
+        }
     });
 
     // convenience function to create & get or just get a state
@@ -150,6 +147,7 @@
         this.m_mouseMoveTimeoutHandle = null;
         this.m_mousePos = { x : 0, y: 0 };
         this.m_mousePosSlotScheduled = false;
+        this.m_viewCallbacks = new CallbackList();
     };
 
     /**
@@ -200,7 +198,11 @@
     };
 
     View.prototype.setQuality = function setQuality() {
-        // desktop does not have quality
+        // desktop only supports quality 101
+    };
+    View.prototype.getQuality = function setQuality() {
+        // desktop only supports quality 101
+        return 101;
     };
     View.prototype.updateSize = function() {
         // this.m_imgTag.width = this.m_container.offsetWidth;
@@ -226,6 +228,15 @@
         return coordinate;
     };
     View.prototype.addViewCallback = function(callback) {
+        return this.m_viewCallbacks.add( callback);
+    };
+    View.prototype._callViewCallbacks = function () {
+        this.m_viewCallbacks.callEveryone();
+    };
+
+    connector.supportsRasterViewQuality = function()
+    {
+        return false;
     };
 
     connector.registerViewElement = function( divElement, viewName )
@@ -266,16 +277,18 @@
         }
 
         // listen for changes to the state
-        QtConnector.stateChangedSignal.connect(function(key, val) {
-            //console.log("stateUpdate", key, val);
-            var st = getOrCreateState(key);
-            // save the value
-            st.value = val;
-            // now go through all callbacks and call them
+        QtConnector.stateChangedSignal.connect(function(key, val)
+        {
             try {
-                st.callbacks.callEveryone( st.value );
-            } catch ( err) {
-                window.console.error( "Caught error ", err);
+                var st = getOrCreateState( key );
+                // save the value
+                st.value = val;
+                // now go through all callbacks and call them
+                    st.callbacks.callEveryone( st.value );
+            }
+            catch( error ) {
+                window.console.error( "Caught error in state callback ", error );
+                window.console.trace();
             }
         });
 
@@ -284,7 +297,6 @@
 
         if (m_connectionCB != null) {
             setZeroTimeout(m_connectionCB);
-            // m_connectionCB();
         }
 
     };

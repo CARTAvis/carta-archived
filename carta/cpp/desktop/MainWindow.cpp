@@ -1,5 +1,8 @@
 #include "MainWindow.h"
 #include "CustomWebPage.h"
+#include "NetworkAccessManager.h"
+#include "core/Globals.h"
+#include "core/MainConfig.h"
 #include <QtWidgets>
 #include <QtNetwork>
 #include <QtWebKitWidgets>
@@ -13,7 +16,6 @@ MainWindow::MainWindow( )
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
     m_view = new QWebView(this);
-//    m_view-> setPage( new CustomWebPage(this));
     connect(m_view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
     connect(m_view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
     connect(m_view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
@@ -44,6 +46,15 @@ MainWindow::MainWindow( )
              & QWebFrame::javaScriptWindowObjectCleared,
              this,
              & MainWindow::addToJavaScript );
+    bool qtDecorationsEnabled = Globals::instance()->mainConfig()->isDeveloperDecorations();
+    if( !qtDecorationsEnabled ) {
+        menuBar()->setVisible( false);
+        toolBar->setVisible( false);
+        statusBar()->setVisible( false);
+    }
+
+    // install 'fileq' protocol handler
+    m_view->page()->setNetworkAccessManager( new Carta::Desktop::NetworkAccessManager(this));
 }
 
 void MainWindow::loadUrl(const QUrl & url)
@@ -51,16 +62,10 @@ void MainWindow::loadUrl(const QUrl & url)
     m_view-> load( url );
 }
 
-void MainWindow::exportToJs(const QString &name, QObject *objPtr)
+void MainWindow::addJSExport(const QString &name, QObject *objPtr)
 {
     m_jsExports.push_back( std::make_pair( name, objPtr));
-
-//    m_view->page()->mainFrame()->addToJavaScriptWindowObject( name, objPtr);
 }
-
-//const QImage & MainWindow::getImg() const {
-//    return m_img;
-//}
 
 void MainWindow::adjustLocation()
 {

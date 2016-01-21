@@ -78,12 +78,23 @@ public:
       * Converts a string containing doubles with a separator between them to a vector.
       * @param sep {QString} the separator.
       * @param s {QString} a string containing doubles separated by a delimiter.
+      * @param error {boolean} - true if there was an error converting to doubles; false otherwise.
       * @return a vector of doubles.
       */
-     static std::vector < double > string2VectorDouble( QString s, QString sep = " " );
+     static std::vector < double > string2VectorDouble( QString s, bool* error, QString sep = " " );
+
+     /**
+       * Converts a string containing integers with a separator between them to a vector.
+       * @param sep {QString} the separator.
+       * @param s {QString} a string containing integers separated by a delimiter.
+       * @param error {boolean} - true if there was an error converting to integers; false otherwise.
+       * @return a vector of integers.
+       */
+     static std::vector < int > string2VectorInt( QString s, bool* error, QString sep = " " );
 
      static const QString PREFERENCES;
      static const QString ALPHA;
+     static const QString APPLY;
      static const QString RED;
      static const QString GREEN;
      static const QString BLUE;

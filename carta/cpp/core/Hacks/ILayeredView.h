@@ -1,6 +1,157 @@
 /**
- *
+ * Experimental code below. None of it is actually being used anywhere (yet).
  **/
+
+#pragma once
+
+#include "CartaLib/CartaLib.h"
+#include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/IRemoteVGView.h"
+#include "core/IConnector.h"
+#include <QObject>
+#include <memory>
+
+namespace Carta
+{
+namespace Core
+{
+namespace Hacks
+{
+class LayerHandle;
+enum class LayerType
+{
+    VG, Raster
+};
+
+enum class InputMaskBits : std::uint64_t
+{
+    /// keyboard events
+    Key = 0b0000001,
+    /// active mouse events: click, down, up, drag
+    MouseActive = 0b0000010,
+    /// passive mouse events: hover, enter, leave
+    MousePassive = 0b0000100,
+    /// just about all pointer events
+    PointerActive = 0b1000,
+    /// are there any passive pointer events really?
+    PointerPassive = 0b1000,
+    /// all events
+    ALL = 0xffffffff
+};
+
+enum class InputEventType
+{
+    Key,
+    Mouse,
+    Pointer
+};
+
+class InputEvent
+{
+public:
+
+    InputEventType
+    type();
+
+    // mouse events
+    QPointF
+    cursorPosition();
+
+    Qt::MouseButton
+    button();
+
+    Qt::MouseButtons
+    buttons();
+};
+
+/*
+class ManagedLayerView : public QObject
+{
+    Q_OBJECT
+    CLASS_BOILERPLATE( ManagedLayerView );
+
+public:
+
+    ManagedLayerView( IConnector * connector, QString viewName, QObject * parent = nullptr )
+        : QObject( parent ) { }
+
+    LayerHandle *
+    addNewLayer( QString name );
+
+    std::vector < LayerHandle * >
+    layers();
+
+    virtual
+    ~ManagedLayerView() { }
+};
+*/
+
+class LayerHandle : public QObject
+{
+    Q_OBJECT
+    CLASS_BOILERPLATE( LayerHandle );
+
+public:
+
+    QString
+    name();
+
+    void
+    setInputMask( InputMaskBits mask );
+
+    InputMaskBits
+    inputMask();
+
+    int
+    position();
+
+    void
+    setPosition( int );
+
+    void
+    setName( QString name );
+
+    void
+    setRaster( const QImage & );
+
+    void
+    setRasterCombiner( Carta::Lib::IQImageCombiner::SharedPtr combiner );
+
+    void
+    setVG( const Carta::Lib::VectorGraphics::VGList & );
+
+    virtual
+    ~LayerHandle() { }
+
+signals:
+
+    // keyboard events
+    void
+    key( std::shared_ptr < QKeyEvent > );
+
+    // active mouse events
+    void
+    mouseClick( std::shared_ptr < QMouseEvent > );
+
+    void
+    mouseDown( std::shared_ptr < QMouseEvent > );
+
+    void
+    mouseUp( std::shared_ptr < QMouseEvent > );
+
+    void
+    mouseDrag( std::shared_ptr < QMouseEvent > );
+
+    // passive mouse events
+    void
+    mouseMove( std::shared_ptr < QMouseEvent > );
+};
+}
+}
+}
+
+
+#ifdef DONT_COMPILE
 
 #pragma once
 
@@ -197,7 +348,6 @@ signals:
     done();
 };
 
-
 /// interface representing the minimal APIs for rendering VGlist
 class IRenderer
 {
@@ -384,3 +534,5 @@ private:
     std::unordered_set < u_int64_t > m_changes;
 };
 }
+
+#endif // ifdef DONT_COMPILE

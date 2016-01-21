@@ -157,7 +157,7 @@ private:
     void _adjustStateAnimatorTypes();
     void _addRemoveImageAnimator();
     Controller* _getControllerSelected() const;
-    int _getMaxImageCount() const;
+
     int _getAnimatorTypeVisibleCount() const;
     void _initializeState();
     void _initializeAnimators();
@@ -166,8 +166,8 @@ private:
 
     void _resetAnimationParameters( int selectedImage );
 
-    //Reset the state of an individual animator.
-    void _resetStateAnimator( const Carta::State::StateInterface& state, const QString& key );
+    //Reset the preferences state of an individual animator.
+    void _resetStateAnimator( const QString& key );
 
     bool _setAnimatorAvailability( const QString& key, bool available );
 
@@ -180,8 +180,11 @@ private:
 
     /// Individual animation types.
     QMap<QString, AnimatorType*> m_animators;
+    mutable QMap<QString,QString> m_animPrefs;
 
     static bool m_registered;
+    const static QString NAME;
+    const static QString VALUE;
 
     Animator( const Animator& other);
     Animator& operator=( const Animator& other );

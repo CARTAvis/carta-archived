@@ -83,14 +83,28 @@ void DrawSynchronizer::_irsDone( QImage img, int64_t jobId ){
     }
 }
 
-void DrawSynchronizer::setInput( std::shared_ptr<NdArray::RawViewInterface> rawView ){
+void DrawSynchronizer::setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawView ){
     m_cec->setInput( rawView );
 }
 
 
-void DrawSynchronizer::setContours( const std::shared_ptr<DataContours> & contours ){
-    m_pens = contours->getPens();
-    m_cec->setLevels( contours->getLevels() );
+void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours> > & contours ){
+    std::vector<double> levels;
+    bool drawing = false;
+    m_pens.clear();
+    for( std::set< std::shared_ptr<DataContours> >::iterator it = contours.begin();
+            it != contours.end(); it++ ){
+        if ( (*it)->isContourDraw() ){
+            drawing = true;
+            std::vector<QPen> setPens = (*it)->getPens();
+            m_pens.insert( m_pens.end(), setPens.begin(), setPens.end());
+            std::vector<double> setLevels = (*it)->getLevels();
+            levels.insert( levels.end(), setLevels.begin(), setLevels.end());
+        }
+    }
+    if ( drawing ){
+        m_cec->setLevels( levels );
+    }
 }
 
 int64_t DrawSynchronizer::start( bool contourDraw, bool gridDraw, int64_t jobId ){

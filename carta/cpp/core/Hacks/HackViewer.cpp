@@ -12,9 +12,13 @@
 #include "core/Hacks/MainModel.h"
 #include "core/GrayColormap.h"
 #include "CartaLib/LinearMap.h"
+#include "CartaLib/IRemoteVGView.h"
+#include <QFileInfo>
 #include <QPainter>
 #include <set>
 
+namespace Carta
+{
 namespace Hacks
 {
 HackViewer::HackViewer( QString prefix ) :
@@ -60,6 +64,7 @@ HackViewer::start()
             qDebug() << "    " << cmap-> name();
         }
     }
+
     // tell clients about available colormaps
     for ( size_t i = 0 ; i < m_allColormaps.size() ; i++ ) {
         prefixedSetState( QString( "cm-names-%1" ).arg( i ), m_allColormaps[i]-> name() );
@@ -78,7 +83,7 @@ HackViewer::start()
 
     // initialize asynchronous renderer
     m_imageViewController.reset(
-                new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
+        new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
 
     // tell the view controller to load the image specified on the command line/url
     m_imageViewController-> loadImage( fname );
@@ -150,17 +155,187 @@ HackViewer::start()
     prefixedAddStateCallback( "cm-current", colormapCB2 );
 
     // tell clients about available coordinate systems
-    prefixedSetState( "knownSkyCS/s0", QString("%1 J2000").arg(
-                          Carta::Lib::knownSkyCS2int( Carta::Lib::KnownSkyCS::J2000)));
-    prefixedSetState( "knownSkyCS/s1", QString("%1 B1950").arg(
-                          static_cast<int>( Carta::Lib::KnownSkyCS::B1950)));
-    prefixedSetState( "knownSkyCS/s2", QString("%1 ICRS").arg(
-                          static_cast<int>( Carta::Lib::KnownSkyCS::ICRS)));
-    prefixedSetState( "knownSkyCS/s3", QString("%1 Galactic").arg(
-                          static_cast<int>( Carta::Lib::KnownSkyCS::Galactic)));
-    prefixedSetState( "knownSkyCS/s4", QString("%1 Ecliptic").arg(
-                          static_cast<int>( Carta::Lib::KnownSkyCS::Ecliptic)));
-    prefixedSetState( "knownSkyCS/count", "5");
+    prefixedSetState( "knownSkyCS/s0", QString( "%1 J2000" ).arg(
+                          Carta::Lib::knownSkyCS2int( Carta::Lib::KnownSkyCS::J2000 ) ) );
+    prefixedSetState( "knownSkyCS/s1", QString( "%1 B1950" ).arg(
+                          static_cast < int > ( Carta::Lib::KnownSkyCS::B1950 ) ) );
+    prefixedSetState( "knownSkyCS/s2", QString( "%1 ICRS" ).arg(
+                          static_cast < int > ( Carta::Lib::KnownSkyCS::ICRS ) ) );
+    prefixedSetState( "knownSkyCS/s3", QString( "%1 Galactic" ).arg(
+                          static_cast < int > ( Carta::Lib::KnownSkyCS::Galactic ) ) );
+    prefixedSetState( "knownSkyCS/s4", QString( "%1 Ecliptic" ).arg(
+                          static_cast < int > ( Carta::Lib::KnownSkyCS::Ecliptic ) ) );
+    prefixedSetState( "knownSkyCS/count", "5" );
+
+    // layered view stuff
+    /*
+    static Carta::Lib::IRemoteVGView::SharedPtr vgview( m_connector-> makeRemoteVGView( "vgview1" ) );
+    QImage img( 200, 100, QImage::Format_ARGB32_Premultiplied );
+    img.fill( 0xff000000 );
+    {
+        QPainter p( & img );
+        p.setBrush( QColor( "red" ) );
+        p.drawEllipse( 100, 50, 30, 55 );
+    }
+    vgview-> setRaster( img );
+    connect( vgview.get(), & Carta::Lib::IRemoteVGView::sizeChanged, [&] () {
+                 qDebug() << "New size" << vgview-> getRVGViewName() << vgview-> getClientSize();
+             }
+             );
+    Carta::Lib::VectorGraphics::VGComposer comp;
+    comp.append < Carta::Lib::VectorGraphics::Entries::FillRect > ( QRectF( 5, 5, 20,
+                                                                            40 ), QColor( "blue" ) );
+
+//    comp.append< Carta::Lib::VectorGraphics::Entries::SetBrush> ( QColor( "white"));
+//    comp.append< Carta::Lib::VectorGraphics::Entries::DrawRect> ( QRectF( 0, 0, 200, 40));
+    vgview-> setVG( comp.vgList() );
+    vgview-> scheduleRepaint();
+
+    static QTimer * timer = new QTimer( this );
+    static double xxx = 0;
+    connect( timer, & QTimer::timeout, [ = ] () {
+                 Carta::Lib::VectorGraphics::VGComposer comp;
+                 xxx += 0.1;
+                 if ( xxx > 1 ) {
+                     xxx = 0.0;
+                 }
+                 using Carta::Lib::VectorGraphics::Entries::FillRect;
+                 comp.append < FillRect > ( QRectF( xxx * 10 +
+                                                    50, 55, 70,
+                                                    40 ),
+                                            QColor( 0, 0, 255,
+                                                    128 ) );
+                 vgview-> setVG( comp.vgList() );
+                 vgview-> scheduleRepaint();
+             }
+             );
+    timer->setInterval( 200 );
+    timer->start();
+*/
+    // managed layer demo
+    m_lvDemo.reset( new LayeredViewDemo( this));
+
+    // layered view 2 stuff
+    auto ccl = [] ( int x, int y, int r, QColor color ) -> QImage {
+        QImage img( 500, 500, QImage::Format_ARGB32_Premultiplied );
+        img.fill( 0xff000000 );
+        QPainter p( & img );
+        p.setPen( "white" );
+        p.setBrush( color );
+        p.drawEllipse( QPoint( x, y ), r, r );
+        p.end();
+        return img;
+    };
+//    static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2 =
+//        Carta::Lib::LayeredRemoteVGView::create( m_connector, "vgview2", this );
+    static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2(
+        new Carta::Lib::LayeredRemoteVGView( m_connector, "vgview2", this ));
+
+    vgview2-> setRasterLayer( 0, ccl( 50, 50, 45, "white" ) );
+    auto acombgreen = std::make_shared < Carta::Lib::PixelMaskCombiner > ();
+    acombgreen-> setAlpha( 1.0 );
+    acombgreen-> setMask( 0xff00ff00 );
+    vgview2-> setRasterLayerCombiner( 0, acombgreen );
+
+    vgview2-> setRasterLayer( 1, ccl( 70, 70, 45, QColor( "white" ) ) );
+    auto acombred = std::make_shared < Carta::Lib::PixelMaskCombiner > ();
+    acombred-> setAlpha( 0.9 );
+    acombred-> setMask( 0xffff0000 );
+    vgview2-> setRasterLayerCombiner( 1, acombred );
+
+    vgview2-> setRasterLayer( 2, ccl( 50, 80, 45, QColor( "white" ) ) );
+    auto acombblue = std::make_shared < Carta::Lib::PixelMaskCombiner > ();
+    acombblue-> setAlpha( 0.9 );
+    acombblue-> setMask( 0xff0000ff );
+    vgview2-> setRasterLayerCombiner( 2, acombblue );
+
+    vgview2-> scheduleRepaint();
+
+    // commands:
+    // <layer> <cmd> [args]
+    // 0 load c1
+    // 0 load v1
+    // 0 load /scratch/Images/tree.jpg
+    // 0 alpha 0.5
+    // 0 mask 0xff0000 0.5
+    auto cmdCB =
+    [&] ( const QString & cmd, const QString & params, const QString & sid ) -> QString {
+        qDebug() << "cmd" << cmd << params << sid;
+        QStringList list = params.split( ' ', QString::SkipEmptyParts );
+        if ( list.size() < 2 ) {
+            qWarning() << "Bad command" << params;
+            return "Bad command";
+        }
+        bool ok;
+        int layer = list[0].toInt( & ok );
+        if ( ! ok ) {
+            qWarning() << "Bad layer in command" << params;
+            return "Bad layer in command";
+        }
+
+        // get op
+        QString opcmd = list[1];
+        if ( opcmd == "load" ) {
+            if ( list.size() < 3 ) {
+                return "What do you want to load?";
+            }
+            QString load = list[2];
+            if ( load.startsWith( '/' ) && QFileInfo( load ).exists() ) {
+                QImage img;
+                if ( ! img.load( load ) ) {
+                    return "Could not load image";
+                }
+                vgview2-> setRasterLayer( layer, img );
+            }
+            else if ( load == "c1" ) {
+                vgview2-> setRasterLayer( layer, ccl( 50, 50, 45, "white" ) );
+            }
+            else if ( load == "c2" ) {
+                vgview2-> setRasterLayer( layer, ccl( 70, 70, 45, "white" ) );
+            }
+            else {
+                return "Don't know how to load this";
+            }
+        }
+        else if ( opcmd == "alpha" ) {
+            if ( list.size() < 3 ) {
+                return "No alpha value?";
+            }
+            double alpha = list[2].toDouble( & ok );
+            if ( ! ok || ! ( alpha >= 0 && alpha <= 1 ) ) {
+                return "Bad alpha";
+            }
+            auto comp = std::make_shared < Carta::Lib::AlphaCombiner > ();
+            comp-> setAlpha( alpha );
+            vgview2-> setRasterLayerCombiner( layer, comp );
+        }
+        else if ( opcmd == "mask" ) {
+            if ( list.size() < 4 ) {
+                return "No mask and/or alpha value?";
+            }
+            quint32 mask = list[2].toInt( & ok, 16 );
+            if ( ! ok ) {
+                return "Bad mask";
+            }
+            mask |= 0xff000000;
+            double alpha = list[3].toDouble( & ok );
+            if ( ! ok || ! ( alpha >= 0 && alpha <= 1 ) ) {
+                return "Bad alpha";
+            }
+            auto comp = std::make_shared < Carta::Lib::PixelMaskCombiner > ();
+            comp-> setAlpha( alpha );
+            comp-> setMask( mask );
+            vgview2-> setRasterLayerCombiner( layer, comp );
+        }
+        else if ( opcmd == "time" ) {}
+        else {
+            qWarning() << "Bad layer operation" << params;
+            return "Bad layer operation";
+        }
+        vgview2-> scheduleRepaint();
+        return "OK";
+    };
+    m_connector-> addCommandCallback( "lvgview-cmd", cmdCB );
 
     qDebug() << "HackViewer has been initialized.";
 } // start
@@ -185,6 +360,8 @@ HackViewer::prefixedAddStateCallback( QString path, IConnector::StateChangedCall
     return m_connector-> addStateCallback( m_statePrefix + "/" + path, cb );
 }
 }
+}
+
 
 /// experiment, currently unused
 ///

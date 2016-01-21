@@ -1,6 +1,8 @@
 /**
- *
+ * Experimental code below. None of it is actually being used anywhere (yet).
  **/
+
+#ifdef DONT_COMPILE
 
 #include "ILayeredView.h"
 
@@ -177,3 +179,4 @@ apitest()
 static int activator = apitest();
 
 
+#endif

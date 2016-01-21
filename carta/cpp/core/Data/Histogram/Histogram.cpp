@@ -265,6 +265,7 @@ void Histogram::_endSelectionColor(const QString& params ){
 }
 
 void Histogram::_finishClips (){
+    m_stateData.flushState();
     //When we zoom there should be no clipping selector.
     m_histogram->clearSelectionColor();
     _generateHistogram( true );
@@ -277,8 +278,8 @@ void Histogram::_finishColor(){
     m_stateData.flushState();
 }
 
-std::vector<std::shared_ptr<Image::ImageInterface>> Histogram::_generateData(Controller* controller){
-    std::vector<std::shared_ptr<Image::ImageInterface>> result;
+std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Histogram::_generateData(Controller* controller){
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> result;
     if ( controller != nullptr ){
         result = controller->getDataSources();
     }
@@ -433,7 +434,7 @@ QString Histogram::_getActualPlaneMode( const QString& planeModeStr ){
     return result;
 }
 
-QString Histogram::getPreferencesId() const {
+QString Histogram::_getPreferencesId() const {
     return m_preferences->getPath();
 }
 
@@ -555,7 +556,7 @@ void Histogram::_initializeCallbacks(){
 
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                QString result = getPreferencesId();
+                QString result = _getPreferencesId();
                 return result;
             });
 
@@ -983,7 +984,12 @@ bool Histogram::isLinked( const QString& linkId ) const {
 }
 
 
-void Histogram::_loadData( Controller* controller ){
+void Histogram::_loadData( Controller* controller )
+{
+
+    if( ! controller) {
+        return;
+    }
 
     int binCount = m_state.getValue<int>(BIN_COUNT)+1;
     double minFrequency = -1;
@@ -1005,11 +1011,14 @@ void Histogram::_loadData( Controller* controller ){
     }
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
-    std::vector<std::shared_ptr<Image::ImageInterface>> dataSources;
-    if ( controller != nullptr ){
-        int stackedImageCount = controller->getStackedImageCount();
-        if ( stackedImageCount > 0 ){
-            dataSources = _generateData( controller );
+
+//    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> dataSources;
+//    if ( controller != nullptr ) {
+        auto dataSources = controller-> getDataSources();
+//        int stackedImageCount = controller->getStackedImageCount();
+//        if ( stackedImageCount > 0 ){
+        if ( dataSources.size() > 0 ) {
+//            dataSources = _generateData( controller );
             auto result = Globals::instance()-> pluginManager()
                                       -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
                                               minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
@@ -1029,12 +1038,13 @@ void Histogram::_loadData( Controller* controller ){
                 hr->registerError( errorStr );
             }
         }
-        else if ( stackedImageCount == 0 ){
+//        else if ( stackedImageCount == 0 ){
+        else {
             _resetDefaultStateData();
             const Carta::Lib::Hooks::HistogramResult data;
             m_histogram->setData( data );
         }
-    }
+//    }
 }
 
 void Histogram::refreshState() {
@@ -1770,7 +1780,6 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
 }
 
 
-
 QString Histogram::saveHistogram( const QString& fileName ){
     QString result = "";
     //Check and make sure the directory exists.
@@ -1788,13 +1797,22 @@ QString Histogram::saveHistogram( const QString& fileName ){
         int width = prefSave->getWidth();
         int height = prefSave->getHeight();
         Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-        QImage* histogramImage = m_histogram->toImage();
-        QSize outputSize( width, height );
-        QImage imgScaled = histogramImage->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
+        QImage imgScaled;
+        QImage* histogramImage = nullptr;
+        if ( aspectRatioMode == Qt::IgnoreAspectRatio ){
+            histogramImage = m_histogram->toImage( width, height );
+            imgScaled = *histogramImage;
+        }
+        else {
+            histogramImage = m_histogram->toImage();
+            QSize outputSize( width, height );
+            imgScaled = histogramImage->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
+        }
         bool saveSuccessful = imgScaled.save( fileName, 0, 100 );
         if ( !saveSuccessful ){
             result = "The image could not be saved; please check the path: "+fileName+" is valid.";
         }
+//        delete histogramImage;
         delete histogramImage;
     }
     return result;
@@ -2004,19 +2022,6 @@ void Histogram::_updateSelection(int x){
     if ( m_selectionEnabled || m_selectionEnabledColor ){
         _generateHistogram( false );
     }
-}
-
-
-void Histogram::updateColorMap( Colormap* map ){
-    if ( map != nullptr ){
-        Controller* controller = _getControllerSelected();
-        if ( controller != nullptr ){
-            map->setColorProperties( controller );
-            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
-            m_histogram->setPipeline( pipeline );
-        }
-    }
-    _generateHistogram( false );
 }
 
 

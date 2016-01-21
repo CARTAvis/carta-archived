@@ -1,7 +1,10 @@
 #include "Clock1Plugin.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include <QDebug>
 #include <QPainter>
 #include <QTime>
+
+typedef Carta::Lib::Hooks::Initialize Initialize;
 
 Clock1Plugin::Clock1Plugin(QObject *parent) :
     QObject(parent)

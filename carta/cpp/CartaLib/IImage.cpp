@@ -6,6 +6,9 @@
 
 #include "IImage.h"
 
+namespace Carta {
+namespace Lib {
+
 const Unit &Image::ImageInterface::getPixelUnit() const
 {
     qFatal( "Calling unimplemented virtual function... ");
@@ -64,4 +67,7 @@ Image::MetaDataInterface::SharedPtr Image::ImageInterface::metaData()
 Image::MetaDataInterface::~MetaDataInterface()
 {
 
+}
+
+}
 }

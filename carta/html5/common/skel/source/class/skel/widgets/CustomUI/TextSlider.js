@@ -187,7 +187,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
                 var params = this.m_paramId + ":"+percentValue;
                 this.m_connector.sendCommand( cmd, params, this._errorCB(this));
             }
-            else {
+            if ( this.m_connector === null || this.m_id === null || this.m_notify ){
                 var data = {
                     "value" : value
                 }
@@ -276,6 +276,15 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         },
         
         /**
+         * Set whether not to fire events when the value changes.
+         * @param notify {boolean} - true if events should be fired when the
+         *      value changes.
+         */
+        setNotify : function( notify ){
+            this.m_notify = notify;
+        },
+        
+        /**
          * Set this widget enabled/disabled.
          * @param enabled {boolean} - true to enable the widget; false otherwise.
          */
@@ -288,6 +297,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         m_paramId : null,
         m_logScale : false,
         m_normalize : false,
+        m_notify : false,
         m_text : null,
         m_slider : null,
         m_listenerId : null,
