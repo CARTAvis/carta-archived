@@ -4,6 +4,8 @@
 
 #include "MainModel.h"
 
+namespace Carta
+{
 namespace Hacks
 {
 namespace Model
@@ -44,5 +46,6 @@ GlobalsH::GlobalsH()
 
 }
 
+}
 }
 

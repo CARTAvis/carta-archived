@@ -8,6 +8,10 @@
 
 /**
  * Define mExport and mImport
+ *
+ * \todo mExport could be moved into mImport, i.e. in order to export something, you would
+ * need to first mExport = mImport( "mExport");
+ * This way we would only pollute the global namespace with just one symbol...
  */
 (function()
 {
@@ -114,7 +118,17 @@
 
     function assert(condition, message) {
         if (!condition) {
-            throw message || "Assertion failed";
+            // try to dump as much info into the console as possible, in case
+            // exceptions are eaten up later by the caller (e.g. qtwebkit bridge
+            // just ignores exceptions thrown inside callbacks connected to signals)
+            console.error( "Assertion failed:", message);
+            if( qx && qx.dev && qx.dev.StackTrace && qx.dev.StackTrace.getStackTrace) {
+                console.error("Trace:", qx.dev.StackTrace.getStackTrace());
+            }
+            // also try console.trace() in case it works (it does not work in qt webkit)
+            console.trace();
+            // now try to throw an exception, but it might be ignored
+            throw (message || "Assertion failed");
         }
     }
 

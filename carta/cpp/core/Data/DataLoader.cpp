@@ -106,6 +106,10 @@ QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
     return shortNames;
 }
 
+QString DataLoader::getLongName( const QString& shortName, const QString& sessionId ) const {
+    return getRootDir( sessionId) + QDir::separator() + shortName;
+}
+
 void DataLoader::_initCallbacks(){
 
     //Callback for returning a list of data files that can be loaded.

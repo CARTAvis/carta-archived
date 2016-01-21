@@ -56,10 +56,19 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.VBox();
+            var widgetLayout = new qx.ui.layout.HBox();
             this._setLayout(widgetLayout);
-            this._add( new qx.ui.core.Spacer(), {flex:1});
             
+            this._add( new qx.ui.core.Spacer(), {flex:1});
+            this._initInvertReverse();
+            this._add( new qx.ui.core.Spacer(), {flex:1});
+
+        },
+        
+        /**
+         * Initialize the revert & invert controls.
+         */
+        _initInvertReverse : function(){
             this.m_invertCheck = new qx.ui.form.CheckBox( "Invert");
             this.m_invertCheck.setToolTipText( "Invert the colors in the map.");
             this.m_invertCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
@@ -82,23 +91,10 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             var mapComposite = new qx.ui.container.Composite();
             mapComposite.setLayout(new qx.ui.layout.VBox(1));
             
-            var revComp = new qx.ui.container.Composite();
-            revComp.setLayout( new qx.ui.layout.HBox());
-            revComp.add( this.m_reverseCheck );
-            revComp.add( new qx.ui.core.Spacer(1), {flex:1});
-            mapComposite.add( revComp );
-            
-            var invertComp = new qx.ui.container.Composite();
-            invertComp.setLayout( new qx.ui.layout.HBox());
-            invertComp.add( this.m_invertCheck );
-            invertComp.add( new qx.ui.core.Spacer(1), {flex:1});
-            mapComposite.add( invertComp );
-            
+            mapComposite.add( this.m_reverseCheck );
+            mapComposite.add( this.m_invertCheck );
             this._add( mapComposite );
-            this._add( new qx.ui.core.Spacer(), {flex:1});
         },
-        
-
         
         /**
          * Set whether or not to invert the color map.

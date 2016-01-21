@@ -6,10 +6,10 @@
 
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
-#include <Data/IColoredView.h>
 #include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/VectorGraphics/VGList.h"
 
 #include <QString>
 #include <QList>
@@ -18,25 +18,29 @@
 
 #include <set>
 
-class ImageView;
 class CoordinateFormatterInterface;
-
-namespace NdArray {
-    class RawViewInterface;
-}
 
 namespace Carta {
     namespace Lib {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
         }
+        namespace Image {
+            class ImageInterface;
+        }
+        namespace NdArray {
+            class RawViewInterface;
+        }
+        class LayeredRemoteVGView;
     }
 }
 
 namespace Carta {
 namespace Data {
+class ColorState;
 class ControllerData;
 class DisplayControls;
+class DrawStackSynchronizer;
 class GridControls;
 class ContourControls;
 class Settings;
@@ -45,9 +49,10 @@ class RegionRectangle;
 class Selection;
 
 class Controller: public QObject, public Carta::State::CartaObject,
-    public IColoredView, public IPercentIntensityMap {
+    public IPercentIntensityMap {
 
     friend class Animator;
+    friend class Colormap;
 
     Q_OBJECT
 
@@ -57,6 +62,12 @@ public:
      * Clear the view.
      */
     void clear();
+
+    /**
+     * Add a contour set to the selected images.
+     * @param contourSet - the contour set to add.
+     */
+    virtual void addContourSet( std::shared_ptr<DataContours> contourSet) Q_DECL_OVERRIDE;
 
     /**
      * Add data to this controller.
@@ -88,6 +99,15 @@ public:
      */
     QString closeImage( const QString& name );
 
+
+    /**
+      * Get the image pixel that is currently centered.
+      * @return a QPointF value consisting of the x- and y-coordinates of
+      * the center pixel, or a special value of (-0.0, -0.0) if the
+      * center pixel could not be obtained.
+      */
+    QPointF getCenterPixel();
+
     /**
      * Return the coordinate system in use.
      * @return - an enumerated coordinate system type.
@@ -107,16 +127,73 @@ public:
     double getClipPercentileMax() const;
 
     /**
-     * Return a shared pointer to the grid controls.
-     * @return - a shared pointer to the grid controls.
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @return the coordinates at pixel (x, y).
      */
-    std::shared_ptr<GridControls> getGridControls();
+    QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
+
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
 
     /**
      * Return a shared pointer to the contour controls.
      * @return - a shared pointer to the contour controls.
      */
     std::shared_ptr<ContourControls> getContourControls();
+
+    /**
+     */
+    int getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
+
+    /**
+     * Return the frame upper bound.
+     * @param type - the axis for which a frame upper bound is needed.
+     * @return the largest frame for a particular axis in the image.
+     */
+    int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
+
+    /**
+     * Return a shared pointer to the grid controls.
+     * @return - a shared pointer to the grid controls.
+     */
+    std::shared_ptr<GridControls> getGridControls();
+
+    /**
+     * Get the image dimensions.
+     */
+    std::vector<int> getImageDimensions( );
+
+    /**
+     * Returns an identifier for the data source at the given index.
+     * @param index the index of a data source.
+     * @return an identifier for the image.
+     */
+    QString getImageName(int index) const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile in the current frame.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool getIntensity( double percentile, double* intensity ) const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentile a number [0,1] for which an intensity is desired.
+     * @param intensity the computed intensity corresponding to the percentile.
+     * @return true if the computed intensity is valid; otherwise false.
+     */
+    bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
+
+    /**
+     * Get the dimensions of the image viewer (window size).
+     */
+    QSize getOutputSize( );
 
     /**
      * Return the percentile corresponding to the given intensity in the current frame.
@@ -142,62 +219,6 @@ public:
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
 
     /**
-     * Returns the intensity corresponding to a given percentile in the current frame.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool getIntensity( double percentile, double* intensity ) const;
-
-    /**
-     * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
-
-
-
-
-
-    std::vector<std::shared_ptr<Image::ImageInterface>> getDataSources();
-
-    /**
-     * Return the current axis frame.
-     * @param axisType - the axis for which the frame index is needed.
-     * @return the current frame for the axis.
-     */
-    int getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
-
-    /**
-     * Get the current zoom level
-     */
-    double getZoomLevel( );
-
-    /**
-     * Get the image dimensions.
-     */
-    std::vector<int> getImageDimensions( );
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     */
-    QSize getOutputSize() const;
-
-
-    QString getPreferencesId() const;
-
-
-    /**
-     * Return a count of the number of images in the stack.
-     * @return the number of images in the stack.
-     */
-    int getStackedImageCount() const;
-
-    /**
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
@@ -221,42 +242,60 @@ public:
     QString getPixelUnits() const;
 
     /**
-     * Return the coordinates at pixel (x, y) in the given coordinate system.
-     * @param x the x-coordinate of the desired pixel.
-     * @param y the y-coordinate of the desired pixel.
-     * @param system the desired coordinate system.
-     * @return the coordinates at pixel (x, y).
-     */
-    QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
-
-    /**
      * Return the index of the image that is currently at the top of the stack.
      * @return the index of the current image.
      */
     int getSelectImageIndex() const ;
 
     /**
-     * Return the frame upper bound.
-     * @param type - the axis for which a frame upper bound is needed.
-     * @return the largest frame for a particular axis in the image.
+     * Get the color map information for the data sources that have been
+     * selected.
+     * @return - a list containing color map information for the data sources
+     *      that have been selected.
      */
-    int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
+    std::vector< std::shared_ptr<ColorState> > getSelectedColorStates();
 
     /**
-     * Returns an identifier for the data source at the given index.
-     * @param index the index of a data source.
-     * @return an identifier for the image.
+     * Return a count of the number of image layers in the stack.
+     * @return the number of image layers in the stack.
      */
-    QString getImageName(int index) const;
+    //Note:  this will include image layers that the user may not see because they
+    //are hidden.
+    int getStackedImageCount() const;
 
     /**
-     * Returns a json string representing the state of this controller.
-     * @param type - the type of snapshot to return.
-     * @param sessionId - an identifier for the user's session.
-     * @return a string representing the state of this controller.
+     * Returns the number of visibile image layers in the stack.
+     * @return a count of the number of image layers that have not been hidden
+     *      and are available for the user to see.
      */
+    int getStackedImageCountVisible() const;
+
+    /**
+      * Returns a json string representing the state of this controller.
+      * @param type - the type of snapshot to return.
+      * @param sessionId - an identifier for the user's session.
+      * @return a string representing the state of this controller.
+      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Get the current zoom level
+     */
+    double getZoomLevel( );
+
+    /**
+     * Returns whether or not the image stack layers are selected based on the
+     * animator (auto) or whether the user has indicated a manual selection.
+     * @return - true if the stack layers are selected based on the current layer; false
+     *      if the user has specified manual selection.
+     */
+    bool isStackSelectAuto() const;
+
+    /**
+     * Remove a contour set from the images.
+     * @param contourSet - the contour set to remove.
+     */
+     virtual void removeContourSet( std::shared_ptr<DataContours> contourSet ) Q_DECL_OVERRIDE;
 
     /**
      * Center the image.
@@ -270,17 +309,15 @@ public:
     void resetState( const QString& state );
 
     /**
+     * Reset the images that are loaded and other data associated state.
+     * @param state - the data state.
+     */
+    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
      * Reset the zoom to its original value.
      */
     void resetZoom();
-
-    /**
-     * Get the image pixel that is currently centered.
-     * @return a QPointF value consisting of the x- and y-coordinates of
-     * the center pixel, or a special value of (-0.0, -0.0) if the
-     * center pixel could not be obtained.
-    */
-    QPointF getCenterPixel() const;
 
     /**
      * Save a copy of the full image in the current image view.
@@ -300,6 +337,11 @@ public:
     QString saveImage( const QString& filename );
 
     /**
+     * Save the state of this controller.
+     */
+    void saveState();
+
+    /**
      * Set whether or not clip values should be recomputed when the frame changes.
      * @param autoClip - whether or not clips should be recomputed when the frame
      *      changed.
@@ -312,40 +354,11 @@ public:
      */
     void setFrameImage(int imageIndex);
 
-
-    /**
-     * Set the data transform.
-     * @param name QString a unique identifier for a data transform.
-     */
-    void setTransformData( const QString& name );
-
-    //IColoredView interface.
-    virtual void setColorMap( const QString& colorMapName ) Q_DECL_OVERRIDE;
-    virtual void setColorInverted( bool inverted ) Q_DECL_OVERRIDE;
-    virtual void setColorReversed( bool reversed ) Q_DECL_OVERRIDE;
-    virtual void setColorAmounts( double newRed, double newGreen, double newBlue ) Q_DECL_OVERRIDE;
-    virtual void setGamma( double gamma ) Q_DECL_OVERRIDE;
-
-
-    /**
-     * Save the state of this controller.
-     */
-    void saveState();
-
-
-
     /**
      * Set the zoom level
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
      */
     void setZoomLevel( double zoomLevel );
-
-    /**
-     * Reset the images that are loaded and other data associated state.
-     * @param state - the data state.
-     */
-    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
-
 
     /**
      * Set the overall clip amount for the data.
@@ -355,12 +368,79 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * Set whether or not to apply a composition mode to the image.
+     * @param compMode - the type of composition mode to apply.
+     * @return an error message if there was a problem recognizing the composition mode.
+     */
+    QString setCompositionMode( const QString& compMode );
+
+
+    /**
+     * Specify a new image order.
+     * @param imageIndices - a list specifying a new order for the images in
+     *      a layer.
+     * @return an error message if the new image order could not be set;
+     *      otherwise, an empty string.
+     */
+    QString setImageOrder( const std::vector<int>& imageIndices );
+
+    /**
+     * Show/hide a particular layer in the stack.
+     * @param dataIndex - the index of a layer in the stack.
+     * @param visible - true if the layer should be visible; false otherwise.
+     */
+    QString setImageVisibility( int dataIndex, bool visible );
+
+    /**
+     * Set the indices of the selected data sources.
+     * @param indices - a list of indices of selected data sources.
+     */
+    QString setLayersSelected( const std::vector<int> indices );
+
+    /**
+     * Set the color to use for the mask.
+     * @param redAmount - the amount of red in [0,255].
+     * @param greenAmount - the amount of green in [0,255].
+     * @param blueAmount - the amount of blue in [0,255].
+     * @return - a list containing any errors that may have occurred in setting
+     *      the mask color.
+     */
+    //Note: Mask color will not take affect unless a composition mode that supports
+    //a color filter has been set.
+    QStringList setMaskColor( int redAmount, int greenAmount, int blueAmount );
+
+    /**
+     * Set the transparency of the layer.
+     * @param alphaAmount - the transparency level in [0,255] with 255 being opaque.
+     * @return - an error message if there was a problem setting the layer opacity or
+     *      an empty string otherwise.
+     */
+    //Note: Layer transparency will not take affect unless a composition mode which supports
+    //transparency has been set.
+    QString setMaskAlpha( int alphaAmount );
+
+    /**
+     * Set whether or not a pan/zoom operation should affect all layers in the stack
+     * or just the top layer.
+     * @param panZoomAll - true if all layers should be pan/zoomed; false if just the
+     *      top layer should be pan/zoomed.
+     */
+    void setPanZoomAll( bool panZoomAll );
+
+    /**
+     * Set whether or not selection of layers in the stack should be based on the
+     * current layer or whether the user wants to make a manual selection.
+     * @param automatic - true for automatic selection; false for manual selection.
+     */
+    void setStackSelectAuto( bool automatic );
+
+
+    /**
      * Change the pan of the current image.
      * @param imgX the x-coordinate for the center of the pan.
      * @param imgY the y-coordinate for the center of the pan.
      */
     void updatePan( double imgX , double imgY);
-
 
 
     /**
@@ -386,11 +466,23 @@ signals:
     void axesChanged();
 
     /**
+      * Notification that the channel/selection managed by this controller has
+      * changed.
+      * @param controller this Controller.
+      */
+    void channelChanged( Controller* controller );
+
+    /**
      * Notification that the image clip values have changed.
      * @param minPercentile - the new minimum clip percentile.
      * @param maxPercentile - the new maximum clip percentile.
      */
     void clipsChanged( double minPercentile, double maxPercentile );
+
+    /**
+     * Notification that one or more color map(s) have changed.
+     */
+    void colorChanged( Controller* controller );
 
     /**
      *  Notification that the image/selection managed by this controller has
@@ -399,18 +491,12 @@ signals:
      */
     void dataChanged(Controller* controller );
 
-    /**
-     * Notification that the channel/selection managed by this controller has
-     * changed.
-     * @param controller this Controller.
-     */
-    void channelChanged( Controller* controller );
-
-
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
     void saveImageResult( bool result );
+
+
 
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
@@ -419,7 +505,13 @@ private slots:
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
 
+    void _colorMapChanged();
+
+    void _contourSetAdded( ControllerData* cData, const QString& setName );
+    void _contourSetRemoved( const QString setName );
     void _contoursChanged();
+
+
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
@@ -428,14 +520,9 @@ private slots:
     void _loadView( bool newClips = false );
 
     /**
-     * The rendering service has finished and produced a new QImage for display.
-     */
-    void _renderingDone( QImage img );
-
-    /**
      * The view has been resized.
      */
-    void _viewResize( const QSize& newSize );
+    void _viewResize();
 
     /**
      * Schedule a frame reload event.
@@ -443,10 +530,6 @@ private slots:
      */
     void _scheduleFrameReload( bool newClips = false );
 
-    /**
-     * Repaint the image.
-     */
-    void _repaintFrameNow();
 
     // Asynchronous result from saveFullImage().
     void saveImageResultCB( bool result );
@@ -460,22 +543,64 @@ private:
 
     class Factory;
 
-    std::vector<int> _getFrameIndices( int imageIndex ) const;
+    //Clear the color map.
+    void _clearColorMap();
+    //Clear data sources
+    void _clearData();
+    //Clear image statistics.
+    void _clearStatistics();
+
+    std::vector<int> _getFrameIndices( ) const;
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
+
+    //Get the data index
+    int _getIndex( const QString& fileName) const;
+
+    //Get the actual data index of the selection with the given index.  This method
+    //takes into account that some images may be hidden, i.e., temporarily not seen
+    //on the stack.
+    int _getIndexCurrent( ) const;
+
+    //Get the actual index of the passed in data.
+    int _getIndexData( ControllerData* cd ) const;
+
+
+    QString _getPreferencesId() const;
 
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
     void _initializeSelections();
+    void _loadView( bool newClips, int dataIndex );
 
-    void _clearData();
     QString _makeRegion( const QString& regionType );
-    void _removeData( int index );
-    void _render();
-    void _saveRegions();
-    void _scheduleFrameRepaint( const QImage& img );
 
+    void _removeData( int index );
+
+    //Render all images in the stack
+    void _renderAll();
+    //Render a single image in the stack at the given index
+    void _renderSingle( int dIndex );
+    //Helper function to render a subset of layers in the stack.  The grid index is
+    //the index of the layer in the subset that should draw the grid or -1 if there
+    //is no such index.
+    void _render( QList<std::shared_ptr<ControllerData> > datas, int gridIndex );
+    void _saveRegions();
+
+    /**
+     * Set whether or not the selected layers should be using the global
+     * colormap.
+     * @param global - true if selected layers should use the global color map;
+     *      false, otherwise.
+     */
+    void _setColorMapUseGlobal( bool global );
+
+    /**
+     * Set the global color map..
+     * @param colorState - the global color map information.
+     */
+    void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
 
     /**
      * Make a frame selection.
@@ -483,11 +608,16 @@ private:
      * @param val  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+    QString _setLayersSelected( const std::vector<int> indices );
 
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
     void _updateDisplayAxes( int targetIndex );
+    void _updatePan( double centerX , double centerY,
+            std::shared_ptr<ControllerData> data);
+    void _updateZoom( double centerX, double centerY, double zoomFactor,
+             std::shared_ptr<ControllerData> data );
 
     static bool m_registered;
 
@@ -497,27 +627,30 @@ private:
     static const QString AUTO_CLIP;
     static const QString DATA;
     static const QString DATA_PATH;
+    static const QString IMAGE;
+    static const QString PAN_ZOOM_ALL;
     static const QString REGIONS;
     static const QString CENTER;
     static const QString POINTER_MOVE;
+    static const QString STACK_SELECT_AUTO;
+    static const QString VIEW;
     static const QString ZOOM;
 
     //Data Selections
     Selection* m_selectImage;
     std::vector<Selection*> m_selects;
 
-    //Data View
-    std::shared_ptr<ImageView> m_view;
-
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;
-
+    std::unique_ptr<DrawStackSynchronizer> m_stackDraw;
 
     std::unique_ptr<Settings> m_settings;
 
 
     //Data available to and managed by this controller.
     QList<shared_ptr<ControllerData> > m_datas;
+
+    std::shared_ptr<ColorState> m_stateColor;
 
 
     QList<Region* > m_regions;
@@ -529,10 +662,7 @@ private:
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
 
-    QSize m_viewSize;
-
     bool m_reloadFrameQueued;
-    bool m_repaintFrameQueued;
 
     Controller(const Controller& other);
     Controller& operator=(const Controller& other);

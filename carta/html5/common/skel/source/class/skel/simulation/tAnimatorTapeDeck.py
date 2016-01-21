@@ -19,105 +19,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         browser = selectBrowser._getBrowser()
         Util.setUp(self, browser)
 
-    # Test that the Animator can animate in the forward direction
-    # Under default settings, it takes roughly 2 seconds for the channel to change by 1
-    def test_channelAnimatorForwardAnimation(self):
-        driver = self.driver
 
-        # Open a test images
-        # Note:  The test will fail unless the last image loaded has more than one channel
-        Util.load_image( self, driver, "aH.fits")
-        Util.load_image( self, driver, "aJ.fits")
-        Util.load_image( self, driver, "Default")
-
-        # Record the first channel value of the test image
-        self._getFirstValue( driver, "Channel" )
-
-        print "Testing Channel Animator Forward Animation..."
-        print "First channel value: 0"
-
-        # Click the forward animate button
-        # Allow the image to animate for 2 seconds
-        self._animateForward( driver, "Channel" )
-        time.sleep(2)
-
-        # Check that the channel value is greater than the first channel value
-        currChannelValue = self._getCurrentValue( driver, "Channel" )
-        print "Current channel", currChannelValue
-        self.assertGreater( int(currChannelValue), 0, "Channel value did not increase for forward animation.")
-        self._stopAnimation( driver, "Channel")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
-        # Go to the first image and record the first image value
-        self._getFirstValue( driver, "Image" )
-
-        print "Testing Image Animator Forward Animation..."
-        print "First image value: 0"
-
-        # Click the forward animate button
-        # Allow animation for 2 seconds
-        self._animateForward( driver, "Image" )
-        time.sleep(2)
-
-        # Check that the image value is greater than the first image value
-        currImageValue = self._getCurrentValue( driver, "Image" )
-        print "Current image", currImageValue
-        self.assertGreater( int(currImageValue), 0, "Image value did not increase for forward animation")
-
-    # Test that the Animator can animate in the reverse direction
-    # Under default settings, it takes roughly 2 seconds for the channel to change by 1
-    def test_channelAnimatorReverseAnimation(self):
-        driver = self.driver
-
-        # Open a test image so we have something to animate
-        Util.load_image( self, driver, "aH.fits")
-        Util.load_image( self, driver, "aJ.fits")
-        Util.load_image( self, driver, "Default")
-
-        # Record the last channel value of the test image
-        self._getLastValue( driver, "Channel" )
-        lastChannelValue = self._getCurrentValue( driver, "Channel" )
-
-        print "Testing Channel Animator Reverse Animation..."
-        print "Last channel value:", lastChannelValue
-
-        # Click the reverse animate button. Scroll into view if not visible
-        # Allow image to animate for 2 seconds
-        reverseAnimateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelTapeDeckReversePlay")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", reverseAnimateButton)
-        ActionChains(driver).click( reverseAnimateButton ).perform()
-        time.sleep(2)
-
-        # Check that the channel value is at a value less than the last channel value
-        currChannelValue = self._getCurrentValue( driver, "Channel" )
-        print "Current channel", currChannelValue
-        self.assertLess( int(currChannelValue), int(lastChannelValue), "Channel value did not decrease for reverse animation.")
-        self._stopAnimation( driver, "Channel")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
-        # Go to the last image and record the last image value
-        self._getLastValue( driver, "Image" )
-        lastImageValue = self._getCurrentValue( driver, "Image" )
-
-        print "Testing Image Animator Reverse Animation..."
-        print "Last image value:", lastImageValue
-
-        # Click the reverse animate button. Scroll into view if not visible
-        # Allow image to animate for 2 seconds
-        reverseAnimateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ImageTapeDeckReversePlay")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", reverseAnimateButton)
-        ActionChains(driver).click( reverseAnimateButton ).perform()
-        time.sleep(2)
-
-        # Check that the image value is at a value less than the last image value
-        currImageValue = self._getCurrentValue( driver, "Image" )
-        print "Current image", currImageValue
-        self.assertLess( int(currImageValue), int(lastImageValue), "Image value did not decrease for reverse animation")
-
+    
     # Test that the Channel Animator can stop the animation
     def test_channelAnimatorStopAnimation(self):
         driver = self.driver
@@ -130,30 +33,25 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Allow the image to animate for 2 seconds
         self._animateForward( driver, "Channel" )
         time.sleep(2)
-
+        
         # Click on the Stop button. Scroll into view if not visible
-        stopButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelTapeDeckStopAnimation")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", stopButton)
-        ActionChains(driver).click( stopButton ).perform()
+        self._stopAnimation( driver, "Channel")
         channelValue = self._getCurrentValue( driver, "Channel" )
-
+        print "Channel value ", channelValue
         # Wait for another 2 seconds. Ensure the channel value did not change
         time.sleep(2)
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         self.assertEqual( int(currChannelValue), int(channelValue), "Channel animation did not stop" )
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
+        
         # Allow animation for 2 seconds
         self._animateForward( driver, "Image" )
-        time.sleep(2)
+        time.sleep(1)
 
         # Click on the Stop button. Scroll into view if not visible
-        stopButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ImageTapeDeckStopAnimation")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", stopButton)
-        ActionChains(driver).click( stopButton ).perform()
+        self._stopAnimation( driver, "Image")
         imageValue = self._getCurrentValue( driver, "Image" )
+        print "Image value ",imageValue
 
         # Wait for another 2 seconds. Ensure that the image value did not change
         time.sleep(2)
@@ -178,12 +76,10 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Check that the channel value is the same as the first channel value
         self._animateForward( driver, "Channel" )
         time.sleep(2)
+        self._stopAnimation( driver, "Channel")
         self._getFirstValue( driver, "Channel" )
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         self.assertEqual( int(currChannelValue), int(firstChannelValue), "Channel Animator did not return to first channel value")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
 
          # Go to the first image and record the first image value
         self._getFirstValue( driver, "Image" )
@@ -192,11 +88,13 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Allow animation for 2 seconds
         self._animateForward( driver, "Image" )
         time.sleep(2)
-
+        self._stopAnimation( driver, "Image")
+        
         # Click the first valid value button
         # Check that the image value is the same as the first image value
         self._getFirstValue( driver, "Image" )
         currImageValue = self._getCurrentValue( driver, "Image" )
+        print "Current Value=", currImageValue," firstValue=",firstImageValue
         self.assertEqual( int(currImageValue), int(firstImageValue), "Image Animator did not return to first image")
 
     # Test that the Channel Animator can go to the last frame value of the test image
@@ -214,7 +112,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         self._getFirstValue( driver, "Channel" )
         self._animateForward( driver, "Channel" )
         time.sleep(2)
-
+        self._stopAnimation( driver, "Channel")
+        
         # Click the last valid value button
         # Check that the channel value is the same as the last channel value
         self._getLastValue( driver, "Channel" )
@@ -224,8 +123,6 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Load another image so the image animator is available.
         Util.load_image( self, driver, "aJ.fits")
 
-        self.channel_to_image_animator( driver )
-
         # Go to the first image and record the first image value
         self._getLastValue( driver, "Image" )
         lastImageValue = self._getCurrentValue( driver, "Image" )
@@ -233,6 +130,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Allow animation for 2 seconds
         self._animateForward( driver, "Image" )
         time.sleep(2)
+        self._stopAnimation( driver, "Image")
 
         # Click the first valid value button
         # Check that the image value is the same as the first image value
@@ -277,10 +175,7 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
 
         # Check that the input to the upper spin box cannot be less than the first channel value
         upperBoundValue = Util._changeElementText( self, driver, upperBoundText, -10)
-        self.assertGreaterEqual( int(upperBoundValue), 0, "Channel Upper bound value is negative")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
+        self.assertGreaterEqual( int(upperBoundValue), 0, "Channel Upper bound value is negative" )
 
         # Record the last image value
         self._getLastValue( driver, "Image" )
@@ -356,9 +251,6 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
 
         # Record the first image value
         self._getFirstValue( driver, "Image" )

@@ -380,6 +380,7 @@ void Layout::resetState( const Carta::State::StateInterface& savedState ){
 QString Layout::_removeWindow( const QString& locationId ){
     QString result;
     bool windowRemoved = false;
+    QStringList oldNames = getPluginList();
     if ( m_layoutRoot != nullptr ){
         LayoutNode* firstChild = m_layoutRoot->getChildFirst();
         LayoutNode* secondChild = m_layoutRoot->getChildSecond();
@@ -399,7 +400,10 @@ QString Layout::_removeWindow( const QString& locationId ){
     }
     if ( !windowRemoved ){
         result = "There was a problem removing the window.";
-        qDebug() << "There was a problem removing the window at " + locationId;
+    }
+    else {
+        QStringList newNames = getPluginList();
+        emit pluginListChanged( newNames, oldNames );
     }
     return result;
 }

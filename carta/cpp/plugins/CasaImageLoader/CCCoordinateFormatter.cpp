@@ -7,6 +7,7 @@
 #include <casacore/measures/Measures/Stokes.h>
 #include <QDebug>
 
+#ifdef DONT_COMPILE
 #define CARTA_DEBUG_THIS_FILE 0
 
 #if CARTA_DEBUG_THIS_FILE > 0 && defined ( CARTA_DEBUG_OUTPUT )
@@ -14,6 +15,7 @@
 #else
 #define cartaDebug while ( false ) \
         qDebug
+#endif
 #endif
 
 /// shortcut to HtmlString
@@ -267,7 +269,7 @@ CCCoordinateFormatter::skyCS()
 CCCoordinateFormatter::Me &
 CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
 {
-    cartaDebug() << "setSkyCS" << static_cast < int > ( scs );
+    //qDebug() << "setSkyCS" << static_cast < int > ( scs );
 
     // don't even try to set this to unknown
     if ( scs == KnownSkyCS::Unknown ) {
@@ -311,7 +313,7 @@ CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
         mdir = casa::MDirection::GALACTIC;
         break;
     default :
-        CARTA_ASSERT( false );
+        CARTA_ASSERT_ALWAYS_X( false, "Internal error" );
         break;
     } // switch
     dirCoordCopy.setReferenceConversion( mdir );
@@ -352,13 +354,13 @@ CCCoordinateFormatter::setSkyFormatting( SkyFormatting format )
 void
 CCCoordinateFormatter::parseCasaCS()
 {
-    cartaDebug() << "CCC nAxes=" << nAxes();
+    /*qDebug() << "CCC nAxes=" << nAxes();
     for ( auto & u : m_casaCS->worldAxisUnits() ) {
-        cartaDebug() << "all units:" << u.c_str();
+        qDebug() << "all units:" << u.c_str();
     }
     for ( auto & u : m_casaCS->worldAxisNames() ) {
-        cartaDebug() << "all names:" << u.c_str();
-    }
+        qDebug() << "all names:" << u.c_str();
+    }*/
 
     // default precision is 3
     m_precisions.resize( nAxes(), 3 );
@@ -367,12 +369,12 @@ CCCoordinateFormatter::parseCasaCS()
     for ( int i = 0 ; i < nAxes() ; i++ ) {
         parseCasaCSi( i );
     }
-    cartaDebug() << "Parsed axis infos:";
+    /*qDebug() << "Parsed axis infos:";
     for ( auto & ai : m_axisInfos ) {
-        cartaDebug() << "  lp:" << ai.longLabel().plain() << "lh:" << ai.longLabel().html()
-                     << "sp:" << ai.shortLabel().html() << "sh:" << ai.shortLabel().html()
-                     << "u:" << ai.unit();
-    }
+        qDebug() << "  lp:" << ai.longLabel().plain() << "lh:" << ai.longLabel().html()
+                 << "sp:" << ai.shortLabel().html() << "sh:" << ai.shortLabel().html()
+                 << "u:" << ai.unit();
+    }*/
 
     // set formatting to default
     setSkyFormatting( SkyFormatting::Default );
@@ -394,9 +396,9 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
 
     m_casaCS->findPixelAxis( coord, coord2, pixelAxis );
 
-    cartaDebug() << pixelAxis << "-->" << coord << "," << coord2;
-    cartaDebug() << "   "
-                 << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
+    //qDebug() << pixelAxis << "-->" << coord << "," << coord2;
+    //qDebug() << "   "
+    //         << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
 
     AxisInfo & aInfo = m_axisInfos[pixelAxis];
 
@@ -482,6 +484,11 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             //            else if ( cc.type() == casa::Coordinate::QUALITY ) {
             //                aInfo.setKnownType( aInfo.KnownType::QUALITY);
             //            }
+        }
+        else if ( cc.type() == casa::Coordinate::LINEAR ){
+            aInfo.setKnownType( AxisInfo::KnownType::LINEAR )
+                .setLongLabel( HtmlString::fromPlain( "Linear"))
+                .setShortLabel( HtmlString::fromPlain( "Linear"));
         }
         else {
             // other types... we copy whatever casacore dishes out

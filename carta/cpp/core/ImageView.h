@@ -30,6 +30,7 @@ public:
     virtual void handleResizeRequest(const QSize & size);
     virtual void handleMouseEvent(const QMouseEvent & ev);
     virtual void handleKeyEvent(const QKeyEvent & /*event*/) override {}
+    virtual void viewRefreshed( qint64 /*id*/) override {}
     static const QString MOUSE;
     static const QString MOUSE_X;
     static const QString MOUSE_Y;

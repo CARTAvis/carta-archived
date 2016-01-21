@@ -19,15 +19,16 @@ namespace Carta {
         namespace PixelPipeline {
             class CustomizablePixelPipeline;
         }
+        namespace Image {
+            class ImageInterface;
+        }
+        namespace NdArray {
+            class RawViewInterface;
+        }
     }
 }
-namespace Image {
-    class ImageInterface;
-}
 
-namespace NdArray {
-    class RawViewInterface;
-}
+
 
 namespace Carta{
 namespace Core{
@@ -66,7 +67,7 @@ public:
     /// data being displayed.
     /// \param view - the data
     /// \param viewId - an identifier for the data being displayed.
-    void setInputView( std::shared_ptr<NdArray::RawViewInterface> view, const QString& viewId );
+    void setInputView( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view, const QString& viewId );
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
@@ -107,7 +108,7 @@ private:
     bool _prepareData();
 
     /// Input data and id.
-    std::shared_ptr<NdArray::RawViewInterface> m_inputView;
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> m_inputView;
     QString m_inputViewId;
 
     /// Full path of the output image

@@ -1,8 +1,9 @@
 {
-    "name"       : "jpeg-png",
+    "api"        : "1",
+    "name"       : "qimage",
     "version"    : "1",
     "type"       : "C++",
-    "description": "Adds ability to load png and jpeg files",
+    "description": "Adds ability to load jpeg/png images. (anything Qt supports)",
     "about"      : "Part of carta. Written by Pavol",
-    "depends"    : []
+    "depends"    : [ ]
 }

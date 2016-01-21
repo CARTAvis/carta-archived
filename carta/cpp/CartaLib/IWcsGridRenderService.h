@@ -57,7 +57,7 @@ public:
     /// set the input data, shold have at least 2 dimensions
     /// \note the data is not imporant, only meta data attached to this is important
     virtual void
-    setInputImage( Image::ImageInterface::SharedPtr image ) = 0;
+    setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr image ) = 0;
 
     /// which part of the input image data to render (in casa coordinates)
     /// this always assumes we are doing axis1/axis2 grid

@@ -217,7 +217,7 @@ QStringList ScriptFacade::reverseColorMap( const QString& colormapId, const QStr
                 reverse = Carta::Data::Util::toBool( reverseStr, &validBool );
             }
             if ( validBool ){
-                QString result = colormap->reverseColorMap( reverse );
+                QString result = colormap->setReverse( reverse );
                 resultList = QStringList( result );
             }
             else {
@@ -249,7 +249,7 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
                 invert = Carta::Data::Util::toBool( invertStr, &validBool );
             }
             if ( validBool ){
-                QString result = colormap->invertColorMap( invert );
+                QString result = colormap->setInvert( invert );
                 resultList = QStringList( result );
             }
              else {

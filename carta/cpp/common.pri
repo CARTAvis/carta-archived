@@ -28,7 +28,7 @@ else {
     CARTA_CONFIG = dbgout runtimeChecks
 }
 
-#message("CARTA_CONFIG is now: $$CARTA_CONFIG")
+message("CARTA_CONFIG is now: $$CARTA_CONFIG")
 
 #remove known optimizations and debugger flags
 QMAKE_CXXFLAGS -= -O -O0 -O1 -O2 -O3 -g
@@ -47,20 +47,22 @@ contains( CARTA_CONFIG, gdb) {
     message( "- NO debugger support")
 }
 contains( CARTA_CONFIG, dbgout) {
-    QMAKE_CXXFLAGS += -DCARTA_DEBUG_OUTPUT
-    QMAKE_CFLAGS += -DCARTA_DEBUG_OUTPUT
-    QMAKE_LFLAGS += -DCARTA_DEBUG_OUTPUT
     message( "+ extra debug output")
 } else {
-    QMAKE_CXXFLAGS += -DQT_NO_DEBUG_OUTPUT
-    QMAKE_CFLAGS += -DQT_NO_DEBUG_OUTPUT
+    QMAKE_CXXFLAGS += -DQT_NO_DEBUG_OUTPUT -DQT_NO_WARNING_OUTPUT
+    QMAKE_CFLAGS += -DQT_NO_DEBUG_OUTPUT -DQT_NO_WARNING_OUTPUT
+    CONFIG -= debug
     message( "- NO extra debug output")
 }
 contains( CARTA_CONFIG, runtimeChecks) {
-    QMAKE_CXXFLAGS += -DCARTA_RUNTIME_CHECKS
-    QMAKE_CFLAGS += -DCARTA_RUNTIME_CHECKS
+    QMAKE_CXXFLAGS += -DCARTA_RUNTIME_CHECKS=1
+    QMAKE_CFLAGS += -DCARTA_RUNTIME_CHECKS=1
+    CONFIG += debug
     message( "+ extra runtime checks")
 } else {
+    QMAKE_CXXFLAGS += -DCARTA_RUNTIME_CHECKS=0
+    QMAKE_CFLAGS += -DCARTA_RUNTIME_CHECKS=0
+    CONFIG -= debug
     message( "- NO extra runtime checks")
 }
 contains( CARTA_CONFIG, noOpt) {

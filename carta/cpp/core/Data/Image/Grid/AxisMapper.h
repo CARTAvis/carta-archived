@@ -81,6 +81,7 @@ public:
     const static QString STOKES;
     const static QString TABULAR;
     const static QString QUALITY;
+    const static QString LINEAR;
 
 private:
     static QString _getAxisRAPurpose( const Carta::Lib::KnownSkyCS& cs );

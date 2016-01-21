@@ -7,6 +7,7 @@
 // WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
 // ==================================================================================
 
+#ifdef DONT_COMPILE
 
 
 #pragma once
@@ -98,3 +99,5 @@ public:
 };
 
 }
+
+#endif

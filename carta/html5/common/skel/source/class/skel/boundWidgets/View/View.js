@@ -20,6 +20,12 @@ qx.Class.define( "skel.boundWidgets.View.View", {
 
     extend: qx.ui.core.Widget,
 
+    events:
+    {
+        // fired when the view is updated
+        "viewRefreshed" : "qx.event.type.Data"
+    },
+
     /**
      * @param viewName {String} the name of the view.
      */
@@ -32,13 +38,7 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         
         var setZeroTimeout = mImport( "setZeroTimeout" );
 
-        this.m_appearListenerId = this.addListener( "appear", function( e )
-                {
-                    this.m_iview = this.m_connector.registerViewElement( this
-                        .getContentElement().getDomElement(), this.m_viewName );
-                    this.removeListenerById( this.m_appearListenerId );
-                    this.m_iview.updateSize();
-                }, this );
+        this.addListenerOnce( "appear", this._appearCB.bind(this));
         this.addListener( "resize", function( /*e*/ )
         {
             // only continue if the dom element has been created
@@ -54,11 +54,43 @@ qx.Class.define( "skel.boundWidgets.View.View", {
 
     },
 
-    events: {},
-
     properties: {},
 
     members: {
+
+        // set quality of the view
+        setQuality : function( quality) {
+            this.m_quality = quality;
+            if( this.m_iview) {
+                this.m_iview.setQuality( this.m_quality);
+            }
+        },
+
+        // return the underlying iview
+        getIView : function() {
+            return this.m_iview;
+        },
+
+        // return the name of the view
+        viewName : function() {
+            return this.m_viewName;
+        },
+
+        // callback for appear event
+        _appearCB: function()
+        {
+            this.m_iview = this.m_connector.registerViewElement(
+            this.getContentElement().getDomElement(), this.m_viewName );
+    
+            this.m_iview.updateSize();
+            this.m_iview.addViewCallback( this._iviewRefreshCB.bind( this ) );
+            this.setQuality( this.m_quality);
+        },
+
+        // callback for iView refresh
+        _iviewRefreshCB : function() {
+            this.fireDataEvent( "viewRefreshed");
+        },
 
         // overridden
         _createContentElement: function()
@@ -96,13 +128,7 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         /**
          * @type {Connector} cached instance of the connector
          */
-        m_connector: null,
-        
-        /**
-         * Prevent re-registration when we are adding removing views.
-         * @type {String} - identifier for the appear listener.
-         */
-        m_appearListenerId : null
+        m_connector: null
     },
 
     destruct: function()

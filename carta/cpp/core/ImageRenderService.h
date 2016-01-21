@@ -32,8 +32,10 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include "CartaLib/Nullable.h"
+#include "CartaLib/IImageRenderService.h"
 #include <QImage>
 #include <QObject>
+#include <QColor>
 #include <QStringList>
 #include <QCache>
 #include <QTimer>
@@ -42,6 +44,7 @@ namespace Carta
 {
 namespace Core
 {
+/// \todo ImageRenderService namespace is probably not necessary after last cleanup
 namespace ImageRenderService
 {
 /// shortcut for pixel pipeline type
@@ -50,63 +53,6 @@ typedef Lib::PixelPipeline::IClippedPixelPipeline IClippedPixelPipeline;
 
 /// job id
 typedef int64_t JobId;
-
-/* Please don't delete the commented code below. I want to revisit this later (Pavol)
-
-///
-/// \brief Describes rendering parameters for the image rendering service
-///
-/// any parameter left at default will be interpreted as 'use previous value'
-///
-struct Input
-{
-    /// pointer to raw view representing input
-    NdArray::RawViewInterface::SharedPtr inputView = nullptr;
-
-    /// string unique for the view, as it will be used by caching
-    ///   it could be something like "/home/john/file.fits//0:20:10,::-1,1:20:2"
-    QString inputViewCacheId = QString();
-
-    /// pointer to the pixel pipeline to use
-    PixelPipeline::SharedPtr pixelPipeline = nullptr;
-
-    /// specifies coordinates of the data pixel to be centered in the generated
-    ///   image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
-    ///   (0,0), while (1,1) is it's right-top corner
-    Nullable < QPointF > panCenter;
-
-    /// how big is the data pixel in the generated image, in pixels
-    Nullable < double > pixelZoom;
-
-    /// desired output size
-    Nullable < QSize > outputSize;
-
-    /// should pixel pipeline cache be used
-    Nullable < bool > pixelPipelineCacheEnabled;
-
-    /// how many entries to cache for pixel pipeline
-    Nullable < int64_t > pixelPipelineCacheSize;
-
-    /// whether pixel pipeline cache should use linear interpolation or not
-    Nullable < bool > pixelPipelineCacheInterpolation;
-
-    /// job id
-    JobId jobId = 0;
-};
-
-*/
-
-/// pixel pipeline cache settings
-struct PixelPipelineCacheSettings {
-    /// size of the cache (in entries, must be >= 2
-    int size = 1000;
-
-    /// whether caching is enabled or not
-    bool enabled = true;
-
-    /// whether interpolation is enabled or not
-    bool interpolated = true;
-};
 
 /// Implementation of the rendering service
 /// \warning this object could potentially live it a separate thread, so make all connections
@@ -118,30 +64,29 @@ struct PixelPipelineCacheSettings {
 /// (0,0) is the _CENTER_ of the first pixel (bottom-left pixel!!!)
 /// (-1/2,-1/2) is the bottom left corner of the bottom left pixel
 /// (1/2,1/2) is the top right corner of the bottom left pixel
-
-/// \todo start refactoring the pure API of this to ready this for plugins..., i.e.
-/// IService with only pure virtual functions
-class Service : public QObject
+class Service : public Carta::Lib::IImageRenderService
 {
     CLASS_BOILERPLATE( Service );
-
     Q_OBJECT
 
 public:
+
+    typedef Carta::Lib::IImageRenderService::PixelPipelineCacheSettings PixelPipelineCacheSettings;
 
     /// constructor
     explicit
     Service( QObject * parent = 0 );
 
-    /// no copy constructor
+    /// disable copy constructor
     Service( const Service & ) = delete;
 
-    /// no assignment
+    /// disable assignment
     Service &
     operator= ( const Service & ) = delete;
 
     /// destructor
-    ~Service();
+    virtual
+    ~Service() override;
 
     ///
     /// \brief sets the input data (view) for rendering
@@ -150,69 +95,86 @@ public:
     /// if not supplied, it will be assumed it's different from any views seen before (i.e.
     /// caching will not be used)
     ///
-    void
-    setInputView( NdArray::RawViewInterface::SharedPtr view, QString cacheId = QString() );
+    virtual void
+    setInputView( Carta::Lib::NdArray::RawViewInterface::SharedPtr view,
+                  QString cacheId = QString() ) override;
 
     ///
     /// \brief set the desired output size of the image
     /// \param size the size to output
     ///
-    void
-    setOutputSize( QSize size );
+    virtual void
+    setOutputSize( QSize size ) override;
 
     ///
     /// \brief return the last output size requested
     /// \return
     ///
-    QSize outputSize() const;
+    virtual QSize
+    outputSize() const override;
+
+    //Set the color to use for nan values.
+    //Note: this color will be ignored if we are using a default nan value from
+    //the bottom of the color map.
+    void
+    setNanColor( QColor color );
+
+    //Return the color that will be used to draw nan values.
+    QColor
+    getNanColor() const;
+
+    //Set whether or not to use the default nan value (bottom of the color map).
+    void
+    setDefaultNan( bool useDefaultNan );
 
     /// set coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
     /// (0,0), while (1,1) is it's right-top corner, and (1/2,1/2) is it's center
-    void
-    setPan( QPointF pt );
+    virtual void
+    setPan( QPointF pt ) override;
 
     /// getter for pan (see setPan())
-    QPointF
-    pan();
+    virtual QPointF
+    pan() override;
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
-    void
-    setZoom( double zoom );
+    virtual void
+    setZoom( double zoom ) override;
 
     /// return current zoom
-    double
-    zoom();
+    virtual double
+    zoom() override;
 
     /// \brief sets the pixel pipeline (non-cached) to be used to render the image
     /// \param pixelPipeline
     ///
     /// if pixel pipeline caching is enabled, the cache will be updated
-    void
-    setPixelPipeline( IClippedPixelPipeline::SharedPtr pixelPipeline, QString cacheId );
+    virtual void
+    setPixelPipeline( IClippedPixelPipeline::SharedPtr pixelPipeline,
+                      QString cacheId ) override;
 
     /// set settings that control pixel pipeline cache
-    void
-    setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & params );
+    virtual void
+    setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & params ) override;
 
     /// get the current settings for pixel pipeline cache
-    const PixelPipelineCacheSettings &
-    pixelPipelineCacheSettings() const;
+    virtual const PixelPipelineCacheSettings &
+    pixelPipelineCacheSettings() const override;
 
     /// convert image coordinates to screen coordinates
     /// \param p coordinates to convert
     /// \return converted coordinates
     ///
-    QPointF
-    img2screen( const QPointF & p );
+    virtual QPointF
+    img2screen( const QPointF & p ) override;
 
     /// the inverse of img2screen()
     /// \param p coordinates to convert
     /// \return converted coordinates
     ///
-    QPointF
-    screen2img( const QPointF & p );
+    virtual QPointF
+    screen2img( const QPointF & p ) override;
 
 public slots:
 
@@ -229,34 +191,19 @@ public slots:
     ///
     /// \return the jobId to expect when the rendering is done (useful for unspecified
     /// jobId)
-    JobId
-    render( JobId jobId = -1 );
-
-signals:
-
-    /// emitted when job is done
-    /// \warning connect to this using queued connection
-    void done( QImage, JobId );
-
-    /// emitted when job is still processing, but partial results are available
-    /// \warning connect to this using queued connection
-    void progress( QImage, JobId );
-
-    /// emitted when job terminated due to some errors
-    /// \warning connect to this using queued connection
-    void error( QStringList, JobId );
-
-//    void internalRenderSignal( );
+    virtual JobId
+    render( JobId jobId = - 1 ) override;
 
 protected slots:
 
     /// internal helper, this will execute in our own thread
-    void internalRenderSlot();
+    void
+    internalRenderSlot();
 
 private:
 
     // the following are rendering parameters
-    NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
+    Carta::Lib::NdArray::RawViewInterface::SharedPtr m_inputView = nullptr;
     QString m_inputViewCacheId;
     QString m_pixelPipelineCacheId;
     QSize m_outputSize = QSize( 10, 10 );
@@ -283,7 +230,12 @@ private:
     QCache < QString, QImage > m_frameCache;
 
     /// last requested job id
-    JobId m_lastSubmittedJobId = -1;
+    JobId m_lastSubmittedJobId = - 1;
+
+    /// Whether or not to use the default nan value (bottom of color map).
+    bool m_defaultNan;
+    /// User-settable color for nan values when the default nan value is not used.
+    QColor m_nanColor;
 
     /// timer to make sure we only fire one render signal even if multiple requests
     /// are submitted

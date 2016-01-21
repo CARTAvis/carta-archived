@@ -8,7 +8,7 @@
  *  CallbackID add( callback)
  *  bool remove( CallbackID)
  *  void callEveryone()
- *  destory
+ *  destroy
  *
  *  What is special about this data structure? The fact that all of the methods that
  *  modify the list (add, remove, destructor) can be called within callEveryone(), which
@@ -37,13 +37,13 @@
         return idCounter ++;
     }
 
-    var CallbackList = function CallbackList()
+    /*var CallbackList = */function CallbackList()
     {
         this.m_insideLoop = false;
         this.m_pendingCleanup = false;
         this.m_cbList = {};
         this.m_destroyed = false;
-    };
+    }
 
 
     /**
@@ -87,7 +87,7 @@
 
         // if the callback could not be found, log the problem
         if( iter === undefined) {
-            console.log( "invalid callback id to remove: ", id);
+            console.error( "invalid callback id to remove: ", id);
             return;
         }
 
@@ -107,6 +107,10 @@
      */
     CallbackList.prototype.callEveryone = function callEveryone( /* args ... */)
     {
+        if( this.m_insideLoop) {
+            console.error( "recursive call of CallbackList.callEveryone()");
+            return;
+        }
 
         assert( ! this.m_insideLoop, "You are calling callEveryone recursively");
 
@@ -116,6 +120,7 @@
         // iterate through all callbacks
         for (var key in this.m_cbList) {
             if (! this.m_cbList.hasOwnProperty(key)) {
+                console.log( "early exit");
                 continue;
             }
             var info = this.m_cbList[key];
@@ -136,8 +141,6 @@
         // if we had insertions/deletions while inside one of the callbacks
         // clean up the deletions and update insertions to active status
         if( this.m_pendingCleanup) {
-            console.log( "  cleaning up callback list");
-
             for (var key in this.m_cbList) {
                 if (! this.m_cbList.hasOwnProperty(key)) {
                     continue;
@@ -178,6 +181,8 @@
 
 })();
 
+/*
+
 (function(){
 
     "use strict";
@@ -204,6 +209,7 @@
 })();
 
 
+*/
 
 
 

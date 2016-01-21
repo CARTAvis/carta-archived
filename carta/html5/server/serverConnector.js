@@ -20,6 +20,7 @@
     var setZeroTimeout = mImport( "setZeroTimeout" );
     var console = mImport( "console" );
     var defer = mImport( "defer" );
+    var CallbackList = mImport( "CallbackList");
 
     /**
      * Numerical constants representing status of the connection.
@@ -77,31 +78,50 @@
             function( e )
             {
                 var params = e.args.getEncodingParameters();
-//                console.log( "View '" + this.m_pwview.getViewName() + "' updated, params=", params );
+                // tell the server side we updated view, and send back also the attached refreshId
+                pureweb.getClient().queueCommand( "viewrefreshed",
+                    { viewName: viewName, id: params.refreshId }, function() {} );
+                // also call any user registered callbacks
+                this._callViewCallbacks();
+
             }, false, this );
+        // no user callbacks
+        this.m_viewCallbacks = new CallbackList();
         pureweb.listen( this.m_pwview, pureweb.client.View.EventType.TRANSFORMS_CHANGED,
             function( )
             {
                 console.log( "View '" + this.m_pwview.getViewName() + "' txupdate");
             }, false, this );
     };
+
     View.prototype.setQuality = function setQuality( quality )
     {
+        if( quality < 1) {
+            quality = 1;
+        }
+        this.m_quality = quality;
         var params = {};
         // support for safari... (browsers that don't support binary format?)
         if( ! m_client.supportsBinary() ) {
             params = {'UseBase64': true};
         }
         var ef;
-        if( quality < 100 ) {
+        if( quality <= 100 ) {
             ef = new pureweb.client.EncoderFormat( pureweb.SupportedEncoderMimeType.JPEG, quality, params );
         }
-        else {
+        else if( quality == 101) {
             ef = new pureweb.client.EncoderFormat( pureweb.SupportedEncoderMimeType.PNG, null, params );
+        }
+        else {
+            console.error( "server connector does not support mpeg quality yet");
+            ef = new pureweb.client.EncoderFormat( pureweb.SupportedEncoderMimeType.JPEG, 100, params );
         }
         var ec = new pureweb.client.EncoderConfiguration( ef, ef );
         this.m_pwview.setEncoderConfiguration( ec );
         this.m_pwview.refresh();
+    };
+    View.prototype.getQuality = function() {
+        return this.m_quality;
     };
     View.prototype.updateSize = function( )
     {
@@ -125,6 +145,16 @@
     };
     View.prototype.addViewCallback = function( callback )
     {
+        console.log( "Adding view callback to", this.getName());
+        return this.m_viewCallbacks.add( callback);
+    };
+    View.prototype._callViewCallbacks = function () {
+        this.m_viewCallbacks.callEveryone();
+    };
+
+    connector.supportsRasterViewQuality = function()
+    {
+        return true;
     };
 
     connector.registerViewElement = function( divElement, viewName) {
@@ -258,8 +288,12 @@
                     callback( getUrl );
                 }
                 else {
-                    window.alert( 'An error occurred creating the share URL: ' + exception.description );
-                    callback( null, exception.description );
+                    var msg="An error occurred creating the share URL";
+                    if ( exception !== null ){
+                        msg = msg + ": "+exception.description;
+                    }
+                    window.alert( msg );
+                    callback( null, msg );
                 }
             } );
         m_lastShareUrl = "";
@@ -444,14 +478,13 @@
 
     connector.sendCommand = function( cmd, params, callback )
     {
-//        m_client.queueCommand( cmd, param, callback );
         m_client.queueCommand( "generic", { cmd: cmd, params: params}, function( caller, data) {
             var response = data.getResponse();
             if ( response.textContent ){
                 response = response.textContent.replace(/(\r\n|\n|\r)/gm,"");
                 response = response.trim();
             }
-            callback( response );
+            callback && callback( response );
         } );
     };
 

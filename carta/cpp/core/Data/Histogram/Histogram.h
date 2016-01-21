@@ -17,13 +17,12 @@ namespace Lib {
 namespace PixelPipeline {
 class IColormapNamed;
 }
-}
-}
-
 namespace Image {
 class ImageInterface;
-
 }
+}
+}
+
 
 class ImageView;
 
@@ -67,12 +66,6 @@ public:
      * Clear the histogram zoom selection.
      */
     void clearSelection();
-
-    /**
-     * Returns the server side id of the histogram user preferences.
-     * @return the unique server side id of the user preferences.
-     */
-    QString getPreferencesId() const;
 
     /**
      * Return a string representing the histogram state of a particular type.
@@ -249,7 +242,7 @@ public:
     /**
      * Set the range in intensity units for the custom clip.
      * @param colorMin a lower bound for the custom clip in real units.
-     * @param colorMax an upper bound for the dustom clip in real units.
+     * @param colorMax an upper bound for the custom clip in real units.
      * @return an error message if there was a problem setting the custom clip range;
      *      false otherwise.
      */
@@ -336,9 +329,6 @@ public:
 signals:
     void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
 
-public slots:
-    void updateColorMap( Colormap* );
-
 
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
@@ -389,8 +379,14 @@ private:
     */
     QString _getActualGraphStyle( const QString& styleStr );
 
-    std::vector<std::shared_ptr<Image::ImageInterface>> _generateData(Controller* controller);
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> _generateData(Controller* controller);
     
+    /**
+     * Returns the server side id of the histogram user preferences.
+     * @return the unique server side id of the user preferences.
+     */
+    QString _getPreferencesId() const;
+
     //Bin count <-> Bin width conversion.
     double _toBinWidth( int count ) const;
     int _toBinCount( double width ) const;
@@ -473,7 +469,7 @@ private:
 
     int m_cubeChannel;
     //Data View
-    std::shared_ptr<ImageView> m_view;
+    std::shared_ptr<ImageView> m_view = nullptr;
 
     static Clips*  m_clips;
 
@@ -483,7 +479,7 @@ private:
     //Preferences
     std::unique_ptr<Settings> m_preferences;
 
-    Carta::Histogram::HistogramGenerator* m_histogram;
+    Carta::Histogram::HistogramGenerator* m_histogram = nullptr;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;

@@ -17,7 +17,10 @@ qx.Class.define("skel.Command.Session.CommandShare", {
     members : {
         
         doAction : function( vals, undoCB ){
-            qx.event.message.Bus.dispatch( new qx.event.message.Message("shareSession", this.getValue()));
+            var data = {
+                share: vals
+            }
+            qx.event.message.Bus.dispatch( new qx.event.message.Message("shareSession", data));
         },
         
         getType : function(){

@@ -39,6 +39,9 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
             this.m_contourControls = new skel.widgets.Image.Contour.ContourControls();
             this.add( this.m_contourControls );
             
+            this.m_stackControls = new skel.widgets.Image.Stack.StackControls();
+            this.add( this.m_stackControls );
+            
         },
         
         
@@ -49,11 +52,13 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
         setId : function( imageId ){
            this.m_gridControls.setId( imageId );
            this.m_contourControls.setId( imageId );
+           this.m_stackControls.setId( imageId );
         },
         
         m_id : null,
         
         m_gridControls : null,
-        m_contourControls : null
+        m_contourControls : null,
+        m_stackControls : null
     }
 });

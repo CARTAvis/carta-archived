@@ -105,9 +105,11 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                             this.m_view.setColorName( cMap.colorMapName );
                             this.m_view.setInvert( cMap.invert );
                             this.m_view.setReverse( cMap.reverse );
-                            this.m_view.setScales( cMap.colorMix.redPercent, cMap.colorMix.greenPercent, cMap.colorMix.bluePercent );
+                            this.m_view.setScales( cMap.colorMix.red, cMap.colorMix.green, cMap.colorMix.blue );
                         }
                         this.m_settings.setControls( cMap );
+                        this.m_mapControl.setMapName( cMap.colorMapName );
+                        this.m_mapControl.setGlobal( cMap.global );
                         
                     }
                     catch( err ){

@@ -19,6 +19,8 @@
 #include "core/DefaultContourGeneratorService.h"
 #include <QObject>
 
+namespace Carta
+{
 namespace Hacks
 {
 namespace SS = Carta::Lib::SharedState;
@@ -55,7 +57,7 @@ public:
 
     /// set the input data
     void
-    setInput( NdArray::RawViewInterface::SharedPtr rawView );
+    setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView );
 
 signals:
 
@@ -98,4 +100,5 @@ private:
 
     std::vector<QPen> m_pens;
 };
+}
 }

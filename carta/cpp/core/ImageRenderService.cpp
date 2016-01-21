@@ -7,6 +7,8 @@
 #include <QColor>
 #include <QPainter>
 
+namespace NdArray = Carta::Lib::NdArray;
+
 // most optimal Qt format seems to be Format_ARGB32_Premultiplied
 static constexpr QImage::Format OptimalQImageFormat = QImage::Format_ARGB32_Premultiplied;
 
@@ -26,7 +28,8 @@ static constexpr bool QtPremultipliedBugStillExists = true;
 /// \param m_qImage
 template < class Pipeline >
 static void
-iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage )
+iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qImage,
+        QRgb nanColor)
 {
     //qDebug() << "rv2qi2" << rawView-> dims();
     typedef double Scalar;
@@ -45,6 +48,7 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     }
     auto bytesPerLine = qImage.bytesPerLine();
     CARTA_ASSERT( bytesPerLine == size.width() * 4 );
+    Q_UNUSED( bytesPerLine );
 
     // start with a pointer to the beginning of last row (we are constructing image
     // bottom-up)
@@ -65,7 +69,8 @@ iView2qImage( NdArray::RawViewInterface * rawView, Pipeline & pipe, QImage & qIm
     /// @todo for more efficiency, instead of forEach() we should switch to one of the
     /// higher performance APIs and maybe even sprinkle it with some openmp/cilk magic :)
     int64_t counter = 0;
-    QRgb nanColor = qRgb( 255, 0, 0 );
+
+
     auto lambda = [&] ( const Scalar & ival )
     {
         if ( Q_LIKELY( ! std::isnan( ival ) ) ) {
@@ -113,6 +118,26 @@ QSize
 Service::outputSize() const
 {
     return m_outputSize;
+}
+
+void Service::setNanColor( QColor color ){
+    if ( m_nanColor != color ){
+        m_nanColor = color;
+    }
+}
+
+QColor Service::getNanColor() const {
+    QRgb nanColor = m_nanColor.rgb();
+    if ( m_pixelPipelineRaw && m_defaultNan){
+        double clipMin, clipMax;
+        m_pixelPipelineRaw-> getClips( clipMin, clipMax );
+        m_pixelPipelineRaw->convertq( clipMin, nanColor );
+   }
+    return QColor( nanColor );
+}
+
+void Service::setDefaultNan( bool useNanDefault){
+    m_defaultNan = useNanDefault;
 }
 
 void
@@ -170,7 +195,7 @@ Service::setPixelPipelineCacheSettings( const PixelPipelineCacheSettings & param
     m_cachedPPinterp = nullptr;
 }
 
-const PixelPipelineCacheSettings &
+const Service::PixelPipelineCacheSettings &
 Service::pixelPipelineCacheSettings() const
 {
     return m_pixelPipelineCacheSettings;
@@ -191,7 +216,9 @@ Service::render( JobId jobId )
     return m_lastSubmittedJobId;
 }
 
-Service::Service( QObject * parent ) : QObject( parent )
+Service::Service( QObject * parent ) : Carta::Lib::IImageRenderService( parent ),
+        m_defaultNan( true ),
+        m_nanColor( 255, 0, 0 )
 {
     // hook up the internal schedule helper signal to the scheduleJob slot, using
     // queued connection
@@ -255,22 +282,33 @@ Service::internalRenderSlot()
         return QByteArray( (char *) ( & x ), sizeof( x ) ).toBase64();
     };
 
+    double clipMin, clipMax;
+    m_pixelPipelineRaw-> getClips( clipMin, clipMax );
+
+    QRgb nanColor = m_nanColor.rgb();
+    if ( m_defaultNan ){
+        m_pixelPipelineRaw->convertq( clipMin, nanColor );
+    }
+
     // cache id will be concatenation of:
     // view id
     // pipeline id
     // output size
     // pan
     // zoom
+    // nan
     // pixel pipeline cache settings
     // Floats are binary-encoded (base64)
-    QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7" )
+    QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7/%8" )
                           .arg( m_inputViewCacheId )
                           .arg( m_pixelPipelineCacheId )
                           .arg( m_outputSize.width() )
                           .arg( m_outputSize.height() )
                           .arg( d2hex( m_pan.x() ) )
                           .arg( d2hex( m_pan.y() ) )
-                          .arg( d2hex( m_zoom ) );
+                          .arg( d2hex( m_zoom ) )
+                          .arg( QString::number(nanColor) );
+
 
     if ( m_pixelPipelineCacheSettings.enabled ) {
         cacheId += QString( "/1/%1/%2" )
@@ -308,8 +346,7 @@ Service::internalRenderSlot()
         return;
     }
 
-    double clipMin, clipMax;
-    m_pixelPipelineRaw-> getClips( clipMin, clipMax );
+
 
     // render the frame if needed
     if ( m_frameImage.isNull() ) {
@@ -321,7 +358,7 @@ Service::internalRenderSlot()
                     m_cachedPPinterp-> cache( * m_pixelPipelineRaw,
                                               pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage );
+                ::iView2qImage( m_inputView.get(), * m_cachedPPinterp, m_frameImage, nanColor );
             }
             else {
                 if ( ! m_cachedPP ) {
@@ -329,11 +366,11 @@ Service::internalRenderSlot()
                     m_cachedPP-> cache( * m_pixelPipelineRaw,
                                         pixelPipelineCacheSettings().size, clipMin, clipMax );
                 }
-                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage );
+                ::iView2qImage( m_inputView.get(), * m_cachedPP, m_frameImage, nanColor );
             }
         }
         else {
-            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage );
+            ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage, nanColor );
         }
     }
 
@@ -406,6 +443,7 @@ Service::internalRenderSlot()
     // insert this image into frame cache
     m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
 } // internalRenderSlot
+
 }
 }
 }

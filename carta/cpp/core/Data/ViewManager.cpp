@@ -10,6 +10,7 @@
 #include "Data/Image/Contour/ContourGenerateModes.h"
 #include "Data/Image/Contour/ContourSpacingModes.h"
 #include "Data/Image/Contour/ContourStyles.h"
+#include "Data/Image/LayerCompositionModes.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/TransformsData.h"
@@ -79,6 +80,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ContourGenerateModes>();
     Util::findSingletonObject<ContourSpacingModes>();
     Util::findSingletonObject<ContourStyles>();
+    Util::findSingletonObject<LayerCompositionModes>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -88,7 +90,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
 void ViewManager::_adjustSize( int count, const QString& name, const QVector<int> & insertionIndices ){
     int existingCount = 0;
-    if ( name == NodeFactory::HIDDEN ){
+    if ( name == NodeFactory::HIDDEN || name == NodeFactory::EMPTY ){
         return;
     }
     else {
@@ -99,7 +101,7 @@ void ViewManager::_adjustSize( int count, const QString& name, const QVector<int
     if ( existingCount < count ){
         int index = 0;
         for ( int i = existingCount; i < count; i++ ){
-            this->getObjectId( name, insertionIndices[index], true );
+            getObjectId( name, insertionIndices[index], true );
             index++;
         }
     }
@@ -366,7 +368,7 @@ void ViewManager::_initCallbacks(){
     addStateCallback( Layout::CLASS_NAME, [=] ( const QString& /*path*/, const QString& /*value*/ ) {
         _makeLayout();
         QStringList pluginList = m_layout->getPluginList();
-        this->setPlugins( pluginList );
+        setPlugins( pluginList );
     });
 
 }
@@ -694,7 +696,6 @@ void ViewManager::_pluginsChanged( const QStringList& names, const QStringList& 
     for ( QString key : keys ){
         _adjustSize( pluginMap[key], key, insertionIndices[key]);
     }
-
 }
 
 void ViewManager::_refreshStateSingletons(){
@@ -803,6 +804,7 @@ int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex
         }
         _clearAnimators(startIndex, upperBound);
     }
+
     else if ( name == Controller::PLUGIN_NAME ){
         existingCount = m_controllers.size();
         if ( endIndex < 0 ){
@@ -912,10 +914,7 @@ bool ViewManager::setPlugins( const QStringList& names ){
     if ( m_layout ){
         QStringList oldNames = m_layout->getPluginList();
         bool valid = m_layout->_setPlugin( names, true);
-        if ( !valid ){
-            qDebug() << "Invalid plugins: "<<names;
-        }
-        else {
+        if ( valid ){
             _pluginsChanged( names, oldNames );
             pluginsSet = true;
         }

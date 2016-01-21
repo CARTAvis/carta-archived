@@ -8,6 +8,7 @@
 #include "ObjectManager.h"
 #include "Globals.h"
 #include "UtilState.h"
+#include "CartaLib/IRemoteVGView.h"
 #include <QDebug>
 #include <cassert>
 #include <set>
@@ -20,13 +21,14 @@ namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
-        "CoordinateSystems","DataLoader","Fonts","LabelFormats","TransformsImage","TransformsData",
+        "CoordinateSystems","DataLoader","Fonts","LabelFormats","LayerCompositionModes",
+        "TransformsImage","TransformsData",
         "ErrorManager","Layout","Preferences", "PreferencesSave", "Themes","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
     if ( command.size() > 0 ){
-        fullCommand = fullCommand + m_Delimiter + command;
+        fullCommand = fullCommand + CommandDelimiter + command;
     }
     return fullCommand;
 }
@@ -114,49 +116,55 @@ void CartaObject::resetStateData( const QString& /*state*/ ){
 void
 CartaObject::addCommandCallback (const QString & rawCommand, IConnector::CommandCallback callback)
 {
-    IConnector * connector = Globals::instance()->connector();
-    QString actualCmd = addIdToCommand( rawCommand );
-    connector->addCommandCallback ( actualCmd, callback);
+    conn()-> addCommandCallback ( addIdToCommand( rawCommand ), callback);
 }
 
 
-int64_t CartaObject::addStateCallback( const QString& statePath, const IConnector::StateChangedCallback & cb){
-    IConnector * connector = Globals::instance()->connector();
-    return connector->addStateCallback( statePath, cb );
+int64_t CartaObject::addStateCallback( const QString& statePath, const IConnector::StateChangedCallback & cb)
+{
+    return conn()-> addStateCallback( statePath, cb );
 }
 
-void CartaObject::registerView( IView * view){
-    IConnector * connector = Globals::instance()->connector();
-    connector->registerView( view );
+void CartaObject::registerView( IView * view)
+{
+    conn()-> registerView( view );
 }
 
-void CartaObject::refreshView( IView* view ){
-    IConnector * connector = Globals::instance()->connector();
-    connector->refreshView( view );
+void CartaObject::refreshView( IView* view )
+{
+    conn()-> refreshView( view );
 }
 
-void CartaObject::unregisterView(){
-    IConnector * connector = Globals::instance()->connector();
-    QString viewId = m_path +"/view";
-    connector->unregisterView( viewId );
+void CartaObject::unregisterView()
+{
+    conn()-> unregisterView( m_path +"/view" );
 }
 
-QString CartaObject::getStateLocation( const QString& name ) const {
-    IConnector * connector = Globals::instance()->connector();
-    return connector->getStateLocation( name );
+Carta::Lib::LayeredRemoteVGView* CartaObject::makeRemoteView( const QString& path ){
+     //return Carta::Lib::LayeredRemoteVGView::create( conn(), path );
+     return new Carta::Lib::LayeredRemoteVGView( conn(), path, NULL );
+}
+
+QString CartaObject::getStateLocation( const QString& name ) const
+{
+    return conn()-> getStateLocation( name );
 }
 
 QString
-CartaObject::removeId (const QString & commandAndId){
-    // Command should have the ID as a prefix.  Strip off
-    // that part plus the delimiter and return the rest.
+CartaObject::removeId (const QString & commandAndId)
+{
+    // Command should have the ID as a prefix.
+    CARTA_ASSERT(commandAndId.count (CommandDelimiter) == 1);
 
-    assert (commandAndId.count (m_Delimiter) == 1);
-
-    return commandAndId.section (m_Delimiter, 1);
+    // return command without the ID prefix
+    return commandAndId.section (CommandDelimiter, 1);
 }
 
-
+IConnector *
+CartaObject::conn() {
+    static IConnector * conn = Globals::instance()-> connector();
+    return conn;
+}
 
 const QString ObjectManager::CreateObject = "CreateObject";
 const QString ObjectManager::ClassName = "ClassName";

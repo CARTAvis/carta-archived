@@ -12,12 +12,12 @@
 
 class CCCoordinateFormatter : public CoordinateFormatterInterface
 {
+    /// shortcut to AxisInfo type
+    typedef Carta::Lib::AxisInfo AxisInfo;
+
     CLASS_BOILERPLATE( CCCoordinateFormatter );
 
 public:
-
-    /// shortcut to AxisInfo type
-    typedef Carta::Lib::AxisInfo AxisInfo;
 
     CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS );
 

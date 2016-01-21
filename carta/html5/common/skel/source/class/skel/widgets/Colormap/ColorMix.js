@@ -173,7 +173,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
                     var bluePercent = this._getColorPercent( this.m_blueSlider.getValue());
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id + path.SEP_COMMAND + skel.widgets.Colormap.ColorMix.CMD_SET_COLORMIX;
-                    var params = "redPercent:"+redPercent+",greenPercent:"+greenPercent+",bluePercent:"+bluePercent;
+                    var params = "red:"+redPercent+",green:"+greenPercent+",blue:"+bluePercent;
                     this.m_connector.sendCommand( cmd, params, this._errorColorsCB( this ));
                 }
             }

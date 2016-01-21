@@ -155,8 +155,10 @@ public:
   /**
    * Returns the QImage reflection the current state of the histogram.
    * @return QImage the histogram image.
+   * @param width - the width of the desired image.
+   * @param height - the height of the desired image.
    */
-   QImage * toImage() const;
+   QImage * toImage( int width = 0, int height = 0) const;
 
    /**
     * Gets new clips calculated in histogram selection and updates them on the plot

@@ -34,17 +34,6 @@ CONFIG(release,debug|release) {
     error("Cannot include cpp/common.pri file")
 }
 
-#isEmpty( CARTA_BUILD_TYPE) {
-#    warning( "You did not specify CARTA_BUILD_TYPE to qmake...")
-#    warning( "supported builds are: release dev bughunter")
-#    warning( "please rerun qmake with an argument 'CARTA_BUILD_TYPE=dev'")
-#}
-
-#dbg( "root            PWD=$$PWD")
-#dbg( "root         IN_PWD=$$IN_PWD")
-#dbg( "root _PRO_FILE_PWD_=$$_PRO_FILE_PWD_")
-#dbg( "root        OUT_PWD=$$OUT_PWD")
-
 dbg( "===----------Adjusted compiler settings---------====")
 dbg( "QMAKE_CXX $$QMAKE_CXX")
 dbg( "QMAKE_CXXFLAGS_DEBUG $$QMAKE_CXXFLAGS_DEBUG")
@@ -60,5 +49,13 @@ dbg( "===---------------------------------------------====")
 #    dbg( "$${var} = $${x}")
 #}
 
+#mytarget.target = buildfile.txt
+#mytarget.commands = touch $$mytarget.target
+#mytarget.depends = mytarget2 mytarget3
+
+#mytarget2.commands = @echo Building $$mytarget.target
+#mytarget3.commands = @echo top src/build: $$top_srcdir $$top_builddir
+
+#QMAKE_EXTRA_TARGETS += mytarget mytarget2 mytarget3
 
 

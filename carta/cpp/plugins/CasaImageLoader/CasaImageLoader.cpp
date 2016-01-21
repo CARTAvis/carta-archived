@@ -1,5 +1,6 @@
 #include "CasaImageLoader.h"
 #include "CCImage.h"
+#include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
 #include <QPainter>
@@ -17,8 +18,6 @@
 #include <algorithm>
 #include <cstdint>
 
-typedef Carta::Lib::Hooks::LoadAstroImage LoadAstroImage;
-
 CasaImageLoader::CasaImageLoader(QObject *parent) :
     QObject(parent)
 {
@@ -27,15 +26,16 @@ CasaImageLoader::CasaImageLoader(QObject *parent) :
 bool CasaImageLoader::handleHook(BaseHook & hookData)
 {
     qDebug() << "CasaImageLoader plugin is handling hook #" << hookData.hookId();
-    if( hookData.is<Initialize>()) {
+    if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
         // Register FITS and Miriad image types
         casa::FITSImage::registerOpenFunction();
         casa::MIRIADImage::registerOpenFunction();
         return true;
     }
 
-    else if( hookData.is<LoadAstroImage>()) {
-        LoadAstroImage & hook = static_cast<LoadAstroImage &>( hookData);
+    else if( hookData.is<Carta::Lib::Hooks::LoadAstroImage>()) {
+        Carta::Lib::Hooks::LoadAstroImage & hook
+                = static_cast<Carta::Lib::Hooks::LoadAstroImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
         hook.result = loadImage( fname);
         // return true if result is not null
@@ -48,10 +48,9 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
 
 std::vector<HookId> CasaImageLoader::getInitialHookList()
 {
-//    forgot_to_define_this();
     return {
-        Initialize::staticId,
-        LoadAstroImage::staticId
+        Carta::Lib::Hooks::Initialize::staticId,
+        Carta::Lib::Hooks::LoadAstroImage::staticId
     };
 }
 
@@ -74,9 +73,9 @@ static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 /// \param result where to store the result
 /// \return true if successful, false otherwise
 ///
-Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
+Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
 {
-  qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
+    qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
     //
     // first we open the image as a lattice
@@ -123,28 +122,34 @@ Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fna
     //compile, for example.
     //if( ! res) res = tryCast<int64_t>(lat);
 
+    // you don't 'try' static cast, it won't fail, and in any case is not necessary since
+    // we are doing dynamic cast inside the same library, not across boundaries
+
     // if dynamic casting fails, try static cast since we know what type lat
-	if(!res) {
-    	if(lat->dataType() == casa::TpFloat) {
-    		typedef casa::ImageInterface<casa::Float> CCITF;
-    		CCITF * ciif = static_cast<CCITF *>(lat);
-    		if( ciif) 
-       		 	res = CCImage<casa::Float>::create( ciif);
-		} else if(lat->dataType() == casa::TpDouble) {
-    		typedef casa::ImageInterface<casa::Double> CCITD;
-    		CCITD * ciid = static_cast<CCITD *>(lat);
-    		if( ciid) 
-       		 	res = CCImage<casa::Double>::create( ciid);
-		} else if(lat->dataType() == casa::TpInt) {
-    		typedef casa::ImageInterface<casa::Int> CCITI;
-    		CCITI * ciii = static_cast<CCITI *>(lat);
-    		if( ciii) 
-       		 	res = CCImage<casa::Int>::create( ciii);
-		} 
-	}
+//	if(!res) {
+//    	if(lat->dataType() == casa::TpFloat) {
+//    		typedef casa::ImageInterface<casa::Float> CCITF;
+//    		CCITF * ciif = static_cast<CCITF *>(lat);
+//    		if( ciif)
+//       		 	res = CCImage<casa::Float>::create( ciif);
+//		} else if(lat->dataType() == casa::TpDouble) {
+//    		typedef casa::ImageInterface<casa::Double> CCITD;
+//    		CCITD * ciid = static_cast<CCITD *>(lat);
+//    		if( ciid)
+//       		 	res = CCImage<casa::Double>::create( ciid);
+//		} else if(lat->dataType() == casa::TpInt) {
+//    		typedef casa::ImageInterface<casa::Int> CCITI;
+//    		CCITI * ciii = static_cast<CCITI *>(lat);
+//    		if( ciii)
+//       		 	res = CCImage<casa::Int>::create( ciii);
+//		}
+//	}
 
     if( res) {
-        qDebug() << "Created image interface with type=" << Carta::toStr( res->pixelType());
+//        qDebug() << "Created image interface with type=" << Carta::Lib::toStr( res->pixelType())
+//                 << res.get();
+
+//        qDebug() << "sanity" << cartaII2casaII_float( res);
         return res;
     }
 

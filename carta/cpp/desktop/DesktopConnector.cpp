@@ -5,6 +5,7 @@
 #include "DesktopConnector.h"
 #include "CartaLib/LinearMap.h"
 #include "core/MyQApp.h"
+#include "core/SimpleRemoteVGView.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -22,7 +23,8 @@
 struct DesktopConnector::ViewInfo
 {
 
-    /// the implemented IView
+    /// pointer to user supplied IView
+    /// this is a NON-OWNING pointer
     IView * view;
 
     /// last received client size
@@ -33,6 +35,9 @@ struct DesktopConnector::ViewInfo
 
     /// refresh timer for this object
     QTimer refreshTimer;
+
+    /// refresh ID
+    qint64 refreshId = -1;
 
     ViewInfo( IView * pview )
     {
@@ -140,6 +145,7 @@ void DesktopConnector::registerView(IView * view)
 
     // connect the view's refresh timer to a lambda, which will in turn call
     // refreshViewNow()
+    // this is instead of using std::bind...
     connect( & viewInfo->refreshTimer, & QTimer::timeout,
             [=] () {
                      refreshViewNow( view);
@@ -158,14 +164,14 @@ void DesktopConnector::unregisterView( const QString& viewName ){
 //    static QTime st;
 
 // schedule a view refresh
-void DesktopConnector::refreshView(IView * view)
+qint64 DesktopConnector::refreshView(IView * view)
 {
     // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
         qCritical() << "refreshView cannot find this view: " << view-> name();
-        return;
+        return -1;
     }
 
     // start the timer for this view if it's not already started
@@ -175,11 +181,20 @@ void DesktopConnector::refreshView(IView * view)
     else {
 //        qDebug() << "########### saved refresh for " << view->name();
     }
+
+    viewInfo-> refreshId ++;
+    return viewInfo-> refreshId;
 }
 
 void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
     qFatal( "not implemented");
+}
+
+
+Carta::Lib::IRemoteVGView * DesktopConnector::makeRemoteVGView(QString viewName)
+{
+    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
 }
 
 void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
@@ -209,7 +224,7 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
         emit jsCommandResultsSignal( results.join("|"));
 
         if( allCallbacks.size() == 0) {
-            qWarning() << "JS command has no server listener:" << cmd;
+            qWarning() << "JS command has no server listener:" << cmd << parameter;
         }
     });
 }
@@ -249,7 +264,8 @@ void DesktopConnector::refreshViewNow(IView *view)
     const QImage & origImage = view-> getBuffer();
 
     QSize clientImageSize = viewInfo->clientSize;
-    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 && clientImageSize.width() > 0 ) {
+    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 &&
+            clientImageSize.width() > 0 && origImage.height() > 0 ) {
         qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
         // scale the image to fit the client size, in case it wasn't scaled alerady
         QImage destImage = origImage.scaled(
@@ -272,13 +288,13 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
-        emit jsViewUpdatedSignal( view-> name(), pix);
+        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
     }
     else {
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
-        emit jsViewUpdatedSignal( view-> name(), origImage);
+        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
     }
 }
 
@@ -297,6 +313,18 @@ void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int
         view-> handleResizeRequest( viewInfo-> clientSize);
         refreshView( view);
     });
+}
+
+void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
+{
+    //qDebug() << "jsViewRefreshedSlot()" << viewName << id;
+    ViewInfo * viewInfo = findViewInfo( viewName);
+    if( ! viewInfo) {
+        qCritical() << "Received refresh view signal for unknown view" << viewName;
+        return;
+    }
+    CARTA_ASSERT( viewInfo-> view);
+    viewInfo-> view-> viewRefreshed( id);
 }
 
 void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)

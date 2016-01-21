@@ -1,0 +1,12 @@
+{
+    "api"        : "1",
+    "name"       : "DevIntegration",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Dev integration plugin.",
+        "This allows insecurely specify a filename to load via "
+    ],
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : [ ]
+}

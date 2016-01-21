@@ -2,7 +2,6 @@
 #ifndef IMAGE_HISTOGRAM_H_
 #define IMAGE_HISTOGRAM_H_
 
-#include <casacore/casa/aipstype.h>
 #include <casacore/casa/vector.h>
 #include "IImageHistogram.h"
 #include <QTextStream>
@@ -15,7 +14,6 @@ namespace casa {
     template <class T> class LatticeHistograms;
     template <class T> class SubImage;
     class ImageRegion;
-    class String;
 }
 
 /**
@@ -46,7 +44,7 @@ public:
 
 	std::pair<float,float> getDataRange() const;
 	void toAscii( QTextStream& out ) const;
-	virtual ~ImageHistogram();
+
 
 	//common to all histograms
 	void setBinCount( int count )  Q_DECL_OVERRIDE;
@@ -56,24 +54,21 @@ public:
 
 	void setIntensityRange( double minimumIntensity, double maximumIntensity )  Q_DECL_OVERRIDE;
 
-	void setImage(casa::ImageInterface<T> *  val);
+	void setImage(const casa::ImageInterface<T>*  val);
 	static double computeYValue( double value, bool useLog );
-
-signals:
-	void postStatus( const QString& msg );
+	virtual ~ImageHistogram();
 
 private:
 	ImageHistogram( const ImageHistogram<T>& other );
 	ImageHistogram operator=( const ImageHistogram<T>& other );
 	//Completely reset the histogram if the image, region, or channels change
 	bool _reset();
-	casa::LatticeHistograms<T>* _filterByChannels( const casa::ImageInterface<T>*  image );
+	void _filterByChannels( const casa::ImageInterface<T>*  image );
 
 	vector<T> m_xValues;
 	vector<T> m_yValues;
 	casa::LatticeHistograms<T>* m_histogramMaker;
 	casa::ImageRegion* m_region;
-	std::shared_ptr<casa::SubImage<T> > m_subImage;
 	const int ALL_CHANNELS;
 	const int ALL_INTENSITIES;
     const casa::ImageInterface<T>*  m_image; //Use

@@ -1,0 +1,9 @@
+{
+    "api"        : "1",
+    "name"       : "hpcImgRender",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Adrianna's experiments with HPC rendering.",
+    "about"      : "",
+    "depends"    : [ ]
+}

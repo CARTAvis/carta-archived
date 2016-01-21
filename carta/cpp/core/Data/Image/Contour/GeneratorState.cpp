@@ -33,6 +33,7 @@ using Carta::State::StateInterface;
 
 GeneratorState::GeneratorState():
     m_state( "", ""){
+    m_state.insertValue<bool>( Carta::State::StateInterface::FLUSH_STATE, false );
      _initializeSingletons();
     _initializeDefaultState();
 }

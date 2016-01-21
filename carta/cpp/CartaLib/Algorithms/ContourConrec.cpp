@@ -34,7 +34,7 @@ typedef std::vector < double > VD;
 */
 static Carta::Lib::Algorithms::ContourConrec::Result
 conrecFaster(
-    NdArray::RawViewInterface * view,
+    Carta::Lib::NdArray::RawViewInterface * view,
     int ilb,
     int iub,
     int jlb,
@@ -66,7 +66,7 @@ conrecFaster(
         nextRowToReadIn++;
 
         // make a double view of this raw row view
-        NdArray::Double dview( rawRowView, true );
+        Carta::Lib::NdArray::Double dview( rawRowView, true );
 
         // shift the row up
         // note: we could avoid this memory copy if we swapped row[] pointers instead,
