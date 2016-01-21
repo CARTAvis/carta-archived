@@ -25,6 +25,8 @@ public: \
 private: \
     PluginManager::SharedPtr m_pluginManager = nullptr
 
+namespace Carta
+{
 namespace Hacks
 {
 namespace Model
@@ -166,6 +168,7 @@ private:
     // private constructor
     GlobalsH();
 };
+}
 }
 
 #undef PM_MIXIN

@@ -39,6 +39,22 @@ public:
 
 namespace Entries
 {
+/// reset the state of painter to defaults
+class Reset : public IVGListEntry
+{
+    CLASS_BOILERPLATE( Reset);
+public:
+    virtual void cplusplus(BetterQPainter & painter) override
+    {
+        painter.reset();
+    }
+    virtual QStringList javascript() override
+    {
+        return QStringList()
+               << QString( "p.reset();" );
+    }
+};
+
 /// line entry implementation
 class DrawLine : public IVGListEntry
 {
@@ -676,6 +692,14 @@ class VGComposer
 {
 public:
 
+    /// constructor that starts with an empty VGList
+    VGComposer() {}
+
+    /// constructor that starts with the supplied VGList
+    VGComposer( const VGList & vgList) {
+        m_vgList = vgList;
+    }
+
     ///
     /// \brief returns the vector graphics list
     /// \return the vector graphics list
@@ -714,6 +738,14 @@ public:
     set( int64_t ind, Args && ... params )
     {
         return setEntry( ind, new EntryType( std::forward < Args > ( params ) ... ) );
+    }
+
+    /// append another list
+    void appendList( const VGList & vglist)
+    {
+        m_vgList.m_entries.insert( m_vgList.m_entries.end(),
+                                   vglist.m_entries.begin(),
+                                   vglist.m_entries.end());
     }
 
     /// clear all entries

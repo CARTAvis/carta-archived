@@ -15,6 +15,12 @@
 #include "../IConnector.h"
 
 namespace Carta {
+    namespace Lib {
+        class LayeredRemoteVGView;
+    }
+}
+
+namespace Carta {
 
 namespace State {
 
@@ -75,11 +81,13 @@ public:
 
     /**
      * Return the type of the object.
+     *
+     * Normally the type of an object will be the class name, but for snapshots such as session snapshots
+     * this method may be overriden to append an additional identifier such as 'data' after the class name.
+     *
      * @param snapType the type of Snapshot.
      * @return an identifier for the type of the object.
      */
-    //Normally the type of an object will be the class name, but for snapshots such as session snapshots
-    //this method may be overriden to append an additional identifier such as 'data' after the class name.
     virtual QString getSnapType(CartaObject::SnapshotType snapType= CartaObject::SnapshotType::SNAPSHOT_INFO) const;
 
     QString getType() const;
@@ -102,6 +110,12 @@ protected:
 
     /// unregister a view with the connector
     void unregisterView();
+
+    /**
+     * Construct a layered view and return it.
+     * @param path - a unique identifier for the remote view.
+     */
+    Carta::Lib::LayeredRemoteVGView* makeRemoteView( const QString& path );
 
     //Return the full location for the state with the given name.
     QString getStateLocation( const QString& name ) const;
@@ -127,6 +141,9 @@ protected:
             Object * m_object;
     };
 
+    /// helper to get connector
+    static IConnector * conn();
+
 protected:
     StateInterface m_state;
 
@@ -136,7 +153,7 @@ private:
     QString m_id;
     QString m_path;
 
-    static const char m_Delimiter = ':';
+    static const char CommandDelimiter = ':';
 
 };
 

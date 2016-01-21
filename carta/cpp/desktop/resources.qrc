@@ -1,12 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>html5/desktop/desktopConnector.js</file>
-        <file>html5/desktop/desktopIndex.html</file>
-        <file>html5/common/libs.js</file>
-        <file>html5/common/stuff.js</file>
         <file>icons/inspector.png</file>
-        <file>html5/common/main.js</file>
-        <file>html5/common/CallbackList.js</file>
-        <file>html5/common/skel/build/script/skel.js</file>
     </qresource>
 </RCC>

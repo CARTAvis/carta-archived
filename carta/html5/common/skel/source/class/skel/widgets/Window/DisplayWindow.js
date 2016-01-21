@@ -125,7 +125,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
          * Overriden by subclasses to return a list of data that can be closed.
          * @return {Array} a list of data that could be closed.
          */
-        getCloses : function(){
+        getDatas : function(){
             return [];
         },
 

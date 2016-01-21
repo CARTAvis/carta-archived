@@ -38,6 +38,14 @@ public:
     QString getFile( const QString& fakePath, const QString& sessionId ) const;
 
     /**
+     * Return the absolute path of the file with the root directories stripped off.
+     * @param sessionId - an identifier for the user's session.
+     * @param shortName - a path with the top level directory stripped off.
+     * @return - the full path to the file.
+     */
+    QString getLongName( const QString& shortName, const QString& sessionId ) const;
+
+    /**
      * Return the top level directory for the data file search.
      * @param sessionId - an identifier for the user's session.
      * @return the absolute path to the directory containing the user's files.

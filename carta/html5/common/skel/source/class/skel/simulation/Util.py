@@ -28,6 +28,36 @@ def setUp(self, browser):
         self.driver.implicitly_wait(20)
         time.sleep(5)
 
+
+# Adds a window below the main image viewer. Return the window for future actions
+def add_window(unittest, driver):
+    timeout = selectBrowser._getSleep()
+
+    # Click the Window button
+    windowButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Window']/..")))
+    ActionChains(driver).click(windowButton).perform()
+
+    # Look for the add button in the submenu.
+    addButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div/div[text()='Add']/..")))
+    ActionChains(driver).click( addButton ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+
+    # Check that we now have a generic empty window in the display and that the window count has gone up by one.
+    emptyWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowGenericPlugin']")))
+    ActionChains(driver).click( emptyWindow ).perform()
+
+    return emptyWindow
+
+
+# Change the animation window to an image window
+def animation_to_image_window(unittest, driver):
+    # Make sure the animation window is enabled by clicking an element within the window
+    animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
+    ActionChains(driver).click( animWindow ).perform();
+    # Change the plugin of the animation window to an image loader
+    viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
+    ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+
+
 # Clear text box and change value of the text box
 # Selenium clear() method is sometimes unable to clear 
 # default text, therefore a manual method has been implemented
@@ -44,30 +74,32 @@ def _changeElementText(self, driver, elementText, inputValue):
     elementValue = elementText.get_attribute("value")
     return elementValue
 
-# Change the animation window to an image window
-def animation_to_image_window(unittest, driver):
-    # Make sure the animation window is enabled by clicking an element within the window
-    animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
-    ActionChains(driver).click( animWindow ).perform();
-    # Change the plugin of the animation window to an image loader
-    viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
-    ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+# Click the tab with the given name
+def clickTab( driver, tabName ):
+    locator = "//div[@qxclass='qx.ui.tabview.TabButton']/div[text()='{0}']/..".format( tabName )
+    print "Locator=",locator
+    tab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, locator )))
+    driver.execute_script( "arguments[0].scrollIntoView(true);", tab)
+    ActionChains(driver).click( tab ).perform()
 
 # Return the number of windows present within the application window
 def get_window_count(unittest, driver):
      windowList = driver.find_elements_by_xpath("//div[@qxclass='qx.ui.window.Desktop']")
      windowCount = len( windowList )
      return windowCount
- 
+
+
 # Determine whether the check box is checked
 def isChecked(unittest, checkBox):
     styleAtt = checkBox.get_attribute( "style");
-    #print "Style", styleAtt
+    print "Style", styleAtt
     oldChecked = False
     if "checked.png" in styleAtt:
         oldChecked = True
+        print "Found checked.png"
     return oldChecked
- 
+
+
 #Set a custom layout with the given number of rows and columns
 def layout_custom(unittest, driver, rows, cols ):
     timeout = selectBrowser._getSleep()
@@ -113,9 +145,30 @@ def layout_custom(unittest, driver, rows, cols ):
     closeButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[starts-with(@id,'customLayoutOK')]")))
     ActionChains(driver).click(closeButton).perform()
     time.sleep(timeout)
+    
+
+# Link second image 
+def link_second_image(unittest, driver, imageWindow2):
+    timeout = selectBrowser._getSleep()
+
+    # Get window size
+    windowSize = imageWindow2.size
+    width = windowSize['width'] / 2
+    height = windowSize['height'] / 2
+
+    # Find the link canvas
+    canvas = driver.find_element_by_xpath( "//canvas[@qxclass='skel.widgets.Link.LinkCanvas']")
+
+    # Link to the second image 
+    ActionChains(driver).click( canvas ).move_by_offset( -width, height ).double_click().perform()
+    time.sleep( timeout )
+
+    # Exit links
+    ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+    
 
 # Load an image in the main image window 
-def load_image(unittest, driver, imageName): 
+def load_image(unittest, driver, imageName, imageId = "pwUID0"): 
     browser = selectBrowser._getBrowser()
     timeout = selectBrowser._getSleep()
 
@@ -161,27 +214,10 @@ def load_image(unittest, driver, imageName):
     
     # Check that the window is displaying an image.
     viewElement = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.View.View']")))
-    imageElement = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "pwUID0")))
+    imageElement = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, imageId)))
 
     return imageWindow
 
-# Adds a window below the main image viewer. Return the window for future actions
-def add_window(unittest, driver):
-    timeout = selectBrowser._getSleep()
-
-    # Click the Window button
-    windowButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Window']/..")))
-    ActionChains(driver).click(windowButton).perform()
-
-    # Look for the add button in the submenu.
-    addButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div/div[text()='Add']/..")))
-    ActionChains(driver).click( addButton ).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
-
-    # Check that we now have a generic empty window in the display and that the window count has gone up by one.
-    emptyWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowGenericPlugin']")))
-    ActionChains(driver).click( emptyWindow ).perform()
-
-    return emptyWindow
 
 # Add a window, convert the window to an image window. Use the new image window to load an image
 def load_image_different_window(unittest, driver, imageName):
@@ -200,6 +236,7 @@ def load_image_different_window(unittest, driver, imageName):
     ActionChains(driver).context_click( emptyWindow ).send_keys(Keys.ARROW_DOWN
         ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
     return load_image_windowIndex( unittest, driver,imageName, 2 )
+
 
 def load_image_windowIndex( unittest,driver,imageName,windowIndex):
     # Ensure that there is a new image window
@@ -236,12 +273,20 @@ def load_image_windowIndex( unittest,driver,imageName,windowIndex):
     # Return the second image loader window for further linking tests
     return imageWindow
 
+
 # Open image settings by clicking on image settings checkbox located on the menu bar
-def openImageSettings(unittest, driver):
-    imageSettingsCheckbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH,  "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Image Settings']/following-sibling::div[@class='qx-checkbox']")))
+def openSettings(unittest, driver, name ):
+    settingsText = name + " Settings"
+    print "Settings text=",settingsText
+    searchPath ="//div[@qxclass='qx.ui.form.CheckBox']/div[text()='{0}']/following-sibling::div[@class='qx-checkbox']".format( settingsText )
+    print "Search path=",searchPath
+    imageSettingsCheckbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, searchPath )))
     settingsOpen = isChecked(unittest, imageSettingsCheckbox )
     if not settingsOpen:
         ActionChains(driver).click( imageSettingsCheckbox ).perform()
+
+
+
 
 # Remove link from main casa image loader 
 def remove_main_link(unittest, driver, imageWindow):
@@ -262,28 +307,25 @@ def remove_main_link(unittest, driver, imageWindow):
     # Exit links
     ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
-# Link second image 
-def link_second_image(unittest, driver, imageWindow2):
-    timeout = selectBrowser._getSleep()
 
-    # Get window size
-    windowSize = imageWindow2.size
-    width = windowSize['width'] / 2
-    height = windowSize['height'] / 2
+# Set the checked status of the checkbox.
+def setChecked(self, driver, checkBox, checked):
+    oldChecked = isChecked( self, checkBox )
+    print "oldChecked=",oldChecked
+    if checked != oldChecked :
+        ActionChains(driver).click( checkBox ).perform()
 
-    # Find the link canvas
-    canvas = driver.find_element_by_xpath( "//canvas[@qxclass='skel.widgets.Link.LinkCanvas']")
-
-    # Link to the second image 
-    ActionChains(driver).click( canvas ).move_by_offset( -width, height ).double_click().perform()
-    time.sleep( timeout )
-
-    # Exit links
-    ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-    
 # Verify that the number of animators that are visible is equal to the expected count
 def verifyAnimationCount(unittest, parentWidget, expectedCount):
     animatorList = parentWidget.find_elements_by_xpath( ".//div[@qxclass='skel.boundWidgets.Animator']" )
     animatorCount = len( animatorList )
     print "Animator list count=", animatorCount
     unittest.assertEqual( animatorCount, expectedCount, "Animator count does not match expected count")
+    
+# Verify that the number of animators that are visible is equal to the expected count
+def verifyAnimatorUpperBound(unittest, driver, expectedCount, animatorName):
+    fullId = animatorName + "AnimatorUpperBound"
+    animatorLabel = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, fullId ) ) )
+    upperBound = animatorLabel.text
+    print "Animator upper bound=", upperBound
+    unittest.assertEqual( upperBound, str(expectedCount), "Animator upper bound was not correct")

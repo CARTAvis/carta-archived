@@ -1,2 +1,2 @@
 import os
-import cartavis
+import carta.cartavis

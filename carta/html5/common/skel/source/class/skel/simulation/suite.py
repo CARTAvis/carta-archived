@@ -31,6 +31,8 @@ def suite():
     test_suite.addTest( unittest.makeSuite(tSnapshotLayout.tSnapshotLayout))
     test_suite.addTest( unittest.makeSuite(tSnapshotPreferences.tSnapshotPreferences))
     test_suite.addTest( unittest.makeSuite(tContour.tContour))
+    test_suite.addTest( unittest.makeSuite(tStack.tStack))
+    test_suite.addTest( unittest.makeSuite(tColorMap.tColorMap))
     return test_suite
 
 mySuite = suite()

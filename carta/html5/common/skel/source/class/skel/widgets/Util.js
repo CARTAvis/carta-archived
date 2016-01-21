@@ -164,9 +164,9 @@ qx.Class.define("skel.widgets.Util", {
                 checkBox = new qx.ui.form.CheckBox();
             }
             checkBox.setCommand( cmd );
-            var labelFunction = function( cmd, button){
+            var labelFunction = function( cmd, checkBox){
                 return function(){
-                    cmd.doAction( button.getValue(), null);
+                    cmd.doAction( checkBox.getValue(), null);
                 };
             };
             checkBox.addListener( "changeValue", labelFunction( cmd,checkBox), checkBox);

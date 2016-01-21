@@ -10,7 +10,8 @@
 
 qx.Class.define( "skel.hacks.HackView", {
 
-    extend: skel.boundWidgets.View.ViewWithInputDiv,
+    //extend: skel.boundWidgets.View.ViewWithInputDiv,
+    extend: skel.hacks.VGView,
 
     /**
      * Constructor
@@ -20,9 +21,9 @@ qx.Class.define( "skel.hacks.HackView", {
         this.base( arguments, viewId );
 
         // monitor mouse move
-        this.addListener( "mousemove", this._mouseMoveCB.bind(this));
-        this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
-        this.addListener( "click", this._mouseClickCB.bind(this));
+        this.overlayWidget().addListener( "mousemove", this._mouseMoveCB.bind(this));
+        this.overlayWidget().addListener( "mousewheel", this._mouseWheelCB.bind(this));
+        this.overlayWidget().addListener( "click", this._mouseClickCB.bind(this));
 
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
@@ -40,8 +41,6 @@ qx.Class.define( "skel.hacks.HackView", {
                 x: ev.getDocumentLeft() - box.left,
                 y: ev.getDocumentTop() - box.top
             };
-            console.log( "vwid mm", pt.x, pt.y);
-
 
             this.m_pointerMoveVar.set( "" + pt.x + " " + pt.y);
 
@@ -53,7 +52,6 @@ qx.Class.define( "skel.hacks.HackView", {
                 x: ev.getDocumentLeft() - box.left,
                 y: ev.getDocumentTop() - box.top
             };
-            console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
 
             this.m_connector.sendCommand( this.m_prefix + "zoom",
                 "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
@@ -65,7 +63,6 @@ qx.Class.define( "skel.hacks.HackView", {
                 x: ev.getDocumentLeft() - box.left,
                 y: ev.getDocumentTop() - box.top
             };
-            console.log( "vwid click", pt.x, pt.y, ev.getButton());
 
             this.m_connector.sendCommand( this.m_prefix + "center",
                 "" + pt.x + " " + pt.y + " " + ev.getButton());

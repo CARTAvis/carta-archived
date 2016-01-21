@@ -68,7 +68,7 @@ AstWcsGridRenderService::~AstWcsGridRenderService()
 { }
 
 void
-AstWcsGridRenderService::setInputImage( Image::ImageInterface::SharedPtr image )
+AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr image )
 {
     CARTA_ASSERT( image );
 

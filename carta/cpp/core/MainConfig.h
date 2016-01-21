@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <QJsonObject>
 #include <QStringList>
 class QString;
 
@@ -48,13 +49,47 @@ public:
      */
     bool isDeveloperLayout() const;
 
+    /**
+     * Returns whether CARTA should come up with decorations such
+     * as the Debug console enabled on the desktop version.
+     * @return true - for developer debug widgets enabled; false otherwise.
+     */
+    bool isDeveloperDecorations() const;
+
+    /// the whole config file as json
+    const QJsonObject & json() const;
+
+    /**
+     * Converts a jsonValue to a boolean.
+     * @param jsonValue - the value to convert.
+     * @param errorMsg - a place holder for setting an error message if the
+     *      passed in value cannot be converted.
+     * @return - the corresponding boolean; default is false if there is an
+     *      error doing the conversion.
+     */
+    static bool toBool( const QJsonValue& jsonValue, QString& errorMsg );
+
+    /**
+     * Converts a jsonValue to an integer.
+     * @param jsonValue - the value to convert.
+     * @param errorMsg - a place holder for setting an error message if the
+     *      passed in value cannot be converted.
+     * @return - the corresponding integer; default is -1 if there is an
+     *      error doing the conversion.
+     */
+    static int toInt( const QJsonValue& jsonValue, QString& errorMsg );
+
+
 protected:
 
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
+    bool m_developerDecorations = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;
     int m_contourLevelCountMax = -1;
+
+    QJsonObject m_json;
 
     friend ParsedInfo parse( const QString & filePath);
 };
@@ -65,5 +100,7 @@ protected:
 /// \return parsed config file
 ///
 ParsedInfo parse( const QString & filePath);
+
+
 
 }

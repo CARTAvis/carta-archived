@@ -75,20 +75,20 @@ class tAnimatorSettings(tAnimator.tAnimator):
             self._click( driver, animateCheck )
         time.sleep( timeout )
 
-        # Verify that the animation window has no animators.
-        Util.verifyAnimationCount( self, animWindow, 0)
+        # Verify that the animation window has only a Stokes animator
+        Util.verifyAnimationCount( self, animWindow, 1)
 
         # Check the image animate button and verify that the image animator shows up
         self._click( driver, animateCheck )
         imageAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Image']")))
         time.sleep( timeout )
-        Util.verifyAnimationCount( self, animWindow, 1)
+        Util.verifyAnimationCount( self, animWindow, 2)
 
         # Check the channel animator button and verify there are now two animators, one channel, one image.
         self._click( driver, channelCheck )
         channelAnimator = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.boundWidgets.Animator']/div/div/div[text()='Channel']")))
         time.sleep( timeout )
-        Util.verifyAnimationCount( self, animWindow, 2 )
+        Util.verifyAnimationCount( self, animWindow, 3 )
 
         # Chrome gives an error trying to close the page; therefore, refresh the page before
         # closing the browser. This is required because otherwise memory is not freed.
@@ -141,10 +141,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
 
-        # Hide the image animator
-        # Click on the animate button on the menu tool bar
-        self.hideImageAnimator( driver )
-
         # Record last channel value of the test image
         self._getLastValue( driver, "Channel" )
         lastChannelValue = self._getCurrentValue( driver, "Channel" )
@@ -158,7 +154,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Open settings
         self._openSettings( driver, "Channel" )
-
 
         # In settings, click the Jump radio button. Scroll into view if button is not visible
         jumpButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelJumpRadioButton")))
@@ -179,10 +174,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         currChannelValue = self._getCurrentValue( driver, "Channel" )
         print "Current channel", currChannelValue
         self.assertEqual( int(firstChannelValue), int(currChannelValue), "Channel Animator did not jump to first channel value")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
+    
         # Open settings
         self._openSettings( driver, "Image" )
 
@@ -262,9 +254,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "Current channel", currChannelValue
         self.assertGreater( int(currChannelValue), int(firstChannelValue), "Channel did not increase after animating first channel value")
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
         # Open settings
         self._openSettings( driver, "Image" )
 
@@ -298,90 +287,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "Current image", currImageValue
         self.assertGreater( int(currImageValue), int(firstImageValue), "Image value did not increase after animating first image")
 
-    # Test that the Animator reverse setting animates in the reverse direction after
-    # reaching the last channel value.
-    # Note:  this test is dependent on the animator speed and may fail because of changes
-    # in speed.
-    def test_channelAnimatorReverse(self):
-        driver = self.driver
-        timeout = selectBrowser._getSleep()
-
-        # Open a test image so we have something to animate
-        Util.load_image( self, driver, "aH.fits")
-        Util.load_image( self, driver, "aJ.fits")
-        Util.load_image( self, driver, "Orion.cont.image.fits")
-        Util.load_image( self, driver, "Default")
-
-        # Open settings
-        self._openSettings( driver, "Channel" )
-
-        # Go to last channel value and record the last channel value of the test image
-        self._getLastValue( driver, "Channel" )
-        lastChannelValue = self._getCurrentValue( driver, "Channel" )
-
-        print "Testing Channel Animator Reverse Setting..."
-        print "Last channel value:", lastChannelValue
-
-        # In settings, click the Reverse radio button. Scroll into view if button is not visible
-        reverseButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelReverseRadioButton")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", reverseButton)
-        ActionChains(driver).click( reverseButton ).perform()
-        time.sleep(2)
-
-        # Click the forward animate button
-        # Allow the image to animate for 4 seconds (takes 4 seconds to reverse direction)
-        self._animateForward( driver, "Channel" )
-        time.sleep(4)
-
-        # Check that the current channel value is less than the last channel value
-        currChannelValue = self._getCurrentValue( driver, "Channel" )
-        print "Current channel", currChannelValue
-        self.assertGreater( int(lastChannelValue), int(currChannelValue), "Channel Animator did not reverse direction after animating last channel value")
-
-        # Stop animation.
-        self._stopAnimation( driver, "Channel")
-
-        # Go to first channel value and record the first channel value of the test image
-        self._getFirstValue( driver, "Channel" )
-        firstChannelValue = self._getCurrentValue( driver, "Channel" )
-        print "First channel value:", firstChannelValue
-
-        # Click the forward animate button
-        # Allow image to animate for 2 seconds
-        self._animateForward( driver, "Channel")
-        time.sleep(2)
-        self._stopAnimation( driver, "Channel")
-
-        # Check that the channel value is at a higher value than the first channel value
-        currChannelValue = self._getCurrentValue( driver, "Channel" )
-        print "Current channel", currChannelValue
-        self.assertGreater( int(currChannelValue), int(firstChannelValue), "Channel Animator did not increase channel after animating first channel value")
-
-        # Open settings
-        self._openSettings( driver, "Image" )
-
-        # Go to the last image and record the last image value
-        self._getLastValue( driver, "Image" )
-        lastImageValue = self._getCurrentValue( driver, "Image" )
-
-        print "Testing Image Animator Reverse Setting..."
-        print "Last image value:", lastImageValue
-
-        # In settings, click the Reverse radio button. Scroll into view if button is not visible
-        reverseButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ImageTapeDeckReversePlay")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", reverseButton)
-        ActionChains(driver).click( reverseButton ).perform()
-
-         # Click the forward animate button
-        # Allow the image to animate
-        self._animateForward( driver, "Image" )
-        time.sleep(.1)
-        self._stopAnimation( driver, "Image")
-
-        # Check that the current image value is less than the last image value
-        currImageValue = self._getCurrentValue( driver, "Image" )
-        print "Current image", currImageValue
-        self.assertGreater( int(lastImageValue), int(currImageValue), "Image Animator did not reverse direction after animating the last image")
+    
 
     # Test that adjustment of Animator rate will speed up/slow down channel animation
     # Under default settings, it takes roughly 2 seconds for the channel to change by 1
@@ -554,9 +460,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "Current channel", currChannelValue
         self.assertEqual( int(currChannelValue), 2, "Channel Animator did not increase by a step increment of 2")
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
         # Open settings
         self._openSettings( driver, "Image")
 
@@ -607,9 +510,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "oldChannelValue= 0 newChannelValue=", currChannelValue
         self.assertEqual( int(currChannelValue), int(firstChannelValue)+1, "Failed to increment Channel Animator")
 
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
-
         # Record the first image value
         self._getFirstValue( driver, "Image" )
         firstImageValue = self._getCurrentValue( driver, "Image" )
@@ -648,9 +548,6 @@ class tAnimatorSettings(tAnimator.tAnimator):
         print "Check decrease frame..."
         print "oldChannelValue=", lastChannelValue, "newChannelValue=",currChannelValue
         self.assertEqual( int(currChannelValue), int(lastChannelValue)-1, "Failed to decrement the Channel Animator")
-
-        # Change the Channel Animator to an Image Animator
-        self.channel_to_image_animator( driver )
 
         # Record the first image value
         self._getLastValue( driver, "Image" )

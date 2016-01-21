@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <type_traits>
 
+namespace Carta {
+namespace Lib {
 namespace Image {
 
 /// supported pixel types in images
@@ -114,6 +116,7 @@ struct CType2PixelType <std::int64_t> {
 
 }
 
+
 /// template ton convert from one type to another
 template <typename SrcType, typename DstType>
 struct TypedConverters;
@@ -143,7 +146,7 @@ struct Type2CvtFunc{
 };
 
 template < typename DstType>
-typename Type2CvtFunc<DstType>::Type getConverter( Image::PixelType srcType)
+typename Type2CvtFunc<DstType>::Type getConverter( Carta::Lib::Image::PixelType srcType)
 {
     switch (srcType) {
     case Image::PixelType::Byte:
@@ -167,9 +170,6 @@ typename Type2CvtFunc<DstType>::Type getConverter( Image::PixelType srcType)
     }
 }
 
-
-namespace Carta {
-
 /// convenience function to convert a type to a string
 QString toStr( Image::PixelType t);
 
@@ -185,5 +185,6 @@ QString toStr( Image::PixelType t);
 ////    return sizeof( Image::PixelType2CType<T>::type);
 //}
 
-
 }
+}
+

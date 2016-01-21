@@ -1,13 +1,11 @@
 #pragma once
 
+/// \todo move this all into carta::core namespace
+
 #include <QApplication>
 #include <functional>
 #include "IConnector.h"
 
-/// I suspect somewhere down the road we'll want to override notify() or some
-/// other functionality of QApplication, so we might as well provision for it by
-/// subclassing QApplication and using the subclass...
-///
 /// The only code that should go into this class is Qt specific stuff that needs
 /// access to the internals of QApplication.
 ///
@@ -21,10 +19,14 @@ public:
     explicit
     MyQApp( int & argc, char * * argv );
 
-    /**
-     * @brief set the platform
-     * @param return the platform
-     */
+#if CARTA_RUNTIME_CHECKS > 0
+
+    /// we override notify() to be able to report exceptions that are thrown
+    /// inside slots
+    virtual bool
+    notify( QObject *, QEvent * ) override;
+
+#endif
 
 protected:
 };

@@ -5,6 +5,9 @@
 #include "PixelType.h"
 #include <QString>
 
+namespace Carta {
+namespace Lib {
+
 int
 Image::pixelType2int( const Image::PixelType & type )
 {
@@ -26,9 +29,6 @@ Image::pixelType2int( const Image::PixelType & type )
 //        break;
 //    }
 //}
-
-namespace Carta {
-
 
 QString
 toStr( Image::PixelType t )
@@ -67,3 +67,6 @@ toStr( Image::PixelType t )
 }
 
 }
+}
+
+

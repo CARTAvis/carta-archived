@@ -19,9 +19,9 @@ public:
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
 
-    void forgot_to_define_this();
+//    void forgot_to_define_this();
 
 private:
 
-    Image::ImageInterface::SharedPtr loadImage(const QString & fname);
+    Carta::Lib::Image::ImageInterface::SharedPtr loadImage(const QString & fname);
 };

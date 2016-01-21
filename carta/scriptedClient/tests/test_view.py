@@ -1,5 +1,5 @@
 import os
-import cartavis
+import carta.cartavis as cartavis
 import pyautogui
 import time
 import ImageUtil
@@ -11,12 +11,13 @@ def test_load_image(cartavisInstance, cleanSlate):
     # Load an image in the image viewer
     i = cartavisInstance.getImageViews()
     a = cartavisInstance.getAnimatorViews()
-    i[0].loadLocalFile(os.getcwd + '/data/N15693D.fits')
+    i[0].loadFile(os.getcwd() + '/data/N15693D.fits')
 
     # Check that the channel count is above 1
     channelCount = i[0].getChannelCount() 
+    assert channelCount > 1
     # Check that we can set the animator channel value 
-    assert a[0].setChannel( int(channelCount)-1 ) != [u'']
+    assert a[0].setChannel( int(channelCount)-1 ) == [u'']
 
     i[0].closeImage('N15693D.fits')
 

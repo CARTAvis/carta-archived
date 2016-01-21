@@ -1,147 +1,109 @@
 {
-  "name"    : "skel",
+	"name"		: "skel",
+	
+	"include" :
+	[
+		{
+			"path" : "${QOOXDOO_PATH}/tool/data/config/application.json"
+		}
+	],
 
-  "include" :
-  [
-    {
-      "path" : "${QOOXDOO_PATH}/tool/data/config/application.json"
-    }
-  ],
+	"export" :
+	[
+		"api",
+		"api-data",
+		"build",
+		"clean",
+		"distclean",
+		"dependencies",
+		"fix",
+		"info",
+		"inspector",
+		"lint",
+		"migration",
+		"pretty",
+		"profiling",
+		"source",
+		"source-all",
+		"source-hybrid",
+		"source-server",
+		"source-server-reload",
+		"source-httpd-config",
+		"simulation-build",
+		"simulation-run",
+		"test",
+		"test-source",
+		"translation",
+		"validate-config",
+		"validate-manifest",
+		"watch",
+		"all"
+	],
 
-  "export" :
-  [
-    "api",
-    "api-data",
-    "build",
-    "clean",
-    "distclean",
-    "dependencies",
-    "fix",
-    "info",
-    "inspector",
-    "lint",
-    "migration",
-    "pretty",
-    "profiling",
-    "source",
-    "source-all",
-    "source-hybrid",
-    "source-server",
-    "source-server-reload",
-    "source-httpd-config",
-    "simulation-build",
-    "simulation-run",
-    "test",
-    "test-source",
-    "translation",
-    "validate-config",
-    "validate-manifest",
-    "watch",
-    "all"
-  ],
+	"default-job" : "all",
 
-  "default-job" : "all",
+	"let" :
+	{
+		"APPLICATION"	 : "skel",
+		"QOOXDOO_PATH" : "../qooxdoo-3.5-sdk",
+    //			"QOOXDOO_PATH" : "../qooxdoo-4.0.1-sdk",
+		"QXTHEME"			 : "skel.theme.Theme",
+		"API_EXCLUDE"	 : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
+		"LOCALES"			 : [ "en" ],
+		"CACHE"				 : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache",
+		"ROOT"				 : "."
+	},
 
-  "let" :
-  {
-    "APPLICATION"  : "skel",
-    "QOOXDOO_PATH" : "../qooxdoo-3.5-sdk",
-//      "QOOXDOO_PATH" : "../qooxdoo-4.0.1-sdk",
-    "QXTHEME"      : "skel.theme.Theme",
-    "API_EXCLUDE"  : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
-    "LOCALES"      : [ "en" ],
-    "CACHE"        : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache",
-    "ROOT"         : "."
-  },
+	// You only need to edit the remainder of this file, if you want to customize
+	// specific jobs, or add own job definitions.
 
-  // You only need to edit the remainder of this file, if you want to customize
-  // specific jobs, or add own job definitions.
+	"jobs" : {
+		// the default job runs multiple jobs
+		"all" : {
+			"run" :
+			[
+				"source-all",
+				"build",
+				"api"
+			]
+		}
 
-  "jobs" :
-  {
-      // the default job runs multiple jobs
-      "all" : 
-      {
-          "run" :
-          [
-              "source-all",
-              "build",
-              "api"
-          ]
-      }
-
-      , "source-script": {
-          "compile-options": {
-              "uris": {
-//                  "script": "abcdefg",
-//                  "resource": "xyzw",
-                  "add-nocache-param": true
-              },
-
-              "paths": {
-                  "app-root": "../.."
-
-              },
-
-              "code": {
-                  "decode-uris-plug": "customuris.js"
-              }
-
-          }
-      }
-
-      , "source-all-script": {
-      "compile-options": {
-          "uris": {
-//              "script": "abcdefg",
-//              "resource": "xyzw",
-              "add-nocache-param": true
-          },
-
-          "paths": {
-              "app-root": "../.."
-
-          },
-
-          "code": {
-              "decode-uris-plug": "customuris.js"
-          }
-
-      }
-  }
-
-
-
-      // Uncomment the following entry to add a contrib or library to your
-    // project; make sure to adapt the path to the Manifest.json; if you are
-    // using a contrib: library, it will be downloaded into the path specified
-    // by the 'cache/downloads' config key
-    /*
-    "libraries" :
-    {
-      "library" :
-      [
-        {
-          "manifest" : "contrib://SkeletonApplication/trunk/Manifest.json"
-        }
-      ]
-    }
-    */
-
-    // If you want to tweak a job setting, see the following sample where
-    // the "format" feature of the "build-script" job is overridden.
-    // To see a list of available jobs, invoke 'generate.py x'.
-	/*
-    ,"build-script" :
-    {
-      "compile-options" :
-      {
-        "code" :
-        {
-          "format" : false
-        }
-      }
-    }
-    */
-  }
+		, "source-script": {
+			"compile-options": {
+				"uris": {
+					"add-nocache-param": true
+				},
+				"paths": {
+					"app-root": "../.."
+          
+				},
+				"code": {
+					"decode-uris-plug": "customuris.js"
+				}
+			}
+		}
+		, "source-all-script": {
+		  "compile-options": {
+				"uris": {
+			    "add-nocache-param": true
+				},
+				"paths": {
+			    "app-root": "../.."
+				},
+				"code": {
+			    "decode-uris-plug": "customuris.js"
+				}
+		  }
+		},
+		
+/*    
+		, "build-script": {
+		  "compile-options": {
+				"code": {
+			    "format": false
+				}
+		  }
+		}
+*/
+	}
 }

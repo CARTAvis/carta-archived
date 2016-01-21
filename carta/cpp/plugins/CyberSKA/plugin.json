@@ -1,0 +1,13 @@
+{
+    "api"        : "1",
+    "name"       : "CyberSKA",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "CyberSKA integration plugin.",
+        "Allows location of initial filename to be specified via key in url. This key",
+        "is then used to request the filename securely."
+    ],
+    "about"      : "Part of carta. Written by Pavol",
+    "depends"    : [ ]
+}

@@ -241,13 +241,18 @@ void HistogramGenerator::setStyle( QString style ){
     m_histogram->setDrawStyle( style );
 }
 
-QImage * HistogramGenerator::toImage( ) const {
+QImage * HistogramGenerator::toImage( int width, int height ) const {
     QwtPlotRenderer renderer;
-    QImage * histogramImage =new QImage(m_width, m_height, QImage::Format_RGB32);
+    if ( width <= 0 ){
+        width = m_width;
+    }
+    if ( height <= 0 ){
+        height = m_height;
+    }
+    QImage * histogramImage =new QImage(width, height, QImage::Format_RGB32);
     renderer.renderTo(m_plot, *histogramImage );
     return histogramImage;
 }
-
 
 
 HistogramGenerator::~HistogramGenerator(){

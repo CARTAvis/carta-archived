@@ -1,9 +1,0 @@
-{
-    "api"        : "1",
-    "name"       : "casatest1",
-    "version"    : "1",
-    "type"       : "C++",
-    "description": "Adds ability to load casa and fits files as QImages",
-    "about"      : "Part of carta. Written by Pavol",
-    "depends"    : [ "casaCore"]
-}

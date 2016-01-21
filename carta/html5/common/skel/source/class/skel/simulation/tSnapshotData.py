@@ -22,10 +22,18 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
     def _verifyImage(self, driver, count ):
         #Get the upper bound of images from the image animator
-        imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
-        imageCount = imageUpperSpin.get_attribute( "value")
-        print "Expected count=",count," actualCount=",imageCount
-        self.assertEqual( int(imageCount), count, "Incorrect image count")
+        if ( count > 1 ):
+            imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
+            imageCount = imageUpperSpin.get_attribute( "value")
+            print "Expected count=",count," actualCount=",imageCount
+            self.assertEqual( int(imageCount), count, "Incorrect image count")
+        #In exact, but we verify the image animator is not present which means 0 or 1.
+        else:
+            try:
+                imageUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
+                self.assertTrue( False, "Image animator should not be present")
+            except Exception:
+                print "0 or 1 images present"
 
     # Set the channel animator to the last channel.  Save a data snapshot.
     # Set the channel animator back to 0, the first channel.  Restore a data snapshot.
@@ -161,6 +169,82 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
         # Verify that only the original two images are loaded
         self._verifyImage( driver, 1 )
+        
+    # Load an image. Save a data snapshot.  Remove the image.  Restore
+    # the snapshot.  Check that the image is loaded.
+    def test_image_remove(self):    
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+
+         # There must be an image loaded with more than one channel to see the channel animator.
+        Util.load_image(self,driver, "TWHydra_CO2_1line.image.fits" )
+
+        #Click on the animation window so that its actions will be enabled 
+        animationWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
+        
+        #Make sure the animation window is clicked by clicking an element within the window
+        channelText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelIndexText")))
+        ActionChains(driver).click( channelText).perform()
+
+        # Check that the channel upper spin is visible to verify the image is loaded.
+        channelUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", channelUpperSpin ) 
+        
+        # Find the session button on the menu bar and click it.
+        menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
+        self._clickSessionButton( driver )
+        
+        # Find the save session button in the submenu and click it.
+        self._clickSessionSaveButton( driver )
+        
+        # The save popup should be visible.  Make sure data is checked and
+        # layout and preferences are not checked
+        self._setSaveOptions( driver, False, False, True )
+        
+        # Type in tSnapshotData for the save name.
+        self._setSaveName( driver, "tSnapshotData")
+        
+        # Hit the save button
+        self._saveSnapshot( driver )
+        
+        # Close the dialog
+        self._closeSave( driver )
+        
+        # Remove the image
+        ActionChains(driver).double_click( imageWindow ).perform()
+        dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
+        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+        
+        # Verify there are no images loaded.
+        try:
+            channelUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
+            driver.execute_script( "arguments[0].scrollIntoView(true);", channelUpperSpin )
+            assertTrue(False,"Upper spin was present")
+        except Exception:
+            print "Test passed - all images are gone"
+        
+        # Click the restore sessions button
+        self._clickSessionButton( driver )
+        self._clickSessionRestoreButton( driver )
+        
+        # Select tSnapshotData in the restore combo box
+        self._selectRestoreSnapshot( driver, "tSnapshotData")
+        
+        # Hit the restore button
+        self._restoreSnapshot( driver )
+        
+        # Close the restore dialog
+        self._closeRestore( driver )
+        time.sleep( timeout )
+        
+        # Verify the original image is present - i.e., no image animator but a channel animator.
+        self._verifyImage( driver, 0 )
+        channelUpperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", channelUpperSpin )
 
 if __name__ == "__main__":
     unittest.main()

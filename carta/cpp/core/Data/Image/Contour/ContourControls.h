@@ -43,19 +43,6 @@ public:
     QString generateContourSet( const QString& contourSetName );
 
     /**
-     * Return the contour state of a specific type.
-     * @param sessionId - an identifier for a user session.
-     * @param type - an identifier for the type of state to save.
-     */
-    QString getStateString( const QString& sessionId, SnapshotType type ) const;
-
-    /**
-     * Reset the contour sets.
-     * @param state - a string representation of the contour sets.
-     */
-    virtual void resetStateData( const QString& state ) Q_DECL_OVERRIDE;
-
-    /**
      * Select a specific contour set.
      * @param name - a name for a contour set.
      */
@@ -193,7 +180,6 @@ private:
     const static QString LEVEL_SEPARATOR;
 
     void _addContourSet( const std::vector<double>& levels, const QString& contourSetName );
-    void _clearContours();
 
     QString _generateRange( const QString& contourSetName);
     QString _generateMinimum( const QString& contourSetName );
@@ -213,6 +199,7 @@ private:
     void _updateContourSetState();
 
     static bool m_registered;
+    //Used
     IPercentIntensityMap* m_percentIntensityMap;
 
 

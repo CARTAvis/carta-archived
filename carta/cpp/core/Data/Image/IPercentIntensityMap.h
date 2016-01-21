@@ -7,13 +7,13 @@
 
 #include <QString>
 
-namespace Image {
-class ImageInterface;
-}
+
 
 namespace Carta {
 
 namespace Data {
+
+class DataContours;
 
 class IPercentIntensityMap {
 
@@ -33,6 +33,18 @@ public:
      * @return the percentile corresponding to the intensity.
      */
     virtual double getPercentile( int frameLow, int frameHigh, double intensity ) const = 0;
+
+    /**
+     * Add a contour set.
+     * @param contourSet - the contour set to add.
+     */
+    virtual void addContourSet( std::shared_ptr<DataContours> contourSet) = 0;
+
+    /**
+     * Remove a contour set.
+     * @param contourSet - the contour set to remove.
+     */
+    virtual void removeContourSet( std::shared_ptr<DataContours> contourSet) = 0;
 };
 }
 }
