@@ -322,7 +322,12 @@ QString ImageHistogram<T>::getName() const {
 }
 
 template<class T>
-QString ImageHistogram<T>::getUnits() const {
+QString ImageHistogram<T>::getUnitsX() const {
+    return "pixels";
+}
+
+template<class T>
+QString ImageHistogram<T>::getUnitsY() const {
     const casa::Unit pixelUnit = ImageHistogram::m_image->units();
     return pixelUnit.getName().c_str();
 }

@@ -18,6 +18,7 @@ SOURCES += \
     Hooks/HistogramResult.cpp \
     Hooks/ImageStatisticsHook.cpp \
     Hooks/LoadRegion.cpp \
+    Hooks/Plot2DResult.cpp \
     IImage.cpp \
     PixelType.cpp \
     Slice.cpp \
@@ -51,6 +52,7 @@ HEADERS += \
     Hooks/HookIDs.h \
     Hooks/ImageStatisticsHook.h \
     Hooks/LoadRegion.h \
+    Hooks/Plot2DResult.h \
     IPlugin.h \
     IImage.h \
     PixelType.h \

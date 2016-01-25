@@ -7,15 +7,15 @@
 class QPainter;
 
 namespace Carta {
-namespace Histogram {
+namespace Plot2D {
 
 
-class HistogramSelection : public QwtPlotMarker{
+class Plot2DSelection : public QwtPlotMarker{
 public:
     /**
      * Constructor.
      */
-	HistogramSelection();
+	Plot2DSelection();
 
 	/**
 	 * Set the new position of the boundary line.
@@ -92,11 +92,11 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~HistogramSelection();
+	virtual ~Plot2DSelection();
 
 private:
-	HistogramSelection( const HistogramSelection& );
-	HistogramSelection& operator=( const HistogramSelection& );
+	Plot2DSelection( const Plot2DSelection& );
+	Plot2DSelection& operator=( const Plot2DSelection& );
 	int m_height;
 	double m_lowerBound;
 	double m_upperBound;

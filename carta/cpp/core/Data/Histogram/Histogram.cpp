@@ -7,11 +7,12 @@
 #include "Data/Image/Controller.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
-#include "Histogram/HistogramGenerator.h"
+#include "Data/Plotter/Plot2DManager.h"
+#include "Plot2D/Plot2DGenerator.h"
+#include "Data/Plotter/PlotStyles.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
 #include "MainConfig.h"
-#include "ImageView.h"
 #include "PluginManager.h"
 
 #include "CartaLib/Hooks/Histogram.h"
@@ -43,12 +44,7 @@ const QString Histogram::COLOR_MIN = "colorMin";
 const QString Histogram::COLOR_MAX = "colorMax";
 const QString Histogram::COLOR_MIN_PERCENT = "colorMinPercent";
 const QString Histogram::COLOR_MAX_PERCENT = "colorMaxPercent";
-//const QString Histogram::CUSTOM_CLIP = "customClip";
-const QString Histogram::DATA_PATH = "dataPath";
 const QString Histogram::GRAPH_STYLE = "graphStyle";
-const QString Histogram::GRAPH_STYLE_LINE = "Line";
-const QString Histogram::GRAPH_STYLE_OUTLINE = "Outline";
-const QString Histogram::GRAPH_STYLE_FILL = "Fill";
 const QString Histogram::GRAPH_LOG_COUNT = "logCount";
 const QString Histogram::GRAPH_COLORED = "colored";
 const QString Histogram::PLANE_MODE="planeMode";
@@ -69,10 +65,9 @@ const QString Histogram::FREQUENCY_UNIT = "rangeUnit";
 const QString Histogram::CLIP_MIN_PERCENT = "clipMinPercent";
 const QString Histogram::CLIP_MAX_PERCENT = "clipMaxPercent";
 const QString Histogram::SIGNIFICANT_DIGITS = "significantDigits";
-const QString Histogram::X_COORDINATE = "x";
-const QString Histogram::POINTER_MOVE = "pointer-move";
 
 Clips*  Histogram::m_clips = nullptr;
+PlotStyles* Histogram::m_graphStyles = nullptr;
 ChannelUnits* Histogram::m_channelUnits = nullptr;
 
 class Histogram::Factory : public Carta::State::CartaObjectFactory {
@@ -89,32 +84,33 @@ bool Histogram::m_registered =
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
+using Carta::Plot2D::Plot2DGenerator;
 
 Histogram::Histogram( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
-            m_view(nullptr),
             m_linkImpl( new LinkableImpl( path )),
             m_preferences( nullptr),
-            m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)),
-            m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
+            m_plotManager( new Plot2DManager( path, id ) ),
+            m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)) {
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
+
+    m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::HISTOGRAM) );
+    m_plotManager->setTitleAxisY( "Count(pixels)" );
+    m_plotManager->setTitleAxisX( "Intensity" );
+    connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
+    connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT( _updateColorSelection()));
 
     _initializeStatics();
     _initializeDefaultState();
     _initializeCallbacks();
     _setErrorMargin();
 
-    m_view.reset( new ImageView( path, QColor("yellow"), QImage(), &m_stateMouse));
-    connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_updateSize(const QSize&)));
-    registerView(m_view.get());
-    m_selectionEnabled = false;
-    m_selectionEnabledColor = false;
     m_controllerLinked = false;
     m_cubeChannel = 0;
-    m_histogram = new Carta::Histogram::HistogramGenerator();
+
 
     //Load the available clips.
     if ( m_clips == nullptr ){
@@ -184,15 +180,10 @@ void Histogram::clear(){
     m_linkImpl->clear();
 }
 
-void Histogram::clearSelection(){
-    m_histogram->clearSelection();
-}
-
-
 
 void Histogram::_createHistogram( Controller* controller){
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
-    m_histogram->setPipeline( pipeline );
+    m_plotManager->setPipeline( pipeline );
     double minIntensity = 0;
     double maxIntensity = 0;
     std::pair<int,int> frameBounds = _getFrameBounds();
@@ -239,42 +230,16 @@ void Histogram::_createHistogram( Controller* controller){
 }
 
 
-
-void Histogram::_endSelection(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
-    m_selectionEnd = xstr.toDouble();
-    m_histogram->setSelectionMode( false );
-    m_selectionEnabled = false;
-    QString result;
-    if ( m_selectionEnd != m_selectionStart ){
-        result = _zoomToSelection();
-    }
-    Util::commandPostProcess( result );
-}
-
-void Histogram::_endSelectionColor(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
-    m_selectionEnd = xstr.toDouble();
-    m_histogram->setSelectionModeColor( false );
-    m_selectionEnabledColor = false;
-    _updateColorSelection();
-}
-
 void Histogram::_finishClips (){
     m_stateData.flushState();
-    //When we zoom there should be no clipping selector.
-    m_histogram->clearSelectionColor();
+    m_plotManager->clearSelectionColor();
     _generateHistogram( true );
 }
 
 void Histogram::_finishColor(){
     double colorMin = m_stateData.getValue<double>(COLOR_MIN);
     double colorMax = m_stateData.getValue<double>(COLOR_MAX);
-    m_histogram->setRangeIntensityColor( colorMin, colorMax );
+    m_plotManager->setRangeColor( colorMin, colorMax );
     m_stateData.flushState();
 }
 
@@ -289,39 +254,17 @@ std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Histogram::_gene
 void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller ){
     Controller* activeController = controller;
     if ( activeController == nullptr ){
-        int linkCount = m_linkImpl->getLinkCount();
-        for ( int i = 0; i < linkCount; i++ ){
-            CartaObject* link = m_linkImpl->getLink( i );
-            Controller* linkedController = dynamic_cast<Controller*>(link);
-            if ( linkedController != nullptr){
-                activeController = linkedController;
-                break;
-            }
-        }
+        activeController = _getControllerSelected();
     }
     if ( newDataNeeded ){
         _loadData( activeController );
     }
 
-    //User is not selecting a range
-    if ( !m_selectionEnabled && !m_selectionEnabledColor ){
-        QString style = m_state.getValue<QString>(GRAPH_STYLE);
-        bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
-        bool colored = m_state.getValue<bool>(GRAPH_COLORED);
-        m_histogram->setStyle(style);
-        m_histogram->setLogScale(logCount);
-        m_histogram->setColored( colored );
-    }
-    //User is selecting a range.
-    else if ( m_selectionEnabled ){
-        m_histogram->setRangePixels( m_selectionStart, m_selectionEnd );
-    }
-    else if ( m_selectionEnabledColor ){
-        m_histogram->setRangePixelsColor( m_selectionStart, m_selectionEnd );
-    }
-
     //Refresh the view
-    _refreshView();
+    m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
+    m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
+    m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
+    m_plotManager->updatePlot();
 }
 
 QString Histogram::getStateString( const QString& sessionId, SnapshotType type ) const{
@@ -446,6 +389,11 @@ QString Histogram::getSnapType(CartaObject::SnapshotType snapType) const {
     return objType;
 }
 
+bool Histogram::getUseClipBuffer(){
+    bool useBuffer = m_state.getValue<bool>(CLIP_BUFFER);
+    return useBuffer;
+}
+
 
 void Histogram::_initializeDefaultState(){
 
@@ -486,7 +434,8 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<double>(BIN_WIDTH, binWidth );
     m_state.insertValue<bool>(CLIP_APPLY, false );
     m_state.insertValue<bool>(CLIP_BUFFER, false);
-    m_state.insertValue<QString>(GRAPH_STYLE, GRAPH_STYLE_LINE);
+    QString defaultStyle = m_graphStyles->getDefault();
+    m_state.insertValue<QString>(GRAPH_STYLE, defaultStyle );
     m_state.insertValue<bool>(GRAPH_LOG_COUNT, true );
     m_state.insertValue<bool>(GRAPH_COLORED, false );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_ALL );
@@ -495,37 +444,9 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
     m_state.flushState();
 
-    m_stateMouse.insertObject( ImageView::MOUSE );
-    m_stateMouse.insertValue<QString>(ImageView::MOUSE_X, 0 );
-    m_stateMouse.insertValue<QString>(ImageView::MOUSE_Y, 0 );
-    m_stateMouse.insertValue<QString>(POINTER_MOVE, "");
-    m_stateMouse.flushState();
 }
 
 void Histogram::_initializeCallbacks(){
-    addCommandCallback( "mouseDown", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        _startSelection(params);
-        return "";
-    });
-
-    addCommandCallback( "mouseDownShift", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-            _startSelectionColor(params);
-            return "";
-        });
-
-    addCommandCallback( "mouseUp", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        _endSelection( params );
-        return "";
-    });
-
-    addCommandCallback( "mouseUpShift", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-            _endSelectionColor( params );
-            return "";
-        });
 
     addCommandCallback( "setBinCount", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -557,21 +478,6 @@ void Histogram::_initializeCallbacks(){
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
                 QString result = _getPreferencesId();
-                return result;
-            });
-
-    addCommandCallback( "saveImage", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {DATA_PATH};
-                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString result = saveHistogram( dataValues[DATA_PATH]);
-                if ( !result.isEmpty() ){
-                    Util::commandPostProcess( result );
-                }
-                else {
-                    ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-                    hr->registerInformation( "Histogram was successfully saved.");
-                }
                 return result;
             });
 
@@ -953,24 +859,14 @@ void Histogram::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
-
-    QString pointerPath= UtilState::getLookup(getPath(), UtilState::getLookup(ImageView::VIEW, POINTER_MOVE));
-    addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
-        QStringList mouseList = value.split( " ");
-        if ( mouseList.size() == 2 ){
-            bool validX = false;
-            int mouseX = mouseList[0].toInt( &validX );
-            if ( validX ){
-                _updateSelection( mouseX);
-            }
-        }
-
-    });
 }
 
 void Histogram::_initializeStatics(){
     if ( m_channelUnits == nullptr ){
         m_channelUnits = Util::findSingletonObject<ChannelUnits>();
+    }
+    if ( m_graphStyles == nullptr ){
+        m_graphStyles = Util::findSingletonObject<PlotStyles>();
     }
 }
 
@@ -984,9 +880,7 @@ bool Histogram::isLinked( const QString& linkId ) const {
 }
 
 
-void Histogram::_loadData( Controller* controller )
-{
-
+void Histogram::_loadData( Controller* controller ){
     if( ! controller) {
         return;
     }
@@ -1012,14 +906,14 @@ void Histogram::_loadData( Controller* controller )
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
-    auto dataSources = controller-> getDataSources();
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources = controller-> getDataSources();
     if ( dataSources.size() > 0 ) {
         auto result = Globals::instance()-> pluginManager()
                                   -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
                                           minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
                                           minIntensity, maxIntensity);
         auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-            m_histogram->setData(data);
+            m_plotManager->setData( data );
             double freqLow = data.getFrequencyMin();
             double freqHigh = data.getFrequencyMax();
             setPlaneRange( freqLow, freqHigh);
@@ -1036,7 +930,7 @@ void Histogram::_loadData( Controller* controller )
     else {
         _resetDefaultStateData();
         const Carta::Lib::Hooks::HistogramResult data;
-        m_histogram->setData( data );
+        m_plotManager->setData( data );
     }
 }
 
@@ -1047,11 +941,6 @@ void Histogram::refreshState() {
     m_linkImpl->refreshState();
 }
 
-void Histogram::_refreshView(){
-    QImage * histogramImage = m_histogram->toImage();
-    m_view->resetImage( *histogramImage );
-    m_view->scheduleRedraw();
-}
 
 QString Histogram::removeLink( CartaObject* cartaObject){
     bool removed = false;
@@ -1188,7 +1077,7 @@ QString Histogram::setClipRangePercent( double clipMinPercent, double clipMaxPer
                 if ( result.isEmpty()){
                     result = setClipMaxPercent( clipMaxPercent, false );
                     if ( clipMinPercent == 0 && clipMaxPercent == 100 ){
-                        clearSelection();
+                        m_plotManager->clearSelection();
                     }
                     if ( result.isEmpty() ){
                         _finishClips();
@@ -1265,7 +1154,7 @@ QString Histogram::setClipMax( double clipMaxClient, bool finish ){
                    double clientMaxRounded = Util::roundToDigits( clipMaxClient, significantDigits );
                    if ( qAbs(clientMaxRounded - oldMaxClient) > m_errorMargin){
                        m_stateData.setValue<double>(CLIP_MAX_CLIENT, clientMaxRounded );
-                       m_histogram->setAxisXRange( clipMinClient, clientMaxRounded );
+                       m_plotManager->setAxisXRange( clipMinClient, clientMaxRounded );
                    }
                 }
 
@@ -1337,7 +1226,7 @@ QString Histogram::setClipMin( double clipMinClient, bool finish ){
             double clipMinClientRounded = Util::roundToDigits( clipMinClient, significantDigits );
             if ( qAbs(clipMinClientRounded - oldMinClient) > m_errorMargin){
                 m_stateData.setValue<double>( CLIP_MIN_CLIENT, clipMinClientRounded );
-                m_histogram->setAxisXRange( clipMinClientRounded, clipMaxClient );
+                m_plotManager->setAxisXRange( clipMinClientRounded, clipMaxClient );
             }
 
             if ( finish ){
@@ -1349,7 +1238,6 @@ QString Histogram::setClipMin( double clipMinClient, bool finish ){
         result = "Zoom mininum, "+QString::number(clipMinClient)+" must be less than maximum, "+QString::number(clipMaxClient);
     }
     return result;
-
 }
 
 
@@ -1383,12 +1271,11 @@ QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
                                  //Update the client min to match it
                                  m_stateData.setValue<double>(CLIP_MIN_CLIENT, roundedMin );
                                  double maxClientClip = m_stateData.getValue<double>( CLIP_MAX_CLIENT );
-                                 m_histogram->setAxisXRange( roundedMin, maxClientClip );
-
+                                 m_plotManager->setAxisXRange( roundedMin, maxClientClip );
                                  //We must trigger a selection on the histogram, unless we are at full
                                  //percent, in which case, we do not want it.
                                  if ( roundedMin != 0 || maxClientClip != 100 ){
-                                     m_histogram->setRangeIntensity( roundedMin, maxClientClip );
+                                     m_plotManager->setRange( roundedMin, maxClientClip );
                                  }
                              }
                          }
@@ -1445,12 +1332,12 @@ QString Histogram::setClipMaxPercent( double clipMaxPercent, bool complete ){
                                  m_stateData.setValue<double>(CLIP_MAX, roundedMax );
                                  m_stateData.setValue<double>(CLIP_MAX_CLIENT, roundedMax );
                                  double clipMinClient = m_stateData.getValue<double>( CLIP_MIN_CLIENT );
-                                 m_histogram->setAxisXRange( clipMinClient, roundedMax );
+                                 m_plotManager->setAxisXRange( clipMinClient, roundedMax );
 
                                  //Trigger selection on the histogram, unless we are at full zoom, then
                                  //we don't want selection.
                                  if ( clipMinPercent != 0 || roundedMax != 100 ){
-                                     m_histogram->setRangeIntensity( clipMinClient, roundedMax );
+                                     m_plotManager->setRange( clipMinClient, roundedMax );
                                  }
                              }
                          }
@@ -1774,42 +1661,10 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
 
 
 QString Histogram::saveHistogram( const QString& fileName ){
-    QString result = "";
-    //Check and make sure the directory exists.
-    int dirIndex = fileName.lastIndexOf( QDir::separator() );
-    QString dirName = fileName;
-    if ( dirIndex >= 0 ){
-        dirName = fileName.left( dirIndex );
-    }
-    QDir dir( dirName );
-    if ( ! dir.exists() ){
-        result = "Please make sure the save path is valid: "+fileName;
-    }
-    else {
-        PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-        int width = prefSave->getWidth();
-        int height = prefSave->getHeight();
-        Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-        QImage imgScaled;
-        QImage* histogramImage = nullptr;
-        if ( aspectRatioMode == Qt::IgnoreAspectRatio ){
-            histogramImage = m_histogram->toImage( width, height );
-            imgScaled = *histogramImage;
-        }
-        else {
-            histogramImage = m_histogram->toImage();
-            QSize outputSize( width, height );
-            imgScaled = histogramImage->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
-        }
-        bool saveSuccessful = imgScaled.save( fileName, 0, 100 );
-        if ( !saveSuccessful ){
-            result = "The image could not be saved; please check the path: "+fileName+" is valid.";
-        }
-//        delete histogramImage;
-        delete histogramImage;
-    }
+    QString result = m_plotManager->savePlot( fileName );
     return result;
 }
+
 
 QString Histogram::_set2DFootPrint( const QString& params ){
     QString result;
@@ -1912,7 +1767,7 @@ void Histogram::_setErrorMargin(){
 QString Histogram::setGraphStyle( const QString& styleStr ){
     QString result;
     QString oldStyle = m_state.getValue<QString>(GRAPH_STYLE);
-    QString actualStyle = _getActualGraphStyle( styleStr );
+    QString actualStyle = m_graphStyles->getActualPlotStyle( styleStr );
     if ( actualStyle != "" ){
         if ( actualStyle != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, actualStyle );
@@ -1926,19 +1781,6 @@ QString Histogram::setGraphStyle( const QString& styleStr ){
     return result;
 }
 
-QString Histogram::_getActualGraphStyle( const QString& styleStr ){
-    QString result = "";
-    if ( QString::compare( styleStr, GRAPH_STYLE_LINE, Qt::CaseInsensitive) == 0 ){
-        result = GRAPH_STYLE_LINE;
-    }
-    else if ( QString::compare( styleStr, GRAPH_STYLE_OUTLINE, Qt::CaseInsensitive) == 0 ){
-        result = GRAPH_STYLE_OUTLINE;
-    }
-    else if ( QString::compare( styleStr, GRAPH_STYLE_FILL, Qt::CaseInsensitive) == 0 ){
-        result = GRAPH_STYLE_FILL;
-    }
-    return result;
-}
 
 QString Histogram::setUseClipBuffer( bool useBuffer ){
     QString result;
@@ -1951,34 +1793,8 @@ QString Histogram::setUseClipBuffer( bool useBuffer ){
     return result;
 }
 
-bool Histogram::getUseClipBuffer(){
-    bool useBuffer = m_state.getValue<bool>(CLIP_BUFFER);
-    return useBuffer;
-}
 
 
-
-void Histogram::_startSelection(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
-    double proposedStart = xstr.toDouble();
-    bool onTarget = m_histogram->isSelectionOnCanvas( proposedStart );
-    if ( onTarget ){
-        m_selectionEnabled = true;
-        m_selectionStart = proposedStart;
-        m_histogram->setSelectionMode( true );
-    }
-}
-
-void Histogram::_startSelectionColor(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
-    m_selectionEnabledColor = true;
-    m_selectionStart = xstr.toDouble();
-    m_histogram->setSelectionModeColor( true );
-}
 
 double Histogram::_toBinWidth( int count ) const {
     double minRange = m_stateData.getValue<double>( CLIP_MIN);
@@ -2010,21 +1826,6 @@ void Histogram::_updateChannel( Controller* controller ){
 }
 
 
-void Histogram::_updateSelection(int x){
-    m_selectionEnd = x;
-    if ( m_selectionEnabled || m_selectionEnabledColor ){
-        _generateHistogram( false );
-    }
-}
-
-
-void Histogram::_updateSize( const QSize& size ){
-    bool newSize = m_histogram->setSize( size.width(), size.height());
-    if ( newSize ){
-        _generateHistogram( false );
-    }
-}
-
 void Histogram::_updateColorClips( double colorMinPercent, double colorMaxPercent ){
     if ( colorMinPercent < colorMaxPercent ){
         double normMin = colorMinPercent * 100;
@@ -2040,7 +1841,7 @@ void Histogram::_updateColorClips( double colorMinPercent, double colorMaxPercen
 
 void Histogram::_updateColorSelection(){
     bool valid = false;
-    std::pair<double,double> range = m_histogram->getRangeColor( &valid );
+    std::pair<double,double> range = m_plotManager->getRangeColor( &valid );
     if ( valid ){
         double minRange = range.first;
         double maxRange = range.second;
@@ -2058,7 +1859,7 @@ void Histogram::_updateColorSelection(){
 QString Histogram::_zoomToSelection(){
     QString result;
     bool valid = false;
-    std::pair<double,double> range = m_histogram->getRange( &valid );
+    std::pair<double,double> range = m_plotManager->getRange( & valid );
     if ( valid ){
         double minRange = range.first;
         double maxRange = range.second;
@@ -2078,8 +1879,7 @@ QString Histogram::_zoomToSelection(){
 
 
 Histogram::~Histogram(){
-    unregisterView();
-    delete m_histogram;
+
 }
 }
 }

@@ -1,22 +1,32 @@
-#include "Histogram/HistogramPlot.h"
-#include "Data/Histogram/Histogram.h"
+#include "Plot2DHistogram.h"
+#include "Data/Plotter/PlotStyles.h"
 #include <qwt_painter.h>
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QDebug>
 
 namespace Carta {
-namespace Histogram {
+namespace Plot2D {
 
 
-HistogramPlot::HistogramPlot():
-    m_defaultColor( "#6699CC" ),
-    m_brush( m_defaultColor ){
+Plot2DHistogram::Plot2DHistogram(){
     setStyle(QwtPlotHistogram::Columns);
-    m_drawStyle = Carta::Data::Histogram::GRAPH_STYLE_LINE;
-    m_colored = false;
+    m_drawStyle = Carta::Data::PlotStyles::PLOT_STYLE_LINE;
 }
 
-void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
+void Plot2DHistogram::attachToPlot( QwtPlot* plot ){
+    attach( plot );
+}
+
+
+void Plot2DHistogram::detachFromPlot(){
+    detach();
+}
+
+void Plot2DHistogram::setBaseLine( double val ){
+    QwtPlotHistogram::setBaseline( val );
+}
+
+void Plot2DHistogram::drawColumn (QPainter * painter, const QwtColumnRect & rect,
         const QwtIntervalSample & sample) const{
     QBrush brush( m_defaultColor );
     if ( !m_colored ){
@@ -44,22 +54,24 @@ void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
         r.setTop( qRound( r.top() ) );
         r.setBottom( qRound( r.bottom() ) );
     }
-    if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_FILL ){
+    if ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_FILL ){
         QwtPainter::fillRect( painter, r, brush );
     }
-    else if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_LINE ){
+    else if ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_LINE ){
         double middle = ( r.left() + r.right() ) / 2;
+        qDebug() << "drawLine middle="<<middle<<" top="<<r.top();
+        //r.setTop(50);
         QwtPainter::drawLine( painter, middle, r.bottom(), middle, r.top() );
     }
-    else if ( m_drawStyle != Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ){
+    else if ( m_drawStyle != Carta::Data::PlotStyles::PLOT_STYLE_OUTLINE ){
             qCritical() << "Unrecognized draw style="<< m_drawStyle;
     }
 
 
-    if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ||
-            ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_FILL && m_colored ) ){
+    if ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_OUTLINE ||
+            ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_FILL && m_colored ) ){
         //Draw a black outline for colored fill style
-        if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_FILL && m_colored ){
+        if ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_FILL && m_colored ){
             QColor outlineC( "black" );
             painter->setPen( outlineC );
         }
@@ -78,11 +90,10 @@ void HistogramPlot::drawColumn (QPainter * painter, const QwtColumnRect & rect,
             m_lastX = right;
         }
     }
-
 }
 
 
-void HistogramPlot::drawSeries( QPainter *painter, const QwtScaleMap &xMap,
+void Plot2DHistogram::drawSeries( QPainter *painter, const QwtScaleMap &xMap,
                 const QwtScaleMap &yMap, const QRectF & rect, int from, int to ) const {
     if ( !painter || m_data.size() <= 0 ){
         return;
@@ -93,30 +104,35 @@ void HistogramPlot::drawSeries( QPainter *painter, const QwtScaleMap &xMap,
     m_lastY = rect.bottom();
     m_lastX = rect.left();
     drawColumns( painter, xMap, yMap, from, to );
-    if ( m_drawStyle == Carta::Data::Histogram::GRAPH_STYLE_OUTLINE ){
+    if ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_OUTLINE ){
         QwtPainter::drawLine( painter, m_lastX, m_lastY, m_lastX, rect.bottom());
     }
 }
 
-void HistogramPlot::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
-    m_pipeline = pipeline;
+void Plot2DHistogram::setData ( std::vector<std::pair<double,double> > dataVector ){
+    int dataCount = dataVector.size();
+    m_logScale = true;
+    m_maxValueY = -1;
+    m_minValueY = std::numeric_limits<double>::max();
+    m_data.clear();
+    for ( int i = 0; i < dataCount-1; i++ ){
+        //Only add in nonzero counts
+        if ( dataVector[i].second > 0 ){
+            QwtIntervalSample sample( dataVector[i].second, dataVector[i].first, dataVector[i+1].first );
+            m_data.push_back( sample );
+            if ( dataVector[i].second > m_maxValueY ){
+                m_maxValueY = dataVector[i].second;
+            }
+            if ( dataVector[i].second < m_minValueY ){
+                m_minValueY = dataVector[i].second;
+            }
+        }
+    }
+    setSamples( m_data );
 }
 
-void HistogramPlot::setColored( bool colored ){
-    m_colored = colored;
-}
 
-void HistogramPlot::setData (const QVector< QwtIntervalSample > & data ){
-    QwtPlotHistogram::setSamples( data );
-    m_data = data;
-}
-
-void HistogramPlot::setDrawStyle( const QString& style ){
-    m_drawStyle = style;
-}
-
-
-HistogramPlot::~HistogramPlot(){
+Plot2DHistogram::~Plot2DHistogram(){
 
 }
 

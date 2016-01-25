@@ -86,6 +86,7 @@ qx.Class.define("skel.widgets.Path", {
         PLUGINS : "ViewPlugins",
         PREFERENCES : "",
         PREFERENCES_SAVE : "",
+        PROFILE : "Profiler",
         REGION : "",
         REGION_DATA : "region",
         SEP : "/",

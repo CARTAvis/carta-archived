@@ -31,6 +31,9 @@ static_assert( sizeof(double) == 8, "bad double size");
 // convenience function convert pixel type to int
 int pixelType2int( const PixelType & type);
 
+/// return size of pixel type in bytes
+size_t pixelType2size( const PixelType & type );
+
 /// convert PixelType to c type
 template <PixelType pt>
 struct PixelType2CType {};

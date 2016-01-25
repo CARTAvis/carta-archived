@@ -8,6 +8,7 @@
 #include "State/StateInterface.h"
 #include "Data/Image/Controller.h"
 #include "Data/Histogram/Histogram.h"
+#include "Data/Profile/Profiler.h"
 #include "Data/Statistics/Statistics.h"
 #include "Data/Util.h"
 #include <QtCore/qmath.h>
@@ -463,8 +464,10 @@ void Layout::setLayoutDeveloper(){
     //LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
 
     //right->setChildFirst( histLeaf );
-    LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
-    right->setChildFirst( statLeaf );
+    //LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
+    //right->setChildFirst( statLeaf );
+    LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
+    right->setChildFirst( profLeaf );
     right->setChildSecond( rightBottom );
 
     m_layoutRoot->setHorizontal( true );

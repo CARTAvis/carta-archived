@@ -15,20 +15,22 @@ Histogram1::_computeHistogram()
 {
     vector < std::pair < double, double > > data;
     QString name;
-    QString units = "";
+    QString unitsX = "";
+    QString unitsY = "";
     if ( m_histogram ) {
         bool computed = m_histogram->compute();
         if ( computed ) {
             data = m_histogram->getData();
             name = m_histogram->getName();
-            units = m_histogram->getUnits();
+            unitsX = m_histogram->getUnitsX();
+            unitsY = m_histogram->getUnitsY();
         }
         else {
             qDebug() << "Could not generate histogram data";
         }
     }
 
-    Carta::Lib::Hooks::HistogramResult result( name, units, data );
+    Carta::Lib::Hooks::HistogramResult result( name, unitsX, unitsY, data );
     return result;
 } // _computeHistogram
 

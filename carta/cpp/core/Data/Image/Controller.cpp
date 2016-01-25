@@ -1613,6 +1613,7 @@ void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
             if ( 0 <= dataIndex ){
                 _updateCursorText( true );
                 emit channelChanged( this );
+                _renderAll();
             }
         }
     }

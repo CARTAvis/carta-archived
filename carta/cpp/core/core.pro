@@ -36,6 +36,8 @@ HEADERS += \
     Data/DataLoader.h \
     Data/Error/ErrorReport.h \
     Data/Error/ErrorManager.h \
+    Data/Plotter/Plot2DManager.h \
+    Data/Plotter/PlotStyles.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
     Data/ILinkable.h \
@@ -70,6 +72,7 @@ HEADERS += \
     Data/LinkableImpl.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
+    Data/Profile/Profiler.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -83,9 +86,12 @@ HEADERS += \
     GrayColormap.h \
     ImageRenderService.h \
     ImageSaveService.h \
-    Histogram/HistogramGenerator.h \
-    Histogram/HistogramSelection.h \
-    Histogram/HistogramPlot.h \
+    Plot2D/Plot2DGenerator.h \
+    Plot2D/Plot2DSelection.h \
+    Plot2D/Plot2D.h \
+    Plot2D/Plot2DHistogram.h \
+    Plot2D/Plot2DProfile.h \
+    ProfileExtractor.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/quantileAlgorithms.h \
@@ -163,8 +169,11 @@ SOURCES += \
     Data/Layout/LayoutNodeComposite.cpp \
     Data/Layout/LayoutNodeLeaf.cpp \
     Data/Layout/NodeFactory.cpp \
+    Data/Plotter/Plot2DManager.cpp \
+    Data/Plotter/PlotStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
+    Data/Profile/Profiler.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \
@@ -175,9 +184,12 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    Histogram/HistogramGenerator.cpp \
-    Histogram/HistogramSelection.cpp \
-    Histogram/HistogramPlot.cpp \
+    Plot2D/Plot2DGenerator.cpp \
+    Plot2D/Plot2D.cpp \
+    Plot2D/Plot2DHistogram.cpp \
+    Plot2D/Plot2DProfile.cpp \
+    Plot2D/Plot2DSelection.cpp \
+    ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     ImageRenderService.cpp \

@@ -20,6 +20,7 @@ class DataLoader;
 class Histogram;
 class Colormap;
 class Layout;
+class Profiler;
 class Statistics;
 class Snapshots;
 class ViewPlugins;
@@ -142,6 +143,7 @@ private:
     void _clearColormaps( int startIndex, int upperBound );
     void _clearControllers( int startIndex, int upperBound );
     void _clearHistograms( int startIndex, int upperBound );
+    void _clearProfilers( int startIndex, int upperBound );
     void _clearStatistics( int startIndex, int upperBound );
 
     /**
@@ -167,9 +169,10 @@ private:
     QString _makeAnimator( int index );
     QString _makeLayout();
     QString _makePluginList();
+    QString _makeColorMap( int index );
     QString _makeController( int index );
     QString _makeHistogram( int index );
-    QString _makeColorMap( int index );
+    QString _makeProfile( int index );
     QString _makeSnapshots();
     QString _makeStatistics( int index );
 
@@ -207,6 +210,8 @@ private:
 
     //Histogram
     QList<Histogram* >m_histograms;
+
+    QList<Profiler* > m_profilers;
 
     //Statistics
     QList<Statistics* > m_statistics;
