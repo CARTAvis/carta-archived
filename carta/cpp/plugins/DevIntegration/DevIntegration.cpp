@@ -37,7 +37,7 @@ DevIntegrationPlugin::handleHook( BaseHook & hookData )
             hook.result.clear();
         }
         else {
-            hook.result = {
+            hook.result = QStringList{
                 file
             };
         }
