@@ -163,6 +163,14 @@ public:
     void setTitleAxisY( const QString& title );
 
     /**
+     * Set the location of the plot vertical line using a world
+     * x-coordinate.
+     * @param xPos - the x-coordinate of the plot vertical line in
+     *  world units.
+     */
+    void setVLinePosition( double xPos );
+
+    /**
      * Start a zoom selection.
      * @param params - the x-value where the selection should start.
      */

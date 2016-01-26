@@ -34,17 +34,24 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
     int dataCount = datas.size();
     m_datasX.resize( dataCount );
     m_datasY.resize( dataCount );
-    m_maxValueY = -1 * std::numeric_limits<double>::max();
-    m_minValueY = std::numeric_limits<double>::max();
-    for ( int i = 0; i < dataCount; i++ ){
-        m_datasX[i] = datas[i].first;
-        m_datasY[i] = datas[i].second;
-        if ( m_datasY[i] > m_maxValueY ){
-            m_maxValueY = m_datasY[i];
+    if ( dataCount > 0 ){
+        m_maxValueY = -1 * std::numeric_limits<double>::max();
+        m_minValueY = std::numeric_limits<double>::max();
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datasX[i] = datas[i].first;
+            m_datasY[i] = datas[i].second;
+            if ( m_datasY[i] > m_maxValueY ){
+                m_maxValueY = m_datasY[i];
+            }
+            if ( m_datasY[i] < m_minValueY ){
+                m_minValueY = m_datasY[i];
+            }
         }
-        if ( m_datasY[i] < m_minValueY ){
-            m_minValueY = m_datasY[i];
-        }
+    }
+    //No data so just use bogus bounds
+    else {
+        m_maxValueY = 1;
+        m_minValueY = 0;
     }
     setRawSamples( m_datasX.data(), m_datasY.data(), dataCount );
 }

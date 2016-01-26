@@ -286,6 +286,14 @@ void Plot2DManager::setTitleAxisY( const QString& title ){
 }
 
 
+void Plot2DManager::setVLinePosition( double xPos ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setMarkerLine( xPos );
+        updatePlot();
+    }
+}
+
+
 void Plot2DManager::startSelection(const QString& params ){
     std::set<QString> keys = {X_COORDINATE};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );

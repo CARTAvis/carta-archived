@@ -24,6 +24,7 @@ namespace Carta {
 namespace Plot2D {
 
 class Plot2D;
+class Plot2DLine;
 class Plot2DSelection;
 
 class Plot2DGenerator{
@@ -98,6 +99,12 @@ public:
      * @param logScale true if the y-axis should use a log scale; false otherwise.
      */
     void setLogScale(bool logScale);
+
+    /**
+     * Set the position of the vertical marker line.
+     * @param xPos - the x-coordinate of the line in world units.
+     */
+    void setMarkerLine( double xPos );
 
     /**
      * Set the pipeline used to determine colors of points.
@@ -190,6 +197,7 @@ private:
     Plot2D* m_plot2D;
     Plot2DSelection *m_range;
     Plot2DSelection * m_rangeColor;
+    Plot2DLine* m_vLine;
     int m_height;
     int m_width;
     QString m_axisNameX;

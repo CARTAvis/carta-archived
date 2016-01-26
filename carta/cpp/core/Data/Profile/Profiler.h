@@ -49,12 +49,26 @@ public:
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
+
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
     /**
      * Returns whether or not the object with the given id is already linked to this object.
      * @param linkId - a QString identifier for an object.
      * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+
+    virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
+
+    QString setClipBuffer( int bufferAmount );
+    QString setClipMax( double clipMaxClient );
+    QString setClipMin( double clipMinClient );
+    QString setClipMaxPercent( double clipMaxClient );
+    QString setClipMinPercent( double clipMinClient );
+    QString setClipRange( double clipMin, double clipMax );
+    QString setClipRangePercent( double clipMinPercent, double clipMaxPercent );
 
 
     /**
@@ -64,20 +78,7 @@ public:
      */
     QString setGraphStyle( const QString& style );
 
-    /**
-     * Set whether or not the vertical axis should use a log scale.
-     * @param logCount true if the vertical axis should be logarithmic; false otherwise.
-     * @return an error message if there was a problem setting the flag; an empty string otherwise.
-     */
-    QString setLogCount( bool logCount );
-
-    /**
-    * Determine whether or not the vertical axis is using a log scale.
-    * @return true if the vertical axis is using a log scale; false otherwise.
-    */
-    bool getLogCount();
-
-
+    QString setUseClipBuffer( bool useBuffer );
 
     virtual ~Profiler();
     const static QString CLASS_NAME;
@@ -86,9 +87,18 @@ public:
 private slots:
 
     void _createProfiler( Controller* );
-
+    void _updateChannel( Controller* controller );
 
 private:
+
+    const static QString CLIP_BUFFER;
+    const static QString CLIP_BUFFER_SIZE;
+    const static QString CLIP_MIN;
+    const static QString CLIP_MAX;
+    const static QString CLIP_MIN_CLIENT;
+    const static QString CLIP_MAX_CLIENT;
+    const static QString CLIP_MIN_PERCENT;
+    const static QString CLIP_MAX_PERCENT;
 
     void  _generateProfile( bool newDataNeeded, Controller* controller=nullptr);
     Controller* _getControllerSelected() const;
@@ -108,6 +118,9 @@ private:
     void _initializeStatics();
 
 
+    QString _zoomToSelection();
+
+
     static bool m_registered;
 
 
@@ -125,6 +138,9 @@ private:
     std::unique_ptr<Settings> m_preferences;
 
     std::unique_ptr<Plot2DManager> m_plotManager;
+
+    //State specific to the data that is loaded.
+    Carta::State::StateInterface m_stateData;
 
 	Profiler( const Profiler& other);
 	Profiler operator=( const Profiler& other );

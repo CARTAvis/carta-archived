@@ -17,24 +17,6 @@ Plot2DSelection::Plot2DSelection():
 	m_shadeColor.setAlpha( 100 );
 }
 
-void Plot2DSelection::boundaryLineMoved( const QPoint& pos ){
-    int xValue = pos.x();
-    if ( !rangeSet ){
-        m_lowerBound = xValue;
-        m_upperBound = xValue;
-        rangeSet = true;
-    }
-    else {
-        int lowDistance = qAbs( xValue - m_lowerBound );
-        int highDistance = qAbs( xValue - m_upperBound );
-        if ( lowDistance <= highDistance ){
-            m_lowerBound = xValue;
-        }
-        else {
-            m_upperBound = xValue;
-        }
-    }
-}
 
 void Plot2DSelection::draw ( QPainter* painter, const QwtScaleMap& xMap,
         const QwtScaleMap& /*yMap*/, const QRectF& /*canvasRect*/) const{

@@ -59,8 +59,6 @@ void Plot2DHistogram::drawColumn (QPainter * painter, const QwtColumnRect & rect
     }
     else if ( m_drawStyle == Carta::Data::PlotStyles::PLOT_STYLE_LINE ){
         double middle = ( r.left() + r.right() ) / 2;
-        qDebug() << "drawLine middle="<<middle<<" top="<<r.top();
-        //r.setTop(50);
         QwtPainter::drawLine( painter, middle, r.bottom(), middle, r.top() );
     }
     else if ( m_drawStyle != Carta::Data::PlotStyles::PLOT_STYLE_OUTLINE ){

@@ -2,6 +2,7 @@
 #include "Plot2DHistogram.h"
 #include "Plot2DProfile.h"
 #include "Plot2DSelection.h"
+#include "Plot2DLine.h"
 #include <qwt_scale_engine.h>
 #include <qwt_scale_map.h>
 #include <QPaintDevice>
@@ -24,6 +25,7 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     m_plot2D( nullptr ),
+    m_vLine( nullptr ),
     m_font( "Helvetica", 10){
     m_plot = new QwtPlot();
     m_plot->setCanvasBackground( Qt::white );
@@ -63,6 +65,11 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     shadeColor.setAlpha( 100 );
     m_rangeColor->setColoredShade( shadeColor );
     m_rangeColor->attach( m_plot );
+
+    if ( plotType == PlotType::PROFILE ){
+        m_vLine = new Plot2DLine();
+        m_vLine->attach( m_plot );
+    }
 }
 
 
@@ -171,6 +178,14 @@ void Plot2DGenerator::setLogScale(bool logScale){
 }
 
 
+void Plot2DGenerator::setMarkerLine( double xPos ){
+    if ( m_vLine ){
+        m_vLine->setPosition( xPos );
+        m_plot->replot();
+    }
+}
+
+
 void Plot2DGenerator::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
     if ( m_plot2D ){
         m_plot2D->setPipeline( pipeline );
@@ -223,6 +238,9 @@ bool Plot2DGenerator::setSize( int width, int height ){
             m_height = height;
             m_range->setHeight( m_height );
             m_rangeColor->setHeight( m_height );
+            if ( m_vLine ){
+                m_vLine->setHeight( m_height );
+            }
             newSize = true;
         }
         else {
@@ -291,6 +309,10 @@ Plot2DGenerator::~Plot2DGenerator(){
     }
     m_range->detach();
     m_rangeColor->detach();
+    if ( m_vLine ){
+        m_vLine->detach();
+        delete m_vLine;
+    }
     delete m_plot2D;
     delete m_range;
     delete m_rangeColor;

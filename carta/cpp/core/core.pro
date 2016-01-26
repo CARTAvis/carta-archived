@@ -89,6 +89,7 @@ HEADERS += \
     Plot2D/Plot2DGenerator.h \
     Plot2D/Plot2DSelection.h \
     Plot2D/Plot2D.h \
+    Plot2D/Plot2DLine.h \
     Plot2D/Plot2DHistogram.h \
     Plot2D/Plot2DProfile.h \
     ProfileExtractor.h \
@@ -186,6 +187,7 @@ SOURCES += \
     GrayColormap.cpp \
     Plot2D/Plot2DGenerator.cpp \
     Plot2D/Plot2D.cpp \
+    Plot2D/Plot2DLine.cpp \
     Plot2D/Plot2DHistogram.cpp \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \

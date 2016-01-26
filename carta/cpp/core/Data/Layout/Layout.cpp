@@ -453,8 +453,10 @@ void Layout::setLayoutDeveloper(){
     QStringList oldNames = getPluginList();
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
 
-    LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
-    rightBottom->setChildFirst( colorLeaf );
+    //LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
+    //rightBottom->setChildFirst( colorLeaf );
+    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
+    rightBottom->setChildFirst( histLeaf );
 
     LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
     rightBottom->setChildSecond( animLeaf );

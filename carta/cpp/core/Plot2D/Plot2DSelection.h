@@ -18,11 +18,6 @@ public:
 	Plot2DSelection();
 
 	/**
-	 * Set the new position of the boundary line.
-	 */
-	void boundaryLineMoved( const QPoint& pos );
-
-	/**
      * Draw the range.
      * @param painter
      * @param xMap

@@ -104,7 +104,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowStatistics", {
                             this._adjustControlVisibility( setObj.settings );
                         }
                         catch( err ){
-                            console.log( "ImageDisplay could not parse settings: "+val);
+                            console.log( "Statistics display could not parse settings: "+val);
                             console.log( "err="+err);
                         }
                     }
