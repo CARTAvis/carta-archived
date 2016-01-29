@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "IntensityConversionPlugin",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Provides conversion of intensity units."
+    ],
+    "about"      : "Converts between intensity units",
+    "depends"    : [ "casaCasaCore-121515", "CasaImageLoader"]
+}

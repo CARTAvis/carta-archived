@@ -21,10 +21,11 @@ namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
-        "CoordinateSystems","DataLoader","Fonts","LabelFormats","LayerCompositionModes",
-        "TransformsImage","TransformsData",
-        "ErrorManager","Layout", "PlotStyles",
-        "Preferences", "PreferencesSave", "Themes","ViewManager"};
+        "CoordinateSystems","DataLoader","ErrorManager",
+        "Fonts","IntensityUnits", "LabelFormats","Layout","LayerCompositionModes",
+         "PlotStyles","Preferences", "PreferencesSave",
+         "SpectralUnits", "TransformsImage","TransformsData",
+         "Themes","ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;

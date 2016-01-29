@@ -23,7 +23,9 @@
 #include "Data/Plotter/PlotStyles.h"
 #include "Data/Preferences/Preferences.h"
 #include "Data/Preferences/PreferencesSave.h"
+#include "Data/Profile/IntensityUnits.h"
 #include "Data/Profile/Profiler.h"
+#include "Data/Profile/SpectralUnits.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
 #include "Data/ViewPlugins.h"
@@ -85,6 +87,8 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ContourStyles>();
     Util::findSingletonObject<LayerCompositionModes>();
     Util::findSingletonObject<PlotStyles>();
+    Util::findSingletonObject<SpectralUnits>();
+    Util::findSingletonObject<IntensityUnits>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();

@@ -1,4 +1,6 @@
 #include "Profiler.h"
+#include "IntensityUnits.h"
+#include "SpectralUnits.h"
 #include "Data/Clips.h"
 #include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
@@ -10,8 +12,12 @@
 #include "Plot2D/Plot2DGenerator.h"
 
 #include "CartaLib/Hooks/Plot2DResult.h"
+#include "CartaLib/Hooks/ConversionIntensityHook.h"
+#include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include "CartaLib/AxisInfo.h"
 #include "State/UtilState.h"
+#include "Globals.h"
+#include "PluginManager.h"
 #include <QDebug>
 
 namespace Carta {
@@ -19,6 +25,8 @@ namespace Carta {
 namespace Data {
 
 const QString Profiler::CLASS_NAME = "Profiler";
+const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
+const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CLIP_BUFFER = "useClipBuffer";
 const QString Profiler::CLIP_BUFFER_SIZE = "clipBuffer";
 const QString Profiler::CLIP_MIN = "clipMin";
@@ -41,6 +49,9 @@ public:
 bool Profiler::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Profiler::Factory());
 
+SpectralUnits* Profiler::m_spectralUnits = nullptr;
+IntensityUnits* Profiler::m_intensityUnits = nullptr;
+
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
 using Carta::Plot2D::Plot2DGenerator;
@@ -56,13 +67,15 @@ Profiler::Profiler( const QString& path, const QString& id):
     Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
 
+    m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
+    m_plotManager->setTitleAxisY( "" );
+
+    _initializeStatics();
     _initializeDefaultState();
     _initializeCallbacks();
 
     m_controllerLinked = false;
-    m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
-    m_plotManager->setTitleAxisY( "" );
-    m_plotManager->setTitleAxisX( "Channel" );
+
 }
 
 
@@ -95,6 +108,85 @@ QString Profiler::addLink( CartaObject*  target){
         result = "Profiler only supports linking to images";
     }
     return result;
+}
+
+
+std::vector<double> Profiler::_convertUnitsX( const QString& newUnit) const {
+    QString bottomUnit = newUnit;
+    if ( newUnit.isEmpty() ){
+        bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+    }
+    std::vector<double> converted = m_plotDataX;
+    if ( ! m_bottomUnit.isEmpty() ){
+        Controller* controller = _getControllerSelected();
+        if ( controller ){
+            if ( bottomUnit != m_bottomUnit ){
+                std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources
+                    = controller->getDataSources();
+                int sourceCount = dataSources.size();
+                if ( sourceCount > 0 ){
+                    QString oldUnit = _getUnitUnits( m_bottomUnit );
+                    QString newUnit = _getUnitUnits( bottomUnit );
+                    auto result = Globals::instance()-> pluginManager()
+                                         -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(dataSources[0], oldUnit, newUnit, m_plotDataX );
+                    auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+                        converted = data;
+                    };
+                    try {
+                        result.forEach( lam );
+                    }
+                    catch( char*& error ){
+                        QString errorStr( error );
+                        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                        hr->registerError( errorStr );
+                    }
+                }
+            }
+        }
+    }
+    return converted;
+}
+
+
+std::vector<double> Profiler::_convertUnitsY() const {
+    std::vector<double> converted = m_plotDataY;
+    QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
+    if ( ! m_leftUnit.isEmpty() ){
+        Controller* controller = _getControllerSelected();
+        if ( controller ){
+            if ( leftUnit != m_leftUnit ){
+                std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources
+                    = controller->getDataSources();
+                int sourceCount = dataSources.size();
+                if ( sourceCount > 0 ){
+                    //First, we need to make sure the x-values are in Hertz.
+                    std::vector<double> hertzVals = _convertUnitsX( "Hz");
+                    bool validBounds = false;
+                    std::pair<double,double> boundsY = m_plotManager->getPlotBoundsY( &validBounds );
+                    if ( validBounds ){
+                        QString maxUnit = m_plotManager->getAxisUnitsY();
+                        auto result = Globals::instance()-> pluginManager()
+                             -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(dataSources[0],
+                                                         m_leftUnit, leftUnit, hertzVals, m_plotDataY,
+                                                         boundsY.second, maxUnit );;
+
+                        auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
+                            converted = data;
+                        };
+                        try {
+                            result.forEach( lam );
+                        }
+                        catch( char*& error ){
+                            QString errorStr( error );
+                            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                            hr->registerError( errorStr );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return converted;
 }
 
 
@@ -159,13 +251,9 @@ QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) 
 }
 
 
-
 QList<QString> Profiler::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
-
-
-
 
 
 QString Profiler::_getPreferencesId() const {
@@ -186,10 +274,38 @@ void Profiler::_initializeDefaultState(){
     m_stateData.insertValue<double>(CLIP_MIN_PERCENT, 0);
     m_stateData.insertValue<double>(CLIP_MAX_PERCENT, 100);
     m_stateData.flushState();
+
+    //Default units
+    m_bottomUnit = m_spectralUnits->getDefault();
+    QString unitType = _getUnitType( m_bottomUnit );
+    m_plotManager->setTitleAxisX( unitType );
+    m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, m_bottomUnit );
+    m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
+    m_state.flushState();
 }
 
 
 void Profiler::_initializeCallbacks(){
+
+    addCommandCallback( "setAxisUnitsBottom", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::UNITS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString unitStr = dataValues[*keys.begin()];
+        QString result = setAxisUnitsBottom( unitStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setAxisUnitsLeft", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::UNITS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString unitStr = dataValues[*keys.begin()];
+        QString result = setAxisUnitsLeft( unitStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         QString result = _getPreferencesId();
@@ -323,6 +439,12 @@ void Profiler::_initializeCallbacks(){
 
 
 void Profiler::_initializeStatics(){
+    if ( m_spectralUnits == nullptr ){
+        m_spectralUnits = Util::findSingletonObject<SpectralUnits>();
+    }
+    if ( m_intensityUnits == nullptr ){
+        m_intensityUnits = Util::findSingletonObject<IntensityUnits>();
+    }
 }
 
 
@@ -349,30 +471,24 @@ void Profiler::_loadProfile( Controller* controller ){
         Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
         shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = dataSources[0]->metaData();
         QString fileName = metaData->title();
-        QString pixelUnits = dataSources[0]->getPixelUnit().toStr();
+        m_leftUnit = dataSources[0]->getPixelUnit().toStr();
 
         auto profilecb = [ = ] () {
             auto data = extractor->getDataD();
             int dataCount = data.size();
-            std::vector<std::pair<double,double> > plotData( dataCount );
+            m_plotDataX.resize( dataCount );
+            m_plotDataY.resize( dataCount );
             for( int i = 0 ; i < dataCount; i ++ ){
-                plotData[i].first = i;
-                plotData[i].second = data[i];
+                m_plotDataX[i] = i;
+                m_plotDataY[i] = data[i];
             }
 
-            Carta::Lib::Hooks::Plot2DResult plotResult( fileName, "", pixelUnits, plotData );
-
-            m_plotManager->setData( plotResult );
-            m_plotManager->setLogScale( false );
-            m_plotManager->setStyle( PlotStyles::PLOT_STYLE_OUTLINE );
-            m_plotManager->setColored( false );
-            m_plotManager->updatePlot();
+            _updatePlotData( fileName );
         };
         connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
         extractor-> start( path );
     }
 }
-
 
 
 QString Profiler::removeLink( CartaObject* cartaObject){
@@ -403,6 +519,40 @@ void Profiler::resetState( const QString& state ){
     QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
     m_state.setState( prefStr );
     m_state.flushState();
+}
+
+QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
+    QString result;
+    QString actualUnits = m_spectralUnits->getActualUnits( unitStr );
+    if ( !actualUnits.isEmpty() ){
+        QString oldBottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+        if ( unitStr != oldBottomUnits ){
+            m_state.setValue<QString>( AXIS_UNITS_BOTTOM, actualUnits);
+            m_plotManager->setTitleAxisX( _getUnitType( actualUnits ) );
+            m_state.flushState();
+            _updatePlotData(  );
+        }
+    }
+    else {
+        result = "Unrecognized profile bottom axis units: "+unitStr;
+    }
+    return result;
+}
+
+QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
+    QString result;
+    QString actualUnits = m_intensityUnits->getActualUnits( unitStr );
+    if ( !actualUnits.isEmpty() ){
+        QString oldLeftUnits = m_state.getValue<QString>( AXIS_UNITS_LEFT );
+        if ( oldLeftUnits != actualUnits ){
+            m_state.setValue<QString>( AXIS_UNITS_LEFT, actualUnits );
+            _updatePlotData();
+        }
+    }
+    else {
+        result = "Unrecognized profile left axis units: "+unitStr;
+    }
+    return result;
 }
 
 QString Profiler::setClipBuffer( int bufferAmount ){
@@ -458,7 +608,8 @@ QString Profiler::setGraphStyle( const QString& /*styleStr*/ ){
         if ( actualStyle != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, actualStyle );
             m_state.flushState();
-            _generateProfile( false );
+            m_plotManager->setStyle( actualStyle );
+            m_plotManager->updatePlot();
         }
     }
     else {
@@ -481,9 +632,60 @@ QString Profiler::setUseClipBuffer( bool useBuffer ){
     return result;
 }
 
+
+QString Profiler::_getUnitType( const QString& unitStr ){
+    QString unitType = unitStr;
+    int unitStart = unitStr.indexOf( "(");
+    if ( unitStart >= 0 ){
+        unitType = unitStr.mid( 0, unitStart );
+    }
+    return unitType;
+}
+
+
+QString Profiler::_getUnitUnits( const QString& unitStr ){
+    QString strippedUnit = "";
+    int unitStart = unitStr.indexOf( "(");
+    if ( unitStart >= 0 ){
+        int substrLength = unitStr.length() - unitStart - 2;
+        if ( substrLength > 0){
+            strippedUnit = unitStr.mid( unitStart + 1, substrLength );
+        }
+    }
+    return strippedUnit;
+}
+
+
 void Profiler::_updateChannel( Controller* controller ){
     int frame = controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
     m_plotManager->setVLinePosition( frame );
+}
+
+
+void Profiler::_updatePlotData( const QString& plotTitle ){
+    QString title = plotTitle;
+    if ( plotTitle.isEmpty() ){
+        title = m_plotManager->getPlotTitle();
+    }
+
+    //Convert the data units, if necessary.
+    std::vector<double> convertedX = _convertUnitsX();
+    std::vector<double> convertedY = _convertUnitsY();
+    int dataCount = convertedX.size();
+    std::vector< std::pair<double,double> > plotData(dataCount);
+    for ( int i = 0; i < dataCount; i++ ){
+        plotData[i].first  = convertedX[i];
+        plotData[i].second = convertedY[i];
+    }
+
+    //Put the data into the plot.
+    QString bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+    bottomUnit = _getUnitUnits( bottomUnit );
+    QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
+    Carta::Lib::Hooks::Plot2DResult plotResult( title, bottomUnit, leftUnit, plotData );
+
+    m_plotManager->setData( plotResult );
+    m_plotManager->updatePlot();
 }
 
 QString Profiler::_zoomToSelection(){

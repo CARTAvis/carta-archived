@@ -72,7 +72,9 @@ HEADERS += \
     Data/LinkableImpl.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
+    Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
+    Data/Profile/SpectralUnits.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -174,7 +176,9 @@ SOURCES += \
     Data/Plotter/PlotStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
+    Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
+    Data/Profile/SpectralUnits.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \

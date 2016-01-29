@@ -120,6 +120,7 @@ public:
      static const QString NAME;
      static const QString PEN_WIDTH;
      static const QString TYPE;
+     static const QString UNITS;
      static const QString VISIBLE;
      static const int MAX_COLOR;
 

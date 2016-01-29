@@ -53,6 +53,26 @@ public:
     void clearSelectionColor();
 
     /**
+     * Return the y-axis label for the plot.
+     * @return - the plot y-axis label.
+     */
+    QString getAxisUnitsY() const;
+
+    /**
+     * Return the (min,max) y-values of the plot.
+     * @param valid - true if the plot y-values are valid; false otherwise (for
+     *      example, the plot contains no data.
+     * @return - the range of plot y-values.
+     */
+    std::pair<double,double> getPlotBoundsY( bool* valid ) const;
+
+    /**
+     * Return the title of the plot.
+     * @return - the plot title.
+     */
+    QString getPlotTitle() const;
+
+    /**
      * Return the minimum and maximum value of the user's zoom selection.
      * @param valid true if there is a zoom selection with a minimum/maximum value; false otherwise.
      * @return the zoom selection range.
@@ -189,6 +209,9 @@ public:
     virtual ~Plot2DGenerator();
 
 private:
+
+    //Update the y-axis scales (where to plot from).
+    void _updateScales();
 
     const static double EXTRA_RANGE_PERCENT;
     //Actual qwt plot

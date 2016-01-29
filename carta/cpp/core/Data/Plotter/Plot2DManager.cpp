@@ -84,6 +84,33 @@ void Plot2DManager::endSelectionColor(const QString& params ){
 }
 
 
+QString Plot2DManager::getAxisUnitsY() const {
+    QString units="";
+    if ( m_plotGenerator ){
+        units = m_plotGenerator->getAxisUnitsY();
+    }
+    return units;
+}
+
+
+std::pair<double,double> Plot2DManager::getPlotBoundsY(bool* valid ) const {
+    std::pair<double,double> bounds;
+    if ( m_plotGenerator ){
+        bounds = m_plotGenerator ->getPlotBoundsY( valid );
+    }
+    return bounds;
+}
+
+
+QString Plot2DManager::getPlotTitle() const {
+    QString title;
+    if ( m_plotGenerator ){
+        title = m_plotGenerator->getPlotTitle();
+    }
+    return title;
+}
+
+
 std::pair<double,double> Plot2DManager::getRange( bool* valid ) const {
     std::pair<double,double> range;
     if ( m_plotGenerator ){

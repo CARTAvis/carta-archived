@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "SpectralConversionPlugin",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Support for conversion of spectral units."
+    ],
+    "about"      : "Based on casacore functionality",
+    "depends"    : [ "casaCasaCore-121515", "CasaImageLoader"]
+}

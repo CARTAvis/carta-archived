@@ -20,6 +20,7 @@ const QString Util::GREEN = "green";
 const QString Util::NAME = "name";
 const QString Util::PEN_WIDTH = "width";
 const QString Util::TYPE = "type";
+const QString Util::UNITS = "units";
 const QString Util::VISIBLE = "visible";
 const int Util::MAX_COLOR = 255;
 

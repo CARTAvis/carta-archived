@@ -13,6 +13,7 @@ Plot2D::Plot2D():
     m_brush( m_defaultColor ){
     m_drawStyle = Carta::Data::PlotStyles::PLOT_STYLE_LINE;
     m_colored = false;
+    m_logScale = false;
 }
 
 std::pair<double,double> Plot2D::getBoundsY() const {

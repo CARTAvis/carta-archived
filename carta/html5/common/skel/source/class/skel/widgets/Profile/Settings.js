@@ -34,7 +34,28 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             this._add( this.m_tabView );
             
             this.m_rangeSettings = new skel.widgets.Profile.SettingsRange();
+            this.m_displaySettings = new skel.widgets.Profile.SettingsDisplay();
+            
             this.m_tabView.add( this.m_rangeSettings );
+            this.m_tabView.add( this.m_displaySettings );
+        },
+        
+        /**
+         * Callback for when profile preference state changes on the server.
+         */
+        _profileCB : function(){
+            var val = this.m_sharedVar.get();
+            if ( val ){
+                try {
+                    var profilePrefs = JSON.parse( val );
+                    if ( this.m_displaySettings !== null ){
+                        this.m_displaySettings.prefUpdate( profilePrefs );
+                    }
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val+" error: "+err );
+                }
+            }
         },
         
         /**
@@ -64,6 +85,9 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB( this._profileDataCB.bind( this));
             this._profileDataCB();
+            this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
+            this.m_sharedVar.addCB( this._profileCB.bind( this));
+            this._profileCB();
         },
 
         
@@ -74,6 +98,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
         setId : function( id ){
             this.m_id = id;
             this.m_rangeSettings.setId( id );
+            this.m_displaySettings.setId( id );
             this._register();
         },
         
@@ -82,6 +107,8 @@ qx.Class.define("skel.widgets.Profile.Settings", {
         
         m_tabView : null,
         m_rangeSettings : null,
+        m_displaySettings : null,
+        m_sharedVar : null,
         m_sharedVarData : null
     }
 });

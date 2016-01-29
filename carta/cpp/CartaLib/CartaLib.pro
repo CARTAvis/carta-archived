@@ -14,6 +14,8 @@ SOURCES += \
     HtmlString.cpp \
     LinearMap.cpp \
     Hooks/ColormapsScalar.cpp \
+    Hooks/ConversionIntensityHook.cpp \
+    Hooks/ConversionSpectralHook.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
     Hooks/ImageStatisticsHook.cpp \
@@ -47,6 +49,8 @@ HEADERS += \
     HtmlString.h \
     LinearMap.h \
     Hooks/ColormapsScalar.h \
+    Hooks/ConversionIntensityHook.h \
+    Hooks/ConversionSpectralHook.h \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
     Hooks/HookIDs.h \

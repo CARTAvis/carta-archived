@@ -46,7 +46,6 @@ public:
     //class.
     Plot2DManager( const QString& path, const QString& id );
 
-
     /**
      * Clear the zoom selection.
      */
@@ -68,6 +67,26 @@ public:
      * @param params - the x-coordinate where the selection ended.
      */
     void endSelectionColor(const QString& params );
+
+    /**
+     * Get the label for the y-axis.
+     * @return - the label for the y-axis.
+     */
+    QString getAxisUnitsY() const;
+
+    /**
+     * Get the title of the plot.
+     * @return - the plot title.
+     */
+    QString getPlotTitle() const;
+
+    /**
+     * Get the range for the y-axis (min, max) value.
+     * @param valid - true if the bounds are valid; false if they are invalid,
+     *      for example, if there is no data on the plot.
+     * @return - the plot minimum and maximum y-value.
+     */
+    std::pair<double,double> getPlotBoundsY( bool* valid ) const;
 
     /**
      * Get the min and max of the zoom selection.

@@ -85,6 +85,28 @@ void Plot2DGenerator::clearSelectionColor(){
 }
 
 
+QString Plot2DGenerator::getAxisUnitsY() const {
+    QString unitStr = m_plot->axisTitle( QwtPlot::yLeft ).text();
+    return unitStr;
+}
+
+
+std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( bool* valid ) const {
+    std::pair<double,double> result;
+    *valid = false;
+    if ( m_plot2D ){
+        result = m_plot2D->getBoundsY();
+        *valid = true;
+    }
+    return result;
+}
+
+
+QString Plot2DGenerator::getPlotTitle() const {
+    return m_plot->title().text();
+}
+
+
 std::pair<double,double> Plot2DGenerator::getRange(bool* valid ) const {
     std::pair<double,double> result;
     *valid = false;
@@ -146,11 +168,11 @@ void Plot2DGenerator::setData(Carta::Lib::Hooks::Plot2DResult data){
     m_axisUnitY = data.getUnitsY();
     setTitleAxisX( m_axisNameX );
     setTitleAxisY( m_axisNameY );
-    m_plot->replot();
 
     std::vector<std::pair<double,double>> dataVector = data.getData();
     if ( m_plot2D ){
         m_plot2D->setData( dataVector );
+        _updateScales();
     }
 }
 
@@ -158,22 +180,7 @@ void Plot2DGenerator::setData(Carta::Lib::Hooks::Plot2DResult data){
 void Plot2DGenerator::setLogScale(bool logScale){
     if ( m_plot2D ){
         m_plot2D->setLogScale( logScale );
-        std::pair<double,double> plotBounds = m_plot2D->getBoundsY();
-        if( logScale ){
-            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
-            if ( m_plot2D ){
-                m_plot2D->setBaseLine(1.0);
-            }
-            m_plot->setAxisScale( QwtPlot::yLeft, 1, plotBounds.second );
-        }
-        else{
-            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
-            if ( m_plot2D ){
-                m_plot2D->setBaseLine(0.0);
-            }
-            m_plot->setAxisScale( QwtPlot::yLeft, plotBounds.first, plotBounds.second );
-        }
-        m_plot->replot();
+        _updateScales();
     }
 }
 
@@ -300,6 +307,25 @@ QImage * Plot2DGenerator::toImage( int width, int height ) const {
     QImage * plotImage =new QImage(width, height, QImage::Format_RGB32);
     renderer.renderTo(m_plot, *plotImage );
     return plotImage;
+}
+
+
+void Plot2DGenerator::_updateScales(){
+    if ( m_plot2D ){
+        bool logScale = m_plot2D->isLogScale();
+        std::pair<double,double> plotBounds = m_plot2D->getBoundsY();
+        if( logScale ){
+            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
+            m_plot2D->setBaseLine(1.0);
+            m_plot->setAxisScale( QwtPlot::yLeft, 1, plotBounds.second );
+        }
+        else{
+            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
+            m_plot2D->setBaseLine(0.0);
+            m_plot->setAxisScale( QwtPlot::yLeft, plotBounds.first, plotBounds.second );
+        }
+        m_plot->replot();
+    }
 }
 
 

@@ -35,8 +35,10 @@ namespace Data {
 
 class Plot2DManager;
 class Controller;
+class IntensityUnits;
 class LinkableImpl;
 class Settings;
+class SpectralUnits;
 
 class Profiler : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -61,6 +63,22 @@ public:
 
 
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the bottom axis units.
+     * @param unitStr - set the label to use for the bottom axis of the plot.
+     * @return - an error message if the units could not be set; otherwise, an
+     *      empty string.
+     */
+    QString setAxisUnitsBottom( const QString& unitStr );
+
+    /**
+     * Set the left axis units.
+     * @param unitStr - set the label to use for the left axis of the plot.
+     * @return - an error message if the units could not be set; otherwise, an
+     *      empty string.
+     */
+    QString setAxisUnitsLeft( const QString& unitStr );
 
     QString setClipBuffer( int bufferAmount );
     QString setClipMax( double clipMaxClient );
@@ -90,7 +108,8 @@ private slots:
     void _updateChannel( Controller* controller );
 
 private:
-
+    const static QString AXIS_UNITS_BOTTOM;
+    const static QString AXIS_UNITS_LEFT;
     const static QString CLIP_BUFFER;
     const static QString CLIP_BUFFER_SIZE;
     const static QString CLIP_MIN;
@@ -99,6 +118,11 @@ private:
     const static QString CLIP_MAX_CLIENT;
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
+
+    //Convert axis units.
+    std::vector<double> _convertUnitsY() const;
+    std::vector<double> _convertUnitsX( const QString& bottomUnit = QString()) const;
+
 
     void  _generateProfile( bool newDataNeeded, Controller* controller=nullptr);
     Controller* _getControllerSelected() const;
@@ -117,19 +141,21 @@ private:
     void _initializeCallbacks();
     void _initializeStatics();
 
-
+    //Notify the plot to redraw.
+    void _updatePlotData( const QString& title = QString() );
     QString _zoomToSelection();
 
-
+    //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
+    //and units "GHz".
+    static QString _getUnitType( const QString& unitStr );
+    static QString _getUnitUnits( const QString& unitStr );
     static bool m_registered;
-
 
     //For right now we are supporting only one linked controller.
     bool m_controllerLinked;
 
     Profiler( const QString& path, const QString& id );
     class Factory;
-
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
@@ -139,8 +165,16 @@ private:
 
     std::unique_ptr<Plot2DManager> m_plotManager;
 
+    std::vector<double> m_plotDataX;
+    std::vector<double> m_plotDataY;
+    QString m_leftUnit;
+    QString m_bottomUnit;
+
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
+
+    static SpectralUnits* m_spectralUnits;
+    static IntensityUnits* m_intensityUnits;
 
 	Profiler( const Profiler& other);
 	Profiler operator=( const Profiler& other );
