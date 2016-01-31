@@ -54,6 +54,5 @@ unix:macx {
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
-    PRE_TARGETDEPS += $$OUT_PWD/../CasaImageLoader/libplugin.so
 }
 
