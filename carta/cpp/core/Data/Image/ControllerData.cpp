@@ -283,6 +283,10 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> ControllerData::_getImage(){
     return image;
 }
 
+std::shared_ptr<DataSource> ControllerData::_getDataSource(){
+    return m_dataSource;
+}
+
 QPointF ControllerData::_getImagePt( QPointF screenPt, bool* valid ) const {
     QPointF imagePt;
     if ( m_dataSource ){
@@ -349,13 +353,7 @@ double ControllerData::_getPercentile( int frameLow, int frameHigh, double inten
     return percentile;
 }
 
-std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> ControllerData::_getPipeline() const {
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline;
-    if ( m_dataSource ){
-        pipeline = m_dataSource->_getPipeline();
-    }
-    return pipeline;
-}
+
 
 QStringList ControllerData::_getPixelCoordinates( double ra, double dec ) const{
     QStringList result("");

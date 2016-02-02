@@ -426,7 +426,11 @@ void Statistics::_updateStatistics( Controller* controller ){
         int selectedIndex = controller->getSelectImageIndex();
         m_stateData.setValue<int>(SELECTED_INDEX, selectedIndex );
 
-        std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources = controller->getDataSources();
+        std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources =
+                controller->getImages();
+
+
+
         std::vector<Carta::Lib::RegionInfo> regions = controller->getRegions();
 
         std::vector<int> frameIndices = controller->getImageSlice();

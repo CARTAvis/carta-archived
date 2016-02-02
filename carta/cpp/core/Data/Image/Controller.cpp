@@ -205,6 +205,7 @@ bool Controller::_addDataRegion(const QString& fileName) {
     int selectIndex = getSelectImageIndex();
     bool regionLoaded = false;
     if ( selectIndex >= 0 ){
+
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_datas[selectIndex]->_getImage();
         auto result = Globals::instance()-> pluginManager()
                                 -> prepare <Carta::Lib::Hooks::LoadRegion>(fileName, image );
@@ -478,7 +479,30 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     return result;
 }
 
-std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::getDataSources(){
+std::shared_ptr<DataSource> Controller::getDataSource(){
+    int index = _getIndexCurrent();
+    std::shared_ptr<DataSource> source( nullptr );
+    if ( index >= 0 && index < m_datas.size() ){
+        source = m_datas[index]->_getDataSource();
+    }
+    return source;
+}
+
+std::vector< std::shared_ptr<DataSource> > Controller::getDataSources() {
+    std::vector< std::shared_ptr<DataSource> > dataSources;
+    int dataCount = m_datas.size();
+    //Return the images in stack order.
+    int startIndex = _getIndexCurrent();
+    for ( int i = 0; i < dataCount; i++ ){
+        int dIndex = (startIndex + i) % dataCount;
+        if ( m_datas[dIndex]->_isVisible() ){
+            dataSources.push_back( m_datas[dIndex]->_getDataSource() );
+        }
+    }
+    return dataSources;
+}
+
+std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_datas.size();
     //Return the images in stack order.
@@ -665,22 +689,6 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
     return percentile;
 }
 
-std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller::getPipeline() const {
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline(nullptr);
-    //Color map should be based on the selected image rather than the current image.
-    int dataIndex = _getIndexCurrent();
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isSelected() ){
-            dataIndex = i;
-            break;
-        }
-    }
-    if ( 0 <= dataIndex ){
-        pipeline = m_datas[dataIndex]->_getPipeline();
-    }
-    return pipeline;
-}
 
 QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
     QStringList result("");
@@ -727,6 +735,7 @@ std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
     return regionInfos;
 }
 
+
 int Controller::getSelectImageIndex() const {
     int selectImageIndex = -1;
     int stackedImageVisibleCount = getStackedImageCountVisible();
@@ -735,7 +744,6 @@ int Controller::getSelectImageIndex() const {
     }
     return selectImageIndex;
 }
-
 
 
 std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates(){
@@ -750,10 +758,10 @@ std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates()
 }
 
 
-
 int Controller::getStackedImageCount() const {
     return m_datas.size();
 }
+
 
 int Controller::getStackedImageCountVisible() const {
     int visibleCount = 0;

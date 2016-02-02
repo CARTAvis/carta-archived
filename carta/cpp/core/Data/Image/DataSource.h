@@ -44,6 +44,8 @@ class CoordinateSystems;
 class DataSource : public QObject {
 
 friend class ControllerData;
+friend class Histogram;
+friend class Profiler;
 
 Q_OBJECT
 

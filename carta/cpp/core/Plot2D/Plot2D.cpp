@@ -1,6 +1,5 @@
 #include "Plot2D.h"
 #include "Data/Plotter/PlotStyles.h"
-#include <qwt_painter.h>
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QDebug>
 
@@ -13,23 +12,19 @@ Plot2D::Plot2D():
     m_brush( m_defaultColor ){
     m_drawStyle = Carta::Data::PlotStyles::PLOT_STYLE_LINE;
     m_colored = false;
-    m_logScale = false;
 }
 
 std::pair<double,double> Plot2D::getBoundsY() const {
     return std::pair<double,double>( m_minValueY, m_maxValueY );
 }
 
-
-bool Plot2D::isLogScale() const {
-    return m_logScale;
+QString Plot2D::getId() const {
+    return m_id;
 }
 
-
-void Plot2D::setLogScale( bool logScale ) {
-    m_logScale = logScale;
+void Plot2D::setId( const QString& id ){
+    m_id = id;
 }
-
 
 void Plot2D::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
     m_pipeline = pipeline;

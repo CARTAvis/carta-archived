@@ -40,6 +40,7 @@ namespace Carta {
 namespace Data {
 class ColorState;
 class ControllerData;
+class DataSource;
 class DisplayControls;
 class DrawStackSynchronizer;
 class GridControls;
@@ -148,7 +149,19 @@ public:
      * Return a list of images that have been loaded.
      * @return - a list of loaded images.
      */
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
+
+    /**
+     * Return the data source of the selected image.
+     * @return - the data source of the selected image.
+     */
+    std::shared_ptr<DataSource> getDataSource();
+
+    /**
+     * Return all data sources.
+     * @return - the list of all visible data sources.
+     */
+    std::vector< std::shared_ptr<DataSource> > getDataSources();
 
     /**
      * Return a shared pointer to the contour controls.
@@ -157,6 +170,9 @@ public:
     std::shared_ptr<ContourControls> getContourControls();
 
     /**
+     * Return the current frame for the the axis of the indicated type.
+     * @param axisType - an identifier for the type of axis.
+     * @return the current index withen the axis.
      */
     int getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
 
@@ -166,8 +182,6 @@ public:
      * @return the largest frame for a particular axis in the image.
      */
     int getFrameUpperBound( Carta::Lib::AxisInfo::KnownType type ) const;
-
-
 
     /**
      * Return a shared pointer to the grid controls.
@@ -232,13 +246,6 @@ public:
      * @return the percentile corresponding to the intensity.
      */
     double getPercentile( int frameLow, int frameHigh, double intensity ) const;
-
-    /**
-     * Return the pipeline being used to draw the image.
-     * @return a Carta::Lib::PixelPipeline::CustomizablePixelPipeline being used to draw the
-     *      image.
-     */
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.

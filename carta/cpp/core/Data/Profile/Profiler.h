@@ -35,6 +35,7 @@ namespace Data {
 
 class Plot2DManager;
 class Controller;
+class CurveData;
 class IntensityUnits;
 class LinkableImpl;
 class Settings;
@@ -103,9 +104,8 @@ public:
 
 
 private slots:
-
-    void _createProfiler( Controller* );
     void _updateChannel( Controller* controller );
+    void _generateProfile( Controller* controller = nullptr );
 
 private:
     const static QString AXIS_UNITS_BOTTOM;
@@ -118,18 +118,16 @@ private:
     const static QString CLIP_MAX_CLIENT;
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
+    const static QString CURVES;
 
     //Convert axis units.
-    std::vector<double> _convertUnitsY() const;
-    std::vector<double> _convertUnitsX( const QString& bottomUnit = QString()) const;
+    std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
+            const QString& newUnit = QString() ) const;
+    std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
 
-    void  _generateProfile( bool newDataNeeded, Controller* controller=nullptr);
     Controller* _getControllerSelected() const;
     void _loadProfile( Controller* controller);
-
-
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> _generateData(Controller* controller);
     
     /**
      * Returns the server side id of the Profiler user preferences.
@@ -142,7 +140,7 @@ private:
     void _initializeStatics();
 
     //Notify the plot to redraw.
-    void _updatePlotData( const QString& title = QString() );
+    void _updatePlotData();
     QString _zoomToSelection();
 
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
@@ -165,8 +163,8 @@ private:
 
     std::unique_ptr<Plot2DManager> m_plotManager;
 
-    std::vector<double> m_plotDataX;
-    std::vector<double> m_plotDataY;
+    //Plot data
+    QList< std::shared_ptr<CurveData> > m_plotCurves;
     QString m_leftUnit;
     QString m_bottomUnit;
 

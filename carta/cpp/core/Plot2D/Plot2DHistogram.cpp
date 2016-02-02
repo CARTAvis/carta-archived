@@ -109,7 +109,6 @@ void Plot2DHistogram::drawSeries( QPainter *painter, const QwtScaleMap &xMap,
 
 void Plot2DHistogram::setData ( std::vector<std::pair<double,double> > dataVector ){
     int dataCount = dataVector.size();
-    m_logScale = true;
     m_maxValueY = -1;
     m_minValueY = std::numeric_limits<double>::max();
     m_data.clear();

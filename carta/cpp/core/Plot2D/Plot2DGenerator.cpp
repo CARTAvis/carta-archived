@@ -24,10 +24,11 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 
 
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
-    m_plot2D( nullptr ),
     m_vLine( nullptr ),
     m_font( "Helvetica", 10){
+    m_logScale = false;
     m_plot = new QwtPlot();
+    m_plotType = plotType;
     m_plot->setCanvasBackground( Qt::white );
     m_plot->setAxisAutoScale( QwtPlot::yLeft, false );
 
@@ -39,20 +40,6 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
 
     QWidget* canvas = m_plot->canvas();
     canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    if ( plotType == PlotType::PROFILE ){
-        m_plot2D = new Plot2DProfile();
-    }
-    else if ( plotType == PlotType::HISTOGRAM ){
-        m_plot2D = new Plot2DHistogram();
-    }
-    else {
-        qWarning() << "Unrecognized plot type: "<<(int)(plotType );
-    }
-
-    if ( m_plot2D ){
-        m_plot2D->attachToPlot(m_plot);
-    }
     
     m_height = 335;
     m_width = 335;
@@ -69,6 +56,42 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     if ( plotType == PlotType::PROFILE ){
         m_vLine = new Plot2DLine();
         m_vLine->attach( m_plot );
+    }
+    else {
+        m_logScale = true;
+    }
+}
+
+
+void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
+        const QString& id ){
+    std::shared_ptr<Plot2D> pData = _findData( id );
+    if ( !pData ){
+       if ( m_plotType == PlotType::PROFILE ){
+           pData.reset( new Plot2DProfile() );
+       }
+       else if ( m_plotType == PlotType::HISTOGRAM ){
+           pData.reset( new Plot2DHistogram() );
+       }
+       else {
+           qWarning() << "Unrecognized plot type: "<<(int)( m_plotType );
+       }
+    }
+
+    if ( pData ){
+        m_datas.append( pData );
+        pData->attachToPlot(m_plot);
+        pData->setId( id );
+        pData->setData( dataVector );
+        _updateScales();
+    }
+}
+
+
+void Plot2DGenerator::clearData(){
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        m_datas[i]->detachFromPlot();
     }
 }
 
@@ -91,11 +114,12 @@ QString Plot2DGenerator::getAxisUnitsY() const {
 }
 
 
-std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( bool* valid ) const {
+std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( const QString& id, bool* valid ) const {
     std::pair<double,double> result;
     *valid = false;
-    if ( m_plot2D ){
-        result = m_plot2D->getBoundsY();
+    std::shared_ptr<Plot2D> plotData = _findData(id);
+    if ( plotData ){
+        result = plotData->getBoundsY();
         *valid = true;
     }
     return result;
@@ -107,7 +131,7 @@ QString Plot2DGenerator::getPlotTitle() const {
 }
 
 
-std::pair<double,double> Plot2DGenerator::getRange(bool* valid ) const {
+std::pair<double,double> Plot2DGenerator::getRange( bool* valid ) const {
     std::pair<double,double> result;
     *valid = false;
     if ( m_range ){
@@ -146,42 +170,44 @@ bool Plot2DGenerator::isSelectionOnCanvas( int xPos ) const {
 }
 
 
+std::shared_ptr<Plot2D> Plot2DGenerator::_findData( const QString& id ) const {
+    std::shared_ptr<Plot2D> data( nullptr );
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_datas[i]->getId()  == id ){
+            data = m_datas[i];
+            break;
+        }
+    }
+    return data;
+}
+
+
 void Plot2DGenerator::setAxisXRange( double min, double max ){
     m_plot->setAxisScale( QwtPlot::xBottom, min, max );
     m_plot->replot();
 }
 
 
-void Plot2DGenerator::setColored( bool colored ){
-    if ( m_plot2D ){
-        m_plot2D->setColored( colored );
+void Plot2DGenerator::setColored( bool colored, const QString& id ){
+    if ( id.isEmpty() || id.trimmed().length() == 0 ){
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->setColored( colored );
+        }
     }
-}
-
-
-void Plot2DGenerator::setData(Carta::Lib::Hooks::Plot2DResult data){
-    QwtText name = data.getName();
-    name.setFont( m_font );
-    m_plot->setTitle(name);
-
-    m_axisUnitX = data.getUnitsX();
-    m_axisUnitY = data.getUnitsY();
-    setTitleAxisX( m_axisNameX );
-    setTitleAxisY( m_axisNameY );
-
-    std::vector<std::pair<double,double>> dataVector = data.getData();
-    if ( m_plot2D ){
-        m_plot2D->setData( dataVector );
-        _updateScales();
+    else {
+        std::shared_ptr<Plot2D> plotData = _findData( id );
+        if ( plotData ){
+            plotData->setColored( colored );
+        }
     }
 }
 
 
 void Plot2DGenerator::setLogScale(bool logScale){
-    if ( m_plot2D ){
-        m_plot2D->setLogScale( logScale );
-        _updateScales();
-    }
+    m_logScale = logScale;
+    _updateScales();
 }
 
 
@@ -194,9 +220,11 @@ void Plot2DGenerator::setMarkerLine( double xPos ){
 
 
 void Plot2DGenerator::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
-    if ( m_plot2D ){
-        m_plot2D->setPipeline( pipeline );
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        m_datas[i]->setPipeline( pipeline );
     }
+    m_plot->replot();
 }
 
 
@@ -258,9 +286,18 @@ bool Plot2DGenerator::setSize( int width, int height ){
 }
 
 
-void Plot2DGenerator::setStyle( QString style ){
-    if ( m_plot2D ){
-        m_plot2D->setDrawStyle( style );
+void Plot2DGenerator::setStyle( const QString& style, const QString& id ){
+    if ( id.isEmpty() || id.trimmed().length() == 0 ){
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->setDrawStyle( style );
+        }
+    }
+    else {
+        std::shared_ptr<Plot2D> data = _findData( id );
+        if ( data ){
+            data->setDrawStyle( style );
+        }
     }
 }
 
@@ -279,15 +316,11 @@ void Plot2DGenerator::setTitleAxisX( const QString& title){
 
 void Plot2DGenerator::setTitleAxisY( const QString& title){
     m_axisNameY = title;
-    bool logScale = false;
-    if ( m_plot2D ){
-        logScale = m_plot2D->isLogScale();
-    }
     QString axisTitle = m_axisNameY;
     if ( !m_axisUnitY.isEmpty()){
         axisTitle = axisTitle + "(" + m_axisUnitY + ")";
     }
-    if ( logScale ){
+    if ( m_logScale ){
         axisTitle = "Log " + axisTitle;
     }
     QwtText yTitle( axisTitle );
@@ -311,18 +344,33 @@ QImage * Plot2DGenerator::toImage( int width, int height ) const {
 
 
 void Plot2DGenerator::_updateScales(){
-    if ( m_plot2D ){
-        bool logScale = m_plot2D->isLogScale();
-        std::pair<double,double> plotBounds = m_plot2D->getBoundsY();
-        if( logScale ){
-            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
-            m_plot2D->setBaseLine(1.0);
-            m_plot->setAxisScale( QwtPlot::yLeft, 1, plotBounds.second );
+    int dataCount = m_datas.size();
+    if ( dataCount > 0 ){
+        std::pair<double,double> firstBounds = m_datas[0]->getBoundsY();
+        double yMin = firstBounds.first;
+        double yMax = firstBounds.second;
+        for ( int i = 0; i < dataCount; i++ ){
+            std::pair<double,double> plotBounds = m_datas[i]->getBoundsY();
+            if ( plotBounds.first < yMin ){
+                yMin = plotBounds.first;
+            }
+            if ( plotBounds.second > yMax ){
+                yMax = plotBounds.second;
+            }
+            if( m_logScale ){
+                m_datas[i]->setBaseLine(1.0);
+            }
+            else{
+                m_datas[i]->setBaseLine(0.0);
+            }
         }
-        else{
+        if ( m_logScale ){
+            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
+            m_plot->setAxisScale( QwtPlot::yLeft, 1, yMax );
+        }
+        else {
             m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
-            m_plot2D->setBaseLine(0.0);
-            m_plot->setAxisScale( QwtPlot::yLeft, plotBounds.first, plotBounds.second );
+            m_plot->setAxisScale( QwtPlot::yLeft, yMin, yMax );
         }
         m_plot->replot();
     }
@@ -330,16 +378,13 @@ void Plot2DGenerator::_updateScales(){
 
 
 Plot2DGenerator::~Plot2DGenerator(){
-    if ( m_plot2D ){
-        m_plot2D->detachFromPlot( );
-    }
+    clearData();
     m_range->detach();
     m_rangeColor->detach();
     if ( m_vLine ){
         m_vLine->detach();
         delete m_vLine;
     }
-    delete m_plot2D;
     delete m_range;
     delete m_rangeColor;
 }

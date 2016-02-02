@@ -177,6 +177,12 @@ public:
     virtual ~Colormap();
     const static QString CLASS_NAME;
 
+signals:
+    /**
+     * Notification that the color map has changed.
+     */
+    void colorMapChanged();
+
 private slots:
     void _updateIntensityBounds( double minIntensity, double maxIntensity );
     void _colorStateChanged();

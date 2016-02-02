@@ -23,14 +23,11 @@ const QString Colormap::INTENSITY_MAX = "intensityMax";
 
 
 class Colormap::Factory : public Carta::State::CartaObjectFactory {
-
-    public:
-
-    Carta::State::CartaObject * create (const QString & path, const QString & id)
-        {
-            return new Colormap (path, id);
-        }
-    };
+public:
+    Carta::State::CartaObject * create (const QString & path, const QString & id){
+        return new Colormap (path, id);
+    }
+};
 
 bool Colormap::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormap::Factory());
@@ -73,9 +70,8 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         if ( hist != nullptr ){
             objAdded = m_linkImpl->addLink( hist );
             if ( objAdded ){
-                //connect( this, SIGNAL(colorMapChanged( Colormap*)), hist, SLOT( updateColorMap( Colormap*)));
-                //hist->updateColorMap( this );
-
+                connect( this, SIGNAL(colorMapChanged()), hist, SLOT( updateColorMap()));
+                hist->updateColorMap();
                 connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
             }
         }
@@ -96,6 +92,7 @@ void Colormap::_colorStateChanged(){
     if ( m_stateColors.size() > 0 ){
         m_stateColors[0]->_replicateTo( m_state );
         m_state.flushState();
+        emit colorMapChanged();
     }
 }
 

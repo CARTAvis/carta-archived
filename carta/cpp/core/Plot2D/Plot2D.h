@@ -48,10 +48,10 @@ public:
     std::pair<double,double> getBoundsY() const;
 
     /**
-     * Return whether or not the y-axis of the plot is using a logarithmic scale.
-     * @return - true if the plot y-axis is using a logarithmic scale; false otherwise.
+     * Return an identifier for the data set.
+     * @return - an identifier for the data set.
      */
-    bool isLogScale() const;
+    QString getId() const;
 
     /**
      * Set the base y-vale for the plot.
@@ -79,10 +79,10 @@ public:
     void setDrawStyle( const QString& style );
 
     /**
-     * Set whether or not the plot should use a logarithmic scale on the y-axis.
-     * @param logScale - true if the y-axis should use a log scale; false otherwise.
+     * Set an identifier for the data set.
+     * @param id - an identifier for the data set.
      */
-    void setLogScale( bool logScale );
+    void setId( const QString& id );
 
     /**
      * Store the color map.
@@ -104,7 +104,7 @@ protected:
     bool m_colored;
     double m_maxValueY;
     double m_minValueY;
-    bool m_logScale;
+    QString m_id;
 
 };
 

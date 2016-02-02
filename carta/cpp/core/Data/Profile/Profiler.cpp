@@ -1,10 +1,12 @@
 #include "Profiler.h"
+#include "CurveData.h"
 #include "IntensityUnits.h"
 #include "SpectralUnits.h"
 #include "Data/Clips.h"
 #include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/DataSource.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Data/Plotter/Plot2DManager.h"
@@ -35,13 +37,12 @@ const QString Profiler::CLIP_MIN_CLIENT = "clipMinClient";
 const QString Profiler::CLIP_MAX_CLIENT = "clipMaxClient";
 const QString Profiler::CLIP_MIN_PERCENT = "clipMinPercent";
 const QString Profiler::CLIP_MAX_PERCENT = "clipMaxPercent";
+const QString Profiler::CURVES = "curves";
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
 public:
-
-    Carta::State::CartaObject * create (const QString & path, const QString & id)
-    {
+    Carta::State::CartaObject * create (const QString & path, const QString & id){
         return new Profiler (path, id);
     }
 };
@@ -75,7 +76,6 @@ Profiler::Profiler( const QString& path, const QString& id):
     _initializeCallbacks();
 
     m_controllerLinked = false;
-
 }
 
 
@@ -88,10 +88,10 @@ QString Profiler::addLink( CartaObject*  target){
         if ( !m_controllerLinked ){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
-                connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createProfiler(Controller*)));
+                connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_generateProfile(Controller*)));
                 connect(controller, SIGNAL(channelChanged(Controller*)), this, SLOT( _updateChannel(Controller*)));
                 m_controllerLinked = true;
-                _createProfiler( controller );
+                _generateProfile( controller );
             }
         }
         else {
@@ -111,24 +111,24 @@ QString Profiler::addLink( CartaObject*  target){
 }
 
 
-std::vector<double> Profiler::_convertUnitsX( const QString& newUnit) const {
+std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveData,
+        const QString& newUnit ) const {
     QString bottomUnit = newUnit;
     if ( newUnit.isEmpty() ){
         bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
     }
-    std::vector<double> converted = m_plotDataX;
+    std::vector<double> converted = curveData->getValuesX();
     if ( ! m_bottomUnit.isEmpty() ){
         Controller* controller = _getControllerSelected();
         if ( controller ){
             if ( bottomUnit != m_bottomUnit ){
-                std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources
-                    = controller->getDataSources();
-                int sourceCount = dataSources.size();
-                if ( sourceCount > 0 ){
+                std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource = curveData->getSource();
+                if ( dataSource ){
                     QString oldUnit = _getUnitUnits( m_bottomUnit );
                     QString newUnit = _getUnitUnits( bottomUnit );
                     auto result = Globals::instance()-> pluginManager()
-                                         -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(dataSources[0], oldUnit, newUnit, m_plotDataX );
+                                         -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(dataSource,
+                                                 oldUnit, newUnit, converted );
                     auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
                         converted = data;
                     };
@@ -148,26 +148,26 @@ std::vector<double> Profiler::_convertUnitsX( const QString& newUnit) const {
 }
 
 
-std::vector<double> Profiler::_convertUnitsY() const {
-    std::vector<double> converted = m_plotDataY;
+std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveData ) const {
+    std::vector<double> converted = curveData->getValuesY();
+    std::vector<double> plotDataX = curveData->getValuesX();
     QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
     if ( ! m_leftUnit.isEmpty() ){
         Controller* controller = _getControllerSelected();
         if ( controller ){
             if ( leftUnit != m_leftUnit ){
-                std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources
-                    = controller->getDataSources();
-                int sourceCount = dataSources.size();
-                if ( sourceCount > 0 ){
+                std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource =
+                        curveData->getSource();
+                if ( dataSource > 0 ){
                     //First, we need to make sure the x-values are in Hertz.
-                    std::vector<double> hertzVals = _convertUnitsX( "Hz");
+                    std::vector<double> hertzVals = _convertUnitsX( curveData, "Hz");
                     bool validBounds = false;
-                    std::pair<double,double> boundsY = m_plotManager->getPlotBoundsY( &validBounds );
+                    std::pair<double,double> boundsY = m_plotManager->getPlotBoundsY( curveData->getName(), &validBounds );
                     if ( validBounds ){
                         QString maxUnit = m_plotManager->getAxisUnitsY();
                         auto result = Globals::instance()-> pluginManager()
-                             -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(dataSources[0],
-                                                         m_leftUnit, leftUnit, hertzVals, m_plotDataY,
+                             -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(dataSource,
+                                                         m_leftUnit, leftUnit, hertzVals, converted,
                                                          boundsY.second, maxUnit );;
 
                         auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
@@ -190,30 +190,12 @@ std::vector<double> Profiler::_convertUnitsY() const {
 }
 
 
-void Profiler::_createProfiler( Controller* controller){
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
-    m_plotManager->setPipeline( pipeline );
-
-    //TODO: Update the data state.
-    _generateProfile( true, controller );
-}
-
-
-std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Profiler::_generateData(Controller* controller){
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> result;
-    if ( controller != nullptr ){
-        result = controller->getDataSources();
-    }
-    return result;
-}
-
-
-void Profiler::_generateProfile( bool newDataNeeded, Controller* controller ){
+void Profiler::_generateProfile(Controller* controller ){
     Controller* activeController = controller;
     if ( activeController == nullptr ){
         activeController = _getControllerSelected();
     }
-    if ( newDataNeeded ){
+    if ( activeController ){
         _loadProfile( activeController );
     }
 }
@@ -273,6 +255,7 @@ void Profiler::_initializeDefaultState(){
     m_stateData.insertValue<int>(CLIP_BUFFER_SIZE, 10 );
     m_stateData.insertValue<double>(CLIP_MIN_PERCENT, 0);
     m_stateData.insertValue<double>(CLIP_MAX_PERCENT, 100);
+    m_stateData.insertArray( CURVES, 0 );
     m_stateData.flushState();
 
     //Default units
@@ -462,33 +445,62 @@ void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
     }
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources = controller-> getDataSources();
-    if ( dataSources.size() > 0 ) {
-    	std::vector < int > pos( dataSources[0]-> dims().size(), 0 );
-        int axis = Util::getAxisIndex( dataSources[0], Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+    std::vector<std::shared_ptr<DataSource> > dataSources = controller->getDataSources();
+
+    m_plotCurves.clear();
+    int dataCount = dataSources.size();
+    for ( int i = 0; i < dataCount; i++ ) {
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSources[i]->_getImage();
+    	std::vector < int > pos( image-> dims().size(), 0 );
+        int axis = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
         Profiles::PrincipalAxisProfilePath path( axis, pos );
-        Carta::Lib::NdArray::RawViewInterface * rawView = dataSources[0]-> getDataSlice( SliceND() );
+        Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
         Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
-        shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = dataSources[0]->metaData();
+        shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = image->metaData();
         QString fileName = metaData->title();
-        m_leftUnit = dataSources[0]->getPixelUnit().toStr();
+        m_leftUnit = image->getPixelUnit().toStr();
 
         auto profilecb = [ = ] () {
-            auto data = extractor->getDataD();
-            int dataCount = data.size();
-            m_plotDataX.resize( dataCount );
-            m_plotDataY.resize( dataCount );
-            for( int i = 0 ; i < dataCount; i ++ ){
-                m_plotDataX[i] = i;
-                m_plotDataY[i] = data[i];
-            }
+            /**
+             * TODO:  We need a finished signal.  Right now we are deleting
+             * when the data length is non-zero, which could miss profiles with
+             * no data.
+             */
+            //bool finished = extractor->isFinished();
+            //qDebug() << "Extractor finished="<<finished;
+            //if ( finished ){
+                auto data = extractor->getDataD();
 
-            _updatePlotData( fileName );
+                int dataCount = data.size();
+                if ( dataCount > 0 ){
+                    std::vector<double> plotDataX( dataCount );
+                    std::vector<double> plotDataY( dataCount );
+
+                    for( int i = 0 ; i < dataCount; i ++ ){
+                        plotDataX[i] = i;
+                        plotDataY[i] = data[i];
+                    }
+
+                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                    std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
+                    m_plotCurves.append( profileCurve );
+                    profileCurve->setName( fileName );
+                    profileCurve->setSource( image );
+                    profileCurve->setData( plotDataX, plotDataY );
+                    _updatePlotData();
+                    extractor->deleteLater();
+                }
+
+                //extractor->deleteLater();
+            //}
         };
         connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
         extractor-> start( path );
+
     }
 }
+
+
 
 
 QString Profiler::removeLink( CartaObject* cartaObject){
@@ -562,7 +574,7 @@ QString Profiler::setClipBuffer( int bufferAmount ){
         if ( oldBufferAmount != bufferAmount ){
             m_stateData.setValue<int>( CLIP_BUFFER_SIZE, bufferAmount );
             m_stateData.flushState();
-            _generateProfile( true );
+            _generateProfile();
         }
     }
     else {
@@ -627,7 +639,7 @@ QString Profiler::setUseClipBuffer( bool useBuffer ){
     if ( useBuffer != oldUseBuffer ){
         m_state.setValue<bool>(CLIP_BUFFER, useBuffer );
         m_state.flushState();
-        _generateProfile( true );
+        _generateProfile();
     }
     return result;
 }
@@ -662,29 +674,29 @@ void Profiler::_updateChannel( Controller* controller ){
 }
 
 
-void Profiler::_updatePlotData( const QString& plotTitle ){
-    QString title = plotTitle;
-    if ( plotTitle.isEmpty() ){
-        title = m_plotManager->getPlotTitle();
-    }
+void Profiler::_updatePlotData(){
+    m_plotManager->clearData();
+    int curveCount = m_plotCurves.size();
+    for ( int i = 0; i < curveCount; i++ ){
+        //Convert the data units, if necessary.
+        std::vector<double> convertedX = _convertUnitsX( m_plotCurves[i] );
+        std::vector<double> convertedY = _convertUnitsY( m_plotCurves[i] );
+        int dataCount = convertedX.size();
+        std::vector< std::pair<double,double> > plotData(dataCount);
+        for ( int i = 0; i < dataCount; i++ ){
+            plotData[i].first  = convertedX[i];
+            plotData[i].second = convertedY[i];
+        }
 
-    //Convert the data units, if necessary.
-    std::vector<double> convertedX = _convertUnitsX();
-    std::vector<double> convertedY = _convertUnitsY();
-    int dataCount = convertedX.size();
-    std::vector< std::pair<double,double> > plotData(dataCount);
-    for ( int i = 0; i < dataCount; i++ ){
-        plotData[i].first  = convertedX[i];
-        plotData[i].second = convertedY[i];
+        //Put the data into the plot.
+        Carta::Lib::Hooks::Plot2DResult plotResult( m_plotCurves[i]->getName(), "", "", plotData );
+        m_plotManager->addData( &plotResult );
     }
-
-    //Put the data into the plot.
     QString bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
     bottomUnit = _getUnitUnits( bottomUnit );
     QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
-    Carta::Lib::Hooks::Plot2DResult plotResult( title, bottomUnit, leftUnit, plotData );
-
-    m_plotManager->setData( plotResult );
+    m_plotManager->setTitleAxisX( bottomUnit );
+    m_plotManager->setTitleAxisY( leftUnit );
     m_plotManager->updatePlot();
 }
 
@@ -704,7 +716,7 @@ QString Profiler::_zoomToSelection(){
         }
     }
     else {
-        _generateProfile( valid );
+        _generateProfile();
     }
     return result;
 }

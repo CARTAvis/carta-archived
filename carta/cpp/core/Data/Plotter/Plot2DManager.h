@@ -9,6 +9,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/Hooks/Histogram.h"
+#include "CartaLib/Hooks/Plot2DResult.h"
 #include <QObject>
 
 namespace Carta {
@@ -29,6 +30,7 @@ class Plot2DGenerator;
 
 namespace Data {
 
+
 class Plot2DManager : public QObject, public Carta::State::CartaObject {
 
     Q_OBJECT
@@ -45,6 +47,11 @@ public:
     //a public constructor.  The path and id passed in are that of the application
     //class.
     Plot2DManager( const QString& path, const QString& id );
+
+    /**
+     * Remove all data from the plot.
+     */
+    void clearData();
 
     /**
      * Clear the zoom selection.
@@ -86,7 +93,7 @@ public:
      *      for example, if there is no data on the plot.
      * @return - the plot minimum and maximum y-value.
      */
-    std::pair<double,double> getPlotBoundsY( bool* valid ) const;
+    std::pair<double,double> getPlotBoundsY( const QString& id, bool* valid ) const;
 
     /**
      * Get the min and max of the zoom selection.
@@ -123,13 +130,13 @@ public:
      * Set whether or not the graph should be colored.
      * @param colored - true if the graph should be colored; false otherwise.
      */
-    void setColored( bool colored );
+    void setColored( bool colored, const QString& id = QString() );
 
     /**
-     * Set the plot data.
+     * Add data to the plot.
      * @param data - a list of (x,y)-values for the plot.
      */
-    void setData( Carta::Lib::Hooks::Plot2DResult data);
+    void addData( const Carta::Lib::Hooks::Plot2DResult* data);
 
     /**
      * Set whether or not the y-axis of the plot should use a log scale.
@@ -167,7 +174,7 @@ public:
      * Set the line/fill style for the plot.
      * @param styleName - a plot style identifier.
      */
-    void setStyle( const QString& styleName );
+    void setStyle( const QString& styleName, const QString& id = QString() );
 
     /**
      * Set the label for the x-axis.

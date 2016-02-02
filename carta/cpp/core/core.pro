@@ -72,6 +72,7 @@ HEADERS += \
     Data/LinkableImpl.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
+    Data/Profile/CurveData.h \
     Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
     Data/Profile/SpectralUnits.h \
@@ -176,6 +177,7 @@ SOURCES += \
     Data/Plotter/PlotStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
+    Data/Profile/CurveData.cpp \
     Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/SpectralUnits.cpp \

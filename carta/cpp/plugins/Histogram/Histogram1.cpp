@@ -160,12 +160,12 @@ Histogram1::handleHook( BaseHook & hookData )
         Carta::Lib::Hooks::HistogramHook & hook
             = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
 
-        const auto & images = hook.paramsPtr-> dataSource;
-        if ( images.size() == 0 ) {
+        const auto & image = hook.paramsPtr-> dataSource;
+        if ( !image ) {
             return false;
         }
 
-        auto casaImage = cartaII2casaII_float( images.front() );
+        auto casaImage = cartaII2casaII_float( image );
         if( ! casaImage) {
             qWarning() << "Histogram plugin: not an image created by casaimageloader...";
             return false;

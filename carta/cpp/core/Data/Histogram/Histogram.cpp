@@ -5,6 +5,7 @@
 #include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/DataSource.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Data/Plotter/Plot2DManager.h"
@@ -182,8 +183,7 @@ void Histogram::clear(){
 
 
 void Histogram::_createHistogram( Controller* controller){
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = controller->getPipeline();
-    m_plotManager->setPipeline( pipeline );
+
     double minIntensity = 0;
     double maxIntensity = 0;
     std::pair<int,int> frameBounds = _getFrameBounds();
@@ -243,13 +243,6 @@ void Histogram::_finishColor(){
     m_stateData.flushState();
 }
 
-std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> Histogram::_generateData(Controller* controller){
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> result;
-    if ( controller != nullptr ){
-        result = controller->getDataSources();
-    }
-    return result;
-}
 
 void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller ){
     Controller* activeController = controller;
@@ -906,14 +899,17 @@ void Histogram::_loadData( Controller* controller ){
     double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
     double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
 
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources = controller-> getDataSources();
-    if ( dataSources.size() > 0 ) {
+    std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+    if ( dataSource ) {
+        std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image= dataSource->_getImage();
+        m_plotManager->setPipeline( pipeline );
         auto result = Globals::instance()-> pluginManager()
-                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(dataSources, binCount,
+                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(image, binCount,
                                           minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
                                           minIntensity, maxIntensity);
         auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-            m_plotManager->setData( data );
+            m_plotManager->addData( &data );
             double freqLow = data.getFrequencyMin();
             double freqHigh = data.getFrequencyMax();
             setPlaneRange( freqLow, freqHigh);
@@ -930,7 +926,7 @@ void Histogram::_loadData( Controller* controller ){
     else {
         _resetDefaultStateData();
         const Carta::Lib::Hooks::HistogramResult data;
-        m_plotManager->setData( data );
+        m_plotManager->addData( &data );
     }
 }
 
@@ -1822,6 +1818,16 @@ void Histogram::_updateChannel( Controller* controller ){
     QString mode = m_state.getValue<QString>(PLANE_MODE);
     if ( mode == PLANE_MODE_SINGLE ){
         _generateHistogram(true, controller );
+    }
+}
+
+
+void Histogram::updateColorMap(){
+    Controller* controller = _getControllerSelected();
+    std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+    if ( dataSource ){
+        std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
+        m_plotManager->setPipeline( pipeline );
     }
 }
 

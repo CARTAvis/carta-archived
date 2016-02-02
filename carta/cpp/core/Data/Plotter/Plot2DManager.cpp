@@ -40,6 +40,23 @@ Plot2DManager::Plot2DManager( const QString& path, const QString& id ):
 }
 
 
+void Plot2DManager::addData( const Carta::Lib::Hooks::Plot2DResult* data){
+    if ( m_plotGenerator ){
+        std::vector< pair<double,double> > plotData = data->getData();
+        const QString& name = data->getName();
+        m_plotGenerator->addData( plotData, name );
+    }
+}
+
+
+
+void Plot2DManager::clearData(){
+    if ( m_plotGenerator ){
+        m_plotGenerator->clearData();
+    }
+}
+
+
 void Plot2DManager::clearSelection(){
     if ( m_plotGenerator ){
         m_plotGenerator->clearSelection();
@@ -93,10 +110,10 @@ QString Plot2DManager::getAxisUnitsY() const {
 }
 
 
-std::pair<double,double> Plot2DManager::getPlotBoundsY(bool* valid ) const {
+std::pair<double,double> Plot2DManager::getPlotBoundsY( const QString& id, bool* valid ) const {
     std::pair<double,double> bounds;
     if ( m_plotGenerator ){
-        bounds = m_plotGenerator ->getPlotBoundsY( valid );
+        bounds = m_plotGenerator ->getPlotBoundsY( id, valid );
     }
     return bounds;
 }
@@ -244,16 +261,9 @@ void Plot2DManager::setAxisXRange( double min, double max ){
 }
 
 
-void Plot2DManager::setColored( bool colored ){
+void Plot2DManager::setColored( bool colored, const QString& id ){
     if ( m_plotGenerator ){
-        m_plotGenerator->setColored( colored );
-    }
-}
-
-
-void Plot2DManager::setData( Carta::Lib::Hooks::Plot2DResult data){
-    if ( m_plotGenerator ){
-        m_plotGenerator->setData( data );
+        m_plotGenerator->setColored( colored, id );
     }
 }
 
@@ -268,6 +278,7 @@ void Plot2DManager::setLogScale( bool logScale ){
 void Plot2DManager::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline) {
     if ( m_plotGenerator ){
         m_plotGenerator->setPipeline( pipeline );
+        updatePlot();
     }
 }
 
@@ -292,9 +303,9 @@ void Plot2DManager::setRangeColor( double min, double max ){
 }
 
 
-void Plot2DManager::setStyle( const QString& styleName ){
+void Plot2DManager::setStyle( const QString& styleName, const QString& id ){
     if ( m_plotGenerator ){
-        m_plotGenerator->setStyle( styleName );
+        m_plotGenerator->setStyle( styleName, id );
     }
 }
 

@@ -43,6 +43,11 @@ public:
     Plot2DGenerator( PlotType plotType );
 
     /**
+     * Remove all data from the plot.
+     */
+    void clearData();
+
+    /**
      * Clear the zoom selection.
      */
     void clearSelection();
@@ -52,6 +57,7 @@ public:
      */
     void clearSelectionColor();
 
+
     /**
      * Return the y-axis label for the plot.
      * @return - the plot y-axis label.
@@ -60,11 +66,12 @@ public:
 
     /**
      * Return the (min,max) y-values of the plot.
+     * @param id - the identifier for the data set where the bounds are needed.
      * @param valid - true if the plot y-values are valid; false otherwise (for
      *      example, the plot contains no data.
      * @return - the range of plot y-values.
      */
-    std::pair<double,double> getPlotBoundsY( bool* valid ) const;
+    std::pair<double,double> getPlotBoundsY( const QString& id, bool* valid ) const;
 
     /**
      * Return the title of the plot.
@@ -105,14 +112,17 @@ public:
     /**
      * Set whether or not the plot should be colored.
      * @param colored true if the plot should be colored; false if it should be drawn in just a single color.
+     * @param id - the data set that should be colored or an empty string to apply
+     *      the colored attribute to all data sets.
      */
-    void setColored( bool colored );
+    void setColored( bool colored, const QString& id = QString() );
 
     /**
      * Sets the data for the plot.
      * @param data the plot data (x,y) pairs and additional information for plotting.
+     * @param id - an identifier for the new data set.
      */
-    void setData( Carta::Lib::Hooks::Plot2DResult data);
+    void addData( std::vector< std::pair<double,double> > data, const QString& id );
 
     /**
      * Set whether or not the plot should use a log scale.
@@ -183,8 +193,11 @@ public:
     /**
      * Set the drawing style for the plot.
      * @param style {QString} the plot draw style.
+     * @param id - an identifier for the data set that should be styled or an empty string
+     *      to apply the style to all data sets.
      */
-    void setStyle( QString style );
+    void setStyle( const QString& style, const QString& id = QString()  );
+
 
     /**
      * Set a label for the x-axis.
@@ -209,6 +222,7 @@ public:
     virtual ~Plot2DGenerator();
 
 private:
+    std::shared_ptr<Plot2D> _findData( const QString& id ) const;
 
     //Update the y-axis scales (where to plot from).
     void _updateScales();
@@ -217,7 +231,7 @@ private:
     //Actual qwt plot
     QwtPlot *m_plot;
     //Data and styling for the plot
-    Plot2D* m_plot2D;
+    QList< std::shared_ptr<Plot2D> > m_datas;
     Plot2DSelection *m_range;
     Plot2DSelection * m_rangeColor;
     Plot2DLine* m_vLine;
@@ -227,7 +241,9 @@ private:
     QString m_axisNameY;
     QString m_axisUnitX;
     QString m_axisUnitY;
+    bool m_logScale;
     QFont m_font;
+    PlotType m_plotType;
 };
 }
 }

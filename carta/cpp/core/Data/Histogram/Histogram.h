@@ -320,6 +320,11 @@ public:
 signals:
     void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
 
+public slots:
+    /**
+     * Update the colors used by the histogram.
+     */
+    void updateColorMap();
 
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
@@ -330,6 +335,7 @@ private slots:
 
     void _updateChannel( Controller* controller );
     void _updateColorClips( double colorMinPercent, double colorMaxPercent);
+
 
     void  _updateColorSelection();
     QString _zoomToSelection();
@@ -360,8 +366,6 @@ private:
     *   string otherwise.
     */
     QString _getActualPlaneMode( const QString& planeModeStr );
-
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> _generateData(Controller* controller);
     
     /**
      * Returns the server side id of the histogram user preferences.

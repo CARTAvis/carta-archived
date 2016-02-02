@@ -29,6 +29,9 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
            
             this.m_axesSettings = new skel.widgets.Profile.SettingsDisplayAxis();
             this.add( this.m_axesSettings );
+            
+            this.m_displaySettings = new skel.widgets.Profile.SettingsDisplayCurves();
+            this.add( this.m_displaySettings );
         },
         
         
@@ -52,9 +55,11 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
         setId : function( id ){
             this.m_id = id;
             this.m_axesSettings.setId( id );
+            this.m_displaySettings.setId( id );
         },
         
         m_id : null,
-        m_axesSettings : null
+        m_axesSettings : null,
+        m_displaySettings : null
     }
 });
