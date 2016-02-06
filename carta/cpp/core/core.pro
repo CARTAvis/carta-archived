@@ -36,8 +36,6 @@ HEADERS += \
     Data/DataLoader.h \
     Data/Error/ErrorReport.h \
     Data/Error/ErrorManager.h \
-    Data/Plotter/Plot2DManager.h \
-    Data/Plotter/PlotStyles.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
     Data/ILinkable.h \
@@ -70,6 +68,10 @@ HEADERS += \
     Data/Layout/LayoutNodeLeaf.h \
     Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
+    Data/Plotter/Plot2DManager.h \
+    Data/Plotter/PlotStyles.h \
+    Data/Plotter/LineStyles.h \
+    Data/Plotter/LegendLocations.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Profile/CurveData.h \
@@ -89,6 +91,7 @@ HEADERS += \
     GrayColormap.h \
     ImageRenderService.h \
     ImageSaveService.h \
+    Plot2D/Plot.h \
     Plot2D/Plot2DGenerator.h \
     Plot2D/Plot2DSelection.h \
     Plot2D/Plot2D.h \
@@ -174,7 +177,9 @@ SOURCES += \
     Data/Layout/LayoutNodeLeaf.cpp \
     Data/Layout/NodeFactory.cpp \
     Data/Plotter/Plot2DManager.cpp \
+    Data/Plotter/LegendLocations.cpp \
     Data/Plotter/PlotStyles.cpp \
+    Data/Plotter/LineStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
@@ -191,6 +196,7 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
+    Plot2D/Plot.cpp \
     Plot2D/Plot2DGenerator.cpp \
     Plot2D/Plot2D.cpp \
     Plot2D/Plot2DLine.cpp \

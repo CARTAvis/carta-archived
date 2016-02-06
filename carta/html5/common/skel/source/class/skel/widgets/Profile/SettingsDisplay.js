@@ -27,11 +27,11 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             this.setMargin( 1, 1, 1, 1 );
             this._setLayout(new qx.ui.layout.HBox(2));
            
-            this.m_axesSettings = new skel.widgets.Profile.SettingsDisplayAxis();
+            this.m_axesSettings = new skel.widgets.Profile.SettingsAxis();
             this.add( this.m_axesSettings );
             
-            this.m_displaySettings = new skel.widgets.Profile.SettingsDisplayCurves();
-            this.add( this.m_displaySettings );
+            this.m_legendSettings = new skel.widgets.Profile.SettingsLegend();
+            this.add( this.m_legendSettings );
         },
         
         
@@ -43,6 +43,10 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             if ( this.m_axisSettings !== null ){
                 this.m_axesSettings.setAxisBottomUnits( profilePrefs.axisUnitsBottom );
                 this.m_axesSettings.setAxisLeftUnits( profilePrefs.axisUnitsLeft );
+                
+            }
+            if ( this.m_legendSettings !== null ){
+                this.m_legendSettings.prefUpdate( profilePrefs );
             }
         },
         
@@ -55,11 +59,11 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
         setId : function( id ){
             this.m_id = id;
             this.m_axesSettings.setId( id );
-            this.m_displaySettings.setId( id );
+            this.m_legendSettings.setId( id );
         },
         
         m_id : null,
         m_axesSettings : null,
-        m_displaySettings : null
+        m_legendSettings : null
     }
 });

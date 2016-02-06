@@ -24,6 +24,7 @@ qx.Class.define("skel.widgets.Path", {
         this.LAYER_COMPOSITION_MODES = this.BASE_PATH + "LayerCompositionModes";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
+        this.LINE_STYLES = this.BASE_PATH + "LineStyles";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
@@ -79,6 +80,7 @@ qx.Class.define("skel.widgets.Path", {
         LAYOUT : "",
         LAYOUT_MANAGER : "Layout",
         LAYOUT_PLUGIN : "",
+        LINE_STYLES : "",
         MOUSE : "mouse",
         MOUSE_DOWN : "mouseDown",
         MOUSE_DOWN_SHIFT : "mouseDownShift",

@@ -9,6 +9,7 @@ namespace Plot2D {
 
 
 Plot2DProfile::Plot2DProfile(){
+
     setStyle(QwtPlotCurve::Lines);
 }
 
@@ -23,12 +24,34 @@ void Plot2DProfile::detachFromPlot(){
 }
 
 
-void Plot2DProfile::drawLines (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
+void Plot2DProfile::drawLines (QPainter *painter, const QwtScaleMap &xMap,
+        const QwtScaleMap &yMap,
         const QRectF &canvasRect, int from, int to) const{
-    p->setPen( m_defaultColor );
-    QwtPlotCurve::drawLines( p, xMap, yMap, canvasRect, from, to );
+    QPen curvePen( m_defaultColor );
+    curvePen.setStyle( m_penStyle );
+    painter->setPen( curvePen );
+    QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
 }
 
+QwtGraphic Plot2DProfile::legendIcon( int /*index*/, const QSizeF& iconSize ) const {
+    if ( iconSize.isEmpty() ){
+        return QwtGraphic();
+    }
+    QwtGraphic icon;
+    icon.setDefaultSize( iconSize );
+    icon.setRenderHint( QwtGraphic::RenderPensUnscaled, true );
+
+    QPainter painter( &icon );
+    QPen pen( m_defaultColor );
+    pen.setStyle( m_penStyle );
+    pen.setWidth( 3 );
+    const double y = 0.5 * iconSize.height();
+    QPainterPath path;
+    path.moveTo( 0.0, y );
+    path.lineTo( iconSize.width(), y );
+    painter.strokePath( path, pen );
+    return icon;
+}
 
 void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
     int dataCount = datas.size();
@@ -58,6 +81,27 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
 
 
 void Plot2DProfile::setBaseLine( double /*val*/ ){
+}
+
+
+void Plot2DProfile::setId( const QString& id ){
+    Plot2D::setId( id );
+    QwtText dataTitle = title();
+    dataTitle.setText( id );
+    setTitle( dataTitle );
+}
+
+void Plot2DProfile::setLegendLine( bool showLegendLine ){
+    QwtText text = title();
+    if ( showLegendLine ){
+        setLegendIconSize(QSize(36,8));
+        text.setColor( "black");
+    }
+    else {
+        setLegendIconSize(QSize(0,0));
+        text.setColor( m_defaultColor );
+    }
+    setTitle( text );
 }
 
 

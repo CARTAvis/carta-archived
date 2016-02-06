@@ -7,7 +7,8 @@
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Profile.Settings", {
-    extend : qx.ui.core.Widget, 
+    extend : qx.ui.core.Widget,
+    include : skel.widgets.MTabMixin,
 
     /**
      * Constructor.
@@ -31,13 +32,16 @@ qx.Class.define("skel.widgets.Profile.Settings", {
 
             this.m_tabView = new qx.ui.tabview.TabView();
             this.m_tabView.setContentPadding( 2, 2, 2, 2 );
+            this.m_tabListenId = this.m_tabView.addListener( "changeSelection", this._sendTabIndex, this );
             this._add( this.m_tabView );
             
-            this.m_rangeSettings = new skel.widgets.Profile.SettingsRange();
-            this.m_displaySettings = new skel.widgets.Profile.SettingsDisplay();
+            this.m_pages = [];
+            this.m_pages[0] = new skel.widgets.Profile.SettingsDisplay();
+            this.m_pages[1] = new skel.widgets.Profile.SettingsProfiles();
             
-            this.m_tabView.add( this.m_rangeSettings );
-            this.m_tabView.add( this.m_displaySettings );
+            for ( var i = 0; i < this.m_pages.length; i++ ){
+                this.m_tabView.add( this.m_pages[i] );
+            }
         },
         
         /**
@@ -48,9 +52,9 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             if ( val ){
                 try {
                     var profilePrefs = JSON.parse( val );
-                    if ( this.m_displaySettings !== null ){
-                        this.m_displaySettings.prefUpdate( profilePrefs );
-                    }
+                    this.m_pages[0].prefUpdate( profilePrefs );
+                    var tabIndex = profilePrefs.tabIndex;
+                    this._selectTab( tabIndex );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val+" error: "+err );
@@ -66,12 +70,10 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             if ( val ){
                 try {
                     var profileData = JSON.parse( val );
-                    if ( this.m_rangeSettings !== null ){
-                        this.m_rangeSettings.dataUpdate( profileData );
-                    }
+                    this.m_pages[1].dataUpdate( profileData );
                 }
                 catch( err ){
-                    console.log( "Could not parse: "+val+" error: "+err );
+                    console.log( "TabSettings Could not parse: "+val+" error: "+err );
                 }
             }
         },
@@ -89,7 +91,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             this.m_sharedVar.addCB( this._profileCB.bind( this));
             this._profileCB();
         },
-
+        
         
         /**
          * Store the server-side id of the server profile settings object.
@@ -97,17 +99,12 @@ qx.Class.define("skel.widgets.Profile.Settings", {
          */
         setId : function( id ){
             this.m_id = id;
-            this.m_rangeSettings.setId( id );
-            this.m_displaySettings.setId( id );
+            for ( var i = 0; i < this.m_pages.length; i++ ){
+                this.m_pages[i].setId( id );
+            }
             this._register();
         },
         
-        m_id : null,
-        m_connector : null,
-        
-        m_tabView : null,
-        m_rangeSettings : null,
-        m_displaySettings : null,
         m_sharedVar : null,
         m_sharedVarData : null
     }

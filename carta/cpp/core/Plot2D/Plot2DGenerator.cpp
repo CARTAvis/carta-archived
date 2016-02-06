@@ -3,17 +3,10 @@
 #include "Plot2DProfile.h"
 #include "Plot2DSelection.h"
 #include "Plot2DLine.h"
+#include "Plot.h"
 #include <qwt_scale_engine.h>
-#include <qwt_scale_map.h>
-#include <QPaintDevice>
-#include <QRectF>
-#include <QPainter>
 #include <qwt_plot_renderer.h>
-#include <QImage>
-#include <QWidget>
-#include <qwt_plot.h>
-#include <qwt_plot_canvas.h>
-#include <qwt_scale_widget.h>
+#include "Data/Plotter/LegendLocations.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 
 namespace Carta {
@@ -26,21 +19,15 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     m_vLine( nullptr ),
     m_font( "Helvetica", 10){
+    m_legendVisible = false;
     m_logScale = false;
-    m_plot = new QwtPlot();
+    m_legendPosition = Carta::Data::LegendLocations::BOTTOM;
+    m_legendExternal = true;
+    m_legendLineShow = true;
+    m_plot = new Plot();
     m_plotType = plotType;
-    m_plot->setCanvasBackground( Qt::white );
-    m_plot->setAxisAutoScale( QwtPlot::yLeft, false );
 
-    QwtScaleWidget* leftWidget = m_plot->axisWidget( QwtPlot::yLeft );
-    leftWidget->setFont( m_font );
-    leftWidget->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QwtScaleWidget* bottomWidget = m_plot->axisWidget( QwtPlot::xBottom );
-    bottomWidget->setFont( m_font );
-
-    QWidget* canvas = m_plot->canvas();
-    canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding);
-    
+    m_plot->setFont( m_font );
     m_height = 335;
     m_width = 335;
 
@@ -56,6 +43,7 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     if ( plotType == PlotType::PROFILE ){
         m_vLine = new Plot2DLine();
         m_vLine->attach( m_plot );
+        setLegendVisible( true );
     }
     else {
         m_logScale = true;
@@ -76,6 +64,7 @@ void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
        else {
            qWarning() << "Unrecognized plot type: "<<(int)( m_plotType );
        }
+       pData->setLegendLine( m_legendLineShow );
     }
 
     if ( pData ){
@@ -189,6 +178,26 @@ void Plot2DGenerator::setAxisXRange( double min, double max ){
 }
 
 
+void Plot2DGenerator::setColor( QColor color, const QString& id ){
+    if ( id.isEmpty() || id.trimmed().length() == 0 ){
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            m_datas[i]->detachFromPlot();
+            m_datas[i]->setColor( color );
+            m_datas[i]->attachToPlot( m_plot );
+        }
+    }
+    else {
+        std::shared_ptr<Plot2D> plotData = _findData( id );
+        if ( plotData ){
+            plotData->detachFromPlot();
+            plotData->setColor( color );
+            plotData->attachToPlot( m_plot );
+        }
+    }
+}
+
+
 void Plot2DGenerator::setColored( bool colored, const QString& id ){
     if ( id.isEmpty() || id.trimmed().length() == 0 ){
         int dataCount = m_datas.size();
@@ -201,6 +210,38 @@ void Plot2DGenerator::setColored( bool colored, const QString& id ){
         if ( plotData ){
             plotData->setColored( colored );
         }
+    }
+}
+
+
+void Plot2DGenerator::setLegendExternal( bool externalLegend ){
+    if ( m_legendExternal != externalLegend ){
+        m_legendExternal = externalLegend;
+        _updateLegend();
+    }
+}
+
+
+void Plot2DGenerator::setLegendLocation( const QString& position ){
+    if ( position != m_legendPosition ){
+        m_legendPosition = position;
+        _updateLegend();
+    }
+}
+
+void Plot2DGenerator::setLegendLine( bool showLegendLine ){
+    int dataCount = m_datas.size();
+    m_legendLineShow = showLegendLine;
+    for ( int i = 0; i < dataCount; i++ ){
+        m_datas[i]->setLegendLine( m_legendLineShow );
+    }
+}
+
+
+void Plot2DGenerator::setLegendVisible( bool visible ){
+    if ( m_legendVisible != visible ){
+        m_legendVisible = visible;
+        _updateLegend();
     }
 }
 
@@ -286,6 +327,29 @@ bool Plot2DGenerator::setSize( int width, int height ){
 }
 
 
+void Plot2DGenerator::setLineStyle( const QString& style, const QString& id ){
+    if ( id.isEmpty() || id.trimmed().length() == 0 ){
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            //Attach & reattach so the legend icon updates.
+            m_datas[i]->detachFromPlot();
+            m_datas[i]->setLineStyle( style );
+            m_datas[i]->attachToPlot( m_plot );
+        }
+    }
+    else {
+        std::shared_ptr<Plot2D> data = _findData( id );
+        if ( data ){
+            //Detaching & reattaching so that the icon will be redrawn
+            //when the style changes.
+            data->detachFromPlot();
+            data->setLineStyle( style );
+            data->attachToPlot( m_plot );
+        }
+    }
+}
+
+
 void Plot2DGenerator::setStyle( const QString& style, const QString& id ){
     if ( id.isEmpty() || id.trimmed().length() == 0 ){
         int dataCount = m_datas.size();
@@ -340,6 +404,11 @@ QImage * Plot2DGenerator::toImage( int width, int height ) const {
     QImage * plotImage =new QImage(width, height, QImage::Format_RGB32);
     renderer.renderTo(m_plot, *plotImage );
     return plotImage;
+}
+
+
+void Plot2DGenerator::_updateLegend(){
+    m_plot->setLegendPosition( m_legendVisible, m_legendPosition, m_legendExternal );
 }
 
 

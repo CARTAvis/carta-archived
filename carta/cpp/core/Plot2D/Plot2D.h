@@ -60,6 +60,12 @@ public:
     virtual void setBaseLine( double val ) = 0;
 
     /**
+     * Set a single color to use in plotting all of the data.
+     * @param color - the color to use in plotting the data.
+     */
+    void setColor( QColor color );
+
+    /**
      * Set whether the data should be drawn in a single color or whether it should be
      * multi-colored based.
      * @param colored true for multi-colored data; false otherwise.
@@ -79,10 +85,22 @@ public:
     void setDrawStyle( const QString& style );
 
     /**
+     * Set whether or not a sample legend line should be drawn with legend items.
+     * @param showLegendLine - true if legend lines should be drawn; false, otherwise.
+     */
+    virtual void setLegendLine( bool showLegendLine );
+
+    /**
+     * Set the line style to use in plotting data sets.
+     * @param lineStyle - an identifier for a line style.
+     */
+    void setLineStyle( const QString& lineStyle );
+
+    /**
      * Set an identifier for the data set.
      * @param id - an identifier for the data set.
      */
-    void setId( const QString& id );
+    virtual void setId( const QString& id );
 
     /**
      * Store the color map.
@@ -99,6 +117,7 @@ public:
 protected:
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pipeline;
     QString m_drawStyle;
+    Qt::PenStyle m_penStyle;
     QColor m_defaultColor;
     QBrush m_brush;
     bool m_colored;

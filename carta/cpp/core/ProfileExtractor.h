@@ -417,7 +417,13 @@ public:
 
     /// is the extraction finished?
     bool
-    isFinished();
+    isFinished() const {
+        bool finished = false;
+        if ( m_totalLength == getRawDataLength() ){
+            finished = true;
+        }
+        return finished;
+    }
 
     // raw data accessors
     Carta::Lib::Image::PixelType
@@ -429,7 +435,7 @@ public:
 
     /// get the raw data length (in pixels!, not bytes)
     qint64
-    getRawDataLength()
+    getRawDataLength() const
     {
         CARTA_ASSERT( m_resultBuffer.length() % m_pixelSize == 0 );
         return m_resultBuffer.length() / m_pixelSize;

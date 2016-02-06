@@ -37,6 +37,7 @@ class Plot2DManager;
 class Controller;
 class CurveData;
 class IntensityUnits;
+class LegendLocations;
 class LinkableImpl;
 class Settings;
 class SpectralUnits;
@@ -81,23 +82,59 @@ public:
      */
     QString setAxisUnitsLeft( const QString& unitStr );
 
-    QString setClipBuffer( int bufferAmount );
-    QString setClipMax( double clipMaxClient );
-    QString setClipMin( double clipMinClient );
-    QString setClipMaxPercent( double clipMaxClient );
-    QString setClipMinPercent( double clipMinClient );
-    QString setClipRange( double clipMin, double clipMax );
-    QString setClipRangePercent( double clipMinPercent, double clipMaxPercent );
 
+    /**
+     * Set the color of a particular data set on the plot.
+     * @param name - an identifier for a data set.
+     * @param redAmount - the amount of red in the color [0,255].
+     * @param greenAmount - the amount of green in the color [0,255].
+     * @param blueAmount - the amount of blue in the color [0,255].
+     * @return - one or more error messages if the color of the data set cannot be set.
+     */
+    QStringList setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount );
 
     /**
      * Set the drawing style for the Profiler (outline, filled, etc).
      * @param style a unique identifier for a Profiler drawing style.
      * @return an error message if there was a problem setting the draw style; an empty string otherwise.
      */
-    QString setGraphStyle( const QString& style );
+    QString setLineStyle( const QString& name, const QString& lineStyle );
 
-    QString setUseClipBuffer( bool useBuffer );
+    /**
+     * Set whether the legend should be internal or external to the plot.
+     * @param externalLegend - true for an external legend; false for an internal legend.
+     */
+    void setLegendExternal( bool externalLegend );
+
+    /**
+     * Set whether or not to show a sample line next to legend items.
+     * @param showLegendLine - true if a legend line should be shown next to legend
+     *      items; false otherwise.
+     */
+    void setLegendLine( bool showLegendLine );
+
+    /**
+     * Set the location of the legend on the plot (right, bottom, etc).
+     * @param locationStr - an identifier for the location of a legend on the plot.
+     * @return - an error message if the legend location could not be set; an empty string otherwise.
+     */
+    //Note:  Different locations are available based on whether the legend is external/internal
+    //to the plot so make sure the that flag is set correctly before trying to set a location.
+    QString setLegendLocation( const QString& locationStr );
+
+    /**
+     * Set whether or not to show a legend on the plot.
+     * @param showLegend - true to show a legend on the plot; false otherwise.
+     */
+    void setLegendShow( bool showLegend );
+
+    /**
+     * Set the index of the profile settings tab that should be selected.
+     * @param index - the index of the profile settings tab that should be selected.
+     * @return - an error message if the tab index could not be set; an empty string otherwise.
+     */
+    QString setTabIndex( int index );
+
 
     virtual ~Profiler();
     const static QString CLASS_NAME;
@@ -110,38 +147,42 @@ private slots:
 private:
     const static QString AXIS_UNITS_BOTTOM;
     const static QString AXIS_UNITS_LEFT;
-    const static QString CLIP_BUFFER;
-    const static QString CLIP_BUFFER_SIZE;
-    const static QString CLIP_MIN;
-    const static QString CLIP_MAX;
-    const static QString CLIP_MIN_CLIENT;
-    const static QString CLIP_MAX_CLIENT;
-    const static QString CLIP_MIN_PERCENT;
-    const static QString CLIP_MAX_PERCENT;
     const static QString CURVES;
+    const static QString LEGEND_SHOW;
+    const static QString LEGEND_LINE;
+    const static QString LEGEND_LOCATION;
+    const static QString LEGEND_EXTERNAL;
+    const static QString TAB_INDEX;
+
+    //Assign a color to the curve.
+    void _assignColor( std::shared_ptr<CurveData> curveData );
 
     //Convert axis units.
     std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
             const QString& newUnit = QString() ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
-
     Controller* _getControllerSelected() const;
-    void _loadProfile( Controller* controller);
-    
+    QString _getLegendLocationsId() const;
     /**
      * Returns the server side id of the Profiler user preferences.
      * @return the unique server side id of the user preferences.
      */
     QString _getPreferencesId() const;
 
+    int _findCurveIndex( const QString& curveName ) const;
+
     void _initializeDefaultState();
     void _initializeCallbacks();
     void _initializeStatics();
 
+    void _loadProfile( Controller* controller);
+
+    void _saveCurveState();
+    void _saveCurveState( int index );
+
     //Notify the plot to redraw.
     void _updatePlotData();
-    QString _zoomToSelection();
 
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
     //and units "GHz".
@@ -161,7 +202,12 @@ private:
     //Preferences
     std::unique_ptr<Settings> m_preferences;
 
+    //Directs how the plot should be drawn and manages
+    //updates for the plot.
     std::unique_ptr<Plot2DManager> m_plotManager;
+
+    //Location of the legends on the plot
+    std::unique_ptr<LegendLocations> m_legendLocations;
 
     //Plot data
     QList< std::shared_ptr<CurveData> > m_plotCurves;
@@ -173,6 +219,9 @@ private:
 
     static SpectralUnits* m_spectralUnits;
     static IntensityUnits* m_intensityUnits;
+
+
+    static QList<QColor> m_curveColors;
 
 	Profiler( const Profiler& other);
 	Profiler operator=( const Profiler& other );

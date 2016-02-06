@@ -6,7 +6,7 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Profile.SettingsDisplayAxis", {
+qx.Class.define("skel.widgets.Profile.SettingsAxis", {
     extend : qx.ui.core.Widget,
 
     /**

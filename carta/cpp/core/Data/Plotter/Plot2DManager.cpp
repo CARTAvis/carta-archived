@@ -1,4 +1,5 @@
 #include "Plot2DManager.h"
+#include "LegendLocations.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Plot2D/Plot2DGenerator.h"
@@ -257,6 +258,15 @@ QString Plot2DManager::savePlot( const QString& fileName ){
 void Plot2DManager::setAxisXRange( double min, double max ){
     if ( m_plotGenerator ){
         m_plotGenerator->setAxisXRange( min, max );
+        updatePlot();
+    }
+}
+
+
+void Plot2DManager::setColor( QColor curveColor, const QString& id ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setColor( curveColor, id );
+        updatePlot();
     }
 }
 
@@ -264,6 +274,46 @@ void Plot2DManager::setAxisXRange( double min, double max ){
 void Plot2DManager::setColored( bool colored, const QString& id ){
     if ( m_plotGenerator ){
         m_plotGenerator->setColored( colored, id );
+        updatePlot();
+    }
+}
+
+
+void Plot2DManager::setLegendLocation( const QString& location ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setLegendLocation( location );
+        updatePlot();
+    }
+}
+
+
+void Plot2DManager::setLegendExternal( bool externalLegend ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setLegendExternal( externalLegend );
+        updatePlot();
+    }
+}
+
+
+void Plot2DManager::setLegendShow( bool showLegend ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setLegendVisible( showLegend );
+        updatePlot();
+    }
+}
+
+void Plot2DManager::setLegendLine( bool showLegendLine ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setLegendLine( showLegendLine );
+        updatePlot();
+    }
+}
+
+
+void Plot2DManager::setLineStyle( const QString& style, const QString& id ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setLineStyle( style, id );
+        updatePlot();
     }
 }
 
@@ -306,6 +356,7 @@ void Plot2DManager::setRangeColor( double min, double max ){
 void Plot2DManager::setStyle( const QString& styleName, const QString& id ){
     if ( m_plotGenerator ){
         m_plotGenerator->setStyle( styleName, id );
+        updatePlot();
     }
 }
 
@@ -313,6 +364,7 @@ void Plot2DManager::setStyle( const QString& styleName, const QString& id ){
 void Plot2DManager::setTitleAxisX( const QString& title ){
     if ( m_plotGenerator ){
         m_plotGenerator->setTitleAxisX( title );
+        updatePlot();
     }
 }
 
@@ -320,6 +372,7 @@ void Plot2DManager::setTitleAxisX( const QString& title ){
 void Plot2DManager::setTitleAxisY( const QString& title ){
     if ( m_plotGenerator ){
         m_plotGenerator->setTitleAxisY( title );
+        updatePlot();
     }
 }
 

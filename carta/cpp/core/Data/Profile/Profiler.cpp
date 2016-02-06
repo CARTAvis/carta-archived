@@ -9,7 +9,9 @@
 #include "Data/Image/DataSource.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
+#include "Data/Plotter/LegendLocations.h"
 #include "Data/Plotter/Plot2DManager.h"
+#include "Data/Plotter/LineStyles.h"
 #include "Data/Plotter/PlotStyles.h"
 #include "Plot2D/Plot2DGenerator.h"
 
@@ -29,15 +31,12 @@ namespace Data {
 const QString Profiler::CLASS_NAME = "Profiler";
 const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
-const QString Profiler::CLIP_BUFFER = "useClipBuffer";
-const QString Profiler::CLIP_BUFFER_SIZE = "clipBuffer";
-const QString Profiler::CLIP_MIN = "clipMin";
-const QString Profiler::CLIP_MAX = "clipMax";
-const QString Profiler::CLIP_MIN_CLIENT = "clipMinClient";
-const QString Profiler::CLIP_MAX_CLIENT = "clipMaxClient";
-const QString Profiler::CLIP_MIN_PERCENT = "clipMinPercent";
-const QString Profiler::CLIP_MAX_PERCENT = "clipMaxPercent";
 const QString Profiler::CURVES = "curves";
+const QString Profiler::LEGEND_LOCATION = "legendLocation";
+const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
+const QString Profiler::LEGEND_SHOW = "legendShow";
+const QString Profiler::LEGEND_LINE = "legendLine";
+const QString Profiler::TAB_INDEX = "tabIndex";
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
@@ -53,6 +52,12 @@ bool Profiler::m_registered =
 SpectralUnits* Profiler::m_spectralUnits = nullptr;
 IntensityUnits* Profiler::m_intensityUnits = nullptr;
 
+
+QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
+        Qt::magenta, Qt::yellow, Qt::gray };
+
+
+
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
 using Carta::Plot2D::Plot2DGenerator;
@@ -62,11 +67,15 @@ Profiler::Profiler( const QString& path, const QString& id):
             m_linkImpl( new LinkableImpl( path )),
             m_preferences( nullptr),
             m_plotManager( new Plot2DManager( path, id ) ),
+            m_legendLocations( nullptr),
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
+
+    LegendLocations* legObj = objMan->createObject<LegendLocations>();
+    m_legendLocations.reset( legObj );
 
     m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
     m_plotManager->setTitleAxisY( "" );
@@ -77,7 +86,6 @@ Profiler::Profiler( const QString& path, const QString& id):
 
     m_controllerLinked = false;
 }
-
 
 
 QString Profiler::addLink( CartaObject*  target){
@@ -108,6 +116,39 @@ QString Profiler::addLink( CartaObject*  target){
         result = "Profiler only supports linking to images";
     }
     return result;
+}
+
+
+void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
+    //First go through list of fixed colors & see if there is one available.
+    int fixedColorCount = m_curveColors.size();
+    int curveCount = m_plotCurves.size();
+    bool colorAssigned = false;
+    for ( int i = 0; i < fixedColorCount; i++ ){
+        bool colorAvailable = true;
+        QString fixedColorName = m_curveColors[i].name();
+        for ( int j = 0; j < curveCount; j++ ){
+            if ( m_plotCurves[j]->getColor().name() == fixedColorName ){
+                colorAvailable = false;
+                break;
+            }
+        }
+        if ( colorAvailable ){
+            curveData->setColor( m_curveColors[i] );
+            colorAssigned = true;
+            break;
+        }
+    }
+
+    //If there is no color in the fixed list, assign a random one.
+    if ( !colorAssigned ){
+        const int MAX_COLOR = 255;
+        int redAmount = qrand() % MAX_COLOR;
+        int greenAmount = qrand() % MAX_COLOR;
+        int blueAmount = qrand() % MAX_COLOR;
+        QColor randomColor( redAmount, greenAmount, blueAmount );
+        curveData->setColor( randomColor.name());
+    }
 }
 
 
@@ -190,6 +231,19 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
 }
 
 
+int Profiler::_findCurveIndex( const QString& curveName ) const {
+    int curveCount = m_plotCurves.size();
+    int index = -1;
+    for ( int i = 0; i < curveCount; i++ ){
+        if ( m_plotCurves[i]->getName() == curveName ){
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+
 void Profiler::_generateProfile(Controller* controller ){
     Controller* activeController = controller;
     if ( activeController == nullptr ){
@@ -233,6 +287,11 @@ QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) 
 }
 
 
+QString Profiler::_getLegendLocationsId() const {
+    return m_legendLocations->getPath();
+}
+
+
 QList<QString> Profiler::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
@@ -242,19 +301,31 @@ QString Profiler::_getPreferencesId() const {
     return m_preferences->getPath();
 }
 
+QString Profiler::_getUnitType( const QString& unitStr ){
+    QString unitType = unitStr;
+    int unitStart = unitStr.indexOf( "(");
+    if ( unitStart >= 0 ){
+        unitType = unitStr.mid( 0, unitStart );
+    }
+    return unitType;
+}
+
+
+QString Profiler::_getUnitUnits( const QString& unitStr ){
+    QString strippedUnit = "";
+    int unitStart = unitStr.indexOf( "(");
+    if ( unitStart >= 0 ){
+        int substrLength = unitStr.length() - unitStart - 2;
+        if ( substrLength > 0){
+            strippedUnit = unitStr.mid( unitStart + 1, substrLength );
+        }
+    }
+    return strippedUnit;
+}
+
 
 void Profiler::_initializeDefaultState(){
-    m_stateData.insertValue<double>( CLIP_MIN, 0 );
-    m_stateData.insertValue<double>(CLIP_MAX, 1);
-    //Difference between CLIP_MIN and CLIP_MIN_CLIENT is that CLIP_MIN
-    //will never be less than the image minimum intensity.  The CLIP_MIN_CLIENT
-    //will mostly mirror CLIP_MIN, but may be less than the image minimum intensity
-    //if the user wants to zoom out for some reason.
-    m_stateData.insertValue<double>( CLIP_MIN_CLIENT, 0 );
-    m_stateData.insertValue<double>( CLIP_MAX_CLIENT, 1 );
-    m_stateData.insertValue<int>(CLIP_BUFFER_SIZE, 10 );
-    m_stateData.insertValue<double>(CLIP_MIN_PERCENT, 0);
-    m_stateData.insertValue<double>(CLIP_MAX_PERCENT, 100);
+    //Data state is the curves
     m_stateData.insertArray( CURVES, 0 );
     m_stateData.flushState();
 
@@ -264,11 +335,36 @@ void Profiler::_initializeDefaultState(){
     m_plotManager->setTitleAxisX( unitType );
     m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, m_bottomUnit );
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
+
+    //Legend
+    bool external = true;
+    QString legendLoc = m_legendLocations->getDefaultLocation( external );
+    m_state.insertValue<QString>( LEGEND_LOCATION, legendLoc );
+    m_state.insertValue<bool>( LEGEND_EXTERNAL, external );
+    m_state.insertValue<bool>( LEGEND_SHOW, true );
+    m_state.insertValue<bool>( LEGEND_LINE, true );
+
+    //Default Tab
+    m_state.insertValue<int>( TAB_INDEX, 2 );
+
     m_state.flushState();
 }
 
 
 void Profiler::_initializeCallbacks(){
+
+    addCommandCallback( "registerLegendLocations", [=] (const QString & /*cmd*/,
+                   const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+               QString result = _getLegendLocationsId();
+               return result;
+           });
+
+        addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
+                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            QString result = _getPreferencesId();
+            return result;
+        });
+
 
     addCommandCallback( "setAxisUnitsBottom", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -289,132 +385,124 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
-    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
-            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result = _getPreferencesId();
-        return result;
-    });
 
-    addCommandCallback( "setClipBuffer", [=] (const QString & /*cmd*/,
+
+
+    addCommandCallback( "setCurveColor", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {CLIP_BUFFER_SIZE};
+        std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE, Util::NAME};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipBufferStr = dataValues[*keys.begin()];
-        bool validInt = false;
-        double clipBuffer = clipBufferStr.toInt( &validInt );
-        if ( validInt ){
-            result = setClipBuffer( clipBuffer );
+        QString redStr = dataValues[Util::RED];
+        QString greenStr = dataValues[Util::GREEN];
+        QString blueStr = dataValues[Util::BLUE];
+        QString curveName = dataValues[Util::NAME];
+        bool validRed = false;
+        int redAmount = redStr.toInt( &validRed );
+        bool validGreen = false;
+        int greenAmount = greenStr.toInt( &validGreen );
+        bool validBlue = false;
+        int blueAmount = blueStr.toInt( &validBlue );
+        if ( validRed && validGreen && validBlue ){
+            QStringList resultList = setCurveColor( curveName, redAmount, greenAmount, blueAmount );
+            result = resultList.join( ";");
         }
         else {
-            result = "Invalid clip buffer size: " + params+" must be a valid integer.";
+            result = "Please check that curve colors are integers: " + params;
         }
         Util::commandPostProcess( result );
         return result;
     });
 
-    addCommandCallback( "setClipMax", [=] (const QString & /*cmd*/,
+    addCommandCallback( "setLegendLocation", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {LEGEND_LOCATION};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString locationStr = dataValues[LEGEND_LOCATION];
+                QString result = setLegendLocation( locationStr );
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "setLegendExternal", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {LEGEND_EXTERNAL};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString externalStr = dataValues[LEGEND_EXTERNAL];
+            bool validBool = false;
+            bool externalLegend = Util::toBool( externalStr, &validBool );
+            QString result;
+            if ( validBool ){
+                setLegendExternal( externalLegend );
+            }
+            else {
+                result = "Setting the legend external to the plot must be true/false: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setLegendShow", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {LEGEND_SHOW};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString showStr = dataValues[LEGEND_SHOW];
+                bool validBool = false;
+                bool show = Util::toBool( showStr, &validBool );
+                QString result;
+                if ( validBool ){
+                    setLegendShow( show );
+                }
+                else {
+                    result = "Set show legend must be true/false: "+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "setLegendLine", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {LEGEND_LINE};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString showStr = dataValues[LEGEND_LINE];
+                    bool validBool = false;
+                    bool show = Util::toBool( showStr, &validBool );
+                    QString result;
+                    if ( validBool ){
+                        setLegendLine( show );
+                    }
+                    else {
+                        result = "Set show legend line must be true/false: "+params;
+                    }
+                    Util::commandPostProcess( result );
+                    return result;
+                });
+
+    addCommandCallback( "setLineStyle", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {CurveData::STYLE, Util::NAME};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString lineStyle = dataValues[CurveData::STYLE];
+                    QString curveName = dataValues[Util::NAME];
+                    QString result = setLineStyle( curveName, lineStyle );
+                    Util::commandPostProcess( result );
+                    return result;
+                });
+
+    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {CLIP_MAX};
+        std::set<QString> keys = {TAB_INDEX};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipMaxStr = dataValues[CLIP_MAX];
-        bool validRangeMax = false;
-        double clipMax = clipMaxStr.toDouble( &validRangeMax );
-        if ( validRangeMax ){
-            result = setClipMax( clipMax );
+        QString tabIndexStr = dataValues[TAB_INDEX];
+        bool validIndex = false;
+        int tabIndex = tabIndexStr.toInt( &validIndex );
+        if ( validIndex ){
+            result = setTabIndex( tabIndex );
         }
         else {
-            result = "Invalid zoom maximum: " + params+" must be a valid number.";
+            result = "Please check that the tab index is a number: " + params;
         }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setClipMaxPercent", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-
-        std::set<QString> keys = {CLIP_MAX_PERCENT};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipMaxPercentStr = dataValues[CLIP_MAX_PERCENT];
-        bool validRangeMax = false;
-        double clipMaxPercent = clipMaxPercentStr.toDouble( &validRangeMax );
-        if ( validRangeMax ){
-            result = setClipMaxPercent( clipMaxPercent );
-        }
-        else {
-            result = "Invalid zoom maximum percentile: " + params+", must be a valid number.";
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setClipMin", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {CLIP_MIN};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipMinStr = dataValues[CLIP_MIN];
-        bool validRangeMin = false;
-        double clipMin = clipMinStr.toDouble( &validRangeMin );
-        if ( validRangeMin ){
-            result = setClipMin( clipMin);
-        }
-        else {
-            result = "Invalid zoom minimum: " + params+" must be a valid number.";
-        }
-        Util::commandPostProcess( result );
-        return result;
-
-    });
-
-    addCommandCallback( "setClipMinPercent", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {CLIP_MIN_PERCENT};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipMinPercentStr = dataValues[CLIP_MIN_PERCENT];
-        bool validRangeMin = false;
-        double clipMinPercent = clipMinPercentStr.toDouble( &validRangeMin );
-        if ( validRangeMin ){
-            result = setClipMinPercent( clipMinPercent);
-        }
-        else {
-            result = "Invalid zoom minimum percentile: " + params+", must be a valid number.";
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setUseClipBuffer", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {CLIP_BUFFER};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipBufferStr = dataValues[*keys.begin()];
-        bool validBool = false;
-        bool useClipBuffer = Util::toBool(clipBufferStr, &validBool );
-        if ( validBool ){
-            result = setUseClipBuffer( useClipBuffer );
-        }
-        else {
-            result = "Use clip buffer must be true/false: " + params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "zoomFull", [=] (const QString & /*cmd*/,
-            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result = setClipRangePercent( 0, 100);
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "zoomRange", [=] (const QString & /*cmd*/,
-            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result = _zoomToSelection();
         Util::commandPostProcess( result );
         return result;
     });
@@ -461,14 +549,8 @@ void Profiler::_loadProfile( Controller* controller ){
         m_leftUnit = image->getPixelUnit().toStr();
 
         auto profilecb = [ = ] () {
-            /**
-             * TODO:  We need a finished signal.  Right now we are deleting
-             * when the data length is non-zero, which could miss profiles with
-             * no data.
-             */
-            //bool finished = extractor->isFinished();
-            //qDebug() << "Extractor finished="<<finished;
-            //if ( finished ){
+            bool finished = extractor->isFinished();
+            if ( finished ){
                 auto data = extractor->getDataD();
 
                 int dataCount = data.size();
@@ -481,26 +563,30 @@ void Profiler::_loadProfile( Controller* controller ){
                         plotDataY[i] = data[i];
                     }
 
-                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                    std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
-                    m_plotCurves.append( profileCurve );
-                    profileCurve->setName( fileName );
-                    profileCurve->setSource( image );
+                    int curveIndex = _findCurveIndex( fileName );
+                    std::shared_ptr<CurveData> profileCurve( nullptr );
+                    if ( curveIndex < 0 ){
+                        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                        profileCurve.reset( objMan->createObject<CurveData>() );
+                        profileCurve->setName( fileName );
+                        _assignColor( profileCurve );
+                        m_plotCurves.append( profileCurve );
+                        profileCurve->setSource( image );
+                        _saveCurveState();
+                    }
+                    else {
+                        profileCurve = m_plotCurves[curveIndex];
+                    }
                     profileCurve->setData( plotDataX, plotDataY );
                     _updatePlotData();
-                    extractor->deleteLater();
                 }
-
-                //extractor->deleteLater();
-            //}
+                extractor->deleteLater();
+            }
         };
         connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
         extractor-> start( path );
-
     }
 }
-
-
 
 
 QString Profiler::removeLink( CartaObject* cartaObject){
@@ -533,16 +619,33 @@ void Profiler::resetState( const QString& state ){
     m_state.flushState();
 }
 
+void Profiler::_saveCurveState( int index ){
+    QString key = Carta::State::UtilState::getLookup( CURVES, index );
+    QString curveState = m_plotCurves[index]->getStateString();
+    m_stateData.setObject( key, curveState );
+}
+
+void Profiler::_saveCurveState(){
+    int curveCount = m_plotCurves.size();
+    m_stateData.resizeArray( CURVES, curveCount );
+    for ( int i = 0; i < curveCount; i++ ){
+       _saveCurveState( i );
+    }
+    m_stateData.flushState();
+}
+
 QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
     QString result;
     QString actualUnits = m_spectralUnits->getActualUnits( unitStr );
     if ( !actualUnits.isEmpty() ){
         QString oldBottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
-        if ( unitStr != oldBottomUnits ){
+        if ( actualUnits != oldBottomUnits ){
             m_state.setValue<QString>( AXIS_UNITS_BOTTOM, actualUnits);
             m_plotManager->setTitleAxisX( _getUnitType( actualUnits ) );
             m_state.flushState();
-            _updatePlotData(  );
+
+            QString bottomUnit = _getUnitUnits( actualUnits );
+            m_plotManager->setTitleAxisX( bottomUnit );
         }
     }
     else {
@@ -558,7 +661,8 @@ QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
         QString oldLeftUnits = m_state.getValue<QString>( AXIS_UNITS_LEFT );
         if ( oldLeftUnits != actualUnits ){
             m_state.setValue<QString>( AXIS_UNITS_LEFT, actualUnits );
-            _updatePlotData();
+            m_state.flushState();
+            m_plotManager->setTitleAxisY( actualUnits );
         }
     }
     else {
@@ -567,104 +671,129 @@ QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
     return result;
 }
 
-QString Profiler::setClipBuffer( int bufferAmount ){
+
+QStringList Profiler::setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount ){
+    QStringList result;
+    const int MAX_COLOR = 255;
+    bool validColor = true;
+    if ( redAmount < 0 || redAmount > MAX_COLOR ){
+        validColor = false;
+        result.append("Profile curve red amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(redAmount) );
+    }
+    if ( greenAmount < 0 || greenAmount > MAX_COLOR ){
+        validColor = false;
+        result.append("Profile curve green amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(greenAmount) );
+    }
+    if ( blueAmount < 0 || blueAmount > MAX_COLOR ){
+        validColor = false;
+        result.append("Profile curve blue amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(blueAmount) );
+    }
+    if ( validColor ){
+        int index = _findCurveIndex( name );
+        if ( index >= 0 ){
+            QColor oldColor = m_plotCurves[index]->getColor();
+            QColor curveColor( redAmount, greenAmount, blueAmount );
+            if ( oldColor.name() != curveColor.name() ){
+                m_plotCurves[index]->setColor( curveColor );
+                _saveCurveState( index );
+                m_stateData.flushState();
+                m_plotManager->setColor( curveColor, name );
+            }
+        }
+        else {
+            result.append( "Unrecognized profile curve:"+name );
+        }
+    }
+    return result;
+}
+
+
+QString Profiler::setLineStyle( const QString& name, const QString& lineStyle ){
     QString result;
-    if ( bufferAmount >= 0 && bufferAmount < 100 ){
-        int oldBufferAmount = m_stateData.getValue<int>( CLIP_BUFFER_SIZE);
-        if ( oldBufferAmount != bufferAmount ){
-            m_stateData.setValue<int>( CLIP_BUFFER_SIZE, bufferAmount );
+    int index = _findCurveIndex( name );
+    if ( index >= 0 ){
+        result = m_plotCurves[index]->setLineStyle( lineStyle );
+        if ( result.isEmpty() ){
+            _saveCurveState( index );
             m_stateData.flushState();
-            _generateProfile();
+            LineStyles* lineStyles = Util::findSingletonObject<LineStyles>();
+            QString actualStyle = lineStyles->getActualLineStyle( lineStyle );
+            m_plotManager->setLineStyle( actualStyle, name );
         }
     }
     else {
-        result = "Invalid buffer amount (0,100): "+QString::number(bufferAmount);
+        result = "Profile curve was not recognized: "+name;
     }
     return result;
 }
-QString Profiler::setClipMax( double /*clipMaxClient*/){
-    QString result;
-    return result;
-}
 
-QString Profiler::setClipMin( double /*clipMinClient*/){
+QString Profiler::setLegendLocation( const QString& locateStr ){
     QString result;
-    return result;
-}
-
-QString Profiler::setClipMaxPercent( double /*clipMaxPercent*/){
-    QString result;
-    return result;
-}
-
-QString Profiler::setClipMinPercent( double /*clipMinPercent*/){
-    QString result;
-    return result;
-}
-QString Profiler::setClipRange( double /*clipMin*/, double /*clipMax*/ ){
-    QString result;
-    return result;
-}
-
-QString Profiler::setClipRangePercent( double /*clipMinPercent*/, double /*clipMaxPercent*/ ){
-    QString result;
-    return result;
-}
-
-
-QString Profiler::setGraphStyle( const QString& /*styleStr*/ ){
-    QString result;
-    /*QString oldStyle = m_state.getValue<QString>(GRAPH_STYLE);
-    QString actualStyle = _getActualGraphStyle( styleStr );
-    if ( actualStyle != "" ){
-        if ( actualStyle != oldStyle ){
-            m_state.setValue<QString>(GRAPH_STYLE, actualStyle );
+    QString actualLocation = m_legendLocations->getActualLocation( locateStr );
+    if ( !actualLocation.isEmpty() ){
+        QString oldLocation = m_state.getValue<QString>( LEGEND_LOCATION );
+        if ( oldLocation != actualLocation ){
+            m_state.setValue<QString>( LEGEND_LOCATION, actualLocation );
             m_state.flushState();
-            m_plotManager->setStyle( actualStyle );
-            m_plotManager->updatePlot();
+            m_plotManager->setLegendLocation( actualLocation );
         }
     }
     else {
-        result = "Unrecognized Profiler graph style: "+ styleStr;
-    }*/
+        result = "Unrecognized profile legend location: "+locateStr;
+    }
     return result;
 }
 
-
-
-
-QString Profiler::setUseClipBuffer( bool useBuffer ){
-    QString result;
-    bool oldUseBuffer = m_state.getValue<bool>(CLIP_BUFFER);
-    if ( useBuffer != oldUseBuffer ){
-        m_state.setValue<bool>(CLIP_BUFFER, useBuffer );
+void Profiler::setLegendExternal( bool external ){
+    bool oldExternal = m_state.getValue<bool>( LEGEND_EXTERNAL );
+    if ( external != oldExternal ){
+        m_state.setValue<bool>( LEGEND_EXTERNAL, external );
+        m_legendLocations->setAvailableLocations(external);
+        //Check to see if the current location is still supported.  If not,
+        //use the default.
+        QString currPos = m_state.getValue<QString>( LEGEND_LOCATION );
+        QString actualPos = m_legendLocations->getActualLocation( currPos );
+        if ( actualPos.isEmpty() ){
+            QString newPos = m_legendLocations->getDefaultLocation( external );
+            m_state.setValue<QString>( LEGEND_LOCATION, newPos );
+        }
         m_state.flushState();
-        _generateProfile();
+
+        m_plotManager->setLegendExternal( external );
     }
-    return result;
 }
 
-
-QString Profiler::_getUnitType( const QString& unitStr ){
-    QString unitType = unitStr;
-    int unitStart = unitStr.indexOf( "(");
-    if ( unitStart >= 0 ){
-        unitType = unitStr.mid( 0, unitStart );
+void Profiler::setLegendLine( bool showLegendLine ){
+    bool oldShowLine = m_state.getValue<bool>( LEGEND_LINE );
+    if ( oldShowLine != showLegendLine ){
+        m_state.setValue<bool>(LEGEND_LINE, showLegendLine );
+        m_state.flushState();
+        m_plotManager->setLegendLine( showLegendLine );
     }
-    return unitType;
 }
 
+void Profiler::setLegendShow( bool showLegend ){
+    bool oldShowLegend = m_state.getValue<bool>( LEGEND_SHOW );
+    if ( oldShowLegend != showLegend ){
+        m_state.setValue<bool>(LEGEND_SHOW, showLegend );
+        m_state.flushState();
+        m_plotManager->setLegendShow( showLegend );
+    }
+}
 
-QString Profiler::_getUnitUnits( const QString& unitStr ){
-    QString strippedUnit = "";
-    int unitStart = unitStr.indexOf( "(");
-    if ( unitStart >= 0 ){
-        int substrLength = unitStr.length() - unitStart - 2;
-        if ( substrLength > 0){
-            strippedUnit = unitStr.mid( unitStart + 1, substrLength );
+QString Profiler::setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int oldIndex = m_state.getValue<int>( TAB_INDEX );
+        if ( index != oldIndex ){
+            m_state.setValue<int>( TAB_INDEX, index );
+            m_state.flushState();
         }
     }
-    return strippedUnit;
+    else {
+        result = "Profile tab index must be nonnegative: "+ QString::number(index);
+    }
+    return result;
 }
 
 
@@ -689,8 +818,10 @@ void Profiler::_updatePlotData(){
         }
 
         //Put the data into the plot.
-        Carta::Lib::Hooks::Plot2DResult plotResult( m_plotCurves[i]->getName(), "", "", plotData );
+        QString dataId = m_plotCurves[i]->getName();
+        Carta::Lib::Hooks::Plot2DResult plotResult( dataId, "", "", plotData );
         m_plotManager->addData( &plotResult );
+        m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );
     }
     QString bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
     bottomUnit = _getUnitUnits( bottomUnit );
@@ -700,26 +831,6 @@ void Profiler::_updatePlotData(){
     m_plotManager->updatePlot();
 }
 
-QString Profiler::_zoomToSelection(){
-    QString result;
-    bool valid = false;
-    std::pair<double,double> range = m_plotManager->getRange( & valid );
-    if ( valid ){
-        double minRange = range.first;
-        double maxRange = range.second;
-        if ( range.first > range.second ){
-            minRange = range.second;
-            maxRange = range.first;
-        }
-        if ( minRange < maxRange ){
-            result = setClipRange( minRange, maxRange );
-        }
-    }
-    else {
-        _generateProfile();
-    }
-    return result;
-}
 
 
 

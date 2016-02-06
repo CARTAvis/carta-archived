@@ -20,6 +20,7 @@
 #include "Data/ILinkable.h"
 #include "Data/Layout/Layout.h"
 #include "Data/Layout/NodeFactory.h"
+#include "Data/Plotter/LineStyles.h"
 #include "Data/Plotter/PlotStyles.h"
 #include "Data/Preferences/Preferences.h"
 #include "Data/Preferences/PreferencesSave.h"
@@ -89,9 +90,13 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<PlotStyles>();
     Util::findSingletonObject<SpectralUnits>();
     Util::findSingletonObject<IntensityUnits>();
+    Util::findSingletonObject<LineStyles>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
+
+    QTime time = QTime::currentTime();
+    qsrand((uint)time.msec());
 }
 
 

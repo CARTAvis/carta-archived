@@ -42,6 +42,14 @@ public:
     virtual void detachFromPlot() Q_DECL_OVERRIDE;
 
     /**
+     * Return a custom icon to use for the legend item.
+     * @param index - unused.
+     * @param size - the size of the icon.
+     * @return - a custom icon for the legend item.
+     */
+    virtual QwtGraphic legendIcon( int index, const QSizeF& size ) const;
+
+    /**
      * Set the base y-vale for the plot.
      * @param val - the baseline for the plot.
      */
@@ -52,6 +60,18 @@ public:
      * @param data the plot data.
      */
     virtual void setData ( std::vector<std::pair<double,double> > data ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set an identifier for this data set.
+     * @param id - an identifier for this data set.
+     */
+    virtual void setId( const QString& id );
+
+    /**
+     * Set whether or not to display a sample line with the legend item.
+     * @param showLegendLine - true to display a sample line; false, otherwise.
+     */
+    virtual void setLegendLine( bool showLegendLine ) Q_DECL_OVERRIDE;
 
     /**
      * Destructor.

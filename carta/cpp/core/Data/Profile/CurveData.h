@@ -7,6 +7,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
+#include <QColor>
 #include <QObject>
 
 namespace Carta {
@@ -21,9 +22,17 @@ class ImageInterface;
 namespace Carta {
 namespace Data {
 
+class LineStyles;
+
 class CurveData : public Carta::State::CartaObject {
 friend class Profiler;
 public:
+
+    /**
+     * Return the color to use in plotting the points of the curve.
+     * @return - the color to use in plotting the points of the curve.
+     */
+    QColor getColor() const;
 
     /**
      * Return an identifier for the curve.
@@ -56,11 +65,23 @@ public:
     std::vector<double> getValuesY() const;
 
     /**
+     * Set the color to use in plotting the points of the curve.
+     * @param color - the color to use in plotting curve points.
+     */
+    void setColor( QColor color );
+
+    /**
      * Set the x- and y- data values that comprise the curve.
      * @param valsX - the x-coordinate values of the curve.
      * @param valsY - the y-coordinate values of the curve.
      */
     void setData( const std::vector<double>& valsX, const std::vector<double>& valsY  );
+
+    /**
+     * Set the line style (outline,solid, etc) for drawing the curve.
+     * @param lineStyle - the style to be used for connecting the curve points.
+     */
+    QString setLineStyle( const QString& lineStyle );
 
     /**
      * Set an identifier for the curve.
@@ -79,12 +100,16 @@ public:
 
 private:
 
-    void _initializeCallbacks();
+    const static QString COLOR;
+    const static QString STYLE;
+
     void _initializeDefaultState();
+    void _initializeStatics();
 
 
     void _saveCurve();
     static bool m_registered;
+    static LineStyles* m_lineStyles;
 
     CurveData( const QString& path, const QString& id );
     class Factory;

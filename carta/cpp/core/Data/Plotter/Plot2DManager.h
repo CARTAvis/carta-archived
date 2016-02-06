@@ -49,6 +49,12 @@ public:
     Plot2DManager( const QString& path, const QString& id );
 
     /**
+     * Add data to the plot.
+     * @param data - a list of (x,y)-values for the plot.
+     */
+    void addData( const Carta::Lib::Hooks::Plot2DResult* data);
+
+    /**
      * Remove all data from the plot.
      */
     void clearData();
@@ -80,6 +86,8 @@ public:
      * @return - the label for the y-axis.
      */
     QString getAxisUnitsY() const;
+
+
 
     /**
      * Get the title of the plot.
@@ -127,16 +135,55 @@ public:
     void setAxisXRange( double min, double max );
 
     /**
+     * Set the color of a specific set of data on the plot.
+     * @param curveColor - the color of a specific plot data set.
+     * @param id - an identifier for a particular data set.
+     */
+    //Note:  this refers to using a single color for the entire data set.
+    void setColor( QColor curveColor, const QString& id = QString() );
+
+    /**
      * Set whether or not the graph should be colored.
      * @param colored - true if the graph should be colored; false otherwise.
      */
+    //Note:  this refers to a multicolored data set.
     void setColored( bool colored, const QString& id = QString() );
 
     /**
-     * Add data to the plot.
-     * @param data - a list of (x,y)-values for the plot.
+     * Set whether or not to show a line with legend items.
+     * @param showLegendLine - true if a sample line should be shown with legend
+     *      items; false, otherwise.
      */
-    void addData( const Carta::Lib::Hooks::Plot2DResult* data);
+    void setLegendLine( bool showLegendLine );
+
+    /**
+     * Set the location of the legend on the plot.
+     * @param location - an identifier for a location on the plot where the
+     *      legend should appear.
+     */
+    void setLegendLocation( const QString& location );
+
+    /**
+     * Set whether the legend should be external or internal to the plot.
+     * @param externalLegend - true for a legend external to the plot; false for
+     *      a legend internal to the plot.
+     */
+    void setLegendExternal( bool externalLegend );
+
+    /**
+     * Set whether or not the legend should be shown on the plot.
+     * @param showLegend - true if the legend should be shown on the plot; false,
+     *      otherwise.
+     */
+    void setLegendShow( bool showLegend );
+
+    /**
+     * Set the line style to use for data sets (outline, dashed,solid,etc).
+     * @param style - an identifier for the line style.
+     * @param id - an identifier for the data set that should use the style
+     *  or an empty string if all data sets should use the style.
+     */
+    void setLineStyle( const QString& style, const QString& id = QString() );
 
     /**
      * Set whether or not the y-axis of the plot should use a log scale.
