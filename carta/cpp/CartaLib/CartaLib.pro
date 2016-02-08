@@ -33,7 +33,8 @@ SOURCES += \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
     IRemoteVGView.cpp \
-    Hooks/GetProfileExtractor.cpp
+    Hooks/GetProfileExtractor.cpp \
+    Regions/IRegion.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -71,7 +72,8 @@ HEADERS += \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
-    Hooks/GetProfileExtractor.h
+    Hooks/GetProfileExtractor.h \
+    Regions/IRegion.h
 
 unix {
     target.path = /usr/lib

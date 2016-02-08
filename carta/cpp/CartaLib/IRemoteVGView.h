@@ -16,57 +16,52 @@ namespace Lib
 {
 namespace InputEvents
 {
-class BaseEvent
+/// EventBase represents common functionality for all events
+/// @note: please, no virtuals here, as we want to be able to pass events by value
+class EventBase
 {
 public:
 
-    BaseEvent( const QJsonObject & json )
-    {
-        m_json = json;
-        auto it = m_json.find( "type" );
-        if ( it == m_json.end() ) {
-            m_valid = false;
-        }
-        else {
-            m_type = it.value().toString();
-            m_valid = ! m_type.isNull();
-        }
-    }
+//    EventBase( QString type ) : m_type( type ) { }
 
-    /// return the raw json of this event
-    const QJsonObject &
-    json() const { return m_json; }
-
-    /// return the type of the event (value of 'type' field)
-    const QString &
+    QString
     type() const { return m_type; }
 
-    /// is this event valid? (i.e. does it have 'type' field
     bool
-    valid() const
-    {
-        return m_valid;
-    }
+    isValid() const { return m_valid; }
 
-    /// was this event consumed?
-    bool isConsumed() const {
-        return m_consumed;
-    }
+    bool
+    isConsumed() const { return m_consumed; }
 
     /// set the consume flag to true
-    void consume() {
-        if( CARTA_RUNTIME_CHECKS) {
-            if( m_consumed) {
-                qWarning() << "Double consume of event" << type();
+    void
+    setConsumed( bool flag )
+    {
+        if ( CARTA_RUNTIME_CHECKS ) {
+            if ( m_consumed && flag ) {
+                qWarning() << "Double consume of event?" << type();
             }
         }
-        m_consumed = true;
+        m_consumed = flag;
+    }
+
+protected:
+
+    /// we only allow derived classes to change the type
+    void
+    setType( QString type )
+    {
+        m_type = type;
+    }
+
+    /// we only allow derived classes to change validity
+    void
+    setValid( bool flag )
+    {
+        m_valid = flag;
     }
 
 private:
-
-    /// the entire json of the event
-    QJsonObject m_json;
 
     /// the only parsed portion of the json: type
     QString m_type;
@@ -78,66 +73,301 @@ private:
     bool m_consumed = false;
 };
 
-class TouchEvent
+/// holder of generic json event
+/// the only requirement is that the json has 'type' field that is a string
+class GenericEvent : public EventBase
 {
 public:
 
-    TouchEvent( const BaseEvent & baseEvent )
+    GenericEvent( const QJsonObject & json )
     {
-        if ( baseEvent.type() != "tap" ) { return; }
+        // save the raw json
+        m_json = json;
+
+        // find the type field
+        auto it = m_json.find( "type" );
+        if ( it == m_json.end() || ! it.value().isString() ) {
+            // quit now, leaving the event in invalid state
+            return;
+        }
+        setType( it.value().toString() );
+        setValid( ! type().isNull() );
+    }
+
+    /// return the raw json of this event
+    const QJsonObject &
+    json() const { return m_json; }
+
+private:
+
+    /// the entire json of the event
+    QJsonObject m_json;
+};
+
+/// base for events with a single position (e.g. touch/tap/hover...)
+class OnePositionEvent
+    : public EventBase
+{
+public:
+
+    void init( const GenericEvent & baseEvent, QString eventType )
+    {
+        setType( eventType );
+        if ( baseEvent.type() != eventType ) { return; }
 
         if ( ! baseEvent.json()["x"].isDouble() ) { return; }
         if ( ! baseEvent.json()["y"].isDouble() ) { return; }
         m_pos.rx() = baseEvent.json()["x"].toDouble();
         m_pos.ry() = baseEvent.json()["y"].toDouble();
 
-        m_valid = true;
+        setValid( true );
     }
 
     const QPointF &
-    pos() const { return m_pos; }
-
-    bool
-    valid() const
+    pos() const
     {
-        return m_valid;
+        return m_pos;
+    }
+
+    void setPos( const QPointF & pos) {
+        m_pos = pos;
     }
 
 private:
 
-    bool m_valid = false;
     QPointF m_pos;
 };
 
-class HoverEvent
+
+/// event representing touch (e.g. mousedown)
+class TouchEvent
+    : public OnePositionEvent
 {
 public:
 
-    HoverEvent( const BaseEvent & baseEvent )
+    TouchEvent( const GenericEvent & baseEvent )
     {
-        if ( baseEvent.type() != "hover" ) { return; }
+        init( baseEvent, "touch");
+//        setType( "touch" );
+//        if ( baseEvent.type() != type() ) { return; }
 
-        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
-        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
-        m_pos.rx() = baseEvent.json()["x"].toDouble();
-        m_pos.ry() = baseEvent.json()["y"].toDouble();
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
 
-        m_valid = true;
+//        setValid( true );
     }
 
-    const QPointF &
-    pos() const { return m_pos; }
-
-    bool
-    valid() const
-    {
-        return m_valid;
-    }
+//    const QPointF &
+//    pos() const
+//    {
+//        return m_pos;
+//    }
 
 private:
 
-    bool m_valid = false;
     QPointF m_pos;
+};
+
+class TapEvent
+    : public OnePositionEvent
+{
+public:
+
+    TapEvent( const GenericEvent & baseEvent )
+    {
+        init( baseEvent, "tap");
+//        setType( "touch" );
+
+//        if ( baseEvent.type() != type() ) { return; }
+
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+//        setValid( true );
+    }
+
+//    const QPointF &
+//    pos() const { return m_pos; }
+
+//    bool
+//    isValid() const
+//    {
+//        return m_valid;
+//    }
+
+private:
+
+//    bool m_valid = false;
+//    QPointF m_pos;
+};
+
+class DoubleTapEvent
+        : public OnePositionEvent
+{
+public:
+
+    DoubleTapEvent( const GenericEvent & baseEvent )
+    {
+        init( baseEvent, "dbltap");
+//        if ( baseEvent.type() != "dbltap" ) { return; }
+
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+//        m_valid = true;
+    }
+
+//    const QPointF &
+//    pos() const { return m_pos; }
+
+//    bool
+//    valid() const
+//    {
+//        return m_valid;
+//    }
+
+private:
+
+//    bool m_valid = false;
+//    QPointF m_pos;
+};
+
+class HoverEvent
+        : public OnePositionEvent
+{
+public:
+
+    HoverEvent( const GenericEvent & baseEvent )
+    {
+        init( baseEvent, "hover");
+//        if ( baseEvent.type() != "hover" ) { return; }
+
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+//        m_valid = true;
+    }
+
+//    const QPointF &
+//    pos() const { return m_pos; }
+
+//    bool
+//    valid() const
+//    {
+//        return m_valid;
+//    }
+
+//private:
+
+//    bool m_valid = false;
+//    QPointF m_pos;
+};
+
+class DragStartEvent
+        : public OnePositionEvent
+{
+public:
+
+    DragStartEvent( const GenericEvent & baseEvent )
+    {
+        init( baseEvent, "dragstart");
+//        if ( baseEvent.type() != "dragstart" ) { return; }
+
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+//        m_valid = true;
+    }
+
+//    const QPointF &
+//    pos() const { return m_pos; }
+
+//    bool
+//    isValid() const
+//    {
+//        return m_valid;
+//    }
+
+//private:
+
+//    bool m_valid = false;
+//    QPointF m_pos;
+};
+
+class DragEvent
+        : public OnePositionEvent
+{
+public:
+
+    DragEvent( const GenericEvent & baseEvent )
+    {
+        init( baseEvent, "drag");
+//        if ( baseEvent.type() != "drag" ) { return; }
+
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+//        m_valid = true;
+    }
+
+//    const QPointF &
+//    pos() const { return m_pos; }
+
+//    bool
+//    isValid() const
+//    {
+//        return m_valid;
+//    }
+
+//private:
+
+//    bool m_valid = false;
+//    QPointF m_pos;
+};
+
+class DragDoneEvent
+        : public OnePositionEvent
+{
+public:
+
+    DragDoneEvent( const GenericEvent & baseEvent )
+    {
+        init( baseEvent, "dragdone");
+//        if ( baseEvent.type() != "dragdone" ) { return; }
+
+//        if ( ! baseEvent.json()["x"].isDouble() ) { return; }
+//        if ( ! baseEvent.json()["y"].isDouble() ) { return; }
+//        m_pos.rx() = baseEvent.json()["x"].toDouble();
+//        m_pos.ry() = baseEvent.json()["y"].toDouble();
+
+//        m_valid = true;
+    }
+
+//    const QPointF &
+//    pos() const { return m_pos; }
+
+//    bool
+//    isValid() const
+//    {
+//        return m_valid;
+//    }
+
+//private:
+
+//    bool m_valid = false;
+//    QPointF m_pos;
 };
 
 static int
@@ -160,12 +390,12 @@ eventApiTest()
     jobj["y"] = 7;
 
 //    std::unique_ptr< BaseEvent > be = new BaseEvent( jobj);
-    BaseEvent be( jobj );
+    GenericEvent be( jobj );
 
     TouchEvent te( be );
 
 //    std::unique_ptr < TouchEvent > te( convertInputEvent < TouchEvent > ( be ) );
-    if ( te.valid() ) {
+    if ( te.isValid() ) {
         qDebug() << "Touch event good" << te.pos();
     }
     else {
@@ -282,7 +512,7 @@ private:
 };
 */
 
-typedef InputEvents::BaseEvent InputEvent;
+typedef InputEvents::GenericEvent InputEvent;
 
 ///
 /// \brief An API specification for rendering graphical views to be displayed by clients.

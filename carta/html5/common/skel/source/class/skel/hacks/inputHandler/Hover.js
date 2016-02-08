@@ -37,6 +37,7 @@ qx.Class.define( "skel.hacks.inputHandler.Hover", {
 
         deactivate: function()
         {
+            // remove all listeners
             this.m_listenerIDs.forEach( function( id )
             {
                 this.m_vgView.overlayWidget().removeListenerById( id );
@@ -63,10 +64,10 @@ qx.Class.define( "skel.hacks.inputHandler.Hover", {
         },
         _mouseMoveCB: function( e )
         {
-            console.log( "hover handler", e.getButton() );
             if( ! this.m_hoverMode ) {
                 return;
             }
+            console.log( "hover handler", e.getButton() );
             var box = this.m_vgView.overlayWidget().getContentLocation();
             var mouseX = e.getDocumentLeft() - box.left
             var mouseY = e.getDocumentTop() - box.top

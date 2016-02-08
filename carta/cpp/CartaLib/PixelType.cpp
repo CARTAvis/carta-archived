@@ -81,11 +81,11 @@ size_t Image::pixelType2size(const Image::PixelType & type)
 
         break;
     default :
-        CARTA_ASSERT_ALWAYS_X( false, "Bad type conversion");
 
         break;
     }
-
+    CARTA_ASSERT_ALWAYS_X( false, "Bad type conversion");
+    return 0;
 }
 
 }

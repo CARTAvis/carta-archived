@@ -32,14 +32,6 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         this.m_listWidget = new qx.ui.form.List();
         this.m_listWidget.setSelectionMode( "multi");
 
-        //var rawData = [];
-        //for (var i = 0; i < 3; i++) {
-        //    rawData[i] = "Item No " + i;
-        //}
-        //this.m_model = qx.data.marshal.Json.createModel(rawData);
-        //
-        //this.m_listWidget = new qx.ui.list.List(this.m_model);
-
         for (var i = 0; i < 3; i++) {
             this.m_listWidget.add( new qx.ui.form.ListItem( "item" + i));
         }
