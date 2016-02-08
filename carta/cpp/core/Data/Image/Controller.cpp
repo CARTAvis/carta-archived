@@ -1620,7 +1620,7 @@ void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
             int dataIndex = _getIndexCurrent();
             if ( 0 <= dataIndex ){
                 _updateCursorText( true );
-                emit channelChanged( this );
+                emit frameChanged( this, axisType );
                 _renderAll();
             }
         }
@@ -1649,9 +1649,7 @@ void Controller::setFrameImage( int val) {
                     m_selects[i]->setUpperBound( upperBound );
                     if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
                         m_selects[i]->setIndex( 0 );
-                        if ( type == AxisInfo::KnownType::SPECTRAL ){
-                            emit channelChanged( this );
-                        }
+                        emit frameChanged( this, type );
                     }
                 }
 

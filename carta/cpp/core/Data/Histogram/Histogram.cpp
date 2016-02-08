@@ -130,8 +130,8 @@ QString Histogram::addLink( CartaObject*  target){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram(Controller*)));
-                connect( controller,SIGNAL(channelChanged(Controller*)),
-                        this, SLOT(_updateChannel(Controller*)));
+                connect( controller,SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
+                        this, SLOT(_updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
                 connect(controller, SIGNAL(clipsChanged(double,double)),
                         this, SLOT(_updateColorClips(double,double)));
                 m_controllerLinked = true;
@@ -1812,12 +1812,14 @@ int Histogram::_toBinCount( double width ) const {
     return count;
 }
 
-void Histogram::_updateChannel( Controller* controller ){
-    int spectralFrame = controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-    _setCubeChannel( spectralFrame );
-    QString mode = m_state.getValue<QString>(PLANE_MODE);
-    if ( mode == PLANE_MODE_SINGLE ){
-        _generateHistogram(true, controller );
+void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
+    if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
+        int spectralFrame = controller->getFrame( type );
+        _setCubeChannel( spectralFrame );
+        QString mode = m_state.getValue<QString>(PLANE_MODE);
+        if ( mode == PLANE_MODE_SINGLE ){
+            _generateHistogram(true, controller );
+        }
     }
 }
 

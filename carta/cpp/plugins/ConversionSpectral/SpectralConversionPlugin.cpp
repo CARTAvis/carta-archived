@@ -46,10 +46,20 @@ SpectralConversionPlugin::handleHook( BaseHook & hookData ){
                             for ( int i = 0; i < dataCount; i++ ){
                                 inputs[i] = inputValues[i];
                             }
-                            casa::CoordinateSystem cSys = *(cs.get());
-                            casa::Vector<double> outputs = converter->convert( inputs, sc );
-                            std::vector<double> resultValues = outputs.tovector();
-
+                            std::vector<double> resultValues;
+                            if ( !newUnits.isEmpty() ){
+                                casa::Vector<double> outputs = converter->convert( inputs, sc );
+                                resultValues = outputs.tovector();
+                            }
+                            else {
+                                for ( int i = 0; i < dataCount; i++ ){
+                                    double converted = inputs[i];
+                                    if ( oldUnits != "pixel"){
+                                        converted = converter->toPixel( inputs[i], sc );
+                                    }
+                                    resultValues.push_back( converted );
+                                }
+                            }
                             hook.result = resultValues;
                         }
                         else {

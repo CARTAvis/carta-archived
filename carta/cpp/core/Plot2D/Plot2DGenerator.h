@@ -102,6 +102,15 @@ public:
     std::pair<double,double> getRangeColor(bool* valid ) const;
 
     /**
+     * Return the position of the vertical plot line in world coordinates.
+     * @param valid - set to true if the plot has data and a vertical line; otherwise,
+     *  false.
+     * @return - the position in world coordinates of the plot vertical line.
+     */
+    double getVLinePosition( bool* valid ) const;
+
+
+    /**
      * Return true if the parameter is on the canvas itself rather than in the
      * margin of the canvas.
      * @param xPos - a pixel position in the horizontal direction.

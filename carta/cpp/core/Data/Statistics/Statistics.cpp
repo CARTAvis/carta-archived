@@ -81,12 +81,12 @@ QString Statistics::addLink( CartaObject*  target){
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)),
                         this , SLOT(_updateStatistics(Controller*)));
-                connect( controller, SIGNAL( channelChanged(Controller*)),
-                        this, SLOT(_updateStatistics(Controller*)));
+                connect( controller, SIGNAL( frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType type )),
+                        this, SLOT(_updateStatistics(Controller*, Carta::Lib::AxisInfo::KnownType type )));
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                         this, SLOT( _updateStatistics( Controller*)));
                 m_controllerLinked = true;
-                _updateStatistics( controller );
+                _updateStatistics( controller, Carta::Lib::AxisInfo::KnownType::OTHER );
             }
         }
     }
@@ -420,7 +420,7 @@ QString Statistics::setStatVisible( bool showStat, const QString& statName,
 }
 
 
-void Statistics::_updateStatistics( Controller* controller ){
+void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo::KnownType /*type*/  ){
     if ( controller != nullptr ){
 
         int selectedIndex = controller->getSelectImageIndex();

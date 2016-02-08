@@ -17,6 +17,7 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 
 
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
+    m_rangeColor( nullptr ),
     m_vLine( nullptr ),
     m_font( "Helvetica", 10){
     m_legendVisible = false;
@@ -34,11 +35,6 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     m_range = new Plot2DSelection();
     m_range->attach(m_plot);
 
-    m_rangeColor = new Plot2DSelection();
-    QColor shadeColor( "#CCCC99");
-    shadeColor.setAlpha( 100 );
-    m_rangeColor->setColoredShade( shadeColor );
-    m_rangeColor->attach( m_plot );
 
     if ( plotType == PlotType::PROFILE ){
         m_vLine = new Plot2DLine();
@@ -47,18 +43,32 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     }
     else {
         m_logScale = true;
+        m_rangeColor = new Plot2DSelection();
+        QColor shadeColor( "#CCCC99");
+        shadeColor.setAlpha( 100 );
+        m_rangeColor->setColoredShade( shadeColor );
+        m_rangeColor->attach( m_plot );
     }
 }
 
 
 void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
         const QString& id ){
+
+    if ( dataVector.size() == 0 ){
+        return;
+    }
+
     std::shared_ptr<Plot2D> pData = _findData( id );
     if ( !pData ){
        if ( m_plotType == PlotType::PROFILE ){
            pData.reset( new Plot2DProfile() );
        }
        else if ( m_plotType == PlotType::HISTOGRAM ){
+           //For right now, just one histogram plot
+           if ( m_datas.size() > 0 ){
+               return;
+           }
            pData.reset( new Plot2DHistogram() );
        }
        else {
@@ -92,8 +102,10 @@ void Plot2DGenerator::clearSelection(){
 
 
 void Plot2DGenerator::clearSelectionColor(){
-    m_rangeColor->reset();
-    m_plot->replot();
+    if ( m_rangeColor != nullptr ){
+        m_rangeColor->reset();
+        m_plot->replot();
+    }
 }
 
 
@@ -170,6 +182,17 @@ std::shared_ptr<Plot2D> Plot2DGenerator::_findData( const QString& id ) const {
     }
     return data;
 }
+
+double Plot2DGenerator::getVLinePosition( bool* valid ) const {
+    *valid = false;
+    double pos = 0;
+    if ( m_vLine ){
+        *valid = true;
+        pos = m_vLine->getPosition( );
+    }
+    return pos;
+}
+
 
 
 void Plot2DGenerator::setAxisXRange( double min, double max ){
@@ -276,7 +299,9 @@ void Plot2DGenerator::setRange(double min, double max){
 
 
 void Plot2DGenerator::setRangeColor(double min, double max){
-    m_rangeColor->setClipValues(min, max);
+    if ( m_rangeColor ){
+        m_rangeColor->setClipValues(min, max);
+    }
     m_plot->replot();
 }
 
@@ -289,8 +314,13 @@ void Plot2DGenerator::setRangePixels(double min, double max){
 
 
 void Plot2DGenerator::setRangePixelsColor(double min, double max){
-    m_rangeColor->setHeight(m_height);
-    m_rangeColor->setBoundaryValues(min, max);
+    if ( m_rangeColor ){
+        m_rangeColor->setHeight(m_height);
+        m_rangeColor->setBoundaryValues(min, max);
+    }
+    if ( m_vLine ){
+        m_vLine->setPositionPixel( min, max );
+    }
     m_plot->replot();
 }
 
@@ -301,7 +331,12 @@ void Plot2DGenerator::setSelectionMode(bool selection){
 
 
 void Plot2DGenerator::setSelectionModeColor( bool selection ){
-    m_rangeColor->setSelectionMode( selection );
+    if ( m_rangeColor ){
+        m_rangeColor->setSelectionMode( selection );
+    }
+    if ( m_vLine ){
+        m_vLine->setSelectionMode( selection );
+    }
 }
 
 
@@ -313,7 +348,9 @@ bool Plot2DGenerator::setSize( int width, int height ){
             m_width = width;
             m_height = height;
             m_range->setHeight( m_height );
-            m_rangeColor->setHeight( m_height );
+            if ( m_rangeColor ){
+                m_rangeColor->setHeight( m_height );
+            }
             if ( m_vLine ){
                 m_vLine->setHeight( m_height );
             }

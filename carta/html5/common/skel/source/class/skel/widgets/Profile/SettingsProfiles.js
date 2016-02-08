@@ -72,6 +72,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             styleContainer.setLayout( new qx.ui.layout.HBox(1));
             var styleLabel = new qx.ui.basic.Label( "Style:");
             this.m_styleCombo = new skel.widgets.CustomUI.SelectBox();
+            this.m_styleCombo.setToolTipText( "Select a line style for the curve.");
             this.m_styleCombo.addListener( "selectChanged", this._sendStyleChangeCmd, this );
             styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             styleContainer.add( styleLabel );

@@ -53,6 +53,8 @@ QString Animator::addLink( CartaObject* cartaObject ){
                     this, SLOT(_adjustStateController(Controller*)) );
             connect( controller, SIGNAL(axesChanged()),
                     this, SLOT(_axesChanged()));
+            connect( controller, SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
+                    this, SLOT(_updateFrame(Controller*, Carta::Lib::AxisInfo::KnownType)));
         }
     }
     else {
@@ -645,6 +647,21 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
                     }
                     _adjustStateAnimatorTypes();
                 }
+            }
+        }
+    }
+}
+
+void Animator::_updateFrame( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
+    if ( controller ){
+        int frameIndex = controller->getFrame( type );
+        const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
+        QString animName = AxisMapper::getPurpose( type, cs );
+        if ( m_animators.contains( animName) ){
+            int currentIndex = m_animators[animName]->getFrame();
+            if ( currentIndex != frameIndex ){
+                m_animators[animName]->setFrame( frameIndex );
+                _adjustStateAnimatorTypes();
             }
         }
     }

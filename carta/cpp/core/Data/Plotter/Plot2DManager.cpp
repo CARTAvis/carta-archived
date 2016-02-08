@@ -147,6 +147,17 @@ std::pair<double,double> Plot2DManager::getRangeColor( bool* valid ) const {
 }
 
 
+double Plot2DManager::getVLinePosition( bool* valid ) const {
+    *valid = false;
+    double pos = 0;
+    if ( m_plotGenerator ){
+        pos = m_plotGenerator->getVLinePosition( valid );
+    }
+    return pos;
+}
+
+
+
 void Plot2DManager::_initializeDefaultState(){
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(ImageView::MOUSE_X, 0 );

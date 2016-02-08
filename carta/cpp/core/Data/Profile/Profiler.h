@@ -139,10 +139,14 @@ public:
     virtual ~Profiler();
     const static QString CLASS_NAME;
 
+protected:
+    //Callback for moving the frame.
+    virtual void timerEvent( QTimerEvent* event );
 
 private slots:
-    void _updateChannel( Controller* controller );
+    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _generateProfile( Controller* controller = nullptr );
+    void _movieFrame();
 
 private:
     const static QString AXIS_UNITS_BOTTOM;
@@ -158,6 +162,9 @@ private:
     void _assignColor( std::shared_ptr<CurveData> curveData );
 
     //Convert axis units.
+    void _convertX( std::vector<double>& converted,
+            std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
+            const QString& oldUnit, const QString& newUnit ) const;
     std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
             const QString& newUnit = QString() ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
@@ -211,8 +218,14 @@ private:
 
     //Plot data
     QList< std::shared_ptr<CurveData> > m_plotCurves;
+
     QString m_leftUnit;
     QString m_bottomUnit;
+
+    //For a movie.
+    int m_oldFrame;
+    int m_currentFrame;
+    int m_timerId;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;

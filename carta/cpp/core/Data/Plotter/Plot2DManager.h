@@ -120,6 +120,14 @@ public:
     std::pair<double,double> getRangeColor( bool* valid ) const;
 
     /**
+     * Return the current position of the vertical line marker in world coordinates.
+     * @param valid - set to true, if the vertical line has a valid position with
+     *      respect to a data set; otherwise, false.
+     * @return - the position of the vertical line marker in world coordinates.
+     */
+    double getVLinePosition( bool* valid ) const;
+
+    /**
      * Save a copy of the plot as an image.
      * @param filename the full path where the file is to be saved.
      * @return an error message if there was a problem saving the Plot2DManager;

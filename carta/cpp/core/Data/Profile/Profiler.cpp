@@ -70,6 +70,10 @@ Profiler::Profiler( const QString& path, const QString& id):
             m_legendLocations( nullptr),
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
 
+    m_oldFrame = 0;
+    m_currentFrame = 0;
+    m_timerId = 0;
+
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
@@ -79,6 +83,7 @@ Profiler::Profiler( const QString& path, const QString& id):
 
     m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
     m_plotManager->setTitleAxisY( "" );
+    connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
 
     _initializeStatics();
     _initializeDefaultState();
@@ -97,7 +102,8 @@ QString Profiler::addLink( CartaObject*  target){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_generateProfile(Controller*)));
-                connect(controller, SIGNAL(channelChanged(Controller*)), this, SLOT( _updateChannel(Controller*)));
+                connect(controller, SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
+                        this, SLOT( _updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
                 m_controllerLinked = true;
                 _generateProfile( controller );
             }
@@ -159,33 +165,36 @@ std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveDa
         bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
     }
     std::vector<double> converted = curveData->getValuesX();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource = curveData->getSource();
     if ( ! m_bottomUnit.isEmpty() ){
-        Controller* controller = _getControllerSelected();
-        if ( controller ){
-            if ( bottomUnit != m_bottomUnit ){
-                std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource = curveData->getSource();
-                if ( dataSource ){
-                    QString oldUnit = _getUnitUnits( m_bottomUnit );
-                    QString newUnit = _getUnitUnits( bottomUnit );
-                    auto result = Globals::instance()-> pluginManager()
-                                         -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(dataSource,
-                                                 oldUnit, newUnit, converted );
-                    auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
-                        converted = data;
-                    };
-                    try {
-                        result.forEach( lam );
-                    }
-                    catch( char*& error ){
-                        QString errorStr( error );
-                        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-                        hr->registerError( errorStr );
-                    }
-                }
-            }
+        if ( bottomUnit != m_bottomUnit ){
+            QString oldUnit = _getUnitUnits( m_bottomUnit );
+            QString newUnit = _getUnitUnits( bottomUnit );
+            _convertX ( converted, dataSource, oldUnit, newUnit );
         }
     }
     return converted;
+}
+
+void Profiler::_convertX( std::vector<double>& converted,
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
+        const QString& oldUnit, const QString& newUnit ) const {
+    if ( dataSource ){
+        auto result = Globals::instance()-> pluginManager()
+                             -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(dataSource,
+                                     oldUnit, newUnit, converted );
+        auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+            converted = data;
+        };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
+        }
+    }
 }
 
 
@@ -354,16 +363,16 @@ void Profiler::_initializeDefaultState(){
 void Profiler::_initializeCallbacks(){
 
     addCommandCallback( "registerLegendLocations", [=] (const QString & /*cmd*/,
-                   const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-               QString result = _getLegendLocationsId();
-               return result;
-           });
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        QString result = _getLegendLocationsId();
+        return result;
+    });
 
-        addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
-                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            QString result = _getPreferencesId();
-            return result;
-        });
+    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        QString result = _getPreferencesId();
+        return result;
+    });
 
 
     addCommandCallback( "setAxisUnitsBottom", [=] (const QString & /*cmd*/,
@@ -415,79 +424,79 @@ void Profiler::_initializeCallbacks(){
     });
 
     addCommandCallback( "setLegendLocation", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {LEGEND_LOCATION};
-                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString locationStr = dataValues[LEGEND_LOCATION];
-                QString result = setLegendLocation( locationStr );
-                Util::commandPostProcess( result );
-                return result;
-            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {LEGEND_LOCATION};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString locationStr = dataValues[LEGEND_LOCATION];
+        QString result = setLegendLocation( locationStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setLegendExternal", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {LEGEND_EXTERNAL};
-            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString externalStr = dataValues[LEGEND_EXTERNAL];
-            bool validBool = false;
-            bool externalLegend = Util::toBool( externalStr, &validBool );
-            QString result;
-            if ( validBool ){
-                setLegendExternal( externalLegend );
-            }
-            else {
-                result = "Setting the legend external to the plot must be true/false: "+params;
-            }
-            Util::commandPostProcess( result );
-            return result;
-        });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {LEGEND_EXTERNAL};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString externalStr = dataValues[LEGEND_EXTERNAL];
+        bool validBool = false;
+        bool externalLegend = Util::toBool( externalStr, &validBool );
+        QString result;
+        if ( validBool ){
+            setLegendExternal( externalLegend );
+        }
+        else {
+            result = "Setting the legend external to the plot must be true/false: "+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setLegendShow", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {LEGEND_SHOW};
-                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString showStr = dataValues[LEGEND_SHOW];
-                bool validBool = false;
-                bool show = Util::toBool( showStr, &validBool );
-                QString result;
-                if ( validBool ){
-                    setLegendShow( show );
-                }
-                else {
-                    result = "Set show legend must be true/false: "+params;
-                }
-                Util::commandPostProcess( result );
-                return result;
-            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {LEGEND_SHOW};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString showStr = dataValues[LEGEND_SHOW];
+        bool validBool = false;
+        bool show = Util::toBool( showStr, &validBool );
+        QString result;
+        if ( validBool ){
+            setLegendShow( show );
+        }
+        else {
+            result = "Set show legend must be true/false: "+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setLegendLine", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-                    std::set<QString> keys = {LEGEND_LINE};
-                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                    QString showStr = dataValues[LEGEND_LINE];
-                    bool validBool = false;
-                    bool show = Util::toBool( showStr, &validBool );
-                    QString result;
-                    if ( validBool ){
-                        setLegendLine( show );
-                    }
-                    else {
-                        result = "Set show legend line must be true/false: "+params;
-                    }
-                    Util::commandPostProcess( result );
-                    return result;
-                });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {LEGEND_LINE};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString showStr = dataValues[LEGEND_LINE];
+        bool validBool = false;
+        bool show = Util::toBool( showStr, &validBool );
+        QString result;
+        if ( validBool ){
+            setLegendLine( show );
+        }
+        else {
+            result = "Set show legend line must be true/false: "+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setLineStyle", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-                    std::set<QString> keys = {CurveData::STYLE, Util::NAME};
-                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                    QString lineStyle = dataValues[CurveData::STYLE];
-                    QString curveName = dataValues[Util::NAME];
-                    QString result = setLineStyle( curveName, lineStyle );
-                    Util::commandPostProcess( result );
-                    return result;
-                });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {CurveData::STYLE, Util::NAME};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString lineStyle = dataValues[CurveData::STYLE];
+        QString curveName = dataValues[Util::NAME];
+        QString result = setLineStyle( curveName, lineStyle );
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -589,6 +598,35 @@ void Profiler::_loadProfile( Controller* controller ){
 }
 
 
+
+void Profiler::_movieFrame(){
+    //Get the new frame from the plot
+    bool valid = false;
+    double xLocation = qRound( m_plotManager -> getVLinePosition(&valid));
+    if ( valid ){
+        //Need to convert the xLocation to a frame number.
+        if ( m_plotCurves.size() > 0 ){
+            std::vector<double> val(1);
+            val[0] = xLocation;
+            QString oldUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+            QString basicUnit = _getUnitUnits( oldUnits );
+            if ( !basicUnit.isEmpty() ){
+                _convertX( val, m_plotCurves[0]->getSource(), basicUnit, "");
+            }
+            Controller* controller = _getControllerSelected();
+            if ( controller && m_timerId == 0 ){
+                int oldFrame = controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+                if ( oldFrame != val[0] ){
+                    m_oldFrame = oldFrame;
+                    m_currentFrame = val[0];
+                    m_timerId = startTimer( 1000 );
+                }
+            }
+        }
+    }
+}
+
+
 QString Profiler::removeLink( CartaObject* cartaObject){
     bool removed = false;
     QString result;
@@ -643,9 +681,8 @@ QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
             m_state.setValue<QString>( AXIS_UNITS_BOTTOM, actualUnits);
             m_plotManager->setTitleAxisX( _getUnitType( actualUnits ) );
             m_state.flushState();
-
-            QString bottomUnit = _getUnitUnits( actualUnits );
-            m_plotManager->setTitleAxisX( bottomUnit );
+            _updatePlotData();
+            _updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
         }
     }
     else {
@@ -662,6 +699,8 @@ QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
         if ( oldLeftUnits != actualUnits ){
             m_state.setValue<QString>( AXIS_UNITS_LEFT, actualUnits );
             m_state.flushState();
+            _updatePlotData();
+            _updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
             m_plotManager->setTitleAxisY( actualUnits );
         }
     }
@@ -797,9 +836,41 @@ QString Profiler::setTabIndex( int index ){
 }
 
 
-void Profiler::_updateChannel( Controller* controller ){
-    int frame = controller->getFrame( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-    m_plotManager->setVLinePosition( frame );
+void Profiler::timerEvent( QTimerEvent* /*event*/ ){
+    Controller* controller = _getControllerSelected();
+    if ( controller ){
+        controller->_setFrameAxis( m_oldFrame, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+        _updateChannel( controller, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+        if ( m_oldFrame < m_currentFrame ){
+            m_oldFrame++;
+        }
+        else if ( m_oldFrame > m_currentFrame ){
+            m_oldFrame--;
+        }
+        else {
+            killTimer(m_timerId );
+            m_timerId = 0;
+        }
+    }
+}
+
+
+void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
+    if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
+        int frame = controller->getFrame( type );
+        //Convert the frame to the units the plot is using.
+        QString bottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+        QString units = _getUnitUnits( bottomUnits );
+        std::vector<double> values(1);
+        values[0] = frame;
+        if ( m_plotCurves.size() > 0 ){
+            if ( !units.isEmpty() ){
+                std::shared_ptr<Carta::Lib::Image::ImageInterface> imageSource = m_plotCurves[0]->getSource();
+                _convertX(  values, imageSource, "", units );
+            }
+            m_plotManager->setVLinePosition( values[0] );
+        }
+    }
 }
 
 

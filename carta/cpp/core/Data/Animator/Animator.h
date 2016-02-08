@@ -12,6 +12,7 @@
 #include "Data/ILinkable.h"
 #include "AnimatorType.h"
 #include "Data/LinkableImpl.h"
+#include "CartaLib/AxisInfo.h"
 
 class IConnector;
 
@@ -142,6 +143,7 @@ private slots:
     void _adjustStateController( Controller* controller);
     void _axesChanged();
     void _frameChanged( int index, const QString& axisName );
+    void _updateFrame( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
 
 private:
     /**

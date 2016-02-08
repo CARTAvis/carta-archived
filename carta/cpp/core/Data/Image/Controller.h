@@ -55,6 +55,7 @@ class Controller: public QObject, public Carta::State::CartaObject,
 
     friend class Animator;
     friend class Colormap;
+    friend class Profiler;
 
     Q_OBJECT
 
@@ -505,7 +506,7 @@ signals:
       * changed.
       * @param controller this Controller.
       */
-    void channelChanged( Controller* controller );
+    void frameChanged( Controller* controller, Carta::Lib::AxisInfo::KnownType axis);
 
     /**
      * Notification that the image clip values have changed.

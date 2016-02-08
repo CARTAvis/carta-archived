@@ -8,6 +8,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
+#include "CartaLib/AxisInfo.h"
 
 #include <QObject>
 
@@ -90,7 +91,7 @@ private slots:
      * Recompute the statistics.
      * @param controller - the controller to use for statistics generation.
      */
-    void _updateStatistics( Controller* controller );
+    void _updateStatistics( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
 
 private:
     const static QString FROM;

@@ -333,7 +333,7 @@ private slots:
     void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
     void _createHistogram( Controller* );
 
-    void _updateChannel( Controller* controller );
+    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateColorClips( double colorMinPercent, double colorMaxPercent);
 
 
