@@ -910,6 +910,7 @@ void Histogram::_loadData( Controller* controller ){
                                           minIntensity, maxIntensity);
         auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
             m_plotManager->addData( &data );
+            m_plotManager->updatePlot();
             double freqLow = data.getFrequencyMin();
             double freqHigh = data.getFrequencyMax();
             setPlaneRange( freqLow, freqHigh);
@@ -925,8 +926,7 @@ void Histogram::_loadData( Controller* controller ){
     }
     else {
         _resetDefaultStateData();
-        const Carta::Lib::Hooks::HistogramResult data;
-        m_plotManager->addData( &data );
+        m_plotManager->clearData();
     }
 }
 
@@ -1826,10 +1826,12 @@ void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kn
 
 void Histogram::updateColorMap(){
     Controller* controller = _getControllerSelected();
-    std::shared_ptr<DataSource> dataSource = controller->getDataSource();
-    if ( dataSource ){
-        std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
-        m_plotManager->setPipeline( pipeline );
+    if ( controller ){
+        std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+        if ( dataSource ){
+            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
+            m_plotManager->setPipeline( pipeline );
+        }
     }
 }
 

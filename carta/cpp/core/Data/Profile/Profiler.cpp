@@ -3,6 +3,7 @@
 #include "IntensityUnits.h"
 #include "SpectralUnits.h"
 #include "Data/Clips.h"
+#include "Data/DataLoader.h"
 #include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
@@ -208,9 +209,10 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
             if ( leftUnit != m_leftUnit ){
                 std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource =
                         curveData->getSource();
-                if ( dataSource > 0 ){
+                if ( dataSource ){
                     //First, we need to make sure the x-values are in Hertz.
-                    std::vector<double> hertzVals = _convertUnitsX( curveData, "Hz");
+                    QString hertzKey = SpectralUnits::NAME_FREQUENCY + "(" + SpectralUnits::UNIT_HZ + ")";
+                    std::vector<double> hertzVals = _convertUnitsX( curveData, hertzKey );
                     bool validBounds = false;
                     std::pair<double,double> boundsY = m_plotManager->getPlotBoundsY( curveData->getName(), &validBounds );
                     if ( validBounds ){
@@ -277,6 +279,20 @@ Controller* Profiler::_getControllerSelected() const {
         }
     }
     return controller;
+}
+
+
+int Profiler::_getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const {
+    int axis = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+    if ( axis < 0 ){
+        //See if it has a tabular axis.
+        axis = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::TABULAR );
+    }
+    if ( axis < 0 ){
+        //See if it has a linear axis.
+        axis = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::LINEAR );
+    }
+    return axis;
 }
 
 
@@ -538,6 +554,7 @@ bool Profiler::isLinked( const QString& linkId ) const {
 }
 
 
+
 void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
@@ -545,55 +562,60 @@ void Profiler::_loadProfile( Controller* controller ){
     std::vector<std::shared_ptr<DataSource> > dataSources = controller->getDataSources();
 
     m_plotCurves.clear();
+    m_plotManager->clearData();
     int dataCount = dataSources.size();
     for ( int i = 0; i < dataCount; i++ ) {
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSources[i]->_getImage();
     	std::vector < int > pos( image-> dims().size(), 0 );
-        int axis = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-        Profiles::PrincipalAxisProfilePath path( axis, pos );
-        Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
-        Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
-        shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = image->metaData();
-        QString fileName = metaData->title();
-        m_leftUnit = image->getPixelUnit().toStr();
+        int axis = _getExtractionAxisIndex( image );
+        if ( axis >= 0 ){
+            Profiles::PrincipalAxisProfilePath path( axis, pos );
+            Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
+            Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
+            shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = image->metaData();
+            QString longFile = dataSources[i]->_getFileName();
+            DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
+            QString fileName = dataLoader->getShortName( longFile );
+            m_leftUnit = image->getPixelUnit().toStr();
 
-        auto profilecb = [ = ] () {
-            bool finished = extractor->isFinished();
-            if ( finished ){
-                auto data = extractor->getDataD();
+            auto profilecb = [ = ] () {
+                bool finished = extractor->isFinished();
+                if ( finished ){
+                    auto data = extractor->getDataD();
 
-                int dataCount = data.size();
-                if ( dataCount > 0 ){
-                    std::vector<double> plotDataX( dataCount );
-                    std::vector<double> plotDataY( dataCount );
+                    int dataCount = data.size();
+                    if ( dataCount > 0 ){
+                        std::vector<double> plotDataX( dataCount );
+                        std::vector<double> plotDataY( dataCount );
 
-                    for( int i = 0 ; i < dataCount; i ++ ){
-                        plotDataX[i] = i;
-                        plotDataY[i] = data[i];
+                        for( int i = 0 ; i < dataCount; i ++ ){
+                            plotDataX[i] = i;
+                            plotDataY[i] = data[i];
+                        }
+
+                        int curveIndex = _findCurveIndex( fileName );
+                        std::shared_ptr<CurveData> profileCurve( nullptr );
+                        if ( curveIndex < 0 ){
+                            Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                            profileCurve.reset( objMan->createObject<CurveData>() );
+                            profileCurve->setName( fileName );
+                            _assignColor( profileCurve );
+                            m_plotCurves.append( profileCurve );
+                            profileCurve->setSource( image );
+                            _saveCurveState();
+                        }
+                        else {
+                            profileCurve = m_plotCurves[curveIndex];
+                        }
+                        profileCurve->setData( plotDataX, plotDataY );
+                        _updatePlotData();
                     }
-
-                    int curveIndex = _findCurveIndex( fileName );
-                    std::shared_ptr<CurveData> profileCurve( nullptr );
-                    if ( curveIndex < 0 ){
-                        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                        profileCurve.reset( objMan->createObject<CurveData>() );
-                        profileCurve->setName( fileName );
-                        _assignColor( profileCurve );
-                        m_plotCurves.append( profileCurve );
-                        profileCurve->setSource( image );
-                        _saveCurveState();
-                    }
-                    else {
-                        profileCurve = m_plotCurves[curveIndex];
-                    }
-                    profileCurve->setData( plotDataX, plotDataY );
-                    _updatePlotData();
+                    extractor->deleteLater();
                 }
-                extractor->deleteLater();
-            }
-        };
-        connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
-        extractor-> start( path );
+            };
+            connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
+            extractor-> start( path );
+        }
     }
 }
 
@@ -700,7 +722,7 @@ QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
             m_state.setValue<QString>( AXIS_UNITS_LEFT, actualUnits );
             m_state.flushState();
             _updatePlotData();
-            _updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+            //_updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
             m_plotManager->setTitleAxisY( actualUnits );
         }
     }
@@ -875,17 +897,19 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
 
 
 void Profiler::_updatePlotData(){
-    m_plotManager->clearData();
+    //m_plotManager->clearData();
     int curveCount = m_plotCurves.size();
     for ( int i = 0; i < curveCount; i++ ){
         //Convert the data units, if necessary.
         std::vector<double> convertedX = _convertUnitsX( m_plotCurves[i] );
         std::vector<double> convertedY = _convertUnitsY( m_plotCurves[i] );
         int dataCount = convertedX.size();
-        std::vector< std::pair<double,double> > plotData(dataCount);
+        std::vector< std::pair<double,double> > plotData;
         for ( int i = 0; i < dataCount; i++ ){
-            plotData[i].first  = convertedX[i];
-            plotData[i].second = convertedY[i];
+            if ( !std::isinf(convertedX[i]) && !std::isinf(convertedY[i]) ){
+                std::pair<double,double> data( convertedX[i], convertedY[i]);
+                plotData.push_back( data );
+            }
         }
 
         //Put the data into the plot.

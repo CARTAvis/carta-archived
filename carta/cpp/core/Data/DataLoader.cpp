@@ -94,20 +94,40 @@ QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
     return Globals::instance()-> platform()-> getCARTADirectory().append("Images");
 }
 
-QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
-    QString sessionId( "");
-    QString rootDir = getRootDir( sessionId );
+QString DataLoader::getShortName( const QString& longName ) const {
+    QString rootDir = getRootDir( "" );
     int rootLength = rootDir.length();
+    QString shortName;
+    if ( longName.contains( rootDir)){
+        shortName = longName.right( longName.size() - rootLength - 1);
+    }
+    else {
+        int lastSlashIndex = longName.lastIndexOf( QDir::separator() );
+        if ( lastSlashIndex >= 0 ){
+            shortName = longName.right( longName.size() - lastSlashIndex - 1);
+        }
+    }
+    return shortName;
+}
+
+QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
     QStringList shortNames;
     for ( int i = 0; i < longNames.size(); i++ ){
-        QString shortName = longNames[i].right( longNames[i].size() - rootLength - 1);
+        QString shortName = getShortName( longNames[i] );
         shortNames.append( shortName );
     }
     return shortNames;
 }
 
+
 QString DataLoader::getLongName( const QString& shortName, const QString& sessionId ) const {
-    return getRootDir( sessionId) + QDir::separator() + shortName;
+    QString longName = shortName;
+    QString potentialLongName = getRootDir( sessionId) + QDir::separator() + shortName;
+    QFile file( potentialLongName );
+    if ( file.exists() ){
+        longName = potentialLongName;
+    }
+    return longName;
 }
 
 void DataLoader::_initCallbacks(){

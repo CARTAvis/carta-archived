@@ -81,8 +81,8 @@ QString Statistics::addLink( CartaObject*  target){
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)),
                         this , SLOT(_updateStatistics(Controller*)));
-                connect( controller, SIGNAL( frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType type )),
-                        this, SLOT(_updateStatistics(Controller*, Carta::Lib::AxisInfo::KnownType type )));
+                connect( controller, SIGNAL( frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
+                        this, SLOT(_updateStatistics(Controller*, Carta::Lib::AxisInfo::KnownType)));
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                         this, SLOT( _updateStatistics( Controller*)));
                 m_controllerLinked = true;

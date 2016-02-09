@@ -54,6 +54,7 @@ void Plot2DManager::addData( const Carta::Lib::Hooks::Plot2DResult* data){
 void Plot2DManager::clearData(){
     if ( m_plotGenerator ){
         m_plotGenerator->clearData();
+        updatePlot();
     }
 }
 
@@ -61,6 +62,7 @@ void Plot2DManager::clearData(){
 void Plot2DManager::clearSelection(){
     if ( m_plotGenerator ){
         m_plotGenerator->clearSelection();
+        updatePlot();
     }
 }
 
@@ -68,6 +70,7 @@ void Plot2DManager::clearSelection(){
 void Plot2DManager::clearSelectionColor(){
     if ( m_plotGenerator ){
         m_plotGenerator->clearSelectionColor();
+        updatePlot();
     }
 }
 

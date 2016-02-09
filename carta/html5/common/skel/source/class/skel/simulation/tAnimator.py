@@ -45,7 +45,7 @@ class tAnimator(unittest.TestCase):
         lastValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckLastValue")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastValueButton)
         ActionChains(driver).click( lastValueButton ).perform()
-        time.sleep( timeout )
+        time.sleep( 2 )
 
     # Get the current value
     def _getCurrentValue(self, driver, animator):

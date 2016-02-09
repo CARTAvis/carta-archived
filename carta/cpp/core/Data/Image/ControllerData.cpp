@@ -491,6 +491,16 @@ bool ControllerData::_isMatch( const QString& name ) const {
     return matched;
 }
 
+bool ControllerData::_isMatchPartial( const QString& name ) const {
+    bool matched = false;
+    QString fileName = _getFileName();
+    //We just try to match the last part of the file name.
+    if ( fileName.endsWith( name ) ){
+        matched = true;
+    }
+    return matched;
+}
+
 void ControllerData::_renderingDone(
         QImage image,
         Carta::Lib::VectorGraphics::VGList gridVG,

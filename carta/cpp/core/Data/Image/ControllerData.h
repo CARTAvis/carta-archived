@@ -353,6 +353,15 @@ private:
     bool _isMatch( const QString& name ) const;
 
     /**
+     * Returns true if the last part of the name matches this layer; false otherwise.
+     * @return true if the last part of the name matches this layer; false otherwise.
+     */
+    //Needed for when files are opened in non-standard directories and the web code
+    //only has a partial file name for security reasons.
+    bool _isMatchPartial( const QString& name ) const;
+
+
+    /**
      * Returns true if this data is selected; false otherwise.
      * @return true if this data is selected; false otherwise.
      */

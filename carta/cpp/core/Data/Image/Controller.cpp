@@ -298,6 +298,16 @@ QString Controller::closeImage( const QString& name ){
             break;
         }
     }
+    if ( targetIndex == - 1 ){
+        //See if there is a partial match.  The user may have browsed to
+        //a different directory and opened an image.
+        for ( int i = 0; i < dataCount; i++ ){
+            if ( m_datas[i]->_isMatchPartial( name )){
+                targetIndex = i;
+                break;
+            }
+        }
+    }
     if ( targetIndex >= 0 ){
         _removeData( targetIndex );
         m_stackDraw->setLayers( m_datas );
@@ -633,16 +643,18 @@ int Controller::_getIndexData( ControllerData* target ) const {
 }
 
 int Controller::_getIndexCurrent( ) const {
-    int index = m_selectImage->getIndex();
     int dataIndex = -1;
-    int visibleIndex = -1;
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isVisible() ){
-            visibleIndex++;
-            if ( visibleIndex == index ){
-                dataIndex = i;
-                break;
+    if ( m_selectImage ){
+        int index = m_selectImage->getIndex();
+        int visibleIndex = -1;
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            if ( m_datas[i]->_isVisible() ){
+                visibleIndex++;
+                if ( visibleIndex == index ){
+                    dataIndex = i;
+                    break;
+                }
             }
         }
     }
@@ -1568,13 +1580,10 @@ void Controller::_scheduleFrameReload( bool newClips ){
     if ( m_datas.size() > 0  ){
         // if reload is already pending, do nothing
         if ( m_reloadFrameQueued ) {
-            qDebug() << "Doing nothing becaue reload is queued";
             return;
         }
         int selectIndex=m_selectImage->getIndex();
         m_stackDraw->setSelectIndex( selectIndex);
-        //_renderAll();
-        //m_reloadFrameQueued = true;
         QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
     }
 }

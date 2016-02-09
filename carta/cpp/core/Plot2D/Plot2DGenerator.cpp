@@ -75,12 +75,12 @@ void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
            qWarning() << "Unrecognized plot type: "<<(int)( m_plotType );
        }
        pData->setLegendLine( m_legendLineShow );
+       m_datas.append( pData );
+       pData->attachToPlot(m_plot);
+       pData->setId( id );
     }
 
     if ( pData ){
-        m_datas.append( pData );
-        pData->attachToPlot(m_plot);
-        pData->setId( id );
         pData->setData( dataVector );
         _updateScales();
     }
@@ -92,6 +92,7 @@ void Plot2DGenerator::clearData(){
     for ( int i = 0; i < dataCount; i++ ){
         m_datas[i]->detachFromPlot();
     }
+    m_datas.clear();
 }
 
 
@@ -120,8 +121,12 @@ std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( const QString& id, bo
     *valid = false;
     std::shared_ptr<Plot2D> plotData = _findData(id);
     if ( plotData ){
+        qDebug() << "Generator found data & getting bounds from plot data";
         result = plotData->getBoundsY();
         *valid = true;
+    }
+    else {
+        qDebug() << "Generator could not get bounds for id="<<id;
     }
     return result;
 }
@@ -486,13 +491,15 @@ void Plot2DGenerator::_updateScales(){
 Plot2DGenerator::~Plot2DGenerator(){
     clearData();
     m_range->detach();
-    m_rangeColor->detach();
+    if ( m_rangeColor ){
+        m_rangeColor->detach();
+        delete m_rangeColor;
+    }
     if ( m_vLine ){
         m_vLine->detach();
         delete m_vLine;
     }
     delete m_range;
-    delete m_rangeColor;
 }
 }
 }

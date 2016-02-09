@@ -569,6 +569,14 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
                 m_histograms.insert( newIndex, histogram );
             }
         }
+        else if ( plugin == Profiler::CLASS_NAME ){
+           int profileCount = m_profilers.size();
+           if ( oldIndex < profileCount && newIndex < profileCount ){
+               Profiler* profiler = m_profilers[oldIndex];
+               m_profilers.removeAt(oldIndex );
+               m_profilers.insert( newIndex, profiler );
+           }
+        }
 
         else if ( plugin != NodeFactory::EMPTY ){
             qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
@@ -854,6 +862,10 @@ void ViewManager::_removeView( const QString& plugin, int index ){
             QString sourceId = hist->getPath();
             linkRemove( sourceId, destId );
         }
+        for ( Profiler* profile : m_profilers ){
+            QString sourceId = profile->getPath();
+            linkRemove( sourceId, destId );
+        }
         objMan->destroyObject( m_controllers[index]->getId());
         m_controllers.removeAt( index );
     }
@@ -868,6 +880,10 @@ void ViewManager::_removeView( const QString& plugin, int index ){
     else if ( plugin == Histogram::CLASS_NAME ){
         objMan->destroyObject( m_histograms[index]->getId());
         m_histograms.removeAt( index );
+    }
+    else if ( plugin == Profiler::CLASS_NAME ){
+        objMan->destroyObject( m_profilers[index]->getId());
+        m_profilers.removeAt( index );
     }
 
     else if ( plugin != NodeFactory::EMPTY ){
@@ -991,6 +1007,7 @@ QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& des
     if ( destPluginType != Controller::PLUGIN_NAME && destPluginType != Animator::CLASS_NAME &&
             destPluginType != Colormap::CLASS_NAME &&
             destPluginType != Histogram::CLASS_NAME &&
+            destPluginType != Profiler::CLASS_NAME &&
             destPluginType != Statistics::CLASS_NAME &&
             destPluginType != ViewPlugins::CLASS_NAME &&
             destPluginType != NodeFactory::HIDDEN ){

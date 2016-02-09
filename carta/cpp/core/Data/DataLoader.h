@@ -53,6 +53,13 @@ public:
     QString getRootDir(const QString& sessionId) const;
 
     /**
+     * Strips the top level directory from the file name and returns the remainder.
+     * @param longName- absolute path to a file.
+     * @return - the last part of the absolute path.
+     */
+    QString getShortName( const QString& longName ) const;
+
+    /**
      * Strips the top level directory from the list of file names and
      * returns them.
      * @param longNames - a list of absolute file path locations.

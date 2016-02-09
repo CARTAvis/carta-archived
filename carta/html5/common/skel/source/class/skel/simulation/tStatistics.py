@@ -28,7 +28,7 @@ class tStatistics(unittest.TestCase):
 
     # Test that we can show the statistics display, and it will automatically
     # link to the single controller and update the stats when shown.
-    def stest_show_stats(self):
+    def test_show_stats(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()
 
@@ -47,7 +47,7 @@ class tStatistics(unittest.TestCase):
         self.assertEqual( "Orion.methanol.cbc.contsub.image.fits", mapName, "Stat image name incorrect")
     
     #Test that we can show and hide an individual statistic
-    def stest_show_hide_stat(self):
+    def test_show_hide_stat(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()
         
@@ -95,7 +95,7 @@ class tStatistics(unittest.TestCase):
         Util.setChecked( self, driver, settingsCheck, False )
         
         #Verify we do see the Frequency statistic
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH,"//div[@id[starts-with(.,'FrequencyStat')]]")))
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,'FrequencyStat2')))
         
     #Tests that we can hide and show both image and region statistics as a group.
     def test_show_hide_stats(self):

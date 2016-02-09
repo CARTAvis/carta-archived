@@ -170,6 +170,7 @@ private:
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
     Controller* _getControllerSelected() const;
+    int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
     QString _getLegendLocationsId() const;
     /**
      * Returns the server side id of the Profiler user preferences.

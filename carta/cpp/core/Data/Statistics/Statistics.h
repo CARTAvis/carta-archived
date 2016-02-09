@@ -91,7 +91,7 @@ private slots:
      * Recompute the statistics.
      * @param controller - the controller to use for statistics generation.
      */
-    void _updateStatistics( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
+    void _updateStatistics( Controller* controller, Carta::Lib::AxisInfo::KnownType type = Carta::Lib::AxisInfo::KnownType::SPECTRAL );
 
 private:
     const static QString FROM;

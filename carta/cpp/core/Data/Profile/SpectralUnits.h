@@ -34,6 +34,8 @@ public:
     QString getActualUnits( const QString& unitStr ) const;
 
     const static QString CLASS_NAME;
+    const static QString NAME_FREQUENCY;
+    const static QString UNIT_HZ;
     const static QString UNIT_LIST;
     virtual ~SpectralUnits();
 
@@ -41,12 +43,10 @@ private:
 
     const static QString NAME_VELOCITY_RADIO;
     const static QString NAME_VELOCITY_OPTICAL;
-    const static QString NAME_FREQUENCY;
     const static QString NAME_WAVELENGTH;
     const static QString NAME_CHANNEL;
     const static QString UNIT_MS;
     const static QString UNIT_KMS;
-    const static QString UNIT_HZ;
     const static QString UNIT_MHZ;
     const static QString UNIT_GHZ;
     const static QString UNIT_MM;
