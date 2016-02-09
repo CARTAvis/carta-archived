@@ -396,10 +396,10 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
 
     m_casaCS->findPixelAxis( coord, coord2, pixelAxis );
 
-    /*qDebug() << pixelAxis << "-->" << coord << "," << coord2;
-    qDebug() << "   "
-             << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
-    */
+    //qDebug() << pixelAxis << "-->" << coord << "," << coord2;
+    //qDebug() << "   "
+    //         << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
+    
     AxisInfo & aInfo = m_axisInfos[pixelAxis];
 
     // default will be unknown axis
@@ -486,9 +486,9 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             //            }
         }
         else if ( cc.type() == casa::Coordinate::LINEAR ){
-            aInfo.setKnownType( AxisInfo::KnownType::LINEAR );
-            aInfo.setLongLabel( HtmlString::fromPlain( "Linear"));
-            aInfo.setShortLabel( HtmlString::fromPlain( "Linear"));
+            aInfo.setKnownType( AxisInfo::KnownType::LINEAR )
+                .setLongLabel( HtmlString::fromPlain( "Linear"))
+                .setShortLabel( HtmlString::fromPlain( "Linear"));
         }
         else {
             // other types... we copy whatever casacore dishes out

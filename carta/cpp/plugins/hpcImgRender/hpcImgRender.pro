@@ -21,6 +21,8 @@ HEADERS += \
 OTHER_FILES += \
     plugin.json
 
+LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
+
 # copy json to build directory
 #MYFILES = $$files($${PWD}/files/*.*)
 MYFILES = plugin.json

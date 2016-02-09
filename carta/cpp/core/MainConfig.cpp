@@ -12,6 +12,7 @@
 #include <QJsonArray>
 #include <QDir>
 #include <QCoreApplication>
+#include <cmath>
 
 namespace MainConfig {
 

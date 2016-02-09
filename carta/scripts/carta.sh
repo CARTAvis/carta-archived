@@ -23,6 +23,8 @@ If no file name passed, default sample file 555wmos.fits will be displayed.
     exit 1
 }
 
+imagefile=$HOME/CARTA/Images/aH.fits
+
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -44,9 +46,7 @@ fi
 
 logfilename=$HOME/.cartavis/log/$(date +"%Y_%m_%d").log
 
-if [ ! -e $HOME/data/ephemerides -o\
-     ! -e $HOME/data/geodetic -o\
-     ! -d $HOME/CARTA/Images/CubesTest -o\
+if [ ! -d $HOME/CARTA/Images/CubesTest -o\
      ! -d $HOME/.cartavis/log  -o\
      ! -f $HOME/.cartavis/config.json -o\
      ! -d $HOME/CARTA/snapshots/data ]; then
@@ -55,4 +55,4 @@ fi
 
 ulimit -n 2048
 
-cd $dirname/cpp/desktop && ./$appname --html $dirname/VFS/DesktopDevel/desktop/desktopIndex.html --scriptPort 9999  >> $logfilename 2>&1 &
+cd $dirname/cpp/desktop && ./$appname --html $dirname/VFS/DesktopDevel/desktop/desktopIndex.html --scriptPort 9999 $imagefile >> $logfilename 2>&1 &

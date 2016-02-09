@@ -464,8 +464,6 @@ class Image(CartaView):
     def getChannelCount(self):
         """
         Get the number of channels in the image.
-        A convenience function (defined in terms of other Python
-        commands).
 
         Returns
         -------

@@ -26,13 +26,21 @@ Developer Guide
 
    developer/contribute/Writinganimageplugin.rst
 
+C++ Auto Generated Documentation
+===================================
+
+.. toctree::
+   :maxdepth: 2
+
+   api/cpp.rst
+
 Python Auto Generated Documentation
 ===================================
 
 .. toctree::
    :maxdepth: 2
 
-   api/api.rst
+   api/python.rst
 
 Indices and tables
 ==================

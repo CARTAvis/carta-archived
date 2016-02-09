@@ -15,12 +15,15 @@
 import sys
 import os
 import shlex
+import re
+import subprocess
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('./../../carta/scriptedClient'))
+sys.path.append("/Library/Python/2.7/site-packages/breathe")
 
 # -- General configuration ------------------------------------------------
 
@@ -37,7 +40,21 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'numpydoc',
+    'sphinx.ext.todo',
 ]
+
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+# Get a description of the current position. Use Popen for 2.6 compat
+git_tag = subprocess.Popen(['git', 'describe', '--tags'], stdout=subprocess.PIPE).communicate()[0]
+
+if re.match(r'^v\d+\.\d+\.\d+$', git_tag):
+    # git_tag is a pure version number (no subsequent commits)
+    version = git_tag
+    release = git_tag
+else:
+    version = '\'latest\''
+    release = '\'latest\''
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -293,3 +310,42 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 numpydoc_show_class_members = False
+
+def run_doxygen(folder):
+    """Run the doxygen make command in the designated folder"""
+
+    try:
+        retcode = subprocess.call("cd %s; make DOXYGEN=doxygen" % folder, shell=True)
+        if retcode < 0:
+            sys.stderr.write("doxygen terminated by signal %s" % (-retcode))
+    except OSError as e:
+        sys.stderr.write("doxygen execution failed: %s" % e)
+
+
+def generate_doxygen_html(app):
+    """Run the doxygen make commands if we're on the ReadTheDocs server"""
+
+    read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+    if read_the_docs_build:
+
+        # Attempt to build the doxygen files on the RTD server. Explicitly override the path/name used
+        # for executing doxygen to simply be 'doxygen' to stop the makefiles looking for the executable.
+        # This is because the `which doxygen` effort seemed to fail when tested on the RTD server.
+        run_doxygen("../../carta/cpp/docs")
+
+def setup(app):
+
+    # Approach borrowed from the Sphinx docs
+    app.add_object_type(
+            'confval',
+            'confval',
+            objname='configuration value',
+            indextemplate='pair: %s; configuration value'
+            )
+
+    # Add hook for building doxygen html when needed
+    app.connect("builder-inited", generate_doxygen_html)
+
+    app.add_config_value('documentation_build', 'development', True)
+

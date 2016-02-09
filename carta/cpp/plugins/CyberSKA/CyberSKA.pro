@@ -5,7 +5,7 @@
 INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
 
-QT       += core gui
+QT       += core gui network
 
 TARGET = plugin
 TEMPLATE = lib

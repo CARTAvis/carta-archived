@@ -46,7 +46,7 @@ Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
     casa::CoordinateSystem cSys = casaImage->coordinates();
     casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
     if ( specAx < 0 ) {
-        qWarning() << "Image did not have a spectral coordinate";
+        //qWarning() << "Image did not have a spectral coordinate";
         /// \todo Does this mean we can only compute histograms on spectral coordinates!?!?!?!
         return bounds;
     }
@@ -120,7 +120,7 @@ Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
     casa::CoordinateSystem cSys = casaImage->coordinates();
     casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
     if ( specAx < 0 ) {
-        qWarning() << "Image did not have a spectral coordinate";
+        //qWarning() << "Image did not have a spectral coordinate";
         return bounds;
     }
 

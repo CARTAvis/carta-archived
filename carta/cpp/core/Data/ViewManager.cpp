@@ -103,7 +103,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
 void ViewManager::_adjustSize( int count, const QString& name, const QVector<int> & insertionIndices ){
     int existingCount = 0;
-    if ( name == NodeFactory::HIDDEN ){
+    if ( name == NodeFactory::HIDDEN || name == NodeFactory::EMPTY ){
         return;
     }
     else {
@@ -114,7 +114,7 @@ void ViewManager::_adjustSize( int count, const QString& name, const QVector<int
     if ( existingCount < count ){
         int index = 0;
         for ( int i = existingCount; i < count; i++ ){
-            this->getObjectId( name, insertionIndices[index], true );
+            getObjectId( name, insertionIndices[index], true );
             index++;
         }
     }
